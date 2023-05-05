@@ -1,1 +1,162 @@
 @import "~bootstrap/scss/bootstrap";
+
+$hoverEasing: cubic-bezier(0.23, 1, 0.32, 1);
+$returnEasing: cubic-bezier(0.445, 0.05, 0.55, 0.95);
+
+$base-color: #d9381e;
+$border-dark: rgba($base-color, 0.88);
+
+$jaune: #FFFF00;
+$ocre: #dfaf2c;
+$orange: #FF4500;
+$vermillion: #d9381e;
+$rouge: #FF0000;
+$pourpre: #800080;
+$violet: #EE82EE;
+$indigo: #4B0082;
+$bleu: #0000FF;
+$turquoise: #25fde9;
+$vert: #008000;
+$chartreuse: #7FFF00;
+/*
+Faire les 12 couleurs pour les groupes
+#FFFF00 (Jaune) : Les acides aigres-doux
+#dfaf2c (Ocre) : Les composés soufrés
+#FF4500 (Orange) : Les phénols doux et chauds
+#d9381e (Vermillion) : Les terpènes chauds
+#FF0000 (Rouge) : Les composés piquants
+#800080 (Pourpre) : Les terpènes odorants
+#EE82EE (Violet) : Les aldéhydes fruités
+#4B0082 (Indigo) : Les terpènes terreux
+#0000FF (Bleu) :Les pyrazines grillées
+#25fde9 (Turquoise) : Les terpènes pénétrants
+#008000 (Vert) : Les terpènes citronnés
+#7FFF00 (Chartreuse) : Les composés uniques
+
+
+Faire pas mal de dériver, et les adapter dans la BDD et en faire des classes,
+comme ça on peut tout changer à partir d'une couleur tout en l'utilisant partout grace aux classes
+Voir si on peut faire une fonction pour n'avoir à changer qu'une fois le style et une autre fois la couleur
+Sass mixin
+*/
+
+
+.container {
+  padding: 40px 80px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.card-wrap {
+  margin: 10px;
+  transform: perspective(800px);
+  transform-style: preserve-3d;
+  cursor: pointer;
+  // background-color: #fff;
+
+  &:hover {
+    .card-info {
+      transform: translateY(0);
+    }
+    .card-info p {
+      opacity: 1;
+    }
+    .card-info, .card-info p {
+      transition: 0.6s $hoverEasing;
+    }
+    .card-info:after {
+      transition: 5s $hoverEasing;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .card-bg {
+      transition:
+              0.6s $hoverEasing,
+              opacity 5s $hoverEasing;
+      opacity: 0.8;
+    }
+    .card {
+      transition:
+              0.6s $hoverEasing,
+              box-shadow 2s $hoverEasing;
+      box-shadow:
+              rgba(white, 0.2) 0 0 40px 5px,
+              rgba(white, 1) 0 0 0 1px,
+              rgba(black, 0.66) 0 30px 60px 0,
+              inset #333 0 0 0 5px,
+              inset white 0 0 0 6px;
+    }
+  }
+}
+
+.card {
+  position: relative;
+  width: 240px;
+  height: 320px;
+  background-color: #333;
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow:
+          rgba(black, 0.66) 0 30px 60px 0,
+          inset #333 0 0 0 5px,
+          inset rgba(white, 0.5) 0 0 0 6px;
+  transition: 1s $returnEasing;
+}
+
+.card-bg {
+  opacity: 0.5;
+  position: absolute;
+  top: -20px; left: -20px;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  transition:
+          1s $returnEasing,
+          opacity 5s 1s $returnEasing;
+  pointer-events: none;
+}
+
+.card-info {
+  padding: 20px;
+  position: absolute;
+  bottom: 0;
+  color: #fff;
+  transform: translateY(40%);
+  transition: 0.6s 1.6s cubic-bezier(0.215, 0.61, 0.355, 1);
+
+  p {
+    opacity: 0;
+    text-shadow: rgba(black, 1) 0 2px 3px;
+    transition: 0.6s 1.6s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+
+  * {
+    position: relative;
+    z-index: 1;
+  }
+
+  &:after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(to bottom, transparent 0%, rgba(#000, 0.6) 100%);
+    background-blend-mode: overlay;
+    opacity: 0;
+    transform: translateY(100%);
+    transition: 5s 1s $returnEasing;
+  }
+}
+
+.card-info h1 {
+  font-family: "Playfair Display", serif;
+  font-size: 36px;
+  font-weight: 700;
+  text-shadow: rgba(black, 0.5) 0 10px 10px;
+}

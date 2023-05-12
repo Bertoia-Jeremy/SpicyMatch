@@ -4,10 +4,14 @@ namespace App\Entity;
 
 use App\Repository\SpicesRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 /**
  * @ORM\Entity(repositoryClass=SpicesRepository::class)
  * @ORM\Table(name="spi_spices")
+ * @Vich\Uploadable
  */
 class Spices
 {
@@ -64,6 +68,24 @@ class Spices
      * @ORM\Column(name="spi_deleted_at", type="datetime", nullable=true)
      */
     private $deleted_at;
+
+    /**
+     * @ORM\Column(name="spi_file", type="string", length=255, nullable=true)
+     */
+    private $file;
+
+    /**
+     * @Vich\UploadableField(mapping="spice_images", fileNameProperty="file", size="imageSize")
+     * @var File|null
+     */
+    private $imageFile;
+
+    /**
+     * @ORM\Column(type="integer")
+     *
+     * @var int|null
+     */
+    private $imageSize;
 
     public function getId(): ?int
     {
@@ -176,5 +198,46 @@ class Spices
         $this->deleted_at = $deleted_at;
 
         return $this;
+    }
+
+    public function getFile(): ?string
+    {
+        return $this->file;
+    }
+
+    public function setFile(?string $file): self
+    {
+        $this->file = $file;
+
+        return $this;
+    }
+
+    /**
+     * @param File|UploadedFile|null $imageFile
+     */
+    public function setImageFile(?File $imageFile = null): void
+    {
+        $this->imageFile = $imageFile;
+
+        if (null !== $imageFile) {
+            // It is required that at least one field changes if you are using doctrine
+            // otherwise the event listeners won't be called and the file is lost
+            $this->updated_at = new \DateTime('now');
+        }
+    }
+
+    public function getImageFile(): ?File
+    {
+        return $this->imageFile;
+    }
+
+    public function setImageSize(?int $imageSize): void
+    {
+        $this->imageSize = $imageSize;
+    }
+
+    public function getImageSize(): ?int
+    {
+        return $this->imageSize;
     }
 }

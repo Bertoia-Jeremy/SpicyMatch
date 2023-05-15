@@ -35,6 +35,23 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
      * @ORM\Column(name="usr_password", type="string")
      */
     private $password;
+    /**
+     * @var \DateTimeInterface|null
+     */
+    /**
+     * @ORM\Column(name="usr_created_at", type="datetime")
+     */
+    private $created_at;
+
+    /**
+     * @ORM\Column(name="usr_updated_at", type="datetime")
+     */
+    private $updated_at;
+
+    /**
+     * @ORM\Column(name="usr_deleted_at", type="datetime", nullable=true)
+     */
+    private $deleted_at;
 
     public function getId(): ?int
     {
@@ -81,6 +98,42 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRoles(array $roles): self
     {
         $this->roles = $roles;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->created_at;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $created_at): self
+    {
+        $this->created_at = $created_at;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updated_at;
+    }
+
+    public function setUpdatedAt(\DateTimeInterface $updated_at): self
+    {
+        $this->updated_at = $updated_at;
+
+        return $this;
+    }
+
+    public function getDeletedAt(): ?\DateTimeInterface
+    {
+        return $this->deleted_at;
+    }
+
+    public function setDeletedAt(?\DateTimeInterface $deleted_at): self
+    {
+        $this->deleted_at = $deleted_at;
 
         return $this;
     }

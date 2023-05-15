@@ -21,16 +21,18 @@ class SpicesCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
-            TextField::new('name'),
+            TextField::new('name', 'Nom')
             TextareaField::new('description'),
-            TextareaField::new('cooking'),
-            TextareaField::new('informations'),
-            DateTimeField::new('created_at')->hideOnForm(),
-            DateTimeField::new('updated_at')->hideOnForm(),
-            TextField::new('imageFile')->setFormType(VichImageType::class)->hideOnIndex(),
-            ImageField::new('file')->setBasePath('/uploads/spices')->onlyOnIndex(),
-            AssociationField::new('agr_id'),
-            AssociationField::new('sty_id')
+            ,
+            TextareaField::new('description', 'Description'),
+            TextareaField::new('cooking', 'Conseil de cuisine'),
+            TextareaField::new('informations', 'Informations supplémentaires'),
+            DateTimeField::new('created_at', 'Créé le')->hideOnForm(),
+            DateTimeField::new('updated_at', 'Modifié le')->hideOnForm(),
+            TextField::new('imageFile', 'Image')->setFormType(VichImageType::class)->hideOnIndex(),
+            ImageField::new('file', 'Image')->setBasePath('/uploads/spices')->onlyOnIndex(),
+            AssociationField::new('agr_id', 'Groupe aromatique'),
+            AssociationField::new('sty_id', 'Type d\'épice')
             //onlyOnIndex pour le voir juste sur le tableau, onlyOnUpdated pour juste au moment de la modif
         ];
     }

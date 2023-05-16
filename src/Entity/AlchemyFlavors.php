@@ -158,25 +158,25 @@ class AlchemyFlavors
     /**
      * @return Collection<int, AromaticCompound>
      */
-    public function getAcoIds(): Collection
+    public function getAromaticsCompounds(): Collection
     {
         return $this->aromaticsCompounds;
     }
 
-    public function addAcoId(AromaticCompound $acoId): self
+    public function addAromaticsCompounds(AromaticCompound $aromaticCompounds): self
     {
-        if (!$this->aromaticsCompounds->contains($acoId)) {
-            $this->aromaticsCompounds[] = $acoId;
-            $acoId->addAlchemyFlavors($this);
+        if (!$this->aromaticsCompounds->contains($aromaticCompounds)) {
+            $this->aromaticsCompounds[] = $aromaticCompounds;
+            $aromaticCompounds->addAlchemyFlavors($this);
         }
 
         return $this;
     }
 
-    public function removeAcoId(AromaticCompound $acoId): self
+    public function removeAromaticsCompounds(AromaticCompound $aromaticCompounds): self
     {
-        if ($this->aromaticsCompounds->removeElement($acoId)) {
-            $acoId->removeAlchemyFlavors($this);
+        if ($this->aromaticsCompounds->removeElement($aromaticCompounds)) {
+            $aromaticCompounds->removeAlchemyFlavors($this);
         }
 
         return $this;

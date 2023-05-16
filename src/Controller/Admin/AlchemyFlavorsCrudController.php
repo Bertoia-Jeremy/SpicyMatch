@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\AlchemyFlavors;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
@@ -26,6 +27,7 @@ class AlchemyFlavorsCrudController extends AbstractCrudController
             TextareaField::new('informations', 'Informations supplémentaires')->hideOnIndex(),
             DateTimeField::new('created_at', 'Créé le')->hideOnForm(),
             DateTimeField::new('updated_at', 'Modifié le')->hideOnForm(),
+            AssociationField::new('aromaticsCompounds', 'Composants aromatiques')
         ];
     }
 }

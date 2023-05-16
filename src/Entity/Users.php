@@ -9,47 +9,47 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @ORM\Entity(repositoryClass=UsersRepository::class)
- * @ORM\Table(name="usr_users")
+ * @ORM\Table(name="users")
  */
 class Users implements UserInterface, PasswordAuthenticatedUserInterface
 {
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
-     * @ORM\Column(name="usr_id", type="integer")
+     * @ORM\Column(name="id", type="integer")
      */
     private $id;
 
     /**
-     * @ORM\Column(name="usr_username", type="string", length=180, unique=true)
+     * @ORM\Column(name="username", type="string", length=180, unique=true)
      */
     private $username;
 
     /**
-     * @ORM\Column(name="usr_roles", type="json")
+     * @ORM\Column(name="roles", type="json")
      */
     private $roles = [];
 
     /**
      * @var string The hashed password
-     * @ORM\Column(name="usr_password", type="string")
+     * @ORM\Column(name="password", type="string")
      */
     private $password;
     /**
      * @var \DateTimeInterface|null
      */
     /**
-     * @ORM\Column(name="usr_created_at", type="datetime")
+     * @ORM\Column(name="created_at", type="datetime")
      */
     private $created_at;
 
     /**
-     * @ORM\Column(name="usr_updated_at", type="datetime")
+     * @ORM\Column(name="updated_at", type="datetime")
      */
     private $updated_at;
 
     /**
-     * @ORM\Column(name="usr_deleted_at", type="datetime", nullable=true)
+     * @ORM\Column(name="deleted_at", type="datetime", nullable=true)
      */
     private $deleted_at;
 

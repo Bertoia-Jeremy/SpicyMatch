@@ -9,59 +9,59 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass=AromaticGroupsRepository::class)
- * @ORM\Table(name="agr_aromatic_groups")
+ * @ORM\Table(name="aromatic_groups")
  */
 class AromaticGroups
 {
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
-     * @ORM\Column(name="agr_id", type="integer")
+     * @ORM\Column(name="id", type="integer")
      */
     private $id;
 
     /**
-     * @ORM\Column(name="agr_name", type="string", length=255)
+     * @ORM\Column(name="name", type="string", length=255)
      */
     private $name;
 
     /**
-     * @ORM\Column(name="agr_color", type="string", length=255)
+     * @ORM\Column(name="color", type="string", length=255)
      */
     private $color;
 
     /**
-     * @ORM\Column(name="agr_description", type="text", nullable=true)
+     * @ORM\Column(name="description", type="text", nullable=true)
      */
     private $description;
 
     /**
-     * @ORM\Column(name="agr_cooking", type="text", nullable=true)
+     * @ORM\Column(name="cooking", type="text", nullable=true)
      */
     private $cooking;
 
     /**
-     * @ORM\Column(name="agr_informations", type="text", nullable=true)
+     * @ORM\Column(name="informations", type="text", nullable=true)
      */
     private $informations;
 
     /**
-     * @ORM\Column(name="agr_created_at", type="datetime")
+     * @ORM\Column(name="created_at", type="datetime")
      */
     private $created_at;
 
     /**
-     * @ORM\Column(name="agr_updated_at", type="datetime")
+     * @ORM\Column(name="updated_at", type="datetime")
      */
     private $updated_at;
 
     /**
-     * @ORM\Column(name="agr_deleted_at", type="datetime", nullable=true)
+     * @ORM\Column(name="deleted_at", type="datetime", nullable=true)
      */
     private $deleted_at;
 
     /**
-     * @ORM\OneToMany(targetEntity=Spices::class, mappedBy="agr_id", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=Spices::class, mappedBy="aromaticGroups", orphanRemoval=true)
      */
     private $spices;
 
@@ -183,7 +183,7 @@ class AromaticGroups
     {
         if (!$this->spices->contains($spice)) {
             $this->spices[] = $spice;
-            $spice->setAgrId($this);
+            $spice->setAromaticGroups($this);
         }
 
         return $this;
@@ -193,8 +193,8 @@ class AromaticGroups
     {
         if ($this->spices->removeElement($spice)) {
             // set the owning side to null (unless already changed)
-            if ($spice->getAgrId() === $this) {
-                $spice->setAgrId(null);
+            if ($spice->getAromaticGroups() === $this) {
+                $spice->setAromaticGroups(null);
             }
         }
 

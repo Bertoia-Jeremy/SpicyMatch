@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\SpicesRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -10,7 +12,7 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 /**
  * @ORM\Entity(repositoryClass=SpicesRepository::class)
- * @ORM\Table(name="spi_spices")
+ * @ORM\Table(name="spices")
  * @Vich\Uploadable
  */
 class Spices
@@ -18,59 +20,59 @@ class Spices
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
-     * @ORM\Column(name="spi_id", type="integer")
+     * @ORM\Column(name="id", type="integer")
      */
     private $id;
 
     /**
      * @ORM\ManyToOne(targetEntity=AromaticGroups::class, inversedBy="spices")
-     * @ORM\JoinColumn(nullable=false, referencedColumnName="agr_id", name="spi_id")
+     * @ORM\JoinColumn(nullable=false, referencedColumnName="id", name="aromaticGroups")
      */
-    private $agr_id;
+    private $aromaticGroups;
 
     /**
      * @ORM\ManyToOne(targetEntity=SpicyType::class, inversedBy="spices")
-     * @ORM\JoinColumn(referencedColumnName="sty_id", name="spi_id")
+     * @ORM\JoinColumn(referencedColumnName="id", name="spicyType")
      */
-    private $sty_id;
+    private $spicyType;
 
     /**
-     * @ORM\Column(name="spi_name", type="string", length=255)
+     * @ORM\Column(name="name", type="string", length=255)
      */
     private $name;
 
     /**
-     * @ORM\Column(name="spi_description", type="text", nullable=true)
+     * @ORM\Column(name="description", type="text", nullable=true)
      */
     private $description;
 
     /**
-     * @ORM\Column(name="spi_cooking", type="text", nullable=true)
+     * @ORM\Column(name="cooking", type="text", nullable=true)
      */
     private $cooking;
 
     /**
-     * @ORM\Column(name="spi_informations", type="text", nullable=true)
+     * @ORM\Column(name="informations", type="text", nullable=true)
      */
     private $informations;
 
     /**
-     * @ORM\Column(name="spi_created_at", type="datetime")
+     * @ORM\Column(name="created_at", type="datetime")
      */
     private $created_at;
 
     /**
-     * @ORM\Column(name="spi_updated_at", type="datetime")
+     * @ORM\Column(name="updated_at", type="datetime")
      */
     private $updated_at;
 
     /**
-     * @ORM\Column(name="spi_deleted_at", type="datetime", nullable=true)
+     * @ORM\Column(name="deleted_at", type="datetime", nullable=true)
      */
     private $deleted_at;
 
     /**
-     * @ORM\Column(name="spi_file", type="string", length=255, nullable=true)
+     * @ORM\Column(name="file", type="string", length=255, nullable=true)
      */
     private $file;
 
@@ -87,31 +89,42 @@ class Spices
      */
     private $imageSize;
 
+    /**
+     * @ORM\ManyToMany(targetEntity=AromaticCompound::class, inversedBy="spices")
+     * @ORM\JoinColumn(referencedColumnName="id", name="aromaticsCompounds")
+     */
+    private $aromaticsCompounds;
+
+    public function __construct()
+    {
+        $this->aromaticsCompounds = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getAgrId(): ?AromaticGroups
+    public function getAromaticGroups(): ?AromaticGroups
     {
-        return $this->agr_id;
+        return $this->aromaticGroups;
     }
 
-    public function setAgrId(?AromaticGroups $agr_id): self
+    public function setAromaticGroups(?AromaticGroups $aromaticGroups): self
     {
-        $this->agr_id = $agr_id;
+        $this->aromaticGroups = $aromaticGroups;
 
         return $this;
     }
 
-    public function getStyId(): ?SpicyType
+    public function getSpicyType(): ?SpicyType
     {
-        return $this->sty_id;
+        return $this->spicyType;
     }
 
-    public function setStyId(?SpicyType $sty_id): self
+    public function setSpicyType(?SpicyType $spicyType): self
     {
-        $this->sty_id = $sty_id;
+        $this->spicyType = $spicyType;
 
         return $this;
     }
@@ -239,5 +252,34 @@ class Spices
     public function getImageSize(): ?int
     {
         return $this->imageSize;
+    }
+
+    /**
+     * @return Collection<int, AromaticCompound>
+     */
+    public function getAromaticsCompounds(): Collection
+    {
+        return $this->aromaticsCompounds;
+    }
+
+    public function addAromaticsCompounds(AromaticCompound $aromaticsCompounds): self
+    {
+        if (!$this->aromaticsCompounds->contains($aromaticsCompounds)) {
+            $this->aromaticsCompounds[] = $aromaticsCompounds;
+        }
+
+        return $this;
+    }
+
+    public function removeAromaticsGroups(AromaticCompound $aromaticsCompounds): self
+    {
+        $this->aromaticsCompounds->removeElement($aromaticsCompounds);
+
+        return $this;
+    }
+
+    public function __toString()
+    {
+        return $this->name;
     }
 }

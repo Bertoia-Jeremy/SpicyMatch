@@ -3,55 +3,68 @@
 namespace App\Entity;
 
 use App\Repository\AlchemyFlavorsRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass=AlchemyFlavorsRepository::class)
- * @ORM\Table(name="afl_alchemy_flavors")
+ * @ORM\Table(name="alchemy_flavors")
  */
 class AlchemyFlavors
 {
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
-     * @ORM\Column(name="afl_id", type="integer")
+     * @ORM\Column(name="id", type="integer")
      */
     private $id;
 
     /**
-     * @ORM\Column(name="afl_name", type="string", length=255)
+     * @ORM\Column(name="name", type="string", length=255)
      */
     private $name;
 
     /**
-     * @ORM\Column(name="afl_description", type="text", nullable=true)
+     * @ORM\Column(name="description", type="text", nullable=true)
      */
     private $description;
 
     /**
-     * @ORM\Column(name="afl_cooking", type="text", nullable=true)
+     * @ORM\Column(name="cooking", type="text", nullable=true)
      */
     private $cooking;
 
     /**
-     * @ORM\Column(name="afl_informations", type="text", nullable=true)
+     * @ORM\Column(name="informations", type="text", nullable=true)
      */
     private $informations;
 
     /**
-     * @ORM\Column(name="afl_created_at", type="datetime")
+     * @ORM\Column(name="created_at", type="datetime")
      */
     private $created_at;
 
     /**
-     * @ORM\Column(name="afl_updated_at", type="datetime")
+     * @ORM\Column(name="updated_at", type="datetime")
      */
     private $updated_at;
 
     /**
-     * @ORM\Column(name="afl_deleted_at", type="datetime", nullable=true)
+     * @ORM\Column(name="deleted_at", type="datetime", nullable=true)
      */
     private $deleted_at;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=AromaticCompound::class, mappedBy="alchemyFlavors")
+     * @ORM\JoinColumn(referencedColumnName="id", name="aromaticsCompounds")
+     */
+    private $aromaticsCompounds;
+
+    public function __construct()
+    {
+        $this->aromaticsCompounds = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -140,5 +153,37 @@ class AlchemyFlavors
         $this->deleted_at = $deleted_at;
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, AromaticCompound>
+     */
+    public function getAcoIds(): Collection
+    {
+        return $this->aromaticsCompounds;
+    }
+
+    public function addAcoId(AromaticCompound $acoId): self
+    {
+        if (!$this->aromaticsCompounds->contains($acoId)) {
+            $this->aromaticsCompounds[] = $acoId;
+            $acoId->addAlchemyFlavors($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAcoId(AromaticCompound $acoId): self
+    {
+        if ($this->aromaticsCompounds->removeElement($acoId)) {
+            $acoId->removeAlchemyFlavors($this);
+        }
+
+        return $this;
+    }
+
+    public function __toString()
+    {
+        return $this->name;
     }
 }

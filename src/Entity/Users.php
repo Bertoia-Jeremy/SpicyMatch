@@ -9,32 +9,49 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @ORM\Entity(repositoryClass=UsersRepository::class)
- * @ORM\Table(name="usr_users")
+ * @ORM\Table(name="users")
  */
 class Users implements UserInterface, PasswordAuthenticatedUserInterface
 {
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
-     * @ORM\Column(name="usr_id", type="integer")
+     * @ORM\Column(name="id", type="integer")
      */
     private $id;
 
     /**
-     * @ORM\Column(name="usr_username", type="string", length=180, unique=true)
+     * @ORM\Column(name="username", type="string", length=180, unique=true)
      */
     private $username;
 
     /**
-     * @ORM\Column(name="usr_roles", type="json")
+     * @ORM\Column(name="roles", type="json")
      */
     private $roles = [];
 
     /**
      * @var string The hashed password
-     * @ORM\Column(name="usr_password", type="string")
+     * @ORM\Column(name="password", type="string")
      */
     private $password;
+    /**
+     * @var \DateTimeInterface|null
+     */
+    /**
+     * @ORM\Column(name="created_at", type="datetime")
+     */
+    private $created_at;
+
+    /**
+     * @ORM\Column(name="updated_at", type="datetime")
+     */
+    private $updated_at;
+
+    /**
+     * @ORM\Column(name="deleted_at", type="datetime", nullable=true)
+     */
+    private $deleted_at;
 
     public function getId(): ?int
     {
@@ -81,6 +98,42 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRoles(array $roles): self
     {
         $this->roles = $roles;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->created_at;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $created_at): self
+    {
+        $this->created_at = $created_at;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updated_at;
+    }
+
+    public function setUpdatedAt(\DateTimeInterface $updated_at): self
+    {
+        $this->updated_at = $updated_at;
+
+        return $this;
+    }
+
+    public function getDeletedAt(): ?\DateTimeInterface
+    {
+        return $this->deleted_at;
+    }
+
+    public function setDeletedAt(?\DateTimeInterface $deleted_at): self
+    {
+        $this->deleted_at = $deleted_at;
 
         return $this;
     }

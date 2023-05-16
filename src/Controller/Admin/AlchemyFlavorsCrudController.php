@@ -20,22 +20,12 @@ class AlchemyFlavorsCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
-            TextField::new('name'),
-            TextareaField::new('description'),
-            TextareaField::new('cooking'),
-            TextareaField::new('informations'),
-            DateTimeField::new('created_at')->hideOnForm(),
-            DateTimeField::new('updated_at')->hideOnForm(),
+            TextField::new('name', 'Nom'),
+            TextareaField::new('description', 'Description'),
+            TextareaField::new('cooking', 'Conseil de cuisine')->hideOnIndex(),
+            TextareaField::new('informations', 'Informations supplémentaires')->hideOnIndex(),
+            DateTimeField::new('created_at', 'Créé le')->hideOnForm(),
+            DateTimeField::new('updated_at', 'Modifié le')->hideOnForm(),
         ];
     }
-
-   /* public function createEntity(string $entityFqcn)
-    {
-        $entity = new AlchemyFlavors();
-        $entity->setCreatedAt(new \DateTime('now'));
-        $entity->setUpdatedAt(new \DateTime('now'));
-
-        return $entity;
-    }
-*/
 }

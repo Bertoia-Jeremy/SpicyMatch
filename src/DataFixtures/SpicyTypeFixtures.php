@@ -2,37 +2,28 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\AromaticGroups;
-use App\Entity\Spices;
+use App\Entity\SpicyType;
 use Doctrine\Bundle\FixturesBundle\Fixture;
-use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-class SpicyTypeFixtures extends Fixture implements DependentFixtureInterface
+class SpicyTypeFixtures extends Fixture
 {
     public function load(ObjectManager $manager): void
     {
-        for($i = 0; $i < 12; $i++){
-            copy("/home/jbertoia/Images/cannelle.webp", "/home/jbertoia/Images/cannelle_$i.webp");
-            $entity = new Spices();
-            $entity->setName('spices_'.$i)
+        //copy("/home/jbertoia/Images/tige.jpeg", "/home/jbertoia/Images/tige_$i.jpeg");
+
+        for($i = 0; $i < 6; $i++){
+            $entity = new SpicyType();
+            $entity->setName('spicy_type_'.$i)
                 ->setCreatedAt(new \DateTime('now'))
                 ->setUpdatedAt(new \DateTime('now'))
-                ->setAromaticGroups($this->getReference($i, AromaticGroups::class))
-                ->setImageFile(new UploadedFile("/home/jbertoia/Images/cannelle_$i.webp", 'test.webp',
-                    null, null, true))
+            //->setImageFile(new UploadedFile("/home/jbertoia/Images/tige_$i.jpeg", 'testTige.jpeg',
+            //    null, null, true))
             ;
+            $this->addReference($i.'spicyType', $entity);
             $manager->persist($entity);
         }
 
         $manager->flush();
-    }
-
-    public function getDependencies(): array
-    {
-        return array(
-            AromaticGroupsFixtures::class,
-        );
     }
 }

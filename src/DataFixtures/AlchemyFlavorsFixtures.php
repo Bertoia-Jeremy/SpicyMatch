@@ -17,8 +17,13 @@ class AlchemyFlavorsFixtures extends Fixture implements DependentFixtureInterfac
             $entity->setName('alchemy_flavor_'.$i)
                 ->setCreatedAt(new \DateTime('now'))
                 ->setUpdatedAt(new \DateTime('now'))
-                ->addAromaticsCompounds($this->getReference($i, AromaticCompound::class))
-            ;
+                ->addAromaticsCompounds($this->getReference($i.'aromaticCompound', AromaticCompound::class));
+
+            if($i > 2 && $i <8){
+                $entity->addAromaticsCompounds($this->getReference(($i-1).'aromaticCompound', AromaticCompound::class));
+                $entity->addAromaticsCompounds($this->getReference(($i+1).'aromaticCompound', AromaticCompound::class));
+                $entity->addAromaticsCompounds($this->getReference(($i+2).'aromaticCompound', AromaticCompound::class));
+            }
             $manager->persist($entity);
         }
 

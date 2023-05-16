@@ -2,27 +2,33 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\AromaticGroups;
+use App\Entity\AromaticCompound;
 use App\Entity\Spices;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-class AromaticCompoundFixtures extends Fixture
+class AromaticCompoundFixtures extends Fixture implements DependentFixtureInterface
 {
     public function load(ObjectManager $manager): void
     {
         for($i = 0; $i < 12; $i++){
-            copy("/home/jbertoia/Images/cannelle.webp", "/home/jbertoia/Images/cannelle_$i.webp");
-            $entity = new Spices();
-            $entity->setName('spices_'.$i)
+            //copy("/home/jbertoia/Images/composeCanelle.jpeg", "/home/jbertoia/Images/composeCanelle_$i.jpeg");
+            $entity = new AromaticCompound();
+            $entity->setName('aromatic_compound_'.$i)
                 ->setCreatedAt(new \DateTime('now'))
                 ->setUpdatedAt(new \DateTime('now'))
-                ->setAromaticGroups($this->getReference($i, AromaticGroups::class))
-                ->setImageFile(new UploadedFile("/home/jbertoia/Images/cannelle_$i.webp", 'test.webp',
-                    null, null, true))
+                ->addSpices($this->getReference($i.'spice', Spices::class))
+                //->setImageFile(new UploadedFile("/home/jbertoia/Images/composeCanelle_$i.jpeg", 'testCan.jpeg',
+                //    null, null, true))
             ;
-            $this->addReference($key, $entity);
+            $this->addReference($i.'aromaticCompound', $entity);
+
+            if($i > 2 && $i <8){
+                $entity->addSpices($this->getReference(($i-1).'spice', Spices::class));
+                $entity->addSpices($this->getReference(($i+1).'spice', Spices::class));
+                $entity->addSpices($this->getReference(($i+2).'spice', Spices::class));
+            }
             $manager->persist($entity);
         }
 
@@ -32,7 +38,7 @@ class AromaticCompoundFixtures extends Fixture
     public function getDependencies(): array
     {
         return array(
-            AromaticGroupsFixtures::class,
+            SpicesFixtures::class,
         );
     }
 }

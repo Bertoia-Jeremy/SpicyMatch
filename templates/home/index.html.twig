@@ -1,9 +1,21 @@
 {% extends 'base.html.twig' %}
-{% import "component/_macro_card_spice.html.twig" as blabla %}
+{% import "component/_macro_card_spice.html.twig" as macroCardSpice %}
 
-{% block title %}Hello HomeController!{% endblock %}
+{% block title %}SpiceMatch - Présentation{% endblock %}
 
 {% block body %}
-    <h2>Test</h2>
-    {{ blabla.cardSpice('red') }}
+    <div class="container-fluid">
+        <div>
+            <h2>Accueil - Présentation des épices</h2>
+        </div>
+
+        <div class="container">
+            <div class="d-flex flex-wrap justify-content-around align-items-center">
+                {% for spice in spices %}
+                    {{ macroCardSpice.cardSpice(spice.name, spice.description, spice.aromaticGroups.color) }}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
 {% endblock %}

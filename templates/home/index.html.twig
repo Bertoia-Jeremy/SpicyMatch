@@ -5,14 +5,14 @@
 
 {% block body %}
     <div class="container-fluid">
-        <div>
+        <div class="container justify-content-center">
             <h2>Accueil - Présentation des épices</h2>
         </div>
 
         <div class="container">
             <div class="d-flex flex-wrap justify-content-around align-items-center">
                 {% for spice in spices %}
-                    {{ macroCardSpice.cardSpice(spice.name, spice.description, spice.aromaticGroups.color) }}
+                    {{ macroCardSpice.cardSpice(spice) }}
                 {% endfor %}
             </div>
         </div>

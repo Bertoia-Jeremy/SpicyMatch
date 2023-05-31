@@ -1,13 +1,55 @@
 {% extends 'base.html.twig' %}
+{% block title %}SpiceMatch - Présentation{% endblock %}
 
 {% block body %}
-    <div class="container">
+    <div class="container-fluid">
         <h2>{{ spice.name }}</h2>
     </div>
-{% endblock %}
+    <div class="container">
+        <div>
+            <h3>Description</h3>
+            <p>{{ spice.description }}</p>
+        </div>
 
+        <div>
+            <h3>Groupe aromatique</h3>
+            <p>{{ spice.aromaticGroups.name }}</p>
+        </div>
 
-{% block title %}
+        <div>
+            <h3>Type d'épice</h3>
+            <p>{{ spice.spicyType.name }}</p>
+        </div>
 
+        <div>
+            <h3>Composés</h3>
+            <ul>
+                {% for aromaticCompound in spice.aromaticsCompounds %}
+                    <li>{{ aromaticCompound.name }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div>
+            <h3>Saveurs</h3>
+            <ul>
+                {% for aromaticCompound in spice.aromaticsCompounds %}
+                    {% for flavor in aromaticCompound.AlchemyFlavors %}
+                        <li>{{ flavor.name }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div>
+            <h3>Conseils de cuisine</h3>
+            <p>{{ spice.cooking }}</p>
+        </div>
+
+        <div>
+            <h3>Description</h3>
+            <p>{{ spice.description }}</p>
+        </div>
+    </div>
 {% endblock %}
 

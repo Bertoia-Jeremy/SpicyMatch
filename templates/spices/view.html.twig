@@ -2,37 +2,38 @@
 {% block title %}SpiceMatch - Présentation{% endblock %}
 
 {% block body %}
+    {% set color = spice.aromaticGroups.color %}
     <div class="container-fluid">
         <h2 class="text-center">{{ spice.name }}</h2>
     </div>
 
     <div class="container">
-        <div class="col-12 shadow-sm">
+        <div class="col-12 article-{{ color |trim('#')|upper}}">
             <h3>Description</h3>
             <p>{{ spice.description }}</p>
         </div>
 
         <div class="col-12">
             <div class="w-100 d-flex justify-content-center align-items-center">
-                <div class="col-xs-12 col-6">
+                <div class="col-xs-12 col-6 article-{{ color |trim('#')|upper}}">
                     <h3>Groupe aromatique</h3>
                     <p>{{ spice.aromaticGroups.name }}</p>
                 </div>
-                <div class="col-xs-12 col-6">
+                <div class="col-xs-12 col-6 article-{{ color |trim('#')|upper}}">
                     <h3>Type d'épice</h3>
                     <p>{{ spice.spicyType.name }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="col-12">
+        <div class="col-12 article-{{ color |trim('#')|upper}}">
             <h3>Conseils de cuisine</h3>
             <p>{{ spice.cooking }}</p>
         </div>
 
         <div class="col-12">
             <div class="w-100 d-flex justify-content-center align-items-center">
-                <div class="col-xs-12 col-6">
+                <div class="col-xs-12 col-6 article-{{ color |trim('#')|upper}}">
                     <h3>Composés</h3>
                     <ul>
                         {% for aromaticCompound in spice.aromaticsCompounds %}
@@ -40,7 +41,7 @@
                         {% endfor %}
                     </ul>
                 </div>
-                <div class="col-xs-12 col-6">
+                <div class="col-xs-12 col-6 article-{{ color |trim('#')|upper}}">
                     <h3>Saveurs</h3>
                     <ul>
                         {% for aromaticCompound in spice.aromaticsCompounds %}
@@ -53,7 +54,7 @@
             </div>
         </div>
 
-        <div>
+        <div class="col-12 article-{{ color |trim('#')|upper}}">
             <h3>Informations supplémentaires</h3>
             <p>{{ spice.informations }}</p>
         </div>

@@ -3,52 +3,59 @@
 
 {% block body %}
     <div class="container-fluid">
-        <h2>{{ spice.name }}</h2>
+        <h2 class="text-center">{{ spice.name }}</h2>
     </div>
+
     <div class="container">
-        <div>
+        <div class="col-12 shadow-sm">
             <h3>Description</h3>
             <p>{{ spice.description }}</p>
         </div>
 
-        <div>
-            <h3>Groupe aromatique</h3>
-            <p>{{ spice.aromaticGroups.name }}</p>
+        <div class="col-12">
+            <div class="w-100 d-flex justify-content-center align-items-center">
+                <div class="col-xs-12 col-6">
+                    <h3>Groupe aromatique</h3>
+                    <p>{{ spice.aromaticGroups.name }}</p>
+                </div>
+                <div class="col-xs-12 col-6">
+                    <h3>Type d'épice</h3>
+                    <p>{{ spice.spicyType.name }}</p>
+                </div>
+            </div>
         </div>
 
-        <div>
-            <h3>Type d'épice</h3>
-            <p>{{ spice.spicyType.name }}</p>
-        </div>
-
-        <div>
-            <h3>Composés</h3>
-            <ul>
-                {% for aromaticCompound in spice.aromaticsCompounds %}
-                    <li>{{ aromaticCompound.name }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div>
-            <h3>Saveurs</h3>
-            <ul>
-                {% for aromaticCompound in spice.aromaticsCompounds %}
-                    {% for flavor in aromaticCompound.AlchemyFlavors %}
-                        <li>{{ flavor.name }}</li>
-                    {% endfor %}
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div>
+        <div class="col-12">
             <h3>Conseils de cuisine</h3>
             <p>{{ spice.cooking }}</p>
         </div>
 
+        <div class="col-12">
+            <div class="w-100 d-flex justify-content-center align-items-center">
+                <div class="col-xs-12 col-6">
+                    <h3>Composés</h3>
+                    <ul>
+                        {% for aromaticCompound in spice.aromaticsCompounds %}
+                            <li>{{ aromaticCompound.name }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="col-xs-12 col-6">
+                    <h3>Saveurs</h3>
+                    <ul>
+                        {% for aromaticCompound in spice.aromaticsCompounds %}
+                            {% for flavor in aromaticCompound.AlchemyFlavors %}
+                                <li>{{ flavor.name }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
         <div>
-            <h3>Description</h3>
-            <p>{{ spice.description }}</p>
+            <h3>Informations supplémentaires</h3>
+            <p>{{ spice.informations }}</p>
         </div>
     </div>
 {% endblock %}

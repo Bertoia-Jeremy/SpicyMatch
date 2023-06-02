@@ -18,6 +18,7 @@ $bleu: #0000FF;
 $turquoise: #25fde9;
 $vert: #008000;
 $chartreuse: #7FFF00;
+$colors : 'FFFF00', 'DFAF2C', 'FF4500', 'D9381E', 'FF0000', '800080', 'EE82EE', '4B0082', '0000FF', '25FDE9', '008000', '7FFF00';
 /*
 Faire les 12 couleurs pour les groupes
 #FFFF00 (Jaune) : Les acides aigres-doux
@@ -40,6 +41,15 @@ Voir si on peut faire une fonction pour n'avoir à changer qu'une fois le style 
 Sass mixin
 */
 
+@each $color in $colors {
+  $trueColor : unquote('#' + $color);
+
+  .shadow-#{$color} {
+    box-shadow: $trueColor 5px 5px 5px 0,
+      inset $trueColor 0 0 0 5px,
+      inset $trueColor 0 0 0 6px;
+  }
+}
 
 .container {
   padding: 40px 80px;
@@ -47,6 +57,7 @@ Sass mixin
   flex-wrap: wrap;
   justify-content: center;
 }
+
 
 .card-wrap {
   margin: 10px;

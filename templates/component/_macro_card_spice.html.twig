@@ -3,11 +3,7 @@
 
     <a href="{{ path('view_spice', {"id" : spice.id}) }}">
         <div class="card-wrap">
-            <div class="card" style="
-                    box-shadow:{{ color }} 5px 5px 5px 0,
-                    inset {{ color }} 0 0 0 5px,
-                    inset {{ color }} 0 0 0 6px;"
-            >
+            <div class="card shadow-{{ color |trim('#')|upper}}">
                 {# spice.filename ? #}
                 <div class="card-bg" style="background-image: url(https://cdn.shopify.com/s/files/1/0083/1740/3187/products/GingembreenPoudreBio-amoseedsspecialistedessuperalimentsBio_600x.jpg?v=1678260355)"></div>
                 <div class="card-info w-100">

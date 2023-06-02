@@ -45,9 +45,27 @@ Sass mixin
   $trueColor : unquote('#' + $color);
 
   .shadow-#{$color} {
-    box-shadow: $trueColor 5px 5px 5px 0,
+    box-shadow:
+      $trueColor 5px 5px 5px 0,
       inset $trueColor 0 0 0 5px,
       inset $trueColor 0 0 0 6px;
+  }
+}
+
+@each $color in $colors {
+  $trueColor : unquote('#' + $color);
+
+  .article-#{$color} {
+    border-radius: 5px;
+    padding: 10px;
+    margin: 25px 80px;
+    box-shadow:
+      0 1px 1px hsl(0deg 0% 0% / 0.075),
+      0 2px 2px $trueColor,
+      0 4px 4px hsl(0deg 0% 0% / 0.075),
+      0 8px 8px hsl(0deg 0% 0% / 0.075),
+      0 16px 16px hsl(0deg 0% 0% / 0.075)
+    ;
   }
 }
 

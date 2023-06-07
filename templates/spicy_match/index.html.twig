@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+{% import "component/_macro_card_spice.html.twig" as macroCardSpice %}
+
+{% block title %}SpicyMatch{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="container justify-content-center">
+            <h2>Mélangeons des épices</h2>
+        </div>
+
+        <div class="container-fluid px-4">
+            <div class="d-flex flex-wrap justify-content-around align-items-center">
+                {# Faire en dessous de chaque épice une checkbox avec une requête ajax qui met à jour le reste des épices #}
+                {% for spice in spices %}
+                    <div class="form-check d-flex flex-column justify-content-center align-items-center mb-3">
+                        <label class="form-check-label" for="check{{ loop.index }}">
+                            {{ macroCardSpice.cardSpice(spice, 2) }}
+                        </label>
+                        <input class="form-check-input" type="checkbox" value="" id="check{{ loop.index }}">
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 {% import "component/_macro_card_spice.html.twig" as macroCardSpice %}
 
-{% block title %}SpiceMatch - Présentation{% endblock %}
+{% block title %}SpicyMatch - Présentation{% endblock %}
 
 {% block body %}
     <div class="container-fluid">
@@ -12,10 +12,11 @@
         <div class="container">
             <div class="d-flex flex-wrap justify-content-around align-items-center">
                 {% for spice in spices %}
-                    {{ macroCardSpice.cardSpice(spice) }}
+                    <a href="{{ path('view_spice', {"id" : spice.id}) }}">
+                        {{ macroCardSpice.cardSpice(spice) }}
+                    </a>
                 {% endfor %}
             </div>
         </div>
     </div>
-
 {% endblock %}

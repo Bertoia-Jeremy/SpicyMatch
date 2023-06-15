@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 {% import "component/_macro_card_spice.html.twig" as macroCardSpice %}
-
+{% set queryParams = app.request.query.all %}
 {% block title %}SpicyMatch{% endblock %}
 
 {% block body %}
@@ -8,19 +8,78 @@
         <div class="container justify-content-center">
             <h2>Mélangeons des épices</h2>
         </div>
-
         <div class="container-fluid px-4">
-            <div class="d-flex flex-wrap justify-content-around align-items-center">
-                {# Faire en dessous de chaque épice une checkbox avec une requête ajax qui met à jour le reste des épices #}
+            {# Faire en dessous de chaque épice une checkbox avec une requête ajax qui met à jour le reste des épices #}
+            {# https://www.youtube.com/watch?v=25IqZbLYoK0 => 12:52 #}
+            <form class="d-flex flex-wrap justify-content-around align-items-center" action="" id="matcher"
+                    {{ csrf_token('matcher') }}>
                 {% for spice in spices %}
-                    <div class="form-check d-flex flex-column justify-content-center align-items-center mb-3">
+                    {# Reprise des données ajax pour les checkbox (si présentes) #}
+                    {% if queryParams is not empty and queryParams.spices is defined %}
+                        {% set checked = (spice.id in queryParams.spices) ? "checked" : "" %}
+                    {% else %}
+                        {% set checked = "" %}
+                    {% endif %}
+
+                    <div class="form-check d-flex flex-column justify-content-center align-items-center mb-3"
+                         data-spice-id="{{ spice.id }}" data-spice-checked="{{ checked }}">
                         <label class="form-check-label" for="check{{ loop.index }}">
                             {{ macroCardSpice.cardSpice(spice, 2) }}
                         </label>
-                        <input class="form-check-input" type="checkbox" value="" id="check{{ loop.index }}">
+
+                        <input class="form-check-input" type="checkbox" value="" id="check{{ loop.index }}" {{ checked }}>
                     </div>
                 {% endfor %}
-            </div>
+                <input type="hidden" {#Mettre un tb de ce qui a été coché ?#}>
+            </form>
         </div>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    <script>
+        window.onload = () => {
+            const MatcherForm = document.querySelector("#matcher");
+            const Spices = document.querySelectorAll("[data-spice-id]");
+
+            Spices.forEach(element => {
+                let checkBox = element.lastElementChild;
+
+                checkBox.addEventListener('click', function () {
+                    console.log(element);
+
+                    const data = {username: "example"};
+                    postJSON(data)
+                })
+            });
+        }
+
+        async function postJSON(data) {
+            try {
+                const response = await fetch("{{ url('view_spicy_match') }}", {
+                    method: "POST",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data),
+                }).then(response =>
+                    response.json()
+                ).then(data => {
+                    console.log('YES !');
+                    console.log(data);
+                    // On va chercher la zone de contenu
+                    //const content = document.querySelector("#content");
+
+                    // On remplace le contenu
+                    //content.innerHTML = data.content;
+
+                }).catch(e => alert(e));
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+    </script>
 {% endblock %}

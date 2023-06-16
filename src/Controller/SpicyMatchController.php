@@ -55,28 +55,8 @@ class SpicyMatchController extends AbstractController
     public function matcherView(Request $request): \Symfony\Component\HttpFoundation\JsonResponse
     {
         $spicesId = json_decode($request->getContent(), true);
-        $allAromaticsCompoundsIds = [];
-        $communAromaticsCompoundsIds = [];
-
-        foreach ($spicesId as $keySpice => $id){
-            /**
-             * @var $spice Spices
-             */
-            $spice = $this->spicesRepository->findOneBy(['id' => (int) $id]);
-
-            if($spice){
-                $iterator = $spice->getAromaticsCompounds()->getIterator();
-
-                foreach ($iterator as $aromaticCompound) {
-                    if($keySpice !== 0 && !in_array($aromaticCompound->getId(), $allAromaticsCompoundsIds, true)){
-                        $allAromaticsCompoundsIds[] = $aromaticCompound->getId();
-                    }else{
-                        $communAromaticsCompoundsIds[] = $aromaticCompound->getId();
-                    }
-                }
-            }
-        }
-
+        $allAromaticsCompoundsIds = $this->getAllAromaticsCompounds($spicesId);
+        $communAromaticsCompoundsIds = $this->getAromaticsCompoundInCommon($allAromaticsCompoundsIds, count($spicesId));
 
         dd($allAromaticsCompoundsIds, $communAromaticsCompoundsIds);
         /* $token = $request->request->get('_token');
@@ -98,5 +78,49 @@ class SpicyMatchController extends AbstractController
             }
          */
         return $this->json($request);
+    }
+
+    /**
+     * @throws \Exception
+     */
+    private function getAllAromaticsCompounds(array $spicesId): array
+    {
+        $allAromaticsCompoundsIds = [];
+
+        foreach ($spicesId as $keySpice => $id){
+            /**
+             * @var $spice Spices
+             */
+            $spice = $this->spicesRepository->findOneBy(['id' => (int) $id]);
+
+            if($spice){
+                $iteratorAromaticCompound = $spice->getAromaticsCompounds()->getIterator();
+
+                foreach ($iteratorAromaticCompound as $aromaticCompound) {
+                    $aromaticCompoundId = $aromaticCompound->getId();
+
+                    if(!array_key_exists($aromaticCompoundId, $allAromaticsCompoundsIds)){
+                        $allAromaticsCompoundsIds[$aromaticCompoundId] = 1;
+                    }else{
+                        $allAromaticsCompoundsIds[$aromaticCompoundId]++;
+                    }
+                }
+            }
+        }
+
+        return $allAromaticsCompoundsIds;
+    }
+
+    private function getAromaticsCompoundInCommon(array $allAromaticsCompoundsIds, int $numberSpices): array
+    {
+        $communAromaticsCompoundsIds = [];
+
+        foreach ($allAromaticsCompoundsIds as $id => $numberMatch){
+            if ($numberMatch === $numberSpices){
+                $communAromaticsCompoundsIds[] = $id;
+            }
+        }
+
+        return $communAromaticsCompoundsIds;
     }
 }

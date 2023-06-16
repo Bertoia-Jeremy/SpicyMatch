@@ -56,7 +56,8 @@ class SpicyType
     private $deleted_at;
 
     /**
-     * @ORM\OneToMany(targetEntity=Spices::class, mappedBy="id")
+     * @ORM\OneToMany(targetEntity=Spices::class, mappedBy="spicyType")
+     * @ORM\JoinColumn(nullable=false, referencedColumnName="id", name="spices")
      */
     private $spices;
 

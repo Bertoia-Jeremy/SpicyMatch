@@ -22,7 +22,7 @@
                     {% endif %}
 
                     <div class="form-check d-flex flex-column justify-content-center align-items-center mb-3"
-                         data-spice-id="{{ spice.id }}" data-spice-checked="{{ checked }}">
+                         data-spice-id="{{ spice.id }}">
                         <label class="form-check-label" for="check{{ loop.index }}">
                             {{ macroCardSpice.cardSpice(spice, 2) }}
                         </label>
@@ -42,16 +42,23 @@
     <script>
         window.onload = () => {
             const MatcherForm = document.querySelector("#matcher");
-            const Spices = document.querySelectorAll("[data-spice-id]");
+            const Spices = MatcherForm.querySelectorAll("[data-spice-id]");
 
             Spices.forEach(element => {
                 let checkBox = element.lastElementChild;
 
                 checkBox.addEventListener('click', function () {
-                    console.log(element);
+                    let arraySpice = [];
 
-                    const data = {username: "example"};
-                    postJSON(data)
+                    Spices.forEach(element => {
+                        let checkBox = element.lastElementChild.checked;
+
+                        if(checkBox){
+                            arraySpice.push(element.getAttribute('data-spice-id'))
+                        }
+                    })
+
+                    postJSON(arraySpice)
                 })
             });
         }
@@ -72,13 +79,14 @@
                     console.log(data);
                     // On va chercher la zone de contenu
                     //const content = document.querySelector("#content");
-
                     // On remplace le contenu
-                    //content.innerHTML = data.content;
 
+                    //content.innerHTML = data.content;
                 }).catch(e => alert(e));
+
             } catch (error) {
                 console.error("Error:", error);
+                console.log(body);
             }
         }
     </script>

@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Spices;
 use App\Repository\AromaticCompoundRepository;
 use App\Repository\SpicesRepository;
+use Doctrine\DBAL\Driver\Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,15 +16,17 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class SpicyMatchController extends AbstractController
 {
-    /**
-     * @var SpicesRepository
-     */
+
     private $spicesRepository;
+    private $aromaticCompoundRepository;
+
     public function __construct(
-        SpicesRepository $spicesRepository
+        SpicesRepository $spicesRepository,
+        AromaticCompoundRepository  $aromaticCompoundRepository
     )
     {
         $this->spicesRepository = $spicesRepository;
+        $this->aromaticCompoundRepository = $aromaticCompoundRepository;
     }
 
     /**
@@ -51,14 +54,26 @@ class SpicyMatchController extends AbstractController
     /**
      * @Route("/matcher/", name="view_spicy_match", methods={"POST"})
      * @throws \Exception
+     * @throws Exception
      */
     public function matcherView(Request $request): \Symfony\Component\HttpFoundation\JsonResponse
     {
+        //Récupération des IDs envoyés par ajax
         $spicesId = json_decode($request->getContent(), true);
+        //Récupération de tous les composés aromatiques
         $allAromaticsCompoundsIds = $this->getAllAromaticsCompounds($spicesId);
-        $communAromaticsCompoundsIds = $this->getAromaticsCompoundInCommon($allAromaticsCompoundsIds, count($spicesId));
+        //Filtre et selection des composés aromatiques en commun
+        $communAromaticsCompoundsIds = $this->getAromaticsCompoundsInCommon($allAromaticsCompoundsIds, count($spicesId));
+        //Récupération de toutes les épices possédant ces composés aromatiques
+        $spicesWithCommonAromaticsCompounds = $this->spicesRepository->getByAromaticsCompounds($communAromaticsCompoundsIds);
+        //Tri par nombre de match
+        $spicesOrderedByMatch = $this->orderSpiceByMatch($spicesWithCommonAromaticsCompounds);
+        //Création des templates cards
+        $template = $this->render('spicy_match/cards_spices_matched.html.twig', [
+            "spices" => $spicesOrderedByMatch,
+            "spicesChecked" => $spicesId
+        ])->getContent();
 
-        dd($allAromaticsCompoundsIds, $communAromaticsCompoundsIds);
         /* $token = $request->request->get('_token');
 
          if (is_string($token) && $this->isCsrfTokenValid('matcher', $token)) {
@@ -77,7 +92,7 @@ class SpicyMatchController extends AbstractController
                 $jsonData[$idx++] = $temp;
             }
          */
-        return $this->json($request);
+        return $this->json($template);
     }
 
     /**
@@ -111,7 +126,7 @@ class SpicyMatchController extends AbstractController
         return $allAromaticsCompoundsIds;
     }
 
-    private function getAromaticsCompoundInCommon(array $allAromaticsCompoundsIds, int $numberSpices): array
+    private function getAromaticsCompoundsInCommon(array $allAromaticsCompoundsIds, int $numberSpices): array
     {
         $communAromaticsCompoundsIds = [];
 
@@ -122,5 +137,33 @@ class SpicyMatchController extends AbstractController
         }
 
         return $communAromaticsCompoundsIds;
+    }
+
+    private function orderSpiceByMatch(array $spicesIds): array
+    {
+        $order = $spiceOrdered = [];
+
+       /* foreach ($spicesIds as $spice){
+            $id = $spice['spices_id'];
+dd($id);
+            if(isset($order[$id])) {
+                $order[$id]++;
+            }else{
+                $order[$id] = 1;
+            }
+        }
+
+        sort($order);*/
+
+        foreach ($spicesIds as $spice){
+            $spiceOrdered[] = $this->spicesRepository->findOneBy(['id' => $spice['spices_id']]);
+        }
+
+        return $spiceOrdered;
+    }
+
+    private function createCardSpiceView(Spices $spice, bool $checked)
+    {
+        dd($template);
     }
 }

@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
-{% import "component/_macro_card_spice.html.twig" as macroCardSpice %}
-{% set queryParams = app.request.query.all %}
+{% import "component/_macro_card_spice_match.html.twig" as macroCardSpiceMatch %}
+
 {% block title %}SpicyMatch{% endblock %}
 
 {% block body %}
@@ -14,23 +14,8 @@
             <form class="d-flex flex-wrap justify-content-around align-items-center" action="" id="matcher"
                     {{ csrf_token('matcher') }}>
                 {% for spice in spices %}
-                    {# Reprise des données ajax pour les checkbox (si présentes) #}
-                    {% if queryParams is not empty and queryParams.spices is defined %}
-                        {% set checked = (spice.id in queryParams.spices) ? "checked" : "" %}
-                    {% else %}
-                        {% set checked = "" %}
-                    {% endif %}
-
-                    <div class="form-check d-flex flex-column justify-content-center align-items-center mb-3"
-                         data-spice-id="{{ spice.id }}">
-                        <label class="form-check-label" for="check{{ loop.index }}">
-                            {{ macroCardSpice.cardSpice(spice, 2) }}
-                        </label>
-
-                        <input class="form-check-input" type="checkbox" value="" id="check{{ loop.index }}" {{ checked }}>
-                    </div>
+                    {{ macroCardSpiceMatch.cardSpiceMatch(spice) }}
                 {% endfor %}
-                <input type="hidden" {#Mettre un tb de ce qui a été coché ?#}>
             </form>
         </div>
     </div>
@@ -58,12 +43,14 @@
                         }
                     })
 
-                    postJSON(arraySpice)
+                    postJSON(arraySpice, "#matcher")
                 })
             });
         }
 
-        async function postJSON(data) {
+        async function postJSON(data, form) {
+            const MatcherForm = document.querySelector(form);
+
             try {
                 const response = await fetch("{{ url('view_spicy_match') }}", {
                     method: "POST",
@@ -72,9 +59,10 @@
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify(data),
-                }).then(response =>
-                    response.json()
-                ).then(data => {
+                }).then(response =>{
+                    console.log('Matcher form !')
+                    MatcherForm.innerHTML(response.json)
+                }).then(data => {
                     console.log('YES !');
                     console.log(data);
                     // On va chercher la zone de contenu

@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Spices;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Driver\Exception;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -63,4 +64,20 @@ class SpicesRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+    /**
+     * @throws Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function getByAromaticsCompounds(array $communAromaticsCompoundsIds): array
+    {
+        $ids = implode("'", $communAromaticsCompoundsIds);
+        $sql = "SELECT *
+                FROM spices_aromatic_compound 
+                WHERE aromatic_compound_id IN ($ids)";
+
+        $conn = $this->getEntityManager()->getConnection();
+        $stmt = $conn->prepare($sql);
+
+        return $stmt->executeQuery()->fetchAllAssociative();
+    }
 }

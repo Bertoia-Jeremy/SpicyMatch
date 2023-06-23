@@ -26,6 +26,10 @@
 
     <script>
         window.onload = () => {
+            addEventOnCards();
+        }
+
+        function addEventOnCards(){
             const MatcherForm = document.querySelector("#matcher");
             const Spices = MatcherForm.querySelectorAll("[data-spice-id]");
 
@@ -43,7 +47,7 @@
                         }
                     })
 
-                    postJSON(arraySpice, "#matcher")
+                    postJSON(arraySpice, "#matcher");
                 })
             });
         }
@@ -60,21 +64,16 @@
                     },
                     body: JSON.stringify(data),
                 }).then(response =>{
-                    console.log('Matcher form !')
-                    MatcherForm.innerHTML(response.json)
-                }).then(data => {
-                    console.log('YES !');
-                    console.log(data);
-                    // On va chercher la zone de contenu
-                    //const content = document.querySelector("#content");
-                    // On remplace le contenu
+                    let promise = response.json()
 
-                    //content.innerHTML = data.content;
+                    promise.then((cards) => {
+                        MatcherForm.innerHTML = cards;
+                        addEventOnCards();
+                    })
+
                 }).catch(e => alert(e));
-
             } catch (error) {
                 console.error("Error:", error);
-                console.log(body);
             }
         }
     </script>

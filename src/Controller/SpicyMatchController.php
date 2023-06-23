@@ -71,8 +71,14 @@ class SpicyMatchController extends AbstractController
             //Filtre et selection des composés aromatiques en commun
             $communAromaticsCompoundsIds = $this->getAromaticsCompoundsInCommon($allAromaticsCompoundsIds, count($spicesId));
 
+            if(!$communAromaticsCompoundsIds){
+                // TODO gérer l'exception où l'on ne trouve rien
+                return $this->json([]);
+            }
+
             //Récupération de toutes les épices possédant ces composés aromatiques
             $spicesWithCommonAromaticsCompounds = $this->spicesRepository->getByAromaticsCompounds($communAromaticsCompoundsIds);
+
 
             //Tri par nombre de match
             $spicesOrderedByMatch = $this->orderSpiceByMatch($spicesWithCommonAromaticsCompounds);
@@ -152,6 +158,7 @@ class SpicyMatchController extends AbstractController
     private function orderSpiceByMatch(array $spicesIds): array
     {
         $order = $spiceOrdered = [];
+        // TODO Trouver un truc pour ordonner par match
 
        /* foreach ($spicesIds as $spice){
             $id = $spice['spices_id'];

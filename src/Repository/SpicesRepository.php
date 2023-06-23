@@ -70,7 +70,7 @@ class SpicesRepository extends ServiceEntityRepository
      */
     public function getByAromaticsCompounds(array $communAromaticsCompoundsIds): array
     {
-        $ids = implode("'", $communAromaticsCompoundsIds);
+        $ids = implode(",", $communAromaticsCompoundsIds);
         $sql = "SELECT *
                 FROM spices_aromatic_compound 
                 WHERE aromatic_compound_id IN ($ids)";

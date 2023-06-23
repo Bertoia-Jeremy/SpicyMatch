@@ -60,14 +60,24 @@ class SpicyMatchController extends AbstractController
     {
         //Récupération des IDs envoyés par ajax
         $spicesId = json_decode($request->getContent(), true);
-        //Récupération de tous les composés aromatiques
-        $allAromaticsCompoundsIds = $this->getAllAromaticsCompounds($spicesId);
-        //Filtre et selection des composés aromatiques en commun
-        $communAromaticsCompoundsIds = $this->getAromaticsCompoundsInCommon($allAromaticsCompoundsIds, count($spicesId));
-        //Récupération de toutes les épices possédant ces composés aromatiques
-        $spicesWithCommonAromaticsCompounds = $this->spicesRepository->getByAromaticsCompounds($communAromaticsCompoundsIds);
-        //Tri par nombre de match
-        $spicesOrderedByMatch = $this->orderSpiceByMatch($spicesWithCommonAromaticsCompounds);
+
+        if(count($spicesId) === 0){
+            $spicesOrderedByMatch = $this->spicesRepository->findAll();
+
+        }else{
+            //Récupération de tous les composés aromatiques
+            $allAromaticsCompoundsIds = $this->getAllAromaticsCompounds($spicesId);
+
+            //Filtre et selection des composés aromatiques en commun
+            $communAromaticsCompoundsIds = $this->getAromaticsCompoundsInCommon($allAromaticsCompoundsIds, count($spicesId));
+
+            //Récupération de toutes les épices possédant ces composés aromatiques
+            $spicesWithCommonAromaticsCompounds = $this->spicesRepository->getByAromaticsCompounds($communAromaticsCompoundsIds);
+
+            //Tri par nombre de match
+            $spicesOrderedByMatch = $this->orderSpiceByMatch($spicesWithCommonAromaticsCompounds);
+        }
+
         //Création des templates cards
         $template = $this->render('spicy_match/cards_spices_matched.html.twig', [
             "spices" => $spicesOrderedByMatch,

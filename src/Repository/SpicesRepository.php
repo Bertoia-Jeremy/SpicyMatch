@@ -71,7 +71,7 @@ class SpicesRepository extends ServiceEntityRepository
     public function getByAromaticsCompounds(array $communAromaticsCompoundsIds): array
     {
         $ids = implode(",", $communAromaticsCompoundsIds);
-        $sql = "SELECT *
+        $sql = "SELECT DISTINCT spices_id
                 FROM spices_aromatic_compound 
                 WHERE aromatic_compound_id IN ($ids)";
 

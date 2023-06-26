@@ -183,7 +183,7 @@ class AromaticCompound
     public function removeSpices(Spices $spices): self
     {
         if ($this->spices->removeElement($spices)) {
-            $spices->removeAromaticsGroups($this);
+            $spices->removeAromaticsCompounds($this);
         }
 
         return $this;

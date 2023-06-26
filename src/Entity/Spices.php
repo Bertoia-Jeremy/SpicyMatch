@@ -271,7 +271,7 @@ class Spices
         return $this;
     }
 
-    public function removeAromaticsGroups(AromaticCompound $aromaticsCompounds): self
+    public function removeAromaticsCompounds(AromaticCompound $aromaticsCompounds): self
     {
         $this->aromaticsCompounds->removeElement($aromaticsCompounds);
 

@@ -21,7 +21,7 @@ class AlchemyFlavorsCrudController extends AbstractCrudController
     {
         return [
             TextField::new('name', 'Nom'),
-            TextareaField::new('description', 'Description'),
+            TextareaField::new('description', 'Description')->setMaxLength(100),
             TextareaField::new('cooking', 'Conseil de cuisine')->hideOnIndex(),
             TextareaField::new('informations', 'Informations supplémentaires')->hideOnIndex(),
             DateTimeField::new('created_at', 'Créé le')->hideOnForm(),

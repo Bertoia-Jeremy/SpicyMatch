@@ -20,22 +20,56 @@
                 <p>{{ spice.spicyType.name }}</p>
             </div>
             <div class="border-bottom border-light border-3 mt-4">
-                <h3>Composés</h3>
-                <ul>
-                    {% for aromaticCompound in spice.aromaticsCompounds %}
-                        <li>{{ aromaticCompound.name }}</li>
-                    {% endfor %}
-                </ul>
+                <div>
+                    <h3>
+                        {% if spice.aromaticsCompounds.count > 1 %}
+                            Composés principaux :
+                        {% else %}
+                            Composé principal :
+                        {% endif %}
+                    </h3>
+                    <ul>
+                        {% for aromaticCompound in spice.aromaticsCompounds %}
+                            <li>{{ aromaticCompound.name }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div>
+                    <h3>
+                        {% if spice.secondaryAromaticsCompounds.count > 1 %}
+                            Composés secondaires :
+                        {% else %}
+                            Composé secondaire :
+                        {% endif %}
+                    </h3>
+                    <ul>
+                        {% for aromaticCompound in spice.secondaryAromaticsCompounds %}
+                            <li>{{ aromaticCompound.name }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
             <div class="border-bottom border-light border-3 mt-4">
-                <h3>Saveurs</h3>
-                <ul>
-                    {% for aromaticCompound in spice.aromaticsCompounds %}
-                        {% for flavor in aromaticCompound.AlchemyFlavors %}
-                            <li>{{ flavor.name }}</li>
+                <div>
+                    <h3>Saveurs</h3>
+                    <ul>
+                        {% for aromaticCompound in spice.aromaticsCompounds %}
+                            {% for flavor in aromaticCompound.AlchemyFlavors %}
+                                <li>{{ flavor.name }}</li>
+                            {% endfor %}
                         {% endfor %}
-                    {% endfor %}
-                </ul>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Saveurs secondaires</h3>
+                    <ul>
+                        {% for aromaticCompound in spice.secondaryAromaticsCompounds %}
+                            {% for flavor in aromaticCompound.AlchemyFlavors %}
+                                <li>{{ flavor.name }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
         </div>
         <div class="col-8">

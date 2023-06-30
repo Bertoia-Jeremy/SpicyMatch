@@ -136,6 +136,19 @@ class SpicyMatchController extends AbstractController
                         $allAromaticsCompoundsIds[$aromaticCompoundId]++;
                     }
                 }
+
+                /* TODO => Faire un truc plus clean (et fonctionnel), premier passage sur les composants principaux, 2nd sur les secondaires,
+                     2nd vérification ou alors au moment de faire du tri faire qu'il ne soit pas dans les pricnipaux */
+                $iteratorAromaticCompound2 = $spice->getSecondaryAromaticsCompounds()->getIterator();
+                foreach ($iteratorAromaticCompound2 as $aromaticCompound2) {
+                    $aromaticCompoundId2 = $aromaticCompound2->getId();
+
+                    if(!array_key_exists($aromaticCompoundId2, $allAromaticsCompoundsIds)){
+                        $allAromaticsCompoundsIds[$aromaticCompoundId2] = 1;
+                    }else{
+                        $allAromaticsCompoundsIds[$aromaticCompoundId2]++;
+                    }
+                }
             }
         }
 

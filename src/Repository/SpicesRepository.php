@@ -68,11 +68,29 @@ class SpicesRepository extends ServiceEntityRepository
      * @throws Exception
      * @throws \Doctrine\DBAL\Exception
      */
-    public function getByAromaticsCompounds(array $communAromaticsCompoundsIds): array
+    public function getByMainAromaticsCompounds(array $communAromaticsCompoundsIds): array
     {
         $ids = implode(",", $communAromaticsCompoundsIds);
         $sql = "SELECT DISTINCT spices_id
                 FROM spices_aromatic_compound 
+                WHERE aromatic_compound_id IN ($ids)";
+
+        $conn = $this->getEntityManager()->getConnection();
+        $stmt = $conn->prepare($sql);
+
+        return $stmt->executeQuery()->fetchAllAssociative();
+    }
+
+    /**
+     * @throws Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function getBySecondaryAromaticsCompounds(array $communAromaticsCompoundsIds): array
+    {
+        $ids = implode(",", $communAromaticsCompoundsIds);
+
+        $sql = "SELECT DISTINCT spices_id
+                FROM secondary_spices_aromatic_compound 
                 WHERE aromatic_compound_id IN ($ids)";
 
         $conn = $this->getEntityManager()->getConnection();

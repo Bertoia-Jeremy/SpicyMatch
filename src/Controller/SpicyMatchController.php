@@ -58,35 +58,48 @@ class SpicyMatchController extends AbstractController
      */
     public function matcherView(Request $request): \Symfony\Component\HttpFoundation\JsonResponse
     {
+        //TODO => sécuriser l'appel ajax
         //Récupération des IDs envoyés par ajax
         $spicesId = json_decode($request->getContent(), true);
 
         if(count($spicesId) === 0){
-            $spicesOrderedByMatch = $this->spicesRepository->findAll();
+            $spicesEntity = $this->spicesRepository->findAll();
 
         }else{
             //Récupération de tous les composés aromatiques
             $allAromaticsCompoundsIds = $this->getAllAromaticsCompounds($spicesId);
 
+            //Faire le tri en 4 parties
+            // Principaux sur principaux
+            // Principaux sur secondaires (Possibilité de switch avec Secondaires sur principaux)
+            // Secondaires sur principaux
+            // Secondaires sur secondaires
+
             //Filtre et selection des composés aromatiques en commun
             $communAromaticsCompoundsIds = $this->getAromaticsCompoundsInCommon($allAromaticsCompoundsIds, count($spicesId));
 
             if(!$communAromaticsCompoundsIds){
-                // TODO gérer l'exception où l'on ne trouve rien
                 return $this->json([]);
             }
 
             //Récupération de toutes les épices possédant ces composés aromatiques
-            $spicesWithCommonAromaticsCompounds = $this->spicesRepository->getByAromaticsCompounds($communAromaticsCompoundsIds);
+            $mainMain = $this->spicesRepository->getByMainAromaticsCompounds($communAromaticsCompoundsIds["main"]);
+            $mainSecondary = $this->spicesRepository->getBySecondaryAromaticsCompounds($communAromaticsCompoundsIds["main"]);
+            $secondaryMain = $this->spicesRepository->getByMainAromaticsCompounds($communAromaticsCompoundsIds["secondary"]);
+            $secondarySecondary = $this->spicesRepository->getBySecondaryAromaticsCompounds($communAromaticsCompoundsIds["secondary"]);
 
 
             //Tri par nombre de match
-            $spicesOrderedByMatch = $this->orderSpiceByMatch($spicesWithCommonAromaticsCompounds);
+            $spicesOrderedByMatch = $this->orderSpiceByMatch([
+                $mainMain, $secondaryMain, $mainSecondary, $secondarySecondary
+            ]);
+
+            $spicesEntity = $this->getSpicesEntity($spicesOrderedByMatch);
         }
 
         //Création des templates cards
         $template = $this->render('spicy_match/cards_spices_matched.html.twig', [
-            "spices" => $spicesOrderedByMatch,
+            "spices" => $spicesEntity,
             "spicesChecked" => $spicesId
         ])->getContent();
 
@@ -96,18 +109,8 @@ class SpicyMatchController extends AbstractController
              // $this->userRepository->remove($user, true);
              return $this->json(['success' => true]);
          }
-         /*   foreach ()
-            $spice = $this->spicesRepository->findBy(['id']);
-            $jsonData = array();
-            $idx = 0;
-            foreach($students as $student) {
-                $temp = array(
-                    'name' => $student->getName(),
-                    'address' => $student->getAddress(),
-                );
-                $jsonData[$idx++] = $temp;
-            }
-         */
+        */
+
         return $this->json($template);
     }
 
@@ -116,60 +119,61 @@ class SpicyMatchController extends AbstractController
      */
     private function getAllAromaticsCompounds(array $spicesId): array
     {
-        $allAromaticsCompoundsIds = [];
+        $mainAromaticsCompoundsIds = [];
+        $secondaryAromaticsCompoundsIds = [];
 
-        foreach ($spicesId as $keySpice => $id){
+        foreach ($spicesId as $id){
             /**
              * @var $spice Spices
              */
             $spice = $this->spicesRepository->findOneBy(['id' => (int) $id]);
 
             if($spice){
-                $iteratorAromaticCompound = $spice->getAromaticsCompounds()->getIterator();
+                $arrayMainAromaticCompound = $spice->getAromaticsCompounds()->getIterator();
+                $mainAromaticsCompoundsIds = $this->getAromaticsCompoundsFromIteratorSpice($arrayMainAromaticCompound, $mainAromaticsCompoundsIds);
 
-                foreach ($iteratorAromaticCompound as $aromaticCompound) {
-                    $aromaticCompoundId = $aromaticCompound->getId();
-
-                    if(!array_key_exists($aromaticCompoundId, $allAromaticsCompoundsIds)){
-                        $allAromaticsCompoundsIds[$aromaticCompoundId] = 1;
-                    }else{
-                        $allAromaticsCompoundsIds[$aromaticCompoundId]++;
-                    }
-                }
-
-                /* TODO => Faire un truc plus clean (et fonctionnel), premier passage sur les composants principaux, 2nd sur les secondaires,
-                     2nd vérification ou alors au moment de faire du tri faire qu'il ne soit pas dans les pricnipaux */
-                $iteratorAromaticCompound2 = $spice->getSecondaryAromaticsCompounds()->getIterator();
-                foreach ($iteratorAromaticCompound2 as $aromaticCompound2) {
-                    $aromaticCompoundId2 = $aromaticCompound2->getId();
-
-                    if(!array_key_exists($aromaticCompoundId2, $allAromaticsCompoundsIds)){
-                        $allAromaticsCompoundsIds[$aromaticCompoundId2] = 1;
-                    }else{
-                        $allAromaticsCompoundsIds[$aromaticCompoundId2]++;
-                    }
-                }
+                $arraySecondaryAromaticCoumpound = $spice->getSecondaryAromaticsCompounds()->getIterator();
+                $secondaryAromaticsCompoundsIds = $this->getAromaticsCompoundsFromIteratorSpice($arraySecondaryAromaticCoumpound, $secondaryAromaticsCompoundsIds);
             }
         }
 
-        return $allAromaticsCompoundsIds;
+        return [
+            "main" => $mainAromaticsCompoundsIds,
+            "secondary" => $secondaryAromaticsCompoundsIds
+        ];
     }
 
     private function getAromaticsCompoundsInCommon(array $allAromaticsCompoundsIds, int $numberSpices): array
     {
-        $communAromaticsCompoundsIds = [];
+        $mainCompounds = $allAromaticsCompoundsIds["main"];
+        $secondaryCompounds = $allAromaticsCompoundsIds["secondary"];
+        $mainCommon = $secondaryCommon = [];
 
-        foreach ($allAromaticsCompoundsIds as $id => $numberMatch){
+        foreach ($mainCompounds as $id => $numberMatchMain){
+            $numberMatch = $numberMatchMain + $secondaryCompounds[$id];
+
             if ($numberMatch === $numberSpices){
-                $communAromaticsCompoundsIds[] = $id;
+                $mainCommon[] = $id;
             }
         }
 
-        return $communAromaticsCompoundsIds;
+        foreach ($secondaryCompounds as $id => $numberMatchSecondary){
+            $numberMatch = $numberMatchSecondary + $mainCompounds[$id];
+
+            if (($numberMatch === $numberSpices) && !isset($mainCommon[$id])){
+                $secondaryCommon[] = $id;
+            }
+        }
+
+        return [
+            "main" => $mainCommon,
+            "secondary" => $secondaryCommon
+        ];
     }
 
     private function orderSpiceByMatch(array $spicesIds): array
     {
+        // TODO Finir ce morceau et tester le nouveau système de match
         $order = $spiceOrdered = [];
         // TODO Trouver un truc pour ordonner par match
 
@@ -185,15 +189,32 @@ dd($id);
 
         sort($order);*/
 
-        foreach ($spicesIds as $spice){
-            $spiceOrdered[] = $this->spicesRepository->findOneBy(['id' => $spice['spices_id']]);
-        }
 
-        return $spiceOrdered;
     }
 
-    private function createCardSpiceView(Spices $spice, bool $checked)
+    private function getAromaticsCompoundsFromIteratorSpice($iteratorAromaticCompound, $allAromaticsCompoundsIds): array
     {
-        dd($template);
+        foreach ($iteratorAromaticCompound as $aromaticCompound) {
+            $aromaticCompoundId = $aromaticCompound->getId();
+
+            if(!array_key_exists($aromaticCompoundId, $allAromaticsCompoundsIds)){
+                $allAromaticsCompoundsIds[$aromaticCompoundId] = 1;
+            }else{
+                $allAromaticsCompoundsIds[$aromaticCompoundId]++;
+            }
+        }
+
+        return $allAromaticsCompoundsIds;
+    }
+
+    private function getSpicesEntity(array $spicesOrderedByMatch): array
+    {
+        $spicesEntity = [];
+
+        foreach ($spicesOrderedByMatch as $spice){
+            $spicesEntity[] = $this->spicesRepository->findOneBy(['id' => $spice['spices_id']]);
+        }
+
+        return $spicesEntity;
     }
 }

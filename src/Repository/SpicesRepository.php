@@ -68,12 +68,32 @@ class SpicesRepository extends ServiceEntityRepository
      * @throws Exception
      * @throws \Doctrine\DBAL\Exception
      */
-    public function getByMainAromaticsCompounds(array $communAromaticsCompoundsIds): array
+    public function getByMainAromaticsCompounds(array $mainAromaticsCompoundsIds, array $secondaryAromaticsCompoundsIds): array
     {
-        $ids = implode(",", $communAromaticsCompoundsIds);
+        $mainIds = $this->checkArrayAndReturnString($mainAromaticsCompoundsIds);
+        $secondaryIds = $this->checkArrayAndReturnString($secondaryAromaticsCompoundsIds);
+
         $sql = "SELECT DISTINCT spices_id
                 FROM spices_aromatic_compound 
-                WHERE aromatic_compound_id IN ($ids)";
+                WHERE aromatic_compound_id IN ($mainIds)
+                
+                UNION
+                    
+                SELECT DISTINCT spices_id
+                FROM secondary_spices_aromatic_compound 
+                WHERE aromatic_compound_id IN ($mainIds)
+                
+                UNION
+                
+                SELECT DISTINCT spices_id
+                FROM spices_aromatic_compound 
+                WHERE aromatic_compound_id IN ($secondaryIds)
+                    
+                UNION
+                
+                SELECT DISTINCT spices_id
+                FROM secondary_spices_aromatic_compound 
+                WHERE aromatic_compound_id IN ($secondaryIds)";
 
         $conn = $this->getEntityManager()->getConnection();
         $stmt = $conn->prepare($sql);
@@ -81,21 +101,12 @@ class SpicesRepository extends ServiceEntityRepository
         return $stmt->executeQuery()->fetchAllAssociative();
     }
 
-    /**
-     * @throws Exception
-     * @throws \Doctrine\DBAL\Exception
-     */
-    public function getBySecondaryAromaticsCompounds(array $communAromaticsCompoundsIds): array
+    private function checkArrayAndReturnString(array $array): string
     {
-        $ids = implode(",", $communAromaticsCompoundsIds);
+        if(count($array) === 0){
+            return '0';
+        }
 
-        $sql = "SELECT DISTINCT spices_id
-                FROM secondary_spices_aromatic_compound 
-                WHERE aromatic_compound_id IN ($ids)";
-
-        $conn = $this->getEntityManager()->getConnection();
-        $stmt = $conn->prepare($sql);
-
-        return $stmt->executeQuery()->fetchAllAssociative();
+        return implode(",", $array);
     }
 }

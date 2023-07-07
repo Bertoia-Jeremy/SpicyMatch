@@ -69,32 +69,21 @@ class SpicyMatchController extends AbstractController
             //Récupération de tous les composés aromatiques
             $allAromaticsCompoundsIds = $this->getAllAromaticsCompounds($spicesId);
 
-            //Faire le tri en 4 parties
-            // Principaux sur principaux
-            // Principaux sur secondaires (Possibilité de switch avec Secondaires sur principaux)
-            // Secondaires sur principaux
-            // Secondaires sur secondaires
-
             //Filtre et selection des composés aromatiques en commun
             $communAromaticsCompoundsIds = $this->getAromaticsCompoundsInCommon($allAromaticsCompoundsIds, count($spicesId));
 
-            if(!$communAromaticsCompoundsIds){
+            if(count($communAromaticsCompoundsIds["main"]) + count($communAromaticsCompoundsIds["secondary"]) === 0){
                 return $this->json([]);
             }
 
-            //Récupération de toutes les épices possédant ces composés aromatiques
-            $mainMain = $this->spicesRepository->getByMainAromaticsCompounds($communAromaticsCompoundsIds["main"]);
-            $mainSecondary = $this->spicesRepository->getBySecondaryAromaticsCompounds($communAromaticsCompoundsIds["main"]);
-            $secondaryMain = $this->spicesRepository->getByMainAromaticsCompounds($communAromaticsCompoundsIds["secondary"]);
-            $secondarySecondary = $this->spicesRepository->getBySecondaryAromaticsCompounds($communAromaticsCompoundsIds["secondary"]);
+            //Récupération de toutes les épices possédant ces composés aromatiques par ordre d'affinités aux composés
+            $spicesIdMatched = $this->spicesRepository->getByMainAromaticsCompounds(
+                $communAromaticsCompoundsIds["main"], $communAromaticsCompoundsIds["secondary"]
+            );
 
+            $spicesIdOrdered = $this->putSelectedIdAtTheTop($spicesIdMatched, $spicesId);
 
-            //Tri par nombre de match
-            $spicesOrderedByMatch = $this->orderSpiceByMatch([
-                $mainMain, $secondaryMain, $mainSecondary, $secondarySecondary
-            ]);
-
-            $spicesEntity = $this->getSpicesEntity($spicesOrderedByMatch);
+            $spicesEntity = $this->getSpicesEntity($spicesIdOrdered);
         }
 
         //Création des templates cards
@@ -150,7 +139,7 @@ class SpicyMatchController extends AbstractController
         $mainCommon = $secondaryCommon = [];
 
         foreach ($mainCompounds as $id => $numberMatchMain){
-            $numberMatch = $numberMatchMain + $secondaryCompounds[$id];
+            $numberMatch = $numberMatchMain + ($secondaryCompounds[$id] ?? 0);
 
             if ($numberMatch === $numberSpices){
                 $mainCommon[] = $id;
@@ -158,7 +147,7 @@ class SpicyMatchController extends AbstractController
         }
 
         foreach ($secondaryCompounds as $id => $numberMatchSecondary){
-            $numberMatch = $numberMatchSecondary + $mainCompounds[$id];
+            $numberMatch = $numberMatchSecondary + ($mainCompounds[$id] ?? 0);
 
             if (($numberMatch === $numberSpices) && !isset($mainCommon[$id])){
                 $secondaryCommon[] = $id;
@@ -169,27 +158,6 @@ class SpicyMatchController extends AbstractController
             "main" => $mainCommon,
             "secondary" => $secondaryCommon
         ];
-    }
-
-    private function orderSpiceByMatch(array $spicesIds): array
-    {
-        // TODO Finir ce morceau et tester le nouveau système de match
-        $order = $spiceOrdered = [];
-        // TODO Trouver un truc pour ordonner par match
-
-       /* foreach ($spicesIds as $spice){
-            $id = $spice['spices_id'];
-dd($id);
-            if(isset($order[$id])) {
-                $order[$id]++;
-            }else{
-                $order[$id] = 1;
-            }
-        }
-
-        sort($order);*/
-
-
     }
 
     private function getAromaticsCompoundsFromIteratorSpice($iteratorAromaticCompound, $allAromaticsCompoundsIds): array
@@ -216,5 +184,19 @@ dd($id);
         }
 
         return $spicesEntity;
+    }
+
+    private function putSelectedIdAtTheTop(array $spicesIdMatched, $spicesId): array
+    {
+        $spicesIdChecked = [];
+
+        foreach ($spicesIdMatched as $key => $value){
+            if(in_array($value['spices_id'], $spicesId)){
+                $spicesIdChecked['selected_'.$key] = $value;
+                unset($spicesIdMatched[$key]);
+            }
+        }
+
+        return array_merge($spicesIdChecked, $spicesIdMatched);
     }
 }

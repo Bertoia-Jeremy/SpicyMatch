@@ -10,6 +10,8 @@
         </div>
 
         {# GROUPE 1 #}
+        {# TODO => Sécuriser l'appel AJAX #}
+        {# TODO => Gérer la grosseur des noms en fonction de la longueur#}
         {# TODO => Selectionner le groupe de l'épice choisie, trier sur ça pour la 1ere et l'afficher #}
         {# TODO => Faire le bouton Ajouter un groupe de mélange, (tout en prenant en compte les groupes fait auparavant) #}
         {# TODO => Réduire dans les groupes ajoutés les groupes actuellement utilisés #}
@@ -49,8 +51,6 @@
             </form>
         </div>
         <div class="container-fluid px-4">
-            {# Faire en dessous de chaque épice une checkbox avec une requête ajax qui met à jour le reste des épices #}
-            {# https://www.youtube.com/watch?v=25IqZbLYoK0 => 12:52 #}
             <form class="d-flex flex-wrap justify-content-around align-items-center" action="" id="matcher"
                     {{ csrf_token('matcher') }}>
                 {% for spice in spices %}
@@ -106,8 +106,6 @@
                     },
                     body: JSON.stringify(data),
                 }).then(response =>{
-                    console.log(response)
-
                     let promise = response.json()
 
                     promise.then((cards) => {
@@ -121,7 +119,7 @@
 
                 }).catch(e => alert(e));
             } catch (error) {
-                console.error("Error:", error);
+                /*console.error("Error:", error);*/
             }
         }
     </script>

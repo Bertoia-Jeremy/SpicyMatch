@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Spices;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Driver\Exception;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -63,4 +64,49 @@ class SpicesRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+    /**
+     * @throws Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function getByMainAromaticsCompounds(array $mainAromaticsCompoundsIds, array $secondaryAromaticsCompoundsIds): array
+    {
+        $mainIds = $this->checkArrayAndReturnString($mainAromaticsCompoundsIds);
+        $secondaryIds = $this->checkArrayAndReturnString($secondaryAromaticsCompoundsIds);
+
+        $sql = "SELECT DISTINCT spices_id
+                FROM spices_aromatic_compound 
+                WHERE aromatic_compound_id IN ($mainIds)
+                
+                UNION
+                    
+                SELECT DISTINCT spices_id
+                FROM secondary_spices_aromatic_compound 
+                WHERE aromatic_compound_id IN ($mainIds)
+                
+                UNION
+                
+                SELECT DISTINCT spices_id
+                FROM spices_aromatic_compound 
+                WHERE aromatic_compound_id IN ($secondaryIds)
+                    
+                UNION
+                
+                SELECT DISTINCT spices_id
+                FROM secondary_spices_aromatic_compound 
+                WHERE aromatic_compound_id IN ($secondaryIds)";
+
+        $conn = $this->getEntityManager()->getConnection();
+        $stmt = $conn->prepare($sql);
+
+        return $stmt->executeQuery()->fetchAllAssociative();
+    }
+
+    private function checkArrayAndReturnString(array $array): string
+    {
+        if(count($array) === 0){
+            return '0';
+        }
+
+        return implode(",", $array);
+    }
 }

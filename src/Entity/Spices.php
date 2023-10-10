@@ -95,9 +95,18 @@ class Spices
      */
     private $aromaticsCompounds;
 
+    /**
+     * @ORM\ManyToMany(targetEntity=AromaticCompound::class, inversedBy="secondary_spices")
+     * @ORM\JoinColumn(referencedColumnName="id", name="secondaryAromaticsCompounds")
+     * @ORM\JoinTable(name="secondary_spices_aromatic_compound")
+
+     */
+    private $secondary_aromatics_compounds;
+
     public function __construct()
     {
         $this->aromaticsCompounds = new ArrayCollection();
+        $this->secondary_aromatics_compounds = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -271,7 +280,7 @@ class Spices
         return $this;
     }
 
-    public function removeAromaticsGroups(AromaticCompound $aromaticsCompounds): self
+    public function removeAromaticsCompounds(AromaticCompound $aromaticsCompounds): self
     {
         $this->aromaticsCompounds->removeElement($aromaticsCompounds);
 
@@ -281,5 +290,29 @@ class Spices
     public function __toString()
     {
         return $this->name;
+    }
+
+    /**
+     * @return Collection<int, AromaticCompound>
+     */
+    public function getSecondaryAromaticsCompounds(): Collection
+    {
+        return $this->secondary_aromatics_compounds;
+    }
+
+    public function addSecondaryAromaticsCompound(AromaticCompound $secondaryAromaticsCompound): self
+    {
+        if (!$this->secondary_aromatics_compounds->contains($secondaryAromaticsCompound)) {
+            $this->secondary_aromatics_compounds[] = $secondaryAromaticsCompound;
+        }
+
+        return $this;
+    }
+
+    public function removeSecondaryAromaticsCompound(AromaticCompound $secondaryAromaticsCompound): self
+    {
+        $this->secondary_aromatics_compounds->removeElement($secondaryAromaticsCompound);
+
+        return $this;
     }
 }

@@ -5,13 +5,10 @@ namespace App\Controller\Admin;
 use App\Entity\Spices;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ImageField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
-use Symfony\Component\DomCrawler\Field\ChoiceFormField;
 use Vich\UploaderBundle\Form\Type\VichImageType;
 
 class SpicesCrudController extends AbstractCrudController
@@ -25,8 +22,8 @@ class SpicesCrudController extends AbstractCrudController
     {
         return [
             TextField::new('name', 'Nom'),
-            TextareaField::new('description', 'Description'),
-            TextareaField::new('cooking', 'Conseil de cuisine'),
+            TextareaField::new('description', 'Description')->setMaxLength(100),
+            TextareaField::new('cooking', 'Conseil de cuisine')->hideOnIndex(),
             TextareaField::new('informations', 'Informations supplémentaires')->hideOnIndex(),
             DateTimeField::new('created_at', 'Créé le')->hideOnForm(),
             DateTimeField::new('updated_at', 'Modifié le')->hideOnForm(),
@@ -35,7 +32,8 @@ class SpicesCrudController extends AbstractCrudController
             AssociationField::new('aromaticGroups', 'Groupe aromatique'),
             AssociationField::new('spicyType', 'Type d\'épice'),
           //  AssociationField::new('aco_ids', 'Composants aromatiques'),
-            AssociationField::new('aromaticsCompounds', 'Composants aromatiques')
+            AssociationField::new('aromaticsCompounds', 'Composés aromatiques principaux'),
+            AssociationField::new('secondary_aromatics_compounds', 'Composés aromatiques secondaires')
             //onlyOnIndex pour le voir juste sur le tableau, onlyOnUpdated pour juste au moment de la modif
         ];
     }

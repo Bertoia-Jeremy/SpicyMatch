@@ -67,10 +67,18 @@ class AromaticCompound
      */
     private $alchemyFlavors;
 
+    /**
+     * @ORM\ManyToMany(targetEntity=Spices::class, mappedBy="secondary_aromatics_compounds")
+     * @ORM\JoinColumn(referencedColumnName="id", name="secondarySpices")
+     * @ORM\JoinTable(name="secondary_spices_aromatic_compound")
+     */
+    private $secondary_spices;
+
     public function __construct()
     {
         $this->spices = new ArrayCollection();
         $this->alchemyFlavors = new ArrayCollection();
+        $this->secondary_spices = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -174,7 +182,7 @@ class AromaticCompound
     {
         if (!$this->spices->contains($spices)) {
             $this->spices[] = $spices;
-            $spices->addAromaticsCompounds($this);
+            $spices->addAromaticCompound($this);
         }
 
         return $this;
@@ -183,7 +191,7 @@ class AromaticCompound
     public function removeSpices(Spices $spices): self
     {
         if ($this->spices->removeElement($spices)) {
-            $spices->removeAromaticsGroups($this);
+            $spices->removeAromaticCompound($this);
         }
 
         return $this;
@@ -216,5 +224,32 @@ class AromaticCompound
     public function __toString()
     {
         return $this->name;
+    }
+
+    /**
+     * @return Collection<int, Spices>
+     */
+    public function getSecondarySpices(): Collection
+    {
+        return $this->secondary_spices;
+    }
+
+    public function addSecondarySpice(Spices $secondarySpice): self
+    {
+        if (!$this->secondary_spices->contains($secondarySpice)) {
+            $this->secondary_spices[] = $secondarySpice;
+            $secondarySpice->addSecondaryAromaticsCompound($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSecondarySpice(Spices $secondarySpice): self
+    {
+        if ($this->secondary_spices->removeElement($secondarySpice)) {
+            $secondarySpice->removeSecondaryAromaticsCompound($this);
+        }
+
+        return $this;
     }
 }

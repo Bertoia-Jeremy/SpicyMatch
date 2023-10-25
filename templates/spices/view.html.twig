@@ -3,88 +3,76 @@
 
 {% block body %}
     {% set color = spice.aromaticGroups.color %}
-    <div class="container-fluid">
-        <h2 class="text-center">{{ spice.name }}</h2>
-    </div>
-
     <div class="container">
-        <div class="col-4 article-{{ color |trim('#')|upper}}">
-            <div class="border-bottom border-light border-3 mt-4">
-                <h3>Groupe aromatique</h3>
-                <p>{{ spice.aromaticGroups.name }}</p>
-            </div>
-            <div class="border-bottom border-light border-3 mt-4">
-                {# Potentiellement plusieurs parties à consommer, revoir la many to one #}
-                <h3>Partie consommée</h3>
-                <p>{{ spice.spicyType.name }}</p>
-            </div>
-            <div class="border-bottom border-light border-3 mt-4">
-                <div>
-                    <h3>
-                        {% if spice.aromaticsCompounds.count > 1 %}
-                            Composés principaux :
-                        {% else %}
-                            Composé principal :
-                        {% endif %}
-                    </h3>
-                    <ul>
-                        {% for aromaticCompound in spice.aromaticsCompounds %}
-                            <li>{{ aromaticCompound.name }}</li>
-                        {% endfor %}
-                    </ul>
+
+        {# Centré -> Nom - Groupe épice + photo #}
+        <div class="row my-3">
+            <div class="d-flex justify-content-between">
+                <div class="col-lg-6 d-flex flex-column justify-content-center align-items-center px-2">
+                    <h2>{{ spice.name }}</h2>
+                    <h4>{{ spice.aromaticGroups.name }}</h3>
+                    <p class="text-justify">{{ spice.description }}</p>
                 </div>
-                <div>
-                    <h3>
-                        {% if spice.secondaryAromaticsCompounds.count > 1 %}
-                            Composés secondaires :
-                        {% else %}
-                            Composé secondaire :
-                        {% endif %}
-                    </h3>
-                    <ul>
-                        {% for aromaticCompound in spice.secondaryAromaticsCompounds %}
-                            <li>{{ aromaticCompound.name }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-            <div class="border-bottom border-light border-3 mt-4">
-                <div>
-                    <h3>Saveurs</h3>
-                    <ul>
-                        {% for aromaticCompound in spice.aromaticsCompounds %}
-                            {% for flavor in aromaticCompound.AlchemyFlavors %}
-                                <li>{{ flavor.name }}</li>
-                            {% endfor %}
-                        {% endfor %}
-                    </ul>
-                </div>
-                <div>
-                    <h3>Saveurs secondaires</h3>
-                    <ul>
-                        {% for aromaticCompound in spice.secondaryAromaticsCompounds %}
-                            {% for flavor in aromaticCompound.AlchemyFlavors %}
-                                <li>{{ flavor.name }}</li>
-                            {% endfor %}
-                        {% endfor %}
-                    </ul>
+                <div class="col-lg-6">
+                    <img class="rounded w-100 img-fluid" src="{{  vich_uploader_asset(spice, 'imageFile')}}">
                 </div>
             </div>
         </div>
-        <div class="col-8">
-            <div class="article-{{ color |trim('#')|upper}} mt-4">
-                <h3>Description</h3>
-                <p>{{ spice.description }}</p>
-            </div>
 
-            <div class="article-{{ color |trim('#')|upper}} mt-4">
-                <h3>Conseils de cuisine</h3>
-                <p>{{ spice.cooking }}</p>
+        <div class="row my-2">
+        {# Revoir les conseils cuisine, sur qui pour ensuite faire une meilleure présentation #}
+            <h3>Conseils cuisine</h3>
+            <p>{{ spice.cooking }}</p>
+            <p>{{ spice.informations }}</p>
+        </div>
+        
+        {# Décalé gauche -> Composés aromatiques - Mettre une couleur en opacité légère #}
+        <div class="row my-3 rounded w-100 p-0">
+            <div class="card p-0 w-100 h-100 shadow border-0">
+                <div class="card-header bg-primary">
+                    <h3>Composés aromatiques</h3>
+                </div>
+                <div class="card-body bg-white">
+                    <div class="card-text">
+                        <div></div>{# Faire un ovale de couleur du composé principale puis secondaire #}
+                        <ul class="list-group list-group-horizontal flex-wrap">
+                        {# TODO => Mettre le lien pour accéder directement à la page de présentation du composé #}
+                            {% for aromaticCompound in spice.aromaticsCompounds %}
+                                <li class="list-group-item list-group-item-primary rounded m-1 p-1">{{ aromaticCompound.name }}</li>
+                            {% endfor %}
+                            {% for aromaticCompound in spice.secondaryAromaticsCompounds %}
+                                <li class="list-group-item list-group-item-secondary rounded m-1 p-1">{{ aromaticCompound.name }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
             </div>
+        </div>
 
-            <div class="article-{{ color |trim('#')|upper}} mt-4">
-                <h3>Informations supplémentaires</h3>
-                <p>{{ spice.informations }}</p>
+        {# Décalé droite -> Saveurs - Mettre une couleur en opacité légère #}
+        <div class="row my-3 rounded w-100 p-0">
+            <div class="card p-0 w-100 h-100 shadow">
+                <div class="card-header bg-secondary">
+                    <h3>Saveurs</h3>
+                </div>
+                <div class="card-body bg-white">
+                    <div class="card-text">
+                        <div></div>{# Faire un ovale de couleur du composé principale puis secondaire #}
+                        <ul class="list-group list-group-horizontal flex-wrap">
+                        {# TODO => Mettre le lien pour accéder directement à la page de présentation de la saveur #}
+                        {% for aromaticCompound in spice.aromaticsCompounds %}
+                            {% for flavor in aromaticCompound.AlchemyFlavors %}
+                                <li class="list-group-item list-group-item-primary rounded m-1 p-1">{{ flavor.name }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for aromaticCompound in spice.secondaryAromaticsCompounds %}
+                            {% for flavor in aromaticCompound.AlchemyFlavors %}
+                                <li class="list-group-item list-group-item-secondary rounded m-1 p-1">{{ flavor.name }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

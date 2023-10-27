@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\AlchemyFlavors;
 use App\Entity\AromaticCompound;
 use App\Entity\AromaticGroups;
+use App\Entity\Contact;
 use App\Entity\Spices;
 use App\Entity\SpicyType;
 use App\Entity\Users;
@@ -41,6 +42,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Alchimie des saveurs', '', AlchemyFlavors::class);
         yield MenuItem::linkToCrud('Types d\'épices', '', SpicyType::class);
         yield MenuItem::linkToCrud('Users', '', Users::class);
+        yield MenuItem::linkToCrud('Contact', '', Contact::class);
     }
 
     public function configureCrud(): Crud

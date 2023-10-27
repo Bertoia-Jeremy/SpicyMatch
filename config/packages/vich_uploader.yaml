@@ -1,6 +1,9 @@
 vich_uploader:
   db_driver: orm
 
+  metadata:
+    type: annotation
+
   mappings:
     spice_images:
       uri_prefix: '%spice_images%'

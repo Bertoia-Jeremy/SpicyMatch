@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+{% block title %}Formulaire de contact{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div>
+            <h2 class="text-primary text-center py-4">Merci pour votre intérêt</h2>
+
+            <p class="text-center">Dès que vous aurons lu votre mail, nous ferons de notre mieux pour vous répondre.</p>
+
+            <p class="text-center">D'ici là nous vous souhaitons une bonne 
+            {% if "now"|date("H") < 18 %}
+                journée
+            {% else %}
+                soirée
+            {% endif %}
+             !
+            </p>
+
+            <div class="d-flex justify-content-center my-4">
+                <a class="btn btn-primary" href="{{ path('home') }}">Retour à l'accueil</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

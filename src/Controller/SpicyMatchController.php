@@ -2,8 +2,6 @@
 
 namespace App\Controller;
 
-use App\Entity\Spices;
-use App\Repository\AromaticCompoundRepository;
 use App\Repository\SpicesRepository;
 use Doctrine\DBAL\Driver\Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -11,27 +9,19 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @Route("/spicymatch")
- */
+#[Route('/spicymatch')]
 class SpicyMatchController extends AbstractController
 {
-
     private $spicesRepository;
-    private $aromaticCompoundRepository;
 
     public function __construct(
         SpicesRepository $spicesRepository,
-        AromaticCompoundRepository  $aromaticCompoundRepository
     )
     {
         $this->spicesRepository = $spicesRepository;
-        $this->aromaticCompoundRepository = $aromaticCompoundRepository;
     }
 
-    /**
-     * @Route("/", name="index_spicy_match")
-     */
+    #[Route('/', name: 'index_spicy_match')]
     public function index(Request $request): Response
     {
         /*
@@ -51,11 +41,7 @@ class SpicyMatchController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/matcher/", name="view_spicy_match", methods={"POST"})
-     * @throws \Exception
-     * @throws Exception
-     */
+    #[Route('/matcher', name: 'view_spicy_match',  methods: ['POST'])]
     public function matcherView(Request $request): \Symfony\Component\HttpFoundation\JsonResponse
     {
         //TODO => sécuriser l'appel ajax

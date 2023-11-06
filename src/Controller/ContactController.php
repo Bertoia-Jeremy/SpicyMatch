@@ -10,14 +10,10 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Doctrine\ORM\EntityManagerInterface;
 
-/**
- * @Route("/contact")
- */
+#[Route('/contact')]
 class ContactController extends AbstractController
 {
-    /**
-     * @Route("/", name="new_contact")
-     */
+    #[Route('/', name: 'new_contact')]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
         // just set up a fresh $contact object (remove the example data)
@@ -44,9 +40,7 @@ class ContactController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/success_form", name="contact_success_form")
-     */
+    #[Route('/success_form', name: 'contact_success_form')]
     public function successForm(): Response
     {
         return $this->render('contact/success_form.html.twig');

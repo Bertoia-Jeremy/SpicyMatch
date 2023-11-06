@@ -21,9 +21,7 @@ class HomeController extends AbstractController
         $this->spicesRepository = $spicesRepository;
     }
 
-    /**
-     * @Route("/", name="home")
-     */
+    #[Route('/', name: 'home')]
     public function index(Request $request, PaginatorInterface $paginator): Response
     {
         $spicesAll = $this->spicesRepository->findAll();

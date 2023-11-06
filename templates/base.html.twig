@@ -12,7 +12,9 @@
     </head>
     <body>
         {% block header %}
-            {%  include "/component/_navbar.html.twig" %}
+            {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                {%  include "/component/_navbar.html.twig" %}
+            {% endif %}
         {% endblock %}
 
         {% block body %}

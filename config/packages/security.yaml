@@ -15,8 +15,21 @@ security:
                 login_path: app_login
                 check_path: app_login
                 enable_csrf: true
+            logout:
+                path: app_logout
+                target: home
             lazy: true
             provider: app_user_provider
+            custom_authenticator: App\Security\LoginFormAuthenticator
+            entry_point: form_login
+            login_throttling:
+                max_attempts: 3 # per minute ...
+                interval: '15 minutes'
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 604800
+                path: /
+                always_remember_me: true
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
@@ -25,6 +38,7 @@ security:
         # TODO - Le site est-il accessible seulement avec un pseudo ?
         # - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }
         - { path: ^/, roles: ROLE_USER }
 
 when@test:

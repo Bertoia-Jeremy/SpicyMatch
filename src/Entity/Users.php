@@ -37,6 +37,13 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
      * @ORM\Column(name="password", type="string")
      */
     private $password;
+    
+    /**
+     * @ORM\Column(name="mail", type="string", length=255, nullable=true)
+     * TODO => vérifier l'email avant de l'insérer
+     */
+    private $mail = null;
+
     /**
      * @var \DateTimeInterface|null
      */
@@ -173,5 +180,16 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    public function getMail(): string|null
+    {
+        return $this->mail;
+    }
+
+    public function setMail(string $mail): self
+    {
+        $this->mail = $mail;
+        return $this;
     }
 }

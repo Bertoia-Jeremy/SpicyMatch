@@ -16,11 +16,9 @@ class ContactController extends AbstractController
     #[Route('/', name: 'new_contact')]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
-        // just set up a fresh $contact object (remove the example data)
         $contact = new Contact();
 
         $form = $this->createForm(ContactType::class, $contact);
-
         $form->handleRequest($request);
         
         if ($form->isSubmitted() && $form->isValid()) {

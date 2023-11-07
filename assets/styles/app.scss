@@ -183,3 +183,8 @@ Sass mixin
   font-weight: 700;
   text-shadow: rgba(black, 0.5) 0 10px 10px;
 }
+
+.dropdown-menu-right {
+  right: 0;
+  left: auto !important;
+}

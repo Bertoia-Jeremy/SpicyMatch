@@ -11,6 +11,8 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use App\Entity\Users;
 use App\Form\RegistrationFormType;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
+use App\Security\LoginFormAuthenticator;
 
 class SecurityController extends AbstractController
 {
@@ -34,7 +36,13 @@ class SecurityController extends AbstractController
     public function logout(){}
 
     #[Route('/register', name: 'index_register')]
-    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): Response
+    public function register(
+        Request $request, 
+        UserPasswordHasherInterface $userPasswordHasher, 
+        EntityManagerInterface $entityManager, 
+        UserAuthenticatorInterface $authenticator,
+        LoginFormAuthenticator $loginFormAuthenticator
+    ): Response
     {
         $user = new Users();
         $form = $this->createForm(RegistrationFormType::class, $user);
@@ -53,8 +61,11 @@ class SecurityController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
 
-            $this->addFlash('success', 'L\'enregistrement a bien été pris en compte');
-            return $this->redirectToRoute('home');
+            return $authenticator->authenticateUser(
+                $user, 
+                $loginFormAuthenticator, 
+                $request
+            );
         }
 
         return $this->render('security/registration.html.twig', [

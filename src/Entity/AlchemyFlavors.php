@@ -7,58 +7,38 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=AlchemyFlavorsRepository::class)
- * @ORM\Table(name="alchemy_flavors")
- */
+#[ORM\Entity(repositoryClass: AlchemyFlavorsRepository::class)]
+#[ORM\Table(name: 'alchemy_flavors')]
 class AlchemyFlavors
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(name="id", type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(name: 'id', type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(name="name", type="string", length=255)
-     */
+    #[ORM\Column(name: 'name', type: 'string', length: 255)]
     private $name;
 
-    /**
-     * @ORM\Column(name="description", type="text", nullable=true)
-     */
+    #[ORM\Column(name: 'description', type: 'text', nullable: true)]
     private $description;
 
-    /**
-     * @ORM\Column(name="cooking", type="text", nullable=true)
-     */
+    #[ORM\Column(name: 'cooking', type: 'text', nullable: true)]
     private $cooking;
 
-    /**
-     * @ORM\Column(name="informations", type="text", nullable=true)
-     */
+    #[ORM\Column(name: 'informations', type: 'text', nullable: true)]
     private $informations;
 
-    /**
-     * @ORM\Column(name="created_at", type="datetime")
-     */
+    #[ORM\Column(name: 'created_at', type: 'datetime')]
     private $created_at;
 
-    /**
-     * @ORM\Column(name="updated_at", type="datetime")
-     */
+    #[ORM\Column(name: 'updated_at', type: 'datetime')]
     private $updated_at;
 
-    /**
-     * @ORM\Column(name="deleted_at", type="datetime", nullable=true)
-     */
+    #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
     private $deleted_at;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=AromaticCompound::class, mappedBy="alchemyFlavors")
-     * @ORM\JoinColumn(referencedColumnName="id", name="aromaticsCompounds")
-     */
+    #[ORM\ManyToMany(targetEntity: AromaticCompound::class, mappedBy: 'alchemyFlavors')]
+    #[ORM\JoinColumn(referencedColumnName: 'id', name: 'aromaticsCompounds')]
     private $aromaticsCompounds;
 
     public function __construct()

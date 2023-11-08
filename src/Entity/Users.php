@@ -8,58 +8,38 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-/**
- * @ORM\Entity(repositoryClass=UsersRepository::class)
- * @ORM\Table(name="users")
- */
 #[UniqueEntity(fields: ['username'], message: 'Le pseudo existe déjà')]
+#[ORM\Entity(repositoryClass: UsersRepository::class)]
+#[ORM\Table(name: 'users')]
 class Users implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(name="id", type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(name: 'id', type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(name="username", type="string", length=180, unique=true)
-     */
+    #[ORM\Column(name: 'username', type: 'string', length: 180, unique: true)]
     private $username;
 
-    /**
-     * @ORM\Column(name="roles", type="json")
-     */
+    #[ORM\Column(name: 'roles', type: 'json')]
     private $roles = [];
 
     /**
      * @var string The hashed password
-     * @ORM\Column(name="password", type="string")
      */
+    #[ORM\Column(name: 'password', type: 'string')]
     private $password;
     
-    /**
-     * @ORM\Column(name="mail", type="string", length=255, nullable=true)
-     * TODO => vérifier l'email avant de l'insérer
-     */
+    #[ORM\Column(name: 'mail', type: 'string', length: 255, nullable: true)]
     private $mail = null;
 
-    /**
-     * @var \DateTimeInterface|null
-     */
-    /**
-     * @ORM\Column(name="created_at", type="datetime")
-     */
+    #[ORM\Column(name: 'created_at', type: 'datetime')]
     private $created_at;
 
-    /**
-     * @ORM\Column(name="updated_at", type="datetime")
-     */
+    #[ORM\Column(name: 'updated_at', type: 'datetime')]
     private $updated_at;
 
-    /**
-     * @ORM\Column(name="deleted_at", type="datetime", nullable=true)
-     */
+    #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
     private $deleted_at;
 
     public function getId(): ?int

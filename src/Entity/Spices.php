@@ -11,69 +11,47 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 /**
- * @ORM\Entity(repositoryClass=SpicesRepository::class)
- * @ORM\Table(name="spices")
  * @Vich\Uploadable
  */
+#[ORM\Entity(repositoryClass: SpicesRepository::class)]
+#[ORM\Table(name: 'spices')]
 class Spices
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(name="id", type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(name: 'id', type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=AromaticGroups::class, inversedBy="spices")
-     * @ORM\JoinColumn(nullable=false, referencedColumnName="id", name="aromaticGroups")
-     */
+    #[ORM\ManyToOne(targetEntity: AromaticGroups::class, inversedBy: 'spices')]
+    #[ORM\JoinColumn(nullable: false, referencedColumnName: 'id', name: 'aromaticGroups')]
     private $aromaticGroups;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=SpicyType::class, inversedBy="spices")
-     * @ORM\JoinColumn(referencedColumnName="id", name="spicyType")
-     */
+    #[ORM\ManyToOne(targetEntity: SpicyType::class, inversedBy: 'spices')]
+    #[ORM\JoinColumn(referencedColumnName: 'id', name: 'spicyType')]
     private $spicyType;
 
-    /**
-     * @ORM\Column(name="name", type="string", length=255)
-     */
+    #[ORM\Column(name: 'name', type: 'string', length: 255)]
     private $name;
 
-    /**
-     * @ORM\Column(name="description", type="text", nullable=true)
-     */
+    #[ORM\Column(name: 'description', type: 'text', nullable: true)]
     private $description;
 
-    /**
-     * @ORM\Column(name="cooking", type="text", nullable=true)
-     */
+    #[ORM\Column(name: 'cooking', type: 'text', nullable: true)]
     private $cooking;
 
-    /**
-     * @ORM\Column(name="informations", type="text", nullable=true)
-     */
+    #[ORM\Column(name: 'informations', type: 'text', nullable: true)]
     private $informations;
 
-    /**
-     * @ORM\Column(name="created_at", type="datetime")
-     */
+    #[ORM\Column(name: 'created_at', type: 'datetime')]
     private $created_at;
 
-    /**
-     * @ORM\Column(name="updated_at", type="datetime")
-     */
+    #[ORM\Column(name: 'updated_at', type: 'datetime')]
     private $updated_at;
 
-    /**
-     * @ORM\Column(name="deleted_at", type="datetime", nullable=true)
-     */
+    #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
     private $deleted_at;
 
-    /**
-     * @ORM\Column(name="file", type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(name: 'file', type: 'string', length: 255, nullable: true)]
     private $file;
 
     /**
@@ -83,24 +61,20 @@ class Spices
     private $imageFile;
 
     /**
-     * @ORM\Column(type="integer")
      *
      * @var int|null
      */
+    #[ORM\Column(type: 'integer')]
     private $imageSize;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=AromaticCompound::class, inversedBy="spices")
-     * @ORM\JoinColumn(referencedColumnName="id", name="aromaticsCompounds")
-     */
+    #[ORM\ManyToMany(targetEntity: AromaticCompound::class, inversedBy: 'spices')]
+    #[ORM\JoinColumn(referencedColumnName: 'id', name: 'aromaticsCompounds')]
     private $aromaticsCompounds;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=AromaticCompound::class, inversedBy="secondary_spices")
-     * @ORM\JoinColumn(referencedColumnName="id", name="secondaryAromaticsCompounds")
-     * @ORM\JoinTable(name="secondary_spices_aromatic_compound")
-
-     */
+    
+    #[ORM\ManyToMany(targetEntity: AromaticCompound::class, inversedBy: 'secondary_spices')]
+    #[ORM\JoinColumn(referencedColumnName: 'id', name: 'secondaryAromaticsCompounds')]
+    #[ORM\JoinTable(name: 'secondary_spices_aromatic_compound')]
     private $secondary_aromatics_compounds;
 
     public function __construct()

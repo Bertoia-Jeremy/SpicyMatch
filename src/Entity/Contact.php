@@ -7,57 +7,37 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use phpDocumentor\Reflection\Types\Boolean;
 
-/**
- * @ORM\Entity(repositoryClass=ContactRepository::class)
- * @ORM\Table(name="contact")
- */
+#[ORM\Entity(repositoryClass: ContactRepository::class)]
+#[ORM\Table(name: 'contact')]
 class Contact
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(name="id", type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(name: 'id', type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(name="email", type="string", length=100)
-     */
+    #[ORM\Column(name: 'email', type: 'string', length: 100)]
     private $email;
 
-    /**
-     * @ORM\Column(name="name", type="string", length=50)
-     */
+    #[ORM\Column(name: 'name', type: 'string', length: 50)]
     private $name;
 
-    /**
-     * @ORM\Column(name="subject", type="string", length=100)
-     */
+    #[ORM\Column(name: 'subject', type: 'string', length: 100)]
     private $subject;
 
-    /**
-     * @ORM\Column(name="message", type="text")
-     */
+    #[ORM\Column(name: 'message', type: 'text')]
     private $message;
 
-    /**
-     * @ORM\Column(name="is_treated", type="boolean")
-     */
+    #[ORM\Column(name: 'is_treated', type: 'boolean')]
     private $isTreated;
 
-    /**
-     * @ORM\Column(name="created_at", type="datetime")
-     */
+    #[ORM\Column(name: 'created_at', type: 'datetime')]
     private $created_at;
 
-    /**
-     * @ORM\Column(name="updated_at", type="datetime")
-     */
+    #[ORM\Column(name: 'updated_at', type: 'datetime')]
     private $updated_at;
 
-    /**
-     * @ORM\Column(name="deleted_at", type="datetime", nullable=true)
-     */
+    #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
     private $deleted_at;
 
     public function getId(): ?int

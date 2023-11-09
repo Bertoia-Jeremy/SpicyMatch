@@ -149,7 +149,7 @@ class SpicyType
     {
         if (! $this->spices->contains($spice)) {
             $this->spices[] = $spice;
-            $spice->setStyId($this);
+            $spice->setSpicyType($this);
         }
 
         return $this;
@@ -158,10 +158,8 @@ class SpicyType
     public function removeSpice(Spices $spice): self
     {
         // set the owning side to null (unless already changed)
-        if ($this->spices->removeElement(
-            $spice
-        ) && $spice->getStyId() === $this) {
-            $spice->setStyId(null);
+        if ($this->spices->removeElement($spice) && $spice->getSpicyType() === $this) {
+            $spice->setSpicyType(null);
         }
 
         return $this;

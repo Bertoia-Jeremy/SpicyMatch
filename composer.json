@@ -91,7 +91,8 @@
         "check-cs": "vendor/bin/ecs check --ansi",
         "fix-cs": "vendor/bin/ecs check --fix --ansi",
         "rector-dry": "vendor/bin/rector process --dry-run",
-        "rector" : "vendor/bin/rector process"
+        "rector" : "vendor/bin/rector process",
+        "phpstan": "php -d memory_limit=256M vendor/bin/phpstan analyze"
     },
     "conflict": {
         "symfony/symfony": "*"

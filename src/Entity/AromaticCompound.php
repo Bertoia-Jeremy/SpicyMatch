@@ -160,7 +160,7 @@ class AromaticCompound
     {
         if (! $this->spices->contains($spices)) {
             $this->spices[] = $spices;
-            $spices->addAromaticCompound($this);
+            $spices->addAromaticsCompounds($this);
         }
 
         return $this;
@@ -169,7 +169,7 @@ class AromaticCompound
     public function removeSpices(Spices $spices): self
     {
         if ($this->spices->removeElement($spices)) {
-            $spices->removeAromaticCompound($this);
+            $spices->removeAromaticsCompounds($this);
         }
 
         return $this;

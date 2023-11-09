@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\Users;
+use App\Repository\UsersRepository;
+use App\Factory\UsersFactory;
 use App\Form\RegistrationFormType;
 use App\Security\LoginFormAuthenticator;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,6 +18,12 @@ use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
 
 class SecurityController extends AbstractController
 {
+    public function __construct(
+        private readonly UsersFactory $usersFactory,
+        private readonly UsersRepository $usersRepository
+    ) {
+    }
+        
     #[Route(path: '/login', name: 'app_login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
@@ -43,11 +49,10 @@ class SecurityController extends AbstractController
     public function register(
         Request $request,
         UserPasswordHasherInterface $userPasswordHasher,
-        EntityManagerInterface $entityManager,
         UserAuthenticatorInterface $authenticator,
         LoginFormAuthenticator $loginFormAuthenticator
     ): Response {
-        $user = new Users();
+        $user = $this->usersFactory->create();
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
 
@@ -58,12 +63,9 @@ class SecurityController extends AbstractController
                     $form->get('plainPassword')
                         ->getData()
                 )
-            )
-                ->setCreatedAt(new \DateTime())
-                ->setUpdatedAt(new \DateTime());
+            );
 
-            $entityManager->persist($user);
-            $entityManager->flush();
+            $this->usersRepository->add($user, true);
 
             return $authenticator->authenticateUser(
                 $user,

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
 use App\Entity\Spices;
@@ -31,11 +33,10 @@ class SpicesCrudController extends AbstractCrudController
             ImageField::new('file', 'Image')->setBasePath('/uploads/spices')->onlyOnIndex()->setRequired(true),
             AssociationField::new('aromaticGroups', 'Groupe aromatique'),
             AssociationField::new('spicyType', 'Type d\'épice'),
-          //  AssociationField::new('aco_ids', 'Composants aromatiques'),
+            //  AssociationField::new('aco_ids', 'Composants aromatiques'),
             AssociationField::new('aromaticsCompounds', 'Composés aromatiques principaux'),
-            AssociationField::new('secondary_aromatics_compounds', 'Composés aromatiques secondaires')
-            //onlyOnIndex pour le voir juste sur le tableau, onlyOnUpdated pour juste au moment de la modif
+            AssociationField::new('secondary_aromatics_compounds', 'Composés aromatiques secondaires'),
+            // onlyOnIndex pour le voir juste sur le tableau, onlyOnUpdated pour juste au moment de la modif
         ];
     }
-
 }

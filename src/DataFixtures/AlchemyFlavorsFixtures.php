@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DataFixtures;
 
 use App\Entity\AlchemyFlavors;
@@ -12,17 +14,21 @@ class AlchemyFlavorsFixtures extends Fixture implements DependentFixtureInterfac
 {
     public function load(ObjectManager $manager): void
     {
-        for($i = 0; $i < 12; $i++){
+        for ($i = 0; $i < 12; ++$i) {
             $entity = new AlchemyFlavors();
-            $entity->setName('alchemy_flavor_'.$i)
+            $entity->setName('alchemy_flavor_' . $i)
                 ->setCreatedAt(new \DateTime('now'))
                 ->setUpdatedAt(new \DateTime('now'))
-                ->addAromaticsCompounds($this->getReference($i.'aromaticCompound', AromaticCompound::class));
+                ->addAromaticsCompounds($this->getReference($i . 'aromaticCompound', AromaticCompound::class));
 
-            if($i > 2 && $i <8){
-                $entity->addAromaticsCompounds($this->getReference(($i-1).'aromaticCompound', AromaticCompound::class));
-                $entity->addAromaticsCompounds($this->getReference(($i+1).'aromaticCompound', AromaticCompound::class));
-                $entity->addAromaticsCompounds($this->getReference(($i+2).'aromaticCompound', AromaticCompound::class));
+            if ($i > 2 && $i < 8) {
+                $entity->addAromaticsCompounds(
+                    $this->getReference(($i - 1) . 'aromaticCompound', AromaticCompound::class)
+                );
+                $entity->addAromaticsCompounds($this->getReference(($i + 1) . 'aromaticCompound', AromaticCompound::class));
+                $entity->addAromaticsCompounds(
+                    $this->getReference(($i + 2) . 'aromaticCompound', AromaticCompound::class)
+                );
             }
             $manager->persist($entity);
         }
@@ -32,8 +38,8 @@ class AlchemyFlavorsFixtures extends Fixture implements DependentFixtureInterfac
 
     public function getDependencies(): array
     {
-        return array(
+        return [
             AromaticCompoundFixtures::class,
-        );
+        ];
     }
 }

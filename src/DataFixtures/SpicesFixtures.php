@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DataFixtures;
 
 use App\Entity\AromaticGroups;
@@ -15,24 +17,24 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface
     public function load(ObjectManager $manager): void
     {
         $spicyNumber = 1;
-        for($i = 0; $i < 12; $i++){
-            copy("/home/jbertoia/Images/cannelle.webp", "/home/jbertoia/Images/cannelle_$i.webp");
+        for ($i = 0; $i < 12; ++$i) {
+            copy('/home/jbertoia/Images/cannelle.webp', "/home/jbertoia/Images/cannelle_{$i}.webp");
             $entity = new Spices();
-            $entity->setName('spices_'.$i)
+            $entity->setName('spices_' . $i)
                 ->setCreatedAt(new \DateTime('now'))
                 ->setUpdatedAt(new \DateTime('now'))
-                ->setAromaticGroups($this->getReference($i.'aromaticGroup', AromaticGroups::class))
-                ->setSpicyType($this->getReference($spicyNumber.'spicyType', SpicyType::class))
-                ->setImageFile(new UploadedFile("/home/jbertoia/Images/cannelle_$i.webp", 'test.webp',
+                ->setAromaticGroups($this->getReference($i . 'aromaticGroup', AromaticGroups::class))
+                ->setSpicyType($this->getReference($spicyNumber . 'spicyType', SpicyType::class))
+                ->setImageFile(new UploadedFile("/home/jbertoia/Images/cannelle_{$i}.webp", 'test.webp',
                     null, null, true))
             ;
-            $this->addReference($i.'spice', $entity);
+            $this->addReference($i . 'spice', $entity);
             $manager->persist($entity);
 
-            if($spicyNumber > 4){
+            if ($spicyNumber > 4) {
                 $spicyNumber = 1;
-            }else{
-                $spicyNumber++;
+            } else {
+                ++$spicyNumber;
             }
         }
 
@@ -41,9 +43,9 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface
 
     public function getDependencies(): array
     {
-        return array(
+        return [
             AromaticGroupsFixtures::class,
             SpicyTypeFixtures::class,
-        );
+        ];
     }
 }

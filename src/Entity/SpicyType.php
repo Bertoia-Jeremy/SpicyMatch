@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\SpicyTypeRepository;
@@ -14,32 +16,32 @@ class SpicyType
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: 'id', type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\Column(name: 'name', type: 'string', length: 255)]
-    private $name;
+    private ?string $name = null;
 
     #[ORM\Column(name: 'description', type: 'text', nullable: true)]
-    private $description;
+    private ?string $description = null;
 
     #[ORM\Column(name: 'cooking', type: 'text', nullable: true)]
-    private $cooking;
+    private ?string $cooking = null;
 
     #[ORM\Column(name: 'informations', type: 'text', nullable: true)]
-    private $informations;
+    private ?string $informations = null;
 
     #[ORM\Column(name: 'created_at', type: 'datetime')]
-    private $created_at;
+    private ?\DateTimeInterface $created_at = null;
 
     #[ORM\Column(name: 'updated_at', type: 'datetime')]
-    private $updated_at;
+    private ?\DateTimeInterface $updated_at = null;
 
     #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
-    private $deleted_at;
+    private ?\DateTimeInterface $deleted_at = null;
 
     #[ORM\OneToMany(targetEntity: Spices::class, mappedBy: 'spicyType')]
     #[ORM\JoinColumn(nullable: false, referencedColumnName: 'id', name: 'spices')]
-    private $spices;
+    private \Doctrine\Common\Collections\ArrayCollection|array $spices;
 
     public function __construct()
     {
@@ -145,7 +147,7 @@ class SpicyType
 
     public function addSpice(Spices $spice): self
     {
-        if (!$this->spices->contains($spice)) {
+        if (! $this->spices->contains($spice)) {
             $this->spices[] = $spice;
             $spice->setStyId($this);
         }
@@ -155,17 +157,17 @@ class SpicyType
 
     public function removeSpice(Spices $spice): self
     {
-        if ($this->spices->removeElement($spice)) {
-            // set the owning side to null (unless already changed)
-            if ($spice->getStyId() === $this) {
-                $spice->setStyId(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->spices->removeElement(
+            $spice
+        ) && $spice->getStyId() === $this) {
+            $spice->setStyId(null);
         }
 
         return $this;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->name;
     }

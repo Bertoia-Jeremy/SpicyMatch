@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
 use App\Entity\AlchemyFlavors;
@@ -18,9 +20,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class DashboardController extends AbstractDashboardController
 {
-    /**
-     * @Route("/admin", name="admin")
-     */
+    #[Route(path: '/admin', name: 'admin')]
     public function index(): Response
     {
         return $this->render('admin/dashboard.html.twig');
@@ -50,8 +50,10 @@ class DashboardController extends AbstractDashboardController
         return Crud::new()
             // this defines the pagination size for all CRUD controllers
             // (each CRUD controller can override this value if needed)
-                ->setDefaultSort(['created_at' => 'DESC'])
+            ->setDefaultSort([
+                'created_at' => 'DESC',
+            ])
             ->setPaginatorPageSize(30)
-            ;
+        ;
     }
 }

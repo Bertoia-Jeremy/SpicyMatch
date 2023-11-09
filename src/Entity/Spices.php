@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\SpicesRepository;
@@ -20,62 +22,56 @@ class Spices
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: 'id', type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: AromaticGroups::class, inversedBy: 'spices')]
     #[ORM\JoinColumn(nullable: false, referencedColumnName: 'id', name: 'aromaticGroups')]
-    private $aromaticGroups;
+    private ?\App\Entity\AromaticGroups $aromaticGroups = null;
 
     #[ORM\ManyToOne(targetEntity: SpicyType::class, inversedBy: 'spices')]
     #[ORM\JoinColumn(referencedColumnName: 'id', name: 'spicyType')]
-    private $spicyType;
+    private ?\App\Entity\SpicyType $spicyType = null;
 
     #[ORM\Column(name: 'name', type: 'string', length: 255)]
-    private $name;
+    private ?string $name = null;
 
     #[ORM\Column(name: 'description', type: 'text', nullable: true)]
-    private $description;
+    private ?string $description = null;
 
     #[ORM\Column(name: 'cooking', type: 'text', nullable: true)]
-    private $cooking;
+    private ?string $cooking = null;
 
     #[ORM\Column(name: 'informations', type: 'text', nullable: true)]
-    private $informations;
+    private ?string $informations = null;
 
     #[ORM\Column(name: 'created_at', type: 'datetime')]
-    private $created_at;
+    private ?\DateTimeInterface $created_at = null;
 
     #[ORM\Column(name: 'updated_at', type: 'datetime')]
-    private $updated_at;
+    private \DateTimeInterface|\DateTime|null $updated_at = null;
 
     #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
-    private $deleted_at;
+    private ?\DateTimeInterface $deleted_at = null;
 
     #[ORM\Column(name: 'file', type: 'string', length: 255, nullable: true)]
-    private $file;
+    private ?string $file = null;
 
     /**
      * @Vich\UploadableField(mapping="spice_images", fileNameProperty="file", size="imageSize")
-     * @var File|null
      */
-    private $imageFile;
+    private ?\Symfony\Component\HttpFoundation\File\File $imageFile = null;
 
-    /**
-     *
-     * @var int|null
-     */
     #[ORM\Column(type: 'integer')]
-    private $imageSize;
+    private ?int $imageSize = null;
 
     #[ORM\ManyToMany(targetEntity: AromaticCompound::class, inversedBy: 'spices')]
     #[ORM\JoinColumn(referencedColumnName: 'id', name: 'aromaticsCompounds')]
-    private $aromaticsCompounds;
+    private \Doctrine\Common\Collections\ArrayCollection|array $aromaticsCompounds;
 
-    
     #[ORM\ManyToMany(targetEntity: AromaticCompound::class, inversedBy: 'secondary_spices')]
     #[ORM\JoinColumn(referencedColumnName: 'id', name: 'secondaryAromaticsCompounds')]
     #[ORM\JoinTable(name: 'secondary_spices_aromatic_compound')]
-    private $secondary_aromatics_compounds;
+    private \Doctrine\Common\Collections\ArrayCollection|array $secondary_aromatics_compounds;
 
     public function __construct()
     {
@@ -211,14 +207,17 @@ class Spices
     /**
      * @param File|UploadedFile|null $imageFile
      */
-    public function setImageFile(?File $imageFile = null): void
-    {
+    public function setImageFile(
+        File $imageFile = null
+    ): void {
         $this->imageFile = $imageFile;
 
-        if (null !== $imageFile) {
+        if ($imageFile instanceof \Symfony\Component\HttpFoundation\File\File) {
             // It is required that at least one field changes if you are using doctrine
             // otherwise the event listeners won't be called and the file is lost
-            $this->updated_at = new \DateTime('now');
+            $this->updated_at = new \DateTime(
+                'now'
+            );
         }
     }
 
@@ -247,7 +246,7 @@ class Spices
 
     public function addAromaticsCompounds(AromaticCompound $aromaticsCompounds): self
     {
-        if (!$this->aromaticsCompounds->contains($aromaticsCompounds)) {
+        if (! $this->aromaticsCompounds->contains($aromaticsCompounds)) {
             $this->aromaticsCompounds[] = $aromaticsCompounds;
         }
 
@@ -261,7 +260,7 @@ class Spices
         return $this;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->name;
     }
@@ -276,7 +275,7 @@ class Spices
 
     public function addSecondaryAromaticsCompound(AromaticCompound $secondaryAromaticsCompound): self
     {
-        if (!$this->secondary_aromatics_compounds->contains($secondaryAromaticsCompound)) {
+        if (! $this->secondary_aromatics_compounds->contains($secondaryAromaticsCompound)) {
             $this->secondary_aromatics_compounds[] = $secondaryAromaticsCompound;
         }
 

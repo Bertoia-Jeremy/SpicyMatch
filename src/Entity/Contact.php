@@ -1,11 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\ContactRepository;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use phpDocumentor\Reflection\Types\Boolean;
 
 #[ORM\Entity(repositoryClass: ContactRepository::class)]
 #[ORM\Table(name: 'contact')]
@@ -14,31 +14,31 @@ class Contact
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: 'id', type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\Column(name: 'email', type: 'string', length: 100)]
-    private $email;
+    private ?string $email = null;
 
     #[ORM\Column(name: 'name', type: 'string', length: 50)]
-    private $name;
+    private ?string $name = null;
 
     #[ORM\Column(name: 'subject', type: 'string', length: 100)]
-    private $subject;
+    private ?string $subject = null;
 
     #[ORM\Column(name: 'message', type: 'text')]
-    private $message;
+    private ?string $message = null;
 
     #[ORM\Column(name: 'is_treated', type: 'boolean')]
-    private $isTreated;
+    private ?bool $isTreated = null;
 
     #[ORM\Column(name: 'created_at', type: 'datetime')]
-    private $created_at;
+    private ?\DateTimeInterface $created_at = null;
 
     #[ORM\Column(name: 'updated_at', type: 'datetime')]
-    private $updated_at;
+    private ?\DateTimeInterface $updated_at = null;
 
     #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
-    private $deleted_at;
+    private ?\DateTimeInterface $deleted_at = null;
 
     public function getId(): ?int
     {
@@ -92,7 +92,7 @@ class Contact
 
         return $this;
     }
-    
+
     public function getIsTreated(): ?bool
     {
         return $this->isTreated;

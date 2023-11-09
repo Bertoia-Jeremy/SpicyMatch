@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Repository\SpicesRepository;
@@ -11,10 +13,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class HomeController extends AbstractController
 {
-    /**
-     * @var SpicesRepository
-     */
-    private $spicesRepository;
+    private \App\Repository\SpicesRepository $spicesRepository;
 
     public function __construct(SpicesRepository $spicesRepository)
     {
@@ -31,6 +30,7 @@ class HomeController extends AbstractController
             $request->query->getInt('page', 1),
             8
         );
+
         return $this->render('home/index.html.twig', [
             'spices' => $spices,
         ]);

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\AlchemyFlavorsRepository;
@@ -14,32 +16,32 @@ class AlchemyFlavors
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: 'id', type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\Column(name: 'name', type: 'string', length: 255)]
-    private $name;
+    private ?string $name = null;
 
     #[ORM\Column(name: 'description', type: 'text', nullable: true)]
-    private $description;
+    private ?string $description = null;
 
     #[ORM\Column(name: 'cooking', type: 'text', nullable: true)]
-    private $cooking;
+    private ?string $cooking = null;
 
     #[ORM\Column(name: 'informations', type: 'text', nullable: true)]
-    private $informations;
+    private ?string $informations = null;
 
     #[ORM\Column(name: 'created_at', type: 'datetime')]
-    private $created_at;
+    private ?\DateTimeInterface $created_at = null;
 
     #[ORM\Column(name: 'updated_at', type: 'datetime')]
-    private $updated_at;
+    private ?\DateTimeInterface $updated_at = null;
 
     #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
-    private $deleted_at;
+    private ?\DateTimeInterface $deleted_at = null;
 
     #[ORM\ManyToMany(targetEntity: AromaticCompound::class, mappedBy: 'alchemyFlavors')]
     #[ORM\JoinColumn(referencedColumnName: 'id', name: 'aromaticsCompounds')]
-    private $aromaticsCompounds;
+    private \Doctrine\Common\Collections\ArrayCollection|array $aromaticsCompounds;
 
     public function __construct()
     {
@@ -145,7 +147,7 @@ class AlchemyFlavors
 
     public function addAromaticsCompounds(AromaticCompound $aromaticCompounds): self
     {
-        if (!$this->aromaticsCompounds->contains($aromaticCompounds)) {
+        if (! $this->aromaticsCompounds->contains($aromaticCompounds)) {
             $this->aromaticsCompounds[] = $aromaticCompounds;
             $aromaticCompounds->addAlchemyFlavors($this);
         }
@@ -162,7 +164,7 @@ class AlchemyFlavors
         return $this;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->name;
     }

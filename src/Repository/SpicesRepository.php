@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Entity\Spices;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\DBAL\Driver\Exception;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -24,65 +25,69 @@ class SpicesRepository extends ServiceEntityRepository
 
     public function add(Spices $entity, bool $flush = false): void
     {
-        $this->getEntityManager()->persist($entity);
+        $this->getEntityManager()
+            ->persist($entity);
 
         if ($flush) {
-            $this->getEntityManager()->flush();
+            $this->getEntityManager()
+                ->flush();
         }
     }
 
     public function remove(Spices $entity, bool $flush = false): void
     {
-        $this->getEntityManager()->remove($entity);
+        $this->getEntityManager()
+            ->remove($entity);
 
         if ($flush) {
-            $this->getEntityManager()->flush();
+            $this->getEntityManager()
+                ->flush();
         }
     }
-    
-    /**
-     * @throws Exception
-     * @throws \Doctrine\DBAL\Exception
-     */
-    public function getByMainAromaticsCompounds(array $mainAromaticsCompoundsIds, array $secondaryAromaticsCompoundsIds): array
-    {
+
+    public function getByMainAromaticsCompounds(
+        array $mainAromaticsCompoundsIds,
+        array $secondaryAromaticsCompoundsIds
+    ): array {
         $mainIds = $this->checkArrayAndReturnString($mainAromaticsCompoundsIds);
         $secondaryIds = $this->checkArrayAndReturnString($secondaryAromaticsCompoundsIds);
 
         $sql = "SELECT DISTINCT spices_id
                 FROM spices_aromatic_compound 
-                WHERE aromatic_compound_id IN ($mainIds)
+                WHERE aromatic_compound_id IN ({$mainIds})
                 
                 UNION
                     
                 SELECT DISTINCT spices_id
                 FROM secondary_spices_aromatic_compound 
-                WHERE aromatic_compound_id IN ($mainIds)
+                WHERE aromatic_compound_id IN ({$mainIds})
                 
                 UNION
                 
                 SELECT DISTINCT spices_id
                 FROM spices_aromatic_compound 
-                WHERE aromatic_compound_id IN ($secondaryIds)
+                WHERE aromatic_compound_id IN ({$secondaryIds})
                     
                 UNION
                 
                 SELECT DISTINCT spices_id
                 FROM secondary_spices_aromatic_compound 
-                WHERE aromatic_compound_id IN ($secondaryIds)";
+                WHERE aromatic_compound_id IN ({$secondaryIds})";
 
-        $conn = $this->getEntityManager()->getConnection();
+        $conn = $this->getEntityManager()
+            ->getConnection();
         $stmt = $conn->prepare($sql);
 
-        return $stmt->executeQuery()->fetchAllAssociative();
+        return $stmt->executeQuery()
+            ->fetchAllAssociative();
     }
 
     private function checkArrayAndReturnString(array $array): string
     {
-        if(count($array) === 0){
+        if ($array === []) {
             return '0';
         }
 
-        return implode(",", $array);
+        return implode(',', $array);
     }
 }

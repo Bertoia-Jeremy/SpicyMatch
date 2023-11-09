@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\AromaticCompoundRepository;
@@ -14,41 +16,41 @@ class AromaticCompound
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: 'id', type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\Column(name: 'name', type: 'string', length: 255)]
-    private $name;
+    private ?string $name = null;
 
     #[ORM\Column(name: 'description', type: 'text', nullable: true)]
-    private $description;
+    private ?string $description = null;
 
     #[ORM\Column(name: 'cooking', type: 'text', nullable: true)]
-    private $cooking;
+    private ?string $cooking = null;
 
     #[ORM\Column(name: 'informations', type: 'text', nullable: true)]
-    private $informations;
+    private ?string $informations = null;
 
     #[ORM\Column(name: 'created_at', type: 'datetime')]
-    private $created_at;
+    private ?\DateTimeInterface $created_at = null;
 
     #[ORM\Column(name: 'updated_at', type: 'datetime')]
-    private $updated_at;
+    private ?\DateTimeInterface $updated_at = null;
 
     #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
-    private $deleted_at;
+    private ?\DateTimeInterface $deleted_at = null;
 
     #[ORM\ManyToMany(targetEntity: Spices::class, mappedBy: 'aromaticsCompounds')]
     #[ORM\JoinColumn(referencedColumnName: 'id', name: 'spices')]
-    private $spices;
+    private \Doctrine\Common\Collections\ArrayCollection|array $spices;
 
     #[ORM\ManyToMany(targetEntity: AlchemyFlavors::class, inversedBy: 'aromaticsCompounds')]
     #[ORM\JoinColumn(referencedColumnName: 'id', name: 'alchemyFlavors')]
-    private $alchemyFlavors;
+    private \Doctrine\Common\Collections\ArrayCollection|array $alchemyFlavors;
 
     #[ORM\ManyToMany(targetEntity: Spices::class, mappedBy: 'secondary_aromatics_compounds')]
     #[ORM\JoinColumn(referencedColumnName: 'id', name: 'secondarySpices')]
     #[ORM\JoinTable(name: 'secondary_spices_aromatic_compound')]
-    private $secondary_spices;
+    private \Doctrine\Common\Collections\ArrayCollection|array $secondary_spices;
 
     public function __construct()
     {
@@ -156,7 +158,7 @@ class AromaticCompound
 
     public function addSpices(Spices $spices): self
     {
-        if (!$this->spices->contains($spices)) {
+        if (! $this->spices->contains($spices)) {
             $this->spices[] = $spices;
             $spices->addAromaticCompound($this);
         }
@@ -183,7 +185,7 @@ class AromaticCompound
 
     public function addAlchemyFlavors(AlchemyFlavors $alchemyFlavors): self
     {
-        if (!$this->alchemyFlavors->contains($alchemyFlavors)) {
+        if (! $this->alchemyFlavors->contains($alchemyFlavors)) {
             $this->alchemyFlavors[] = $alchemyFlavors;
         }
 
@@ -197,7 +199,7 @@ class AromaticCompound
         return $this;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->name;
     }
@@ -212,7 +214,7 @@ class AromaticCompound
 
     public function addSecondarySpice(Spices $secondarySpice): self
     {
-        if (!$this->secondary_spices->contains($secondarySpice)) {
+        if (! $this->secondary_spices->contains($secondarySpice)) {
             $this->secondary_spices[] = $secondarySpice;
             $secondarySpice->addSecondaryAromaticsCompound($this);
         }

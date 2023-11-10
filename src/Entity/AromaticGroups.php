@@ -43,7 +43,7 @@ class AromaticGroups
     private ?\DateTimeInterface $deleted_at = null;
 
     #[ORM\OneToMany(targetEntity: Spices::class, mappedBy: 'aromaticGroups', orphanRemoval: true)]
-    private \Doctrine\Common\Collections\ArrayCollection|array $spices;
+    private Collection $spices;
 
     public function __construct()
     {

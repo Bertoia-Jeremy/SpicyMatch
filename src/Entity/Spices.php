@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\SpicesRepository;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -65,13 +65,11 @@ class Spices
     private ?int $imageSize = null;
 
     #[ORM\ManyToMany(targetEntity: AromaticCompound::class, inversedBy: 'spices')]
-    #[ORM\JoinColumn(referencedColumnName: 'id', name: 'aromaticsCompounds')]
-    private \Doctrine\Common\Collections\ArrayCollection|array $aromaticsCompounds;
+    private Collection $aromaticsCompounds;
 
     #[ORM\ManyToMany(targetEntity: AromaticCompound::class, inversedBy: 'secondary_spices')]
-    #[ORM\JoinColumn(referencedColumnName: 'id', name: 'secondaryAromaticsCompounds')]
     #[ORM\JoinTable(name: 'secondary_spices_aromatic_compound')]
-    private \Doctrine\Common\Collections\ArrayCollection|array $secondary_aromatics_compounds;
+    private Collection $secondary_aromatics_compounds;
 
     public function __construct()
     {

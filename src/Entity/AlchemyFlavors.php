@@ -40,8 +40,7 @@ class AlchemyFlavors
     private ?\DateTimeInterface $deleted_at = null;
 
     #[ORM\ManyToMany(targetEntity: AromaticCompound::class, mappedBy: 'alchemyFlavors')]
-    #[ORM\JoinColumn(referencedColumnName: 'id', name: 'aromaticsCompounds')]
-    private \Doctrine\Common\Collections\ArrayCollection|array $aromaticsCompounds;
+    private Collection $aromaticsCompounds;
 
     public function __construct()
     {

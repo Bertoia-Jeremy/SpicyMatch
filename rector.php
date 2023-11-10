@@ -11,8 +11,6 @@ return static function (RectorConfig $rectorConfig): void {
         __DIR__ . '/src'
     ]);
 
-    $rectorConfig->para
-
     $rectorConfig->symfonyContainerXml(__DIR__ . '/var/cache/dev/App_KernelDevDebugContainer.xml');
     $rectorConfig->sets([
         SymfonySetList::SYMFONY_62,

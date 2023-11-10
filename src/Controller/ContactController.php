@@ -18,10 +18,9 @@ class ContactController extends AbstractController
     public function __construct(
         private readonly ContactFactory $contactFactory,
         private readonly ContactRepository $contactRepository
-    )
-    {
+    ) {
     }
-    
+
     #[Route('/', name: 'new_contact')]
     public function new(Request $request): Response
     {

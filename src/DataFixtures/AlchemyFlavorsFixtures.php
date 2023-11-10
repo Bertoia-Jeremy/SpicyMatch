@@ -25,7 +25,9 @@ class AlchemyFlavorsFixtures extends Fixture implements DependentFixtureInterfac
                 $entity->addAromaticsCompounds(
                     $this->getReference(($i - 1) . 'aromaticCompound', AromaticCompound::class)
                 );
-                $entity->addAromaticsCompounds($this->getReference(($i + 1) . 'aromaticCompound', AromaticCompound::class));
+                $entity->addAromaticsCompounds(
+                    $this->getReference(($i + 1) . 'aromaticCompound', AromaticCompound::class)
+                );
                 $entity->addAromaticsCompounds(
                     $this->getReference(($i + 2) . 'aromaticCompound', AromaticCompound::class)
                 );

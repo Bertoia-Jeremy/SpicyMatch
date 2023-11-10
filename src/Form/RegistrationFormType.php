@@ -53,11 +53,11 @@ class RegistrationFormType extends AbstractType
         // TODO => vérifier l'email si il est déjà présent en BDD, mettre les contraintes dans l'entité
         $resolver->setDefaults(
             [
-            'data_class' => Users::class,
-            'csrf_protection' => true,
-            'csrf_field_name' => '_token',
-            'csrf_token_id' => 'contact_crsf_token',
-        ]
+                'data_class' => Users::class,
+                'csrf_protection' => true,
+                'csrf_field_name' => '_token',
+                'csrf_token_id' => 'contact_crsf_token',
+            ]
         );
     }
 }

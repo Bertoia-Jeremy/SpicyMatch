@@ -34,7 +34,10 @@ class SpicesCrudController extends AbstractCrudController
             AssociationField::new('aromaticGroups', 'Groupe aromatique'),
             AssociationField::new('spicyType', 'Type d\'épice'),
             //  AssociationField::new('aco_ids', 'Composants aromatiques'),
-            AssociationField::new('aromaticsCompounds', 'Composés aromatiques principaux'),
+            AssociationField::new(
+                'aromaticsCompounds',
+                'Composés aromatiques principaux'
+            ),
             AssociationField::new('secondary_aromatics_compounds', 'Composés aromatiques secondaires'),
             // onlyOnIndex pour le voir juste sur le tableau, onlyOnUpdated pour juste au moment de la modif
         ];

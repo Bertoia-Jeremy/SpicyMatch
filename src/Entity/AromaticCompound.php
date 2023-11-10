@@ -40,17 +40,14 @@ class AromaticCompound
     private ?\DateTimeInterface $deleted_at = null;
 
     #[ORM\ManyToMany(targetEntity: Spices::class, mappedBy: 'aromaticsCompounds')]
-    #[ORM\JoinColumn(referencedColumnName: 'id', name: 'spices')]
-    private \Doctrine\Common\Collections\ArrayCollection|array $spices;
+    private Collection $spices;
 
     #[ORM\ManyToMany(targetEntity: AlchemyFlavors::class, inversedBy: 'aromaticsCompounds')]
-    #[ORM\JoinColumn(referencedColumnName: 'id', name: 'alchemyFlavors')]
-    private \Doctrine\Common\Collections\ArrayCollection|array $alchemyFlavors;
+    private Collection $alchemyFlavors;
 
     #[ORM\ManyToMany(targetEntity: Spices::class, mappedBy: 'secondary_aromatics_compounds')]
-    #[ORM\JoinColumn(referencedColumnName: 'id', name: 'secondarySpices')]
     #[ORM\JoinTable(name: 'secondary_spices_aromatic_compound')]
-    private \Doctrine\Common\Collections\ArrayCollection|array $secondary_spices;
+    private Collection $secondary_spices;
 
     public function __construct()
     {

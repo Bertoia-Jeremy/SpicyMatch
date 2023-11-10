@@ -40,8 +40,7 @@ class SpicyType
     private ?\DateTimeInterface $deleted_at = null;
 
     #[ORM\OneToMany(targetEntity: Spices::class, mappedBy: 'spicyType')]
-    #[ORM\JoinColumn(nullable: false, referencedColumnName: 'id', name: 'spices')]
-    private \Doctrine\Common\Collections\ArrayCollection|array $spices;
+    private Collection $spices;
 
     public function __construct()
     {

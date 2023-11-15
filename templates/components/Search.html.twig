@@ -1,0 +1,9 @@
+<div {{ attributes }}>
+    <input class="form-control me-2" type="search" placeholder="Rechercher..." aria-label="Rechercher" data-model="query" data-action="live#update">
+
+    <ul>
+        {% for result in this.results %}
+            <li>{{ result }}</li>
+        {% endfor %}
+    </ul>
+</div>

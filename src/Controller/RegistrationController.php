@@ -30,20 +30,23 @@ class RegistrationController extends AbstractController
         UserAuthenticatorInterface $authenticator,
         LoginFormAuthenticator $loginFormAuthenticator
     ): Response {
-        $form = $this->createForm(RegistrationFormType::class);
+
+        $user = $this->usersFactory->create();
+        $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $user = $this->usersFactory->create();
+            $user = $form->getData();
             $user->setPassword(
                 $userPasswordHasher->hashPassword(
-                    $user,
-                    $form->get('plainPassword')
-                        ->getData()
+                $user,
+                $form->get('plainPassword')
+                    ->getData()
                 )
             );
             $this->usersRepository->add($user, true);
 
+            # TODO => Faire un message de validation de création de compte
             return $authenticator->authenticateUser(
                 $user,
                 $loginFormAuthenticator,

@@ -45,6 +45,19 @@ class SpicesRepository extends ServiceEntityRepository
         }
     }
 
+    public function search(string $word){
+        $entityManager = $this->getEntityManager();
+
+        $query = $entityManager->createQuery(
+            'SELECT s.id, s.name
+            FROM App\Entity\Spices s
+            WHERE s.name LIKE :word
+            AND s.deleted_at IS NULL'
+        )->setParameter('word', '%'.$word.'%');
+
+        return $query->getArrayResult();
+    }
+
     public function getByMainAromaticsCompounds(
         array $mainAromaticsCompoundsIds,
         array $secondaryAromaticsCompoundsIds

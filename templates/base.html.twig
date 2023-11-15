@@ -12,8 +12,8 @@
     </head>
     <body>
         {% block header %}
-            {% if is_granted('IS_AUTHENTICATED_FULLY') %}
-                {%  include "/component/_navbar.html.twig" %}
+            {% if is_granted('ROLE_USER') %}
+                {%  include "/components/_navbar.html.twig" %}
             {% endif %}
         {% endblock %}
 

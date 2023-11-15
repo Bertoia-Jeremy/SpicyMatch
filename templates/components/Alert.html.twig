@@ -1,0 +1,13 @@
+<div class="container">
+    <div class="alert alert-{{ type }} w-75 text-center">
+        {{ this.message }}
+    </div>
+</div>
+
+{# 
+    Pour l'utiliser dans twig :
+        {{ component('Alert', {
+            type: 'success',
+            message: 'L\'envoi du message s\'est bien passé'
+        }) }} 
+#}

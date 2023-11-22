@@ -30,14 +30,7 @@ class Search
         if($this->query === ""){
             return [];
         }
-
-
-        $spices = $this->spicesRepository->search($this->query);
-        $aromaticsCompounds = $this->aromaticCompoundRepository->search($this->query);
-
-        $results = array_merge($spices, $aromaticsCompounds);
-        sort($results, SORT_STRING);
         
-        return $results;
+        return $this->spicesRepository->search($this->query);
     }
 }

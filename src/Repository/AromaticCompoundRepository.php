@@ -44,17 +44,4 @@ class AromaticCompoundRepository extends ServiceEntityRepository
                 ->flush();
         }
     }
-
-    public function search(string $word){
-        $entityManager = $this->getEntityManager();
-
-        $query = $entityManager->createQuery(
-            'SELECT ac.id, ac.name
-            FROM App\Entity\AromaticCompound ac
-            WHERE ac.name LIKE :word
-            AND ac.deleted_at IS NULL'
-        )->setParameter('word', '%'.$word.'%');
-
-        return $query->getArrayResult();
-    }
 }

@@ -46,16 +46,23 @@ class SpicesRepository extends ServiceEntityRepository
     }
 
     public function search(string $word){
-        $entityManager = $this->getEntityManager();
+        $sql = 'SELECT s.id, s.name, IF(1, "spice", "") as `type`
+                FROM spices s
+                WHERE s.name LIKE ?
+                    AND deleted_at IS NULL
+                UNION
+                SELECT ac.id, ac.name, IF(1, "aromatic_coumpound", "") as `type`
+                FROM aromatic_compound ac
+                WHERE ac.name LIKE ?
+                    AND deleted_at IS NULL
+                ORDER BY `name`
+                LIMIT 10';
 
-        $query = $entityManager->createQuery(
-            'SELECT s.id, s.name
-            FROM App\Entity\Spices s
-            WHERE s.name LIKE :word
-            AND s.deleted_at IS NULL'
-        )->setParameter('word', '%'.$word.'%');
+        $stmt = $this->getEntityManager()->getConnection()->prepare($sql);
+        $stmt->bindValue(1, '%'.$word.'%');
+        $stmt->bindValue(2, '%'.$word.'%');
 
-        return $query->getArrayResult();
+        return $stmt->executeQuery()->fetchAllAssociative();
     }
 
     public function getByMainAromaticsCompounds(

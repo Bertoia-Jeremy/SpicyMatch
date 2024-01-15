@@ -23,6 +23,7 @@
         {% endblock %}
 
         {% block javascripts %}
+            <script src="{{ asset('build/runtime.js') }}"></script>
             {{ encore_entry_script_tags('app') }}
         {% endblock %}
     </body>

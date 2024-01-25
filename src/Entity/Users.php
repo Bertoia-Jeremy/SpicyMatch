@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\UsersRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -43,6 +45,18 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
+
+    #[ORM\ManyToMany(targetEntity: RewardsProfileImages::class, mappedBy: 'users')]
+    private Collection $rewardsProfileImages;
+    
+    #[ORM\ManyToMany(targetEntity: RewardsBadges::class, mappedBy: 'users')]
+    private Collection $rewardsBadges;
+
+    public function __construct()
+    {
+        $this->rewardsProfileImages = new ArrayCollection();
+        $this->rewardsBadges = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -172,6 +186,60 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function setMail(string $mail): self
     {
         $this->mail = $mail;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, RewardsProfileImages>
+     */
+    public function getRewardsProfileImages(): Collection
+    {
+        return $this->rewardsProfileImages;
+    }
+
+    public function addRewardsProfileImage(RewardsProfileImages $rewardsProfileImage): static
+    {
+        if (!$this->rewardsProfileImages->contains($rewardsProfileImage)) {
+            $this->rewardsProfileImages->add($rewardsProfileImage);
+            $rewardsProfileImage->addUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRewardsProfileImage(RewardsProfileImages $rewardsProfileImage): static
+    {
+        if ($this->rewardsProfileImages->removeElement($rewardsProfileImage)) {
+            $rewardsProfileImage->removeUser($this);
+        }
+
+        return $this;
+    }
+   
+    /**
+     * @return Collection<int, RewardsBadges>
+     */
+    public function getRewardsBadges(): Collection
+    {
+        return $this->rewardsBadges;
+    }
+
+    public function addRewardsBadges(RewardsBadges $rewardsBadges): static
+    {
+        if (!$this->rewardsBadges->contains($rewardsBadges)) {
+            $this->rewardsBadges->add($rewardsBadges);
+            $rewardsBadges->addUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRewardsBadges(RewardsBadges $rewardsBadges): static
+    {
+        if ($this->rewardsBadges->removeElement($rewardsBadges)) {
+            $rewardsBadges->removeUser($this);
+        }
 
         return $this;
     }

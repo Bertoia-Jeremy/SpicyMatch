@@ -313,6 +313,9 @@
     "symfony/ux-toggle-password": {
         "version": "v2.13.2"
     },
+    "symfony/ux-turbo": {
+        "version": "v2.13.2"
+    },
     "symfony/ux-twig-component": {
         "version": "2.13",
         "recipe": {

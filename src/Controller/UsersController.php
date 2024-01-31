@@ -22,32 +22,38 @@ class UsersController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'profil_user', methods: ['GET'])]
-    public function show(Users $user): Response
+    #[Route('/history', name: 'history_user', methods: ['GET'])]
+    public function history(Request $request): Response
     {
-        return $this->render('users/show.html.twig', [
-            'user' => $user,
+        return $this->render('users/history.html.twig', [
+            'user' => "history",
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'edit_user', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Users $user, EntityManagerInterface $entityManager): Response
+    #[Route('/security', name: 'security_user', methods: ['GET'])]
+    public function security(Request $request): Response
     {
-        $form = $this->createForm(UsersType::class, $user);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-
-            return $this->redirectToRoute('index_users_index', [], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->render('users/edit.html.twig', [
-            'user' => $user,
-            'form' => $form,
+        return $this->render('users/security.html.twig', [
+            'user' => "security",
         ]);
     }
 
+    #[Route('/configuration', name: 'configuration_user', methods: ['GET'])]
+    public function configuration(Request $request): Response
+    {
+        return $this->render('users/configuration.html.twig', [
+            'user' => "configuration",
+        ]);
+    }
+
+    #[Route('/profile', name: 'profile_user', methods: ['GET'])]
+    public function profile(Request $request): Response
+    {
+        return $this->render('users/profile.html.twig', [
+            'user' => "profile",
+        ]);
+    }
+    
     #[Route('/{id}', name: 'delete_user', methods: ['POST'])]
     public function delete(Request $request, Users $user, EntityManagerInterface $entityManager): Response
     {

@@ -40,9 +40,10 @@
                        {{ app.user.username|capitalize }}
                     </a>
                     <div class="dropdown-menu dropdown-menu-right">
-                        <a class="dropdown-item" href="{{ path('dashboard_user') }}">Profil</a>
-                        <a class="dropdown-item" href="#">Historique</a>
-                        <a class="dropdown-item" href="#">Sécurité</a>
+                        <a class="dropdown-item" href="{{ path('profile_user') }}">Profil</a>
+                        <a class="dropdown-item" href="{{ path('configuration_user') }}">Configuration</a>
+                        <a class="dropdown-item" href="{{ path('history_user') }}">Historique</a>
+                        <a class="dropdown-item" href="{{ path('security_user') }}">Sécurité</a>
                         <hr class="dropdown-divider">
                         <a class="dropdown-item" href="{{ path('app_logout') }}">Déconnexion</a>
                     </div>

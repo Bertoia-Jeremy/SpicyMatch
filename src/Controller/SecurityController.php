@@ -15,7 +15,7 @@ class SecurityController extends AbstractController
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
         if ($this->getUser() instanceof \Symfony\Component\Security\Core\User\UserInterface) {
-            return $this->redirectToRoute('home');
+            return $this->redirectToRoute('app_logout');
         }
 
         $error = $authenticationUtils->getLastAuthenticationError();

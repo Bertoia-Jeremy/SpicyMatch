@@ -122,10 +122,13 @@ Sass mixin
   position: relative;
   width: 240px;
   height: 320px;
-  background-color: #333;
   overflow: hidden;
   border-radius: 10px;
   transition: 1s $returnEasing;
+}
+
+.bg-dark {
+  background-color: #333;
 }
 
 .card-bg {

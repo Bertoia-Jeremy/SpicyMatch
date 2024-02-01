@@ -1,9 +1,18 @@
 <div {{ attributes }}>
     <input class="form-control me-2" type="search" placeholder="Rechercher..." aria-label="Rechercher" data-model="query" data-action="live#update">
 
-    <ul>
-        {% for result in this.results %}
-            <li>{{ result }}</li>
-        {% endfor %}
-    </ul>
+    {% if this.results is defined and this.results is not empty %}
+        <div class="position-absolute list-group" style="z-index:100;">
+            {% for result in this.results %}
+                {% if result.type == 'spice' %}
+                    <a href="{{ path('view_spice', {"id" : result.id}) }}" class="list-group-item list-group-item-action">{{ result.name}} 
+                    <small class="text-primary">- Epice</small></a>
+                {% else %}
+                    <a href="{{ path('view_aromatic_compound', {"id" : result.id}) }}"
+                    class="list-group-item list-group-item-action">{{ result.name}} <small class="text-secondary">- Composé aromatique</small></a></a>
+                {% endif %}
+                    
+            {% endfor %}
+        </ul>
+    {% endif %}
 </div>

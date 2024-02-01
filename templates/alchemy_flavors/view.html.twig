@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+{% block title %}Saveurs - Présentation{% endblock %}
+
+{% block body %}
+    <div class="container">
+
+        {# Centré -> Nom - Groupe épice + photo #}
+        <div class="row my-3">
+            <div class="d-flex justify-content-between">
+                <div class="col-lg-6 d-flex flex-column justify-content-center align-items-center px-2">
+                    <h2>{{ alchemyFlavor.name }}</h2>
+                    <p class="text-justify">{{ alchemyFlavor.description }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row my-2">
+        {# Revoir les conseils cuisine, sur qui pour ensuite faire une meilleure présentation #}
+            <h3>Conseils cuisine</h3>
+            <p>{{ alchemyFlavor.cooking }}</p>
+            <p>{{ alchemyFlavor.informations }}</p>
+        </div>
+    </div>
+{% endblock %}
+

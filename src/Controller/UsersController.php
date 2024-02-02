@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Users;
+use App\Form\UsersMailType;
 use App\Form\UsersType;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,11 +15,15 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/users')]
 class UsersController extends AbstractController
 {
+    public function __construct(
+        private readonly UsersRepository $usersRepository
+    ) {
+    }
+
     #[Route('/', name: 'dashboard_user', methods: ['GET'])]
-    public function index(UsersRepository $usersRepository): Response
+    public function index(): Response
     {
         return $this->render('users/dashboard.html.twig', [
-            'users' => $usersRepository->findAll(),
         ]);
     }
 
@@ -41,8 +46,32 @@ class UsersController extends AbstractController
     #[Route('/configuration', name: 'configuration_user', methods: ['GET'])]
     public function configuration(Request $request): Response
     {
+        $user = $this->getUser();
+
         return $this->render('users/configuration.html.twig', [
-            'user' => "configuration",
+            'user' => $user
+        ]);
+    }
+
+    #[Route('/userMail', name: 'mail_user', methods: ['GET','POST'])]
+    public function userMail(Request $request): Response
+    {
+        $user = $this->getUser();
+       
+        $formMail = $this->createForm(UsersMailType::class, $user);
+        $formMail->handleRequest($request);
+
+        if ($formMail->isSubmitted() && $formMail->isValid()) {
+            $user = $formMail->getData();
+
+            $this->usersRepository->addOrUpdate($user, true);
+
+            return $this->redirectToRoute('configuration_user');
+        }
+
+        return $this->render('users/_form_mail.html.twig', [
+            'user' => $user,
+            'form' => $formMail,
         ]);
     }
 

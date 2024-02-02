@@ -44,7 +44,7 @@ class RegistrationController extends AbstractController
                     ->getData()
                 )
             );
-            $this->usersRepository->add($user, true);
+            $this->usersRepository->addOrUpdate($user, true);
 
             # TODO => Faire un message de validation de création de compte
             return $authenticator->authenticateUser(

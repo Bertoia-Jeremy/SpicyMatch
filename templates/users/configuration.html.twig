@@ -8,6 +8,22 @@
             <a href="{{ path('history_user') }}" class="list-group-item list-group-item-action list-group-item-light">Historique</a>
             <a href="{{ path('security_user') }}" class="list-group-item list-group-item-action list-group-item-light">Sécurité</a>
         </div>
-        Configuration
+        
+        <div class="d-flex flex-column align-items-center justify-content-center">
+            <div class="w-100 border border-primary text-center text-primary p-2">
+                <h5 class="m-0">Partie Mail</h5>
+            </div>
+
+            <turbo-frame id="userMail_frame_id" class="w-75 my-2 shadow-sm rounded">
+                <p class="p-3 m-0">
+                    Mail actuellement utilisé : 
+                    {% if user.mail is null %} 
+                        Aucun (<a href="{{path('mail_user')}}">Ajouter un mail</a>) 
+                    {% else %}
+                        {{ user.mail }} (<a href="{{path('mail_user')}}">Changer le mail</a>)
+                    {% endif %}
+                </p>
+            </turbo-frame>
+        </div>
     </turbo-frame>
 {% endblock %}

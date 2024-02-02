@@ -1,0 +1,17 @@
+<turbo-frame id="userMail_frame_id">
+
+    <div class="form-control">
+        <a href="{{ path('configuration_user')}}" class="btn btn-outline-danger btn-sm m-2">Retour</a>
+        
+        <div class="m-2">
+            <h5><u>Formulaire de changement de mail :</u></h5>
+
+            {{ form_start(form, {
+                    action: path('mail_user')
+                }) 
+            }}
+                {{ form_widget(form) }}
+            {{ form_end(form) }}
+        </div>
+    </div>
+</turbo-frame>

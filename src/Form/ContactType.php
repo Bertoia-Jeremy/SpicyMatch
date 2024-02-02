@@ -30,7 +30,11 @@ class ContactType extends AbstractType
             ->add('message', TextareaType::class, [
                 'label' => 'Message',
             ])
-            ->add('Valider', SubmitType::class)
+            ->add('Valider', SubmitType::class, [
+                "attr" => [
+                    "class" => "btn btn-primary w-100"
+                ]
+            ])
         ;
     }
 

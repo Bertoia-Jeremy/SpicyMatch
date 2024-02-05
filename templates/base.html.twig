@@ -23,5 +23,11 @@
         {% block body %}
 
         {% endblock %}       
+    
+        {% block footer %}
+            {% if is_granted('ROLE_USER') %}
+                {%  include "/components/_footer.html.twig" %}
+            {% endif %}
+        {% endblock %}
     </body>
 </html>

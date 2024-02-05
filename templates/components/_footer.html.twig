@@ -1,0 +1,46 @@
+<footer class="pt-4 bg-light">
+    <div class="d-flex justify-content-around justify-content-around">
+        <div class="col-6 col-md-3 d-flex justify-content-center mb-4">
+            <div>
+                <h5>Epices</h5>
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2"><a href="{{ path('index_aromatic_compound') }}" class="nav-link p-0 text-muted">Par composé aromatique</a></li>
+                    <li class="nav-item mb-2"><a href="{{ path('index_aromatic_groups') }}" class="nav-link p-0 text-muted">Par groupe aromatique</a></li>
+                    <li class="nav-item mb-2"><a href="{{ path('index_spicy_type') }}" class="nav-link p-0 text-muted">Par type d'épice</a></li>
+                    <li class="nav-item mb-2"><a href="{{ path('index_alchemy_flavors') }}"  class="nav-link p-0 text-muted">Par saveur</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 d-flex justify-content-center">
+            <div>
+                <h5>Autres</h5>
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2"><a href="{{ path('home') }}" class="nav-link p-0 text-muted">Accueil</a></li>
+                    <li class="nav-item mb-2"><a href="{{ path('index_spicy_match') }}" class="nav-link p-0 text-muted">Créer mon mélange</a></li>
+                    <li class="nav-item mb-2"><a href="{{ path('new_contact') }}" class="nav-link p-0 text-muted">Contactez-moi</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <form>
+                <h5>Recevoir des newsletter</h5>
+                <p>Recevez un mail lorsque des nouveautés sont ajoutées au site.</p>
+                <div class="d-flex flex-column w-100 gap-2">
+                    <label for="newsletter1" class="visually-hidden">Adresse Mail</label>
+                    <input id="newsletter1" type="text" class="form-control" placeholder="Adresse mail">
+                    <button class="btn btn-primary" type="button">Souscrire</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class=" container text-center border-top my-0 py-3">
+        <p class="mb-0">© 2024 SpicyMatch. Tous droits réservés.</p>
+        {# <ul class="list-unstyled d-flex">
+            <li class="ms-3"><a class="link-dark" href="#"><svg class="bi" width="24" height="24"><use xlink:href="#twitter"></use></svg></a></li>
+            <li class="ms-3"><a class="link-dark" href="#"><svg class="bi" width="24" height="24"><use xlink:href="#instagram"></use></svg></a></li>
+            <li class="ms-3"><a class="link-dark" href="#"><svg class="bi" width="24" height="24"><use xlink:href="#facebook"></use></svg></a></li>
+        </ul> #}
+    </div>
+</footer>

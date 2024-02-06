@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\AromaticCompoundRepository;
@@ -7,72 +9,45 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=AromaticCompoundRepository::class)
- * @ORM\Table(name="aromatic_compound")
- */
+#[ORM\Entity(repositoryClass: AromaticCompoundRepository::class)]
+#[ORM\Table(name: 'aromatic_compound')]
 class AromaticCompound
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(name="id", type="integer")
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(name: 'id', type: 'integer')]
+    private ?int $id = null;
 
-    /**
-     * @ORM\Column(name="name", type="string", length=255)
-     */
-    private $name;
+    #[ORM\Column(name: 'name', type: 'string', length: 255)]
+    private ?string $name = null;
 
-    /**
-     * @ORM\Column(name="description", type="text", nullable=true)
-     */
-    private $description;
+    #[ORM\Column(name: 'description', type: 'text', nullable: true)]
+    private ?string $description = null;
 
-    /**
-     * @ORM\Column(name="cooking", type="text", nullable=true)
-     */
-    private $cooking;
+    #[ORM\Column(name: 'cooking', type: 'text', nullable: true)]
+    private ?string $cooking = null;
 
-    /**
-     * @ORM\Column(name="informations", type="text", nullable=true)
-     */
-    private $informations;
+    #[ORM\Column(name: 'informations', type: 'text', nullable: true)]
+    private ?string $informations = null;
 
-    /**
-     * @ORM\Column(name="created_at", type="datetime")
-     */
-    private $created_at;
+    #[ORM\Column(name: 'created_at', type: 'datetime')]
+    private ?\DateTimeInterface $created_at = null;
 
-    /**
-     * @ORM\Column(name="updated_at", type="datetime")
-     */
-    private $updated_at;
+    #[ORM\Column(name: 'updated_at', type: 'datetime')]
+    private ?\DateTimeInterface $updated_at = null;
 
-    /**
-     * @ORM\Column(name="deleted_at", type="datetime", nullable=true)
-     */
-    private $deleted_at;
+    #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $deleted_at = null;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=Spices::class, mappedBy="aromaticsCompounds")
-     * @ORM\JoinColumn(referencedColumnName="id", name="spices")
-     */
-    private $spices;
+    #[ORM\ManyToMany(targetEntity: Spices::class, mappedBy: 'aromaticsCompounds')]
+    private Collection $spices;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=AlchemyFlavors::class, inversedBy="aromaticsCompounds")
-     * @ORM\JoinColumn(referencedColumnName="id", name="alchemyFlavors")
-     */
-    private $alchemyFlavors;
+    #[ORM\ManyToMany(targetEntity: AlchemyFlavors::class, inversedBy: 'aromaticsCompounds')]
+    private Collection $alchemyFlavors;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=Spices::class, mappedBy="secondary_aromatics_compounds")
-     * @ORM\JoinColumn(referencedColumnName="id", name="secondarySpices")
-     * @ORM\JoinTable(name="secondary_spices_aromatic_compound")
-     */
-    private $secondary_spices;
+    #[ORM\ManyToMany(targetEntity: Spices::class, mappedBy: 'secondary_aromatics_compounds')]
+    #[ORM\JoinTable(name: 'secondary_spices_aromatic_compound')]
+    private Collection $secondary_spices;
 
     public function __construct()
     {
@@ -180,9 +155,9 @@ class AromaticCompound
 
     public function addSpices(Spices $spices): self
     {
-        if (!$this->spices->contains($spices)) {
+        if (! $this->spices->contains($spices)) {
             $this->spices[] = $spices;
-            $spices->addAromaticCompound($this);
+            $spices->addAromaticsCompounds($this);
         }
 
         return $this;
@@ -191,7 +166,7 @@ class AromaticCompound
     public function removeSpices(Spices $spices): self
     {
         if ($this->spices->removeElement($spices)) {
-            $spices->removeAromaticCompound($this);
+            $spices->removeAromaticsCompounds($this);
         }
 
         return $this;
@@ -207,7 +182,7 @@ class AromaticCompound
 
     public function addAlchemyFlavors(AlchemyFlavors $alchemyFlavors): self
     {
-        if (!$this->alchemyFlavors->contains($alchemyFlavors)) {
+        if (! $this->alchemyFlavors->contains($alchemyFlavors)) {
             $this->alchemyFlavors[] = $alchemyFlavors;
         }
 
@@ -221,7 +196,7 @@ class AromaticCompound
         return $this;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->name;
     }
@@ -236,7 +211,7 @@ class AromaticCompound
 
     public function addSecondarySpice(Spices $secondarySpice): self
     {
-        if (!$this->secondary_spices->contains($secondarySpice)) {
+        if (! $this->secondary_spices->contains($secondarySpice)) {
             $this->secondary_spices[] = $secondarySpice;
             $secondarySpice->addSecondaryAromaticsCompound($this);
         }

@@ -1,107 +1,76 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\SpicesRepository;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
+use Doctrine\DBAL\Types\Types;
 
 /**
- * @ORM\Entity(repositoryClass=SpicesRepository::class)
- * @ORM\Table(name="spices")
  * @Vich\Uploadable
  */
+#[ORM\Entity(repositoryClass: SpicesRepository::class)]
+#[ORM\Table(name: 'spices')]
 class Spices
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(name="id", type="integer")
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(name: 'id', type: 'integer')]
+    private ?int $id = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=AromaticGroups::class, inversedBy="spices")
-     * @ORM\JoinColumn(nullable=false, referencedColumnName="id", name="aromaticGroups")
-     */
-    private $aromaticGroups;
+    #[ORM\ManyToOne(targetEntity: AromaticGroups::class, inversedBy: 'spices')]
+    #[ORM\JoinColumn(nullable: false, referencedColumnName: 'id', name: 'aromaticGroups')]
+    private ?\App\Entity\AromaticGroups $aromaticGroups = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=SpicyType::class, inversedBy="spices")
-     * @ORM\JoinColumn(referencedColumnName="id", name="spicyType")
-     */
-    private $spicyType;
+    #[ORM\ManyToOne(targetEntity: SpicyType::class, inversedBy: 'spices')]
+    #[ORM\JoinColumn(referencedColumnName: 'id', name: 'spicyType')]
+    private ?\App\Entity\SpicyType $spicyType = null;
 
-    /**
-     * @ORM\Column(name="name", type="string", length=255)
-     */
-    private $name;
+    #[ORM\Column(type: 'string', length: 255)]
+    private ?string $name = null;
 
-    /**
-     * @ORM\Column(name="description", type="text", nullable=true)
-     */
-    private $description;
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $description = null;
 
-    /**
-     * @ORM\Column(name="cooking", type="text", nullable=true)
-     */
-    private $cooking;
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $cooking = null;
 
-    /**
-     * @ORM\Column(name="informations", type="text", nullable=true)
-     */
-    private $informations;
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $informations = null;
 
-    /**
-     * @ORM\Column(name="created_at", type="datetime")
-     */
-    private $created_at;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $created_at = null;
 
-    /**
-     * @ORM\Column(name="updated_at", type="datetime")
-     */
-    private $updated_at;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $updated_at = null;
 
-    /**
-     * @ORM\Column(name="deleted_at", type="datetime", nullable=true)
-     */
-    private $deleted_at;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $deleted_at = null;
 
-    /**
-     * @ORM\Column(name="file", type="string", length=255, nullable=true)
-     */
-    private $file;
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $file = null;
 
     /**
      * @Vich\UploadableField(mapping="spice_images", fileNameProperty="file", size="imageSize")
-     * @var File|null
      */
-    private $imageFile;
+    private ?\Symfony\Component\HttpFoundation\File\File $imageFile = null;
 
-    /**
-     * @ORM\Column(type="integer")
-     *
-     * @var int|null
-     */
-    private $imageSize;
+    #[ORM\Column(type: 'integer')]
+    private ?int $imageSize = null;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=AromaticCompound::class, inversedBy="spices")
-     * @ORM\JoinColumn(referencedColumnName="id", name="aromaticsCompounds")
-     */
-    private $aromaticsCompounds;
+    #[ORM\ManyToMany(targetEntity: AromaticCompound::class, inversedBy: 'spices')]
+    private Collection $aromaticsCompounds;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=AromaticCompound::class, inversedBy="secondary_spices")
-     * @ORM\JoinColumn(referencedColumnName="id", name="secondaryAromaticsCompounds")
-     * @ORM\JoinTable(name="secondary_spices_aromatic_compound")
-
-     */
-    private $secondary_aromatics_compounds;
+    #[ORM\ManyToMany(targetEntity: AromaticCompound::class, inversedBy: 'secondary_spices')]
+    #[ORM\JoinTable(name: 'secondary_spices_aromatic_compound')]
+    private Collection $secondary_aromatics_compounds;
 
     public function __construct()
     {
@@ -237,14 +206,17 @@ class Spices
     /**
      * @param File|UploadedFile|null $imageFile
      */
-    public function setImageFile(?File $imageFile = null): void
-    {
+    public function setImageFile(
+        File $imageFile = null
+    ): void {
         $this->imageFile = $imageFile;
 
-        if (null !== $imageFile) {
+        if ($imageFile instanceof \Symfony\Component\HttpFoundation\File\File) {
             // It is required that at least one field changes if you are using doctrine
             // otherwise the event listeners won't be called and the file is lost
-            $this->updated_at = new \DateTime('now');
+            $this->updated_at = new \DateTime(
+                'now'
+            );
         }
     }
 
@@ -273,7 +245,7 @@ class Spices
 
     public function addAromaticsCompounds(AromaticCompound $aromaticsCompounds): self
     {
-        if (!$this->aromaticsCompounds->contains($aromaticsCompounds)) {
+        if (! $this->aromaticsCompounds->contains($aromaticsCompounds)) {
             $this->aromaticsCompounds[] = $aromaticsCompounds;
         }
 
@@ -287,7 +259,7 @@ class Spices
         return $this;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->name;
     }
@@ -302,7 +274,7 @@ class Spices
 
     public function addSecondaryAromaticsCompound(AromaticCompound $secondaryAromaticsCompound): self
     {
-        if (!$this->secondary_aromatics_compounds->contains($secondaryAromaticsCompound)) {
+        if (! $this->secondary_aromatics_compounds->contains($secondaryAromaticsCompound)) {
             $this->secondary_aromatics_compounds[] = $secondaryAromaticsCompound;
         }
 

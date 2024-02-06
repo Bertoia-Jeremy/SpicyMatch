@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de bord utilisateur{% endblock %}
+
+{% block body %}
+  <div class="container flex-column align-items-center">
+    <div class="card w-100 h-100">
+      <div class="row g-0">
+        <div class="col-md-4">
+          <img src="..." class="img-fluid rounded-start" style="max-width: 160px; max-height: 160px;" alt="Image de profile">
+        </div>
+        <div class="col-md-8">
+          <div class="card-body">
+            <h5 class="card-title">{{ app.user.username|capitalize }}</h5>
+            <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+            <p class="card-text"><small class="text-muted">Membre depuis le {{ app.user.createdAt |date("m/d/Y H:m:i")}}</small></p>
+          </div>
+        </div>
+      </div>
+    
+      {% block content %}
+      {% endblock %}
+      
+    </div>
+  </div>
+{% endblock %}

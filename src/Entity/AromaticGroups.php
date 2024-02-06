@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\AromaticGroupsRepository;
@@ -7,63 +9,41 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=AromaticGroupsRepository::class)
- * @ORM\Table(name="aromatic_groups")
- */
+#[ORM\Entity(repositoryClass: AromaticGroupsRepository::class)]
+#[ORM\Table(name: 'aromatic_groups')]
 class AromaticGroups
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(name="id", type="integer")
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(name: 'id', type: 'integer')]
+    private ?int $id = null;
 
-    /**
-     * @ORM\Column(name="name", type="string", length=255)
-     */
-    private $name;
+    #[ORM\Column(name: 'name', type: 'string', length: 255)]
+    private ?string $name = null;
 
-    /**
-     * @ORM\Column(name="color", type="string", length=255)
-     */
-    private $color;
+    #[ORM\Column(name: 'color', type: 'string', length: 255)]
+    private ?string $color = null;
 
-    /**
-     * @ORM\Column(name="description", type="text", nullable=true)
-     */
-    private $description;
+    #[ORM\Column(name: 'description', type: 'text', nullable: true)]
+    private ?string $description = null;
 
-    /**
-     * @ORM\Column(name="cooking", type="text", nullable=true)
-     */
-    private $cooking;
+    #[ORM\Column(name: 'cooking', type: 'text', nullable: true)]
+    private ?string $cooking = null;
 
-    /**
-     * @ORM\Column(name="informations", type="text", nullable=true)
-     */
-    private $informations;
+    #[ORM\Column(name: 'informations', type: 'text', nullable: true)]
+    private ?string $informations = null;
 
-    /**
-     * @ORM\Column(name="created_at", type="datetime")
-     */
-    private $created_at;
+    #[ORM\Column(name: 'created_at', type: 'datetime')]
+    private ?\DateTimeInterface $created_at = null;
 
-    /**
-     * @ORM\Column(name="updated_at", type="datetime")
-     */
-    private $updated_at;
+    #[ORM\Column(name: 'updated_at', type: 'datetime')]
+    private ?\DateTimeInterface $updated_at = null;
 
-    /**
-     * @ORM\Column(name="deleted_at", type="datetime", nullable=true)
-     */
-    private $deleted_at;
+    #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $deleted_at = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Spices::class, mappedBy="aromaticGroups", orphanRemoval=true)
-     */
-    private $spices;
+    #[ORM\OneToMany(targetEntity: Spices::class, mappedBy: 'aromaticGroups', orphanRemoval: true)]
+    private Collection $spices;
 
     public function __construct()
     {
@@ -181,7 +161,7 @@ class AromaticGroups
 
     public function addSpice(Spices $spice): self
     {
-        if (!$this->spices->contains($spice)) {
+        if (! $this->spices->contains($spice)) {
             $this->spices[] = $spice;
             $spice->setAromaticGroups($this);
         }
@@ -191,17 +171,17 @@ class AromaticGroups
 
     public function removeSpice(Spices $spice): self
     {
-        if ($this->spices->removeElement($spice)) {
-            // set the owning side to null (unless already changed)
-            if ($spice->getAromaticGroups() === $this) {
-                $spice->setAromaticGroups(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->spices->removeElement(
+            $spice
+        ) && $spice->getAromaticGroups() === $this) {
+            $spice->setAromaticGroups(null);
         }
 
         return $this;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->name;
     }

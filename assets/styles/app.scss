@@ -122,10 +122,13 @@ Sass mixin
   position: relative;
   width: 240px;
   height: 320px;
-  background-color: #333;
   overflow: hidden;
   border-radius: 10px;
   transition: 1s $returnEasing;
+}
+
+.bg-dark {
+  background-color: #333;
 }
 
 .card-bg {
@@ -182,4 +185,9 @@ Sass mixin
   font-size: 36px;
   font-weight: 700;
   text-shadow: rgba(black, 0.5) 0 10px 10px;
+}
+
+.dropdown-menu-right {
+  right: 0;
+  left: auto !important;
 }

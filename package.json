@@ -3,9 +3,16 @@
         "@babel/core": "^7.17.0",
         "@babel/preset-env": "^7.16.0",
         "@hotwired/stimulus": "^3.0.0",
+        "@hotwired/turbo": "^7.0.1",
+        "@popperjs/core": "^2.11.8",
         "@symfony/stimulus-bridge": "^3.2.0",
+        "@symfony/ux-live-component": "file:vendor/symfony/ux-live-component/assets",
+        "@symfony/ux-toggle-password": "file:vendor/symfony/ux-toggle-password/assets",
+        "@symfony/ux-turbo": "file:vendor/symfony/ux-turbo/assets",
         "@symfony/webpack-encore": "^4.0.0",
+        "bootstrap": "^5.3.2",
         "core-js": "^3.23.0",
+        "jquery": "^3.7.1",
         "regenerator-runtime": "^0.13.9",
         "sass": "^1.62.1",
         "sass-loader": "^13.2.2",
@@ -22,9 +29,9 @@
         "build": "encore production --progress"
     },
     "dependencies": {
-        "@popperjs/core": "^2.11.7",
+        "@types/jquery": "^3.5.29",
         "autoprefixer": "^10.4.14",
-        "bootstrap": "^5.2.3",
+        "file-loader": "^6.2.0",
         "postcss-loader": "^7.3.2"
     }
 }

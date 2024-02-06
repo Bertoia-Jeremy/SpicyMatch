@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
 use App\Entity\AlchemyFlavors;
@@ -16,7 +18,6 @@ class AlchemyFlavorsCrudController extends AbstractCrudController
         return AlchemyFlavors::class;
     }
 
-
     public function configureFields(string $pageName): iterable
     {
         return [
@@ -26,7 +27,7 @@ class AlchemyFlavorsCrudController extends AbstractCrudController
             TextareaField::new('informations', 'Informations supplémentaires')->hideOnIndex(),
             DateTimeField::new('created_at', 'Créé le')->hideOnForm(),
             DateTimeField::new('updated_at', 'Modifié le')->hideOnForm(),
-            AssociationField::new('aromaticsCompounds', 'Composants aromatiques')
+            AssociationField::new('aromaticsCompounds', 'Composants aromatiques'),
         ];
     }
 }

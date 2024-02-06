@@ -1,57 +1,48 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\UsersRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-/**
- * @ORM\Entity(repositoryClass=UsersRepository::class)
- * @ORM\Table(name="users")
- */
+#[UniqueEntity(fields: ['username'], message: 'Le pseudo existe déjà')]
+#[ORM\Entity(repositoryClass: UsersRepository::class)]
+#[ORM\Table(name: 'users')]
 class Users implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(name="id", type="integer")
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(name: 'id', type: 'integer')]
+    private ?int $id = null;
 
-    /**
-     * @ORM\Column(name="username", type="string", length=180, unique=true)
-     */
-    private $username;
+    #[ORM\Column(name: 'username', type: 'string', length: 180, unique: true)]
+    private ?string $username = null;
 
-    /**
-     * @ORM\Column(name="roles", type="json")
-     */
-    private $roles = [];
+    #[ORM\Column(name: 'roles', type: 'json')]
+    private array $roles = [];
 
     /**
      * @var string The hashed password
-     * @ORM\Column(name="password", type="string")
      */
-    private $password;
-    /**
-     * @var \DateTimeInterface|null
-     */
-    /**
-     * @ORM\Column(name="created_at", type="datetime")
-     */
-    private $created_at;
+    #[ORM\Column(name: 'password', type: 'string')]
+    private ?string $password = null;
 
-    /**
-     * @ORM\Column(name="updated_at", type="datetime")
-     */
-    private $updated_at;
+    #[ORM\Column(name: 'mail', type: 'string', length: 255, nullable: true)]
+    private ?string $mail = null;
 
-    /**
-     * @ORM\Column(name="deleted_at", type="datetime", nullable=true)
-     */
-    private $deleted_at;
+    #[ORM\Column(name: 'created_at', type: 'datetime')]
+    private ?\DateTimeInterface $created_at = null;
+
+    #[ORM\Column(name: 'updated_at', type: 'datetime')]
+    private ?\DateTimeInterface $updated_at = null;
+
+    #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $deleted_at = null;
 
     public function getId(): ?int
     {
@@ -167,9 +158,21 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @see UserInterface
      */
-    public function eraseCredentials()
+    public function eraseCredentials(): void
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    public function getMail(): string|null
+    {
+        return $this->mail;
+    }
+
+    public function setMail(string $mail): self
+    {
+        $this->mail = $mail;
+
+        return $this;
     }
 }

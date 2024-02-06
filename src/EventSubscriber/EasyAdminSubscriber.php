@@ -1,23 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\EventSubscriber;
 
-use App\Entity\AlchemyFlavors;
 use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityPersistedEvent;
 use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityUpdatedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\String\Slugger\SluggerInterface;
 
-class EasyAdminSubscriber implements EventSubscriberInterface{
-
-    private  $slugger;
-
-    public function __construct(SluggerInterface $slugger)
-    {
-        $this->slugger= $slugger;
-    }
-
-    public static function getSubscribedEvents()
+class EasyAdminSubscriber implements EventSubscriberInterface
+{
+    public static function getSubscribedEvents(): array
     {
         return [
             BeforeEntityPersistedEvent::class => ['setDefaultInput'],
@@ -25,14 +18,16 @@ class EasyAdminSubscriber implements EventSubscriberInterface{
         ];
     }
 
-    public function setDefaultInput(BeforeEntityPersistedEvent $event){
+    public function setDefaultInput(BeforeEntityPersistedEvent $event): void
+    {
         $instance = $event->getEntityInstance();
 
         $instance->setCreatedAt(new \DateTime('now'))
             ->setUpdatedAt(new \DateTime('now'));
     }
 
-    public function setDefaultInput2(BeforeEntityUpdatedEvent $event){
+    public function setDefaultInput2(BeforeEntityUpdatedEvent $event): void
+    {
         $instance = $event->getEntityInstance();
 
         $instance->setUpdatedAt(new \DateTime('now'));

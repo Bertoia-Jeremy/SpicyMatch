@@ -1,0 +1,13 @@
+{% extends 'users/dashboard.html.twig' %}
+
+{% block content %}
+    <turbo-frame id="user_frame_id">
+        <div class="list-group list-group-horizontal">
+            <a href="{{ path('profile_user') }}" class="list-group-item list-group-item-action list-group-item-light">Profil</a>
+            <a href="{{ path('configuration_user') }}" class="list-group-item list-group-item-action list-group-item-light">Configuration</a>
+            <a href="{{ path('history_user') }}" class="list-group-item list-group-item-action list-group-item-light active">Historique</a>
+            <a href="{{ path('security_user') }}" class="list-group-item list-group-item-action list-group-item-light">Sécurité</a>
+        </div>
+        Historique
+    </turbo-frame>
+{% endblock %}

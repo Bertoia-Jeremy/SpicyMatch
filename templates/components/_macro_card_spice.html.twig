@@ -2,7 +2,7 @@
     {% set color = spice.aromaticGroups.color %}
 
     <div class="card-wrap">
-        <div class="card shadow-{{ color |trim('#')|upper}}">
+        <div class="card bg-dark shadow-{{ color |trim('#')|upper}}">
             {# spice.filename ? #}
             <div class="card-bg" style="background-image: url({{  vich_uploader_asset(spice, 'imageFile')}})"></div>
             <div class="card-info w-100">

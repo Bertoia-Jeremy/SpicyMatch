@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\AlchemyFlavorsRepository;
@@ -7,59 +9,38 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=AlchemyFlavorsRepository::class)
- * @ORM\Table(name="alchemy_flavors")
- */
+#[ORM\Entity(repositoryClass: AlchemyFlavorsRepository::class)]
+#[ORM\Table(name: 'alchemy_flavors')]
 class AlchemyFlavors
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(name="id", type="integer")
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(name: 'id', type: 'integer')]
+    private ?int $id = null;
 
-    /**
-     * @ORM\Column(name="name", type="string", length=255)
-     */
-    private $name;
+    #[ORM\Column(name: 'name', type: 'string', length: 255)]
+    private ?string $name = null;
 
-    /**
-     * @ORM\Column(name="description", type="text", nullable=true)
-     */
-    private $description;
+    #[ORM\Column(name: 'description', type: 'text', nullable: true)]
+    private ?string $description = null;
 
-    /**
-     * @ORM\Column(name="cooking", type="text", nullable=true)
-     */
-    private $cooking;
+    #[ORM\Column(name: 'cooking', type: 'text', nullable: true)]
+    private ?string $cooking = null;
 
-    /**
-     * @ORM\Column(name="informations", type="text", nullable=true)
-     */
-    private $informations;
+    #[ORM\Column(name: 'informations', type: 'text', nullable: true)]
+    private ?string $informations = null;
 
-    /**
-     * @ORM\Column(name="created_at", type="datetime")
-     */
-    private $created_at;
+    #[ORM\Column(name: 'created_at', type: 'datetime')]
+    private ?\DateTimeInterface $created_at = null;
 
-    /**
-     * @ORM\Column(name="updated_at", type="datetime")
-     */
-    private $updated_at;
+    #[ORM\Column(name: 'updated_at', type: 'datetime')]
+    private ?\DateTimeInterface $updated_at = null;
 
-    /**
-     * @ORM\Column(name="deleted_at", type="datetime", nullable=true)
-     */
-    private $deleted_at;
+    #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $deleted_at = null;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=AromaticCompound::class, mappedBy="alchemyFlavors")
-     * @ORM\JoinColumn(referencedColumnName="id", name="aromaticsCompounds")
-     */
-    private $aromaticsCompounds;
+    #[ORM\ManyToMany(targetEntity: AromaticCompound::class, mappedBy: 'alchemyFlavors')]
+    private Collection $aromaticsCompounds;
 
     public function __construct()
     {
@@ -165,7 +146,7 @@ class AlchemyFlavors
 
     public function addAromaticsCompounds(AromaticCompound $aromaticCompounds): self
     {
-        if (!$this->aromaticsCompounds->contains($aromaticCompounds)) {
+        if (! $this->aromaticsCompounds->contains($aromaticCompounds)) {
             $this->aromaticsCompounds[] = $aromaticCompounds;
             $aromaticCompounds->addAlchemyFlavors($this);
         }
@@ -182,7 +163,7 @@ class AlchemyFlavors
         return $this;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->name;
     }

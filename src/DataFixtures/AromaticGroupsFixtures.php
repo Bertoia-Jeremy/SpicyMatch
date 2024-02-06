@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DataFixtures;
 
 use App\Entity\AromaticGroups;
@@ -13,13 +15,13 @@ class AromaticGroupsFixtures extends Fixture
         $colors = ['FFFF00', 'dfaf2c', 'FF4500', 'd9381e', 'FF0000', '800080',
             'EE82EE', '4B0082', '0000FF', '25fde9', '008000', '7FFF00'];
 
-        foreach ($colors as $key => $color){
+        foreach ($colors as $key => $color) {
             $entity = new AromaticGroups();
-            $entity->setName('aromatic_group_'.$key)
-                ->setColor('#'.$color)
+            $entity->setName('aromatic_group_' . $key)
+                ->setColor('#' . $color)
                 ->setCreatedAt(new \DateTime('now'))
                 ->setUpdatedAt(new \DateTime('now'));
-            $this->addReference($key.'aromaticGroup', $entity);
+            $this->addReference($key . 'aromaticGroup', $entity);
             $manager->persist($entity);
         }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
 use App\Entity\AromaticCompound;
@@ -25,7 +27,7 @@ class AromaticCompoundCrudController extends AbstractCrudController
             TextareaField::new('informations', 'Informations supplémentaires')->hideOnIndex(),
             DateTimeField::new('created_at', 'Créé le')->hideOnForm(),
             DateTimeField::new('updated_at', 'Modifié le')->hideOnForm(),
-            AssociationField::new('alchemyFlavors', 'Alchimie des saveurs')
+            AssociationField::new('alchemyFlavors', 'Alchimie des saveurs'),
         ];
     }
 }

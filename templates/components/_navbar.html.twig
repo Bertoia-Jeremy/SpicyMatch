@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg bg-light shadow mb-5">
+<nav class="navbar navbar-expand-lg bg-light shadow-sm">
     <div class="container-fluid">
         <a class="navbar-brand" href="{{ path('home') }}">SpicyMatch</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,11 +25,34 @@
                         <li><a class="dropdown-item" href="{{ path('index_spices') }}">Toutes les épices</a></li>
                     </ul>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="{{ path('new_contact') }}">Contact</a>
+                </li>
             </ul>
-            <form class="d-flex" role="search">
-                <input class="form-control me-2" type="search" placeholder="Rechercher..." aria-label="Rechercher">
-                <button class="btn btn-outline-success" type="submit">OK</button>
+
+            <form class="d-flex mx-4" role="search">
+                {{ component('Search') }}
             </form>
+
+            {% if is_granted("ROLE_USER") %}
+                <div class="dropdown">
+                    <a class="nav-link active dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                       {{ app.user.username|capitalize }}
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        <a class="dropdown-item" href="{{ path('profile_user') }}">Profil</a>
+                        <a class="dropdown-item" href="{{ path('configuration_user') }}">Configuration</a>
+                        <a class="dropdown-item" href="{{ path('history_user') }}">Historique</a>
+                        <a class="dropdown-item" href="{{ path('security_user') }}">Sécurité</a>
+                        <hr class="dropdown-divider">
+                        <a class="dropdown-item" href="{{ path('app_logout') }}">Déconnexion</a>
+                    </div>
+                </div>
+            {% else %}
+                <div class="mx-2">
+                    <a class="nav-link active" aria-current="page" href="{{ path('app_login') }}">Connexion</a>
+                </div>
+            {% endif %}
         </div>
     </div>
 </nav>

@@ -72,10 +72,18 @@ class Spices
     #[ORM\JoinTable(name: 'secondary_spices_aromatic_compound')]
     private Collection $secondary_aromatics_compounds;
 
+    #[ORM\OneToMany(mappedBy: 'spi_id', targetEntity: CookingTips::class, orphanRemoval: true)]
+    private Collection $cookingTips;
+
+    #[ORM\OneToMany(mappedBy: 'spi_id', targetEntity: PreparationTips::class, orphanRemoval: true)]
+    private Collection $preparationTips;
+
     public function __construct()
     {
         $this->aromaticsCompounds = new ArrayCollection();
         $this->secondary_aromatics_compounds = new ArrayCollection();
+        $this->cookingTips = new ArrayCollection();
+        $this->preparationTips = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -284,6 +292,66 @@ class Spices
     public function removeSecondaryAromaticsCompound(AromaticCompound $secondaryAromaticsCompound): self
     {
         $this->secondary_aromatics_compounds->removeElement($secondaryAromaticsCompound);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CookingTips>
+     */
+    public function getCookingTips(): Collection
+    {
+        return $this->cookingTips;
+    }
+
+    public function addCookingTip(CookingTips $cookingTip): static
+    {
+        if (!$this->cookingTips->contains($cookingTip)) {
+            $this->cookingTips->add($cookingTip);
+            $cookingTip->setSpiId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCookingTip(CookingTips $cookingTip): static
+    {
+        if ($this->cookingTips->removeElement($cookingTip)) {
+            // set the owning side to null (unless already changed)
+            if ($cookingTip->getSpiId() === $this) {
+                $cookingTip->setSpiId(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, PreparationTips>
+     */
+    public function getPreparationTips(): Collection
+    {
+        return $this->preparationTips;
+    }
+
+    public function addPreparationTip(PreparationTips $preparationTip): static
+    {
+        if (!$this->preparationTips->contains($preparationTip)) {
+            $this->preparationTips->add($preparationTip);
+            $preparationTip->setSpiId($this);
+        }
+
+        return $this;
+    }
+
+    public function removePreparationTip(PreparationTips $preparationTip): static
+    {
+        if ($this->preparationTips->removeElement($preparationTip)) {
+            // set the owning side to null (unless already changed)
+            if ($preparationTip->getSpiId() === $this) {
+                $preparationTip->setSpiId(null);
+            }
+        }
 
         return $this;
     }

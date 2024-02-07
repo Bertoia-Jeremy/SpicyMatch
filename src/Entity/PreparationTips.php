@@ -40,7 +40,7 @@ class PreparationTips
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $title = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'preparationTips')]
     private ?PreparationMethods $preparationMethod = null;
 
     public function __construct()

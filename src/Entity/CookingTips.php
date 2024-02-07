@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\CookingTipsRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -31,7 +33,18 @@ class CookingTips
 
     #[ORM\ManyToOne(inversedBy: 'cookingTips')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Spices $spi_id = null;
+    private ?Spices $spice = null;
+
+    #[ORM\ManyToMany(targetEntity: AlchemyFlavors::class)]
+    private Collection $alchemyFlavors;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $title = null;
+
+    public function __construct()
+    {
+        $this->alchemyFlavors = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -98,14 +111,50 @@ class CookingTips
         return $this;
     }
 
-    public function getSpiId(): ?Spices
+    public function getSpice(): ?Spices
     {
-        return $this->spi_id;
+        return $this->spice;
     }
 
-    public function setSpiId(?Spices $spi_id): static
+    public function setSpice(?Spices $spice): static
     {
-        $this->spi_id = $spi_id;
+        $this->spice = $spice;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, AlchemyFlavors>
+     */
+    public function getAlchemyFlavors(): Collection
+    {
+        return $this->alchemyFlavors;
+    }
+
+    public function addAlchemyFlavor(AlchemyFlavors $alchemyFlavor): static
+    {
+        if (!$this->alchemyFlavors->contains($alchemyFlavor)) {
+            $this->alchemyFlavors->add($alchemyFlavor);
+        }
+
+        return $this;
+    }
+
+    public function removeAlchemyFlavor(AlchemyFlavors $alchemyFlavor): static
+    {
+        $this->alchemyFlavors->removeElement($alchemyFlavor);
+
+        return $this;
+    }
+
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(?string $title): static
+    {
+        $this->title = $title;
 
         return $this;
     }

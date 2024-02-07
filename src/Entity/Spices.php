@@ -72,10 +72,10 @@ class Spices
     #[ORM\JoinTable(name: 'secondary_spices_aromatic_compound')]
     private Collection $secondary_aromatics_compounds;
 
-    #[ORM\OneToMany(mappedBy: 'spi_id', targetEntity: CookingTips::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'spice', targetEntity: CookingTips::class, orphanRemoval: true)]
     private Collection $cookingTips;
 
-    #[ORM\OneToMany(mappedBy: 'spi_id', targetEntity: PreparationTips::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'spice', targetEntity: PreparationTips::class, orphanRemoval: true)]
     private Collection $preparationTips;
 
     public function __construct()
@@ -308,7 +308,7 @@ class Spices
     {
         if (!$this->cookingTips->contains($cookingTip)) {
             $this->cookingTips->add($cookingTip);
-            $cookingTip->setSpiId($this);
+            $cookingTip->setSpice($this);
         }
 
         return $this;
@@ -318,8 +318,8 @@ class Spices
     {
         if ($this->cookingTips->removeElement($cookingTip)) {
             // set the owning side to null (unless already changed)
-            if ($cookingTip->getSpiId() === $this) {
-                $cookingTip->setSpiId(null);
+            if ($cookingTip->getSpice() === $this) {
+                $cookingTip->setSpice(null);
             }
         }
 
@@ -338,7 +338,7 @@ class Spices
     {
         if (!$this->preparationTips->contains($preparationTip)) {
             $this->preparationTips->add($preparationTip);
-            $preparationTip->setSpiId($this);
+            $preparationTip->setSpice($this);
         }
 
         return $this;
@@ -348,8 +348,8 @@ class Spices
     {
         if ($this->preparationTips->removeElement($preparationTip)) {
             // set the owning side to null (unless already changed)
-            if ($preparationTip->getSpiId() === $this) {
-                $preparationTip->setSpiId(null);
+            if ($preparationTip->getSpice() === $this) {
+                $preparationTip->setSpice(null);
             }
         }
 

@@ -78,6 +78,9 @@ class Spices
     #[ORM\OneToMany(mappedBy: 'spice', targetEntity: PreparationTips::class, orphanRemoval: true)]
     private Collection $preparationTips;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $benefits = null;
+
     public function __construct()
     {
         $this->aromaticsCompounds = new ArrayCollection();
@@ -352,6 +355,18 @@ class Spices
                 $preparationTip->setSpice(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getBenefits(): ?string
+    {
+        return $this->benefits;
+    }
+
+    public function setBenefits(?string $benefits): static
+    {
+        $this->benefits = $benefits;
 
         return $this;
     }

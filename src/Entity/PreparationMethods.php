@@ -16,9 +16,6 @@ class PreparationMethods
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::TEXT)]
-    private ?string $text = null;
-
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
@@ -34,6 +31,18 @@ class PreparationMethods
     #[ORM\OneToMany(mappedBy: 'preparationMethod', targetEntity: PreparationTips::class, cascade: ['persist', 'remove'])]
     private Collection $preparationTips;
 
+    #[ORM\Column(length: 255)]
+    private ?string $description = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $tools = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $informations = null;
+
+    #[ORM\Column(type: Types::TEXT)]
+    private ?string $advice = null;
+
     public function __construct()
     {
         $this->preparationTips = new ArrayCollection();
@@ -42,18 +51,6 @@ class PreparationMethods
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getText(): ?string
-    {
-        return $this->text;
-    }
-
-    public function setText(string $text): static
-    {
-        $this->text = $text;
-
-        return $this;
     }
 
     public function getName(): ?string
@@ -135,6 +132,54 @@ class PreparationMethods
                 $preparationTip->setPreparationMethod(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(string $description): static
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getTools(): ?string
+    {
+        return $this->tools;
+    }
+
+    public function setTools(string $tools): static
+    {
+        $this->tools = $tools;
+
+        return $this;
+    }
+
+    public function getInformations(): ?string
+    {
+        return $this->informations;
+    }
+
+    public function setInformations(?string $informations): static
+    {
+        $this->informations = $informations;
+
+        return $this;
+    }
+
+    public function getAdvice(): ?string
+    {
+        return $this->advice;
+    }
+
+    public function setAdvice(string $advice): static
+    {
+        $this->advice = $advice;
 
         return $this;
     }

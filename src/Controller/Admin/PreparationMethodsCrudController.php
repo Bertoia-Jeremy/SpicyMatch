@@ -19,7 +19,10 @@ class PreparationMethodsCrudController extends AbstractCrudController
     {
         return [
             TextField::new('name', 'Nom'),
-            TextareaField::new('text', 'Texte')->setMaxLength(100),
+            TextareaField::new('description', 'Description')->setMaxLength(100),
+            TextareaField::new('tools', 'Outils nécessaires')->setMaxLength(100),
+            TextareaField::new('advice', 'Conseil')->setMaxLength(100),
+            TextareaField::new('informations', 'Infos supplémentaires')->setMaxLength(100),
             DateTimeField::new('created_at', 'Créé le')->hideOnForm(),
             DateTimeField::new('updated_at', 'Modifié le')->hideOnForm(),
         ];

@@ -8,6 +8,9 @@ use App\Entity\AlchemyFlavors;
 use App\Entity\AromaticCompound;
 use App\Entity\AromaticGroups;
 use App\Entity\Contact;
+use App\Entity\CookingTips;
+use App\Entity\PreparationMethods;
+use App\Entity\PreparationTips;
 use App\Entity\Spices;
 use App\Entity\SpicyType;
 use App\Entity\Users;
@@ -34,15 +37,17 @@ class DashboardController extends AbstractDashboardController
 
     public function configureMenuItems(): iterable
     {
-        yield MenuItem::linkToDashboard('Dashboard', '');
-        yield MenuItem::linkToRoute('Site SpicyMatch', '', 'home');
-        yield MenuItem::linkToCrud('Groupes aromatiques', '', AromaticGroups::class);
-        yield MenuItem::linkToCrud('Epices', '', Spices::class);
-        yield MenuItem::linkToCrud('Composants aromatiques', '', AromaticCompound::class);
         yield MenuItem::linkToCrud('Alchimie des saveurs', '', AlchemyFlavors::class);
+        yield MenuItem::linkToCrud('Composants aromatiques', '', AromaticCompound::class);
+        yield MenuItem::linkToCrud('Conseils de cuisson', '', CookingTips::class);
+        yield MenuItem::linkToCrud('Conseils de préparation', '', PreparationTips::class);
+        yield MenuItem::linkToCrud('Contact', '', Contact::class);
+        yield MenuItem::linkToCrud('Epices', '', Spices::class);
+        yield MenuItem::linkToCrud('Groupes aromatiques', '', AromaticGroups::class);
+        yield MenuItem::linkToCrud('Méthodes de préparation', '', PreparationMethods::class);
         yield MenuItem::linkToCrud('Types d\'épices', '', SpicyType::class);
         yield MenuItem::linkToCrud('Users', '', Users::class);
-        yield MenuItem::linkToCrud('Contact', '', Contact::class);
+        yield MenuItem::linkToRoute('Site SpicyMatch', '', 'home');
     }
 
     public function configureCrud(): Crud

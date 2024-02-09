@@ -1,0 +1,30 @@
+<div class="container-fluid px-4" {{ attributes }}>
+    <form class="d-flex flex-wrap justify-content-around align-items-center" data-model="*">
+
+        {% if this.results is defined and this.results is not null %}
+            {% set compatibleSpices = this.results.compatibleSpices %}
+            {% set selectedSpices = this.results.selectedSpices %}
+        {% else %}
+            {% set compatibleSpices = this.spices.compatibleSpices %}
+            {% set selectedSpices = this.spices.selectedSpices %}
+        {% endif %}
+
+        {% for spice in compatibleSpices %}
+            <div class="form-check d-flex flex-column justify-content-center align-items-center mb-3">
+                <label class="form-check-label" for="spice_{{ spice.id }}">
+                    <div class="card-wrap">
+                        <div class="card bg-dark shadow-{{ spice.color |trim('#')|upper}}">
+                            <div class="card-bg" style="background-image: url({{  vich_uploader_asset(spice, 'imageFile', 'App\\Entity\\Spices')}})"></div>
+                            <div class="card-info w-100">
+                                <h3 class="h1">{{ spice.name }}</h3>
+                                <p class="overflow-scroll" style="height: 50px;">{{ spice.description }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </label>
+
+                <input class="form-check-input" type="checkbox" data-model="spices.selectedSpices" value="{{ spice.id }}" id="spice_{{ spice.id }}">
+            </div>
+        {% endfor %}
+    </form>
+</div>

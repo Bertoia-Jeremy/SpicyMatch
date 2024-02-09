@@ -1,6 +1,4 @@
 {% extends 'base.html.twig' %}
-{% import "components/_macro_card_spice_match.html.twig" as macroCardSpiceMatch %}
-
 {% block title %}SpicyMatch{% endblock %}
 
 {% block body %}
@@ -8,15 +6,13 @@
         <div class="container justify-content-center">
             <h2>Mélangeons des épices</h2>
         </div>
-
+        
         {# GROUPE 1 #}
-        {# TODO => Sécuriser l'appel AJAX #}
         {# TODO => Gérer la grosseur des noms en fonction de la longueur#}
         {# TODO => Selectionner le groupe de l'épice choisie, trier sur ça pour la 1ere et l'afficher #}
         {# TODO => Faire le bouton Ajouter un groupe de mélange, (tout en prenant en compte les groupes fait auparavant) #}
         {# TODO => Réduire dans les groupes ajoutés les groupes actuellement utilisés #}
         {# TODO => Anticiper et bloquer quand on ne peut pas ajouter un groupe de plus (car plus de possibilité) #}
-        {# TODO => Ajouter un champ composé principale des les composés et refléchir aux répercussions/moyen d'utilisation, de ces nouvelles possibilités #}
 
         <div class="container">
             <form action="" class="form-control rounded w-100 d-flex flex-wrap justify-content-evenly align-items-center">
@@ -50,77 +46,8 @@
                 </div>
             </form>
         </div>
-        <div class="container-fluid px-4">
-            <form class="d-flex flex-wrap justify-content-around align-items-center" action="" id="matcher"
-                    {{ csrf_token('matcher') }}>
-                {% for spice in spices %}
-                    {{ macroCardSpiceMatch.cardSpiceMatch(spice) }}
-                {% endfor %}
-            </form>
-        </div>
 
-        {# AJOUTER UN GROUPE #}
+        {{ component('Spicymatch') }}
+        {# BOUTON AJOUTER UN GROUPE #}
     </div>
-{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
-
-    <script>
-        window.onload = () => {
-            addEventOnCards();
-        }
-
-        function addEventOnCards(){
-            const MatcherForm = document.querySelector("#matcher");
-            const Spices = MatcherForm.querySelectorAll("[data-spice-id]");
-
-            Spices.forEach(element => {
-                let checkBox = element.lastElementChild;
-
-                checkBox.addEventListener('click', function () {
-                    let arraySpice = [];
-
-                    Spices.forEach(element => {
-                        let checkBox = element.lastElementChild.checked;
-
-                        if(checkBox){
-                            arraySpice.push(element.getAttribute('data-spice-id'))
-                        }
-                    })
-
-                    postJSON(arraySpice, "#matcher");
-                })
-            });
-        }
-
-        async function postJSON(data, form) {
-            const MatcherForm = document.querySelector(form);
-
-            try {
-                const response = await fetch("{{ url('view_spicy_match') }}", {
-                    method: "POST",
-                    headers: {
-                        "X-Requested-With": "XMLHttpRequest",
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(data),
-                }).then(response =>{
-                    let promise = response.json()
-
-                    promise.then((cards) => {
-                        if(cards.length === 0){
-                            cards = '<div class="alert alert-warning" role="alert">Mauvaise pioche ! Aucune épice ne match, retente une autre combinaison.</div>'
-                        }
-
-                        MatcherForm.innerHTML = cards;
-                        addEventOnCards();
-                    })
-
-                }).catch(e => alert(e));
-            } catch (error) {
-                /*console.error("Error:", error);*/
-            }
-        }
-    </script>
 {% endblock %}

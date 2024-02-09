@@ -5,54 +5,72 @@
     {% set color = spice.aromaticGroups.color %}
     <div class="container">
 
-        {# Centré -> Nom - Groupe épice + photo #}
         <div class="row my-3">
             <div class="d-flex justify-content-between">
-                <div class="col-lg-6 d-flex flex-column justify-content-center align-items-center px-2">
+                <div class="col-8 d-flex flex-column justify-content-center align-items-center px-2">
                     <h2>{{ spice.name }}</h2>
                     <h4>{{ spice.aromaticGroups.name }}</h3>
-                    <p class="text-justify">{{ spice.description }}</p>
+                    <p class="text-center">{{ spice.description }}</p>
                 </div>
-                <div class="col-lg-6">
-                    <img class="rounded w-100 img-fluid" src="{{  vich_uploader_asset(spice, 'imageFile')}}">
+                <div class="col-4 d-flex justify-content-center align-items-center">
+                    <img class="rounded img-fluid" src="{{  vich_uploader_asset(spice, 'imageFile')}}" style="max-height: 200px">
                 </div>
             </div>
         </div>
 
-        <div class="row my-2">
-        {# Revoir les conseils cuisine, sur qui pour ensuite faire une meilleure présentation #}
-            <h3>Conseils cuisine</h3>
+        <div class="row my-3">
+            <h3>Conseils de cuisine</h3>
             <p>{{ spice.cooking }}</p>
             <p>{{ spice.informations }}</p>
         </div>
         
-        {# Décalé gauche -> Composés aromatiques - Mettre une couleur en opacité légère #}
-        <div class="row my-3 rounded w-100 p-0">
-            <div class="card p-0 w-100 h-100 shadow border-0">
-                <div class="card-header bg-primary">
-                    <h3>Composés aromatiques</h3>
-                </div>
-                <div class="card-body bg-white">
-                    <div class="card-text">
-                        <div class="list-group list-group-horizontal flex-wrap">
-                        {# TODO => Mettre le lien pour accéder directement à la page de présentation du composé #}
-                            {% for aromaticCompound in spice.aromaticsCompounds %}
-                                <a href="{{ path('view_aromatic_compound', {"id" : aromaticCompound.id}) }}"
-                                 class="list-group-item list-group-item-primary rounded m-1 p-1">{{ aromaticCompound.name }}</a>
-                            {% endfor %}
-                            {% for aromaticCompound in spice.secondaryAromaticsCompounds %}
-                                <a href="{{ path('view_aromatic_compound', {"id" : aromaticCompound.id}) }}"
-                                 class="list-group-item list-group-item-secondary rounded m-1 p-1">{{ aromaticCompound.name }}</a>
-                            {% endfor %}
-                        </div>
+        {% if spice.cookingTips is not null %}
+            <div class="row my-3">
+                <h3 class="mb-3">Incorporation de l'épice</h3>
+                <p>
+                    Voici des indications sur le moment où incorporer l'épice. 
+                    Que ce soit pour l'intensité du goût ou bien la tolérance de la chaleur de l'épice, celle-ci peut être mise à une des étapes décrite ci dessous.
+                </p>
+                {% for cookingTip in spice.cookingTips %}
+                    <div class="my-1">
+                        <p class="mb-1"><u>Etape de la cuisson :</u> <b>{{ cookingTip.cookingStep }}</b></p>
+                        <p class="mb-0">{{ cookingTip.text }}</p>
                     </div>
-                </div>
+                {% endfor %}
             </div>
+        {% endif %}
+        
+        {% if spice.preparationTips is not null %}
+            <div class="row my-3">
+                <h3 class="mb-3">Conseils de préparation</h3>
+                <p>
+                    Différentes préparations permettent différentes intensité de goût ou de mise en valeur de telle ou telle saveur.
+                </p>
+                {% for preparationTip in spice.preparationTips %}
+                    <div class="my-2">
+                        <p class="mb-1"><u>{{ preparationTip.title }} :</u></p>
+                        <p class="mb-0">{{ preparationTip.text }}</p>
+
+                        {% if preparationTip.preparationMethod is not null %}
+                            <small class="d-flex justify-content-end">
+                                <a href="{{ path('view_preparation_methods', {"id" : preparationTip.preparationMethod.id})}}">
+                                    En savoir plus sur la méthode "{{ preparationTip.preparationMethod.name }}"
+                                </a>
+                            </small>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div class="row my-3">
+            <h3 class="mb-3">En savoir plus</h3>
+            <p>{{ spice.informations }}</p>
         </div>
 
         <div class="row my-3 rounded w-100 p-0">
             <div class="card p-0 w-100 h-100 shadow">
-                <div class="card-header bg-secondary">
+                <div class="card-header bg-primary text-light">
                     <h3>Saveurs</h3>
                 </div>
                 <div class="card-body bg-white">
@@ -71,6 +89,28 @@
                                  class="list-group-item list-group-item-secondary rounded m-1 p-1">{{ flavor.name }}</a>
                             {% endfor %}
                         {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row my-3 rounded w-100 p-0">
+            <div class="card p-0 w-100 h-100 shadow border-0">
+                <div class="card-header bg-secondary text-light">
+                    <h3>Composés aromatiques</h3>
+                </div>
+                <div class="card-body bg-white">
+                    <div class="card-text">
+                        <div class="list-group list-group-horizontal flex-wrap">
+                            {% for aromaticCompound in spice.aromaticsCompounds %}
+                                <a href="{{ path('view_aromatic_compound', {"id" : aromaticCompound.id}) }}"
+                                 class="list-group-item list-group-item-primary rounded m-1 p-1">{{ aromaticCompound.name }}</a>
+                            {% endfor %}
+                            {% for aromaticCompound in spice.secondaryAromaticsCompounds %}
+                                <a href="{{ path('view_aromatic_compound', {"id" : aromaticCompound.id}) }}"
+                                 class="list-group-item list-group-item-secondary rounded m-1 p-1">{{ aromaticCompound.name }}</a>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>

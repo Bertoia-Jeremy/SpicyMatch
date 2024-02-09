@@ -26,6 +26,7 @@ class SpicesCrudController extends AbstractCrudController
             TextField::new('name', 'Nom'),
             TextareaField::new('description', 'Description')->setMaxLength(100),
             TextareaField::new('cooking', 'Conseil de cuisine')->hideOnIndex(),
+            TextareaField::new('benefits', 'Bienfaits')->hideOnIndex(),
             TextareaField::new('informations', 'Informations supplémentaires')->hideOnIndex(),
             DateTimeField::new('created_at', 'Créé le')->hideOnForm(),
             DateTimeField::new('updated_at', 'Modifié le')->hideOnForm(),
@@ -34,10 +35,7 @@ class SpicesCrudController extends AbstractCrudController
             AssociationField::new('aromaticGroups', 'Groupe aromatique'),
             AssociationField::new('spicyType', 'Type d\'épice'),
             //  AssociationField::new('aco_ids', 'Composants aromatiques'),
-            AssociationField::new(
-                'aromaticsCompounds',
-                'Composés aromatiques principaux'
-            ),
+            AssociationField::new('aromaticsCompounds','Composés aromatiques principaux'),
             AssociationField::new('secondary_aromatics_compounds', 'Composés aromatiques secondaires'),
             // onlyOnIndex pour le voir juste sur le tableau, onlyOnUpdated pour juste au moment de la modif
         ];

@@ -35,16 +35,8 @@ class CookingTips
     #[ORM\JoinColumn(nullable: false)]
     private ?Spices $spice = null;
 
-    #[ORM\ManyToMany(targetEntity: AlchemyFlavors::class)]
-    private Collection $alchemyFlavors;
-
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $title = null;
-
-    public function __construct()
-    {
-        $this->alchemyFlavors = new ArrayCollection();
-    }
 
     public function getId(): ?int
     {
@@ -119,30 +111,6 @@ class CookingTips
     public function setSpice(?Spices $spice): static
     {
         $this->spice = $spice;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, AlchemyFlavors>
-     */
-    public function getAlchemyFlavors(): Collection
-    {
-        return $this->alchemyFlavors;
-    }
-
-    public function addAlchemyFlavor(AlchemyFlavors $alchemyFlavor): static
-    {
-        if (!$this->alchemyFlavors->contains($alchemyFlavor)) {
-            $this->alchemyFlavors->add($alchemyFlavor);
-        }
-
-        return $this;
-    }
-
-    public function removeAlchemyFlavor(AlchemyFlavors $alchemyFlavor): static
-    {
-        $this->alchemyFlavors->removeElement($alchemyFlavor);
 
         return $this;
     }

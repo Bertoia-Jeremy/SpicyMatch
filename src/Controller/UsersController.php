@@ -28,7 +28,7 @@ class UsersController extends AbstractController
     }
 
     #[Route('/history', name: 'history_user', methods: ['GET'])]
-    public function history(Request $request): Response
+    public function history(): Response
     {
         return $this->render('users/history.html.twig', [
             'user' => "history",
@@ -36,7 +36,7 @@ class UsersController extends AbstractController
     }
 
     #[Route('/security', name: 'security_user', methods: ['GET'])]
-    public function security(Request $request): Response
+    public function security(): Response
     {
         return $this->render('users/security.html.twig', [
             'user' => "security",
@@ -44,7 +44,7 @@ class UsersController extends AbstractController
     }
 
     #[Route('/configuration', name: 'configuration_user', methods: ['GET'])]
-    public function configuration(Request $request): Response
+    public function configuration(): Response
     {
         $user = $this->getUser();
 
@@ -76,7 +76,7 @@ class UsersController extends AbstractController
     }
 
     #[Route('/profile', name: 'profile_user', methods: ['GET'])]
-    public function profile(Request $request): Response
+    public function profile(): Response
     {
         return $this->render('users/profile.html.twig', [
             'user' => "profile",

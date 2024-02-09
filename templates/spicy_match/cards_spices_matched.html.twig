@@ -1,7 +1,0 @@
-{% import "components/_macro_card_spice_match.html.twig" as macroCardSpiceMatch %}
-
-{% for spice in spices %}
-    {% set checked = (spice.id in spicesChecked) ? "checked" : "" %}
-
-    {{ macroCardSpiceMatch.cardSpiceMatch(spice, checked) }}
-{% endfor %}

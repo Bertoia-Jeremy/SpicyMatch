@@ -45,6 +45,35 @@ class SpicesRepository extends ServiceEntityRepository
         }
     }
 
+    public function findSpicesForMatch(array $spices){
+        $idsString = "";
+
+        foreach($spices as $spice){
+            $idsString .= $spice["spices_id"].",";
+        }
+        $idsString = trim($idsString, ",");
+
+        return $this->findAllSpices($idsString);
+    }
+    
+    public function findAllSpices(string $ids = null){
+        $glue = "";
+        
+        if($ids){
+            $glue .= "WHERE s.id IN ($ids)";
+        }
+
+        $sql = "SELECT s.id, s.name, s.description, s.file, ac.color, ac.name as groupName
+                FROM spices AS s
+                LEFT JOIN aromatic_groups AS ac
+                    ON s.aromaticGroups = ac.id
+                $glue
+                ORDER BY s.name";
+
+        $stmt = $this->getEntityManager()->getConnection()->prepare($sql);
+        return $stmt->executeQuery()->fetchAllAssociative();
+    }
+
     public function search(string $word){
         $sql = 'SELECT s.id, s.name, IF(1, "spice", "") as `type`
                 FROM spices s
@@ -98,8 +127,7 @@ class SpicesRepository extends ServiceEntityRepository
             ->getConnection();
         $stmt = $conn->prepare($sql);
 
-        return $stmt->executeQuery()
-            ->fetchAllAssociative();
+        return $stmt->executeQuery()->fetchAllAssociative();
     }
 
     private function checkArrayAndReturnString(array $array): string

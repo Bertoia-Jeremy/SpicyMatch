@@ -45,14 +45,7 @@ class SpicesRepository extends ServiceEntityRepository
         }
     }
 
-    public function findSpicesForMatch(array $spices){
-        $idsString = "";
-
-        foreach($spices as $spice){
-            $idsString .= $spice["spices_id"].",";
-        }
-        $idsString = trim($idsString, ",");
-
+    public function findSpicesForMatch(string $idsString){
         return $this->findAllSpices($idsString);
     }
     
@@ -68,7 +61,7 @@ class SpicesRepository extends ServiceEntityRepository
                 LEFT JOIN aromatic_groups AS ac
                     ON s.aromaticGroups = ac.id
                 $glue
-                ORDER BY s.name";
+                ORDER BY groupName, s.name";
 
         $stmt = $this->getEntityManager()->getConnection()->prepare($sql);
         return $stmt->executeQuery()->fetchAllAssociative();
@@ -94,9 +87,9 @@ class SpicesRepository extends ServiceEntityRepository
         return $stmt->executeQuery()->fetchAllAssociative();
     }
 
-    public function getByMainAromaticsCompounds(
+    public function getByAromaticsCompounds(
         array $mainAromaticsCompoundsIds,
-        array $secondaryAromaticsCompoundsIds
+        array $secondaryAromaticsCompoundsIds,
     ): array {
         $mainIds = $this->checkArrayAndReturnString($mainAromaticsCompoundsIds);
         $secondaryIds = $this->checkArrayAndReturnString($secondaryAromaticsCompoundsIds);
@@ -127,7 +120,14 @@ class SpicesRepository extends ServiceEntityRepository
             ->getConnection();
         $stmt = $conn->prepare($sql);
 
-        return $stmt->executeQuery()->fetchAllAssociative();
+        $arraysIds = $stmt->executeQuery()->fetchAllAssociative();
+
+        // Afin de ne retourner qu'un seul tableau d'ids
+        foreach($arraysIds as $array){
+            $ids[] = $array["spices_id"];
+        }
+
+        return $ids;
     }
 
     private function checkArrayAndReturnString(array $array): string

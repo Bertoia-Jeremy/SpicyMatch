@@ -12,31 +12,24 @@ class SpiceMatchmaker
     {
     }
 
-    public function getSpicesCompatible(array $spices){
+    public function getAllSharedAromaticsCompounds(array $spices){
          // Récupération de tous les composés aromatiques
          $allAromaticsCompoundsIds = $this->getAllAromaticsCompounds(
             $spices
         );
 
         // Filtre et selection des composés aromatiques en commun
-        $communAromaticsCompoundsIds = $this->getAromaticsCompoundsInCommon(
+        $sharedAromaticsCompoundsIds = $this->getAromaticsCompoundsInCommon(
             $allAromaticsCompoundsIds,
             count($spices)
         );
 
-        if (count($communAromaticsCompoundsIds['main']) + count(
-            $communAromaticsCompoundsIds['secondary']
-        ) === 0) {
+        if ((count($sharedAromaticsCompoundsIds['main']) + 
+            count($sharedAromaticsCompoundsIds['secondary'])) === 0) {
             return false;
         }
 
-        // Récupération de toutes les épices possédant ces composés aromatiques par ordre d'affinités aux composés
-        $spicesIdMatched = $this->spicesRepository->getByMainAromaticsCompounds(
-            $communAromaticsCompoundsIds['main'],
-            $communAromaticsCompoundsIds['secondary']
-        );
-
-        return $this->spicesRepository->findSpicesForMatch($spicesIdMatched, $spices);
+        return $sharedAromaticsCompoundsIds;
     }
 
     private function getAllAromaticsCompounds(array $spicesId): array

@@ -33,22 +33,39 @@ class Spicymatch
 
     public function getResults(): array
     {
-       // $selectedSpices = $this->spicesRepository->search($this->spices);
-       // $compatibleSpices = $this->spicesRepository->search($this->selectedSpices);
+        if (!empty($this->spices["selectedSpices"])) {
+            $idsString = implode(",", $this->spices['selectedSpices']);
+            $selectedSpices = $this->spicesRepository->findSpicesForMatch($idsString);
 
+            foreach($selectedSpices as $spice){
+                $groupByAromaticGroup[$spice['groupName']][] = $spice;
+            }
+            
+            $sharedAromaticsCompounds =  $this->spiceMatchmaker->getAllSharedAromaticsCompounds($this->spices["selectedSpices"]);
+            if($sharedAromaticsCompounds){
+                // Récupération de tous les ids des épices possédant ces composés aromatiques par ordre d'affinités aux composés
+                $idsCompatibleSpices = $this->spicesRepository->getByAromaticsCompounds(
+                    $sharedAromaticsCompounds['main'],
+                    $sharedAromaticsCompounds['secondary']
+                );
+                
+                $idsWithoutSelectedSpices = array_diff( $idsCompatibleSpices, $this->spices['selectedSpices'] );
+                $idsStringCompatibleSpices = implode(",", $idsWithoutSelectedSpices);
 
-        if (count($this->spices["selectedSpices"]) === 0) {
-            $compatibleSpices = $this->spicesRepository->findAllSpices();
-        } else {
-            $compatibleSpices = $this->spiceMatchmaker->getSpicesCompatible($this->spices["selectedSpices"]);
-
-            if(!$compatibleSpices){
-                $compatibleSpices = $this->spices['compatibleSpices'];
+                if($idsStringCompatibleSpices === ""){
+                    $compatibleSpices = false;  
+                }else{
+                    $compatibleSpices = $this->spicesRepository->findSpicesForMatch($idsStringCompatibleSpices);  
+                }
             }
         }
-    
+        
+        if(!isset($compatibleSpices)){
+            $compatibleSpices = $this->spices['compatibleSpices'];
+        }
+
         return [
-            "selectedSpices" => $this->spices["selectedSpices"],
+            "selectedSpices" => $groupByAromaticGroup ?? $this->spices["selectedSpices"],
             "compatibleSpices" => $compatibleSpices
         ];
     }

@@ -1,36 +1,46 @@
 {% import "components/_macro_card_spicymatch.html.twig" as macroCardSpicyMatch %}
 
 <div class="container-fluid px-4" {{ attributes }}>
-    <form class="d-flex flex-wrap justify-content-around align-items-center" data-model="*">
+    {% set compatibleSpices = this.results.compatibleSpices %}
+    {% set selectedSpices = this.results.selectedSpices %}
 
-        {% set compatibleSpices = this.results.compatibleSpices %}
-        {% set selectedSpices = this.results.selectedSpices %}
-
-            {% if selectedSpices is not empty %}
-                <div class="rounded shadow w-100 p-2 mb-5 d-flex justify-content-center align-items-center flex-wrap">
+    {% if selectedSpices is not empty %}
+        <form class="d-flex flex-wrap justify-content-around align-items-center" data-model="spices">
+            <div class="rounded shadow w-100 p-2 mb-5">
+                <h2 class="text-primary p-2"><u>Choix des épices :</u></h3>
+                <div class="d-flex justify-content-center align-items-center flex-wrap">
                     {% for groupName, spices in selectedSpices %}
-                    <div class="row m-0">
-                        <div class="my-3">
-                            <h4 class="text-center text-{{ spices.0.color |trim('#')|upper}}">{{ groupName }}</h1>
-                            <div class="w-100 shadow-{{ spices.0.color |trim('#')|upper}}" style="height:5px"></div>
+                        <div class="row m-0">
+                            <div class="my-3">
+                                <h4 class="text-center text-{{ spices.0.color |trim('#')|upper}}">{{ groupName }}</h1>
+                                <div class="w-100 shadow-{{ spices.0.color |trim('#')|upper}}" style="height:5px"></div>
+                            </div>
+                            <div class="d-flex justify-content-center align-items-center flex-wrap">
+                                {% for spice in spices %}
+                                    {{ macroCardSpicyMatch.cardSpicyMatch(spice, true) }}
+                                {% endfor %}
+                            </div>
                         </div>
-                        <div class="d-flex justify-content-center align-items-center flex-wrap">
-                            {% for spice in spices %}
-                                {{ macroCardSpicyMatch.cardSpicyMatch(spice, true) }}
-                            {% endfor %}
-                        </div>
-                    </div>
                     {% endfor %}
                 </div>
-            {% endif %}
+
+                <div data-model="test">
+                    <button class="btn btn-primary w-100 my-2" type="button" data-action="live#action" data-action-name="nextStep">
+                        Etape suivante
+                    </button>
+                </div>
+            </div>
+        </form>
+    {% endif %}
         
 
+    <form class="d-flex flex-wrap justify-content-around align-items-center" data-model="spices">
         {% if compatibleSpices != false %}
             {% for spice in compatibleSpices %}
                 {{ macroCardSpicyMatch.cardSpicyMatch(spice, false) }}
             {% endfor %}
         {% else %}
-            <div class="w-100 alert alert-danger  text-center">Aucune épice supplémentaire est compatible.</div>
+            <div class="w-100 alert alert-danger  text-center">Aucune épice supplémentaire n'est compatible avec votre sélection.</div>
         {% endif %}
     </form>
 </div>

@@ -34,7 +34,8 @@ class Spicymatch
     public function getResults(): array
     {
         if (!empty($this->spices["selectedSpices"])) {
-            $idsString = implode(",", $this->spices['selectedSpices']);
+            $idsString = $this->spiceMatchmaker->arrayToString($this->spices['selectedSpices']);
+
             $selectedSpices = $this->spicesRepository->findSpicesForMatch($idsString);
 
             foreach($selectedSpices as $spice){

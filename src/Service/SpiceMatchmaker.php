@@ -12,6 +12,16 @@ class SpiceMatchmaker
     {
     }
 
+    public function arrayToString(array $ids){
+        $idsString = "";
+
+        foreach($ids as $id){
+            $idsString .= ((int) $id) . ',';
+        }
+
+        return trim($idsString, ',');
+    } 
+
     public function getAllSharedAromaticsCompounds(array $spices){
          // Récupération de tous les composés aromatiques
          $allAromaticsCompoundsIds = $this->getAllAromaticsCompounds(

@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}SpicymatchHistory index{% endblock %}
+
+{% block body %}
+    <h1>SpicymatchHistory index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Spices_ids</th>
+                <th>Nb_spice</th>
+                <th>Nb_aromatic_group</th>
+                <th>Created_at</th>
+                <th>Updated_at</th>
+                <th>Deleted_at</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for spicymatch_history in spicymatch_histories %}
+            <tr>
+                <td>{{ spicymatch_history.id }}</td>
+                <td>{{ spicymatch_history.spicesIds }}</td>
+                <td>{{ spicymatch_history.nbSpice }}</td>
+                <td>{{ spicymatch_history.nbAromaticGroup }}</td>
+                <td>{{ spicymatch_history.createdAt ? spicymatch_history.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ spicymatch_history.updatedAt ? spicymatch_history.updatedAt|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ spicymatch_history.deletedAt ? spicymatch_history.deletedAt|date('Y-m-d H:i:s') : '' }}</td>
+                <td>
+                    <a href="{{ path('app_spicymatch_history_show', {'id': spicymatch_history.id}) }}">show</a>
+                    <a href="{{ path('app_spicymatch_history_edit', {'id': spicymatch_history.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="8">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_spicymatch_history_new') }}">Create new</a>
+{% endblock %}

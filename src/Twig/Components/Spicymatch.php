@@ -4,21 +4,25 @@ declare(strict_types=1);
 
 namespace App\Twig\Components;
 
+use App\Entity\SpicymatchHistory;
 use App\Repository\AromaticCompoundRepository;
 use App\Repository\SpicesRepository;
 use App\Service\SpiceMatchmaker;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
+use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 #[AsLiveComponent]
-class Spicymatch
+class Spicymatch extends AbstractController
 {
     use DefaultActionTrait;
     
     #[LiveProp(writable: true)]
     public array $spices = [];
-
+    
     public function __construct(
         private SpicesRepository $spicesRepository,
         private AromaticCompoundRepository $aromaticCompoundRepository,
@@ -69,5 +73,23 @@ class Spicymatch
             "selectedSpices" => $groupByAromaticGroup ?? $this->spices["selectedSpices"],
             "compatibleSpices" => $compatibleSpices
         ];
+    }
+
+    #[LiveAction]
+    public function nextStep(EntityManagerInterface $entityManager){
+        $spicymatchHistory = new SpicymatchHistory();
+
+        $spicymatchHistory->setCreatedAt(new \DateTime())
+            ->setUpdatedAt(new \DateTime())
+            ->setUserId($this->getUser())
+            ->setNbSpice(count($this->spices['selectedSpices']))
+            ->setSpicesIds($this->spiceMatchmaker->arrayToString($this->spices['selectedSpices']));
+        
+        $entityManager->persist($spicymatchHistory);
+        $entityManager->flush();
+
+        return $this->redirectToRoute('view_spicy_match', [
+            "id" => $spicymatchHistory->getId()
+        ]); 
     }
 }

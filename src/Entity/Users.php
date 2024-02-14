@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\UsersRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -43,6 +45,14 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
+
+    #[ORM\OneToMany(mappedBy: 'user_id', targetEntity: SpicymatchHistory::class, orphanRemoval: true)]
+    private Collection $spicymatchHistory;
+
+    public function __construct()
+    {
+        $this->spicymatchHistory = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -172,6 +182,36 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function setMail(string $mail): self
     {
         $this->mail = $mail;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, SpicymatchHistory>
+     */
+    public function getSpicymatchHistory(): Collection
+    {
+        return $this->spicymatchHistory;
+    }
+
+    public function addSpicymatchHistory(SpicymatchHistory $spicymatchHistory): static
+    {
+        if (!$this->spicymatchHistory->contains($spicymatchHistory)) {
+            $this->spicymatchHistory->add($spicymatchHistory);
+            $spicymatchHistory->setUserId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSpicymatchHistory(SpicymatchHistory $spicymatchHistory): static
+    {
+        if ($this->spicymatchHistory->removeElement($spicymatchHistory)) {
+            // set the owning side to null (unless already changed)
+            if ($spicymatchHistory->getUserId() === $this) {
+                $spicymatchHistory->setUserId(null);
+            }
+        }
 
         return $this;
     }

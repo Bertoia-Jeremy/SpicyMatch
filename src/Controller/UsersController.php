@@ -64,7 +64,7 @@ class UsersController extends AbstractController
         if ($formMail->isSubmitted() && $formMail->isValid()) {
             $user = $formMail->getData();
 
-            $this->usersRepository->addOrUpdate($user, true);
+            $this->usersRepository->addOrUpdate($user);
 
             return $this->redirectToRoute('configuration_user');
         }

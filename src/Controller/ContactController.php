@@ -22,7 +22,7 @@ class ContactController extends AbstractController
     }
 
     #[Route('/', name: 'new_contact')]
-    public function new(Request $request): Response
+    public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $contact = $this->contactFactory->create();
 
@@ -31,8 +31,9 @@ class ContactController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $contact = $form->getData();
-
-            $this->contactRepository->add($contact, true);
+            
+            $entityManager->persist($contact);
+            $entityManager->flush();
 
             return $this->redirectToRoute('contact_success_form');
         }

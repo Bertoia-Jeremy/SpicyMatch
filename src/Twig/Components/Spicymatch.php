@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Twig\Components;
 
 use App\Entity\SpicymatchHistory;
+use App\Factory\SpicymatchHistoryFactory;
 use App\Repository\AromaticCompoundRepository;
 use App\Repository\SpicesRepository;
 use App\Service\SpiceMatchmaker;
@@ -76,12 +77,10 @@ class Spicymatch extends AbstractController
     }
 
     #[LiveAction]
-    public function nextStep(EntityManagerInterface $entityManager){
-        $spicymatchHistory = new SpicymatchHistory();
+    public function nextStep(EntityManagerInterface $entityManager, SpicymatchHistoryFactory $spicymatchHistoryFactory){
+        $spicymatchHistory = $spicymatchHistoryFactory->create();
 
-        $spicymatchHistory->setCreatedAt(new \DateTime())
-            ->setUpdatedAt(new \DateTime())
-            ->setUserId($this->getUser())
+        $spicymatchHistory->setUserId($this->getUser())
             ->setNbSpice(count($this->spices['selectedSpices']))
             ->setSpicesIds($this->spiceMatchmaker->arrayToString($this->spices['selectedSpices']));
         

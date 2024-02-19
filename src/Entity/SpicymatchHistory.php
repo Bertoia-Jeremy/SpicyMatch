@@ -15,7 +15,7 @@ class SpicymatchHistory
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'spicymatchHistory')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, name: "user_id")]
     private ?Users $user_id = null;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -32,6 +32,9 @@ class SpicymatchHistory
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
+
+    #[ORM\Column]
+    private ?bool $isFavorite = null;
 
     public function getId(): ?int
     {
@@ -106,6 +109,18 @@ class SpicymatchHistory
     public function setDeletedAt(?\DateTimeInterface $deleted_at): static
     {
         $this->deleted_at = $deleted_at;
+
+        return $this;
+    }
+
+    public function isFavorite(): ?bool
+    {
+        return $this->isFavorite;
+    }
+
+    public function setIsFavorite(bool $isFavorite): static
+    {
+        $this->isFavorite = $isFavorite;
 
         return $this;
     }

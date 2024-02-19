@@ -8,6 +8,17 @@
             <a href="{{ path('history_user') }}" class="list-group-item list-group-item-action list-group-item-light active">Historique</a>
             <a href="{{ path('security_user') }}" class="list-group-item list-group-item-action list-group-item-light">Sécurité</a>
         </div>
-        Historique
+
+        <div class="d-flex flex-column align-items-center justify-content-center">
+            <div class="w-100 border border-primary text-center text-primary p-2">
+                <h5 class="m-0">Historique</h5>
+            </div>
+
+            <turbo-frame id="history_frame_id" class="w-100 my-2">
+                <p class="p-3 m-0 text-center">
+                    <a class="btn btn-primary" href="{{path('index_spicymatch_history')}}">Charger l'historique</a>
+                </p>
+            </turbo-frame>
+        </div>
     </turbo-frame>
 {% endblock %}

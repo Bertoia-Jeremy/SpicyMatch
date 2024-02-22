@@ -38,6 +38,9 @@ class CookingTips
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $title = null;
 
+    #[ORM\Column]
+    private ?int $step = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -123,6 +126,18 @@ class CookingTips
     public function setTitle(?string $title): static
     {
         $this->title = $title;
+
+        return $this;
+    }
+
+    public function getStep(): ?int
+    {
+        return $this->step;
+    }
+
+    public function setStep(int $step): static
+    {
+        $this->step = $step;
 
         return $this;
     }

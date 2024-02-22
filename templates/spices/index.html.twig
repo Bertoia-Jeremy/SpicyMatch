@@ -1,20 +1,29 @@
 {% extends 'base.html.twig' %}
+{% import "components/_macro_card_spice.html.twig" as macroCardSpice %}
 
-{% block title %}Hello SpicesController!{% endblock %}
+{% block title %}SpicyMatch - Epices{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+    <div class="container-fluid">
+        <div class="container justify-content-center">
+            <h2>Présentation des épices</h2>
+        </div>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+        <div class="container">
+            <turbo-frame id="spices_frame_id">
+                {%  include "/components/_spices_filters.html.twig" %}
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code><a href="{{ '/var/www/sites/SpicyMatch/src/Controller/SpicesController.php'|file_link(0) }}">src/Controller/SpicesController.php</a></code></li>
-        <li>Your template at <code><a href="{{ '/var/www/sites/SpicyMatch/templates/spices/index.html.twig'|file_link(0) }}">templates/spices/index.html.twig</a></code></li>
-    </ul>
-</div>
+                <div class="d-flex flex-wrap justify-content-around align-items-center">
+                    {% for spice in spices %}
+                        <a href="{{ path('view_spice', {"id" : spice.id}) }}">
+                            {{ macroCardSpice.cardSpice(spice) }}
+                        </a>
+                    {% endfor %}
+                </div>
+                <div class="container justify-content-around">
+                    {{ knp_pagination_render(spices) }}
+                </div>
+            </turbo-frame>
+        </div>
+    </div>
 {% endblock %}

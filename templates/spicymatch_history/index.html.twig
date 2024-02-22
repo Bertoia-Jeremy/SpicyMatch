@@ -6,40 +6,48 @@
     <h1>SpicymatchHistory index</h1>
 
     <turbo-frame id="history_frame_id">
-        {% import "components/_macro_card_spicymatch.html.twig" as macroCardSpicyMatch %}
+        {% import "components/_macro_card_spicymatch_history.html.twig" as macroCardSpicyMatchHistory %}
 
-        <div class="table-responsive">
-            <table class="table table-hover text-center">
-                <thead>
-                    <tr>
-                        <th scope="col">Date</th>
-                        <th scope="col">Nombre d'épices</th>
-                        <th scope="col">Epices</th>
-                        <th scope="col">Favoris</th>
-                    </tr>
-                </thead>
+        <div class="table-responsive d-flex justify-content-center">
+            <table class="table table-hover w-75">
                 <tbody>
                     {% for history in spicymatch_histories %}
                         {% set spicesIds = history.spicesIds|split(',') %}
 
-                        <tr style="vertical-align: baseline;">
-                            <td>{{ history.createdAt ? history.createdAt|date('d/m/y H:i') : '' }}</td>
-                            <td>{{ history.nbSpice }}</td>
-                            <td>
-                                <div class="d-flex flex-wrap justify-content-center align-items-center">
-                                    {% for spiceId in spicesIds %}
-                                        {{ macroCardSpicyMatch.cardSpicyMatch(spices[spiceId], true) }}
-                                    {% endfor %}
-                                </div>
-                            </td>
-                            <td>
-                                <div class="d-flex flex-wrap justify-content-center align-items-center">
-                                    <input class="form-check-input mx-0 mt-2" type="checkbox" value="{{ history.id }}"
-                                        {% if history.isFavorite %}
-                                            checked
-                                        {% endif %}
-                                    >
-                                </div>
+                        <tr class style="vertical-align: baseline;">
+                            <td class="px-4">
+                                <a class="text-decoration-none" href="{{ path('view_spicymatch_history', {'id' : history.id }) }}">
+                                    <div class="d-flex flex-column justify-content-center align-items-center">
+                                        <div class="w-100">
+                                            <h5>
+                                                {% if history.title is null %}
+                                                    Recette du {{ history.createdAt|date('d/m/y à H:i') }}
+                                                {% else %}
+                                                    {{ history.title }}
+                                                {% endif %}
+                                            </h3>
+                                        </div>
+                                        <div class="d-flex justify-content-around align-items-center w-100">
+                                            <div class="col-10 d-flex justify-content-center align-items-center flex-wrap m-2">
+                                                {% for spiceId in spicesIds %}
+                                                    {{ macroCardSpicyMatchHistory.cardSpicyMatch(spices[spiceId], true) }}
+                                                {% endfor %}
+                                            </div>
+                                            <div>
+                                                <div class="col-2 d-flex flex-wrap justify-content-center align-items-center">
+                                                    {% if history.isFavorite %}
+                                                        <i class="fa-solid fa-star fa-xl"></i>
+                                                    {% else %}
+                                                        <i class="fa-regular fa-star fa-xl"></i>
+                                                    {% endif %}
+                                            </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-end w-100">
+                                            <small class="text-muted">Mélange créé le {{ history.createdAt|date('d/m/y à H:i') }}</small>
+                                        </div>
+                                    </div>
+                                </a>
                             </td>
                         </tr>
                     {% endfor %}

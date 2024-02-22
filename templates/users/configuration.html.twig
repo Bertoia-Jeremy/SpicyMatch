@@ -14,8 +14,8 @@
                 <h5 class="m-0">Partie Mail</h5>
             </div>
 
-            <turbo-frame id="userMail_frame_id" class="w-75 my-2 shadow-sm rounded">
-                <p class="p-3 m-0">
+            <turbo-frame id="userMail_frame_id" class="w-100 p-3 border-bottom">
+                <p class="m-0">
                     Mail actuellement utilisé : 
                     {% if user.mail is null %} 
                         Aucun (<a href="{{path('mail_user')}}">Ajouter un mail</a>) 

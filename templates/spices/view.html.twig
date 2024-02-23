@@ -1,5 +1,6 @@
 {% extends 'base.html.twig' %}
 {% block title %}SpiceMatch - Présentation{% endblock %}
+{% import "components/_macro_modal_preparation_method.html.twig" as macroModalPreparationMethod %}
 
 {% block body %}
     {% set color = spice.aromaticGroups.color %}
@@ -52,11 +53,7 @@
                         <p class="mb-0">{{ preparationTip.text }}</p>
 
                         {% if preparationTip.preparationMethod is not null %}
-                            <small class="d-flex justify-content-end">
-                                <a href="{{ path('view_preparation_methods', {"id" : preparationTip.preparationMethod.id})}}">
-                                    En savoir plus sur la méthode "{{ preparationTip.preparationMethod.name }}"
-                                </a>
-                            </small>
+                            {{ macroModalPreparationMethod.modal(preparationTip.preparationMethod.id, preparationTip.preparationMethod.name, true) }}
                         {% endif %}
                     </div>
                 {% endfor %}

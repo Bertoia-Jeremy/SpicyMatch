@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\SpicymatchHistory;
+use App\Entity\SpicyMatchHistory;
 use App\Repository\SpicesRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,9 +27,9 @@ class SpicyMatchController extends AbstractController
     }
 
     #[Route('/view/{id}', name: 'view_spicy_match')]
-    public function view(SpicymatchHistory $spicymatchHistory): Response
+    public function view(SpicyMatchHistory $spicyMatchHistory): Response
     {
-        $spices = $this->spicesRepository->findAllByStringIds($spicymatchHistory->getSpicesIds());
+        $spices = $this->spicesRepository->findAllByStringIds($spicyMatchHistory->getSpicesIds());
 
         // Récupération des épices + conseils et tout le tintouin
         return $this->render('spicy_match/view.html.twig', [

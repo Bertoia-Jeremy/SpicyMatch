@@ -38,6 +38,9 @@ class PreparationTips
     #[ORM\ManyToOne(inversedBy: 'preparationTips')]
     private ?PreparationMethods $preparationMethod = null;
 
+    #[ORM\Column(length: 255)]
+    private ?string $advantages = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -123,6 +126,18 @@ class PreparationTips
     public function setPreparationMethod(?PreparationMethods $preparationMethod): static
     {
         $this->preparationMethod = $preparationMethod;
+
+        return $this;
+    }
+
+    public function getAdvantages(): ?string
+    {
+        return $this->advantages;
+    }
+
+    public function setAdvantages(string $advantages): static
+    {
+        $this->advantages = $advantages;
 
         return $this;
     }

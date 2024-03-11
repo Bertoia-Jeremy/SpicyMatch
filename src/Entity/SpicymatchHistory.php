@@ -2,24 +2,27 @@
 
 namespace App\Entity;
 
-use App\Repository\SpicymatchHistoryRepository;
+use App\Repository\SpicyMatchHistoryRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: SpicymatchHistoryRepository::class)]
-class SpicymatchHistory
+#[ORM\Entity(repositoryClass: SpicyMatchHistoryRepository::class)]
+class SpicyMatchHistory
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'spicymatchHistory')]
+    #[ORM\ManyToOne(inversedBy: 'spicyMatchHistory')]
     #[ORM\JoinColumn(nullable: false, name: 'user_id')]
     private ?Users $user_id = null;
 
-    #[ORM\Column(type: Types::TEXT)]
-    private ?string $spices_ids = null;
+    //#[ORM\Column(type: Types::TEXT)]
+    //private ?string $preparation_tips_ids = null;
+    
+    //#[ORM\Column(type: Types::TEXT)]
+   // private ?string $cooking_tips_ids = null;
 
     #[ORM\Column]
     private ?int $nb_spice = null;
@@ -52,18 +55,6 @@ class SpicymatchHistory
     public function setUserId(?Users $user_id): static
     {
         $this->user_id = $user_id;
-
-        return $this;
-    }
-
-    public function getSpicesIds(): ?string
-    {
-        return $this->spices_ids;
-    }
-
-    public function setSpicesIds(string $spices_ids): static
-    {
-        $this->spices_ids = $spices_ids;
 
         return $this;
     }

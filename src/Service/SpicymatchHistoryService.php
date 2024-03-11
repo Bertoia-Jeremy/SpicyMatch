@@ -3,9 +3,9 @@
 namespace App\Service;
 
 use App\Repository\SpicesRepository;
-use App\Entity\SpicymatchHistory;
+use App\Entity\SpicyMatchHistory;
 
-class SpicymatchHistoryService
+class SpicyMatchHistoryService
 {
     public function __construct(
         private SpicesRepository $spicesRepository
@@ -17,7 +17,7 @@ class SpicymatchHistoryService
         $spicesHistoriesString = '';
 
         foreach ($histories as $history) {
-            /** @var SpicymatchHistory $history */
+            /** @var SpicyMatchHistory $history */
             $spicesHistoriesString .= $history->getSpicesIds() . ',';
         }
 

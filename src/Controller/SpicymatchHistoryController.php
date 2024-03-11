@@ -2,47 +2,47 @@
 
 namespace App\Controller;
 
-use App\Entity\SpicymatchHistory;
+use App\Entity\SpicyMatchHistory;
 use App\Entity\Users;
 use App\Repository\SpicesRepository;
-use App\Service\SpicymatchHistoryService;
+use App\Service\SpicyMatchHistoryService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/spicymatch/history')]
-class SpicymatchHistoryController extends AbstractController
+class SpicyMatchHistoryController extends AbstractController
 {
     public function __construct(
         private readonly SpicesRepository $spicesRepository,
-        private readonly SpicymatchHistoryService $spicymatchHistoryService
+        private readonly SpicyMatchHistoryService $spicyMatchHistoryService
     ) {
     }
 
-    #[Route('/', name: 'index_spicymatch_history', methods: ['GET'])]
+    #[Route('/', name: 'index_spicy_match_history', methods: ['GET'])]
     public function index(): Response
     {
         /** @var Users $user */
         $user = $this->getUser();
 
         // Find by, Order id, Limit, Favorite on history?
-        $histories = $user->getSpicymatchHistory();
+        $histories = $user->getSpicyMatchHistory();
 
-        $spices = $this->spicymatchHistoryService->getSpicesFromHistories($histories);
+        $spices = $this->spicyMatchHistoryService->getSpicesFromHistories($histories);
 
-        return $this->render('spicymatch_history/index.html.twig', [
+        return $this->render('spicy_match_history/index.html.twig', [
             'spicymatch_histories' => $histories,
             'spices' => $spices,
         ]);
     }
 
-    #[Route('/{id}', name: 'view_spicymatch_history', methods: ['GET'])]
-    public function view(SpicymatchHistory $spicymatchHistory): Response
+    #[Route('/{id}', name: 'view_spicy_match_history', methods: ['GET'])]
+    public function view(SpicyMatchHistory $spicyMatchHistory): Response
     {
-        $spices = $this->spicesRepository->findAllByStringIds($spicymatchHistory->getSpicesIds());
+        $spices = $this->spicesRepository->findAllByStringIds($spicyMatchHistory->getSpicesIds());
 
-        return $this->render('spicymatch_history/view.html.twig', [
-            'history' => $spicymatchHistory,
+        return $this->render('spicy_match_history/view.html.twig', [
+            'history' => $spicyMatchHistory,
             'spices' => $spices,
         ]);
     }

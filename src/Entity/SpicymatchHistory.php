@@ -14,18 +14,27 @@ class SpicyMatchHistory
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'spicyMatchHistory')]
-    #[ORM\JoinColumn(nullable: false, name: 'user_id')]
-    private ?Users $user_id = null;
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?SpicyMatch $spicymatch_id = null;
 
-    //#[ORM\Column(type: Types::TEXT)]
-    //private ?string $preparation_tips_ids = null;
-    
-    //#[ORM\Column(type: Types::TEXT)]
-   // private ?string $cooking_tips_ids = null;
+    #[ORM\Column(type: Types::TEXT)]
+    private ?array $preparation_tips_ids = null;
+
+    #[ORM\Column(type: Types::TEXT)]
+    private ?array $cooking_tips_ids = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $title = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $nb_spice = null;
 
     #[ORM\Column]
-    private ?int $nb_spice = null;
+    private ?bool $favorite = null;
+
+    #[ORM\Column]
+    private ?bool $finish = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $created_at = null;
@@ -36,25 +45,55 @@ class SpicyMatchHistory
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
 
-    #[ORM\Column]
-    private ?bool $isFavorite = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $title = null;
-
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getUserId(): ?Users
+    public function getSpicymatchId(): ?SpicyMatch
     {
-        return $this->user_id;
+        return $this->spicymatch_id;
     }
 
-    public function setUserId(?Users $user_id): static
+    public function setSpicymatchId(?SpicyMatch $spicymatch_id): static
     {
-        $this->user_id = $user_id;
+        $this->spicymatch_id = $spicymatch_id;
+
+        return $this;
+    }
+
+    public function getPreparationTipsIds(): ?string
+    {
+        return $this->preparation_tips_ids;
+    }
+
+    public function setPreparationTipsIds(?string $preparation_tips_ids): static
+    {
+        $this->preparation_tips_ids = $preparation_tips_ids;
+
+        return $this;
+    }
+
+    public function getCookingTipsIds(): ?string
+    {
+        return $this->cooking_tips_ids;
+    }
+
+    public function setCookingTipsIds(?string $cooking_tips_ids): static
+    {
+        $this->cooking_tips_ids = $cooking_tips_ids;
+
+        return $this;
+    }
+
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(?string $title): static
+    {
+        $this->title = $title;
 
         return $this;
     }
@@ -64,9 +103,33 @@ class SpicyMatchHistory
         return $this->nb_spice;
     }
 
-    public function setNbSpice(int $nb_spice): static
+    public function setNbSpice(?int $nb_spice): static
     {
         $this->nb_spice = $nb_spice;
+
+        return $this;
+    }
+
+    public function isFavorite(): ?bool
+    {
+        return $this->favorite;
+    }
+
+    public function setFavorite(bool $favorite): static
+    {
+        $this->favorite = $favorite;
+
+        return $this;
+    }
+
+    public function isFinish(): ?bool
+    {
+        return $this->finish;
+    }
+
+    public function setFinish(bool $finish): static
+    {
+        $this->finish = $finish;
 
         return $this;
     }
@@ -103,30 +166,6 @@ class SpicyMatchHistory
     public function setDeletedAt(?\DateTimeInterface $deleted_at): static
     {
         $this->deleted_at = $deleted_at;
-
-        return $this;
-    }
-
-    public function isFavorite(): ?bool
-    {
-        return $this->isFavorite;
-    }
-
-    public function setIsFavorite(bool $isFavorite): static
-    {
-        $this->isFavorite = $isFavorite;
-
-        return $this;
-    }
-
-    public function getTitle(): ?string
-    {
-        return $this->title;
-    }
-
-    public function setTitle(?string $title): static
-    {
-        $this->title = $title;
 
         return $this;
     }

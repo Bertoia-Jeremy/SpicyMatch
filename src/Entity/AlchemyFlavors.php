@@ -39,6 +39,7 @@ class AlchemyFlavors
     #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
 
+    /** @var  Collection<int, AromaticCompound> */
     #[ORM\ManyToMany(targetEntity: AromaticCompound::class, mappedBy: 'alchemyFlavors')]
     private Collection $aromaticsCompounds;
 

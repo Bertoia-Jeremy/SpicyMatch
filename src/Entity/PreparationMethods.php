@@ -116,7 +116,7 @@ class PreparationMethods
 
     public function addPreparationTip(PreparationTips $preparationTip): static
     {
-        if (!$this->preparationTips->contains($preparationTip)) {
+        if (! $this->preparationTips->contains($preparationTip)) {
             $this->preparationTips->add($preparationTip);
             $preparationTip->setPreparationMethod($this);
         }
@@ -126,11 +126,11 @@ class PreparationMethods
 
     public function removePreparationTip(PreparationTips $preparationTip): static
     {
-        if ($this->preparationTips->removeElement($preparationTip)) {
-            // set the owning side to null (unless already changed)
-            if ($preparationTip->getPreparationMethod() === $this) {
-                $preparationTip->setPreparationMethod(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->preparationTips->removeElement(
+            $preparationTip
+        ) && $preparationTip->getPreparationMethod() === $this) {
+            $preparationTip->setPreparationMethod(null);
         }
 
         return $this;

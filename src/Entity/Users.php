@@ -25,6 +25,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'username', type: 'string', length: 180, unique: true)]
     private ?string $username = null;
 
+    /** @var array<string> */
     #[ORM\Column(name: 'roles', type: 'json')]
     private array $roles = [];
 
@@ -46,6 +47,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
 
+    /** @var  Collection<int, SpicymatchHistory> */
     #[ORM\OneToMany(mappedBy: 'user_id', targetEntity: SpicymatchHistory::class, orphanRemoval: true)]
     private Collection $spicymatchHistory;
 
@@ -196,7 +198,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function addSpicymatchHistory(SpicymatchHistory $spicymatchHistory): static
     {
-        if (!$this->spicymatchHistory->contains($spicymatchHistory)) {
+        if (! $this->spicymatchHistory->contains($spicymatchHistory)) {
             $this->spicymatchHistory->add($spicymatchHistory);
             $spicymatchHistory->setUserId($this);
         }
@@ -206,11 +208,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function removeSpicymatchHistory(SpicymatchHistory $spicymatchHistory): static
     {
-        if ($this->spicymatchHistory->removeElement($spicymatchHistory)) {
-            // set the owning side to null (unless already changed)
-            if ($spicymatchHistory->getUserId() === $this) {
-                $spicymatchHistory->setUserId(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->spicymatchHistory->removeElement($spicymatchHistory) && $spicymatchHistory->getUserId() === $this) {
+            $spicymatchHistory->setUserId(null);
         }
 
         return $this;

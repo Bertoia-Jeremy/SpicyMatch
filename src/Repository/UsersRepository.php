@@ -28,8 +28,10 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
 
     public function addOrUpdate(Users $user): void
     {
-        $this->getEntityManager()->persist($user);
-        $this->getEntityManager()->flush();
+        $this->getEntityManager()
+            ->persist($user);
+        $this->getEntityManager()
+            ->flush();
     }
 
     /**
@@ -45,6 +47,6 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
 
         $user->setPassword($newHashedPassword);
 
-        $this->add($user, true);
+        $this->addOrUpdate($user);
     }
 }

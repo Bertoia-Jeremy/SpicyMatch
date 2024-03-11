@@ -6,7 +6,6 @@ namespace App\Controller;
 
 use App\Factory\ContactFactory;
 use App\Form\ContactType;
-use App\Repository\ContactRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +17,6 @@ class ContactController extends AbstractController
 {
     public function __construct(
         private readonly ContactFactory $contactFactory,
-        private readonly ContactRepository $contactRepository
     ) {
     }
 
@@ -32,7 +30,7 @@ class ContactController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $contact = $form->getData();
-            
+
             $entityManager->persist($contact);
             $entityManager->flush();
 

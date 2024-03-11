@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Spices;
 use App\Repository\SpicesRepository;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -17,7 +17,8 @@ class SpicesController extends AbstractController
 {
     public function __construct(
         private SpicesRepository $spicesRepository
-    ){}
+    ) {
+    }
 
     #[Route('/', name: 'index_spices')]
     public function index(Request $request, PaginatorInterface $paginator): Response

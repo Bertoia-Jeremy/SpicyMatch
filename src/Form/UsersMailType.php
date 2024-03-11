@@ -14,18 +14,18 @@ class UsersMailType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-        ->add('mail', EmailType::class, [
-            'label' => false,
-            'required' => false,
-            'attr' => array(
-                'placeholder' => 'Insérez un mail'
-            )
-        ])
-        ->add('Valider', SubmitType::class, [
-            "attr" => [
-                "class" => "btn btn-outline-primary w-100"
-            ]
-        ])
+            ->add('mail', EmailType::class, [
+                'label' => false,
+                'required' => false,
+                'attr' => [
+                    'placeholder' => 'Insérez un mail',
+                ],
+            ])
+            ->add('Valider', SubmitType::class, [
+                'attr' => [
+                    'class' => 'btn btn-outline-primary w-100',
+                ],
+            ])
         ;
     }
 

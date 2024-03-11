@@ -15,7 +15,7 @@ class SpicymatchHistory
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'spicymatchHistory')]
-    #[ORM\JoinColumn(nullable: false, name: "user_id")]
+    #[ORM\JoinColumn(nullable: false, name: 'user_id')]
     private ?Users $user_id = null;
 
     #[ORM\Column(type: Types::TEXT)]

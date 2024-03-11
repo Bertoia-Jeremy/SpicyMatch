@@ -25,8 +25,10 @@ class ContactRepository extends ServiceEntityRepository
 
     public function add(Contact $contact): void
     {
-        $this->getEntityManager()->persist($contact);
-        $this->getEntityManager()->flush();
+        $this->getEntityManager()
+            ->persist($contact);
+        $this->getEntityManager()
+            ->flush();
     }
 
     public function remove(Contact $contact, bool $flush = false): void

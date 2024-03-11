@@ -22,11 +22,11 @@ class CookingTipsCrudController extends AbstractCrudController
         return [
             TextField::new('title', 'Titre'),
             ChoiceField::new('cookingStep', 'Etape de cuisson')->setChoices([
-                'Avant' => 'Avant', 
+                'Avant' => 'Avant',
                 'Début' => 'Début',
-                'Milieu' => 'Milieu', 
-                'Fin' => 'Fin', 
-                'Après' => 'Après'
+                'Milieu' => 'Milieu',
+                'Fin' => 'Fin',
+                'Après' => 'Après',
             ]),
             TextareaField::new('text', 'Texte')->setMaxLength(100),
             AssociationField::new('spice', 'Epice'),

@@ -47,13 +47,13 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
 
-    /** @var  Collection<int, SpicymatchHistory> */
-    #[ORM\OneToMany(mappedBy: 'user_id', targetEntity: SpicymatchHistory::class, orphanRemoval: true)]
-    private Collection $spicymatchHistory;
+    /** @var  Collection<int, SpicyMatchHistory> */
+    #[ORM\OneToMany(mappedBy: 'user_id', targetEntity: SpicyMatchHistory::class, orphanRemoval: true)]
+    private Collection $spicyMatchHistory;
 
     public function __construct()
     {
-        $this->spicymatchHistory = new ArrayCollection();
+        $this->spicyMatchHistory = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -189,28 +189,28 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @return Collection<int, SpicymatchHistory>
+     * @return Collection<int, SpicyMatchHistory>
      */
-    public function getSpicymatchHistory(): Collection
+    public function getSpicyMatchHistory(): Collection
     {
-        return $this->spicymatchHistory;
+        return $this->spicyMatchHistory;
     }
 
-    public function addSpicymatchHistory(SpicymatchHistory $spicymatchHistory): static
+    public function addSpicyMatchHistory(SpicyMatchHistory $spicyMatchHistory): static
     {
-        if (! $this->spicymatchHistory->contains($spicymatchHistory)) {
-            $this->spicymatchHistory->add($spicymatchHistory);
-            $spicymatchHistory->setUserId($this);
+        if (! $this->spicyMatchHistory->contains($spicyMatchHistory)) {
+            $this->spicyMatchHistory->add($spicyMatchHistory);
+            $spicyMatchHistory->setUserId($this);
         }
 
         return $this;
     }
 
-    public function removeSpicymatchHistory(SpicymatchHistory $spicymatchHistory): static
+    public function removeSpicyMatchHistory(SpicyMatchHistory $spicyMatchHistory): static
     {
         // set the owning side to null (unless already changed)
-        if ($this->spicymatchHistory->removeElement($spicymatchHistory) && $spicymatchHistory->getUserId() === $this) {
-            $spicymatchHistory->setUserId(null);
+        if ($this->spicyMatchHistory->removeElement($spicyMatchHistory) && $spicyMatchHistory->getUserId() === $this) {
+            $spicyMatchHistory->setUserId(null);
         }
 
         return $this;

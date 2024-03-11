@@ -12,11 +12,11 @@
         {# TODO => Selectionner le groupe de l'épice choisie, trier sur ça pour la 1ere et l'afficher #}
         {# TODO => Faire le bouton Ajouter un groupe de mélange, (tout en prenant en compte les groupes fait auparavant) #}
         {# TODO => Réduire dans les groupes ajoutés les groupes actuellement utilisés #}
-        {# TODO => Anticiper et bloquer quand on ne peut pas ajouter un groupe de plus (car plus de possibilité) #}
+        {# TODO => Anticiper et bloquer quand on ne peut pas ajouter un groupe de plus (A faire en fonction du level d'exp ?) (car plus de possibilité) #}
 
         {%  include "/components/_spices_filters.html.twig" %}
 
-        {{ component('Spicymatch') }}
+        {{ component('SpicyMatch') }}
         {# BOUTON AJOUTER UN GROUPE #}
     </div>
 {% endblock %}

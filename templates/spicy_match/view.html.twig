@@ -1,10 +1,44 @@
 {% extends 'base.html.twig' %}
+{% import "components/_macro_modal_preparation_method.html.twig" as macroModalPreparationMethod %}
+
 {% block title %}SpicyMatch{% endblock %}
 
 {% block body %}
     <div class="container-fluid">
         <div class="container justify-content-center">
-            <h2>YEAH</h2>
+            <h2>Finalisation du mélange :</h2>
         </div>
+
+        {% for spice in spices %}
+    
+            <div class="w-100 d-flex flex-column align-items-center justify-content-center">
+                <div class="w-75 border my-2" ></div>
+                    <div class="w-75">
+                        <div>
+                            <h4><u>{{ spice.name|upper }} Choix de méthode : </u></h4>
+                            <div class="d-flex justify-content-start align-items-center flex-wrap">
+                                <div class="row">
+                                    {% for preparationTip in spice.preparationTips %}
+                                        <div class="col">
+                                            <div class="card h-100">
+                                                <!--Card content-->
+                                                <div class="card-body">
+                                                    <!--Title-->
+                                                    <h4 class="card-title">{{ preparationTip.title }}</h4>
+                                                    <!--Text-->
+                                                    <p class="card-text">{{ preparationTip.advantages|nl2br }}</p>
+                                                </div>
+                                                <div class="card-footer">
+                                                    <small class="text-muted"><button type="button" class="btn btn-light-blue btn-md">En savoir plus</button></small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        {% endfor %}
     </div>
 {% endblock %}

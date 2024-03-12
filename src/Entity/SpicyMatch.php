@@ -19,7 +19,10 @@ class SpicyMatch
     private ?Users $user_id = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    private string $spices_ids = "";
+    private string $spices_ids = '';
+
+    #[ORM\Column(nullable: true)]
+    private ?int $nb_spice = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $created_at = null;
@@ -55,6 +58,18 @@ class SpicyMatch
     public function setSpicesIds(string $spices_ids): static
     {
         $this->spices_ids = $spices_ids;
+
+        return $this;
+    }
+
+    public function getNbSpice(): ?int
+    {
+        return $this->nb_spice;
+    }
+
+    public function setNbSpice(?int $nb_spice): static
+    {
+        $this->nb_spice = $nb_spice;
 
         return $this;
     }

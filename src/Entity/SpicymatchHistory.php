@@ -19,22 +19,16 @@ class SpicyMatchHistory
     private ?SpicyMatch $spicy_match_id = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    private ?array $preparation_tips_ids = null;
+    private ?string $preparation_tips_ids = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    private ?array $cooking_tips_ids = null;
+    private ?string $cooking_tips_ids = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $title = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $nb_spice = null;
-
     #[ORM\Column]
     private ?bool $favorite = null;
-
-    #[ORM\Column]
-    private ?bool $finish = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $created_at = null;
@@ -98,18 +92,6 @@ class SpicyMatchHistory
         return $this;
     }
 
-    public function getNbSpice(): ?int
-    {
-        return $this->nb_spice;
-    }
-
-    public function setNbSpice(?int $nb_spice): static
-    {
-        $this->nb_spice = $nb_spice;
-
-        return $this;
-    }
-
     public function isFavorite(): ?bool
     {
         return $this->favorite;
@@ -118,18 +100,6 @@ class SpicyMatchHistory
     public function setFavorite(bool $favorite): static
     {
         $this->favorite = $favorite;
-
-        return $this;
-    }
-
-    public function isFinish(): ?bool
-    {
-        return $this->finish;
-    }
-
-    public function setFinish(bool $finish): static
-    {
-        $this->finish = $finish;
 
         return $this;
     }

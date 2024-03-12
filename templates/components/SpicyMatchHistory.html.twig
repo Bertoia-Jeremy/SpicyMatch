@@ -1,0 +1,77 @@
+<div {{ attributes }}>
+{#
+    Tout sera dans un form
+    Chaque card sera un label avec un input hidden => input name="cookingChoice" or name="preparationChoice"
+    prévoir un sécurité et bien vérifier que le choice fait partie d'une épice (que c'est un int) et que l'épice fait partie du spicyMatch
+    le bouton retour sera un #action avec un int pour enlever l'id du choice voulu
+#}
+    {% for spice in spices %}
+        <div class="w-100 d-flex flex-column align-items-center justify-content-center">
+            <div class="w-75 border my-2" ></div>
+                <div class="w-75">
+                    <div>
+                        <h4><u>{{ spice.name|upper }} Choix des méthodes : </u></h4>
+                        <div class="d-flex justify-content-start align-items-center flex-wrap">
+                            <div class="row">
+                                {% if spice.id in preparationChosen|keys%}
+                                    <div class="col">
+                                        <div class="card h-100">
+                                            <!--Card content-->
+                                            <div class="card-body">
+                                                <!--Title-->
+                                                <h4 class="card-title">{{ preparationChosen[spice.id]["title"] }}</h4>
+                                                <!--Text-->
+                                                <p class="card-text">{{ preparationChosen[spice.id]["advantages"]|nl2br }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {% if spice.id in cookingChosen|keys%}
+                                        <div class="col">
+                                            <div class="card h-100">
+                                                <!--Card content-->
+                                                <div class="card-body">
+                                                    <!--Title-->
+                                                    <h4 class="card-title">{{ cookingChosen[spice.id]["cooking_step"] }}</h4>
+                                                    <!--Text-->
+                                                    <p class="card-text">{{ cookingChosen[spice.id]["text"]|nl2br }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        {% for cookingTip in spice.cookingTips %}
+                                            <div class="col">
+                                                <div class="card h-100">
+                                                    <!--Card content-->
+                                                    <div class="card-body">
+                                                        <!--Title-->
+                                                        <h4 class="card-title">{{ cookingTip.cooking_step }}</h4>
+                                                        <!--Text-->
+                                                        <p class="card-text">{{ preparationTip.text|nl2br }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                {% else %}
+                                    {% for preparationTip in spice.preparationTips %}
+                                        <div class="col">
+                                            <div class="card h-100">
+                                                <!--Card content-->
+                                                <div class="card-body">
+                                                    <!--Title-->
+                                                    <h4 class="card-title">{{ preparationTip.title }}</h4>
+                                                    <!--Text-->
+                                                    <p class="card-text">{{ preparationTip.advantages|nl2br }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+    {% endfor %}
+</div>

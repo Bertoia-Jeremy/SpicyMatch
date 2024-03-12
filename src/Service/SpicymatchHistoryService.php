@@ -2,8 +2,8 @@
 
 namespace App\Service;
 
-use App\Repository\SpicesRepository;
 use App\Entity\SpicyMatchHistory;
+use App\Repository\SpicesRepository;
 
 class SpicyMatchHistoryService
 {

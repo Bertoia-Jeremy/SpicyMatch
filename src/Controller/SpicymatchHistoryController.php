@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\SpicyMatchHistory;
+use App\Entity\SpicyMatch;
 use App\Entity\Users;
 use App\Repository\SpicesRepository;
 use App\Service\SpicyMatchHistoryService;
@@ -15,7 +15,7 @@ class SpicyMatchHistoryController extends AbstractController
 {
     public function __construct(
         private readonly SpicesRepository $spicesRepository,
-        private readonly SpicyMatchHistoryService $spicyMatchHistoryService
+        private readonly SpicyMatchHistoryService $spicyMatchService
     ) {
     }
 
@@ -26,9 +26,9 @@ class SpicyMatchHistoryController extends AbstractController
         $user = $this->getUser();
 
         // Find by, Order id, Limit, Favorite on history?
-        $histories = $user->getSpicyMatchHistory();
+        $histories = $user->getSpicyMatches();
 
-        $spices = $this->spicyMatchHistoryService->getSpicesFromHistories($histories);
+        $spices = $this->spicyMatchService->getSpicesFromHistories($histories);
 
         return $this->render('spicy_match_history/index.html.twig', [
             'spicymatch_histories' => $histories,
@@ -37,12 +37,12 @@ class SpicyMatchHistoryController extends AbstractController
     }
 
     #[Route('/{id}', name: 'view_spicy_match_history', methods: ['GET'])]
-    public function view(SpicyMatchHistory $spicyMatchHistory): Response
+    public function view(SpicyMatch $spicyMatch): Response
     {
-        $spices = $this->spicesRepository->findAllByStringIds($spicyMatchHistory->getSpicesIds());
+        $spices = $this->spicesRepository->findAllByStringIds($spicyMatch->getSpicesIds());
 
         return $this->render('spicy_match_history/view.html.twig', [
-            'history' => $spicyMatchHistory,
+            'spicyMatch' => $spicyMatch,
             'spices' => $spices,
         ]);
     }

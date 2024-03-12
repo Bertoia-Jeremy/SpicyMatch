@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Factory;
 
-use App\Entity\SpicymatchHistory;
+use App\Entity\SpicyMatchHistory;
 
-class SpicymatchHistoryFactory
+class SpicyMatchHistoryFactory
 {
-    public function create(): SpicymatchHistory
+    public function create(): SpicyMatchHistory
     {
-        $spicymatchHistory = new SpicymatchHistory();
-        $spicymatchHistory->setCreatedAt(new \DateTime())
+        $spicyMatchHistory = new SpicyMatchHistory();
+        $spicyMatchHistory->setCreatedAt(new \DateTime())
             ->setUpdatedAt(new \DateTime())
-            ->setIsFavorite(false)
+            ->setFavorite(false)
         ;
 
-        return $spicymatchHistory;
+        return $spicyMatchHistory;
     }
 }

@@ -25,7 +25,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'username', type: 'string', length: 180, unique: true)]
     private ?string $username = null;
 
-    /** @var array<string> */
+    /**
+     * @var array<string>
+     */
     #[ORM\Column(name: 'roles', type: 'json')]
     private array $roles = [];
 
@@ -197,7 +199,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function addSpicyMatch(SpicyMatch $spicyMatch): static
     {
-        if (!$this->spicyMatches->contains($spicyMatch)) {
+        if (! $this->spicyMatches->contains($spicyMatch)) {
             $this->spicyMatches->add($spicyMatch);
             $spicyMatch->setUserId($this);
         }
@@ -207,11 +209,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function removeSpicyMatch(SpicyMatch $spicyMatch): static
     {
-        if ($this->spicyMatches->removeElement($spicyMatch)) {
-            // set the owning side to null (unless already changed)
-            if ($spicyMatch->getUserId() === $this) {
-                $spicyMatch->setUserId(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->spicyMatches->removeElement($spicyMatch) && $spicyMatch->getUserId() === $this) {
+            $spicyMatch->setUserId(null);
         }
 
         return $this;

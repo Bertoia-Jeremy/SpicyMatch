@@ -28,10 +28,16 @@ class PreparationMethods
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
 
-    /** @var  Collection<int, PreparationTips> */
-    #[ORM\OneToMany(mappedBy: 'preparationMethod', targetEntity: PreparationTips::class, cascade: [
+    /**
+     * @var Collection<int, PreparationTips>
+     */
+    #[ORM\OneToMany(
+        mappedBy: 'preparationMethod',
+        targetEntity: PreparationTips::class,
+        cascade: [
         'persist',
         'remove',
+    
     ])]
     private Collection $preparationTips;
 

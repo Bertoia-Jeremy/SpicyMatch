@@ -2,8 +2,8 @@
 
 namespace App\Service;
 
-use App\Repository\SpicesRepository;
 use App\Entity\Spices;
+use App\Repository\SpicesRepository;
 
 class SpiceMatchmakerService
 {
@@ -14,7 +14,6 @@ class SpiceMatchmakerService
 
     /**
      * @param array<int> $ids
-     * @return string
      */
     public function arrayToString(array $ids): string
     {
@@ -50,10 +49,12 @@ class SpiceMatchmakerService
 
     /**
      * @param array<int> $spicesId
+     *
      * @return array<string, array>
      */
-    private function getAllAromaticsCompounds(array $spicesId): array
-    {
+    private function getAllAromaticsCompounds(
+        array $spicesId
+    ): array {
         $mainAromaticsCompoundsIds = [];
         $secondaryAromaticsCompoundsIds = [];
 
@@ -88,8 +89,6 @@ class SpiceMatchmakerService
 
     /**
      * @param array<array<int>> $allAromaticsCompoundsIds
-     * @param integer $numberSpices
-     * @return array
      */
     private function getAromaticsCompoundsInCommon(array $allAromaticsCompoundsIds, int $numberSpices): array
     {

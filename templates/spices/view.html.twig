@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
-{% block title %}SpiceMatch - Présentation{% endblock %}
 {% import "components/_macro_modal_preparation_method.html.twig" as macroModalPreparationMethod %}
+
+{% block title %}SpiceMatch - Présentation{% endblock %}
 
 {% block body %}
     {% set color = spice.aromaticGroups.color %}
@@ -21,8 +22,8 @@
 
         <div class="row my-3">
             <h3>Conseils de cuisine</h3>
-            <p>{{ spice.cooking }}</p>
-            <p>{{ spice.informations }}</p>
+            <p>{{ spice.cooking|nl2br }}</p>
+            <p>{{ spice.informations|nl2br }}</p>
         </div>
         
         {% if spice.cookingTips is not null %}

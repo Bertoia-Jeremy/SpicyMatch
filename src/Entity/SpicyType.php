@@ -39,8 +39,13 @@ class SpicyType
     #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
 
-    /** @var  Collection<int, Spices> */
-    #[ORM\OneToMany(targetEntity: Spices::class, mappedBy: 'spicyType')]
+    /**
+     * @var Collection<int, Spices>
+     */
+    #[ORM\OneToMany(
+        targetEntity: Spices::class,
+        mappedBy: 'spicyType'
+    )]
     private Collection $spices;
 
     public function __construct()

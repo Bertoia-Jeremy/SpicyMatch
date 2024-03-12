@@ -65,21 +65,43 @@ class Spices
     #[ORM\Column(type: 'integer')]
     private ?int $imageSize = null;
 
-    /** @var  Collection<int, AromaticCompound> */
-    #[ORM\ManyToMany(targetEntity: AromaticCompound::class, inversedBy: 'spices')]
+    /**
+     * @var Collection<int, AromaticCompound>
+     */
+    #[ORM\ManyToMany(
+        targetEntity: AromaticCompound::class,
+        inversedBy: 'spices'
+    )]
     private Collection $aromaticsCompounds;
 
-    /** @var  Collection<int, AromaticCompound> */
-    #[ORM\ManyToMany(targetEntity: AromaticCompound::class, inversedBy: 'secondary_spices')]
+    /**
+     * @var Collection<int, AromaticCompound>
+     */
+    #[ORM\ManyToMany(
+        targetEntity: AromaticCompound::class,
+        inversedBy: 'secondary_spices'
+    )]
     #[ORM\JoinTable(name: 'secondary_spices_aromatic_compound')]
     private Collection $secondary_aromatics_compounds;
 
-    /** @var  Collection<int, CookingTips> */
-    #[ORM\OneToMany(mappedBy: 'spice', targetEntity: CookingTips::class, orphanRemoval: true)]
+    /**
+     * @var Collection<int, CookingTips>
+     */
+    #[ORM\OneToMany(
+        mappedBy: 'spice',
+        targetEntity: CookingTips::class,
+        orphanRemoval: true
+    )]
     private Collection $cookingTips;
 
-    /** @var  Collection<int, PreparationTips> */
-    #[ORM\OneToMany(mappedBy: 'spice', targetEntity: PreparationTips::class, orphanRemoval: true)]
+    /**
+     * @var Collection<int, PreparationTips>
+     */
+    #[ORM\OneToMany(
+        mappedBy: 'spice',
+        targetEntity: PreparationTips::class,
+        orphanRemoval: true
+    )]
     private Collection $preparationTips;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -324,7 +346,9 @@ class Spices
     public function removeCookingTip(CookingTips $cookingTip): static
     {
         // set the owning side to null (unless already changed)
-        if ($this->cookingTips->removeElement($cookingTip) && $cookingTip->getSpice() === $this) {
+        if ($this->cookingTips->removeElement(
+            $cookingTip
+        ) && $cookingTip->getSpice() === $this) {
             $cookingTip->setSpice(null);
         }
 
@@ -352,7 +376,9 @@ class Spices
     public function removePreparationTip(PreparationTips $preparationTip): static
     {
         // set the owning side to null (unless already changed)
-        if ($this->preparationTips->removeElement($preparationTip) && $preparationTip->getSpice() === $this) {
+        if ($this->preparationTips->removeElement(
+            $preparationTip
+        ) && $preparationTip->getSpice() === $this) {
             $preparationTip->setSpice(null);
         }
 

@@ -6,7 +6,6 @@ namespace App\Repository;
 
 use App\Entity\Spices;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -46,13 +45,13 @@ class SpicesRepository extends ServiceEntityRepository
         }
     }
 
-    public function findAllByStringIds(string $stringIds): QueryBuilder
+    public function findAllByStringIds(string $stringIds): array
     {
         $arrayIds = explode(',', $stringIds);
 
         return $this->createQueryBuilder('s')
             ->where('s.id IN (:ids)')
-            ->setParameter('ids', $arrayIds)
+                ->setParameter('ids', $arrayIds)
             ->orderBy('s.aromaticGroups')
             ->getQuery()
             ->getResult()
@@ -60,7 +59,6 @@ class SpicesRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param string $idsString
      * @return array<array<string>>
      */
     public function findSpicesForMatch(string $idsString): array
@@ -69,7 +67,6 @@ class SpicesRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param string|null $ids
      * @return array<array<string>>
      */
     public function findAllSpices(?string $ids = null): array
@@ -120,15 +117,12 @@ class SpicesRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param array $mainAromaticsCompoundsIds
-     * @param array $secondaryAromaticsCompoundsIds
      * @return array<string>
      */
     public function getByAromaticsCompounds(
         array $mainAromaticsCompoundsIds,
         array $secondaryAromaticsCompoundsIds,
-    ): array 
-    {
+    ): array {
         $mainIds = $this->checkArrayAndReturnString($mainAromaticsCompoundsIds);
         $secondaryIds = $this->checkArrayAndReturnString($secondaryAromaticsCompoundsIds);
 

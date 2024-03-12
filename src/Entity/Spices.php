@@ -30,7 +30,7 @@ class Spices
     private ?AromaticGroups $aromaticGroups = null;
 
     #[ORM\ManyToOne(targetEntity: SpicyType::class, inversedBy: 'spices')]
-    #[ORM\JoinColumn(referencedColumnName: 'id', name: 'spicyType')]
+    #[ORM\JoinColumn(referencedColumnName: 'id', name: 'spicy_type')]
     private ?SpicyType $spicyType = null;
 
     #[ORM\Column(type: 'string', length: 255)]

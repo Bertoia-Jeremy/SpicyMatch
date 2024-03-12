@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Twig\Components;
 
-use App\Factory\SpicyMatchHistoryFactory;
+use App\Factory\SpicyMatchFactory;
 use App\Repository\SpicesRepository;
 use App\Service\SpiceMatchmakerService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -77,19 +77,19 @@ class SpicyMatch extends AbstractController
     #[LiveAction]
     public function nextStep(
         EntityManagerInterface $entityManager,
-        SpicyMatchHistoryFactory $spicyMatchHistoryFactory
+        SpicyMatchFactory $spicyMatchFactory
     ): \Symfony\Component\HttpFoundation\RedirectResponse {
-        $spicyMatchHistory = $spicyMatchHistoryFactory->create();
+        $spicyMatch = $spicyMatchFactory->create();
 
-        $spicyMatchHistory->setUserId($this->getUser())
+        $spicyMatch->setUserId($this->getUser())
             ->setNbSpice(count($this->spices['selectedSpices']))
             ->setSpicesIds($this->spiceMatchmakerService->arrayToString($this->spices['selectedSpices']));
 
-        $entityManager->persist($spicyMatchHistory);
+        $entityManager->persist($spicyMatch);
         $entityManager->flush();
 
         return $this->redirectToRoute('view_spicy_match', [
-            'id' => $spicyMatchHistory->getId(),
+            'id' => $spicyMatch->getId(),
         ]);
     }
 }

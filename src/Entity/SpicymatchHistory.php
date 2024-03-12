@@ -15,8 +15,8 @@ class SpicyMatchHistory
     private ?int $id = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?SpicyMatch $spicymatch_id = null;
+    #[ORM\JoinColumn(nullable: false, name: 'spicy_match_id')]
+    private ?SpicyMatch $spicy_match_id = null;
 
     #[ORM\Column(type: Types::TEXT)]
     private ?array $preparation_tips_ids = null;
@@ -50,14 +50,14 @@ class SpicyMatchHistory
         return $this->id;
     }
 
-    public function getSpicymatchId(): ?SpicyMatch
+    public function getSpicyMatchId(): ?SpicyMatch
     {
-        return $this->spicymatch_id;
+        return $this->spicy_match_id;
     }
 
-    public function setSpicymatchId(?SpicyMatch $spicymatch_id): static
+    public function setSpicyMatchId(?SpicyMatch $spicy_match_id): static
     {
-        $this->spicymatch_id = $spicymatch_id;
+        $this->spicy_match_id = $spicy_match_id;
 
         return $this;
     }

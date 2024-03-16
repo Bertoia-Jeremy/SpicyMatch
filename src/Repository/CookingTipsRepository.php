@@ -20,4 +20,17 @@ class CookingTipsRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, CookingTips::class);
     }
+
+    public function findAllByStringIds(string $stringIds): array
+    {
+        $arrayIds = explode(',', $stringIds);
+
+        return $this->createQueryBuilder('c')
+            ->where('c.id IN (:ids)')
+                ->setParameter('ids', $arrayIds)
+            ->orderBy('c.spice')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 }

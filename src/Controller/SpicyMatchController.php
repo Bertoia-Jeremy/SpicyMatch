@@ -21,9 +21,7 @@ class SpicyMatchController extends AbstractController
     #[Route('/', name: 'index_spicy_match')]
     public function index(): Response
     {
-        return $this->render('spicy_match/index.html.twig', [
-            'spices' => $this->spicesRepository->findAll(),
-        ]);
+        return $this->render('spicy_match/index.html.twig');
     }
 
     #[Route('/view/{id}', name: 'view_spicy_match')]

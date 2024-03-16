@@ -20,4 +20,17 @@ class PreparationTipsRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, PreparationTips::class);
     }
+
+    public function findAllByStringIds(string $stringIds): array
+    {
+        $arrayIds = explode(',', $stringIds);
+
+        return $this->createQueryBuilder('p')
+            ->where('p.id IN (:ids)')
+                ->setParameter('ids', $arrayIds)
+            ->orderBy('p.spice')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 }

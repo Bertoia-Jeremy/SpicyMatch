@@ -2,8 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\CookingTips;
 use App\Entity\SpicyMatch;
+use App\Entity\SpicyMatchHistory;
 use App\Entity\Users;
+use App\Repository\CookingTipsRepository;
+use App\Repository\PreparationTipsRepository;
 use App\Repository\SpicesRepository;
 use App\Service\SpicyMatchHistoryService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,6 +19,8 @@ class SpicyMatchHistoryController extends AbstractController
 {
     public function __construct(
         private readonly SpicesRepository $spicesRepository,
+        private readonly PreparationTipsRepository $preparationTipsRepository,
+        private readonly CookingTipsRepository $cookingTipsRepository,
         private readonly SpicyMatchHistoryService $spicyMatchService
     ) {
     }
@@ -37,13 +43,22 @@ class SpicyMatchHistoryController extends AbstractController
     }
 
     #[Route('/{id}', name: 'view_spicy_match_history', methods: ['GET'])]
-    public function view(SpicyMatch $spicyMatch): Response
+    public function view(SpicyMatchHistory $spicyMatchHistory): Response
     {
-        $spices = $this->spicesRepository->findAllByStringIds($spicyMatch->getSpicesIds());
+        $spices = $this->spicesRepository->findAllByStringIds($spicyMatchHistory->getSpicyMatchId()->getSpicesIds());
+        $preparation = $this->preparationTipsRepository->findAllByStringIds($spicyMatchHistory->getPreparationTipsIds());
+        $cookings = $this->cookingTipsRepository->findAllByStringIds($spicyMatchHistory->getCookingTipsIds());
+        $cookingsByStep = [];
+
+        /** @var CookingTips $cooking */
+        foreach($cookings as $cooking){
+            $cookingsByStep[$cooking->getStep()][] = $cooking;
+        }
 
         return $this->render('spicy_match_history/view.html.twig', [
-            'spicyMatch' => $spicyMatch,
             'spices' => $spices,
+            'preparations' => $preparation,
+            'cookingsByStep' => $cookingsByStep,
         ]);
     }
 }

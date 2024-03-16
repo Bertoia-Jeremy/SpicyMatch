@@ -3,10 +3,36 @@
 {% block title %}SpicymatchHistory{% endblock %}
 
 {% block body %}
-    <h1>SpicymatchHistory</h1>
+    <div class="text-center">
+        <h1>Recette des mélanges</h1>
+    </div>
 
-    {# 
-        - Avoir toutes les preparations + moment d'insertion (à quelle étape de la cuisson)
-        - Un tableau chronologique avec les épices concernées par étapes
-    #}
+    {% for preparation in preparations %}
+            {# TODO => Présenter ce qui doit être fait et mettre un modal pour expliquer la technique #}
+    {% endfor %}
+
+
+    <div class="text-center">
+        <h3>Moment d'insertion des épices :</h3>
+    </div>
+
+    <div class="d-flex justify-content-center align-items-stretch">
+        {% set stepsTitle = ["Avant", "Début", "Milieu", "Fin", "Après"] %}    
+
+        {% for step, cookings in cookingsByStep %}
+            <div class="border rounded d-flex flex-column justify-content-start align-items-center m-3 py-3 px-2">
+                <h4 class="h1 text-primary">{{ stepsTitle[step] }}</h4>
+                <div class="border border-primary w-100 mb-3"></div>
+                <div class="list-group list-group-flush bg-light rounded">
+
+                    {% for cooking in cookings %}
+                        {# TODO => utiliser le templates des cards pour le mélange des épices (photos + couleurs) #}
+                        <li class="list-group-item h5 bg-light">{{ cooking.spice.name }}</li>
+                    {% endfor %}
+
+                </div>
+            </div>
+        {% endfor %}
+        
+    </div>   
 {% endblock %}

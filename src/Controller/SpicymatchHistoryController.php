@@ -48,7 +48,13 @@ class SpicyMatchHistoryController extends AbstractController
         $spices = $this->spicesRepository->findAllByStringIds($spicyMatchHistory->getSpicyMatchId()->getSpicesIds());
         $preparation = $this->preparationTipsRepository->findAllByStringIds($spicyMatchHistory->getPreparationTipsIds());
         $cookings = $this->cookingTipsRepository->findAllByStringIds($spicyMatchHistory->getCookingTipsIds());
-        $cookingsByStep = [];
+        $cookingsByStep = [
+            0 => [],
+            1 => [],
+            2 => [],
+            3 => [],
+            4 => []
+        ];
 
         /** @var CookingTips $cooking */
         foreach($cookings as $cooking){

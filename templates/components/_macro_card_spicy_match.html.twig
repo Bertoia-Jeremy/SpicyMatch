@@ -1,20 +1,9 @@
 {% macro cardSpicyMatch(spice, littleCard) %}
-{% if littleCard == true %}
-    {% set className = "little-card-80h" %}
-{% else %}
-    {% set className = "little-card-180h" %}
-{% endif %}
+{% import "components/_macro_card_little_spice.html.twig" as macroCardSpice %}
 
     <div class="form-check d-flex flex-column justify-content-center align-items-center mb-3 mx-2 p-0">
         <label class="form-check-label" for="spice_{{ spice.id }}">
-            <div class="little-card-wrap">
-                <div class="{{ className }} bg-dark shadow-{{ spice.color |trim('#')|upper}}">
-                    <div class="card-bg rounded" style="background-image: url({{  vich_uploader_asset(spice, 'imageFile', 'App\\Entity\\Spices')}})"></div>
-                    <div class="text-color-white d-flex justify-content-center align-items-end h-100 py-2">
-                        <h3 class="mb-0">{{ spice.name }}</h3>
-                    </div>
-                </div>
-            </div>
+            {{ macroCardSpice.cardLittleSpice(spice, littleCard) }}
         </label>
 
         <input class="form-check-input mx-0 mt-2" type="checkbox" data-model="spices.selectedSpices" value="{{ spice.id }}" id="spice_{{ spice.id }}">

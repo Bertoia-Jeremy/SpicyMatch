@@ -269,3 +269,11 @@ Sass mixin
   z-index: 1;
   position: relative;
 }
+
+
+.postcard__img {
+  max-height: 180px;
+  width: 100%;
+  object-fit: cover;
+  position: relative;
+}

@@ -27,7 +27,7 @@ class PreparationTipsRepository extends ServiceEntityRepository
 
         return $this->createQueryBuilder('p')
             ->where('p.id IN (:ids)')
-                ->setParameter('ids', $arrayIds)
+            ->setParameter('ids', $arrayIds)
             ->orderBy('p.spice')
             ->getQuery()
             ->getResult()

@@ -35,10 +35,9 @@ class PreparationMethods
         mappedBy: 'preparationMethod',
         targetEntity: PreparationTips::class,
         cascade: [
-        'persist',
-        'remove',
-    
-    ])]
+            'persist',
+            'remove',
+        ])]
     private Collection $preparationTips;
 
     #[ORM\Column(type: Types::TEXT)]

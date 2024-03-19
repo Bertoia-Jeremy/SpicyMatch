@@ -210,7 +210,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeSpicyMatch(SpicyMatch $spicyMatch): static
     {
         // set the owning side to null (unless already changed)
-        if ($this->spicyMatches->removeElement($spicyMatch) && $spicyMatch->getUserId() === $this) {
+        if ($this->spicyMatches->removeElement(
+            $spicyMatch
+        ) && $spicyMatch->getUserId() === $this) {
             $spicyMatch->setUserId(null);
         }
 

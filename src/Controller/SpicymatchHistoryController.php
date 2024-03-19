@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\CookingTips;
-use App\Entity\SpicyMatch;
 use App\Entity\SpicyMatchHistory;
 use App\Entity\Users;
 use App\Repository\CookingTipsRepository;
@@ -46,18 +45,20 @@ class SpicyMatchHistoryController extends AbstractController
     public function view(SpicyMatchHistory $spicyMatchHistory): Response
     {
         $spices = $this->spicesRepository->findAllByStringIds($spicyMatchHistory->getSpicyMatchId()->getSpicesIds());
-        $preparation = $this->preparationTipsRepository->findAllByStringIds($spicyMatchHistory->getPreparationTipsIds());
+        $preparation = $this->preparationTipsRepository->findAllByStringIds(
+            $spicyMatchHistory->getPreparationTipsIds()
+        );
         $cookings = $this->cookingTipsRepository->findAllByStringIds($spicyMatchHistory->getCookingTipsIds());
         $cookingsByStep = [
             0 => [],
             1 => [],
             2 => [],
             3 => [],
-            4 => []
+            4 => [],
         ];
 
         /** @var CookingTips $cooking */
-        foreach($cookings as $cooking){
+        foreach ($cookings as $cooking) {
             $cookingsByStep[$cooking->getStep()][] = $cooking;
         }
 

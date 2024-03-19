@@ -51,7 +51,7 @@ class SpicesRepository extends ServiceEntityRepository
 
         return $this->createQueryBuilder('s')
             ->where('s.id IN (:ids)')
-                ->setParameter('ids', $arrayIds)
+            ->setParameter('ids', $arrayIds)
             ->orderBy('s.aromaticGroups')
             ->getQuery()
             ->getResult()

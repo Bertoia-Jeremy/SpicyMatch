@@ -29,10 +29,11 @@ class SpicyMatchController extends AbstractController
     {
         $spices = $this->spicesRepository->findAllByStringIds($spicyMatch->getSpicesIds());
 
-        // Récupération des épices + conseils et tout le tintouin
-        return $this->render('spicy_match/view.html.twig', [
-            'spices' => $spices,
-            'spicyMatch' => $spicyMatch
-        ]);
+        return $this->render('spicy_match/view.html.twig',
+            [
+                'spicyMatch' => $spicyMatch,
+                'spices' => $spices,
+            ]
+        );
     }
 }

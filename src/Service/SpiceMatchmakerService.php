@@ -90,8 +90,10 @@ class SpiceMatchmakerService
     /**
      * @param array<array<int>> $allAromaticsCompoundsIds
      */
-    private function getAromaticsCompoundsInCommon(array $allAromaticsCompoundsIds, int $numberSpices): array
-    {
+    private function getAromaticsCompoundsInCommon(
+        array $allAromaticsCompoundsIds,
+        int $numberSpices
+    ): array {
         $mainCompounds = $allAromaticsCompoundsIds['main'];
         $secondaryCompounds = $allAromaticsCompoundsIds['secondary'];
         $mainCommon = $secondaryCommon = [];

@@ -27,7 +27,7 @@ class CookingTipsRepository extends ServiceEntityRepository
 
         return $this->createQueryBuilder('c')
             ->where('c.id IN (:ids)')
-                ->setParameter('ids', $arrayIds)
+            ->setParameter('ids', $arrayIds)
             ->orderBy('c.spice')
             ->getQuery()
             ->getResult()

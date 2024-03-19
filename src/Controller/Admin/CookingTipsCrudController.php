@@ -29,6 +29,7 @@ class CookingTipsCrudController extends AbstractCrudController
                 'Après' => 'Après',
             ]),
             TextareaField::new('text', 'Texte')->setMaxLength(100),
+            TextareaField::new('advantages', 'Avantages')->setMaxLength(100),
             AssociationField::new('spice', 'Epice'),
             DateTimeField::new('created_at', 'Créé le')->hideOnForm(),
             DateTimeField::new('updated_at', 'Modifié le')->hideOnForm(),

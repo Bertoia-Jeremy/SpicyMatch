@@ -39,6 +39,9 @@ class CookingTips
     #[ORM\Column]
     private ?int $step = null;
 
+    #[ORM\Column(length: 255)]
+    private ?string $advantages = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -136,6 +139,18 @@ class CookingTips
     public function setStep(int $step): static
     {
         $this->step = $step;
+
+        return $this;
+    }
+
+    public function getAdvantages(): ?string
+    {
+        return $this->advantages;
+    }
+
+    public function setAdvantages(string $advantages): static
+    {
+        $this->advantages = $advantages;
 
         return $this;
     }

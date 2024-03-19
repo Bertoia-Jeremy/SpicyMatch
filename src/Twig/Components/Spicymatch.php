@@ -20,7 +20,7 @@ class SpicyMatch extends AbstractController
     use DefaultActionTrait;
 
     #[LiveProp(writable: true)]
-    public array $spices = [];
+    public array $spices;
 
     public function __construct(
         private SpicesRepository $spicesRepository,

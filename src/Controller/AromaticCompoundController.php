@@ -20,7 +20,7 @@ class AromaticCompoundController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'view_aromatic_compound')]
+    #[Route('/{id<\d+>}', name: 'view_aromatic_compound')]
     public function view(AromaticCompound $aromaticCompound): Response
     {
         return $this->render('aromatic_compound/view.html.twig', [

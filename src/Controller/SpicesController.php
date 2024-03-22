@@ -36,7 +36,7 @@ class SpicesController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'view_spice')]
+    #[Route('/{id<\d+>}', name: 'view_spice')]
     public function view(Spices $spice): Response
     {
         return $this->render('spices/view.html.twig', [

@@ -19,7 +19,7 @@ class SpicyTypeController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'view_spicy_type')]
+    #[Route('/{id<\d+>}', name: 'view_spicy_type')]
     public function view(): Response
     {
         return $this->render('spicy_type/index.html.twig', [

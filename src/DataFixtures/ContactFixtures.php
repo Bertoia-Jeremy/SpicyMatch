@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\DataFixtures;
+
+use App\Entity\Contact;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Doctrine\Persistence\ObjectManager;
+use Faker\Factory;
+
+class ContactFixtures extends Fixture implements DependentFixtureInterface
+{
+    public function load(ObjectManager $manager): void
+    {
+        $faker = Factory::create('fr_FR');
+
+        for ($i = 0; $i < 12; ++$i) {
+            $contact = new Contact();
+            $contact->setUserId($this->getReference("User"))
+                ->setEmail($faker->mail())
+                ->setSubject($faker->title())
+                ->setMessage($faker->text(300))
+                ->setIsTreated((bool) rand(0,1))
+                ->setCreatedAt(new \DateTime('now'))
+                ->setUpdatedAt(new \DateTime('now'))
+                ;
+            $manager->persist($contact);
+        }
+
+        $manager->flush();
+    }
+
+    public function getDependencies(): array
+    {
+        return [
+            UsersFixtures::class,
+        ];
+    }
+}

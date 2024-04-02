@@ -19,9 +19,6 @@ class Contact
     #[ORM\Column(name: 'email', type: 'string', length: 100)]
     private ?string $email = null;
 
-    #[ORM\Column(name: 'name', type: 'string', length: 50)]
-    private ?string $name = null;
-
     #[ORM\Column(name: 'subject', type: 'string', length: 100)]
     private ?string $subject = null;
 
@@ -40,6 +37,10 @@ class Contact
     #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
 
+    #[ORM\ManyToOne(inversedBy: 'contacts')]
+    #[ORM\JoinColumn(nullable: false, name: 'user_id')]
+    private ?Users $user_id = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -53,18 +54,6 @@ class Contact
     public function setEmail(string $email): self
     {
         $this->email = $email;
-
-        return $this;
-    }
-
-    public function getName(): ?string
-    {
-        return $this->name;
-    }
-
-    public function setName(string $name): self
-    {
-        $this->name = $name;
 
         return $this;
     }
@@ -93,7 +82,7 @@ class Contact
         return $this;
     }
 
-    public function getIsTreated(): ?bool
+    public function isTreated(): ?bool
     {
         return $this->isTreated;
     }
@@ -137,6 +126,18 @@ class Contact
     public function setDeletedAt(?\DateTimeInterface $deleted_at): self
     {
         $this->deleted_at = $deleted_at;
+
+        return $this;
+    }
+
+    public function getUserId(): ?Users
+    {
+        return $this->user_id;
+    }
+
+    public function setUserId(?Users $user_id): static
+    {
+        $this->user_id = $user_id;
 
         return $this;
     }

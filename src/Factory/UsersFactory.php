@@ -11,7 +11,8 @@ class UsersFactory
     public function create(): Users
     {
         $user = new Users();
-        $user->setCreatedAt(new \DateTime())
+        $user->setIsVerified(false)
+            ->setCreatedAt(new \DateTime())
             ->setUpdatedAt(new \DateTime());
 
         return $user;

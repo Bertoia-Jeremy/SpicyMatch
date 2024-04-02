@@ -37,8 +37,8 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'password', type: 'string')]
     private ?string $password = null;
 
-    #[ORM\Column(name: 'mail', type: 'string', length: 255, nullable: true)]
-    private ?string $mail = null;
+    #[ORM\Column(name: 'email', type: 'string', length: 255, nullable: true)]
+    private ?string $email = null;
 
     #[ORM\Column(name: 'created_at', type: 'datetime')]
     private ?\DateTimeInterface $created_at = null;
@@ -52,9 +52,16 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user_id', targetEntity: SpicyMatch::class, orphanRemoval: true)]
     private Collection $spicyMatches;
 
+    #[ORM\Column]
+    private ?bool $is_verified = null;
+
+    #[ORM\OneToMany(mappedBy: 'user_id', targetEntity: Contact::class, orphanRemoval: true)]
+    private Collection $contacts;
+
     public function __construct()
     {
         $this->spicyMatches = new ArrayCollection();
+        $this->contacts = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -177,14 +184,14 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         // $this->plainPassword = null;
     }
 
-    public function getMail(): string|null
+    public function getEmail(): string|null
     {
-        return $this->mail;
+        return $this->email;
     }
 
-    public function setMail(string $mail): self
+    public function setEmail(string $email): self
     {
-        $this->mail = $mail;
+        $this->email = $email;
 
         return $this;
     }
@@ -214,6 +221,48 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
             $spicyMatch
         ) && $spicyMatch->getUserId() === $this) {
             $spicyMatch->setUserId(null);
+        }
+
+        return $this;
+    }
+
+    public function isVerified(): ?bool
+    {
+        return $this->is_verified;
+    }
+
+    public function setIsVerified(bool $is_verified): static
+    {
+        $this->is_verified = $is_verified;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Contact>
+     */
+    public function getContacts(): Collection
+    {
+        return $this->contacts;
+    }
+
+    public function addContact(Contact $contact): static
+    {
+        if (!$this->contacts->contains($contact)) {
+            $this->contacts->add($contact);
+            $contact->setUserId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeContact(Contact $contact): static
+    {
+        if ($this->contacts->removeElement($contact)) {
+            // set the owning side to null (unless already changed)
+            if ($contact->getUserId() === $this) {
+                $contact->setUserId(null);
+            }
         }
 
         return $this;

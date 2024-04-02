@@ -38,8 +38,8 @@ class ContactController extends AbstractController
         }
 
         return $this->render('contact/new.html.twig', [
-            'form' => $form,
-        ]);
+            'form' => $form->createView(),
+        ], new Response(null, $form->isSubmitted() && !$form->isValid() ? 422 : 200));
     }
 
     #[Route('/success_form', name: 'contact_success_form')]

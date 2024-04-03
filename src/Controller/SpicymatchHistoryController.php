@@ -9,7 +9,9 @@ use App\Repository\CookingTipsRepository;
 use App\Repository\PreparationTipsRepository;
 use App\Repository\SpicesRepository;
 use App\Service\SpicyMatchHistoryService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -41,7 +43,7 @@ class SpicyMatchHistoryController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'view_spicy_match_history', methods: ['GET'])]
+    #[Route('/view/{id}', name: 'view_spicy_match_history', methods: ['GET'])]
     public function view(SpicyMatchHistory $spicyMatchHistory): Response
     {
         $spices = $this->spicesRepository->findAllByStringIds($spicyMatchHistory->getSpicyMatchId()->getSpicesIds());
@@ -67,5 +69,77 @@ class SpicyMatchHistoryController extends AbstractController
             'preparations' => $preparation,
             'cookingsByStep' => $cookingsByStep,
         ]);
+    }
+
+    #[Route('/edit/{id}', name: 'edit_spicy_match_history', methods: ['GET'])]
+    public function edit(SpicyMatchHistory $spicyMatchHistory, Request $request,EntityManagerInterface $entityManager)
+    {
+        $spiceId = (int) $request->query->get('spiceId');
+        $templates = ""; 
+        
+        // Be sure this is in $spicyMatchHistory
+        $arraySpices = explode(',', $spicyMatchHistory->getSpicyMatchId()->getSpicesIds());
+
+        if ($spiceId && in_array($spiceId, $arraySpices)) {
+
+            $cookingTipId = (int) $request->query->get('cookingId');
+            $preparationTipId = (int) $request->query->get('preparationTipId');
+
+            if ($cookingTipId) {
+
+                $arrayCookingTips = explode(',', $spicyMatchHistory->getCookingTipsIds());
+                //dump($arrayCookingTips);
+                //dump(in_array($cookingTipId, $arrayCookingTips));
+
+                if (in_array($cookingTipId, $arrayCookingTips)) {
+                    $cookings = $this->cookingTipsRepository->findBy(['spice' => $spiceId]);
+                    // Remove from spicyMatchHistory
+                    unset($arrayCookingTips[array_search($cookingTipId, $arrayCookingTips)]);
+                } else {
+                    // Check if cooking IN Spice
+                    $cookings = $this->cookingTipsRepository->findBy(['id' => $cookingTipId]);
+
+                    if(!in_array($cookings[0]->getSpice()->getId(), $arraySpices)){
+                        dd('bizarre ?');
+                    }
+                    
+                    // Add to spicyMatchHistory
+                    if (empty($arrayCookingTips[0])) {
+                        $arrayCookingTips = [$cookingTipId];
+
+                    } else {
+                        $arrayCookingTips[] = $cookingTipId;
+                    }
+                }
+                
+                $spicyMatchHistory->setCookingTipsIds(implode(",", $arrayCookingTips))
+                    ->setUpdatedAt(new \DateTime());
+                
+                
+                /** @var CookingTips $cooking */
+                foreach ($cookings as $cooking) {
+                    $templates .= $this->render('components/_card_spicy_tips.html.twig', [
+                        "cookingTip" => $cooking
+                        ])->getContent();
+                    }
+
+                } elseif ($preparationTipId) {
+                    
+                }else{
+                    dd('ça dégage');
+                    return false;
+                }
+                
+                $entityManager->persist($spicyMatchHistory);
+                $entityManager->flush();
+                
+            return $this->json(
+                $templates
+            );
+        }
+
+        dd('alreardy ?');
+        return false;
+        
     }
 }

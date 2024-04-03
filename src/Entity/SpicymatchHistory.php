@@ -18,10 +18,10 @@ class SpicyMatchHistory
     #[ORM\JoinColumn(nullable: false, name: 'spicy_match_id')]
     private ?SpicyMatch $spicy_match_id = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $preparation_tips_ids = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $cooking_tips_ids = null;
 
     #[ORM\Column(length: 255, nullable: true)]

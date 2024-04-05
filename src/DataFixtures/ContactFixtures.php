@@ -18,14 +18,15 @@ class ContactFixtures extends Fixture implements DependentFixtureInterface
 
         for ($i = 0; $i < 12; ++$i) {
             $contact = new Contact();
-            $contact->setUserId($this->getReference("User"))
-                ->setEmail($faker->mail())
+
+            $contact->setUserId($this->getReference("User_".rand(0, 11)))
+                ->setEmail($faker->email())
                 ->setSubject($faker->title())
                 ->setMessage($faker->text(300))
                 ->setIsTreated((bool) rand(0,1))
-                ->setCreatedAt(new \DateTime('now'))
-                ->setUpdatedAt(new \DateTime('now'))
-                ;
+                ->setCreatedAt($faker->dateTime())
+                ->setUpdatedAt($faker->dateTime());
+                
             $manager->persist($contact);
         }
 

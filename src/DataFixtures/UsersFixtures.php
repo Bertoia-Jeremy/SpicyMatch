@@ -12,7 +12,10 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UsersFixtures extends Fixture
 {
-    const ROLES = ["ROLE_ADMIN", "ROLE_USER"];
+    const ROLES = [
+        ["ROLE_ADMIN"], 
+        ["ROLE_USER"],
+    ];
 
     public function __construct(
         private readonly UserPasswordHasherInterface $hasher
@@ -26,16 +29,18 @@ class UsersFixtures extends Fixture
 
         for ($i = 0; $i < 12; ++$i) {
             $user = new Users();
+
             $user->setUsername($faker->userName())
-                ->setPassword($this->hasher->hashPassword($user, "password"))
-                ->setIsVerified((bool) rand(0,1))
-                ->setEmail($faker->mail())
-                ->setRoles(self::ROLES[rand(0, 1)])
-                ->setCreatedAt($faker->dateTime())
-                ->setUpdatedAt($faker->dateTime())
+            ->setPassword($this->hasher->hashPassword($user, "password"))
+            ->setIsVerified((bool) rand(0,1))
+            ->setEmail($faker->email())
+            ->setRoles(self::ROLES[rand(0, 1)])
+            ->setCreatedAt($faker->dateTime())
+            ->setUpdatedAt($faker->dateTime())
             ;
+            
             $manager->persist($user);
-            $this->addReference($user, 'User');
+            $this->addReference('User_'.$i, $user);
         }
 
         $manager->flush();

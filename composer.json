@@ -111,10 +111,12 @@
         }
     },
     "require-dev": {
+        "beberlei/doctrineextensions": "*",
         "doctrine/doctrine-fixtures-bundle": "^3.4",
         "fakerphp/faker": "*",
         "phpunit/phpunit": "^9.5",
         "rector/rector": "^1.0",
+        "smknstd/fakerphp-picsum-images": "^1.0",
         "symfony/apache-pack": "^1.0",
         "symfony/browser-kit": "6.4.*",
         "symfony/css-selector": "6.4.*",

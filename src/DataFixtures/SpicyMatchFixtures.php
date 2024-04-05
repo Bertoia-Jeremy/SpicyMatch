@@ -21,20 +21,20 @@ class SpicyMatchFixtures extends Fixture implements DependentFixtureInterface
             $spicesIds = "";
 
             for ($j = 0; $j < $nbSpices; ++$j) {
-                $spicesIds .= rand(1, 30). ",";
+                $spice = $this->getReference("Spice_".rand(0, 35));
+                $spicesIds .= $spice->getId(). ",";
             }
-
             $spicesIds = trim($spicesIds, ",");
 
             $spicyMatch = new SpicyMatch();
-            $spicyMatch->setUserId($this->getReference("User"))
-            ->setNbSpice($nbSpices)
-            ->setSpicesIds($spicesIds)
-            ->setCreatedAt($faker->dateTime())
-            ->setUpdatedAt($faker->dateTime());
+            $spicyMatch->setUserId($this->getReference("User_".rand(0, 11)))
+                ->setNbSpice($nbSpices)
+                ->setSpicesIds($spicesIds)
+                ->setCreatedAt($faker->dateTime())
+                ->setUpdatedAt($faker->dateTime());
              
             $manager->persist($spicyMatch);
-            $this->addReference($spicyMatch, 'SpicyMatch');
+            $this->addReference('SpicyMatch_'.$i, $spicyMatch);
         }
 
         $manager->flush();
@@ -44,6 +44,7 @@ class SpicyMatchFixtures extends Fixture implements DependentFixtureInterface
     {
         return [
             UsersFixtures::class,
+            SpicesFixtures::class,
         ];
     }
 }

@@ -1,0 +1,17 @@
+###> symfony/framework-bundle ###
+APP_ENV=
+APP_SECRET=
+###< symfony/framework-bundle ###
+
+###> doctrine/doctrine-bundle ###
+DATABASE_URL=
+###< doctrine/doctrine-bundle ###
+
+###> symfony/messenger ###
+MESSENGER_TRANSPORT_DSN=
+###< symfony/messenger ###
+
+### Path to download image for Fixtures ###
+PATH_TO_DOWNLOAD=
+### Path to download image for Fixtures ###
+

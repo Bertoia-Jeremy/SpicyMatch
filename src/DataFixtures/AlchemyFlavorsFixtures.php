@@ -9,30 +9,28 @@ use App\Entity\AromaticCompound;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
+use Faker\Factory;
 
 class AlchemyFlavorsFixtures extends Fixture implements DependentFixtureInterface
 {
     public function load(ObjectManager $manager): void
     {
-        for ($i = 0; $i < 12; ++$i) {
-            $entity = new AlchemyFlavors();
-            $entity->setName('alchemy_flavor_' . $i)
-                ->setCreatedAt(new \DateTime('now'))
-                ->setUpdatedAt(new \DateTime('now'))
-                ->addAromaticsCompounds($this->getReference($i . 'aromaticCompound', AromaticCompound::class));
+        $faker = Factory::create('fr_FR');
+        
+        for ($i = 0; $i < 48; ++$i) {
+            $alchemyFlavor = new AlchemyFlavors();
 
-            if ($i > 2 && $i < 8) {
-                $entity->addAromaticsCompounds(
-                    $this->getReference(($i - 1) . 'aromaticCompound', AromaticCompound::class)
-                );
-                $entity->addAromaticsCompounds(
-                    $this->getReference(($i + 1) . 'aromaticCompound', AromaticCompound::class)
-                );
-                $entity->addAromaticsCompounds(
-                    $this->getReference(($i + 2) . 'aromaticCompound', AromaticCompound::class)
-                );
-            }
-            $manager->persist($entity);
+            $alchemyFlavor->setName($faker->name())
+                ->setDescription($faker->text(260))
+                ->setCooking($faker->text(260))
+                ->setInformations($faker->text(260))
+                ->addAromaticsCompounds($this->getReference('AromaticCompound_'.rand(0, 11), AromaticCompound::class))
+                ->addAromaticsCompounds($this->getReference('AromaticCompound_'.rand(12, 23), AromaticCompound::class))
+                ->addAromaticsCompounds($this->getReference('AromaticCompound_'.rand(24, 35), AromaticCompound::class))
+                ->setCreatedAt($faker->dateTime())
+                ->setUpdatedAt($faker->dateTime());
+
+            $manager->persist($alchemyFlavor);
         }
 
         $manager->flush();

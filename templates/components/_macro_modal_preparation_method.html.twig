@@ -1,0 +1,16 @@
+{% macro modal(id, name, createModal) %}
+
+    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#target_{{ id }}">
+        En savoir plus sur la méthode {{ name }}
+    </button>
+
+    {% if createModal %}
+        {{ include('/components/_modal.html.twig', {
+            modalTitle: "Explication de la méthode : #{ name }",
+            modalSrc: path('view_preparation_methods', { 'id': id }),
+            id: 'preparation_methode_frame_id',
+            target:"target_#{ id }"
+        })}}
+    {% endif %}            
+
+{% endmacro %}

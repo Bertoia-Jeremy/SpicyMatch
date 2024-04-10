@@ -1,0 +1,17 @@
+{% macro cardView(title, text, preparationId) %}
+    <div {{ stimulus_action('click->select-preparation', 'selectPreparation') }}
+        {{ stimulus_target('select-preparation', 'preparation') }}
+        data-preparation-id="{{ preparationId }}"
+    >
+        <div class="col d-flex justify-content-center align-items-stretch my-2">
+            <div class="rounded shadow m-2 p-1 h-100 border">
+                <div class="border py-2 px-1 w-100 h-100 rounded shadow">
+                    <div class="">
+                        <h4 class="text-center">{{ title }}</h4>
+                        <p class="text-center">{{ text|nl2br }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}

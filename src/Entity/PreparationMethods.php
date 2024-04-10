@@ -28,13 +28,22 @@ class PreparationMethods
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
 
-    #[ORM\OneToMany(mappedBy: 'preparationMethod', targetEntity: PreparationTips::class, cascade: ['persist', 'remove'])]
+    /**
+     * @var Collection<int, PreparationTips>
+     */
+    #[ORM\OneToMany(
+        mappedBy: 'preparationMethod',
+        targetEntity: PreparationTips::class,
+        cascade: [
+            'persist',
+            'remove',
+        ])]
     private Collection $preparationTips;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: Types::TEXT)]
     private ?string $description = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: Types::TEXT)]
     private ?string $tools = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -116,7 +125,7 @@ class PreparationMethods
 
     public function addPreparationTip(PreparationTips $preparationTip): static
     {
-        if (!$this->preparationTips->contains($preparationTip)) {
+        if (! $this->preparationTips->contains($preparationTip)) {
             $this->preparationTips->add($preparationTip);
             $preparationTip->setPreparationMethod($this);
         }
@@ -126,11 +135,11 @@ class PreparationMethods
 
     public function removePreparationTip(PreparationTips $preparationTip): static
     {
-        if ($this->preparationTips->removeElement($preparationTip)) {
-            // set the owning side to null (unless already changed)
-            if ($preparationTip->getPreparationMethod() === $this) {
-                $preparationTip->setPreparationMethod(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->preparationTips->removeElement(
+            $preparationTip
+        ) && $preparationTip->getPreparationMethod() === $this) {
+            $preparationTip->setPreparationMethod(null);
         }
 
         return $this;

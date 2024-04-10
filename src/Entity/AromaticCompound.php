@@ -39,13 +39,31 @@ class AromaticCompound
     #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
 
-    #[ORM\ManyToMany(targetEntity: Spices::class, mappedBy: 'aromaticsCompounds')]
+    /**
+     * @var Collection<int, Spices>
+     */
+    #[ORM\ManyToMany(
+        targetEntity: Spices::class,
+        mappedBy: 'aromaticsCompounds'
+    )]
     private Collection $spices;
 
-    #[ORM\ManyToMany(targetEntity: AlchemyFlavors::class, inversedBy: 'aromaticsCompounds')]
+    /**
+     * @var Collection<int, AlchemyFlavors>
+     */
+    #[ORM\ManyToMany(
+        targetEntity: AlchemyFlavors::class,
+        inversedBy: 'aromaticsCompounds'
+    )]
     private Collection $alchemyFlavors;
 
-    #[ORM\ManyToMany(targetEntity: Spices::class, mappedBy: 'secondary_aromatics_compounds')]
+    /**
+     * @var Collection<int, Spices>
+     */
+    #[ORM\ManyToMany(
+        targetEntity: Spices::class,
+        mappedBy: 'secondary_aromatics_compounds'
+    )]
     #[ORM\JoinTable(name: 'secondary_spices_aromatic_compound')]
     private Collection $secondary_spices;
 

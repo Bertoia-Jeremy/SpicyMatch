@@ -31,9 +31,9 @@ class ContactType extends AbstractType
                 'label' => 'Message',
             ])
             ->add('Valider', SubmitType::class, [
-                "attr" => [
-                    "class" => "btn btn-primary w-100"
-                ]
+                'attr' => [
+                    'class' => 'btn btn-primary w-100',
+                ],
             ])
         ;
     }

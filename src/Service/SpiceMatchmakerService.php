@@ -2,45 +2,59 @@
 
 namespace App\Service;
 
+use App\Entity\Spices;
 use App\Repository\SpicesRepository;
 
-class SpiceMatchmaker
+class SpiceMatchmakerService
 {
     public function __construct(
         private SpicesRepository $spicesRepository
-    )
-    {
+    ) {
     }
 
-    public function getSpicesCompatible(array $spices){
-         // Récupération de tous les composés aromatiques
-         $allAromaticsCompoundsIds = $this->getAllAromaticsCompounds(
+    /**
+     * @param array<int> $ids
+     */
+    public function arrayToString(array $ids): string
+    {
+        $idsString = '';
+
+        foreach ($ids as $id) {
+            $idsString .= ((int) $id) . ',';
+        }
+
+        return trim($idsString, ',');
+    }
+
+    public function getAllSharedAromaticsCompounds(array $spices): false|array
+    {
+        // Récupération de tous les composés aromatiques
+        $allAromaticsCompoundsIds = $this->getAllAromaticsCompounds(
             $spices
         );
 
         // Filtre et selection des composés aromatiques en commun
-        $communAromaticsCompoundsIds = $this->getAromaticsCompoundsInCommon(
+        $sharedAromaticsCompoundsIds = $this->getAromaticsCompoundsInCommon(
             $allAromaticsCompoundsIds,
             count($spices)
         );
 
-        if (count($communAromaticsCompoundsIds['main']) + count(
-            $communAromaticsCompoundsIds['secondary']
-        ) === 0) {
+        if ((count($sharedAromaticsCompoundsIds['main']) +
+            count($sharedAromaticsCompoundsIds['secondary'])) === 0) {
             return false;
         }
 
-        // Récupération de toutes les épices possédant ces composés aromatiques par ordre d'affinités aux composés
-        $spicesIdMatched = $this->spicesRepository->getByMainAromaticsCompounds(
-            $communAromaticsCompoundsIds['main'],
-            $communAromaticsCompoundsIds['secondary']
-        );
-
-        return $this->spicesRepository->findSpicesForMatch($spicesIdMatched, $spices);
+        return $sharedAromaticsCompoundsIds;
     }
 
-    private function getAllAromaticsCompounds(array $spicesId): array
-    {
+    /**
+     * @param array<int> $spicesId
+     *
+     * @return array<string, array>
+     */
+    private function getAllAromaticsCompounds(
+        array $spicesId
+    ): array {
         $mainAromaticsCompoundsIds = [];
         $secondaryAromaticsCompoundsIds = [];
 
@@ -51,13 +65,15 @@ class SpiceMatchmaker
             ]);
 
             if ($spice !== null) {
-                $arrayMainAromaticCompound = $spice->getAromaticsCompounds()->getIterator();
+                $arrayMainAromaticCompound = $spice->getAromaticsCompounds()
+                    ->getIterator();
                 $mainAromaticsCompoundsIds = $this->getAromaticsCompoundsFromIteratorSpice(
                     $arrayMainAromaticCompound,
                     $mainAromaticsCompoundsIds
                 );
 
-                $arraySecondaryAromaticCoumpound = $spice->getSecondaryAromaticsCompounds()->getIterator();
+                $arraySecondaryAromaticCoumpound = $spice->getSecondaryAromaticsCompounds()
+                    ->getIterator();
                 $secondaryAromaticsCompoundsIds = $this->getAromaticsCompoundsFromIteratorSpice(
                     $arraySecondaryAromaticCoumpound,
                     $secondaryAromaticsCompoundsIds
@@ -71,8 +87,13 @@ class SpiceMatchmaker
         ];
     }
 
-    private function getAromaticsCompoundsInCommon(array $allAromaticsCompoundsIds, int $numberSpices): array
-    {
+    /**
+     * @param array<array<int>> $allAromaticsCompoundsIds
+     */
+    private function getAromaticsCompoundsInCommon(
+        array $allAromaticsCompoundsIds,
+        int $numberSpices
+    ): array {
         $mainCompounds = $allAromaticsCompoundsIds['main'];
         $secondaryCompounds = $allAromaticsCompoundsIds['secondary'];
         $mainCommon = $secondaryCommon = [];

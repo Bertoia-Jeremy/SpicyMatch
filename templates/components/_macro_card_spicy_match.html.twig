@@ -1,0 +1,12 @@
+{% macro cardSpicyMatch(spice, littleCard) %}
+{% import "components/_macro_card_little_spice.html.twig" as macroCardSpice %}
+
+    <div class="form-check d-flex flex-column justify-content-center align-items-center mb-3 mx-2 p-0">
+        <label class="form-check-label" for="spice_{{ spice.id }}">
+            {{ macroCardSpice.cardLittleSpice(spice, littleCard) }}
+        </label>
+
+        <input class="form-check-input mx-0 mt-2" type="checkbox" data-model="spices.selectedSpices" value="{{ spice.id }}" id="spice_{{ spice.id }}">
+    </div>
+
+{% endmacro %}

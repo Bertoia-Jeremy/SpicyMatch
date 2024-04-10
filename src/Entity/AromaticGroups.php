@@ -42,7 +42,14 @@ class AromaticGroups
     #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
 
-    #[ORM\OneToMany(targetEntity: Spices::class, mappedBy: 'aromaticGroups', orphanRemoval: true)]
+    /**
+     * @var Collection<int, Spices>
+     */
+    #[ORM\OneToMany(
+        targetEntity: Spices::class,
+        mappedBy: 'aromaticGroups',
+        orphanRemoval: true
+    )]
     private Collection $spices;
 
     public function __construct()

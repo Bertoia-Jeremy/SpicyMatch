@@ -3,8 +3,6 @@
 namespace App\Entity;
 
 use App\Repository\CookingTipsRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -37,6 +35,12 @@ class CookingTips
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $title = null;
+
+    #[ORM\Column]
+    private ?int $step = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $advantages = null;
 
     public function getId(): ?int
     {
@@ -123,6 +127,30 @@ class CookingTips
     public function setTitle(?string $title): static
     {
         $this->title = $title;
+
+        return $this;
+    }
+
+    public function getStep(): ?int
+    {
+        return $this->step;
+    }
+
+    public function setStep(int $step): static
+    {
+        $this->step = $step;
+
+        return $this;
+    }
+
+    public function getAdvantages(): ?string
+    {
+        return $this->advantages;
+    }
+
+    public function setAdvantages(string $advantages): static
+    {
+        $this->advantages = $advantages;
 
         return $this;
     }

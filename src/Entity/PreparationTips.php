@@ -3,14 +3,10 @@
 namespace App\Entity;
 
 use App\Repository\PreparationTipsRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\UX\Turbo\Attribute\Broadcast;
 
 #[ORM\Entity(repositoryClass: PreparationTipsRepository::class)]
-#[Broadcast]
 class PreparationTips
 {
     #[ORM\Id]
@@ -39,6 +35,9 @@ class PreparationTips
 
     #[ORM\ManyToOne(inversedBy: 'preparationTips')]
     private ?PreparationMethods $preparationMethod = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $advantages = null;
 
     public function getId(): ?int
     {
@@ -125,6 +124,18 @@ class PreparationTips
     public function setPreparationMethod(?PreparationMethods $preparationMethod): static
     {
         $this->preparationMethod = $preparationMethod;
+
+        return $this;
+    }
+
+    public function getAdvantages(): ?string
+    {
+        return $this->advantages;
+    }
+
+    public function setAdvantages(string $advantages): static
+    {
+        $this->advantages = $advantages;
 
         return $this;
     }

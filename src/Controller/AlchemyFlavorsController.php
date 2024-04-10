@@ -20,7 +20,7 @@ class AlchemyFlavorsController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'view_alchemy_flavors')]
+    #[Route('/{id<\d+>}', name: 'view_alchemy_flavors')]
     public function view(AlchemyFlavors $alchemyFlavor): Response
     {
         return $this->render('alchemy_flavors/view.html.twig', [

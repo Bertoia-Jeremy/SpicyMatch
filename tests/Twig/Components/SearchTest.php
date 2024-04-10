@@ -12,7 +12,9 @@ class SearchTest extends KernelTestCase
         // TODO => Finaliser les tests pour valider la barre de recherche
         $testComponent = $this->createLiveComponent(
             name: 'Search', // can also use FQCN (Search::class)
-            data: ['foo' => 'bar'],
+            data: [
+                'foo' => 'bar',
+            ],
         );
 
         // render the component html
@@ -21,7 +23,9 @@ class SearchTest extends KernelTestCase
         // call live actions
         $testComponent
             ->call('increase')
-            ->call('increase', ['amount' => 2]) // call a live action with arguments
+            ->call('increase', [
+                'amount' => 2,
+            ]) // call a live action with arguments
         ;
 
         $this->assertStringContainsString('Count: 3', $testComponent->render());

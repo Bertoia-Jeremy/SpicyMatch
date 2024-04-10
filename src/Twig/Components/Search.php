@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Twig\Components;
 
-use App\Repository\AromaticCompoundRepository;
 use App\Repository\SpicesRepository;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
@@ -19,18 +18,16 @@ class Search
     public string $query = '';
 
     public function __construct(
-        private SpicesRepository $spicesRepository,
-        private AromaticCompoundRepository $aromaticCompoundRepository
-    )
-    {
+        private SpicesRepository $spicesRepository
+    ) {
     }
 
     public function getResults(): array
     {
-        if($this->query === "" || strlen($this->query) < 2){
+        if ($this->query === '' || strlen($this->query) < 2) {
             return [];
         }
-        
+
         return $this->spicesRepository->search($this->query);
     }
 }

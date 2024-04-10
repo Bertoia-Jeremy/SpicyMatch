@@ -22,15 +22,15 @@ class CookingTipsCrudController extends AbstractCrudController
         return [
             TextField::new('title', 'Titre'),
             ChoiceField::new('cookingStep', 'Etape de cuisson')->setChoices([
-                'Avant' => 'Avant', 
+                'Avant' => 'Avant',
                 'Début' => 'Début',
-                'Milieu' => 'Milieu', 
-                'Fin' => 'Fin', 
-                'Après' => 'Après'
+                'Milieu' => 'Milieu',
+                'Fin' => 'Fin',
+                'Après' => 'Après',
             ]),
             TextareaField::new('text', 'Texte')->setMaxLength(100),
+            TextareaField::new('advantages', 'Avantages')->setMaxLength(100),
             AssociationField::new('spice', 'Epice'),
-            AssociationField::new('alchemyFlavors', 'Flaveurs'),
             DateTimeField::new('created_at', 'Créé le')->hideOnForm(),
             DateTimeField::new('updated_at', 'Modifié le')->hideOnForm(),
         ];

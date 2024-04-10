@@ -1,0 +1,18 @@
+{% import "components/_macro_card_cooking_view_match.html.twig" as macroCooking %}
+{% import "components/_macro_card_preparation_view_match.html.twig" as macroPreparation %}
+
+{% if cookingTip is defined %}
+    {{ macroCooking.cardView(
+        cookingTip.cookingStep, 
+        cookingTip.advantages,
+        cookingTip.id
+    )}}
+
+{% else %}
+
+    {{ macroPreparation.cardView(
+        preparationTip.title, 
+        preparationTip.advantages,
+        preparationTip.id
+    )}}
+{% endif %}

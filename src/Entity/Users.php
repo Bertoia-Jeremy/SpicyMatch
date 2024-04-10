@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\UsersRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -23,6 +25,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'username', type: 'string', length: 180, unique: true)]
     private ?string $username = null;
 
+    /**
+     * @var array<string>
+     */
     #[ORM\Column(name: 'roles', type: 'json')]
     private array $roles = [];
 
@@ -43,6 +48,14 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
+
+    #[ORM\OneToMany(mappedBy: 'user_id', targetEntity: SpicyMatch::class, orphanRemoval: true)]
+    private Collection $spicyMatches;
+
+    public function __construct()
+    {
+        $this->spicyMatches = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -172,6 +185,36 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function setMail(string $mail): self
     {
         $this->mail = $mail;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, SpicyMatch>
+     */
+    public function getSpicyMatches(): Collection
+    {
+        return $this->spicyMatches;
+    }
+
+    public function addSpicyMatch(SpicyMatch $spicyMatch): static
+    {
+        if (! $this->spicyMatches->contains($spicyMatch)) {
+            $this->spicyMatches->add($spicyMatch);
+            $spicyMatch->setUserId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSpicyMatch(SpicyMatch $spicyMatch): static
+    {
+        // set the owning side to null (unless already changed)
+        if ($this->spicyMatches->removeElement(
+            $spicyMatch
+        ) && $spicyMatch->getUserId() === $this) {
+            $spicyMatch->setUserId(null);
+        }
 
         return $this;
     }

@@ -1,0 +1,24 @@
+{% macro cardLittleSpice(spice, littleCard) %}
+
+{% if littleCard == true %}
+    {% set className = "little-card-80h" %}
+{% else %}
+    {% set className = "little-card-180h" %}
+{% endif %}
+
+{% if spice.color is defined %}
+    {% set color = spice.color %}
+{% else %}
+    {% set color = spice.aromaticGroups.color %}
+{% endif %}
+
+<div class="little-card-wrap">
+    <div class="{{ className }} bg-dark shadow-{{ color |trim('#')|upper}}">
+        <div class="card-bg rounded" style="background-image: url({{  vich_uploader_asset(spice, 'imageFile', 'App\\Entity\\Spices')}})"></div>
+        <div class="text-color-white d-flex justify-content-center align-items-end h-100 py-2">
+            <h3 class="mb-0">{{ spice.name }}</h3>
+        </div>
+    </div>
+</div>
+
+{% endmacro %}

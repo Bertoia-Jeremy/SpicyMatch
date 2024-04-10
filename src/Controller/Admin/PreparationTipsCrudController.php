@@ -21,9 +21,9 @@ class PreparationTipsCrudController extends AbstractCrudController
         return [
             TextField::new('title', 'Titre'),
             TextareaField::new('text', 'Texte')->setMaxLength(100),
+            TextareaField::new('advantages', 'Avantages')->setMaxLength(100),
             AssociationField::new('spice', 'Epice'),
             AssociationField::new('preparationMethod', 'Méthode de préparation'),
-            AssociationField::new('alchemyFlavors', 'Flaveurs'),
             DateTimeField::new('created_at', 'Créé le')->hideOnForm(),
             DateTimeField::new('updated_at', 'Modifié le')->hideOnForm(),
         ];

@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+{% import "components/_macro_modal_preparation_method.html.twig" as macroModalPreparationMethod %}
+{% import "components/_macro_card_cooking_view_match.html.twig" as macroCooking %}
+{% import "components/_macro_card_preparation_view_match.html.twig" as macroPreparation %}
+
+{% block title %}SpicyMatch{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="container justify-content-center">
+            <h2>Finalisation du mélange :</h2>
+        </div>
+
+        {% for spice in spices %}
+            <div class="w-100 d-flex flex-column align-items-center justify-content-center">
+                <div class="w-75">
+                    <div>
+                        <h4 class="text-center" {{ stimulus_controller('hello') }}><u>{{ spice.name|upper }}</u></h4>
+                        <div class="d-flex justify-content-start align-items-center flex-wrap">
+                            <div class="row d-flex justify-content-center align-items-center p-2 my-2">
+                                <div class="d-flex flex-column my-2">
+                                    <h5>Sélectionner votre méthode de préparation :</h5>
+                                    <form 
+                                        {{ stimulus_controller('select-preparation', {
+                                            spicyMatchHistoryUrl: path('edit_spicy_match_history', {id: spicyMatchHistory.id}),
+                                            spiceId: spice.id
+                                        }) }}
+                                        class="d-flex justify-content-center align-items-stretch"
+                                    >
+                                        {% for preparationTip in spice.preparationTips %}
+                                            {{ macroPreparation.cardView(
+                                                preparationTip.title, 
+                                                preparationTip.advantages,
+                                                preparationTip.id
+                                            )}}
+                                        {% endfor %}
+                                        <input type="hidden" name="_token" value="{{ csrf_token('remove_item') }}" />
+                                    </form>
+                                </div>
+                                <div class="d-flex flex-column my-2">
+                                    <h5>Sélectionner le moment d'insertion de l'épice :</h5>
+                                    <form 
+                                        {{ stimulus_controller('select-cooking', {
+                                            spicyMatchHistoryUrl: path('edit_spicy_match_history', {id: spicyMatchHistory.id}),
+                                            spiceId: spice.id
+                                        }) }}
+                                        class="d-flex justify-content-center align-items-stretch"
+                                    >
+                                        {% set cookingTips = spice.cookingTips|sort((a, b) => a.step <=> b.step) %}
+                                        {% for cookingTip in cookingTips %}
+                                            {{ macroCooking.cardView(
+                                                cookingTip.cookingStep, 
+                                                cookingTip.advantages,
+                                                cookingTip.id
+                                            )}}
+                                        {% endfor %}  
+                                        <input type="hidden" name="_token" value="{{ csrf_token('remove_item') }}" />
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="w-75 border border-primary my-3 rounded" ></div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

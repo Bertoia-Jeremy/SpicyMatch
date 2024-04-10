@@ -1,4 +1,6 @@
 {% extends 'base.html.twig' %}
+{% import "components/_macro_modal_preparation_method.html.twig" as macroModalPreparationMethod %}
+
 {% block title %}SpiceMatch - Présentation{% endblock %}
 
 {% block body %}
@@ -20,8 +22,8 @@
 
         <div class="row my-3">
             <h3>Conseils de cuisine</h3>
-            <p>{{ spice.cooking }}</p>
-            <p>{{ spice.informations }}</p>
+            <p>{{ spice.cooking|nl2br }}</p>
+            <p>{{ spice.informations|nl2br }}</p>
         </div>
         
         {% if spice.cookingTips is not null %}
@@ -47,18 +49,20 @@
                     Différentes préparations permettent différentes intensité de goût ou de mise en valeur de telle ou telle saveur.
                 </p>
                 {% for preparationTip in spice.preparationTips %}
-                    <div class="my-2">
-                        <p class="mb-1"><u>{{ preparationTip.title }} :</u></p>
-                        <p class="mb-0">{{ preparationTip.text }}</p>
-
-                        {% if preparationTip.preparationMethod is not null %}
-                            <small class="d-flex justify-content-end">
-                                <a href="{{ path('view_preparation_methods', {"id" : preparationTip.preparationMethod.id})}}">
-                                    En savoir plus sur la méthode "{{ preparationTip.preparationMethod.name }}"
-                                </a>
-                            </small>
-                        {% endif %}
-                    </div>
+                    <article class="d-flex flex-column w-100 bg-light shadow rounded my-3 p-3">
+                        <h4 class="mb-1">{{ preparationTip.title }}</h4>
+                        <div class="w-25 pb-1 mb-2 rounded shadow-{{ preparationTip.spice.aromaticGroups.color |trim('#')|upper}}"></div>
+                        <p>{{ preparationTip.text|nl2br }}</p>
+                        <div class="align-self-end text-end w-50">
+                            {% if preparationTip.preparationMethod is not null %}
+                                {{ macroModalPreparationMethod.modal(
+                                    preparationTip.preparationMethod.id, 
+                                    preparationTip.preparationMethod.name, 
+                                    true
+                                )}}
+                            {% endif %}
+                        </div>
+                    </article>
                 {% endfor %}
             </div>
         {% endif %}

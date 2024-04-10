@@ -45,36 +45,55 @@ class SpicesRepository extends ServiceEntityRepository
         }
     }
 
-    public function findSpicesForMatch(array $spices){
-        $idsString = "";
+    public function findAllByStringIds(string $stringIds): array
+    {
+        $arrayIds = explode(',', $stringIds);
 
-        foreach($spices as $spice){
-            $idsString .= $spice["spices_id"].",";
-        }
-        $idsString = trim($idsString, ",");
+        return $this->createQueryBuilder('s')
+            ->where('s.id IN (:ids)')
+            ->setParameter('ids', $arrayIds)
+            ->orderBy('s.aromaticGroups')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 
+    /**
+     * @return array<array<string>>
+     */
+    public function findSpicesForMatch(string $idsString): array
+    {
         return $this->findAllSpices($idsString);
     }
-    
-    public function findAllSpices(string $ids = null){
-        $glue = "";
-        
-        if($ids){
-            $glue .= "WHERE s.id IN ($ids)";
+
+    /**
+     * @return array<array<string>>
+     */
+    public function findAllSpices(?string $ids = null): array
+    {
+        $glue = '';
+
+        if ($ids) {
+            $glue .= "WHERE s.id IN ({$ids})";
         }
 
         $sql = "SELECT s.id, s.name, s.description, s.file, ac.color, ac.name as groupName
                 FROM spices AS s
                 LEFT JOIN aromatic_groups AS ac
                     ON s.aromaticGroups = ac.id
-                $glue
-                ORDER BY s.name";
+                {$glue}
+                ORDER BY groupName, s.name";
 
-        $stmt = $this->getEntityManager()->getConnection()->prepare($sql);
-        return $stmt->executeQuery()->fetchAllAssociative();
+        $stmt = $this->getEntityManager()
+            ->getConnection()
+            ->prepare($sql);
+
+        return $stmt->executeQuery()
+            ->fetchAllAssociative();
     }
 
-    public function search(string $word){
+    public function search(string $word): array
+    {
         $sql = 'SELECT s.id, s.name, IF(1, "spice", "") as `type`
                 FROM spices s
                 WHERE s.name LIKE ?
@@ -87,16 +106,22 @@ class SpicesRepository extends ServiceEntityRepository
                 ORDER BY `name`
                 LIMIT 10';
 
-        $stmt = $this->getEntityManager()->getConnection()->prepare($sql);
-        $stmt->bindValue(1, '%'.$word.'%');
-        $stmt->bindValue(2, '%'.$word.'%');
+        $stmt = $this->getEntityManager()
+            ->getConnection()
+            ->prepare($sql);
+        $stmt->bindValue(1, '%' . $word . '%');
+        $stmt->bindValue(2, '%' . $word . '%');
 
-        return $stmt->executeQuery()->fetchAllAssociative();
+        return $stmt->executeQuery()
+            ->fetchAllAssociative();
     }
 
-    public function getByMainAromaticsCompounds(
+    /**
+     * @return array<string>
+     */
+    public function getByAromaticsCompounds(
         array $mainAromaticsCompoundsIds,
-        array $secondaryAromaticsCompoundsIds
+        array $secondaryAromaticsCompoundsIds,
     ): array {
         $mainIds = $this->checkArrayAndReturnString($mainAromaticsCompoundsIds);
         $secondaryIds = $this->checkArrayAndReturnString($secondaryAromaticsCompoundsIds);
@@ -127,7 +152,16 @@ class SpicesRepository extends ServiceEntityRepository
             ->getConnection();
         $stmt = $conn->prepare($sql);
 
-        return $stmt->executeQuery()->fetchAllAssociative();
+        $arraysIds = $stmt->executeQuery()
+            ->fetchAllAssociative();
+
+        // Afin de ne retourner qu'un seul tableau d'ids
+        $ids = [];
+        foreach ($arraysIds as $array) {
+            $ids[] = $array['spices_id'];
+        }
+
+        return $ids;
     }
 
     private function checkArrayAndReturnString(array $array): string

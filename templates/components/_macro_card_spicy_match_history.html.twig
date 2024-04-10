@@ -1,0 +1,10 @@
+{% macro cardSpicyMatch(spice) %}
+    <div class="mb-3 mx-2 p-0">
+        <div class="little-card-50h bg-dark shadow-{{ spice.color |trim('#')|upper}}">
+            <div class="card-bg rounded" style="background-image: url({{  vich_uploader_asset(spice, 'imageFile', 'App\\Entity\\Spices')}})"></div>
+            <div class="text-color-white d-flex justify-content-center align-items-end h-100 py-2">
+                <h3 class="mb-0">{{ spice.name }}</h3>
+            </div>
+        </div>
+    </div>
+{% endmacro %}

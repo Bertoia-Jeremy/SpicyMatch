@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "alpinejs": "^3.14.9",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.1.5"
+  },
+  "scripts": {
+    "tailwind:dev": "tailwindcss -i ./assets/styles/tailwind.css -o ./public/assets/tailwind.css --watch",
+    "tailwind:build": "tailwindcss -i ./assets/styles/tailwind.css -o ./public/assets/tailwind.css --minify"
+  },
+  "packageManager": "yarn@4.8.1+sha512.bc946f2a022d7a1a38adfc15b36a66a3807a67629789496c3714dd1703d2e6c6b1c69ff9ec3b43141ac7a1dd853b7685638eb0074300386a59c18df351ef8ff6"
+}

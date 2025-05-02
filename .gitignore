@@ -18,6 +18,7 @@
 /phpunit.xml
 ###< symfony/phpunit-bridge ###
 .idea/
+.vscode/
 public/uploads/spices/
 
 migrations/
@@ -30,5 +31,9 @@ phpstan.neon
 
 ###> symfony/asset-mapper ###
 /public/assets/
+/public/assets/tailwind.css
 /assets/vendor/
 ###< symfony/asset-mapper ###
+
+/node_modules/
+/.yarn/

@@ -23,8 +23,7 @@ class SpicyMatchHistoryController extends AbstractController
         private readonly PreparationTipsRepository $preparationTipsRepository,
         private readonly CookingTipsRepository $cookingTipsRepository,
         private readonly SpicyMatchHistoryService $spicyMatchService
-    ) {
-    }
+    ) {}
 
     #[Route('/', name: 'index_spicy_match_history', methods: ['GET'])]
     public function index(): Response
@@ -72,11 +71,11 @@ class SpicyMatchHistoryController extends AbstractController
     }
 
     #[Route('/edit/{id}', name: 'edit_spicy_match_history', methods: ['GET'])]
-    public function edit(SpicyMatchHistory $spicyMatchHistory, Request $request,EntityManagerInterface $entityManager)
+    public function edit(SpicyMatchHistory $spicyMatchHistory, Request $request, EntityManagerInterface $entityManager)
     {
         $spiceId = (int) $request->query->get('spiceId');
-        $templates = ""; 
-        
+        $templates = "";
+
         // Be sure this is in $spicyMatchHistory
         $arraySpices = explode(',', $spicyMatchHistory->getSpicyMatchId()->getSpicesIds());
 
@@ -91,18 +90,17 @@ class SpicyMatchHistoryController extends AbstractController
                     $cookings = $this->cookingTipsRepository->findBy(['spice' => $spiceId]);
                     // Remove from spicyMatchHistory
                     unset($arrayCookingTips[array_search($cookingTipId, $arrayCookingTips)]);
-
                 } else {
                     // Check if cooking IN Spice
                     $cookings = $this->cookingTipsRepository->findBy(['id' => $cookingTipId]);
-                    if(!in_array($cookings[0]->getSpice()->getId(), $arraySpices)){
+                    if (!in_array($cookings[0]->getSpice()->getId(), $arraySpices)) {
                         return $this->json(
                             $this->render('Exception/Error.html.twig', [
                                 "codeError" => "105"
                             ])->getContent()
                         );
                     }
-                    
+
                     // Add to spicyMatchHistory
                     if (empty($arrayCookingTips[0])) {
                         $arrayCookingTips = [$cookingTipId];
@@ -110,17 +108,16 @@ class SpicyMatchHistoryController extends AbstractController
                         $arrayCookingTips[] = $cookingTipId;
                     }
                 }
-                
+
                 $spicyMatchHistory->setCookingTipsIds(implode(",", $arrayCookingTips))
                     ->setUpdatedAt(new \DateTime());
-                
+
                 /** @var CookingTips $cooking */
                 foreach ($cookings as $cooking) {
                     $templates .= $this->render('components/_card_spicy_tips.html.twig', [
                         "cookingTip" => $cooking
                     ])->getContent();
                 }
-
             } elseif ($preparationTipId) {
                 $arrayPreparationTips = explode(',', $spicyMatchHistory->getPreparationTipsIds());
 
@@ -128,18 +125,17 @@ class SpicyMatchHistoryController extends AbstractController
                     $preparations = $this->preparationTipsRepository->findBy(['spice' => $spiceId]);
                     // Remove from spicyMatchHistory
                     unset($arrayPreparationTips[array_search($preparationTipId, $arrayPreparationTips)]);
-
                 } else {
                     // Check if preparation IN Spice
                     $preparations = $this->preparationTipsRepository->findBy(['id' => $preparationTipId]);
-                    if(!in_array($preparations[0]->getSpice()->getId(), $arraySpices)){
+                    if (!in_array($preparations[0]->getSpice()->getId(), $arraySpices)) {
                         return $this->json(
                             $this->render('Exception/Error.html.twig', [
                                 "codeError" => "146"
                             ])->getContent()
                         );
                     }
-                    
+
                     // Add to spicyMatchHistory
                     if (empty($arrayPreparationTips[0])) {
                         $arrayPreparationTips = [$preparationTipId];
@@ -147,16 +143,15 @@ class SpicyMatchHistoryController extends AbstractController
                         $arrayPreparationTips[] = $preparationTipId;
                     }
                 }
-                
+
                 $spicyMatchHistory->setPreparationTipsIds(implode(",", $arrayPreparationTips))
                     ->setUpdatedAt(new \DateTime());
-                
+
                 foreach ($preparations as $preparation) {
                     $templates .= $this->render('components/_card_spicy_tips.html.twig', [
                         "preparationTip" => $preparation
                     ])->getContent();
                 }
-
             } else {
                 return $this->json(
                     $this->render('Exception/Error.html.twig', [
@@ -164,10 +159,10 @@ class SpicyMatchHistoryController extends AbstractController
                     ])->getContent()
                 );
             }
-                
-                $entityManager->persist($spicyMatchHistory);
-                $entityManager->flush();
-                
+
+            $entityManager->persist($spicyMatchHistory);
+            $entityManager->flush();
+
             return $this->json(
                 $templates
             );

@@ -35,5 +35,8 @@ phpstan.neon
 /assets/vendor/
 ###< symfony/asset-mapper ###
 
-/node_modules/
-/.yarn/
+# Yarn Berry (PnP) et fichiers lock
+.pnp.cjs
+.pnp.loader.mjs
+yarn.lock
+.yarn/

@@ -53,7 +53,7 @@ class RegistrationFormType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        // TODO => vérifier l'email si il est déjà présent en BDD, mettre les contraintes dans l'entité
+        
         $resolver->setDefaults(
             [
                 'data_class' => Users::class,

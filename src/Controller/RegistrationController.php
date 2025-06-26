@@ -45,7 +45,8 @@ class RegistrationController extends AbstractController
             );
             $this->usersRepository->addOrUpdate($user);
 
-            // TODO => Faire un message de validation de création de compte
+            $this->addFlash('success', 'Votre compte a été créé avec succès !');
+
             return $authenticator->authenticateUser(
                 $user,
                 $loginFormAuthenticator,

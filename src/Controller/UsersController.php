@@ -85,12 +85,12 @@ class UsersController extends AbstractController
     #[Route('/{id}', name: 'delete_user', methods: ['POST'])]
     public function delete(Request $request, Users $user, EntityManagerInterface $entityManager): Response
     {
-        // TODO => soft delete + revoir la vérification de l'existence d'un pseudo (ajouter le champ delete dans le where et/ou index)
         if ($this->isCsrfTokenValid(
             'delete' . $user->getId(),
             $request->request->get('_token')
         )) {
-            $entityManager->remove($user);
+            $user->setDeletedAt(new \DateTimeImmutable());
+            $entityManager->persist($user);
             $entityManager->flush();
         }
 

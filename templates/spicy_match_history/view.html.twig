@@ -54,8 +54,6 @@
                         <div class="w-full h-0.5 bg-blue-500 mb-4"></div>
                         <div class="flex flex-wrap justify-center">
                             {% for cooking in cookings %}
-                                {# TODO => utiliser le templates des cards pour le mélange des épices (photos + couleurs) #}
-
                                 <div class="m-2">
                                     <a href="{{ path('view_spice', {"id" : cooking.spice.id}) }}">
                                         {{ macroCardSpice.cardLittleSpice(cooking.spice, true) }}

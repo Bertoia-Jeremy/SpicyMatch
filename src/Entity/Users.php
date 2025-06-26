@@ -12,7 +12,8 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-#[UniqueEntity(fields: ['username'], message: 'Le pseudo existe déjà')]
+#[UniqueEntity(fields: ['username'], message: 'Le pseudo existe déjà', errorPath: 'username', ignoreNull: false, repositoryMethod: 'findNonDeletedBy')]
+#[UniqueEntity(fields: ['mail'], message: 'Cet email est déjà utilisé.', errorPath: 'mail', ignoreNull: true, repositoryMethod: 'findNonDeletedBy')]
 #[ORM\Entity(repositoryClass: UsersRepository::class)]
 #[ORM\Table(name: 'users')]
 class Users implements UserInterface, PasswordAuthenticatedUserInterface
@@ -37,7 +38,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'password', type: 'string')]
     private ?string $password = null;
 
-    #[ORM\Column(name: 'mail', type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(name: 'mail', type: 'string', length: 255, unique: true, nullable: true)]
     private ?string $mail = null;
 
     #[ORM\Column(name: 'created_at', type: 'datetime')]
@@ -48,6 +49,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
+
+    #[ORM\Column(name: 'last_login_at', type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $lastLoginAt = null;
 
     #[ORM\OneToMany(mappedBy: 'user_id', targetEntity: SpicyMatch::class, orphanRemoval: true)]
     private Collection $spicyMatches;
@@ -138,6 +142,18 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function setDeletedAt(?\DateTimeInterface $deleted_at): self
     {
         $this->deleted_at = $deleted_at;
+
+        return $this;
+    }
+
+    public function getLastLoginAt(): ?\DateTimeInterface
+    {
+        return $this->lastLoginAt;
+    }
+
+    public function setLastLoginAt(?\DateTimeInterface $lastLoginAt): self
+    {
+        $this->lastLoginAt = $lastLoginAt;
 
         return $this;
     }

@@ -17,7 +17,7 @@
 {% endif %}
 
 {# Assurer que spiceHexColor est une chaîne et commence par # #}
-{% if not (spiceHexColor is string) or not spiceHexColor starts with '#' %}
+{% if not spiceHexColor starts with '#' %}
     {% set spiceHexColor = '#CCCCCC' %} {# Fallback si la couleur n'est pas au bon format #}
 {% endif %}
 
@@ -29,7 +29,14 @@
         <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-50 transition-opacity duration-1000 ease-out pointer-events-none rounded-lg" style="background-image: url({{ vich_uploader_asset(spice, 'imageFile', 'App\\Entity\\Spices')}})"></div>
         <div class="text-white flex justify-center items-end h-full p-2 relative z-10">
             {# Ajustez la taille du texte et la graisse selon vos besoins, ex: text-lg font-semibold #}
-            <h3 class="mb-0 text-base font-medium">{{ spice.name }}</h3>
+            {% set nameLength = spice.name|length %}
+            {% set textSizeClass = 'text-base' %}
+            {% if nameLength > 15 %}
+                {% set textSizeClass = 'text-sm' %}
+            {% elseif nameLength < 8 %}
+                {% set textSizeClass = 'text-lg' %}
+            {% endif %}
+            <h3 class="mb-0 {{ textSizeClass }} font-medium">{{ spice.name }}</h3>
         </div>
     </div>
 </div>

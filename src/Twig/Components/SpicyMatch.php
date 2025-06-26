@@ -20,7 +20,11 @@ class SpicyMatch extends AbstractController
     use DefaultActionTrait;
 
     #[LiveProp(writable: true)]
+    #[LiveProp(writable: true)]
     public array $spices;
+
+    #[LiveProp(writable: true)]
+    public ?string $selectedAromaticGroup = null;
 
     public function __construct(
         private SpicesRepository $spicesRepository,
@@ -34,6 +38,9 @@ class SpicyMatch extends AbstractController
 
     public function getResults(): array
     {
+        $compatibleSpices = $this->spices['compatibleSpices'];
+        $groupByAromaticGroup = [];
+
         if (! empty($this->spices['selectedSpices'])) {
             $idsString = $this->spiceMatchmakerService->arrayToString($this->spices['selectedSpices']);
 
@@ -47,7 +54,6 @@ class SpicyMatch extends AbstractController
                 $this->spices['selectedSpices']
             );
             if ($sharedAromaticsCompounds) {
-                // Récupération de tous les ids des épices possédant ces composés aromatiques par ordre d'affinités aux composés
                 $idsCompatibleSpices = $this->spicesRepository->getByAromaticsCompounds(
                     $sharedAromaticsCompounds['main'],
                     $sharedAromaticsCompounds['secondary']
@@ -57,21 +63,54 @@ class SpicyMatch extends AbstractController
                 $idsStringCompatibleSpices = implode(',', $idsWithoutSelectedSpices);
 
                 if ($idsStringCompatibleSpices === '') {
-                    $compatibleSpices = false;
+                    $compatibleSpices = [];
                 } else {
                     $compatibleSpices = $this->spicesRepository->findSpicesForMatch($idsStringCompatibleSpices);
                 }
             }
+
+            // Get aromatic groups from selected spices
+            $selectedAromaticGroups = [];
+            foreach ($selectedSpices as $spice) {
+                $selectedAromaticGroups[] = $spice['groupName'];
+            }
+            $selectedAromaticGroups = array_unique($selectedAromaticGroups);
+
+            // Filter compatible spices to exclude those already in selected aromatic groups
+            $compatibleSpices = array_filter($compatibleSpices, function($spice) use ($selectedAromaticGroups) {
+                return !in_array($spice['groupName'], $selectedAromaticGroups);
+            });
         }
 
-        if (! isset($compatibleSpices)) {
-            $compatibleSpices = $this->spices['compatibleSpices'];
+        if ($this->selectedAromaticGroup) {
+            usort($compatibleSpices, function ($a, $b) {
+                $groupA = $a['groupName'] === $this->selectedAromaticGroup ? 0 : 1;
+                $groupB = $b['groupName'] === $this->selectedAromaticGroup ? 0 : 1;
+                return $groupA <=> $groupB;
+            });
         }
 
         return [
-            'selectedSpices' => $groupByAromaticGroup ?? $this->spices['selectedSpices'],
+            'selectedSpices' => $groupByAromaticGroup ?? [],
             'compatibleSpices' => $compatibleSpices,
         ];
+    }
+
+    #[LiveAction]
+    public function selectAromaticGroup(string $groupName)
+    {
+        $this->selectedAromaticGroup = $groupName;
+    }
+
+    #[LiveAction]
+    public function addGroup()
+    {
+        $this->spices['selectedSpices'][] = [];
+    }
+
+    public function canAddMoreGroups(): bool
+    {
+        return !empty($this->getResults()['compatibleSpices']);
     }
 
     #[LiveAction]

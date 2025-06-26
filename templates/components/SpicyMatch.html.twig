@@ -12,7 +12,7 @@
                     {% for groupName, spices in selectedSpices %}
                         <div class="row m-0">
                             <div class="my-3">
-                                <h4 class="text-center text-{{ spices.0.color |trim('#')|upper}}">{{ groupName }}</h1>
+                                <h4 class="text-center text-{{ spices.0.color |trim('#')|upper}} {{ this.selectedAromaticGroup == groupName ? 'font-bold text-xl' : '' }}" data-action="live#action" data-live-action-param="selectAromaticGroup" data-group-name="{{ groupName }}">{{ groupName }}</h1>
                                 <div class="w-100 shadow-{{ spices.0.color |trim('#')|upper}}" style="height:5px"></div>
                             </div>
                             <div class="d-flex justify-content-center align-items-center flex-wrap">
@@ -25,6 +25,9 @@
                 </div>
 
                 <div>
+                    <button class="btn btn-secondary w-100 my-2" type="button" data-action="live#action" data-live-action-param="addGroup" {{ not this.canAddMoreGroups ? 'disabled' : '' }}>
+                        Ajouter un groupe de mélange
+                    </button>
                     <button class="btn btn-primary w-100 my-2" type="button" data-action="live#action" data-live-action-param="nextStep">
                         Etape suivante
                     </button>

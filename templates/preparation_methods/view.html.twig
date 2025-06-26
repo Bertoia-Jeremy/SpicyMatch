@@ -3,23 +3,16 @@
 
 {% block body %}
     <turbo-frame id="preparation_methode_frame_id">
-        <div class="container">
-
-            {# Centré -> Nom - Groupe épice + photo #}
-            <div class="row my-3">
-                <div class="d-flex justify-content-between">
-                    <div class="col-lg-6 d-flex flex-column justify-content-center align-items-center px-2">
-                        <h2>{{ preparationMethod.name }}</h2>
-                        <p class="text-justify">{{ preparationMethod.description }}</p>
-                    </div>
-                </div>
+        <div class="container mx-auto px-4 py-8">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-gray-800">{{ preparationMethod.name }}</h1>
+                <p class="mt-4 text-lg text-gray-600">{{ preparationMethod.description }}</p>
             </div>
 
-            <div class="row my-2">
-            {# Revoir les conseils cuisine, sur qui pour ensuite faire une meilleure présentation #}
-                <h3>Conseils cuisine</h3>
-                <p>{{ preparationMethod.name }}</p>
-                <p>{{ preparationMethod.description }}</p>
+            <div class="bg-white shadow-md rounded-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Conseils d'utilisation</h2>
+                <p class="text-gray-700">{{ preparationMethod.name }}</p>
+                <p class="text-gray-700 mt-2">{{ preparationMethod.description }}</p>
             </div>
         </div>
     </turbo-frame>

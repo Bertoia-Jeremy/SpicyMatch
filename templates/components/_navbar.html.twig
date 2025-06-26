@@ -1,57 +1,86 @@
-<nav class="navbar navbar-expand-lg bg-light shadow-sm">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{{ path('home') }}">SpicyMatch</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="{{ path('home') }}">Accueil</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="{{ path('index_spicy_match') }}">Créer mon mélange</a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link active dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+<nav x-data="{ open: false }" class="bg-white shadow-sm">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center py-4">
+            <div>
+                <a class="text-xl font-bold" href="{{ path('home') }}">SpicyMatch</a>
+            </div>
+
+            <div class="hidden md:flex items-center space-x-4">
+                <a class="text-gray-600 hover:text-gray-800" href="{{ path('home') }}">Accueil</a>
+                <a class="text-gray-600 hover:text-gray-800" href="{{ path('index_spicy_match') }}">Créer mon mélange</a>
+
+                <div x-data="{ dropdownOpen: false }" class="relative">
+                    <button @click="dropdownOpen = !dropdownOpen" class="text-gray-600 hover:text-gray-800 flex items-center">
                         Epices
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ path('index_aromatic_compound') }}">Par composé aromatique</a></li>
-                        <li><a class="dropdown-item" href="{{ path('index_aromatic_groups') }}">Par groupe aromatique</a></li>
-                        <li><a class="dropdown-item" href="{{ path('index_spicy_type') }}">Par type d'épice</a></li>
-                        <li><a class="dropdown-item" href="{{ path('index_alchemy_flavors') }}">Par saveur</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{{ path('index_spices') }}">Toutes les épices</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="{{ path('new_contact') }}">Contact</a>
-                </li>
-            </ul>
-
-            <form class="d-flex mx-4" role="search">
-                {{ component('Search') }}
-            </form>
-
-            {% if is_granted("ROLE_USER") %}
-                <div class="dropdown">
-                    <a class="nav-link active dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                       {{ app.user.username|capitalize }}
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right">
-                        <a class="dropdown-item" href="{{ path('profile_user') }}">Profil</a>
-                        <a class="dropdown-item" href="{{ path('configuration_user') }}">Configuration</a>
-                        <a class="dropdown-item" href="{{ path('history_user') }}">Historique</a>
-                        <a class="dropdown-item" href="{{ path('security_user') }}">Sécurité</a>
-                        <hr class="dropdown-divider">
-                        <a class="dropdown-item" href="{{ path('app_logout') }}">Déconnexion</a>
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div x-show="dropdownOpen" @click.away="dropdownOpen = false" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20">
+                        <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_aromatic_compound') }}">Par composé aromatique</a>
+                        <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_aromatic_groups') }}">Par groupe aromatique</a>
+                        <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_spicy_type') }}">Par type d'épice</a>
+                        <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_alchemy_flavors') }}">Par saveur</a>
+                        <div class="border-t border-gray-100"></div>
+                        <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_spices') }}">Toutes les épices</a>
                     </div>
                 </div>
+
+                <a class="text-gray-600 hover:text-gray-800" href="{{ path('new_contact') }}">Contact</a>
+            </div>
+
+            <div class="hidden md:flex items-center space-x-4">
+                <form class="flex" role="search">
+                    {{ component('Search') }}
+                </form>
+
+                {% if is_granted("ROLE_USER") %}
+                    <div x-data="{ dropdownOpen: false }" class="relative">
+                        <button @click="dropdownOpen = !dropdownOpen" class="flex items-center text-gray-600 hover:text-gray-800">
+                            {{ app.user.username|capitalize }}
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div x-show="dropdownOpen" @click.away="dropdownOpen = false" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20">
+                            <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('profile_user') }}">Profil</a>
+                            <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('configuration_user') }}">Configuration</a>
+                            <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('history_user') }}">Historique</a>
+                            <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('security_user') }}">Sécurité</a>
+                            <div class="border-t border-gray-100"></div>
+                            <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('app_logout') }}">Déconnexion</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a class="text-gray-600 hover:text-gray-800" href="{{ path('app_login') }}">Connexion</a>
+                {% endif %}
+            </div>
+
+            <div class="md:hidden flex items-center">
+                <button @click="open = !open" class="text-gray-600 hover:text-gray-800 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <div x-show="open" class="md:hidden">
+            <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('home') }}">Accueil</a>
+            <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_spicy_match') }}">Créer mon mélange</a>
+            <div class="border-t border-gray-200"></div>
+            <h3 class="px-4 py-2 text-xs text-gray-500 font-semibold uppercase">Epices</h3>
+            <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_aromatic_compound') }}">Par composé aromatique</a>
+            <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_aromatic_groups') }}">Par groupe aromatique</a>
+            <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_spicy_type') }}">Par type d'épice</a>
+            <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_alchemy_flavors') }}">Par saveur</a>
+            <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_spices') }}">Toutes les épices</a>
+            <div class="border-t border-gray-200"></div>
+            <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('new_contact') }}">Contact</a>
+            <div class="border-t border-gray-200"></div>
+            {% if is_granted("ROLE_USER") %}
+                <h3 class="px-4 py-2 text-xs text-gray-500 font-semibold uppercase">Mon Compte</h3>
+                <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('profile_user') }}">Profil</a>
+                <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('configuration_user') }}">Configuration</a>
+                <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('history_user') }}">Historique</a>
+                <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('security_user') }}">Sécurité</a>
+                <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('app_logout') }}">Déconnexion</a>
             {% else %}
-                <div class="mx-2">
-                    <a class="nav-link active" aria-current="page" href="{{ path('app_login') }}">Connexion</a>
-                </div>
+                <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('app_login') }}">Connexion</a>
             {% endif %}
         </div>
     </div>

@@ -5,9 +5,9 @@
 {% endblock %}
 
 {% block body %}
-    <div class="container-fluid">
-        <div class="container justify-content-center">
-            <h2>Mélangeons des épices</h2>
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800">Mélangeons des épices</h1>
         </div>
         
         {# GROUPE 1 #}
@@ -20,6 +20,5 @@
         {%  include "/components/_spices_filters.html.twig" %}
 
         {{ component('SpicyMatch') }}
-        {# BOUTON AJOUTER UN GROUPE #}
     </div>
 {% endblock %}

@@ -3,9 +3,29 @@
 {% block title %}SpicyMatch - Présentation{% endblock %}
 
 {% block body %}
-    <div class="container-fluid">
-        <div class="container justify-content-center">
-            <h2>Accueil</h2>
+<div class="container mx-auto px-4 py-8">
+    <div class="text-center">
+        <h1 class="text-4xl font-bold text-gray-800">Bienvenue sur SpicyMatch</h1>
+        <p class="mt-4 text-lg text-gray-600">Votre assistant personnel pour créer des mélanges d'épices uniques.</p>
+    </div>
+
+    <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="p-6 bg-white rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold text-gray-800">Créez</h2>
+            <p class="mt-2 text-gray-600">Composez vos propres mélanges d'épices en quelques clics. Laissez libre cours à votre créativité.</p>
+        </div>
+        <div class="p-6 bg-white rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold text-gray-800">Découvrez</h2>
+            <p class="mt-2 text-gray-600">Explorez une vaste bibliothèque d'épices, de composés aromatiques et de saveurs.</p>
+        </div>
+        <div class="p-6 bg-white rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold text-gray-800">Partagez</h2>
+            <p class="mt-2 text-gray-600">Sauvegardez vos créations, partagez-les avec la communauté et découvrez les mélanges des autres utilisateurs.</p>
         </div>
     </div>
+
+    <div class="mt-12 text-center">
+        <a href="{{ path('index_spicy_match') }}" class="px-6 py-3 text-white bg-blue-600 rounded-md hover:bg-blue-700 text-lg">Commencer l'aventure</a>
+    </div>
+</div>
 {% endblock %}

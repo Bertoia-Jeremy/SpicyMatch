@@ -1,16 +1,22 @@
-<turbo-frame id="userMail_frame_id" class="w-100 p-3 border-bottom">
+<turbo-frame id="userMail_frame_id" class="w-full p-4 border border-t-0 border-gray-200 rounded-b-lg">
 
     <div>
-        <a href="{{ path('configuration_user')}}" class="btn btn-outline-danger btn-sm m-2">Retour</a>
+        <a href="{{ path('configuration_user')}}" class="inline-block px-4 py-2 text-sm font-medium text-red-600 border border-red-600 rounded-md hover:bg-red-50 mb-4">Retour</a>
         
-        <div class="m-2">
-            <h5><u>Formulaire de changement de mail :</u></h5>
+        <div class="mb-4">
+            <h5 class="text-lg font-semibold mb-2">Formulaire de changement de mail :</h5>
 
             {{ form_start(form, {
-                    action: path('mail_user')
+                    action: path('mail_user'),
+                    'attr': {'class': 'space-y-4'}
                 }) 
             }}
-                {{ form_widget(form) }}
+                <div>
+                    {{ form_widget(form.mail, {'attr': {'class': 'w-full px-4 py-2 mt-1 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600', 'placeholder': 'Insérez un mail'}}) }}
+                </div>
+                <div>
+                    {{ form_widget(form.Valider, {'attr': {'class': 'w-full px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700'}}) }}
+                </div>
             {{ form_end(form) }}
         </div>
     </div>

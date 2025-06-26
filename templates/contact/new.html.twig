@@ -2,13 +2,41 @@
 {% block title %}Formulaire de contact{% endblock %}
 
 {% block body %}
-    <div class="container">
-        <div class="w-75 border shadow rounded px-4 py-2">
-            <div class="text-center">
-                <h2 class="text-primary">Nous contacter</h2>
-            </div>
+<div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+    <div class="w-full max-w-lg p-8 space-y-6 bg-white rounded-lg shadow-md">
+        <h2 class="text-3xl font-bold text-center text-gray-800">Nous contacter</h2>
+        {{ form_start(form, {
+            'attr': {'class': 'space-y-6'}
+        }) }}
 
-            {{ form(form) }}
+        <div>
+            {{ form_label(form.name, 'Nom', {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+            {{ form_widget(form.name, {'attr': {'class': 'w-full px-4 py-2 mt-1 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600'}}) }}
         </div>
+
+        <div>
+            {{ form_label(form.email, 'Email', {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+            {{ form_widget(form.email, {'attr': {'class': 'w-full px-4 py-2 mt-1 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600'}}) }}
+        </div>
+
+        <div>
+            {{ form_label(form.subject, 'Sujet', {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+            {{ form_widget(form.subject, {'attr': {'class': 'w-full px-4 py-2 mt-1 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600'}}) }}
+        </div>
+
+        <div>
+            {{ form_label(form.message, 'Message', {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+            {{ form_widget(form.message, {'attr': {'class': 'w-full px-4 py-2 mt-1 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600', 'rows': 5}}) }}
+        </div>
+
+        <div>
+            {{ form_widget(form.Valider, {
+                'label': 'Envoyer',
+                'attr': {'class': 'w-full px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700'}
+            }) }}
+        </div>
+
+        {{ form_end(form) }}
     </div>
+</div>
 {% endblock %}

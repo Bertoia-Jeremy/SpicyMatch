@@ -3,18 +3,16 @@
 {% block title %}Tableau de bord utilisateur{% endblock %}
 
 {% block body %}
-  <div class="container flex-column align-items-center">
-    <div class="card w-100 h-100">
-      <div class="row g-0">
-        <div class="col-md-4">
-          <img src="..." class="img-fluid rounded-start" style="max-width: 160px; max-height: 160px;" alt="Image de profile">
+  <div class="container mx-auto px-4 py-8">
+    <div class="bg-white shadow-md rounded-lg p-6">
+      <div class="flex flex-col md:flex-row items-center md:items-start">
+        <div class="md:w-1/4 flex justify-center mb-4 md:mb-0">
+          <img src="..." class="rounded-full w-32 h-32 object-cover" alt="Image de profile">
         </div>
-        <div class="col-md-8">
-          <div class="card-body">
-            <h5 class="card-title">{{ app.user.username|capitalize }}</h5>
-            <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-            <p class="card-text"><small class="text-muted">Membre depuis le {{ app.user.createdAt |date("m/d/Y à H:m:i")}}</small></p>
-          </div>
+        <div class="md:w-3/4 md:pl-6 text-center md:text-left">
+          <h1 class="text-3xl font-bold text-gray-800 mb-2">{{ app.user.username|capitalize }}</h1>
+          <p class="text-gray-600 mb-4">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+          <p class="text-gray-500 text-sm">Membre depuis le {{ app.user.createdAt |date("m/d/Y à H:m:i")}}</p>
         </div>
       </div>
     

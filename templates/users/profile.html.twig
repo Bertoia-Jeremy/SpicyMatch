@@ -2,12 +2,15 @@
 
 {% block content %}
     <turbo-frame id="user_frame_id">
-        <div class="list-group list-group-horizontal">
-            <a href="{{ path('profile_user') }}" class="list-group-item list-group-item-action list-group-item-light active">Profil</a>
-            <a href="{{ path('configuration_user') }}" class="list-group-item list-group-item-action list-group-item-light">Configuration</a>
-            <a href="{{ path('history_user') }}" class="list-group-item list-group-item-action list-group-item-light">Historique</a>
-            <a href="{{ path('security_user') }}" class="list-group-item list-group-item-action list-group-item-light">Sécurité</a>
+        <div class="flex border-b border-gray-200">
+            <a href="{{ path('profile_user') }}" class="px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600">Profil</a>
+            <a href="{{ path('configuration_user') }}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:border-b-2 hover:border-gray-300">Configuration</a>
+            <a href="{{ path('history_user') }}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:border-b-2 hover:border-gray-300">Historique</a>
+            <a href="{{ path('security_user') }}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:border-b-2 hover:border-gray-300">Sécurité</a>
         </div>
-        Profil
+        <div class="p-4">
+            <h2 class="text-2xl font-bold text-gray-800">Profil de l'utilisateur</h2>
+            <p class="mt-2 text-gray-600">Ceci est la page de profil. Vous pouvez ajouter des informations spécifiques au profil ici.</p>
+        </div>
     </turbo-frame>
 {% endblock %}

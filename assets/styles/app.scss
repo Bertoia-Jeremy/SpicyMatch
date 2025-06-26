@@ -2,81 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
-@import "~bootstrap/scss/bootstrap";
-@import "~@fortawesome/fontawesome-free/css/all.css";
+@import "../../node_modules/@fortawesome/fontawesome-free/css/all.css";
 
+// Variables et mixins spécifiques au projet (non Tailwind) peuvent rester ici
+// si elles sont utilisées par les styles personnalisés restants.
 $hoverEasing: cubic-bezier(0.23, 1, 0.32, 1);
 $returnEasing: cubic-bezier(0.445, 0.05, 0.55, 0.95);
 
-$base-color: #d9381e;
+$base-color: #d9381e; // Peut être remplacé par theme('colors.vermillion') dans des styles si besoin via @apply
 $border-dark: rgba($base-color, 0.88);
 
-$jaune: #FFFF00;
-$ocre: #dfaf2c;
-$orange: #FF4500;
-$vermillion: #d9381e;
-$rouge: #FF0000;
-$pourpre: #800080;
-$violet: #EE82EE;
-$indigo: #4B0082;
-$bleu: #0000FF;
-$turquoise: #25fde9;
-$vert: #008000;
-$chartreuse: #7FFF00;
-$colors : 'FFFF00', 'DFAF2C', 'FF4500', 'D9381E', 'FF0000', '800080', 'EE82EE', '4B0082', '0000FF', '25FDE9', '008000', '7FFF00';
-/*
-Faire les 12 couleurs pour les groupes
-#FFFF00 (Jaune) : Les acides aigres-doux
-#dfaf2c (Ocre) : Les composés soufrés
-#FF4500 (Orange) : Les phénols doux et chauds
-#d9381e (Vermillion) : Les terpènes chauds
-#FF0000 (Rouge) : Les composés piquants
-#800080 (Pourpre) : Les terpènes odorants
-#EE82EE (Violet) : Les aldéhydes fruités
-#4B0082 (Indigo) : Les terpènes terreux
-#0000FF (Bleu) :Les pyrazines grillées
-#25fde9 (Turquoise) : Les terpènes pénétrants
-#008000 (Vert) : Les terpènes citronnés
-#7FFF00 (Chartreuse) : Les composés uniques
-
-
-Faire pas mal de dériver, et les adapter dans la BDD et en faire des classes,
-comme ça on peut tout changer à partir d'une couleur tout en l'utilisant partout grace aux classes
-Voir si on peut faire une fonction pour n'avoir à changer qu'une fois le style et une autre fois la couleur
-Sass mixin
-*/
-
-@each $color in $colors {
-  $trueColor : unquote('#' + $color);
-
-  .shadow-#{$color} {
-    box-shadow:
-      $trueColor 5px 5px 5px 0,
-      inset $trueColor 0 0 0 5px,
-      inset $trueColor 0 0 0 6px;
-  }
-  
-  .text-#{$color} {
-    color: $trueColor;
-    text-shadow: rgba(0, 0, 0, 0.5) 1px 1px 0px;
-  }
-}
-
-@each $color in $colors {
-  $trueColor : unquote('#' + $color);
-
-  .article-#{$color} {
-    border-radius: 5px;
-    padding: 10px;
-    box-shadow:
-      0 1px 1px hsl(0deg 0% 0% / 0.075),
-      0 2px 2px $trueColor,
-      0 4px 4px hsl(0deg 0% 0% / 0.075),
-      0 8px 8px hsl(0deg 0% 0% / 0.075),
-      0 16px 16px hsl(0deg 0% 0% / 0.075)
-    ;
-  }
-}
+// Styles personnalisés (ex: .container, .card-wrap) conservés temporairement.
+// Ils devront être audités et refactorisés pour utiliser au maximum les utilitaires Tailwind.
+// Les anciennes variables de couleur SCSS et les boucles @each ont été supprimées.
 
 .container {
   padding: 40px 80px;
@@ -84,7 +22,6 @@ Sass mixin
   flex-wrap: wrap;
   justify-content: center;
 }
-
 
 .card-wrap {
   margin: 10px;

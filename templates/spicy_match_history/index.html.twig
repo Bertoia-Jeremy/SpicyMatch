@@ -3,56 +3,54 @@
 {% block title %}SpicymatchHistory index{% endblock %}
 
 {% block body %}
-    <h1>SpicymatchHistory index</h1>
-
-    <turbo-frame id="history_frame_id">
-        {% import "components/_macro_card_spicy_match_history.html.twig" as macroCardSpicyMatchHistory %}
-
-        <div class="table-responsive d-flex justify-content-center">
-            <table class="table table-hover w-75">
-                <tbody>
-                    {% for history in spicymatch_histories %}
-                        {% set spicesIds = history.spicesIds|split(',') %}
-
-                        <tr class style="vertical-align: baseline;">
-                            <td class="px-4">
-                                <a class="text-decoration-none" href="{{ path('view_spicymatch_history', {'id' : history.id }) }}">
-                                    <div class="d-flex flex-column justify-content-center align-items-center">
-                                        <div class="w-100">
-                                            <h5>
-                                                {% if history.title is null %}
-                                                    Recette du {{ history.createdAt|date('d/m/y à H:i') }}
-                                                {% else %}
-                                                    {{ history.title }}
-                                                {% endif %}
-                                            </h3>
-                                        </div>
-                                        <div class="d-flex justify-content-around align-items-center w-100">
-                                            <div class="col-10 d-flex justify-content-center align-items-center flex-wrap m-2">
-                                                {% for spiceId in spicesIds %}
-                                                    {{ macroCardSpicyMatchHistory.cardSpicyMatch(spices[spiceId], true) }}
-                                                {% endfor %}
-                                            </div>
-                                            <div>
-                                                <div class="col-2 d-flex flex-wrap justify-content-center align-items-center">
-                                                    {% if history.isFavorite %}
-                                                        <i class="fa-solid fa-star fa-xl"></i>
-                                                    {% else %}
-                                                        <i class="fa-regular fa-star fa-xl"></i>
-                                                    {% endif %}
-                                            </div>
-                                            </div>
-                                        </div>
-                                        <div class="text-end w-100">
-                                            <small class="text-muted">Mélange créé le {{ history.createdAt|date('d/m/y à H:i') }}</small>
-                                        </div>
-                                    </div>
-                                </a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800">Historique des mélanges</h1>
         </div>
-    </turbo-frame>
+
+        <turbo-frame id="history_frame_id">
+            {% import "components/_macro_card_spicy_match_history.html.twig" as macroCardSpicyMatchHistory %}
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+                    <tbody>
+                        {% for history in spicymatch_histories %}
+                            {% set spicesIds = history.spicesIds|split(',') %}
+
+                            <tr class="border-b last:border-b-0 hover:bg-gray-50">
+                                <td class="p-4">
+                                    <a class="block text-decoration-none text-gray-800" href="{{ path('view_spicymatch_history', {'id' : history.id }) }}">
+                                        <div class="flex flex-col md:flex-row justify-between items-center">
+                                            <div class="flex-1 mb-4 md:mb-0">
+                                                <h2 class="text-xl font-semibold">
+                                                    {% if history.title is null %}
+                                                        Recette du {{ history.createdAt|date('d/m/y à H:i') }}
+                                                    {% else %}
+                                                        {{ history.title }}
+                                                    {% endif %}
+                                                </h2>
+                                                <div class="flex flex-wrap mt-2">
+                                                    {% for spiceId in spicesIds %}
+                                                        {{ macroCardSpicyMatchHistory.cardSpicyMatch(spices[spiceId]) }}
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-4">
+                                                {% if history.isFavorite %}
+                                                    <i class="fa-solid fa-star text-yellow-500 text-2xl"></i>
+                                                {% else %}
+                                                    <i class="fa-regular fa-star text-gray-400 text-2xl"></i>
+                                                {% endif %}
+                                                <small class="text-gray-500">Mélange créé le {{ history.createdAt|date('d/m/y à H:i') }}</small>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </turbo-frame>
+    </div>
 {% endblock %}

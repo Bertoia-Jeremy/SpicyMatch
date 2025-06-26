@@ -1,46 +1,38 @@
-<footer class="pt-4 bg-light mt-5">
-    <div class="d-flex justify-content-around justify-content-around">
-        <div class="col-6 col-md-3 d-flex justify-content-center mb-4">
-            <div>
-                <h5>Epices</h5>
-                <ul class="nav flex-column">
-                    <li class="nav-item mb-2"><a href="{{ path('index_aromatic_compound') }}" class="nav-link p-0 text-muted">Par composé aromatique</a></li>
-                    <li class="nav-item mb-2"><a href="{{ path('index_aromatic_groups') }}" class="nav-link p-0 text-muted">Par groupe aromatique</a></li>
-                    <li class="nav-item mb-2"><a href="{{ path('index_spicy_type') }}" class="nav-link p-0 text-muted">Par type d'épice</a></li>
-                    <li class="nav-item mb-2"><a href="{{ path('index_alchemy_flavors') }}"  class="nav-link p-0 text-muted">Par saveur</a></li>
+<footer class="bg-gray-100 pt-12 mt-5">
+    <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="">
+                <h5 class="font-bold text-lg mb-4">Epices</h5>
+                <ul class="space-y-2">
+                    <li><a href="{{ path('index_aromatic_compound') }}" class="text-gray-600 hover:text-gray-800">Par composé aromatique</a></li>
+                    <li><a href="{{ path('index_aromatic_groups') }}" class="text-gray-600 hover:text-gray-800">Par groupe aromatique</a></li>
+                    <li><a href="{{ path('index_spicy_type') }}" class="text-gray-600 hover:text-gray-800">Par type d'épice</a></li>
+                    <li><a href="{{ path('index_alchemy_flavors') }}" class="text-gray-600 hover:text-gray-800">Par saveur</a></li>
                 </ul>
             </div>
-        </div>
-        <div class="col-6 col-md-3 d-flex justify-content-center">
-            <div>
-                <h5>Autres</h5>
-                <ul class="nav flex-column">
-                    <li class="nav-item mb-2"><a href="{{ path('home') }}" class="nav-link p-0 text-muted">Accueil</a></li>
-                    <li class="nav-item mb-2"><a href="{{ path('index_spicy_match') }}" class="nav-link p-0 text-muted">Créer mon mélange</a></li>
-                    <li class="nav-item mb-2"><a href="{{ path('new_contact') }}" class="nav-link p-0 text-muted">Contactez-moi</a></li>
+            <div class="">
+                <h5 class="font-bold text-lg mb-4">Autres</h5>
+                <ul class="space-y-2">
+                    <li><a href="{{ path('home') }}" class="text-gray-600 hover:text-gray-800">Accueil</a></li>
+                    <li><a href="{{ path('index_spicy_match') }}" class="text-gray-600 hover:text-gray-800">Créer mon mélange</a></li>
+                    <li><a href="{{ path('new_contact') }}" class="text-gray-600 hover:text-gray-800">Contactez-moi</a></li>
                 </ul>
+            </div>
+            <div class="">
+                <h5 class="font-bold text-lg mb-4">Recevoir des newsletter <i class="fa-regular fa-newspaper"></i></h5>
+                <p class="text-gray-600">Recevez un mail lorsque des nouveautés sont ajoutées au site.</p>
+                <form class="mt-4">
+                    <div class="flex flex-col space-y-2">
+                        <label for="newsletter1" class="sr-only">Adresse Mail</label>
+                        <input id="newsletter1" type="text" class="px-4 py-2 border border-gray-300 rounded-md" placeholder="Adresse mail">
+                        <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" type="button">Souscrire</button>
+                    </div>
+                </form>
             </div>
         </div>
 
-        <div class="col-md-5">
-            <form>
-                <h5>Recevoir des newsletter <i class="fa-regular fa-newspaper"></i></h5>
-                <p>Recevez un mail lorsque des nouveautés sont ajoutées au site. </p>
-                <div class="d-flex flex-column w-100 gap-2">
-                    <label for="newsletter1" class="visually-hidden">Adresse Mail</label>
-                    <input id="newsletter1" type="text" class="form-control" placeholder="Adresse mail">
-                    <button class="btn btn-primary" type="button">Souscrire</button>
-                </div>
-            </form>
+        <div class="text-center border-t border-gray-200 mt-8 py-4">
+            <p class="text-gray-600 mb-0">© 2025 SpicyMatch. Tous droits réservés.</p>
         </div>
-    </div>
-
-    <div class=" container text-center border-top my-0 py-3">
-        <p class="mb-0">© 2024 SpicyMatch. Tous droits réservés.</p>
-        {# <ul class="list-unstyled d-flex">
-            <li class="ms-3"><a class="link-dark" href="#"><svg class="bi" width="24" height="24"><use xlink:href="#twitter"></use></svg></a></li>
-            <li class="ms-3"><a class="link-dark" href="#"><svg class="bi" width="24" height="24"><use xlink:href="#instagram"></use></svg></a></li>
-            <li class="ms-3"><a class="link-dark" href="#"><svg class="bi" width="24" height="24"><use xlink:href="#facebook"></use></svg></a></li>
-        </ul> #}
     </div>
 </footer>

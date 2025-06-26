@@ -2,25 +2,25 @@
 
 {% block content %}
     <turbo-frame id="user_frame_id">
-        <div class="list-group list-group-horizontal">
-            <a href="{{ path('profile_user') }}" class="list-group-item list-group-item-action list-group-item-light">Profil</a>
-            <a href="{{ path('configuration_user') }}" class="list-group-item list-group-item-action list-group-item-light active">Configuration</a>
-            <a href="{{ path('history_user') }}" class="list-group-item list-group-item-action list-group-item-light">Historique</a>
-            <a href="{{ path('security_user') }}" class="list-group-item list-group-item-action list-group-item-light">Sécurité</a>
+        <div class="flex border-b border-gray-200">
+            <a href="{{ path('profile_user') }}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:border-b-2 hover:border-gray-300">Profil</a>
+            <a href="{{ path('configuration_user') }}" class="px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600">Configuration</a>
+            <a href="{{ path('history_user') }}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:border-b-2 hover:border-gray-300">Historique</a>
+            <a href="{{ path('security_user') }}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:border-b-2 hover:border-gray-300">Sécurité</a>
         </div>
         
-        <div class="d-flex flex-column align-items-center justify-content-center">
-            <div class="w-100 border border-primary text-center text-primary p-2">
-                <h5 class="m-0">Partie Mail</h5>
+        <div class="flex flex-col items-center justify-center p-4">
+            <div class="w-full bg-blue-600 text-white text-center p-3 rounded-t-lg">
+                <h5 class="m-0 text-lg font-semibold">Partie Mail</h5>
             </div>
 
-            <turbo-frame id="userMail_frame_id" class="w-100 p-3 border-bottom">
-                <p class="m-0">
+            <turbo-frame id="userMail_frame_id" class="w-full p-4 border border-t-0 border-gray-200 rounded-b-lg">
+                <p class="m-0 text-gray-700">
                     Mail actuellement utilisé : 
                     {% if user.mail is null %} 
-                        Aucun (<a href="{{path('mail_user')}}">Ajouter un mail</a>) 
+                        Aucun (<a href="{{path('mail_user')}}" class="text-blue-600 hover:underline">Ajouter un mail</a>) 
                     {% else %}
-                        {{ user.mail }} (<a href="{{path('mail_user')}}">Changer le mail</a>)
+                        {{ user.mail }} (<a href="{{path('mail_user')}}" class="text-blue-600 hover:underline">Changer le mail</a>)
                     {% endif %}
                 </p>
             </turbo-frame>

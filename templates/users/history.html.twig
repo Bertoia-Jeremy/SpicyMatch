@@ -2,21 +2,21 @@
 
 {% block content %}
     <turbo-frame id="user_frame_id">
-        <div class="list-group list-group-horizontal">
-            <a href="{{ path('profile_user') }}" class="list-group-item list-group-item-action list-group-item-light">Profil</a>
-            <a href="{{ path('configuration_user') }}" class="list-group-item list-group-item-action list-group-item-light">Configuration</a>
-            <a href="{{ path('history_user') }}" class="list-group-item list-group-item-action list-group-item-light active">Historique</a>
-            <a href="{{ path('security_user') }}" class="list-group-item list-group-item-action list-group-item-light">Sécurité</a>
+        <div class="flex border-b border-gray-200">
+            <a href="{{ path('profile_user') }}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:border-b-2 hover:border-gray-300">Profil</a>
+            <a href="{{ path('configuration_user') }}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:border-b-2 hover:border-gray-300">Configuration</a>
+            <a href="{{ path('history_user') }}" class="px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600">Historique</a>
+            <a href="{{ path('security_user') }}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:border-b-2 hover:border-gray-300">Sécurité</a>
         </div>
 
-        <div class="d-flex flex-column align-items-center justify-content-center">
-            <div class="w-100 border border-primary text-center text-primary p-2">
-                <h5 class="m-0">Historique</h5>
+        <div class="flex flex-col items-center justify-center p-4">
+            <div class="w-full bg-blue-600 text-white text-center p-3 rounded-t-lg">
+                <h5 class="m-0 text-lg font-semibold">Historique</h5>
             </div>
 
-            <turbo-frame id="history_frame_id" class="w-100 my-2">
+            <turbo-frame id="history_frame_id" class="w-full my-2 p-4 border border-t-0 border-gray-200 rounded-b-lg">
                 <p class="p-3 m-0 text-center">
-                    <a class="btn btn-primary" href="{{path('index_spicymatch_history')}}">Charger l'historique</a>
+                    <a class="px-6 py-3 text-white bg-blue-600 rounded-md hover:bg-blue-700" href="{{path('index_spicymatch_history')}}">Charger l'historique</a>
                 </p>
             </turbo-frame>
         </div>

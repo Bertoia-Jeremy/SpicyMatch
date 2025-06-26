@@ -5,14 +5,13 @@
 {% block title %}SpicymatchHistory{% endblock %}
 
 {% block body %}
-    <div class="text-center my-4">
-        <h1>Recette des mélanges</h1>
-    </div>
-
-    <div class="container">
-        <div class="text-center">
-            <h3 class="mb-2"><u>Préparation des épices :</u></h3>
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800">Recette des mélanges</h1>
         </div>
+
+        <div class="mb-12">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Préparation des épices :</h2>
 
         {% set preparationMethodsArray = [] %}
         {% for preparation in preparations %}
@@ -25,49 +24,48 @@
                     {% if preparation.preparationMethod is not null %}
                         {% set methodId = preparation.preparationMethod.id %}
 
-                        {% if preparationMethodsArray.methodId is not defined %}
-                            {% set preparationMethodsArray = preparationMethodsArray|merge([{ methodId: methodId }]) %}
-                            {% set createModal = true %}
-                        {% else %}
-                            {% set createModal = false %}
+                            {% if preparationMethodsArray.methodId is not defined %}
+                                {% set preparationMethodsArray = preparationMethodsArray|merge([{ methodId: methodId }]) %}
+                                {% set createModal = true %}
+                            {% else %}
+                                {% set createModal = false %}
+                            {% endif %}
+
+                            {{ macroModalPreparationMethod.modal(
+                                methodId, 
+                                preparation.preparationMethod.name, 
+                                createModal
+                            )}}
                         {% endif %}
-
-                        {{ macroModalPreparationMethod.modal(
-                            methodId, 
-                            preparation.preparationMethod.name, 
-                            createModal
-                        )}}
-                    {% endif %}
-                </div>
-            </article>
-        {% endfor %}
-    </div>
-
-    <div class="text-center">
-        <h3>Moment d'insertion des épices :</h3>
-    </div>
-
-    <div class="d-flex justify-content-center align-items-stretch">
-        {% set stepsTitle = ["Avant", "Début", "Milieu", "Fin", "Après"] %}    
-
-        {% for step, cookings in cookingsByStep %}
-            <div class="border rounded d-flex flex-column justify-content-start align-items-center m-3 py-3 px-2 shadow">
-                <h4 class="h1 text-primary">{{ stepsTitle[step] }}</h4>
-                <div class="border border-primary w-100 mb-3"></div>
-                <div class="list-group list-group-flush bg-light rounded">
-                    <div class="d-flex flex-column justify-content-center align-items-center">
-                        {% for cooking in cookings %}
-                            {# TODO => utiliser le templates des cards pour le mélange des épices (photos + couleurs) #}
-                            <div class="m-2">
-                                <a class="text-decoration-none" href="{{ path('view_spice', {"id" : cooking.spice.id}) }}">
-                                    {{ macroCardSpice.cardLittleSpice(cooking.spice, true) }}
-                                </a>
-                            </div>
-                        {% endfor %}
                     </div>
-                </div>
-            </div>
-        {% endfor %}
-        
-    </div>   
+                </article>
+            {% endfor %}
+        </div>
+
+        <div class="mb-12">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Moment d'insertion des épices :</h2>
+
+            <div class="flex flex-wrap justify-center -mx-2">
+                {% set stepsTitle = ["Avant", "Début", "Milieu", "Fin", "Après"] %}    
+
+                {% for step, cookings in cookingsByStep %}
+                    <div class="flex-1 min-w-[200px] max-w-[250px] border border-gray-200 rounded-lg shadow-md m-2 p-4 flex flex-col items-center">
+                        <h3 class="text-2xl font-bold text-blue-600 mb-3">{{ stepsTitle[step] }}</h3>
+                        <div class="w-full h-0.5 bg-blue-500 mb-4"></div>
+                        <div class="flex flex-wrap justify-center">
+                            {% for cooking in cookings %}
+                                {# TODO => utiliser le templates des cards pour le mélange des épices (photos + couleurs) #}
+
+                                <div class="m-2">
+                                    <a href="{{ path('view_spice', {"id" : cooking.spice.id}) }}">
+                                        {{ macroCardSpice.cardLittleSpice(cooking.spice, true) }}
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>   
+        </div>
+    </div>
 {% endblock %}

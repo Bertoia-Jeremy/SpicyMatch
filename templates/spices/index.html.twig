@@ -4,26 +4,25 @@
 {% block title %}SpicyMatch - Epices{% endblock %}
 
 {% block body %}
-    <div class="container-fluid">
-        <div class="container justify-content-center">
-            <h2>Présentation des épices</h2>
-        </div>
-
-        <div class="container">
-            <turbo-frame id="spices_frame_id">
-                {%  include "/components/_spices_filters.html.twig" %}
-
-                <div class="d-flex flex-wrap justify-content-around align-items-center">
-                    {% for spice in spices %}
-                        <a href="{{ path('view_spice', {"id" : spice.id}) }}">
-                            {{ macroCardSpice.cardSpice(spice) }}
-                        </a>
-                    {% endfor %}
-                </div>
-                <div class="container justify-content-around">
-                    {{ knp_pagination_render(spices) }}
-                </div>
-            </turbo-frame>
-        </div>
+<div class="container mx-auto px-4 py-8">
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold text-gray-800">Découvrez nos épices</h1>
     </div>
+
+    <turbo-frame id="spices_frame_id">
+        {% include "/components/_spices_filters.html.twig" %}
+
+        <div class="flex flex-wrap justify-center">
+            {% for spice in spices %}
+                <a href="{{ path('view_spice', {"id" : spice.id}) }}">
+                    {{ macroCardSpice.cardSpice(spice) }}
+                </a>
+            {% endfor %}
+        </div>
+
+        <div class="mt-8 flex justify-center">
+            {{ knp_pagination_render(spices) }}
+        </div>
+    </turbo-frame>
+</div>
 {% endblock %}

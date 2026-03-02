@@ -2,7 +2,7 @@ vich_uploader:
   db_driver: orm
 
   metadata:
-    type: annotation
+    type: attribute
 
   mappings:
     spice_images:

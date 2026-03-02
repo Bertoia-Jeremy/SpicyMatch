@@ -61,3 +61,4 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
             ->getQuery()
             ->getResult();
     }
+}

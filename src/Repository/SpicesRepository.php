@@ -63,33 +63,33 @@ class SpicesRepository extends ServiceEntityRepository
      */
     public function findSpicesForMatch(string $idsString): array
     {
-        return $this->findAllSpices($idsString);
+        $ids = array_map('intval', explode(',', $idsString));
+
+        return $this->createQueryBuilder('s')
+            ->select('s.id', 's.name', 's.description', 's.file', 'ag.color', 'ag.name AS groupName')
+            ->leftJoin('s.aromaticGroups', 'ag')
+            ->where('s.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->orderBy('ag.name')
+            ->addOrderBy('s.name')
+            ->getQuery()
+            ->getArrayResult()
+        ;
     }
 
     /**
      * @return array<array<string>>
      */
-    public function findAllSpices(?string $ids = null): array
+    public function findAllSpices(): array
     {
-        $glue = '';
-
-        if ($ids) {
-            $glue .= "WHERE s.id IN ({$ids})";
-        }
-
-        $sql = "SELECT s.id, s.name, s.description, s.file, ac.color, ac.name as groupName
-                FROM spices AS s
-                LEFT JOIN aromatic_groups AS ac
-                    ON s.aromaticGroups = ac.id
-                {$glue}
-                ORDER BY groupName, s.name";
-
-        $stmt = $this->getEntityManager()
-            ->getConnection()
-            ->prepare($sql);
-
-        return $stmt->executeQuery()
-            ->fetchAllAssociative();
+        return $this->createQueryBuilder('s')
+            ->select('s.id', 's.name', 's.description', 's.file', 'ag.color', 'ag.name AS groupName')
+            ->leftJoin('s.aromaticGroups', 'ag')
+            ->orderBy('ag.name')
+            ->addOrderBy('s.name')
+            ->getQuery()
+            ->getArrayResult()
+        ;
     }
 
     public function search(string $word): array
@@ -117,59 +117,51 @@ class SpicesRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return array<string>
+     * Load candidate spices for compatibility scoring.
+     *
+     * Returns Spices that have at least one of the given shared compound IDs
+     * (main or secondary), excluding already-selected spice IDs.
+     * Compounds and AlchemyFlavors are eagerly loaded to avoid N+1 during scoring.
+     *
+     * @param int[] $sharedCompoundIds
+     * @param int[] $excludedSpiceIds
+     *
+     * @return Spices[]
      */
-    public function getByAromaticsCompounds(
-        array $mainAromaticsCompoundsIds,
-        array $secondaryAromaticsCompoundsIds,
-    ): array {
-        $mainIds = $this->checkArrayAndReturnString($mainAromaticsCompoundsIds);
-        $secondaryIds = $this->checkArrayAndReturnString($secondaryAromaticsCompoundsIds);
-
-        $sql = "SELECT DISTINCT spices_id
-                FROM spices_aromatic_compound 
-                WHERE aromatic_compound_id IN ({$mainIds})
-                
-                UNION
-                    
-                SELECT DISTINCT spices_id
-                FROM secondary_spices_aromatic_compound 
-                WHERE aromatic_compound_id IN ({$mainIds})
-                
-                UNION
-                
-                SELECT DISTINCT spices_id
-                FROM spices_aromatic_compound 
-                WHERE aromatic_compound_id IN ({$secondaryIds})
-                    
-                UNION
-                
-                SELECT DISTINCT spices_id
-                FROM secondary_spices_aromatic_compound 
-                WHERE aromatic_compound_id IN ({$secondaryIds})";
-
-        $conn = $this->getEntityManager()
-            ->getConnection();
-        $stmt = $conn->prepare($sql);
-
-        $arraysIds = $stmt->executeQuery()
-            ->fetchAllAssociative();
-
-        // Afin de ne retourner qu'un seul tableau d'ids
-        $ids = [];
-        foreach ($arraysIds as $array) {
-            $ids[] = $array['spices_id'];
-        }
-
-        return $ids;
-    }
-
-    private function checkArrayAndReturnString(array $array): string
+    public function findCandidatesForScoring(array $sharedCompoundIds, array $excludedSpiceIds): array
     {
-        if ($array === []) {
-            return '0';
+        if (empty($sharedCompoundIds)) {
+            return [];
         }
 
-        return implode(',', $array);
+        // Step 1: Get distinct candidate IDs (spices having ≥1 shared compound)
+        $candidateIds = $this->createQueryBuilder('s')
+            ->select('s.id')
+            ->distinct()
+            ->leftJoin('s.aromaticsCompounds', 'mainAc')
+            ->leftJoin('s.secondary_aromatics_compounds', 'secAc')
+            ->where('mainAc.id IN (:compoundIds) OR secAc.id IN (:compoundIds)')
+            ->andWhere('s.id NOT IN (:excludedIds)')
+            ->setParameter('compoundIds', $sharedCompoundIds)
+            ->setParameter('excludedIds', $excludedSpiceIds ?: [0])
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        if (empty($candidateIds)) {
+            return [];
+        }
+
+        // Step 2: Load with full relations (eager to avoid N+1 in CompatibilityScoreService)
+        return $this->createQueryBuilder('s')
+            ->addSelect('mainAc', 'mainFlavors', 'secAc', 'secFlavors', 'ag')
+            ->leftJoin('s.aromaticsCompounds', 'mainAc')
+            ->leftJoin('mainAc.alchemyFlavors', 'mainFlavors')
+            ->leftJoin('s.secondary_aromatics_compounds', 'secAc')
+            ->leftJoin('secAc.alchemyFlavors', 'secFlavors')
+            ->leftJoin('s.aromaticGroups', 'ag')
+            ->where('s.id IN (:ids)')
+            ->setParameter('ids', $candidateIds)
+            ->getQuery()
+            ->getResult();
     }
 }

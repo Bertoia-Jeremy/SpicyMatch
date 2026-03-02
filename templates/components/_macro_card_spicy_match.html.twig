@@ -1,4 +1,4 @@
-{% macro cardSpicyMatch(spice, littleCard) %}
+{% macro cardSpicyMatch(spice, littleCard, score) %}
 {% import "components/_macro_card_little_spice.html.twig" as macroCardSpice %}
 
     <div class="flex flex-col items-center m-2">
@@ -6,6 +6,12 @@
             {{ macroCardSpice.cardLittleSpice(spice, littleCard) }}
         </label>
         <input id="spice_{{ spice.id }}" type="checkbox" data-model="spices.selectedSpices" value="{{ spice.id }}" class="mt-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+        {% if score is not null %}
+            <div class="w-[180px] mt-1 bg-gray-200 rounded-full h-1.5">
+                <div class="h-1.5 rounded-full bg-blue-500" style="width: {{ score }}%"></div>
+            </div>
+            <span class="text-xs text-gray-400 mt-0.5">{{ score }}%</span>
+        {% endif %}
     </div>
 
 {% endmacro %}

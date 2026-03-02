@@ -8,9 +8,90 @@
             <a href="{{ path('history_user') }}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:border-b-2 hover:border-gray-300">Historique</a>
             <a href="{{ path('security_user') }}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:border-b-2 hover:border-gray-300">Sécurité</a>
         </div>
+
         <div class="p-4">
-            <h2 class="text-2xl font-bold text-gray-800">Profil de l'utilisateur</h2>
-            <p class="mt-2 text-gray-600">Ceci est la page de profil. Vous pouvez ajouter des informations spécifiques au profil ici.</p>
+            {% if progression %}
+                {# ── Level & XP ─────────────────────────────────── #}
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
+                        {{ progression.level }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-lg font-semibold text-gray-800">Niveau {{ progression.level }}</div>
+                        <div class="text-sm text-gray-500 mb-1">{{ progression.xp }} XP — encore {{ progression.xpToNextLevel }} XP pour le niveau suivant</div>
+                        {% set lvl = progression.level %}
+                        {% set xpMin = (lvl - 1) * (lvl - 1) * 100 %}
+                        {% set xpMax = lvl * lvl * 100 %}
+                        {% set range = xpMax - xpMin %}
+                        {% set pct = range > 0 ? ((progression.xp - xpMin) / range * 100)|round(1) : 100 %}
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="h-2 rounded-full bg-blue-500 transition-all" style="width: {{ pct }}%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {# ── Stats ───────────────────────────────────────── #}
+                <div class="grid grid-cols-3 gap-4 text-center mb-6 p-4 bg-gray-50 rounded-lg">
+                    <div>
+                        <div class="text-2xl font-bold text-blue-600">{{ progression.totalMatches }}</div>
+                        <div class="text-xs text-gray-500 mt-1">Mélanges</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-blue-600">{{ progression.uniqueSpicesUsed }}</div>
+                        <div class="text-xs text-gray-500 mt-1">Épices max/mélange</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-blue-600">{{ progression.userAchievements|length }}</div>
+                        <div class="text-xs text-gray-500 mt-1">Succès débloqués</div>
+                    </div>
+                </div>
+
+                {# ── Achievements ────────────────────────────────── #}
+                {% if progression.userAchievements is not empty %}
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Succès débloqués</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {% for ua in progression.userAchievements %}
+                            {% set rarity = ua.achievement.rarity.value %}
+                            {% set cardClass = {
+                                'common':    'border-gray-300 bg-gray-50',
+                                'rare':      'border-blue-300 bg-blue-50',
+                                'epic':      'border-purple-300 bg-purple-50',
+                                'legendary': 'border-yellow-400 bg-yellow-50',
+                            } %}
+                            {% set badgeClass = {
+                                'common':    'bg-gray-200 text-gray-700',
+                                'rare':      'bg-blue-100 text-blue-700',
+                                'epic':      'bg-purple-100 text-purple-700',
+                                'legendary': 'bg-yellow-100 text-yellow-700',
+                            } %}
+                            <div class="flex items-start gap-3 p-3 border rounded-lg {{ cardClass[rarity] ?? 'border-gray-200' }}">
+                                <div class="text-2xl w-8 text-center flex-shrink-0">
+                                    <i class="{{ ua.achievement.icon }}"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-semibold text-gray-800 text-sm">{{ ua.achievement.name }}</div>
+                                    <div class="text-xs text-gray-500 mt-0.5">{{ ua.achievement.description }}</div>
+                                    <div class="flex items-center gap-2 mt-1 flex-wrap">
+                                        <span class="text-xs px-2 py-0.5 rounded-full {{ badgeClass[rarity] ?? 'bg-gray-100 text-gray-600' }}">+{{ ua.achievement.xpReward }} XP</span>
+                                        <span class="text-xs text-gray-400">{{ ua.unlockedAt|date('d/m/Y') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+            {% else %}
+                {# ── No progression yet ──────────────────────────── #}
+                <div class="text-center text-gray-500 py-12">
+                    <i class="fa-solid fa-flask text-5xl text-gray-300 mb-4 block"></i>
+                    <p class="text-lg font-medium">Aucune progression pour l'instant</p>
+                    <p class="text-sm mt-1">Créez votre premier mélange pour débloquer votre progression et gagner de l'XP !</p>
+                    <a href="{{ path('index_spicy_match') }}" class="mt-4 inline-block px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
+                        Créer mon premier mélange
+                    </a>
+                </div>
+            {% endif %}
         </div>
     </turbo-frame>
 {% endblock %}

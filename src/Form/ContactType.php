@@ -44,7 +44,7 @@ class ContactType extends AbstractType
             'data_class' => Contact::class,
             'csrf_protection' => true,
             'csrf_field_name' => '_token',
-            'csrf_token_id' => 'contact_crsf_token',
+            'csrf_token_id' => 'contact_csrf_token',
         ]);
     }
 }

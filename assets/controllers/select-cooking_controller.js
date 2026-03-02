@@ -1,28 +1,23 @@
 import { Controller } from '@hotwired/stimulus';
-import $ from 'jquery';
 
-export default class extends Controller 
+export default class extends Controller
 {
     static targets = ['cooking'];
     static values = {
         spicyMatchHistoryUrl: String,
         spiceId: Number,
-        cookingId: Number
+        cookingId: Number,
     };
-    
+
     async selectCooking(event) {
         this.cookingIdValue = event.currentTarget.dataset.cookingId;
         const parentElement = this.cookingTarget.parentElement;
 
-        const response = await $.ajax({
-            url: this.spicyMatchHistoryUrlValue,
-            method: 'GET',
-            data: {
-                spiceId: this.spiceIdValue,
-                cookingId: this.cookingIdValue,
-            },
-        });
-        
-        parentElement.innerHTML = response;
+        const url = new URL(this.spicyMatchHistoryUrlValue, window.location.origin);
+        url.searchParams.set('spiceId', this.spiceIdValue);
+        url.searchParams.set('cookingId', this.cookingIdValue);
+
+        const response = await fetch(url, { method: 'GET' });
+        parentElement.innerHTML = await response.json();
     }
 }

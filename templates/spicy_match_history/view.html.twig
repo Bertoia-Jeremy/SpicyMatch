@@ -15,12 +15,12 @@
 
         {% set preparationMethodsArray = [] %}
         {% for preparation in preparations %}
-            <article class="d-flex flex-column w-100 bg-light shadow rounded my-3 p-3">
+            <article class="flex flex-col w-full bg-gray-50 shadow rounded my-3 p-3">
                 <h4 class="mb-1">{{ preparation.spice.name ~ ' - ' ~ preparation.title }}</h4>
-                <p class="text-muted mb-0">{{ preparation.spice.aromaticGroups.name }}</p>
-                <div class="w-25 pb-1 mb-2 rounded shadow-{{ preparation.spice.aromaticGroups.color |trim('#')|upper}}"></div>
+                <p class="text-gray-500 mb-0">{{ preparation.spice.aromaticGroups.name }}</p>
+                <div class="w-1/4 h-1 mb-2 rounded" style="background-color: {{ preparation.spice.aromaticGroups.color ?? '#888' }}"></div>
                 <p>{{ preparation.text|nl2br }}</p>
-                <div class="align-self-end text-end w-50">
+                <div class="self-end text-right w-1/2">
                     {% if preparation.preparationMethod is not null %}
                         {% set methodId = preparation.preparationMethod.id %}
 
@@ -32,8 +32,8 @@
                             {% endif %}
 
                             {{ macroModalPreparationMethod.modal(
-                                methodId, 
-                                preparation.preparationMethod.name, 
+                                methodId,
+                                preparation.preparationMethod.name,
                                 createModal
                             )}}
                         {% endif %}

@@ -1,29 +1,28 @@
+{# Alpine.js modal — must be inside a parent x-data="{ open: false }" scope #}
 <div
-    class="modal fade"
-    tabindex="-1"
-    aria-hidden="true"
+    x-show="open"
+    x-cloak
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
     id="{{ target }}"
-    aria-labelledby="exampleModalLabel"
+    @click.self="open = false"
 >
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">{{ modalTitle }}</h5>
-                <button type="button" class="btn-close"
-                        data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-            </div>
-            <turbo-frame
-               class="modal-body"
-                src="{{ modalSrc }}"
-                id="{{ id }}"
-                loading="lazy"
-            >
-                {{ modalContent|default('Chargement...') }}
-            </turbo-frame>
+    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+            <h5 class="text-lg font-semibold text-gray-800">{{ modalTitle }}</h5>
+            <button @click="open = false" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
         </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <turbo-frame
+            class="block p-4"
+            src="{{ modalSrc }}"
+            id="{{ id }}"
+            loading="lazy"
+        >
+            {{ modalContent|default('Chargement...') }}
+        </turbo-frame>
+        <div class="flex justify-end p-4 border-t border-gray-200">
+            <button @click="open = false" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors">
+                Fermer
+            </button>
         </div>
     </div>
 </div>

@@ -13,9 +13,7 @@ use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
-/**
- * @Vich\Uploadable
- */
+#[Vich\Uploadable]
 #[ORM\Entity(repositoryClass: SpicesRepository::class)]
 #[ORM\Table(name: 'spices')]
 class Spices
@@ -57,9 +55,7 @@ class Spices
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $file = null;
 
-    /**
-     * @Vich\UploadableField(mapping="spice_images", fileNameProperty="file", size="imageSize")
-     */
+    #[Vich\UploadableField(mapping: 'spice_images', fileNameProperty: 'file', size: 'imageSize')]
     private ?File $imageFile = null;
 
     #[ORM\Column(type: 'integer')]

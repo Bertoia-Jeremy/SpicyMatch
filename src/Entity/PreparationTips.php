@@ -92,12 +92,12 @@ class PreparationTips
         return $this;
     }
 
-    public function getspice(): ?Spices
+    public function getSpice(): ?Spices
     {
         return $this->spice;
     }
 
-    public function setspice(?Spices $spice): static
+    public function setSpice(?Spices $spice): static
     {
         $this->spice = $spice;
 

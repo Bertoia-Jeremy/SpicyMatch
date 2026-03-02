@@ -6,21 +6,16 @@ namespace App\Controller;
 
 use App\Entity\SpicyMatch;
 use App\Factory\SpicyMatchHistoryFactory;
-use App\Form\SpicyMatchHistoryType;
-use App\Repository\SpicesRepository;
+use App\Message\MatchSavedEvent;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/spicymatch')]
 class SpicyMatchController extends AbstractController
 {
-    public function __construct(
-        private SpicesRepository $spicesRepository
-    ) {
-    }
-
     #[Route('/', name: 'index_spicy_match')]
     public function index(): Response
     {
@@ -29,23 +24,27 @@ class SpicyMatchController extends AbstractController
 
     #[Route('/view/{id<\d+>}', name: 'view_spicy_match')]
     public function view(
-        SpicyMatch $spicyMatch, 
+        SpicyMatch $spicyMatch,
         SpicyMatchHistoryFactory $spicyMatchHistoryFactory,
         EntityManagerInterface $entityManager,
-        ): Response
-    {
-        $spices = $this->spicesRepository->findAllByStringIds($spicyMatch->getSpicesIds());
+        MessageBusInterface $bus,
+    ): Response {
         $spicyMatchHistory = $spicyMatchHistoryFactory->create($spicyMatch);
-        
         $entityManager->persist($spicyMatchHistory);
         $entityManager->flush();
 
-        return $this->render('spicy_match/view.html.twig',
-            [
-                'spicyMatchHistory' => $spicyMatchHistory,
-                'spicyMatch' => $spicyMatch,
-                'spices' => $spices,
-            ]
-        );
+        // Dispatch async gamification event
+        if ($spicyMatch->getUser() !== null) {
+            $bus->dispatch(new MatchSavedEvent(
+                $spicyMatchHistory->getId(),
+                $spicyMatch->getUser()->getId()
+            ));
+        }
+
+        return $this->render('spicy_match/view.html.twig', [
+            'spicyMatchHistory' => $spicyMatchHistory,
+            'spicyMatch'        => $spicyMatch,
+            'spices'            => $spicyMatch->getSpices(),
+        ]);
     }
 }

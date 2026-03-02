@@ -15,11 +15,9 @@
                 <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
                     <tbody>
                         {% for history in spicymatch_histories %}
-                            {% set spicesIds = history.spicesIds|split(',') %}
-
                             <tr class="border-b last:border-b-0 hover:bg-gray-50">
                                 <td class="p-4">
-                                    <a class="block text-decoration-none text-gray-800" href="{{ path('view_spicymatch_history', {'id' : history.id }) }}">
+                                    <a class="block text-decoration-none text-gray-800" href="{{ path('view_spicy_match_history', {'id': history.id}) }}">
                                         <div class="flex flex-col md:flex-row justify-between items-center">
                                             <div class="flex-1 mb-4 md:mb-0">
                                                 <h2 class="text-xl font-semibold">
@@ -30,8 +28,8 @@
                                                     {% endif %}
                                                 </h2>
                                                 <div class="flex flex-wrap mt-2">
-                                                    {% for spiceId in spicesIds %}
-                                                        {{ macroCardSpicyMatchHistory.cardSpicyMatch(spices[spiceId]) }}
+                                                    {% for spice in history.spicyMatch.spices %}
+                                                        {{ macroCardSpicyMatchHistory.cardSpicyMatch(spice) }}
                                                     {% endfor %}
                                                 </div>
                                             </div>

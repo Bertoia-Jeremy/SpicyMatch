@@ -77,14 +77,21 @@ class UsersController extends AbstractController
     #[Route('/profile', name: 'profile_user', methods: ['GET'])]
     public function profile(): Response
     {
+        /** @var Users $user */
+        $user = $this->getUser();
+
         return $this->render('users/profile.html.twig', [
-            'user' => 'profile',
+            'progression' => $user->getProgression(),
         ]);
     }
 
     #[Route('/{id}', name: 'delete_user', methods: ['POST'])]
     public function delete(Request $request, Users $user, EntityManagerInterface $entityManager): Response
     {
+        if ($this->getUser() !== $user) {
+            throw $this->createAccessDeniedException();
+        }
+
         if ($this->isCsrfTokenValid(
             'delete' . $user->getId(),
             $request->request->get('_token')
@@ -92,8 +99,10 @@ class UsersController extends AbstractController
             $user->setDeletedAt(new \DateTimeImmutable());
             $entityManager->persist($user);
             $entityManager->flush();
+
+            return $this->redirectToRoute('app_logout', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->redirectToRoute('index_users_index', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('dashboard_user', [], Response::HTTP_SEE_OTHER);
     }
 }

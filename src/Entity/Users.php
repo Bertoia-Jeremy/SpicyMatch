@@ -53,8 +53,11 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'last_login_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $lastLoginAt = null;
 
-    #[ORM\OneToMany(mappedBy: 'user_id', targetEntity: SpicyMatch::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: SpicyMatch::class, orphanRemoval: true)]
     private Collection $spicyMatches;
+
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: UserProgression::class, cascade: ['persist', 'remove'])]
+    private ?UserProgression $progression = null;
 
     public function __construct()
     {
@@ -211,6 +214,18 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function getSpicyMatches(): Collection
     {
         return $this->spicyMatches;
+    }
+
+    public function getProgression(): ?UserProgression
+    {
+        return $this->progression;
+    }
+
+    public function setProgression(?UserProgression $progression): static
+    {
+        $this->progression = $progression;
+
+        return $this;
     }
 
     public function addSpicyMatch(SpicyMatch $spicyMatch): static

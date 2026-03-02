@@ -64,7 +64,6 @@ class AromaticCompound
         targetEntity: Spices::class,
         mappedBy: 'secondary_aromatics_compounds'
     )]
-    #[ORM\JoinTable(name: 'secondary_spices_aromatic_compound')]
     private Collection $secondary_spices;
 
     public function __construct()

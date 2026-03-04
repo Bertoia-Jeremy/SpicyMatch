@@ -29,6 +29,7 @@
   --color-paprika-700:       #B91C1C;
   --color-paprika-800:       #991B1B;
   --color-paprika-900:       #7F1D1D;
+  --color-paprika-950:       #2D0A0A;
 
   /* Curcuma — jaune doré */
   --color-turmeric-300:      #FCD34D;
@@ -39,6 +40,20 @@
   /* Surface chaude */
   --color-spice-surface:     #FFF7ED;
   --color-spice-border:      #FED7AA;
+
+  /* Animations personnalisées */
+  --animate-fade-in-right:   fade-in-right 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  --animate-bounce-slow:     bounce-slow 4s ease-in-out infinite;
+  --animate-spin-slow:       spin 12s linear infinite;
+
+  @keyframes fade-in-right {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes bounce-slow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+  }
 }
 
 /* ── Blur utilities (non compilées par Tailwind v4 sans --blur token) ── */

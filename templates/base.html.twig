@@ -1,34 +1,183 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="scroll-smooth">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         {% block metas %}{% endblock %}
-        <title>{% block title %}SpicyMatch{% endblock %}</title>
+        <title>{% block title %}SpicyMatch — L'Alchimie Culinaire{% endblock %}</title>
+        
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous">
+
         {% block stylesheets %}
-            <link rel="preconnect" href="https://fonts.googleapis.com">
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-            <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous">
             <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}">
         {% endblock %}
+
         {% block javascripts %}
             {{ importmap('app') }}
         {% endblock %}
     </head>
 
-    <body class="bg-cream min-h-screen flex flex-col">
-        {% block header %}
-            {% include '/components/_navbar.html.twig' %}
-        {% endblock %}
+    <body class="bg-cream text-stone-900 font-sans selection:bg-saffron-200 selection:text-saffron-900 overflow-x-hidden">
+        
+        {# Navbar "Premium Boutique" Rétablie #}
+        <header class="fixed top-0 w-full z-50 h-16 bg-cream/98 backdrop-blur-md border-b border-paprika-900/5">
+            <nav class="max-w-7xl mx-auto px-6 h-full grid grid-cols-12 items-center">
+                
+                {# Zone Gauche (Logo + Navigation Piliers) - 5 cols #}
+                <div class="col-span-5 flex items-center gap-10">
+                    <a href="{{ path('home') }}" class="group flex items-center gap-2 no-underline">
+                        <div class="w-8 h-8 bg-paprika-900 flex items-center justify-center rounded-lg shadow-sm transition-transform group-hover:rotate-6">
+                            <i class="fa-solid fa-mortar-pestle text-cream text-[12px]"></i>
+                        </div>
+                        <span class="font-display text-xl font-bold tracking-tight text-paprika-900">Spicy<span class="text-saffron-600 italic">Match</span></span>
+                    </a>
+                    <div class="hidden xl:flex items-center gap-8">
+                        <a href="{{ path('index_spices') }}" class="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 hover:text-paprika-900 transition-all no-underline">Catalogue</a>
+                        <a href="{{ path('index_aromatic_groups') }}" class="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 hover:text-paprika-900 transition-all no-underline">Science</a>
+                        <a href="{{ path('index_spicy_match') }}" class="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 hover:text-paprika-900 transition-all no-underline">Le Lab</a>
+                    </div>
+                </div>
 
-        <main class="flex-1">
-            {% block body %}
-            {% endblock %}
+                {# Zone Centre (Recherche "Inner Shadow") - 2 cols #}
+                <div class="col-span-2 flex justify-center">
+                    <div class="relative w-full max-w-md group">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-stone-300 text-[10px]"></i>
+                        <input type="text" placeholder="Rechercher..." 
+                               class="w-full bg-stone-100/70 border-0 shadow-inner rounded-full py-2 pl-9 pr-4 text-xs placeholder:text-stone-400 focus:ring-1 focus:ring-saffron-500/30 transition-all outline-none">
+                    </div>
+                </div>
+
+                {# Zone Droite (Profil & Actions) - 5 cols #}
+                <div class="col-span-5 flex items-center justify-end gap-6">
+                    {# Favoris #}
+                    <a href="{{ path('index_spicy_match_history') }}" class="text-stone-400 hover:text-paprika-900 transition-colors relative no-underline">
+                        <i class="fa-regular fa-bookmark text-sm"></i>
+                        <span class="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-saffron-500 text-cream text-[8px] font-bold flex items-center justify-center rounded-full">3</span>
+                    </a>
+
+                    {# Dropdown Alpine.js #}
+                    <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                        <button @click="open = !open" class="flex items-center gap-3 group focus:outline-none">
+                            <div class="w-8 h-8 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-500 overflow-hidden group-hover:border-paprika-900/20 transition-all">
+                                <i class="fa-solid fa-user-circle text-[16px]"></i>
+                            </div>
+                        </button>
+                        
+                        <div x-show="open" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-2"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             class="absolute right-0 mt-3 w-56 bg-white border border-stone-100 rounded-xl shadow-2xl py-3 z-[60]">
+                            {% if is_granted('ROLE_USER') %}
+                                <a href="{{ path('profile_user') }}" class="flex items-center gap-3 px-5 py-2.5 text-xs text-stone-600 hover:bg-stone-50 hover:text-paprika-900 transition-colors no-underline">
+                                    <i class="fa-solid fa-id-card text-stone-300 w-4"></i> Mon Profil
+                                </a>
+                                <a href="{{ path('index_spicy_match_history') }}" class="flex items-center gap-3 px-5 py-2.5 text-xs text-stone-600 hover:bg-stone-50 hover:text-paprika-900 transition-colors no-underline">
+                                    <i class="fa-solid fa-flask-vial text-stone-300 w-4"></i> Mes Mélanges
+                                </a>
+                                <div class="border-t border-stone-50 mt-2 pt-2">
+                                    <a href="{{ path('app_logout') }}" class="flex items-center gap-3 px-5 py-2.5 text-xs text-paprika-700 font-bold hover:bg-paprika-50 no-underline">
+                                        <i class="fa-solid fa-arrow-right-from-bracket w-4"></i> Déconnexion
+                                    </a>
+                                </div>
+                            {% else %}
+                                <a href="{{ path('app_login') }}" class="px-5 py-2 text-xs text-stone-600 hover:bg-stone-50 block no-underline">Se connecter</a>
+                                <a href="{{ path('index_register') }}" class="px-5 py-2 text-xs text-stone-600 hover:bg-stone-50 block no-underline">S'inscrire</a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <a href="{{ path('index_spicy_match') }}" 
+                       class="bg-paprika-900 text-cream px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-paprika-800 transition-all shadow-lg no-underline">
+                        Lancer
+                    </a>
+                </div>
+            </nav>
+        </header>
+
+        <main class="min-h-screen pt-16">
+            {% block body %}{% endblock %}
         </main>
 
-        {% block footer %}
-            {% include '/components/_footer.html.twig' %}
-        {% endblock %}
+        {# Footer Boutique Premium Stabilisé #}
+        <footer class="bg-paprika-950 text-cream py-20 border-t border-white/5">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-16 items-start">
+                    
+                    {# Col 1 : Marque #}
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 bg-cream flex items-center justify-center rounded-md">
+                                <i class="fa-solid fa-mortar-pestle text-paprika-950 text-[10px]"></i>
+                            </div>
+                            <span class="font-display text-sm font-bold tracking-tight">SpicyMatch</span>
+                        </div>
+                        <p class="text-[11px] opacity-60 leading-relaxed max-w-[200px] font-light italic">
+                            Redéfinir l'art du goût à travers l'alchimie botanique moderne.
+                        </p>
+                    </div>
+
+                    {# Col 2 : Navigation #}
+                    <div>
+                        <h4 class="text-[10px] font-bold uppercase tracking-[0.25em] mb-8 flex items-center gap-3">
+                            <span class="w-1 h-1 bg-saffron-500 rounded-full"></span> Exploration
+                        </h4>
+                        <ul class="list-none p-0 m-0 space-y-4">
+                            <li><a href="{{ path('home') }}" class="text-xs opacity-60 hover:opacity-100 transition-opacity no-underline block">Accueil</a></li>
+                            <li><a href="{{ path('index_spices') }}" class="text-xs opacity-60 hover:opacity-100 transition-opacity no-underline block">Catalogue</a></li>
+                            <li><a href="{{ path('index_spicy_match') }}" class="text-xs opacity-60 hover:opacity-100 transition-opacity no-underline block">Créateur</a></li>
+                        </ul>
+                    </div>
+
+                    {# Col 3 : Science #}
+                    <div>
+                        <h4 class="text-[10px] font-bold uppercase tracking-[0.25em] mb-8 flex items-center gap-3">
+                            <span class="w-1 h-1 bg-saffron-500 rounded-full"></span> Science
+                        </h4>
+                        <ul class="list-none p-0 m-0 space-y-4">
+                            <li><a href="{{ path('index_aromatic_groups') }}" class="text-xs opacity-60 hover:opacity-100 transition-opacity no-underline block">Groupes Aromatiques</a></li>
+                            <li><a href="{{ path('index_aromatic_compound') }}" class="text-xs opacity-60 hover:opacity-100 transition-opacity no-underline block">Composés</a></li>
+                            <li><a href="{{ path('index_alchemy_flavors') }}" class="text-xs opacity-60 hover:opacity-100 transition-opacity no-underline block">Saveurs</a></li>
+                        </ul>
+                    </div>
+
+                    {# Col 4 : Aide #}
+                    <div>
+                        <h4 class="text-[10px] font-bold uppercase tracking-[0.25em] mb-8 flex items-center gap-3">
+                            <span class="w-1 h-1 bg-saffron-500 rounded-full"></span> Support
+                        </h4>
+                        <ul class="list-none p-0 m-0 space-y-4">
+                            <li><a href="#" class="text-xs opacity-60 hover:opacity-100 transition-opacity no-underline block">FAQ</a></li>
+                            <li><a href="{{ path('new_contact') }}" class="text-xs opacity-60 hover:opacity-100 transition-opacity no-underline block">Contact</a></li>
+                        </ul>
+                    </div>
+
+                    {# Col 5 : Newsletter #}
+                    <div class="space-y-6">
+                        <h4 class="text-[10px] font-bold uppercase tracking-[0.25em] mb-8 flex items-center gap-3">
+                            <span class="w-1 h-1 bg-saffron-500 rounded-full"></span> Newsletter
+                        </h4>
+                        <p class="text-[10px] opacity-50 uppercase tracking-widest leading-loose">Notes botaniques mensuelles.</p>
+                        <form class="relative border-b border-white/20 pb-2 group focus-within:border-saffron-500 transition-all flex items-center">
+                            <input type="email" placeholder="Email" 
+                                   class="bg-transparent border-none p-0 text-xs placeholder:text-stone-700 focus:ring-0 w-full text-cream outline-none">
+                            <button class="absolute right-0 top-1/2 -translate-y-1/2 text-stone-500 hover:text-saffron-400 transition-all group-focus-within:translate-x-1">
+                                <i class="fa-solid fa-arrow-right-long"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="mt-20 pt-8 border-t border-white/5 text-center">
+                    <p class="text-[9px] opacity-30 uppercase tracking-[0.4em]">
+                        &copy; {{ "now"|date("Y") }} SpicyMatch — L'Art de l'Alchimie Culinaire
+                    </p>
+                </div>
+            </div>
+        </footer>
+
     </body>
 </html>

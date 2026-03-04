@@ -1,12 +1,58 @@
 {% macro cardSpice(spice) %}
-    {% set color = spice.aromaticGroups.color %}
+    {% set color = spice.aromaticGroups ? spice.aromaticGroups.color : '#78716C' %}
+    {% set imageUrl = vich_uploader_asset(spice, 'imageFile') %}
 
-    <div class="w-64 h-80 rounded-lg overflow-hidden shadow-lg m-4 bg-cover bg-center relative" style="background-image: url({{ vich_uploader_asset(spice, 'imageFile') }})">
-        <div class="absolute inset-0 bg-black bg-opacity-50 hover:bg-opacity-25 transition-all duration-300">
-            <div class="p-4 text-white flex flex-col justify-end h-full">
-                <h3 class="text-2xl font-bold">{{ spice.name }}</h3>
-                <p class="text-sm mt-2 h-16 overflow-y-auto">{{ spice.description }}</p>
+    <article class="card-warm flex flex-col overflow-hidden h-full group cursor-pointer">
+
+        {# ── Image ── #}
+        <div class="relative overflow-hidden aspect-square bg-stone-100">
+            {% if imageUrl %}
+                <img
+                    src="{{ imageUrl }}"
+                    alt="{{ spice.name }}"
+                    loading="lazy"
+                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-108">
+            {% else %}
+                <div class="w-full h-full flex items-center justify-center bg-cream-dark">
+                    <i class="fa-solid fa-mortar-pestle text-4xl text-stone-300"></i>
+                </div>
+            {% endif %}
+
+            {# Quick-view hint au hover #}
+            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                 style="background: linear-gradient(to top, {{ color }}CC 0%, transparent 60%)">
+                <span class="bg-white/90 text-stone-800 text-xs font-semibold px-3 py-1.5 rounded-full shadow-md translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                    <i class="fa-solid fa-magnifying-glass mr-1"></i>Aperçu rapide
+                </span>
             </div>
+
+            {# Barre couleur groupe #}
+            <div class="absolute bottom-0 left-0 right-0 h-1" style="background-color: {{ color }}"></div>
         </div>
-    </div>
+
+        {# ── Contenu ── #}
+        <div class="flex flex-col flex-1 p-4 gap-2">
+            <h3 class="font-semibold text-stone-900 text-sm leading-snug line-clamp-2 group-hover:text-saffron-700 transition-colors duration-200">
+                {{ spice.name }}
+            </h3>
+
+            {% if spice.aromaticGroups %}
+                {#
+                  Badge couleur dynamique via inline style (hex du groupe).
+                  Tailwind ne peut pas générer des classes depuis des valeurs dynamiques
+                  donc on utilise style avec opacity hex (#rrggbbAA).
+                #}
+                <span class="inline-flex items-center gap-1 self-start text-xs font-medium px-2 py-0.5 rounded-full leading-none"
+                      style="background-color: {{ color }}22; color: {{ color }}; border: 1px solid {{ color }}44">
+                    {{ spice.aromaticGroups.name }}
+                </span>
+            {% endif %}
+
+            {% if spice.description %}
+                <p class="text-xs text-stone-400 line-clamp-2 leading-relaxed mt-auto pt-1">
+                    {{ spice.description }}
+                </p>
+            {% endif %}
+        </div>
+    </article>
 {% endmacro %}

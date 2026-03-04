@@ -1,95 +1,257 @@
-<nav x-data="{ open: false }" class="bg-white shadow-sm">
-    <div class="container mx-auto px-4">
-        <div class="flex justify-between items-center py-4">
-            <div>
-                <a class="text-xl font-bold" href="{{ path('home') }}">SpicyMatch</a>
+<nav x-data="{ open: false }" class="sticky top-0 z-50 bg-cream/80 backdrop-blur-md border-b border-saffron-700/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-20">
+
+            {# ── Logo ── #}
+            <div class="shrink-0">
+                <a href="{{ path('home') }}"
+                   class="flex items-center gap-2 font-display text-xl font-bold text-stone-900 tracking-tight hover:text-saffron-700 transition-colors">
+                    <i class="fa-solid fa-fire text-saffron-600"></i>
+                    Spicy<span class="italic text-saffron-700">Match</span>
+                </a>
             </div>
 
-            <div class="hidden md:flex items-center space-x-4">
-                <a class="text-gray-600 hover:text-gray-800" href="{{ path('home') }}">Accueil</a>
-                <a class="text-gray-600 hover:text-gray-800" href="{{ path('index_spicy_match') }}">Créer mon mélange</a>
+            {# ── Nav centrale (desktop) ── #}
+            <div class="hidden md:flex items-center gap-8">
+                <a href="{{ path('home') }}"
+                   class="relative text-sm font-medium text-stone-700 hover:text-saffron-700 transition-colors pb-0.5
+                          after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full
+                          after:bg-saffron-600 after:scale-x-0 after:origin-left
+                          hover:after:scale-x-100 after:transition-transform after:duration-200">
+                    Accueil
+                </a>
 
+                <a href="{{ path('index_spicy_match') }}"
+                   class="relative text-sm font-medium text-stone-700 hover:text-saffron-700 transition-colors pb-0.5
+                          after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full
+                          after:bg-saffron-600 after:scale-x-0 after:origin-left
+                          hover:after:scale-x-100 after:transition-transform after:duration-200">
+                    Créer un mélange
+                </a>
+
+                {# Dropdown Épices #}
                 <div x-data="{ dropdownOpen: false }" class="relative">
-                    <button @click="dropdownOpen = !dropdownOpen" class="text-gray-600 hover:text-gray-800 flex items-center">
-                        Epices
-                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <button @click="dropdownOpen = !dropdownOpen"
+                            class="flex items-center gap-1 text-sm font-medium text-stone-700 hover:text-saffron-700 transition-colors">
+                        Épices
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200"
+                             :class="dropdownOpen ? 'rotate-180' : ''"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
                     </button>
-                    <div x-show="dropdownOpen" @click.away="dropdownOpen = false" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20">
-                        <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_aromatic_compound') }}">Par composé aromatique</a>
-                        <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_aromatic_groups') }}">Par groupe aromatique</a>
-                        <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_spicy_type') }}">Par type d'épice</a>
-                        <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_alchemy_flavors') }}">Par saveur</a>
-                        <div class="border-t border-gray-100"></div>
-                        <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_spices') }}">Toutes les épices</a>
+
+                    <div x-show="dropdownOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         @click.away="dropdownOpen = false"
+                         class="absolute left-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-spice-border z-50 overflow-hidden">
+                        <a href="{{ path('index_aromatic_compound') }}"
+                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                            <i class="fa-solid fa-atom text-saffron-500 w-4 text-center text-xs"></i>
+                            Par composé aromatique
+                        </a>
+                        <a href="{{ path('index_aromatic_groups') }}"
+                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                            <i class="fa-solid fa-layer-group text-saffron-500 w-4 text-center text-xs"></i>
+                            Par groupe aromatique
+                        </a>
+                        <a href="{{ path('index_spicy_type') }}"
+                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                            <i class="fa-solid fa-tags text-saffron-500 w-4 text-center text-xs"></i>
+                            Par type d'épice
+                        </a>
+                        <a href="{{ path('index_alchemy_flavors') }}"
+                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                            <i class="fa-solid fa-flask-vial text-saffron-500 w-4 text-center text-xs"></i>
+                            Par saveur
+                        </a>
+                        <div class="border-t border-spice-border"></div>
+                        <a href="{{ path('index_spices') }}"
+                           class="flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-saffron-700 hover:bg-spice-surface transition-colors">
+                            <i class="fa-solid fa-grip text-saffron-500 w-4 text-center text-xs"></i>
+                            Toutes les épices
+                        </a>
                     </div>
                 </div>
 
-                <a class="text-gray-600 hover:text-gray-800" href="{{ path('new_contact') }}">Contact</a>
+                <a href="{{ path('new_contact') }}"
+                   class="relative text-sm font-medium text-stone-700 hover:text-saffron-700 transition-colors pb-0.5
+                          after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full
+                          after:bg-saffron-600 after:scale-x-0 after:origin-left
+                          hover:after:scale-x-100 after:transition-transform after:duration-200">
+                    Contact
+                </a>
             </div>
 
-            <div class="hidden md:flex items-center space-x-4">
-                <form class="flex" role="search">
+            {# ── Actions droite (desktop) ── #}
+            <div class="hidden md:flex items-center gap-3">
+                <div class="relative">
                     {{ component('Search') }}
-                </form>
+                </div>
 
                 {% if is_granted("ROLE_USER") %}
                     {% set navLevel = app.user.progression ? app.user.progression.level : null %}
                     <div x-data="{ dropdownOpen: false }" class="relative">
-                        <button @click="dropdownOpen = !dropdownOpen" class="flex items-center gap-1.5 text-gray-600 hover:text-gray-800">
+                        <button @click="dropdownOpen = !dropdownOpen"
+                                class="flex items-center gap-2 bg-spice-surface border border-spice-border text-stone-700
+                                       hover:border-saffron-600/40 hover:text-saffron-700 rounded-full px-4 py-2
+                                       text-sm font-medium transition-all">
+                            <i class="fa-regular fa-circle-user text-saffron-600"></i>
                             {{ app.user.username|capitalize }}
                             {% if navLevel %}
-                                <span class="px-1.5 py-0.5 text-xs font-bold bg-blue-600 text-white rounded leading-none">Nv.{{ navLevel }}</span>
+                                <span class="px-1.5 py-0.5 text-xs font-bold bg-turmeric-400 text-stone-900 rounded-full leading-none">
+                                    {{ navLevel }}
+                                </span>
                             {% endif %}
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            <svg class="w-3 h-3 text-stone-400 transition-transform duration-200"
+                                 :class="dropdownOpen ? 'rotate-180' : ''"
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
                         </button>
-                        <div x-show="dropdownOpen" @click.away="dropdownOpen = false" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20">
-                            <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('profile_user') }}">Profil</a>
-                            <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('configuration_user') }}">Configuration</a>
-                            <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('history_user') }}">Historique</a>
-                            <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('security_user') }}">Sécurité</a>
-                            <div class="border-t border-gray-100"></div>
-                            <a class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('app_logout') }}">Déconnexion</a>
+
+                        <div x-show="dropdownOpen" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             @click.away="dropdownOpen = false"
+                             class="absolute right-0 mt-3 w-48 bg-white rounded-xl shadow-lg border border-spice-border z-50 overflow-hidden">
+                            <a href="{{ path('profile_user') }}"
+                               class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                                <i class="fa-regular fa-user text-saffron-500 w-4 text-center text-xs"></i>Profil
+                            </a>
+                            <a href="{{ path('configuration_user') }}"
+                               class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                                <i class="fa-solid fa-sliders text-saffron-500 w-4 text-center text-xs"></i>Configuration
+                            </a>
+                            <a href="{{ path('history_user') }}"
+                               class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                                <i class="fa-solid fa-clock-rotate-left text-saffron-500 w-4 text-center text-xs"></i>Historique
+                            </a>
+                            <a href="{{ path('security_user') }}"
+                               class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                                <i class="fa-solid fa-shield-halved text-saffron-500 w-4 text-center text-xs"></i>Sécurité
+                            </a>
+                            <div class="border-t border-spice-border"></div>
+                            <a href="{{ path('app_logout') }}"
+                               class="flex items-center gap-2.5 px-4 py-3 text-sm text-paprika-700 hover:bg-red-50 transition-colors">
+                                <i class="fa-solid fa-right-from-bracket w-4 text-center text-xs"></i>Déconnexion
+                            </a>
                         </div>
                     </div>
                 {% else %}
-                    <a class="text-gray-600 hover:text-gray-800" href="{{ path('app_login') }}">Connexion</a>
+                    <a href="{{ path('app_login') }}" class="btn-pill-outline">
+                        Connexion
+                    </a>
+                    <a href="{{ path('index_register') }}" class="btn-pill-primary">
+                        <i class="fa-solid fa-user-plus text-xs"></i>
+                        Commencer
+                    </a>
                 {% endif %}
             </div>
 
-            <div class="md:hidden flex items-center">
-                <button @click="open = !open" class="text-gray-600 hover:text-gray-800 focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-                </button>
-            </div>
+            {# ── Burger mobile ── #}
+            <button @click="open = !open"
+                    class="md:hidden text-stone-700 hover:text-saffron-700 focus:outline-none transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path x-show="!open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    <path x-show="open" x-cloak stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
+    </div>
 
-        <div x-show="open" class="md:hidden">
-            <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('home') }}">Accueil</a>
-            <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_spicy_match') }}">Créer mon mélange</a>
-            <div class="border-t border-gray-200"></div>
-            <h3 class="px-4 py-2 text-xs text-gray-500 font-semibold uppercase">Epices</h3>
-            <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_aromatic_compound') }}">Par composé aromatique</a>
-            <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_aromatic_groups') }}">Par groupe aromatique</a>
-            <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_spicy_type') }}">Par type d'épice</a>
-            <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_alchemy_flavors') }}">Par saveur</a>
-            <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('index_spices') }}">Toutes les épices</a>
-            <div class="border-t border-gray-200"></div>
-            <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('new_contact') }}">Contact</a>
-            <div class="border-t border-gray-200"></div>
+    {# ── Menu mobile ── #}
+    <div x-show="open" x-cloak
+         x-transition:enter="transition ease-out duration-150"
+         x-transition:enter-start="opacity-0 -translate-y-2"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         class="md:hidden bg-cream border-t border-saffron-700/10">
+        <div class="px-4 py-4 space-y-1">
+            <a href="{{ path('home') }}"
+               class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                Accueil
+            </a>
+            <a href="{{ path('index_spicy_match') }}"
+               class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                Créer mon mélange
+            </a>
+            <div class="border-t border-saffron-700/10 my-2"></div>
+            <p class="px-3 py-1 text-xs text-stone-400 font-semibold uppercase tracking-wider">Épices</p>
+            <a href="{{ path('index_aromatic_compound') }}"
+               class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                Par composé aromatique
+            </a>
+            <a href="{{ path('index_aromatic_groups') }}"
+               class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                Par groupe aromatique
+            </a>
+            <a href="{{ path('index_spicy_type') }}"
+               class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                Par type d'épice
+            </a>
+            <a href="{{ path('index_alchemy_flavors') }}"
+               class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                Par saveur
+            </a>
+            <a href="{{ path('index_spices') }}"
+               class="block py-2.5 px-3 rounded-lg text-sm font-medium text-saffron-700 hover:bg-spice-surface transition-colors">
+                Toutes les épices
+            </a>
+            <div class="border-t border-saffron-700/10 my-2"></div>
+            <a href="{{ path('new_contact') }}"
+               class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                Contact
+            </a>
+            <div class="border-t border-saffron-700/10 my-2"></div>
+
             {% if is_granted("ROLE_USER") %}
-                <div class="flex items-center gap-2 px-4 py-2">
-                    <span class="text-xs text-gray-500 font-semibold uppercase">Mon Compte</span>
+                {% set navLevel = app.user.progression ? app.user.progression.level : null %}
+                <div class="flex items-center gap-2 px-3 py-1">
+                    <span class="text-xs text-stone-400 font-semibold uppercase tracking-wider">Mon compte</span>
                     {% if navLevel %}
-                        <span class="px-1.5 py-0.5 text-xs font-bold bg-blue-600 text-white rounded leading-none">Nv.{{ navLevel }}</span>
+                        <span class="px-1.5 py-0.5 text-xs font-bold bg-turmeric-400 text-stone-900 rounded-full leading-none">
+                            Nv.{{ navLevel }}
+                        </span>
                     {% endif %}
                 </div>
-                <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('profile_user') }}">Profil</a>
-                <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('configuration_user') }}">Configuration</a>
-                <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('history_user') }}">Historique</a>
-                <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('security_user') }}">Sécurité</a>
-                <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('app_logout') }}">Déconnexion</a>
+                <a href="{{ path('profile_user') }}"
+                   class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                    Profil
+                </a>
+                <a href="{{ path('configuration_user') }}"
+                   class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                    Configuration
+                </a>
+                <a href="{{ path('history_user') }}"
+                   class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                    Historique
+                </a>
+                <a href="{{ path('security_user') }}"
+                   class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                    Sécurité
+                </a>
+                <a href="{{ path('app_logout') }}"
+                   class="block py-2.5 px-3 rounded-lg text-sm text-paprika-700 hover:bg-red-50 transition-colors">
+                    Déconnexion
+                </a>
             {% else %}
-                <a class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100" href="{{ path('app_login') }}">Connexion</a>
+                <a href="{{ path('app_login') }}"
+                   class="block text-center py-2.5 px-3 rounded-full text-sm font-medium border border-saffron-700 text-saffron-700 hover:bg-spice-surface transition-colors mt-2">
+                    Connexion
+                </a>
+                <a href="{{ path('index_register') }}"
+                   class="block text-center py-2.5 px-3 rounded-full text-sm font-semibold bg-saffron-700 text-white hover:bg-saffron-800 transition-colors mt-2">
+                    Commencer gratuitement
+                </a>
             {% endif %}
         </div>
     </div>

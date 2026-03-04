@@ -1,18 +1,29 @@
-<div {{ attributes }}>
-    <input class="form-control me-2" type="search" placeholder="Rechercher..." aria-label="Rechercher" data-model="query" data-action="live#update">
-
+<div {{ attributes }} class="relative">
+    <input
+        class="w-56 px-4 py-1.5 border border-spice-border rounded-full bg-white/80 text-stone-700
+               placeholder-stone-400 text-sm backdrop-blur-sm
+               focus:outline-none focus:ring-1 focus:ring-saffron-600/30 focus:border-saffron-600/40
+               transition-colors"
+        type="search" placeholder="Rechercher..." aria-label="Rechercher"
+        data-model="query" data-action="live#update"
+    >
     {% if this.results is defined and this.results is not empty %}
-        <div class="position-absolute list-group" style="z-index:100;">
+        <div class="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-spice-border z-50 overflow-hidden">
             {% for result in this.results %}
                 {% if result.type == 'spice' %}
-                    <a href="{{ path('view_spice', {"id" : result.id}) }}" class="list-group-item list-group-item-action">{{ result.name}} 
-                    <small class="text-primary">- Epice</small></a>
+                    <a href="{{ path('view_spice', {id: result.id}) }}"
+                       class="block px-4 py-2.5 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 border-b border-stone-100 last:border-0 transition-colors">
+                        {{ result.name }}
+                        <span class="text-xs text-saffron-600 ml-1">Épice</span>
+                    </a>
                 {% else %}
-                    <a href="{{ path('view_aromatic_compound', {"id" : result.id}) }}"
-                    class="list-group-item list-group-item-action">{{ result.name}} <small class="text-secondary">- Composé aromatique</small></a></a>
+                    <a href="{{ path('view_aromatic_compound', {id: result.id}) }}"
+                       class="block px-4 py-2.5 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 border-b border-stone-100 last:border-0 transition-colors">
+                        {{ result.name }}
+                        <span class="text-xs text-turmeric-600 ml-1">Composé</span>
+                    </a>
                 {% endif %}
-                    
             {% endfor %}
-        </ul>
+        </div>
     {% endif %}
 </div>

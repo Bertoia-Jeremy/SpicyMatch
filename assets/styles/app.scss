@@ -2,231 +2,185 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Force Tailwind v4 à scanner les templates (le config.js v3 est ignoré en v4 CLI) */
+@source "../../templates/**/*.html.twig";
+@source "../../assets/**/*.js";
+
+/* ── Design System "Spicy" — Tailwind v4 @theme ─────────── */
+@theme {
+  /* Crème — fond principal */
+  --color-cream:             #FDFCF0;
+  --color-cream-dark:        #F5F0E0;
+
+  /* Typographie d'affichage */
+  --font-display:            'Lora', Georgia, serif;
+
+  /* Espacement de base — requis pour que h-*, w-*, etc. compilent en v4 */
+  --spacing:                 0.25rem;
+
+  /* Safran — orange chaud, accent primaire */
+  --color-saffron-400:       #FB923C;
+  --color-saffron-500:       #F97316;
+  --color-saffron-600:       #EA580C;
+  --color-saffron-700:       #C2410C;
+  --color-saffron-800:       #9A3412;
+
+  /* Paprika — rouge profond, accent secondaire */
+  --color-paprika-700:       #B91C1C;
+  --color-paprika-800:       #991B1B;
+  --color-paprika-900:       #7F1D1D;
+
+  /* Curcuma — jaune doré */
+  --color-turmeric-300:      #FCD34D;
+  --color-turmeric-400:      #FBBF24;
+  --color-turmeric-500:      #F59E0B;
+  --color-turmeric-600:      #D97706;
+
+  /* Surface chaude */
+  --color-spice-surface:     #FFF7ED;
+  --color-spice-border:      #FED7AA;
+}
+
+/* ── Blur utilities (non compilées par Tailwind v4 sans --blur token) ── */
+@layer utilities {
+  .backdrop-blur-md {
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+  .blur-2xl {
+    --tw-blur: blur(40px);
+    filter: var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, ) var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, );
+  }
+  .blur-3xl {
+    --tw-blur: blur(64px);
+    filter: var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, ) var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, );
+  }
+}
+
+/* ── Alpine.js ─────────────────────────────────────────── */
 [x-cloak] { display: none !important; }
 
-@import "../../node_modules/@fortawesome/fontawesome-free/css/all.css";
-
-// Variables et mixins spécifiques au projet (non Tailwind) peuvent rester ici
-// si elles sont utilisées par les styles personnalisés restants.
-$hoverEasing: cubic-bezier(0.23, 1, 0.32, 1);
-$returnEasing: cubic-bezier(0.445, 0.05, 0.55, 0.95);
-
-$base-color: #d9381e; // Peut être remplacé par theme('colors.vermillion') dans des styles si besoin via @apply
-$border-dark: rgba($base-color, 0.88);
-
-// Styles personnalisés (ex: .container, .card-wrap) conservés temporairement.
-// Ils devront être audités et refactorisés pour utiliser au maximum les utilitaires Tailwind.
-// Les anciennes variables de couleur SCSS et les boucles @each ont été supprimées.
-
-.container {
-  padding: 40px 80px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+/* ── Typographie globale ─────────────────────────────────── */
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: #FDFCF0;
+  color: #1C1917;
 }
 
-.card-wrap {
-  margin: 10px;
-  transform: perspective(800px);
-  transform-style: preserve-3d;
-  cursor: pointer;
-  // background-color: #fff;
-
-  &:hover {
-    .card-info {
-      transform: translateY(0);
-    }
-    .card-info p {
-      opacity: 1;
-    }
-    .card-info, .card-info p {
-      transition: 0.6s $hoverEasing;
-    }
-    .card-info:after {
-      transition: 5s $hoverEasing;
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .card-bg {
-      transition:
-              0.6s $hoverEasing,
-              opacity 5s $hoverEasing;
-      opacity: 0.8;
-    }
-    .card {
-      transition:
-              0.6s $hoverEasing,
-              box-shadow 2s $hoverEasing;
-      box-shadow:
-              rgba(white, 0.2) 0 0 40px 5px,
-              rgba(white, 1) 0 0 0 1px,
-              rgba(black, 0.66) 0 30px 60px 0,
-              inset #333 0 0 0 5px,
-              inset white 0 0 0 6px;
-    }
-    
-    .little-card {
-      transition:
-              0.6s $hoverEasing,
-              box-shadow 2s $hoverEasing;
-      box-shadow:
-              rgba(white, 0.2) 0 0 40px 5px,
-              rgba(white, 1) 0 0 0 1px,
-              rgba(black, 0.66) 0 30px 60px 0,
-              inset #333 0 0 0 5px,
-              inset white 0 0 0 6px;
-    }
-  }
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Lora', Georgia, serif;
 }
 
-.card {
-  position: relative;
-  width: 240px;
-  height: 320px;
-  overflow: hidden;
-  border-radius: 10px;
-  transition: 1s $returnEasing;
-}
-
-.bg-dark {
-  background-color: #333;
-}
-
-.card-bg {
-  opacity: 0.5;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  padding: 20px;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: cover;
-  transition:
-          1s $returnEasing,
-          opacity 5s 1s $returnEasing;
-  pointer-events: none;
-}
-
-.card-info {
-  padding: 20px;
-  position: absolute;
-  bottom: 10px;
+/* ── Boutons pill ────────────────────────────────────────── */
+.btn-pill-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  background-color: #C2410C;
   color: #fff;
-  transform: translateY(40%);
-  transition: 0.6s 1.6s cubic-bezier(0.215, 0.61, 0.355, 1);
-
-  p {
-    opacity: 0;
-    text-shadow: rgba(black, 1) 0 2px 3px;
-    transition: 0.6s 1.6s cubic-bezier(0.215, 0.61, 0.355, 1);
-  }
-
-  * {
-    position: relative;
-    z-index: 1;
-  }
-
-  &:after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    z-index: 0;
-    width: 100%;
-    height: 100%;
-    background-image: linear-gradient(to bottom, transparent 0%, rgba(#000, 0.6) 100%);
-    background-blend-mode: overlay;
-    opacity: 0;
-    transform: translateY(100%);
-    transition: 5s 1s $returnEasing;
-  }
-}
-
-.card-info h1 {
-  font-family: "Playfair Display", serif;
-  font-size: 36px;
-  font-weight: 700;
-  text-shadow: rgba(black, 0.5) 0 10px 10px;
-}
-
-.dropdown-menu-right {
-  right: 0;
-  left: auto !important;
-}
-
-.little-card-wrap {
-  cursor: pointer;
-  // background-color: #fff;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: background-color 0.2s ease, transform 0.1s ease;
 
   &:hover {
-    .little-card-180h {
-      transition:
-              0.6s $hoverEasing,
-              box-shadow 2s $hoverEasing;
-      box-shadow:
-              rgba(white, 0.2) 0 0 20px 2px,
-              rgba(white, 1) 0 0 0 1px,
-              rgba(black, 0.66) 0 15px 30px 0,
-              inset #333 0 0 0 5px,
-              inset white 0 0 0 6px;
-    }
-    
-    .little-card-80h{
-      transition:
-              0.6s $hoverEasing,
-              box-shadow 2s $hoverEasing;
-      box-shadow:
-              rgba(white, 0.2) 0 0 20px 2px,
-              rgba(white, 1) 0 0 0 1px,
-              rgba(black, 0.66) 0 15px 30px 0,
-              inset #333 0 0 0 5px,
-              inset white 0 0 0 6px;
-    }
+    background-color: #9A3412;
+    transform: translateY(-1px);
   }
 }
 
-.little-card-180h {
-  position: relative;
-  width: 180px;
-  height: 180px;
-  border-radius: 10px;
+.btn-pill-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  border: 1.5px solid #C2410C;
+  color: #C2410C;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-decoration: none;
+  background-color: transparent;
+  transition: background-color 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    background-color: #C2410C;
+    color: #fff;
+  }
 }
 
-.little-card-80h {
-  position: relative;
-  width: 180px;
-  height: 80px;
-  border-radius: 10px;
+/* ── Tags ────────────────────────────────────────────────── */
+.tag-primary {
+  display: inline-block;
+  padding: 0.2rem 0.75rem;
+  background-color: #FFEDD5;
+  color: #9A3412;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
-.little-card-50h {
-  position: relative;
-  width: 180px;
-  height: 50px;
-  border-radius: 10px;
+.tag-secondary {
+  display: inline-block;
+  padding: 0.2rem 0.75rem;
+  background-color: #F5F5F4;
+  color: #57534E;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
-.text-color-white{
-  color: white;
-  font-weight: 700;
-  text-shadow: rgba(0, 0, 0, 0.5) 0px 10px 10px;
-  text-align: center;
-  z-index: 1;
-  position: relative;
+/* ── Carte chaude ────────────────────────────────────────── */
+.card-warm {
+  background-color: #fff;
+  border: 1px solid #E7E5E4;
+  border-radius: 1rem;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+
+  &:hover {
+    border-color: #FED7AA;
+    box-shadow:
+      0 4px 6px -1px rgba(194, 65, 12, 0.06),
+      0 20px 40px -8px rgba(194, 65, 12, 0.18),
+      0 0 0 1px rgba(254, 215, 170, 0.5);
+    transform: translateY(-3px);
+  }
 }
 
-.radio-invisible{
-  visibility: hidden;
+/* ── Skeleton Turbo Frame ───────────────────────────────── */
+/*
+  Turbo ajoute aria-busy="true" sur le frame pendant le chargement.
+  On affiche un skeleton animé sur les enfants directs.
+*/
+turbo-frame[aria-busy="true"] {
+  .spice-card-skeleton {
+    display: block;
+  }
 }
 
-.postcard__img {
-  max-height: 180px;
-  width: 100%;
-  object-fit: cover;
-  position: relative;
+@keyframes skeleton-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
 }
 
-.inner-shadow {
-  -webkit-box-shadow: inset 0 0 4px #000;
-  -moz-box-shadow: inset 0 0 4px #000;
-  box-shadow: inset 0 0 4px #000;
+.skeleton-pulse {
+  background: linear-gradient(90deg, #f0ede8 25%, #e8e3dc 50%, #f0ede8 75%);
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  border-radius: 0.5rem;
+}
+
+/* ── Noise texture (kraft paper effect) ─────────────────── */
+.bg-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* ── Modale glassmorphism overlay ───────────────────────── */
+.modal-backdrop {
+  background: rgba(28, 25, 23, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }

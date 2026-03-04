@@ -99,7 +99,7 @@ class SpicesRepository extends ServiceEntityRepository
                 WHERE s.name LIKE ?
                     AND deleted_at IS NULL
                 UNION
-                SELECT ac.id, ac.name, IF(1, "aromatic_coumpound", "") as `type`
+                SELECT ac.id, ac.name, IF(1, "aromatic_compound", "") as `type`
                 FROM aromatic_compound ac
                 WHERE ac.name LIKE ?
                     AND deleted_at IS NULL
@@ -128,6 +128,29 @@ class SpicesRepository extends ServiceEntityRepository
      *
      * @return Spices[]
      */
+    /**
+     * Filter spices by aromatic group and/or spicy type.
+     *
+     * @return Spices[]
+     */
+    public function findFiltered(?int $aromaticGroupId, ?int $spicyTypeId): array
+    {
+        $qb = $this->createQueryBuilder('s')
+            ->orderBy('s.name', 'ASC');
+
+        if ($aromaticGroupId !== null) {
+            $qb->andWhere('s.aromaticGroups = :agId')
+                ->setParameter('agId', $aromaticGroupId);
+        }
+
+        if ($spicyTypeId !== null) {
+            $qb->andWhere('s.spicyType = :stId')
+                ->setParameter('stId', $spicyTypeId);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
     public function findCandidatesForScoring(array $sharedCompoundIds, array $excludedSpiceIds): array
     {
         if (empty($sharedCompoundIds)) {

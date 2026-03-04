@@ -30,13 +30,13 @@ class AromaticCompound
     #[ORM\Column(name: 'informations', type: 'text', nullable: true)]
     private ?string $informations = null;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime')]
+    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     private ?\DateTimeInterface $created_at = null;
 
-    #[ORM\Column(name: 'updated_at', type: 'datetime')]
+    #[ORM\Column(name: 'updated_at', type: 'datetime_immutable')]
     private ?\DateTimeInterface $updated_at = null;
 
-    #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
+    #[ORM\Column(name: 'deleted_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
 
     /**

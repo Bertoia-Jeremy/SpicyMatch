@@ -85,37 +85,41 @@
 
 ```yaml
 project: spicymatch
-description: Application full-stack de matching aromatique (épices, composés aromatiques, groupes aromatiques, méthodes de préparation) avec espace utilisateur et back-office admin.
+description: Application full-stack de matching aromatique (épices, composés aromatiques, groupes aromatiques, méthodes de préparation) avec espace utilisateur, gamification et back-office admin.
 
 stack:
   backend:
-    - Symfony 7.2
+    - Symfony 7.4
     - PHP 8.4
-    - Doctrine ORM 2.14 (attributs PHP, migrations)
-    - Symfony Messenger (transport Doctrine)
+    - Doctrine ORM 3.x (attributs PHP, schema:update — pas de migrations)
+    - Symfony Messenger (transport Doctrine, async)
     - Symfony Security (LoginFormAuthenticator custom)
     - EasyAdmin 4.x (back-office)
     - Vich Uploader 2.x (gestion fichiers)
     - KNP Paginator 6.x
     - Symfony Mailer + Notifier
     - Twig 3.x + Symfony UX (Live Component, Turbo, Twig Component)
+    - Symfony AssetMapper (pas de Webpack/Encore)
 
   frontend:
-    - Tailwind CSS 4.x (CLI build)
-    - Alpine.js 3.x
-    - FontAwesome 6.x
-    - PostCSS + Autoprefixer
+    - Tailwind CSS 4.2.x (CLI build direct, pas de PostCSS)
+    - Alpine.js 3.14.9 (chargé via importmap/AssetMapper depuis jsDelivr)
+    - FontAwesome 6.7.x (CDN cdnjs dans base.html.twig — PAS via npm/scss)
+    - Pas de SPA — SSR Twig avec hydratation légère Alpine.js
+
+  form_theme: templates/form/tailwind_layout.html.twig  # remplace bootstrap_5_layout
 
 database:
   - MariaDB 10.4 (via Docker, DSN: mysql://root:root@mysql:3306/spicymatch)
+  - Attention: trigger est un mot réservé MariaDB → utiliser name: 'trigger_type' dans #[ORM\Column]
 
 package_managers:
-  - Composer (PHP)
-  - npm (assets frontend, lock: package-lock.json)
+  - Composer (PHP, lock: composer.lock)
+  - Yarn (assets frontend, lock: yarn.lock)
 
 env:
   - PHP: 8.4+
-  - Node: non épinglé (npm v9+ implicite)
+  - Node: non épinglé (yarn implicite)
   - OS: Linux (Docker)
 
 tooling:
@@ -124,10 +128,10 @@ tooling:
     - PHPStan niveau 6
     - ESLint 9.x (flat config, globals browser)
   refactoring:
-    - Rector (SymfonySetList SYMFONY_62, CODE_QUALITY, CONSTRUCTOR_INJECTION)
+    - Rector (SymfonySetList SYMFONY_72, CODE_QUALITY, CONSTRUCTOR_INJECTION)
   testing:
     - PHPUnit 9.5 + BrowserKit
-    - Doctrine Fixtures (données de test)
+    - Doctrine Fixtures (données de test, groupes nommés)
 
 scripts:
   php:
@@ -137,8 +141,11 @@ scripts:
     - composer rector         # appliquer Rector
     - composer phpstan        # analyse statique
   js:
-    - npm run dev             # watch Tailwind
-    - npm run build           # build Tailwind minifié
+    - yarn dev                # watch Tailwind CLI
+    - yarn build              # build Tailwind CLI minifié
+  doctrine:
+    - php bin/console doctrine:schema:update --force   # apply schema changes
+    - php bin/console doctrine:fixtures:load --append --group=GroupName
 
 conventions:
   commits: Conventional Commits (feat/fix/chore/refactor + scope optionnel)
@@ -150,4 +157,54 @@ architecture:
   frontend: SSR Twig + hydratation légère Alpine.js (pas de SPA)
   api: REST via controllers Symfony (pas d'API Platform)
   admin: EasyAdmin (back-office séparé)
+  gamification:
+    entities:
+      - UserProgression (level, xp, OneToOne Users)
+      - Achievement (slug, name, trigger_type enum, triggerValue, xpReward, rarity enum)
+      - UserAchievement (joint table UserProgression <-> Achievement, unlockedAt)
+    enums:
+      - AchievementTrigger (FIRST_MATCH, N_MATCHES, N_SPICES_USED, FIRST_DISCOVERY, N_FAVORITES)
+      - AchievementRarity (COMMON, RARE, EPIC, LEGENDARY)
+    level_formula: "level = floor(sqrt(xp / 100)) + 1"
+    fixtures: AchievementFixtures (8 achievements, --append --group=AchievementFixtures)
+    services:
+      - CompatibilityScoreService  # scores 0-100 avec mainCompounds, secondaryCompounds, alchemyFlavors
+      - GamificationService        # async via Messenger
+
+js_interop:
+  alpine:
+    - x-data / x-show / x-cloak pour modals et toggles
+    - [x-cloak] { display: none !important } dans app.scss
+    - Modals self-contained avec x-data="{ open: false }" par composant
+  importmap: assets/importmap.php  # déclarer les dépendances JS (version + CDN)
+
+design_system:
+  fichier_source: assets/styles/app.scss
+  tokens_theme: "@theme { --color-*, --font-display, --spacing }"
+  palette:
+    saffron:  "accent primaire — orange chaud (400→800)"
+    paprika:  "accent secondaire — rouge profond (700→900)"
+    turmeric: "accent tertiaire — jaune doré (300→600)"
+    cream:    "fond principal (#FDFCF0) et fond sombre (#F5F0E0)"
+    spice-surface: "#FFF7ED — fond de carte/section"
+    spice-border:  "#FED7AA — bordure chaude"
+  regles:
+    - "Jamais orange-* ni amber-* Tailwind natif — utiliser saffron-* et turmeric-*"
+    - "Cartes hover → classe card-warm (pas bg-white border-stone-200)"
+    - "Boutons → btn-pill-primary / btn-pill-outline"
+    - "Tags → tag-primary / tag-secondary"
+    - "Focus rings → focus:ring-saffron-600/30"
+    - "Icônes brand → text-saffron-600 ou text-turmeric-500 (pas text-orange-* ni text-amber-*)"
+    - "Inline style autorisé SEULEMENT pour les couleurs dynamiques depuis la BDD (ex: aromaticGroups.color)"
+  tailwind_v4_gotchas:
+    - "Déclarer --spacing: 0.25rem dans @theme pour débloquer h-*, w-* numériques"
+    - "backdrop-blur-md et blur-3xl/2xl injectés manuellement via @layer utilities dans app.scss"
+    - "Le tailwind.config.js v3 est ignoré par le CLI v4 — utiliser @source dans le SCSS"
+    - "@source chemin relatif au fichier SCSS: '../../templates/**/*.html.twig'"
+    - "Après tout changement de classes, relancer: yarn build"
+  composants_reference:
+    navbar:   "templates/components/_navbar.html.twig — sticky cream/80 backdrop-blur h-20 z-50"
+    footer:   "templates/components/_footer.html.twig — bg-paprika-900 text-cream 4 colonnes"
+    search:   "templates/components/Search.html.twig — bg-white/80 rounded-full border-spice-border"
+    hero:     "templates/home/index.html.twig — grid 2 cols lg, fond bg-cream-dark + bg-noise"
 ```

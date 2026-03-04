@@ -17,8 +17,8 @@ class SpicyTypeFixtures extends Fixture
         for ($i = 0; $i < 6; ++$i) {
             $entity = new SpicyType();
             $entity->setName('spicy_type_' . $i)
-                ->setCreatedAt(new \DateTime('now'))
-                ->setUpdatedAt(new \DateTime('now'))
+                ->setCreatedAt(new \DateTimeImmutable('now'))
+                ->setUpdatedAt(new \DateTimeImmutable('now'))
             // ->setImageFile(new UploadedFile("/home/jbertoia/Images/tige_$i.jpeg", 'testTige.jpeg',
             //    null, null, true))
             ;

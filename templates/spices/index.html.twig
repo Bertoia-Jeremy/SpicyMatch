@@ -1,28 +1,97 @@
 {% extends 'base.html.twig' %}
 {% import "components/_macro_card_spice.html.twig" as macroCardSpice %}
 
-{% block title %}SpicyMatch - Epices{% endblock %}
+{% block title %}SpicyMatch — Catalogue d'épices{% endblock %}
 
 {% block body %}
-<div class="container mx-auto px-4 py-8">
-    <div class="text-center mb-8">
-        <h1 class="text-4xl font-bold text-gray-800">Découvrez nos épices</h1>
+
+{# Modale Quick View — doit être en dehors du Turbo Frame pour survivre aux navigations #}
+{% include 'components/_spice_modal.html.twig' %}
+
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+    {# ── En-tête ── #}
+    <div class="mb-10">
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div>
+                <h1 class="text-4xl font-bold text-stone-900 mb-2">Nos épices</h1>
+                <p class="text-stone-500">
+                    {{ spices.getTotalItemCount() }} épice{{ spices.getTotalItemCount() > 1 ? 's' : '' }} dans notre catalogue
+                </p>
+            </div>
+            {% if is_granted('ROLE_USER') %}
+                <a href="{{ path('index_spicy_match') }}"
+                   data-haptic="medium"
+                   class="btn-pill-primary shrink-0">
+                    <i class="fa-solid fa-flask"></i>
+                    Créer un mélange
+                </a>
+            {% endif %}
+        </div>
     </div>
 
+    {# ── Turbo Frame (filtres + grille) ── #}
     <turbo-frame id="spices_frame_id">
+
+        {# Filtres #}
         {% include "/components/_spices_filters.html.twig" %}
 
-        <div class="flex flex-wrap justify-center">
-            {% for spice in spices %}
-                <a href="{{ path('view_spice', {"id" : spice.id}) }}">
-                    {{ macroCardSpice.cardSpice(spice) }}
-                </a>
-            {% endfor %}
-        </div>
+        {# Skeleton affiché par .skeleton-pulse pendant aria-busy="true" #}
+        <template data-turbo-frame-loading>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                {% for i in 1..8 %}
+                    <div class="card-warm overflow-hidden">
+                        <div class="skeleton-pulse aspect-square w-full"></div>
+                        <div class="p-4 space-y-2">
+                            <div class="skeleton-pulse h-4 w-3/4 rounded"></div>
+                            <div class="skeleton-pulse h-3 w-1/3 rounded-full"></div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </template>
 
-        <div class="mt-8 flex justify-center">
-            {{ knp_pagination_render(spices) }}
-        </div>
+        {# ── Grille de cartes ── #}
+        {% if spices|length > 0 %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                {% for spice in spices %}
+                    {#
+                      @click.prevent intercepte le clic et ouvre la Quick View.
+                      L'événement "open-spice-modal" est capté par _spice_modal.html.twig.
+                    #}
+                    <a href="{{ path('view_spice', { id: spice.id }) }}"
+                       @click.prevent="$dispatch('open-spice-modal', { url: $el.href })"
+                       class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/50 focus-visible:ring-offset-2 rounded-2xl">
+                        {{ macroCardSpice.cardSpice(spice) }}
+                    </a>
+                {% endfor %}
+            </div>
+
+        {% else %}
+            {# ── Empty state ── #}
+            <div class="flex flex-col items-center justify-center py-24 text-center">
+                <div class="w-20 h-20 rounded-full bg-spice-surface flex items-center justify-center mb-5">
+                    <i class="fa-solid fa-mortar-pestle text-3xl text-saffron-400"></i>
+                </div>
+                <h2 class="text-xl font-semibold text-stone-800 mb-2">Aucune épice trouvée</h2>
+                <p class="text-stone-400 text-sm max-w-xs mb-6">
+                    Aucune épice ne correspond à vos filtres. Essayez de modifier ou réinitialiser vos critères.
+                </p>
+                <a href="{{ path('index_spices') }}" class="btn-pill-outline text-sm">
+                    <i class="fa-solid fa-arrow-rotate-left"></i>
+                    Voir toutes les épices
+                </a>
+            </div>
+        {% endif %}
+
+        {# ── Pagination ── #}
+        {% if spices.getTotalItemCount() > 12 %}
+            <div class="mt-12 flex justify-center">
+                {{ knp_pagination_render(spices) }}
+            </div>
+        {% endif %}
+
     </turbo-frame>
-</div>
+
+</section>
 {% endblock %}

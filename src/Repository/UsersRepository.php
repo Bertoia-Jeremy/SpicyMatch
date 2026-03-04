@@ -52,13 +52,17 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
 
     public function findNonDeletedBy(array $criteria): array
     {
-        return $this->createQueryBuilder('u')
+        $qb = $this->createQueryBuilder('u')
             ->andWhere('u.deleted_at IS NULL')
-            ->andWhere(implode(' AND ', array_map(function ($key) {
-                return 'u.' . $key . ' = :' . $key;
-            }, array_keys($criteria))))
-            ->setParameters($criteria)
-            ->getQuery()
-            ->getResult();
+            ->andWhere(implode(' AND ', array_map(
+                static fn (string $key): string => 'u.' . $key . ' = :' . $key,
+                array_keys($criteria)
+            )));
+
+        foreach ($criteria as $key => $value) {
+            $qb->setParameter($key, $value);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 }

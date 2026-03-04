@@ -1,20 +1,30 @@
 {% extends 'base.html.twig' %}
-{% block title %}Méthode de préparation - Présentation{% endblock %}
+
+{% block title %}SpicyMatch — {{ preparationMethod.name }}{% endblock %}
 
 {% block body %}
     <turbo-frame id="preparation_methode_frame_id">
-        <div class="container mx-auto px-4 py-8">
-            <div class="text-center mb-8">
-                <h1 class="text-4xl font-bold text-gray-800">{{ preparationMethod.name }}</h1>
-                <p class="mt-4 text-lg text-gray-600">{{ preparationMethod.description }}</p>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+            <div class="mb-8">
+                <a href="{{ path('index_preparation_methods') }}" class="text-stone-500 hover:text-orange-600 text-sm transition-colors">
+                    <i class="fa-solid fa-arrow-left mr-1"></i> Méthodes de préparation
+                </a>
             </div>
 
-            <div class="bg-white shadow-md rounded-lg p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Conseils d'utilisation</h2>
-                <p class="text-gray-700">{{ preparationMethod.name }}</p>
-                <p class="text-gray-700 mt-2">{{ preparationMethod.description }}</p>
+            <div class="text-center mb-10">
+                <span class="tag-primary mb-3 inline-block">Méthode</span>
+                <h1 class="text-4xl font-bold text-stone-900 mb-3">{{ preparationMethod.name }}</h1>
+                <p class="text-stone-500 text-lg max-w-xl mx-auto">{{ preparationMethod.description }}</p>
             </div>
+
+            <div class="bg-white border border-stone-200 rounded-2xl p-8">
+                <h2 class="text-2xl font-bold text-stone-900 mb-4">
+                    <i class="fa-solid fa-mortar-pestle text-orange-500 mr-2"></i>Conseils d'utilisation
+                </h2>
+                <p class="text-stone-600 leading-relaxed">{{ preparationMethod.description }}</p>
+            </div>
+
         </div>
     </turbo-frame>
 {% endblock %}
-

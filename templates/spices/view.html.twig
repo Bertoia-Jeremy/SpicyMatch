@@ -1,98 +1,193 @@
 {% extends 'base.html.twig' %}
 {% import "components/_macro_modal_preparation_method.html.twig" as macroModalPreparationMethod %}
 
-{% block title %}SpiceMatch - {{ spice.name }}{% endblock %}
+{% block title %}SpicyMatch — {{ spice.name }}{% endblock %}
 
 {% block body %}
-<div class="container mx-auto px-4 py-8">
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-        <div class="md:col-span-2">
-            <h1 class="text-4xl font-bold text-gray-800">{{ spice.name }}</h1>
-            <h2 class="text-2xl text-gray-600">{{ spice.aromaticGroups.name }}</h2>
-            <p class="mt-4 text-gray-600">{{ spice.description }}</p>
+{#
+  Quick View frame — rendu quand la modale Alpine charge /epices/{id}.
+  Le contenu complet de la page est en dehors de ce frame (Turbo l'ignore).
+#}
+<turbo-frame id="spice_quick_view">
+    {% set color = spice.aromaticGroups ? spice.aromaticGroups.color : '#78716C' %}
+    {% set imageUrl = vich_uploader_asset(spice, 'imageFile') %}
+
+    <div class="p-6">
+        {# En-tête : image + nom + groupe #}
+        <div class="flex gap-4 mb-5">
+            {% if imageUrl %}
+                <img src="{{ imageUrl }}" alt="{{ spice.name }}"
+                     class="w-24 h-24 rounded-2xl object-cover shrink-0 shadow-sm">
+            {% else %}
+                <div class="w-24 h-24 rounded-2xl bg-stone-100 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-mortar-pestle text-3xl text-stone-300"></i>
+                </div>
+            {% endif %}
+            <div class="flex-1 min-w-0">
+                <h2 class="text-xl font-bold text-stone-900 mb-1">{{ spice.name }}</h2>
+                {% if spice.aromaticGroups %}
+                    <span class="inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full"
+                          style="background-color: {{ color }}22; color: {{ color }}; border: 1px solid {{ color }}44">
+                        {{ spice.aromaticGroups.name }}
+                    </span>
+                {% endif %}
+            </div>
         </div>
 
-        <div class="my-3">
-            <h3>Conseils de cuisine</h3>
-            <p>{{ spice.cooking|nl2br }}</p>
-            <p>{{ spice.informations|nl2br }}</p>
-        </div>
+        {# Description #}
+        {% if spice.description %}
+            <p class="text-stone-600 text-sm leading-relaxed mb-5">{{ spice.description }}</p>
+        {% endif %}
 
-        {% if spice.cookingTips is not null %}
-            <div class="my-3">
-                <h3 class="mb-3">Incorporation de l'épice</h3>
-                <p>
-                    Voici des indications sur le moment où incorporer l'épice. 
-                    Que ce soit pour l'intensité du goût ou bien la tolérance de la chaleur de l'épice, celle-ci peut être mise à une des étapes décrite ci dessous.
+        {# Saveurs principales #}
+        {% set flavors = [] %}
+        {% for ac in spice.aromaticsCompounds %}
+            {% for f in ac.AlchemyFlavors %}
+                {% set flavors = flavors|merge([f]) %}
+            {% endfor %}
+        {% endfor %}
+        {% if flavors|length > 0 %}
+            <div class="mb-4">
+                <p class="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">
+                    <i class="fa-solid fa-droplet text-turmeric-500 mr-1"></i>Saveurs
                 </p>
+                <div class="flex flex-wrap gap-1.5">
+                    {% for flavor in flavors|slice(0, 6) %}
+                        <span class="tag-primary text-xs">{{ flavor.name }}</span>
+                    {% endfor %}
+                    {% if flavors|length > 6 %}
+                        <span class="tag-secondary text-xs">+{{ flavors|length - 6 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        {# Composés aromatiques #}
+        {% if spice.aromaticsCompounds|length > 0 %}
+            <div>
+                <p class="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">
+                    <i class="fa-solid fa-atom text-saffron-600 mr-1"></i>Composés aromatiques
+                </p>
+                <div class="flex flex-wrap gap-1.5">
+                    {% for ac in spice.aromaticsCompounds|slice(0, 5) %}
+                        <span class="tag-secondary text-xs">{{ ac.name }}</span>
+                    {% endfor %}
+                    {% if spice.aromaticsCompounds|length > 5 %}
+                        <span class="tag-secondary text-xs">+{{ spice.aromaticsCompounds|length - 5 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</turbo-frame>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+    {# Hero épice #}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+        <div class="md:col-span-2">
+            <span class="tag-secondary mb-3 inline-block">{{ spice.aromaticGroups.name }}</span>
+            <h1 class="text-4xl font-bold text-stone-900 mb-3">{{ spice.name }}</h1>
+            <p class="text-stone-600 text-lg leading-relaxed">{{ spice.description }}</p>
+        </div>
+
+        <div class="card-warm p-5">
+            <h3 class="text-lg font-semibold text-stone-800 mb-3">
+                <i class="fa-solid fa-fire-flame-curved text-saffron-600 mr-2"></i>Conseils de cuisine
+            </h3>
+            <p class="text-stone-600 text-sm leading-relaxed">{{ spice.cooking|nl2br }}</p>
+        </div>
+    </div>
+
+    {# Tips de cuisson #}
+    {% if spice.cookingTips is not empty %}
+        <div class="mb-10">
+            <h2 class="text-2xl font-bold text-stone-900 mb-2">Incorporation de l'épice</h2>
+            <p class="text-stone-500 mb-5 text-sm">Quand incorporer cette épice selon l'étape de cuisson — intensité, tolérance à la chaleur.</p>
+            <div class="space-y-3">
                 {% for cookingTip in spice.cookingTips %}
-                    <div class="my-1">
-                        <p class="mb-1"><u>Etape de la cuisson :</u> <b>{{ cookingTip.cookingStep }}</b></p>
-                        <p class="mb-0">{{ cookingTip.text }}</p>
+                    <div class="card-warm p-4">
+                        <p class="text-sm font-semibold text-stone-700 mb-1">
+                            <span class="text-saffron-700">Étape :</span> {{ cookingTip.cookingStep }}
+                        </p>
+                        <p class="text-stone-600 text-sm">{{ cookingTip.text }}</p>
                     </div>
                 {% endfor %}
             </div>
-        {% endif %}
-        
-        {% if spice.preparationTips is not null %}
-            <div class="my-3">
-                <h3 class="mb-3">Conseils de préparation</h3>
-                <p>
-                    Différentes préparations permettent différentes intensité de goût ou de mise en valeur de telle ou telle saveur.
-                </p>
+        </div>
+    {% endif %}
+
+    {# Tips de préparation #}
+    {% if spice.preparationTips is not empty %}
+        <div class="mb-10">
+            <h2 class="text-2xl font-bold text-stone-900 mb-2">Conseils de préparation</h2>
+            <p class="text-stone-500 mb-5 text-sm">Différentes préparations permettent de moduler l'intensité ou la mise en valeur des saveurs.</p>
+            <div class="space-y-4">
                 {% for preparationTip in spice.preparationTips %}
-                    <article class="flex flex-col w-full bg-gray-50 shadow rounded my-3 p-3">
-                        <h4 class="mb-1">{{ preparationTip.title }}</h4>
-                        <div class="w-1/4 h-1 mb-2 rounded" style="background-color: {{ preparationTip.spice.aromaticGroups.color ?? '#888' }}"></div>
-                        <p>{{ preparationTip.text|nl2br }}</p>
-                        <div class="self-end text-right w-1/2">
-                            {% if preparationTip.preparationMethod is not null %}
+                    <article class="card-warm p-5">
+                        <h4 class="font-semibold text-stone-800 mb-2">{{ preparationTip.title }}</h4>
+                        <div class="w-12 h-0.5 mb-3 rounded" style="background-color: {{ preparationTip.spice.aromaticGroups.color ?? '#C2410C' }}"></div>
+                        <p class="text-stone-600 text-sm leading-relaxed">{{ preparationTip.text|nl2br }}</p>
+                        {% if preparationTip.preparationMethod is not null %}
+                            <div class="mt-3 flex justify-end">
                                 {{ macroModalPreparationMethod.modal(
                                     preparationTip.preparationMethod.id,
                                     preparationTip.preparationMethod.name,
                                     true
                                 )}}
-                            {% endif %}
-                        </div>
+                            </div>
+                        {% endif %}
                     </article>
                 {% endfor %}
             </div>
-        {% endif %}
-
-        <div class="my-3">
-            <h3 class="mb-3">En savoir plus</h3>
-            <p>{{ spice.informations }}</p>
         </div>
+    {% endif %}
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div class="p-4 bg-white rounded-lg shadow-md">
-            <h3 class="text-2xl font-bold text-gray-800 mb-4">Saveurs</h3>
+    {# Saveurs & composés #}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <div class="card-warm p-6">
+            <h3 class="text-xl font-bold text-stone-900 mb-4">
+                <i class="fa-solid fa-droplet text-turmeric-500 mr-2"></i>Saveurs
+            </h3>
             <div class="flex flex-wrap gap-2">
                 {% for aromaticCompound in spice.aromaticsCompounds %}
                     {% for flavor in aromaticCompound.AlchemyFlavors %}
-                        <a href="{{ path('view_alchemy_flavors', {"id" : flavor.id}) }}" class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">{{ flavor.name }}</a>
+                        <a href="{{ path('view_alchemy_flavors', {"id": flavor.id}) }}" class="tag-primary hover:opacity-80 transition-opacity">{{ flavor.name }}</a>
                     {% endfor %}
                 {% endfor %}
                 {% for aromaticCompound in spice.secondaryAromaticsCompounds %}
                     {% for flavor in aromaticCompound.AlchemyFlavors %}
-                        <a href="{{ path('view_alchemy_flavors', {"id" : flavor.id}) }}" class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">{{ flavor.name }}</a>
+                        <a href="{{ path('view_alchemy_flavors', {"id": flavor.id}) }}" class="tag-secondary hover:opacity-80 transition-opacity">{{ flavor.name }}</a>
                     {% endfor %}
                 {% endfor %}
             </div>
         </div>
-        <div class="p-4 bg-white rounded-lg shadow-md">
-            <h3 class="text-2xl font-bold text-gray-800 mb-4">Composés aromatiques</h3>
+
+        <div class="card-warm p-6">
+            <h3 class="text-xl font-bold text-stone-900 mb-4">
+                <i class="fa-solid fa-atom text-saffron-600 mr-2"></i>Composés aromatiques
+            </h3>
             <div class="flex flex-wrap gap-2">
                 {% for aromaticCompound in spice.aromaticsCompounds %}
-                    <a href="{{ path('view_aromatic_compound', {"id" : aromaticCompound.id}) }}" class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">{{ aromaticCompound.name }}</a>
+                    <a href="{{ path('view_aromatic_compound', {"id": aromaticCompound.id}) }}" class="tag-primary hover:opacity-80 transition-opacity">{{ aromaticCompound.name }}</a>
                 {% endfor %}
                 {% for aromaticCompound in spice.secondaryAromaticsCompounds %}
-                    <a href="{{ path('view_aromatic_compound', {"id" : aromaticCompound.id}) }}" class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">{{ aromaticCompound.name }}</a>
+                    <a href="{{ path('view_aromatic_compound', {"id": aromaticCompound.id}) }}" class="tag-secondary hover:opacity-80 transition-opacity">{{ aromaticCompound.name }}</a>
                 {% endfor %}
             </div>
         </div>
     </div>
+
+    {# En savoir plus #}
+    {% if spice.informations %}
+        <div class="bg-spice-surface border border-spice-border rounded-2xl p-6">
+            <h3 class="text-lg font-semibold text-stone-800 mb-3">
+                <i class="fa-solid fa-book-open text-saffron-600 mr-2"></i>En savoir plus
+            </h3>
+            <p class="text-stone-600 text-sm leading-relaxed">{{ spice.informations }}</p>
+        </div>
+    {% endif %}
+
 </div>
 {% endblock %}
-

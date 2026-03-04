@@ -11,8 +11,8 @@ class ContactFactory
     public function create(): Contact
     {
         $contact = new Contact();
-        $contact->setCreatedAt(new \DateTime())
-            ->setUpdatedAt(new \DateTime())
+        $contact->setCreatedAt(new \DateTimeImmutable())
+            ->setUpdatedAt(new \DateTimeImmutable())
             ->setIsTreated(false)
         ;
 

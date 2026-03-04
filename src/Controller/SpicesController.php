@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Spices;
+use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpicesRepository;
+use App\Repository\SpicyTypeRepository;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,18 +23,31 @@ class SpicesController extends AbstractController
     }
 
     #[Route('/', name: 'index_spices')]
-    public function index(Request $request, PaginatorInterface $paginator): Response
-    {
-        $spicesAll = $this->spicesRepository->findAll();
+    public function index(
+        Request $request,
+        PaginatorInterface $paginator,
+        AromaticGroupsRepository $aromaticGroupsRepository,
+        SpicyTypeRepository $spicyTypeRepository,
+    ): Response {
+        $agId = $request->query->getInt('aromatic_group') ?: null;
+        $stId = $request->query->getInt('spicy_type') ?: null;
+
+        $query = ($agId !== null || $stId !== null)
+            ? $this->spicesRepository->findFiltered($agId, $stId)
+            : $this->spicesRepository->findAll();
 
         $spices = $paginator->paginate(
-            $spicesAll,
+            $query,
             $request->query->getInt('page', 1),
             12
         );
 
         return $this->render('spices/index.html.twig', [
-            'spices' => $spices,
+            'spices'         => $spices,
+            'aromaticGroups' => $aromaticGroupsRepository->findAll(),
+            'spicyTypes'     => $spicyTypeRepository->findAll(),
+            'activeAgId'     => $agId,
+            'activeStId'     => $stId,
         ]);
     }
 

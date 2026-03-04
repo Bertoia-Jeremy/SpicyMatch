@@ -11,8 +11,8 @@ class UsersFactory
     public function create(): Users
     {
         $user = new Users();
-        $user->setCreatedAt(new \DateTime())
-            ->setUpdatedAt(new \DateTime());
+        $user->setCreatedAt(new \DateTimeImmutable())
+            ->setUpdatedAt(new \DateTimeImmutable());
 
         return $user;
     }

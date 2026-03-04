@@ -43,13 +43,13 @@ class Spices
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $informations = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeInterface $created_at = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeInterface $updated_at = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
@@ -247,9 +247,7 @@ class Spices
         if ($imageFile instanceof File) {
             // It is required that at least one field changes if you are using doctrine
             // otherwise the event listeners won't be called and the file is lost
-            $this->updated_at = new \DateTime(
-                'now'
-            );
+            $this->updated_at = new \DateTimeImmutable('now');
         }
     }
 

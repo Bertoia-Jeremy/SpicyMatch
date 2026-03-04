@@ -2,35 +2,39 @@
 {% import "components/_macro_card_little_spice.html.twig" as macroCardSpice %}
 {% import "components/_macro_modal_preparation_method.html.twig" as macroModalPreparationMethod %}
 
-{% block title %}SpicymatchHistory{% endblock %}
+{% block title %}Recette de mélange{% endblock %}
 
 {% block body %}
-    <div class="container mx-auto px-4 py-8">
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-gray-800">Recette des mélanges</h1>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-stone-800">
+                <i class="fa-solid fa-book-open text-orange-600 mr-2"></i>Recette du mélange
+            </h1>
         </div>
 
-        <div class="mb-12">
-            <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Préparation des épices :</h2>
+        {# Préparation des épices #}
+        <div class="mb-14">
+            <h2 class="text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-mortar-pestle text-orange-500"></i>
+                Préparation des épices
+            </h2>
 
-        {% set preparationMethodsArray = [] %}
-        {% for preparation in preparations %}
-            <article class="flex flex-col w-full bg-gray-50 shadow rounded my-3 p-3">
-                <h4 class="mb-1">{{ preparation.spice.name ~ ' - ' ~ preparation.title }}</h4>
-                <p class="text-gray-500 mb-0">{{ preparation.spice.aromaticGroups.name }}</p>
-                <div class="w-1/4 h-1 mb-2 rounded" style="background-color: {{ preparation.spice.aromaticGroups.color ?? '#888' }}"></div>
-                <p>{{ preparation.text|nl2br }}</p>
-                <div class="self-end text-right w-1/2">
-                    {% if preparation.preparationMethod is not null %}
-                        {% set methodId = preparation.preparationMethod.id %}
-
+            {% set preparationMethodsArray = [] %}
+            {% for preparation in preparations %}
+                <article class="bg-white border border-stone-200 rounded-xl shadow-sm p-5 mb-3">
+                    <h4 class="font-semibold text-stone-800 mb-1">{{ preparation.spice.name ~ ' — ' ~ preparation.title }}</h4>
+                    <p class="text-stone-500 text-sm mb-2">{{ preparation.spice.aromaticGroups.name }}</p>
+                    <div class="w-16 h-1 mb-3 rounded" style="background-color: {{ preparation.spice.aromaticGroups.color ?? '#C2410C' }}"></div>
+                    <p class="text-stone-700 text-sm leading-relaxed">{{ preparation.text|nl2br }}</p>
+                    <div class="mt-3 text-right">
+                        {% if preparation.preparationMethod is not null %}
+                            {% set methodId = preparation.preparationMethod.id %}
                             {% if preparationMethodsArray.methodId is not defined %}
                                 {% set preparationMethodsArray = preparationMethodsArray|merge([{ methodId: methodId }]) %}
                                 {% set createModal = true %}
                             {% else %}
                                 {% set createModal = false %}
                             {% endif %}
-
                             {{ macroModalPreparationMethod.modal(
                                 methodId,
                                 preparation.preparationMethod.name,
@@ -42,28 +46,30 @@
             {% endfor %}
         </div>
 
+        {# Moments d'insertion #}
         <div class="mb-12">
-            <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Moment d'insertion des épices :</h2>
+            <h2 class="text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-timeline text-orange-500"></i>
+                Moments d'insertion des épices
+            </h2>
 
-            <div class="flex flex-wrap justify-center -mx-2">
-                {% set stepsTitle = ["Avant", "Début", "Milieu", "Fin", "Après"] %}    
+            <div class="flex flex-wrap justify-center gap-4">
+                {% set stepsTitle = ["Avant", "Début", "Milieu", "Fin", "Après"] %}
 
                 {% for step, cookings in cookingsByStep %}
-                    <div class="flex-1 min-w-[200px] max-w-[250px] border border-gray-200 rounded-lg shadow-md m-2 p-4 flex flex-col items-center">
-                        <h3 class="text-2xl font-bold text-blue-600 mb-3">{{ stepsTitle[step] }}</h3>
-                        <div class="w-full h-0.5 bg-blue-500 mb-4"></div>
-                        <div class="flex flex-wrap justify-center">
+                    <div class="flex-1 min-w-[180px] max-w-[220px] bg-white border border-stone-200 rounded-xl shadow-sm p-5 flex flex-col items-center">
+                        <h3 class="text-xl font-bold text-orange-600 mb-2">{{ stepsTitle[step] }}</h3>
+                        <div class="w-full h-0.5 bg-orange-200 mb-4"></div>
+                        <div class="flex flex-wrap justify-center gap-2">
                             {% for cooking in cookings %}
-                                <div class="m-2">
-                                    <a href="{{ path('view_spice', {"id" : cooking.spice.id}) }}">
-                                        {{ macroCardSpice.cardLittleSpice(cooking.spice, true) }}
-                                    </a>
-                                </div>
+                                <a href="{{ path('view_spice', {id: cooking.spice.id}) }}">
+                                    {{ macroCardSpice.cardLittleSpice(cooking.spice, true) }}
+                                </a>
                             {% endfor %}
                         </div>
                     </div>
                 {% endfor %}
-            </div>   
+            </div>
         </div>
     </div>
 {% endblock %}

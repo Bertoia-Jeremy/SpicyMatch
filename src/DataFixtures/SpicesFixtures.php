@@ -21,8 +21,8 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface
             copy('/home/jbertoia/Images/cannelle.webp', "/home/jbertoia/Images/cannelle_{$i}.webp");
             $entity = new Spices();
             $entity->setName('spices_' . $i)
-                ->setCreatedAt(new \DateTime('now'))
-                ->setUpdatedAt(new \DateTime('now'))
+                ->setCreatedAt(new \DateTimeImmutable('now'))
+                ->setUpdatedAt(new \DateTimeImmutable('now'))
                 ->setAromaticGroups($this->getReference($i . 'aromaticGroup', AromaticGroups::class))
                 ->setSpicyType($this->getReference($spicyNumber . 'spicyType', SpicyType::class))
                 ->setImageFile(new UploadedFile("/home/jbertoia/Images/cannelle_{$i}.webp", 'test.webp',

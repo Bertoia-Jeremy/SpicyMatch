@@ -19,8 +19,8 @@ class AromaticGroupsFixtures extends Fixture
             $entity = new AromaticGroups();
             $entity->setName('aromatic_group_' . $key)
                 ->setColor('#' . $color)
-                ->setCreatedAt(new \DateTime('now'))
-                ->setUpdatedAt(new \DateTime('now'));
+                ->setCreatedAt(new \DateTimeImmutable('now'))
+                ->setUpdatedAt(new \DateTimeImmutable('now'));
             $this->addReference($key . 'aromaticGroup', $entity);
             $manager->persist($entity);
         }

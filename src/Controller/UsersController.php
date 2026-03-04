@@ -1,28 +1,38 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Entity\Users;
 use App\Form\UsersMailType;
+use App\Repository\AchievementRepository;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/users')]
+#[IsGranted('ROLE_USER')]
 class UsersController extends AbstractController
 {
     public function __construct(
-        private readonly UsersRepository $usersRepository
+        private readonly UsersRepository $usersRepository,
+        private readonly AchievementRepository $achievementRepository,
     ) {
     }
 
     #[Route('/', name: 'dashboard_user', methods: ['GET'])]
     public function index(): Response
     {
+        /** @var Users $user */
+        $user = $this->getUser();
+
         return $this->render('users/dashboard.html.twig', [
+            'progression' => $user->getProgression(),
         ]);
     }
 
@@ -82,6 +92,18 @@ class UsersController extends AbstractController
 
         return $this->render('users/profile.html.twig', [
             'progression' => $user->getProgression(),
+        ]);
+    }
+
+    #[Route('/achievements', name: 'achievements_user', methods: ['GET'])]
+    public function achievements(): Response
+    {
+        /** @var Users $user */
+        $user = $this->getUser();
+
+        return $this->render('users/achievements.html.twig', [
+            'progression'     => $user->getProgression(),
+            'allAchievements' => $this->achievementRepository->findAllOrdered(),
         ]);
     }
 

@@ -41,16 +41,16 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'mail', type: 'string', length: 255, unique: true, nullable: true)]
     private ?string $mail = null;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime')]
+    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     private ?\DateTimeInterface $created_at = null;
 
-    #[ORM\Column(name: 'updated_at', type: 'datetime')]
+    #[ORM\Column(name: 'updated_at', type: 'datetime_immutable')]
     private ?\DateTimeInterface $updated_at = null;
 
-    #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
+    #[ORM\Column(name: 'deleted_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
 
-    #[ORM\Column(name: 'last_login_at', type: 'datetime', nullable: true)]
+    #[ORM\Column(name: 'last_login_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeInterface $lastLoginAt = null;
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: SpicyMatch::class, orphanRemoval: true)]

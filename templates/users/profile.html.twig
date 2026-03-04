@@ -2,92 +2,105 @@
 
 {% block content %}
     <turbo-frame id="user_frame_id">
-        <div class="flex border-b border-gray-200">
-            <a href="{{ path('profile_user') }}" class="px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600">Profil</a>
-            <a href="{{ path('configuration_user') }}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:border-b-2 hover:border-gray-300">Configuration</a>
-            <a href="{{ path('history_user') }}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:border-b-2 hover:border-gray-300">Historique</a>
-            <a href="{{ path('security_user') }}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:border-b-2 hover:border-gray-300">Sécurité</a>
+        {% set tabs = [
+            { route: 'profile_user',       label: 'Profil' },
+            { route: 'achievements_user',  label: 'Succès', icon: 'fa-solid fa-trophy text-xs mr-1' },
+            { route: 'configuration_user', label: 'Configuration' },
+            { route: 'history_user',       label: 'Historique' },
+            { route: 'security_user',      label: 'Sécurité' },
+        ] %}
+        <div class="flex flex-wrap border-b border-stone-200 mt-6">
+            {% for tab in tabs %}
+                <a href="{{ path(tab.route) }}"
+                   class="px-4 py-2 text-sm font-medium {{ app.request.attributes.get('_route') == tab.route ? 'text-saffron-700 border-b-2 border-saffron-700' : 'text-stone-500 hover:text-stone-800 hover:border-b-2 hover:border-stone-300' }}">
+                    {% if tab.icon is defined %}<i class="{{ tab.icon }}"></i>{% endif %}
+                    {{ tab.label }}
+                </a>
+            {% endfor %}
         </div>
 
         <div class="p-4">
             {% if progression %}
-                {# ── Level & XP ─────────────────────────────────── #}
                 <div class="flex items-center gap-4 mb-6">
-                    <div class="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
+                    <div class="w-16 h-16 rounded-full bg-linear-to-br from-turmeric-400 to-saffron-600 shadow-md flex items-center justify-center text-white text-2xl font-bold shrink-0">
                         {{ progression.level }}
                     </div>
                     <div class="flex-1 min-w-0">
-                        <div class="text-lg font-semibold text-gray-800">Niveau {{ progression.level }}</div>
-                        <div class="text-sm text-gray-500 mb-1">{{ progression.xp }} XP — encore {{ progression.xpToNextLevel }} XP pour le niveau suivant</div>
+                        <div class="text-lg font-semibold text-stone-800">Niveau {{ progression.level }}</div>
+                        <div class="text-sm text-stone-500 mb-1">{{ progression.xp }} XP — encore {{ progression.xpToNextLevel }} XP pour le niveau suivant</div>
                         {% set lvl = progression.level %}
                         {% set xpMin = (lvl - 1) * (lvl - 1) * 100 %}
                         {% set xpMax = lvl * lvl * 100 %}
                         {% set range = xpMax - xpMin %}
                         {% set pct = range > 0 ? ((progression.xp - xpMin) / range * 100)|round(1) : 100 %}
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div class="h-2 rounded-full bg-blue-500 transition-all" style="width: {{ pct }}%"></div>
+                        <div class="w-full bg-stone-200 rounded-full h-2">
+                            <div class="h-2 rounded-full bg-saffron-600 transition-all" style="width: {{ pct }}%"></div>
                         </div>
                     </div>
                 </div>
 
-                {# ── Stats ───────────────────────────────────────── #}
-                <div class="grid grid-cols-3 gap-4 text-center mb-6 p-4 bg-gray-50 rounded-lg">
+                <div class="grid grid-cols-3 gap-4 text-center mb-6 p-4 bg-spice-surface rounded-xl border border-spice-border">
                     <div>
-                        <div class="text-2xl font-bold text-blue-600">{{ progression.totalMatches }}</div>
-                        <div class="text-xs text-gray-500 mt-1">Mélanges</div>
+                        <div class="text-2xl font-bold text-saffron-700">{{ progression.totalMatches }}</div>
+                        <div class="text-xs text-stone-500 mt-1">Mélanges</div>
                     </div>
                     <div>
-                        <div class="text-2xl font-bold text-blue-600">{{ progression.uniqueSpicesUsed }}</div>
-                        <div class="text-xs text-gray-500 mt-1">Épices max/mélange</div>
+                        <div class="text-2xl font-bold text-saffron-700">{{ progression.uniqueSpicesUsed }}</div>
+                        <div class="text-xs text-stone-500 mt-1">Épices max/mélange</div>
                     </div>
                     <div>
-                        <div class="text-2xl font-bold text-blue-600">{{ progression.userAchievements|length }}</div>
-                        <div class="text-xs text-gray-500 mt-1">Succès débloqués</div>
+                        <div class="text-2xl font-bold text-saffron-700">{{ progression.userAchievements|length }}</div>
+                        <div class="text-xs text-stone-500 mt-1">Succès débloqués</div>
                     </div>
                 </div>
 
-                {# ── Achievements ────────────────────────────────── #}
                 {% if progression.userAchievements is not empty %}
-                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Succès débloqués</h3>
+                    <h3 class="text-lg font-semibold text-stone-800 mb-3">Succès débloqués</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {% for ua in progression.userAchievements %}
                             {% set rarity = ua.achievement.rarity.value %}
                             {% set cardClass = {
-                                'common':    'border-gray-300 bg-gray-50',
+                                'common':    'border-stone-300 bg-stone-50',
                                 'rare':      'border-blue-300 bg-blue-50',
                                 'epic':      'border-purple-300 bg-purple-50',
-                                'legendary': 'border-yellow-400 bg-yellow-50',
+                                'legendary': 'border-turmeric-400 bg-turmeric-300/20',
                             } %}
                             {% set badgeClass = {
-                                'common':    'bg-gray-200 text-gray-700',
+                                'common':    'bg-stone-200 text-stone-700',
                                 'rare':      'bg-blue-100 text-blue-700',
                                 'epic':      'bg-purple-100 text-purple-700',
-                                'legendary': 'bg-yellow-100 text-yellow-700',
+                                'legendary': 'bg-turmeric-300/30 text-turmeric-700',
                             } %}
-                            <div class="flex items-start gap-3 p-3 border rounded-lg {{ cardClass[rarity] ?? 'border-gray-200' }}">
-                                <div class="text-2xl w-8 text-center flex-shrink-0">
+                            <div class="flex items-start gap-3 p-3 border rounded-xl {{ cardClass[rarity] ?? 'border-stone-200' }}">
+                                <div class="text-2xl w-8 text-center shrink-0">
                                     <i class="{{ ua.achievement.icon }}"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <div class="font-semibold text-gray-800 text-sm">{{ ua.achievement.name }}</div>
-                                    <div class="text-xs text-gray-500 mt-0.5">{{ ua.achievement.description }}</div>
+                                    <div class="font-semibold text-stone-800 text-sm">{{ ua.achievement.name }}</div>
+                                    <div class="text-xs text-stone-500 mt-0.5">{{ ua.achievement.description }}</div>
                                     <div class="flex items-center gap-2 mt-1 flex-wrap">
-                                        <span class="text-xs px-2 py-0.5 rounded-full {{ badgeClass[rarity] ?? 'bg-gray-100 text-gray-600' }}">+{{ ua.achievement.xpReward }} XP</span>
-                                        <span class="text-xs text-gray-400">{{ ua.unlockedAt|date('d/m/Y') }}</span>
+                                        <span class="text-xs px-2 py-0.5 rounded-full {{ badgeClass[rarity] ?? 'bg-stone-100 text-stone-600' }}">+{{ ua.achievement.xpReward }} XP</span>
+                                        <span class="text-xs text-stone-400">{{ ua.unlockedAt|date('d/m/Y') }}</span>
                                     </div>
                                 </div>
                             </div>
                         {% endfor %}
                     </div>
+                    <div class="mt-4 text-center">
+                        <a href="{{ path('achievements_user') }}" data-haptic="light"
+                           class="inline-flex items-center gap-2 px-5 py-2 bg-turmeric-500 hover:bg-turmeric-400 text-stone-900 font-semibold text-sm rounded-full transition-colors">
+                            <i class="fa-solid fa-trophy"></i> Voir tous les succès
+                        </a>
+                    </div>
                 {% endif %}
 
             {% else %}
-                {# ── No progression yet ──────────────────────────── #}
-                <div class="text-center text-gray-500 py-12">
-                    <i class="fa-solid fa-flask text-5xl text-gray-300 mb-4 block"></i>
+                <div class="text-center text-stone-500 py-12">
+                    <i class="fa-solid fa-flask text-5xl text-stone-300 mb-4 block"></i>
                     <p class="text-lg font-medium">Aucune progression pour l'instant</p>
                     <p class="text-sm mt-1">Créez votre premier mélange pour débloquer votre progression et gagner de l'XP !</p>
-                    <a href="{{ path('index_spicy_match') }}" class="mt-4 inline-block px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
+                    <a href="{{ path('index_spicy_match') }}" data-haptic="medium"
+                       class="mt-4 inline-block px-6 py-2 bg-saffron-700 text-white rounded-lg hover:bg-saffron-800 text-sm font-medium transition-colors">
                         Créer mon premier mélange
                     </a>
                 </div>

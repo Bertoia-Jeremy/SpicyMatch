@@ -6,8 +6,8 @@
 
     {% if selectedSpices is not empty %}
         <form class="flex flex-wrap justify-around items-center" data-model="spices">
-            <div class="rounded shadow w-full p-2 mb-5">
-                <h2 class="text-blue-600 p-2 font-semibold"><u>Choix des épices :</u></h2>
+            <div class="bg-white border border-stone-200 rounded-2xl w-full p-4 mb-6">
+                <h2 class="text-orange-600 p-2 font-semibold font-[Lora]"><u>Choix des épices :</u></h2>
                 <div class="flex justify-center items-center flex-wrap">
                     {% for groupName, spices in selectedSpices %}
                         <div class="flex flex-col mx-0">
@@ -24,12 +24,12 @@
                     {% endfor %}
                 </div>
 
-                <div>
-                    <button class="w-full py-2 px-4 my-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" type="button" data-action="live#action" data-live-action-param="addGroup" {{ not this.canAddMoreGroups ? 'disabled' : '' }}>
+                <div class="mt-4 space-y-2">
+                    <button class="w-full py-2 px-4 bg-stone-600 text-white rounded-full hover:bg-stone-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm" type="button" data-action="live#action" data-live-action-param="addGroup" data-haptic="light" {{ not this.canAddMoreGroups ? 'disabled' : '' }}>
                         Ajouter un groupe de mélange
                     </button>
-                    <button class="w-full py-2 px-4 my-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors" type="button" data-action="live#action" data-live-action-param="nextStep">
-                        Etape suivante
+                    <button class="w-full py-2 px-4 bg-orange-600 text-white rounded-full hover:bg-orange-700 transition-colors font-medium text-sm" type="button" data-action="live#action" data-live-action-param="nextStep" data-haptic="nudge">
+                        Étape suivante
                     </button>
                 </div>
             </div>
@@ -42,7 +42,7 @@
                 {{ macroCardSpicyMatch.cardSpicyMatch(spice, false, spice.score ?? null) }}
             {% endfor %}
         {% else %}
-            <div class="w-full bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-center">
+            <div class="w-full bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded-xl text-center">
                 Aucune épice supplémentaire n'est compatible avec votre sélection.
             </div>
         {% endif %}

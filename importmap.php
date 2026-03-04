@@ -31,4 +31,7 @@ return [
     'alpinejs' => [
         'version' => '3.14.9',
     ],
+    'web-haptics' => [
+        'path' => './assets/vendor/web-haptics.js',
+    ],
 ];

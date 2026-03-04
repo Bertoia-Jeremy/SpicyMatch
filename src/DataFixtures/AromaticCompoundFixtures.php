@@ -18,8 +18,8 @@ class AromaticCompoundFixtures extends Fixture implements DependentFixtureInterf
             // copy("/home/jbertoia/Images/composeCanelle.jpeg", "/home/jbertoia/Images/composeCanelle_$i.jpeg");
             $entity = new AromaticCompound();
             $entity->setName('aromatic_compound_' . $i)
-                ->setCreatedAt(new \DateTime('now'))
-                ->setUpdatedAt(new \DateTime('now'))
+                ->setCreatedAt(new \DateTimeImmutable('now'))
+                ->setUpdatedAt(new \DateTimeImmutable('now'))
                 ->addSpices($this->getReference($i . 'spice', Spices::class))
                 // ->setImageFile(new UploadedFile("/home/jbertoia/Images/composeCanelle_$i.jpeg", 'testCan.jpeg',
                 //    null, null, true))

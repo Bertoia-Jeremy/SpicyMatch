@@ -31,4 +31,17 @@ class AchievementRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
+
+    /**
+     * @return Achievement[]
+     */
+    public function findAllOrdered(): array
+    {
+        return $this->createQueryBuilder('a')
+            ->orderBy('a.rarity', 'ASC')
+            ->addOrderBy('a.triggerValue', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 }

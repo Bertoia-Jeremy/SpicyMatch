@@ -6,9 +6,12 @@
 {% block title %}SpicyMatch{% endblock %}
 
 {% block body %}
-    <div class="container mx-auto px-4 py-8">
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-gray-800">Finalisation du mélange :</h1>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-stone-800">
+                <i class="fa-solid fa-flask text-saffron-600 mr-2"></i>Finalisation du mélange
+            </h1>
+            <p class="mt-2 text-stone-500">Choisissez les méthodes de préparation et les moments d'insertion pour chaque épice.</p>
         </div>
 
         {% for spice in spices %}
@@ -17,7 +20,7 @@
                     <h2 class="text-2xl font-bold text-center mb-4"><u>{{ spice.name|upper }}</u></h2>
                     
                     <div class="mb-6">
-                        <h3 class="text-xl font-semibold mb-2">Sélectionner votre méthode de préparation :</h3>
+                        <h3 class="text-xl font-semibold mb-2 text-stone-700">Sélectionner votre méthode de préparation :</h3>
                         <form 
                             {{ stimulus_controller('select-preparation', {
                                 spicyMatchHistoryUrl: path('edit_spicy_match_history', {id: spicyMatchHistory.id}),
@@ -37,7 +40,7 @@
                     </div>
 
                     <div class="mb-6">
-                        <h3 class="text-xl font-semibold mb-2">Sélectionner le moment d'insertion de l'épice :</h3>
+                        <h3 class="text-xl font-semibold mb-2 text-stone-700">Sélectionner le moment d'insertion de l'épice :</h3>
                         <form 
                             {{ stimulus_controller('select-cooking', {
                                 spicyMatchHistoryUrl: path('edit_spicy_match_history', {id: spicyMatchHistory.id}),
@@ -57,7 +60,7 @@
                         </form>
                     </div>
                 </div>
-                <div class="w-full max-w-4xl border-t border-blue-500 my-8"></div>
+                <div class="w-full max-w-4xl border-t border-spice-border my-8"></div>
             </div>
         {% endfor %}
     </div>

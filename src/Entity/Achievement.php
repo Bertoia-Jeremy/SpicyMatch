@@ -34,7 +34,7 @@ class Achievement
     #[ORM\Column(length: 100)]
     private string $icon = 'fa-star';
 
-    #[ORM\Column(enumType: AchievementTrigger::class)]
+    #[ORM\Column(name: 'trigger_type', enumType: AchievementTrigger::class)]
     private AchievementTrigger $trigger;
 
     #[ORM\Column]

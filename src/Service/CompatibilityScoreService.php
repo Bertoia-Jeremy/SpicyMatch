@@ -10,10 +10,15 @@ use App\Repository\SpicesRepository;
 /**
  * Computes compatibility scores between selected spices and all candidates.
  *
- * Score formula per candidate:
- *   raw = mainCompoundsCount×3 + secondaryCompoundsCount×1 + alchemyFlavorsCount×5 + groupBonus
- *   groupBonus = 10 if candidate's aromatic group matches a selected spice's group
- *   score (0-100) = round(raw / maxRaw × 100)
+ * Score formula per candidate (Jaccard-like, absolute 0-100):
+ *   candidateMax = candidateMainCount×3 + candidateSecondaryCount×1
+ *   raw          = sharedMainCount×3 + sharedSecondaryCount×1
+ *   score (0-100) = min(100, round(raw / candidateMax × 100))
+ *
+ * Only aromatic compounds (main + secondary) are taken into account.
+ * AlchemyFlavors and aromatic groups do NOT impact the score.
+ * Intersection is strict: a compound counts only if present in ALL selected spices.
+ * No limit on the number of selected spices.
  *
  * Results are sorted by score descending.
  */
@@ -40,7 +45,6 @@ class CompatibilityScoreService
 
         // Step 1: Count how many selected spices share each compound (main OR secondary combined)
         $compoundPresence = [];  // compoundId => count of spices that have it
-        $compoundEntities = [];  // compoundId => AromaticCompound (for AlchemyFlavors access later)
 
         foreach ($selectedSpices as $spice) {
             $seen = [];
@@ -48,7 +52,6 @@ class CompatibilityScoreService
                 $cid = $compound->getId();
                 if (!isset($seen[$cid])) {
                     $compoundPresence[$cid] = ($compoundPresence[$cid] ?? 0) + 1;
-                    $compoundEntities[$cid] = $compound;
                     $seen[$cid] = true;
                 }
             }
@@ -56,13 +59,12 @@ class CompatibilityScoreService
                 $cid = $compound->getId();
                 if (!isset($seen[$cid])) {
                     $compoundPresence[$cid] = ($compoundPresence[$cid] ?? 0) + 1;
-                    $compoundEntities[$cid] = $compound;
                     $seen[$cid] = true;
                 }
             }
         }
 
-        // Step 2: Keep only compounds shared by ALL selected spices
+        // Step 2: Keep only compounds shared by ALL selected spices (strict intersection)
         $sharedCompoundIds = array_keys(array_filter(
             $compoundPresence,
             fn (int $count) => $count >= $n
@@ -72,15 +74,7 @@ class CompatibilityScoreService
             return [];
         }
 
-        // Step 3: Collect AlchemyFlavor IDs from those shared compounds
-        $selectedAlchemyFlavorIds = [];
-        foreach ($sharedCompoundIds as $cid) {
-            foreach ($compoundEntities[$cid]->getAlchemyFlavors() as $flavor) {
-                $selectedAlchemyFlavorIds[$flavor->getId()] = true;
-            }
-        }
-
-        // Step 4: Load candidate spices (have ≥1 shared compound, not in current selection)
+        // Step 3: Load candidate spices (have ≥1 shared compound, not in current selection)
         $candidates = $this->spicesRepository->findCandidatesForScoring(
             $sharedCompoundIds,
             $selectedIds
@@ -90,78 +84,73 @@ class CompatibilityScoreService
             return [];
         }
 
-        // Step 5: Collect selected aromatic group IDs for group bonus
-        $selectedGroupIds = array_unique(array_filter(
-            array_map(fn (Spices $s) => $s->getAromaticGroups()?->getId(), $selectedSpices)
-        ));
-
-        // Step 6: Score each candidate
+        // Step 4: Score each candidate using Jaccard-like formula
         $sharedSet = array_flip($sharedCompoundIds);
         $results = [];
 
         foreach ($candidates as $candidate) {
             $mainCount = 0;
             $secondaryCount = 0;
-            $candidateAlchemyFlavorIds = [];
+            $candidateMainTotal = 0;
+            $candidateSecTotal = 0;
 
             foreach ($candidate->getAromaticsCompounds() as $compound) {
+                ++$candidateMainTotal;
                 if (isset($sharedSet[$compound->getId()])) {
                     ++$mainCount;
-                }
-                foreach ($compound->getAlchemyFlavors() as $flavor) {
-                    $candidateAlchemyFlavorIds[$flavor->getId()] = true;
                 }
             }
 
             foreach ($candidate->getSecondaryAromaticsCompounds() as $compound) {
+                ++$candidateSecTotal;
                 if (isset($sharedSet[$compound->getId()])) {
                     ++$secondaryCount;
                 }
-                foreach ($compound->getAlchemyFlavors() as $flavor) {
-                    $candidateAlchemyFlavorIds[$flavor->getId()] = true;
-                }
             }
 
-            $alchemyCount = count(array_intersect_key($candidateAlchemyFlavorIds, $selectedAlchemyFlavorIds));
-            $groupBonus = in_array($candidate->getAromaticGroups()?->getId(), $selectedGroupIds, true) ? 10 : 0;
-            $rawScore = $mainCount * 3 + $secondaryCount + $alchemyCount * 5 + $groupBonus;
-
-            if ($rawScore > 0) {
-                $results[] = [
-                    'spice'                  => $candidate,
-                    'rawScore'               => $rawScore,
-                    'mainCompoundsCount'     => $mainCount,
-                    'secondaryCompoundsCount' => $secondaryCount,
-                    'alchemyFlavorsCount'    => $alchemyCount,
-                ];
+            $candidateMax = $candidateMainTotal * 3 + $candidateSecTotal;
+            if ($candidateMax === 0) {
+                continue;
             }
+
+            $raw = $mainCount * 3 + $secondaryCount;
+            if ($raw === 0) {
+                continue;
+            }
+
+            $score = min(100, (int) round($raw / $candidateMax * 100));
+
+            $results[] = [
+                'spice'                   => $candidate,
+                'score'                   => $score,
+                'mainCompoundsCount'      => $mainCount,
+                'secondaryCompoundsCount' => $secondaryCount,
+            ];
         }
 
         if (empty($results)) {
             return [];
         }
 
-        // Step 7: Normalize to 0-100 and build flat output arrays
-        $maxRaw = max(array_column($results, 'rawScore'));
-        $output = [];
+        // Step 5: Build flat output arrays sorted by score descending
+        usort($results, fn (array $a, array $b) => $b['score'] <=> $a['score']);
 
+        $output = [];
         foreach ($results as $r) {
             /** @var Spices $spice */
             $spice = $r['spice'];
             $output[] = [
-                'id'                     => $spice->getId(),
-                'name'                   => $spice->getName(),
-                'file'                   => $spice->getFile(),
-                'color'                  => $spice->getAromaticGroups()?->getColor(),
-                'groupName'              => $spice->getAromaticGroups()?->getName(),
-                'score'                  => $maxRaw > 0 ? (int) round($r['rawScore'] / $maxRaw * 100) : 0,
-                'mainCompoundsCount'     => $r['mainCompoundsCount'],
+                'id'                      => $spice->getId(),
+                'name'                    => $spice->getName(),
+                'file'                    => $spice->getFile(),
+                'color'                   => $spice->getAromaticGroups()?->getColor(),
+                'groupName'               => $spice->getAromaticGroups()?->getName(),
+                'score'                   => $r['score'],
+                'mainCompoundsCount'      => $r['mainCompoundsCount'],
                 'secondaryCompoundsCount' => $r['secondaryCompoundsCount'],
-                'alchemyFlavorsCount'    => $r['alchemyFlavorsCount'],
+                'alchemyFlavorsCount'     => 0,  // kept for backwards compat, not used in scoring
             ];
         }
-
-        usort($output, fn (array $a, array $b) => $b['score'] <=> $a['score']);
 
         return $output;
     }

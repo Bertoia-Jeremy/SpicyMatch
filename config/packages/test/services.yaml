@@ -1,0 +1,10 @@
+services:
+    # Expose services for integration tests
+    App\Service\CompatibilityScoreService:
+        public: true
+
+    App\Service\SpiceGroupFinderService:
+        public: true
+
+    App\Repository\SpicesRepository:
+        public: true

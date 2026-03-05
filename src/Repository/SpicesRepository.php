@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\Spices;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\ParameterType;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -209,8 +210,8 @@ class SpicesRepository extends ServiceEntityRepository
                 COUNT(DISTINCT ssac2.aromatic_compound_id) AS shared_secondary
             FROM spices s1
             JOIN spices s2 ON s2.id > s1.id AND s2.deleted_at IS NULL
-            LEFT JOIN aromatic_groups ag1 ON ag1.id = s1.aromatic_groups_id
-            LEFT JOIN aromatic_groups ag2 ON ag2.id = s2.aromatic_groups_id
+            LEFT JOIN aromatic_groups ag1 ON ag1.id = s1.aromaticGroups
+            LEFT JOIN aromatic_groups ag2 ON ag2.id = s2.aromaticGroups
             LEFT JOIN spices_aromatic_compound sac1 ON sac1.spices_id = s1.id
             LEFT JOIN spices_aromatic_compound sac2
                 ON sac2.aromatic_compound_id = sac1.aromatic_compound_id
@@ -227,7 +228,7 @@ class SpicesRepository extends ServiceEntityRepository
         ';
 
         $stmt = $this->getEntityManager()->getConnection()->prepare($sql);
-        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
+        $stmt->bindValue('limit', $limit, ParameterType::INTEGER);
 
         return $stmt->executeQuery()->fetchAllAssociative();
     }
@@ -257,9 +258,9 @@ class SpicesRepository extends ServiceEntityRepository
             FROM spices s1
             JOIN spices s2 ON s2.id > s1.id AND s2.deleted_at IS NULL
             JOIN spices s3 ON s3.id > s2.id AND s3.deleted_at IS NULL
-            LEFT JOIN aromatic_groups ag1 ON ag1.id = s1.aromatic_groups_id
-            LEFT JOIN aromatic_groups ag2 ON ag2.id = s2.aromatic_groups_id
-            LEFT JOIN aromatic_groups ag3 ON ag3.id = s3.aromatic_groups_id
+            LEFT JOIN aromatic_groups ag1 ON ag1.id = s1.aromaticGroups
+            LEFT JOIN aromatic_groups ag2 ON ag2.id = s2.aromaticGroups
+            LEFT JOIN aromatic_groups ag3 ON ag3.id = s3.aromaticGroups
             LEFT JOIN spices_aromatic_compound sac1 ON sac1.spices_id = s1.id
             LEFT JOIN spices_aromatic_compound sac2
                 ON sac2.spices_id = s2.id AND sac2.aromatic_compound_id = sac1.aromatic_compound_id
@@ -283,7 +284,7 @@ class SpicesRepository extends ServiceEntityRepository
         ';
 
         $stmt = $this->getEntityManager()->getConnection()->prepare($sql);
-        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
+        $stmt->bindValue('limit', $limit, ParameterType::INTEGER);
 
         return $stmt->executeQuery()->fetchAllAssociative();
     }

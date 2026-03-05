@@ -18,22 +18,15 @@ class UsersControllerTest extends WebTestCase
     protected function setUp(): void
     {
         $this->client = static::createClient();
+        $this->manager = static::getContainer()->get('doctrine')->getManager();
         $this->repository = static::getContainer()->get('doctrine')->getRepository(Users::class);
-
-        foreach ($this->repository->findAll() as $object) {
-            $this->manager->remove($object);
-        }
     }
 
-    public function testIndex(): void
+    public function testIndexRedirectsUnauthenticated(): void
     {
-        $crawler = $this->client->request('GET', $this->path);
+        $this->client->request('GET', $this->path);
 
-        self::assertResponseStatusCodeSame(200);
-        self::assertPageTitleContains('User index');
-
-        // Use the $crawler to perform additional assertions e.g.
-        // self::assertSame('Some text on the page', $crawler->filter('.p')->first());
+        self::assertResponseRedirects('/login');
     }
 
     public function testNew(): void

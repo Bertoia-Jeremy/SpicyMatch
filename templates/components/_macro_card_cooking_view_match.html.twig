@@ -4,7 +4,7 @@
         data-cooking-id="{{ cookingId }}"
         class="flex-1 m-2 cursor-pointer"
     >
-        <div class="rounded-xl p-4 h-full border border-stone-200 hover:border-orange-400 hover:shadow-sm transition-all duration-200">
+        <div tabindex="0" class="rounded-xl p-4 h-full border border-stone-200 hover:border-saffron-500/50 hover:shadow-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/50">
             <h4 class="text-lg font-semibold text-center mb-2">{{ title }}</h4>
             <p class="text-stone-500 text-center text-sm">{{ text|nl2br }}</p>
         </div>

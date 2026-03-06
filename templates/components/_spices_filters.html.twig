@@ -63,11 +63,12 @@
 
             {# Groupe aromatique #}
             <div class="flex flex-col gap-1.5">
-                <label class="text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                <label for="filter_aromatic_group" class="text-xs font-semibold text-stone-500 uppercase tracking-wider">
                     <i class="fa-solid fa-circle-nodes text-saffron-600 mr-1"></i>
                     Groupe aromatique
                 </label>
                 <select
+                    id="filter_aromatic_group"
                     name="aromatic_group"
                     @change="$el.closest('form').submit()"
                     class="w-full px-3 py-2 border rounded-xl text-sm text-stone-700 bg-white focus:outline-none focus:ring-2 focus:ring-saffron-600/30 focus:border-saffron-600/40 transition-colors {{ activeAgId ? 'border-saffron-600/40 bg-spice-surface' : 'border-stone-200' }}">
@@ -82,11 +83,12 @@
 
             {# Type d'épice #}
             <div class="flex flex-col gap-1.5">
-                <label class="text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                <label for="filter_spicy_type" class="text-xs font-semibold text-stone-500 uppercase tracking-wider">
                     <i class="fa-solid fa-tag text-saffron-600 mr-1"></i>
                     Type d'épice
                 </label>
                 <select
+                    id="filter_spicy_type"
                     name="spicy_type"
                     @change="$el.closest('form').submit()"
                     class="w-full px-3 py-2 border rounded-xl text-sm text-stone-700 bg-white focus:outline-none focus:ring-2 focus:ring-saffron-600/30 focus:border-saffron-600/40 transition-colors {{ activeStId ? 'border-saffron-600/40 bg-spice-surface' : 'border-stone-200' }}">

@@ -2,22 +2,7 @@
 
 {% block content %}
     <turbo-frame id="user_frame_id">
-        {% set tabs = [
-            { route: 'profile_user',       label: 'Profil' },
-            { route: 'achievements_user',  label: 'Succès', icon: 'fa-solid fa-trophy text-xs mr-1' },
-            { route: 'configuration_user', label: 'Configuration' },
-            { route: 'history_user',       label: 'Historique' },
-            { route: 'security_user',      label: 'Sécurité' },
-        ] %}
-        <div class="flex flex-wrap border-b border-stone-200 mt-6">
-            {% for tab in tabs %}
-                <a href="{{ path(tab.route) }}"
-                   class="px-4 py-2 text-sm font-medium {{ app.request.attributes.get('_route') == tab.route ? 'text-saffron-700 border-b-2 border-saffron-700' : 'text-stone-500 hover:text-stone-800 hover:border-b-2 hover:border-stone-300' }}">
-                    {% if tab.icon is defined %}<i class="{{ tab.icon }}"></i>{% endif %}
-                    {{ tab.label }}
-                </a>
-            {% endfor %}
-        </div>
+        {% include 'components/_user_tabs.html.twig' %}
 
         <div class="p-4">
             {% if progression %}
@@ -100,8 +85,8 @@
                     <p class="text-lg font-medium">Aucune progression pour l'instant</p>
                     <p class="text-sm mt-1">Créez votre premier mélange pour débloquer votre progression et gagner de l'XP !</p>
                     <a href="{{ path('index_spicy_match') }}" data-haptic="medium"
-                       class="mt-4 inline-block px-6 py-2 bg-saffron-700 text-white rounded-lg hover:bg-saffron-800 text-sm font-medium transition-colors">
-                        Créer mon premier mélange
+                       class="btn-pill-primary mt-4 inline-flex">
+                        <i class="fa-solid fa-flask text-sm"></i>Créer mon premier mélange
                     </a>
                 </div>
             {% endif %}

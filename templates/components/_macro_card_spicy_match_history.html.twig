@@ -4,7 +4,8 @@
         : (spice.color is defined and spice.color is not null ? spice.color : '#CCCCCC') %}
     <div class="mb-3 mx-2 p-0">
         <div class="little-card-50h bg-dark shadow-{{ color|trim('#')|upper }}">
-            <div class="card-bg rounded" style="background-image: url({{ vich_uploader_asset(spice, 'imageFile') }})"></div>
+            {% set matchHistImg = vich_uploader_asset(spice, 'imageFile') %}
+            <div class="card-bg rounded" style="background-image: url({{ matchHistImg ?: 'https://loremflickr.com/300/150/spice' }})"></div>
             <div class="text-color-white flex justify-center items-end h-full py-2">
                 <h3 class="mb-0">{{ spice.name }}</h3>
             </div>

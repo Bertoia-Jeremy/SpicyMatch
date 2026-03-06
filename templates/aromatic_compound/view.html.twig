@@ -6,7 +6,7 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
     <div class="mb-8">
-        <a href="{{ path('index_aromatic_compound') }}" class="text-stone-500 hover:text-orange-600 text-sm transition-colors">
+        <a href="{{ path('index_aromatic_compound') }}" class="text-stone-500 hover:text-saffron-700 text-sm transition-colors">
             <i class="fa-solid fa-arrow-left mr-1"></i> Composés aromatiques
         </a>
     </div>
@@ -21,7 +21,7 @@
         {% if aromaticCompound.cooking %}
         <div class="bg-white border border-stone-200 rounded-2xl p-6">
             <h2 class="text-xl font-bold text-stone-900 mb-4">
-                <i class="fa-solid fa-fire-flame-curved text-orange-500 mr-2"></i>Conseils cuisine
+                <i class="fa-solid fa-fire-flame-curved text-saffron-600 mr-2"></i>Conseils cuisine
             </h2>
             <p class="text-stone-600 text-sm leading-relaxed">{{ aromaticCompound.cooking }}</p>
             {% if aromaticCompound.informations %}

@@ -1,39 +1,39 @@
 {% if pageCount > 1 %}
     {% set alignClass = (align is not defined) ? 'justify-center' : align=='right' ? 'justify-end' : 'justify-center' %}
-    <nav class="mt-6">
+    <nav class="mt-6" aria-label="Pagination">
         <ul class="flex items-center {{ alignClass }} space-x-1 flex-wrap">
 
             {% if previous is defined %}
                 <li>
-                    <a class="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700 text-sm"
+                    <a class="px-3 py-2 border border-spice-border rounded hover:bg-spice-surface text-stone-600 text-sm"
                        rel="prev" href="{{ path(route, query|merge({(pageParameterName): previous})) }}">&laquo;</a>
                 </li>
             {% endif %}
 
             {% if startPage > 1 %}
                 <li>
-                    <a class="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700 text-sm"
+                    <a class="px-3 py-2 border border-spice-border rounded hover:bg-spice-surface text-stone-600 text-sm"
                        href="{{ path(route, query|merge({(pageParameterName): 1})) }}">1</a>
                 </li>
                 {% if startPage == 3 %}
                     <li>
-                        <a class="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700 text-sm"
+                        <a class="px-3 py-2 border border-spice-border rounded hover:bg-spice-surface text-stone-600 text-sm"
                            href="{{ path(route, query|merge({(pageParameterName): 2})) }}">2</a>
                     </li>
                 {% elseif startPage != 2 %}
-                    <li><span class="px-3 py-2 text-gray-400 text-sm">&hellip;</span></li>
+                    <li><span class="px-3 py-2 text-stone-400 text-sm">&hellip;</span></li>
                 {% endif %}
             {% endif %}
 
             {% for page in pagesInRange %}
                 {% if page != current %}
                     <li>
-                        <a class="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700 text-sm"
+                        <a class="px-3 py-2 border border-spice-border rounded hover:bg-spice-surface text-stone-600 text-sm"
                            href="{{ path(route, query|merge({(pageParameterName): page})) }}">{{ page }}</a>
                     </li>
                 {% else %}
                     <li>
-                        <span class="px-3 py-2 border border-blue-600 rounded bg-blue-600 text-white text-sm">{{ page }}</span>
+                        <span aria-current="page" class="px-3 py-2 border border-saffron-700 rounded bg-saffron-700 text-white text-sm">{{ page }}</span>
                     </li>
                 {% endif %}
             {% endfor %}
@@ -41,23 +41,23 @@
             {% if pageCount > endPage %}
                 {% if pageCount > (endPage + 1) %}
                     {% if pageCount > (endPage + 2) %}
-                        <li><span class="px-3 py-2 text-gray-400 text-sm">&hellip;</span></li>
+                        <li><span class="px-3 py-2 text-stone-400 text-sm">&hellip;</span></li>
                     {% else %}
                         <li>
-                            <a class="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700 text-sm"
+                            <a class="px-3 py-2 border border-spice-border rounded hover:bg-spice-surface text-stone-600 text-sm"
                                href="{{ path(route, query|merge({(pageParameterName): (pageCount - 1)})) }}">{{ pageCount - 1 }}</a>
                         </li>
                     {% endif %}
                 {% endif %}
                 <li>
-                    <a class="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700 text-sm"
+                    <a class="px-3 py-2 border border-spice-border rounded hover:bg-spice-surface text-stone-600 text-sm"
                        href="{{ path(route, query|merge({(pageParameterName): pageCount})) }}">{{ pageCount }}</a>
                 </li>
             {% endif %}
 
             {% if next is defined %}
                 <li>
-                    <a class="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700 text-sm"
+                    <a class="px-3 py-2 border border-spice-border rounded hover:bg-spice-surface text-stone-600 text-sm"
                        rel="next" href="{{ path(route, query|merge({(pageParameterName): next})) }}">&raquo;</a>
                 </li>
             {% endif %}

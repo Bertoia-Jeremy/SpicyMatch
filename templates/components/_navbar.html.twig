@@ -32,6 +32,8 @@
                 {# Dropdown Épices #}
                 <div x-data="{ dropdownOpen: false }" class="relative">
                     <button @click="dropdownOpen = !dropdownOpen"
+                            :aria-expanded="dropdownOpen"
+                            aria-haspopup="true"
                             class="flex items-center gap-1 text-sm font-medium text-stone-700 hover:text-saffron-700 transition-colors">
                         Épices
                         <svg class="w-3.5 h-3.5 transition-transform duration-200"
@@ -160,99 +162,204 @@
 
             {# ── Burger mobile ── #}
             <button @click="open = !open"
-                    class="md:hidden text-stone-700 hover:text-saffron-700 focus:outline-none transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path x-show="!open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                    <path x-show="open" x-cloak stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
+                    class="md:hidden relative w-10 h-10 flex flex-col items-center justify-center gap-[5px] rounded-xl
+                           text-stone-700 hover:bg-spice-surface hover:text-saffron-700
+                           focus:outline-none transition-colors"
+                    :aria-expanded="open" aria-label="Menu">
+                <span class="block w-5 h-0.5 bg-current rounded-full transition-all duration-300 origin-center"
+                      :class="open ? 'rotate-45 translate-y-[7px]' : ''"></span>
+                <span class="block w-5 h-0.5 bg-current rounded-full transition-all duration-300"
+                      :class="open ? 'opacity-0 scale-x-0' : ''"></span>
+                <span class="block w-5 h-0.5 bg-current rounded-full transition-all duration-300 origin-center"
+                      :class="open ? '-rotate-45 -translate-y-[7px]' : ''"></span>
             </button>
         </div>
     </div>
 
-    {# ── Menu mobile ── #}
-    <div x-show="open" x-cloak
-         x-transition:enter="transition ease-out duration-150"
-         x-transition:enter-start="opacity-0 -translate-y-2"
-         x-transition:enter-end="opacity-100 translate-y-0"
-         class="md:hidden bg-cream border-t border-saffron-700/10">
-        <div class="px-4 py-4 space-y-1">
-            <a href="{{ path('home') }}"
-               class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                Accueil
-            </a>
-            <a href="{{ path('index_spicy_match') }}"
-               class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                Créer mon mélange
-            </a>
-            <div class="border-t border-saffron-700/10 my-2"></div>
-            <p class="px-3 py-1 text-xs text-stone-400 font-semibold uppercase tracking-wider">Épices</p>
-            <a href="{{ path('index_aromatic_compound') }}"
-               class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                Par composé aromatique
-            </a>
-            <a href="{{ path('index_aromatic_groups') }}"
-               class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                Par groupe aromatique
-            </a>
-            <a href="{{ path('index_spicy_type') }}"
-               class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                Par type d'épice
-            </a>
-            <a href="{{ path('index_alchemy_flavors') }}"
-               class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                Par saveur
-            </a>
-            <a href="{{ path('index_spices') }}"
-               class="block py-2.5 px-3 rounded-lg text-sm font-medium text-saffron-700 hover:bg-spice-surface transition-colors">
-                Toutes les épices
-            </a>
-            <div class="border-t border-saffron-700/10 my-2"></div>
-            <a href="{{ path('new_contact') }}"
-               class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                Contact
-            </a>
-            <div class="border-t border-saffron-700/10 my-2"></div>
+    {# ── Drawer mobile ── #}
 
+    {# Overlay #}
+    <div x-show="open" x-cloak
+         @click="open = false"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-40 bg-stone-900/40 backdrop-blur-sm md:hidden">
+    </div>
+
+    {# Panneau latéral #}
+    <div x-show="open" x-cloak
+         x-transition:enter="transition ease-out duration-250"
+         x-transition:enter-start="opacity-0 translate-x-full"
+         x-transition:enter-end="opacity-100 translate-x-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 translate-x-0"
+         x-transition:leave-end="opacity-0 translate-x-full"
+         class="fixed top-0 right-0 bottom-0 z-50 w-80 max-w-[calc(100vw-3rem)]
+                bg-cream flex flex-col shadow-2xl md:hidden"
+         @keydown.escape.window="open = false">
+
+        {# Header du drawer #}
+        <div class="flex items-center justify-between px-6 py-5 border-b border-stone-200/60">
+            <a href="{{ path('home') }}" @click="open = false"
+               class="flex items-center gap-2 font-display text-lg font-bold text-stone-900 no-underline">
+                <div class="w-7 h-7 bg-paprika-900 flex items-center justify-center rounded-md">
+                    <i class="fa-solid fa-mortar-pestle text-cream text-[11px]"></i>
+                </div>
+                Spicy<span class="text-saffron-600 italic">Match</span>
+            </a>
+            <button @click="open = false"
+                    class="w-8 h-8 flex items-center justify-center rounded-lg text-stone-500
+                           hover:bg-stone-100 hover:text-stone-800 transition-colors"
+                    aria-label="Fermer le menu">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+
+        {# Corps scrollable #}
+        <div class="flex-1 overflow-y-auto py-4">
+
+            {# Navigation principale #}
+            <div class="px-3 mb-2">
+                <p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">Navigation</p>
+                <a href="{{ path('home') }}" @click="open = false"
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-stone-700
+                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                    <span class="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-house text-stone-500 text-xs"></i>
+                    </span>
+                    Accueil
+                </a>
+                <a href="{{ path('index_spicy_match') }}" @click="open = false"
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-stone-700
+                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                    <span class="w-8 h-8 rounded-lg bg-saffron-100 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-fire text-saffron-600 text-xs"></i>
+                    </span>
+                    Le Lab — Créer un mélange
+                </a>
+                <a href="{{ path('index_spices') }}" @click="open = false"
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-stone-700
+                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                    <span class="w-8 h-8 rounded-lg bg-spice-surface flex items-center justify-center shrink-0 border border-spice-border">
+                        <i class="fa-solid fa-pepper-hot text-saffron-600 text-xs"></i>
+                    </span>
+                    Toutes les épices
+                </a>
+                <a href="{{ path('new_contact') }}" @click="open = false"
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-stone-700
+                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                    <span class="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center shrink-0">
+                        <i class="fa-regular fa-envelope text-stone-500 text-xs"></i>
+                    </span>
+                    Contact
+                </a>
+            </div>
+
+            <div class="mx-6 border-t border-stone-200/60 my-2"></div>
+
+            {# Section Épices #}
+            <div class="px-3 mb-2">
+                <p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">Explorer les épices</p>
+                <a href="{{ path('index_aromatic_compound') }}" @click="open = false"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
+                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                    <i class="fa-solid fa-atom text-saffron-400 w-4 text-center text-xs shrink-0"></i>
+                    Par composé aromatique
+                </a>
+                <a href="{{ path('index_aromatic_groups') }}" @click="open = false"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
+                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                    <i class="fa-solid fa-layer-group text-saffron-400 w-4 text-center text-xs shrink-0"></i>
+                    Par groupe aromatique
+                </a>
+                <a href="{{ path('index_spicy_type') }}" @click="open = false"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
+                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                    <i class="fa-solid fa-tags text-saffron-400 w-4 text-center text-xs shrink-0"></i>
+                    Par type d'épice
+                </a>
+                <a href="{{ path('index_alchemy_flavors') }}" @click="open = false"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
+                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                    <i class="fa-solid fa-flask-vial text-saffron-400 w-4 text-center text-xs shrink-0"></i>
+                    Par saveur
+                </a>
+            </div>
+
+            <div class="mx-6 border-t border-stone-200/60 my-2"></div>
+
+            {# Section utilisateur #}
             {% if is_granted("ROLE_USER") %}
                 {% set navLevel = app.user.progression ? app.user.progression.level : null %}
-                <div class="flex items-center gap-2 px-3 py-1">
-                    <span class="text-xs text-stone-400 font-semibold uppercase tracking-wider">Mon compte</span>
-                    {% if navLevel %}
-                        <span class="px-1.5 py-0.5 text-xs font-bold bg-turmeric-400 text-stone-900 rounded-full leading-none">
-                            Nv.{{ navLevel }}
-                        </span>
-                    {% endif %}
+                <div class="px-3">
+                    {# Identity strip #}
+                    <div class="flex items-center gap-3 px-3 py-3 mb-1 bg-spice-surface rounded-xl border border-spice-border">
+                        <div class="w-9 h-9 rounded-full bg-saffron-100 border border-saffron-300/50 flex items-center justify-center shrink-0">
+                            <i class="fa-regular fa-user text-saffron-600 text-sm"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-stone-800 truncate">{{ app.user.username|capitalize }}</p>
+                            {% if navLevel %}
+                                <p class="text-xs text-stone-500">Niveau {{ navLevel }}</p>
+                            {% endif %}
+                        </div>
+                        {% if navLevel %}
+                            <span class="px-2 py-0.5 text-xs font-bold bg-turmeric-400 text-stone-900 rounded-full shrink-0">
+                                {{ navLevel }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <a href="{{ path('profile_user') }}" @click="open = false"
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
+                              hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                        <i class="fa-regular fa-user text-stone-400 w-4 text-center text-xs shrink-0"></i>
+                        Mon profil
+                    </a>
+                    <a href="{{ path('history_user') }}" @click="open = false"
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
+                              hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                        <i class="fa-solid fa-clock-rotate-left text-stone-400 w-4 text-center text-xs shrink-0"></i>
+                        Historique
+                    </a>
+                    <a href="{{ path('configuration_user') }}" @click="open = false"
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
+                              hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                        <i class="fa-solid fa-sliders text-stone-400 w-4 text-center text-xs shrink-0"></i>
+                        Configuration
+                    </a>
+                    <a href="{{ path('security_user') }}" @click="open = false"
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
+                              hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                        <i class="fa-solid fa-shield-halved text-stone-400 w-4 text-center text-xs shrink-0"></i>
+                        Sécurité
+                    </a>
+                    <a href="{{ path('app_logout') }}" @click="open = false"
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-paprika-700
+                              hover:bg-red-50 transition-colors mt-1">
+                        <i class="fa-solid fa-right-from-bracket text-paprika-500 w-4 text-center text-xs shrink-0"></i>
+                        Déconnexion
+                    </a>
                 </div>
-                <a href="{{ path('profile_user') }}"
-                   class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                    Profil
-                </a>
-                <a href="{{ path('configuration_user') }}"
-                   class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                    Configuration
-                </a>
-                <a href="{{ path('history_user') }}"
-                   class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                    Historique
-                </a>
-                <a href="{{ path('security_user') }}"
-                   class="block py-2.5 px-3 rounded-lg text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                    Sécurité
-                </a>
-                <a href="{{ path('app_logout') }}"
-                   class="block py-2.5 px-3 rounded-lg text-sm text-paprika-700 hover:bg-red-50 transition-colors">
-                    Déconnexion
-                </a>
-            {% else %}
-                <a href="{{ path('app_login') }}"
-                   class="block text-center py-2.5 px-3 rounded-full text-sm font-medium border border-saffron-700 text-saffron-700 hover:bg-spice-surface transition-colors mt-2">
-                    Connexion
-                </a>
-                <a href="{{ path('index_register') }}"
-                   class="block text-center py-2.5 px-3 rounded-full text-sm font-semibold bg-saffron-700 text-white hover:bg-saffron-800 transition-colors mt-2">
-                    Commencer gratuitement
-                </a>
             {% endif %}
         </div>
+
+        {# Footer du drawer — CTAs ou profil #}
+        {% if not is_granted("ROLE_USER") %}
+            <div class="px-5 py-5 border-t border-stone-200/60 space-y-2.5 bg-cream">
+                <a href="{{ path('index_register') }}" @click="open = false"
+                   class="btn-pill-primary w-full justify-center py-3">
+                    <i class="fa-solid fa-user-plus text-xs"></i>Commencer gratuitement
+                </a>
+                <a href="{{ path('app_login') }}" @click="open = false"
+                   class="btn-pill-outline w-full justify-center py-2.5">
+                    Connexion
+                </a>
+            </div>
+        {% endif %}
     </div>
 </nav>

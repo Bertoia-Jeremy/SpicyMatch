@@ -20,9 +20,9 @@
                 <img src="{{ imageUrl }}" alt="{{ spice.name }}"
                      class="w-24 h-24 rounded-2xl object-cover shrink-0 shadow-sm">
             {% else %}
-                <div class="w-24 h-24 rounded-2xl bg-stone-100 flex items-center justify-center shrink-0">
-                    <i class="fa-solid fa-mortar-pestle text-3xl text-stone-300"></i>
-                </div>
+                <img src="https://loremflickr.com/96/96/spice"
+                     alt="{{ spice.name }}"
+                     class="w-24 h-24 rounded-2xl object-cover shrink-0 shadow-sm">
             {% endif %}
             <div class="flex-1 min-w-0">
                 <h2 class="text-xl font-bold text-stone-900 mb-1">{{ spice.name }}</h2>
@@ -84,10 +84,18 @@
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
+    <div class="mb-6">
+        <a href="{{ path('index_spices') }}" class="inline-flex items-center gap-1.5 text-stone-500 hover:text-saffron-700 text-sm transition-colors">
+            <i class="fa-solid fa-arrow-left text-[10px]"></i>Retour aux épices
+        </a>
+    </div>
+
     {# Hero épice #}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
         <div class="md:col-span-2">
-            <span class="tag-secondary mb-3 inline-block">{{ spice.aromaticGroups.name }}</span>
+            {% if spice.aromaticGroups %}
+                <span class="tag-secondary mb-3 inline-block">{{ spice.aromaticGroups.name }}</span>
+            {% endif %}
             <h1 class="text-4xl font-bold text-stone-900 mb-3">{{ spice.name }}</h1>
             <p class="text-stone-600 text-lg leading-relaxed">{{ spice.description }}</p>
         </div>

@@ -6,16 +6,21 @@
 
 {% block body %}
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="mb-6">
+            <a href="{{ path('index_spicy_match_history') }}" class="inline-flex items-center gap-1.5 text-stone-500 hover:text-saffron-700 text-sm transition-colors">
+                <i class="fa-solid fa-arrow-left text-[10px]"></i>Retour à l'historique
+            </a>
+        </div>
         <div class="text-center mb-10">
             <h1 class="text-4xl font-bold text-stone-800">
-                <i class="fa-solid fa-book-open text-orange-600 mr-2"></i>Recette du mélange
+                <i class="fa-solid fa-book-open text-saffron-700 mr-2"></i>Recette du mélange
             </h1>
         </div>
 
         {# Préparation des épices #}
         <div class="mb-14">
             <h2 class="text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
-                <i class="fa-solid fa-mortar-pestle text-orange-500"></i>
+                <i class="fa-solid fa-mortar-pestle text-saffron-600"></i>
                 Préparation des épices
             </h2>
 
@@ -49,7 +54,7 @@
         {# Moments d'insertion #}
         <div class="mb-12">
             <h2 class="text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
-                <i class="fa-solid fa-timeline text-orange-500"></i>
+                <i class="fa-solid fa-timeline text-saffron-600"></i>
                 Moments d'insertion des épices
             </h2>
 
@@ -58,8 +63,8 @@
 
                 {% for step, cookings in cookingsByStep %}
                     <div class="flex-1 min-w-[180px] max-w-[220px] bg-white border border-stone-200 rounded-xl shadow-sm p-5 flex flex-col items-center">
-                        <h3 class="text-xl font-bold text-orange-600 mb-2">{{ stepsTitle[step] }}</h3>
-                        <div class="w-full h-0.5 bg-orange-200 mb-4"></div>
+                        <h3 class="text-xl font-bold text-saffron-700 mb-2">{{ stepsTitle[step] }}</h3>
+                        <div class="w-full h-0.5 bg-spice-border mb-4"></div>
                         <div class="flex flex-wrap justify-center gap-2">
                             {% for cooking in cookings %}
                                 <a href="{{ path('view_spice', {id: cooking.spice.id}) }}">
@@ -70,6 +75,12 @@
                     </div>
                 {% endfor %}
             </div>
+        </div>
+
+        <div class="flex justify-center mt-10">
+            <a href="{{ path('index_spicy_match') }}" class="btn-pill-primary">
+                <i class="fa-solid fa-flask text-sm"></i>Créer un nouveau mélange
+            </a>
         </div>
     </div>
 {% endblock %}

@@ -4,10 +4,20 @@
     {% set compatibleSpices = this.results.compatibleSpices %}
     {% set selectedSpices = this.results.selectedSpices %}
 
+    {% if selectedSpices is empty %}
+        <div class="w-full text-center py-6 mb-4">
+            <div class="inline-flex flex-col items-center gap-2 text-stone-400">
+                <i class="fa-solid fa-hand-pointer text-3xl text-saffron-400/60"></i>
+                <p class="text-sm font-medium">Sélectionnez vos épices ci-dessous pour commencer</p>
+                <i class="fa-solid fa-chevron-down text-xs animate-bounce text-saffron-500/50"></i>
+            </div>
+        </div>
+    {% endif %}
+
     {% if selectedSpices is not empty %}
         <form class="flex flex-wrap justify-around items-center" data-model="spices">
             <div class="bg-white border border-stone-200 rounded-2xl w-full p-4 mb-6">
-                <h2 class="text-orange-600 p-2 font-semibold font-[Lora]"><u>Choix des épices :</u></h2>
+                <h2 class="text-saffron-700 font-display font-semibold text-lg mb-3 p-2">Épices sélectionnées</h2>
                 <div class="flex justify-center items-center flex-wrap">
                     {% for groupName, spices in selectedSpices %}
                         <div class="flex flex-col mx-0">
@@ -25,11 +35,11 @@
                 </div>
 
                 <div class="mt-4 space-y-2">
-                    <button class="w-full py-2 px-4 bg-stone-600 text-white rounded-full hover:bg-stone-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm" type="button" data-action="live#action" data-live-action-param="addGroup" data-haptic="light" {{ not this.canAddMoreGroups ? 'disabled' : '' }}>
-                        Ajouter un groupe de mélange
+                    <button class="btn-pill-outline w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed" type="button" data-action="live#action" data-live-action-param="addGroup" data-haptic="light" {{ not this.canAddMoreGroups ? 'disabled' : '' }}>
+                        <i class="fa-solid fa-plus text-xs"></i>Ajouter un groupe de mélange
                     </button>
-                    <button class="w-full py-2 px-4 bg-orange-600 text-white rounded-full hover:bg-orange-700 transition-colors font-medium text-sm" type="button" data-action="live#action" data-live-action-param="nextStep" data-haptic="nudge">
-                        Étape suivante
+                    <button class="btn-pill-primary w-full justify-center" type="button" data-action="live#action" data-live-action-param="nextStep" data-haptic="nudge">
+                        Étape suivante <i class="fa-solid fa-arrow-right text-xs"></i>
                     </button>
                 </div>
             </div>
@@ -42,8 +52,8 @@
                 {{ macroCardSpicyMatch.cardSpicyMatch(spice, false, spice.score ?? null) }}
             {% endfor %}
         {% else %}
-            <div class="w-full bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded-xl text-center">
-                Aucune épice supplémentaire n'est compatible avec votre sélection.
+            <div class="w-full bg-spice-surface border border-spice-border text-stone-700 px-4 py-3 rounded-xl text-center text-sm">
+                <i class="fa-solid fa-circle-info text-saffron-500 mr-1.5"></i>Aucune épice supplémentaire n'est compatible avec votre sélection.
             </div>
         {% endif %}
     </form>

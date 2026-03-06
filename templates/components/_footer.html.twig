@@ -1,225 +1,132 @@
-<footer class="bg-paprika-900 mt-auto" role="contentinfo">
+<footer class="bg-paprika-950 text-cream border-t border-white/5" role="contentinfo">
 
-    {# ── Corps principal ── #}
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-10 lg:py-16">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
+    <div class="max-w-7xl mx-auto px-6 py-10 lg:py-12">
 
-            {# Col 1 : Logo + slogan + CTA + socials #}
-            <div class="sm:col-span-2 lg:col-span-1 flex flex-col gap-8 lg:pt-2">
+        {# ── Grid 3 zones : logo | nav double | newsletter ── #}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-6 items-start">
 
-                <a href="{{ path('home') }}"
-                   class="inline-flex items-center gap-2 font-display text-xl font-bold text-cream tracking-tight">
-                    <i class="fa-solid fa-fire text-turmeric-400"></i>
-                    Spicy<span class="italic text-turmeric-400">Match</span>
+            {# ── Zone 1 : Marque (3/12) ── #}
+            <div class="lg:col-span-3 flex flex-col gap-5">
+
+                <a href="{{ path('home') }}" class="group inline-flex items-center gap-2.5 no-underline w-fit">
+                    <div class="w-7 h-7 bg-cream/10 flex items-center justify-center rounded-md
+                                group-hover:bg-saffron-700/30 transition-colors shrink-0">
+                        <i class="fa-solid fa-mortar-pestle text-cream text-[11px]"></i>
+                    </div>
+                    <span class="font-display text-lg font-bold tracking-tight text-cream">
+                        Spicy<span class="text-saffron-400 italic">Match</span>
+                    </span>
                 </a>
 
-                <p class="text-cream/60 text-sm leading-relaxed max-w-xs -mt-4">
-                    Le moteur d'association aromatique basé sur la science des composés. Composez avec précision.
+                <p class="text-[10px] opacity-40 leading-relaxed max-w-[180px] italic">
+                    L'alchimie aromatique au service de vos recettes.
                 </p>
 
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <a href="{{ path('index_spicy_match') }}"
-                       class="inline-flex items-center justify-center gap-2 bg-turmeric-500 hover:bg-turmeric-400
-                              text-stone-900 font-semibold rounded-full px-5 py-2.5 text-sm transition-colors">
-                        <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
-                        Créer un mélange
-                    </a>
-                    <a href="{{ path('new_contact') }}"
-                       class="inline-flex items-center justify-center gap-2 border border-cream/20 text-cream/80
-                              hover:border-cream/40 hover:text-cream rounded-full px-5 py-2.5 text-sm transition-colors">
-                        Contact
-                    </a>
+                <p class="text-xs text-cream/50">Questions ? <a href="{{ path('new_contact') }}" class="underline hover:text-cream transition-colors">Contactez-nous</a></p>
+            </div>
+
+            {# ── Zone 2 : Navigation double (5/12) ── #}
+            <div class="lg:col-span-5 grid grid-cols-2 gap-6">
+
+                {# Exploration #}
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-[0.25em] mb-5 flex items-center gap-2">
+                        <span class="w-1 h-1 bg-saffron-500 rounded-full"></span>Exploration
+                    </h4>
+                    <ul class="space-y-3 list-none p-0 m-0">
+                        <li><a href="{{ path('home') }}"
+                               class="text-xs opacity-55 hover:opacity-100 transition-opacity no-underline block">Accueil</a></li>
+                        <li><a href="{{ path('index_spices') }}"
+                               class="text-xs opacity-55 hover:opacity-100 transition-opacity no-underline block">Catalogue</a></li>
+                        <li><a href="{{ path('index_spicy_match') }}"
+                               class="text-xs opacity-55 hover:opacity-100 transition-opacity no-underline block">Créer un mélange</a></li>
+                        {% if is_granted("ROLE_USER") %}
+                            <li><a href="{{ path('index_spicy_match_history') }}"
+                                   class="text-xs opacity-55 hover:opacity-100 transition-opacity no-underline block">Mes mélanges</a></li>
+                        {% else %}
+                            <li><a href="{{ path('index_register') }}"
+                                   class="text-xs text-turmeric-400 hover:text-turmeric-300 transition-colors no-underline block">
+                                   S'inscrire &rarr;</a></li>
+                        {% endif %}
+                        <li><a href="{{ path('new_contact') }}"
+                               class="text-xs opacity-55 hover:opacity-100 transition-opacity no-underline block">Contact</a></li>
+                    </ul>
                 </div>
 
-                <div class="flex items-center gap-2.5 -mt-2">
-                    <span class="text-cream/50 text-xs uppercase tracking-widest font-semibold">Suivre</span>
-                    <a href="#" aria-label="Instagram SpicyMatch"
-                       class="inline-flex items-center justify-center w-8 h-8 rounded-full
-                              bg-cream/5 border border-cream/10 text-cream/40
-                              hover:text-cream hover:border-cream/30 transition-colors text-xs">
-                        <i class="fa-brands fa-instagram"></i>
-                    </a>
-                    <a href="#" aria-label="X / Twitter SpicyMatch"
-                       class="inline-flex items-center justify-center w-8 h-8 rounded-full
-                              bg-cream/5 border border-cream/10 text-cream/40
-                              hover:text-cream hover:border-cream/30 transition-colors text-xs">
-                        <i class="fa-brands fa-x-twitter"></i>
-                    </a>
-                    <a href="#" aria-label="Pinterest SpicyMatch"
-                       class="inline-flex items-center justify-center w-8 h-8 rounded-full
-                              bg-cream/5 border border-cream/10 text-cream/40
-                              hover:text-cream hover:border-cream/30 transition-colors text-xs">
-                        <i class="fa-brands fa-pinterest-p"></i>
-                    </a>
+                {# Science #}
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-[0.25em] mb-5 flex items-center gap-2">
+                        <span class="w-1 h-1 bg-saffron-500 rounded-full"></span>Science
+                    </h4>
+                    <ul class="space-y-3 list-none p-0 m-0">
+                        <li><a href="{{ path('index_aromatic_compound') }}"
+                               class="text-xs opacity-55 hover:opacity-100 transition-opacity no-underline block">Composés</a></li>
+                        <li><a href="{{ path('index_aromatic_groups') }}"
+                               class="text-xs opacity-55 hover:opacity-100 transition-opacity no-underline block">Groupes aromatiques</a></li>
+                        <li><a href="{{ path('index_spicy_type') }}"
+                               class="text-xs opacity-55 hover:opacity-100 transition-opacity no-underline block">Types d'épices</a></li>
+                        <li><a href="{{ path('index_alchemy_flavors') }}"
+                               class="text-xs opacity-55 hover:opacity-100 transition-opacity no-underline block">Saveurs</a></li>
+                        <li><a href="{{ path('index_preparation_methods') }}"
+                               class="text-xs opacity-55 hover:opacity-100 transition-opacity no-underline block">Préparation</a></li>
+                    </ul>
                 </div>
             </div>
 
-            {# Col 2 : Navigation #}
-            <div class="lg:pt-2">
-                <h5 class="text-cream font-semibold text-xs uppercase tracking-widest mb-5">Navigation</h5>
-                <ul class="space-y-3.5">
-                    <li>
-                        <a href="{{ path('home') }}"
-                           class="text-cream/60 hover:text-cream text-sm transition-colors">Accueil</a>
-                    </li>
-                    <li>
-                        <a href="{{ path('index_spicy_match') }}"
-                           class="text-cream/60 hover:text-cream text-sm transition-colors">Créer un mélange</a>
-                    </li>
-                    <li>
-                        <a href="{{ path('index_spices') }}"
-                           class="text-cream/60 hover:text-cream text-sm transition-colors">Toutes les épices</a>
-                    </li>
-                    <li>
-                        <a href="{{ path('new_contact') }}"
-                           class="text-cream/60 hover:text-cream text-sm transition-colors">Nous contacter</a>
-                    </li>
-                    {% if not is_granted("ROLE_USER") %}
-                        <li>
-                            <a href="{{ path('index_register') }}"
-                               class="text-turmeric-400 hover:text-turmeric-300 text-sm transition-colors font-medium">
-                                Créer un compte &rarr;
-                            </a>
-                        </li>
+            {# ── Zone 3 : CTA Communauté (4/12) ── #}
+            <div class="md:col-span-2 lg:col-span-4">
+
+                <h4 class="text-xs font-bold uppercase tracking-[0.25em] mb-5 flex items-center gap-2">
+                    <span class="w-1 h-1 bg-saffron-500 rounded-full"></span>Rejoindre
+                </h4>
+
+                <div class="bg-white/5 border border-cream/10 rounded-xl p-5 flex flex-col gap-4">
+                    <p class="text-cream/60 text-xs leading-relaxed">
+                        Découvrez les accords aromatiques cachés derrière chaque épice. Science, gastronomie, exploration.
+                    </p>
+                    {% if not is_granted('ROLE_USER') %}
+                        <a href="{{ path('index_register') }}" class="inline-flex items-center justify-center gap-2
+                           bg-saffron-700 hover:bg-saffron-600 text-white text-xs font-bold uppercase tracking-wider
+                           rounded-full px-5 py-2.5 transition-colors no-underline">
+                            <i class="fa-solid fa-user-plus text-[10px]"></i>Créer un compte gratuit
+                        </a>
+                        <a href="{{ path('app_login') }}" class="text-center text-cream/40 hover:text-cream/70 text-xs transition-colors no-underline">
+                            Déjà un compte ? Se connecter →
+                        </a>
+                    {% else %}
+                        <a href="{{ path('index_spicy_match') }}" class="inline-flex items-center justify-center gap-2
+                           bg-saffron-700 hover:bg-saffron-600 text-white text-xs font-bold uppercase tracking-wider
+                           rounded-full px-5 py-2.5 transition-colors no-underline">
+                            <i class="fa-solid fa-flask-vial text-[10px]"></i>Lancer un mélange
+                        </a>
+                        <a href="{{ path('index_spicy_match_history') }}" class="text-center text-cream/40 hover:text-cream/70 text-xs transition-colors no-underline">
+                            Voir mes mélanges sauvegardés →
+                        </a>
                     {% endif %}
-                </ul>
-            </div>
-
-            {# Col 3 : Explorer #}
-            <div class="lg:pt-2">
-                <h5 class="text-cream font-semibold text-xs uppercase tracking-widest mb-5">Explorer</h5>
-                <ul class="space-y-3.5">
-                    <li>
-                        <a href="{{ path('index_aromatic_compound') }}"
-                           class="text-cream/60 hover:text-cream text-sm transition-colors">Composés aromatiques</a>
-                    </li>
-                    <li>
-                        <a href="{{ path('index_aromatic_groups') }}"
-                           class="text-cream/60 hover:text-cream text-sm transition-colors">Groupes aromatiques</a>
-                    </li>
-                    <li>
-                        <a href="{{ path('index_spicy_type') }}"
-                           class="text-cream/60 hover:text-cream text-sm transition-colors">Types d'épices</a>
-                    </li>
-                    <li>
-                        <a href="{{ path('index_alchemy_flavors') }}"
-                           class="text-cream/60 hover:text-cream text-sm transition-colors">Saveurs</a>
-                    </li>
-                </ul>
-            </div>
-
-            {# Col 4 : Newsletter card (style Chamina — bloc distinct) #}
-            <div x-data="{ sent: false, email: '', rgpd: false, error: '' }" class="lg:pt-2">
-
-                <div class="bg-cream/10 border border-cream/15 rounded-2xl p-6 flex flex-col gap-4">
-
-                    <div class="flex items-center gap-3">
-                        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full
-                                     bg-turmeric-500/20 text-turmeric-400 text-lg shrink-0">
-                            <i class="fa-solid fa-fire"></i>
-                        </span>
-                        <div>
-                            <p class="text-cream font-semibold text-sm leading-snug">
-                                Épicez votre boîte mail
-                            </p>
-                            <p class="text-cream/50 text-xs mt-0.5">Nouveautés & recettes aromatiques</p>
-                        </div>
-                    </div>
-
-                    {# Formulaire #}
-                    <form x-show="!sent"
-                          @submit.prevent="
-                            if (!email) { error = 'Veuillez renseigner votre email.'; return; }
-                            if (!rgpd)  { error = 'Vous devez accepter la politique de confidentialité.'; return; }
-                            error = '';
-                            sent = true;
-                          "
-                          class="flex flex-col gap-3"
-                          novalidate>
-
-                        <div class="relative">
-                            <label for="footer-newsletter-email" class="sr-only">Adresse email</label>
-                            <input id="footer-newsletter-email"
-                                   type="email"
-                                   x-model="email"
-                                   placeholder="Votre adresse mail"
-                                   class="w-full bg-white/10 border border-cream/15 text-cream placeholder-cream/30
-                                          rounded-full pl-4 pr-10 py-2.5 text-sm
-                                          focus:outline-none focus:ring-1 focus:ring-turmeric-400
-                                          transition-colors">
-                            <button type="submit"
-                                    aria-label="S'abonner"
-                                    class="absolute right-1 top-1/2 -translate-y-1/2
-                                           w-8 h-8 rounded-full bg-turmeric-500 hover:bg-turmeric-400
-                                           text-stone-900 flex items-center justify-center transition-colors text-xs">
-                                <i class="fa-solid fa-arrow-right"></i>
-                            </button>
-                        </div>
-
-                        {# RGPD #}
-                        <label class="flex items-start gap-2.5 cursor-pointer group">
-                            <input type="checkbox"
-                                   x-model="rgpd"
-                                   class="mt-0.5 shrink-0 accent-turmeric-500">
-                            <span class="text-cream/50 text-xs leading-relaxed group-hover:text-cream/70 transition-colors">
-                                J'accepte de recevoir la newsletter SpicyMatch.
-                                <a href="{{ path('new_contact') }}" class="underline hover:text-cream">
-                                    Politique de confidentialité
-                                </a>
-                            </span>
-                        </label>
-
-                        {# Erreur inline #}
-                        <p x-show="error" x-text="error"
-                           class="text-paprika-300 text-xs -mt-1"
-                           role="alert"></p>
-
-                    </form>
-
-                    {# Confirmation #}
-                    <div x-show="sent" x-cloak class="flex items-center gap-3 py-2">
-                        <i class="fa-solid fa-circle-check text-turmeric-400 text-lg"></i>
-                        <p class="text-cream/80 text-sm">Merci ! Vous êtes inscrit.</p>
-                    </div>
-
                 </div>
             </div>
-
         </div>
-    </div>
 
-    {# ── Bas de page ── #}
-    <div class="border-t border-cream/10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <ul class="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 py-7 text-sm text-cream/40">
-                <li>
-                    <span>© {{ "now"|date("Y") }} SpicyMatch</span>
-                </li>
-                <li>
-                    <a href="{{ path('new_contact') }}" class="hover:text-cream/70 transition-colors">Mentions légales</a>
-                </li>
-                <li>
-                    <a href="{{ path('new_contact') }}" class="hover:text-cream/70 transition-colors">CGU</a>
-                </li>
-                <li>
-                    <a href="{{ path('new_contact') }}" class="hover:text-cream/70 transition-colors">Politique de confidentialité</a>
-                </li>
-                <li class="ml-auto hidden sm:flex items-center gap-1.5">
-                    <i class="fa-solid fa-fire text-turmeric-400 text-xs"></i>
-                    <span>Fait avec passion pour les épices</span>
-                </li>
-            </ul>
+        {# ── Bottom bar ── #}
+        <div class="mt-8 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p class="text-xs opacity-25 uppercase tracking-[0.3em]">&copy; {{ "now"|date("Y") }} SpicyMatch</p>
+            <nav aria-label="Liens légaux">
+                <a href="{{ path('new_contact') }}"
+                   class="text-xs opacity-25 hover:opacity-60 uppercase tracking-[0.15em] transition-opacity no-underline">
+                    Contact &amp; Mentions légales
+                </a>
+            </nav>
+            <p class="hidden sm:block text-xs opacity-15 italic tracking-widest">L'Art de l'Alchimie Culinaire</p>
         </div>
     </div>
 
 </footer>
 
-{# ── Back to top (flottant, Alpine) ── #}
+{# ── Back to top ── #}
 <div x-data="{ visible: false }"
      x-init="window.addEventListener('scroll', () => { visible = window.scrollY > 400 })"
      class="fixed bottom-6 right-6 z-40">
-    <button x-show="visible"
-            x-cloak
+    <button x-show="visible" x-cloak
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 translate-y-2"
             x-transition:enter-end="opacity-100 translate-y-0"
@@ -227,11 +134,10 @@
             x-transition:leave-start="opacity-100 translate-y-0"
             x-transition:leave-end="opacity-0 translate-y-2"
             @click="window.scrollTo({ top: 0, behavior: 'smooth' })"
-            aria-label="Retour en haut de page"
-            class="w-10 h-10 rounded-full bg-saffron-700 hover:bg-saffron-600
-                   text-white shadow-lg hover:shadow-xl
-                   flex items-center justify-center
+            aria-label="Retour en haut"
+            class="w-9 h-9 rounded-full bg-paprika-900 hover:bg-saffron-700 text-cream
+                   shadow-lg border border-white/10 flex items-center justify-center
                    transition-all duration-200 cursor-pointer">
-        <i class="fa-solid fa-chevron-up text-xs"></i>
+        <i class="fa-solid fa-chevron-up text-[9px]"></i>
     </button>
 </div>

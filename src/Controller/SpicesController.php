@@ -29,8 +29,8 @@ class SpicesController extends AbstractController
         AromaticGroupsRepository $aromaticGroupsRepository,
         SpicyTypeRepository $spicyTypeRepository,
     ): Response {
-        $agId = $request->query->getInt('aromatic_group') ?: null;
-        $stId = $request->query->getInt('spicy_type') ?: null;
+        $agId = filter_var($request->query->get('aromatic_group'), FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE) ?: null;
+        $stId = filter_var($request->query->get('spicy_type'), FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE) ?: null;
 
         $query = ($agId !== null || $stId !== null)
             ? $this->spicesRepository->findFiltered($agId, $stId)

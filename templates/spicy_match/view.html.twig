@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import 'macros/buttons.html.twig' as buttons %}
 {% import "components/_macro_modal_preparation_method.html.twig" as macroModalPreparationMethod %}
 {% import "components/_macro_card_cooking_view_match.html.twig" as macroCooking %}
 {% import "components/_macro_card_preparation_view_match.html.twig" as macroPreparation %}
@@ -76,10 +77,12 @@
         {% endfor %}
 
         <div class="flex justify-center mt-4 mb-8">
-            <a href="{{ path('view_spicy_match_history', {id: spicyMatchHistory.id}) }}"
-               class="btn-pill-primary px-10 py-4 text-base">
-                <i class="fa-solid fa-book-open text-sm"></i>Voir ma recette finale
-            </a>
+            {{ buttons.button('Voir ma recette finale', {
+                href: path('view_spicy_match_history', {id: spicyMatchHistory.id}),
+                variant: 'primary',
+                size: 'lg',
+                icon: 'fa-solid fa-book-open text-sm'
+            }) }}
         </div>
     </div>
 {% endblock %}

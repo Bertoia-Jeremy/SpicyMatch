@@ -1,9 +1,13 @@
 {% macro modal(id, name, createModal) %}
+    {% import 'macros/buttons.html.twig' as buttons %}
 
     <div x-data="{ open: false }">
-        <button type="button" @click="open = true" class="btn-pill-outline text-sm">
-            <i class="fa-solid fa-circle-info text-xs"></i>Méthode {{ name }}
-        </button>
+        {{ buttons.button('Méthode ' ~ name, {
+            variant: 'outline',
+            size: 'sm',
+            icon: 'fa-solid fa-circle-info text-xs',
+            attr: { '@click': 'open = true' }
+        }) }}
 
         {% if createModal %}
             <div
@@ -28,9 +32,11 @@
                         <div class="text-stone-400 text-sm text-center py-4">Chargement...</div>
                     </turbo-frame>
                     <div class="flex justify-end p-4 border-t border-spice-border">
-                        <button @click="open = false" class="btn-pill-outline text-sm">
-                            Fermer
-                        </button>
+                        {{ buttons.button('Fermer', {
+                            variant: 'outline',
+                            size: 'sm',
+                            attr: { '@click': 'open = false' }
+                        }) }}
                     </div>
                 </div>
             </div>

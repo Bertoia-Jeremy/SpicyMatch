@@ -2,6 +2,8 @@
 {% block title %}SpicyMatch — Message envoyé{% endblock %}
 
 {% block body %}
+{% import 'macros/buttons.html.twig' as buttons %}
+
 <section class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
     <div class="bg-white border border-stone-200 rounded-2xl p-10">
         <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
@@ -13,9 +15,11 @@
             Bonne
             {% if "now"|date("H") < 18 %}journée{% else %}soirée{% endif %} !
         </p>
-        <a href="{{ path('home') }}" class="btn-pill-primary">
-            <i class="fa-solid fa-house"></i> Retour à l'accueil
-        </a>
+        {{ buttons.button("Retour à l'accueil", {
+            href: path('home'),
+            variant: 'primary',
+            icon: 'fa-solid fa-house'
+        }) }}
     </div>
 </section>
 {% endblock %}

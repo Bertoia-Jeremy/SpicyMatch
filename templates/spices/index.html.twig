@@ -4,6 +4,7 @@
 {% block title %}SpicyMatch — Catalogue d'épices{% endblock %}
 
 {% block body %}
+{% import 'macros/buttons.html.twig' as buttons %}
 
 {# Modale Quick View — doit être en dehors du Turbo Frame pour survivre aux navigations #}
 {% include 'components/_spice_modal.html.twig' %}
@@ -20,12 +21,12 @@
                 </p>
             </div>
             {% if is_granted('ROLE_USER') %}
-                <a href="{{ path('index_spicy_match') }}"
-                   data-haptic="medium"
-                   class="btn-pill-primary shrink-0">
-                    <i class="fa-solid fa-flask"></i>
-                    Créer un mélange
-                </a>
+                {{ buttons.button('Créer un mélange', {
+                    href: path('index_spicy_match'),
+                    variant: 'primary',
+                    class: 'shrink-0',
+                    icon: 'fa-solid fa-flask'
+                }) }}
             {% endif %}
         </div>
     </div>
@@ -55,15 +56,7 @@
         {% if spices|length > 0 %}
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                 {% for spice in spices %}
-                    {#
-                      @click.prevent intercepte le clic et ouvre la Quick View.
-                      L'événement "open-spice-modal" est capté par _spice_modal.html.twig.
-                    #}
-                    <a href="{{ path('view_spice', { id: spice.id }) }}"
-                       @click.prevent="$dispatch('open-spice-modal', { url: $el.href })"
-                       class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/50 focus-visible:ring-offset-2 rounded-2xl">
-                        {{ macroCardSpice.cardSpice(spice) }}
-                    </a>
+                    {{ macroCardSpice.cardSpice(spice) }}
                 {% endfor %}
             </div>
 
@@ -77,10 +70,12 @@
                 <p class="text-stone-400 text-sm max-w-xs mb-6">
                     Aucune épice ne correspond à vos filtres. Essayez de modifier ou réinitialiser vos critères.
                 </p>
-                <a href="{{ path('index_spices') }}" class="btn-pill-outline text-sm">
-                    <i class="fa-solid fa-arrow-rotate-left"></i>
-                    Voir toutes les épices
-                </a>
+                {{ buttons.button('Voir toutes les épices', {
+                    href: path('index_spices'),
+                    variant: 'outline',
+                    size: 'sm',
+                    icon: 'fa-solid fa-arrow-rotate-left'
+                }) }}
             </div>
         {% endif %}
 

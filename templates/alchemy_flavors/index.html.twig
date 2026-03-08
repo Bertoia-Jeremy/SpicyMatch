@@ -3,19 +3,41 @@
 {% block title %}SpicyMatch — Saveurs d'alchimie{% endblock %}
 
 {% block body %}
+{% import 'macros/buttons.html.twig' as buttons %}
+
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="text-center mb-10">
-        <span class="tag-primary mb-4 inline-block">Catalogue</span>
+    <div class="text-center mb-12">
+        <span class="tag-primary mb-4 inline-block">Alchimie</span>
         <h1 class="text-4xl font-bold text-stone-900 mb-3">Saveurs d'alchimie</h1>
-        <p class="text-stone-500 text-lg max-w-xl mx-auto">Les saveurs complexes issues de la combinaison des composés aromatiques.</p>
+        <p class="text-stone-500 text-lg max-w-2xl mx-auto">Les profils gustatifs complexes qui émergent de la rencontre des épices.</p>
     </div>
 
-    <div class="bg-white border border-stone-200 rounded-2xl p-8 text-center">
-        <i class="fa-solid fa-flask text-4xl text-turmeric-500 mb-4"></i>
-        <p class="text-stone-500">Le catalogue des saveurs d'alchimie arrive bientôt.</p>
-        <a href="{{ path('index_spices') }}" class="btn-pill-outline mt-6 inline-flex">
-            <i class="fa-solid fa-arrow-left"></i> Voir les épices
-        </a>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for flavor in alchemyFlavors %}
+            <article class="card-warm p-6 flex flex-col h-full">
+                <div class="w-12 h-12 rounded-xl bg-turmeric-100 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-flask-vial text-turmeric-600"></i>
+                </div>
+                <h2 class="text-xl font-bold text-stone-900 mb-2">{{ flavor.name }}</h2>
+                {% if flavor.description %}
+                    <p class="text-stone-500 text-sm line-clamp-3 mb-6 flex-1">{{ flavor.description }}</p>
+                {% else %}
+                    <p class="text-stone-400 text-sm italic mb-6 flex-1">Aucune description disponible.</p>
+                {% endif %}
+                
+                {{ buttons.button('Explorer la saveur', {
+                    href: path('view_alchemy_flavors', {id: flavor.id}),
+                    variant: 'outline',
+                    size: 'sm',
+                    icon: 'fa-solid fa-arrow-right',
+                    icon_pos: 'right'
+                }) }}
+            </article>
+        {% else %}
+            <div class="col-span-full text-center py-12">
+                <p class="text-stone-400">Aucune saveur répertoriée pour le moment.</p>
+            </div>
+        {% endfor %}
     </div>
 </section>
 {% endblock %}

@@ -29,10 +29,10 @@
 
     <article class="card-warm flex flex-col overflow-hidden h-full group relative {{ compact ? 'max-w-[180px]' : '' }}">
         
-        {# ── Zone Interactive (Image + Hover) ── #}
+        {# ── Zone 1 : Image (Trigger MODALE uniquement) ── #}
         <div class="relative overflow-hidden aspect-square bg-stone-100 cursor-pointer"
              {% if showQuickView %}
-             @click.prevent="$dispatch('open-spice-modal', { url: '{{ path('view_spice', { id: spiceId }) }}' })"
+             @click.prevent.stop="$dispatch('open-spice-modal', { url: '{{ path('view_spice', { id: spiceId }) }}' })"
              {% endif %}>
             
             {% if imageUrl %}
@@ -47,13 +47,13 @@
             {% if showQuickView %}
             <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                  style="background: linear-gradient(to top, {{ color }}CC 0%, transparent 60%)">
-                <span class="bg-white/90 text-stone-800 text-[10px] font-bold px-2.5 py-1.5 rounded-full shadow-md translate-y-2 group-hover:translate-y-0 transition-transform duration-300 uppercase tracking-wider">
+                <span class="bg-white/95 text-stone-800 text-[10px] font-bold px-3 py-2 rounded-full shadow-lg translate-y-2 group-hover:translate-y-0 transition-all duration-300 uppercase tracking-wider">
                     <i class="fa-solid fa-magnifying-glass mr-1"></i>Aperçu
                 </span>
             </div>
             {% endif %}
 
-            {# Badge de Score (si présent) #}
+            {# Badge de Score #}
             {% if score is not null %}
                 <div class="absolute top-2 right-2 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-lg shadow-sm border border-stone-100 flex flex-col items-center min-w-[40px]">
                     <span class="text-[10px] font-bold text-saffron-600 leading-none">{{ score }}%</span>
@@ -64,14 +64,18 @@
             <div class="absolute bottom-0 left-0 right-0 h-1" style="background-color: {{ color }}"></div>
         </div>
 
-        {# ── Contenu ── #}
-        <div class="flex flex-col flex-1 p-3 gap-1.5">
+        {# ── Zone 2 : Contenu (Trigger SÉLECTION uniquement si model présent) ── #}
+        {# On utilise un label pour que cliquer sur le texte déclenche la checkbox #}
+        <{{ model ? 'label' : 'div' }} 
+            {% if model %}for="spice_{{ spiceId }}"{% endif %}
+            class="flex flex-col flex-1 p-3 gap-1.5 {{ model ? 'cursor-pointer hover:bg-stone-50/50 transition-colors' : '' }}"
+            @click.stop>
+            
             <div class="flex items-start justify-between gap-2">
                 <h3 class="font-bold text-stone-900 {{ compact ? 'text-xs' : 'text-sm' }} leading-snug line-clamp-2 group-hover:text-saffron-700 transition-colors duration-200">
                     {{ spiceName }}
                 </h3>
                 
-                {# Checkbox de sélection (si mode sélection) #}
                 {% if model %}
                     <div class="shrink-0 pt-0.5">
                         <input type="checkbox" 
@@ -79,19 +83,19 @@
                                data-model="{{ model }}" 
                                value="{{ spiceId }}"
                                {% if isSelection %}checked{% endif %}
+                               @click.stop
                                class="size-4 rounded border-stone-300 text-saffron-600 focus:ring-saffron-500/20 transition-all cursor-pointer">
                     </div>
                 {% endif %}
             </div>
 
-            {% if not compact and groupName %}
-                <span class="inline-flex items-center gap-1 self-start text-[10px] font-bold px-2 py-0.5 rounded-full leading-none uppercase tracking-wide"
+            {% if groupName %}
+                <span class="inline-flex items-center gap-1 self-start text-[9px] font-bold px-2 py-0.5 rounded-full leading-none uppercase tracking-wide"
                       style="background-color: {{ color }}15; color: {{ color }}; border: 1px solid {{ color }}30">
                     {{ groupName }}
                 </span>
             {% endif %}
 
-            {# Barre de progression de score (plus visuelle) #}
             {% if score is not null %}
                 <div class="w-full mt-auto pt-2">
                     <div class="h-1 w-full bg-stone-100 rounded-full overflow-hidden">
@@ -99,6 +103,6 @@
                     </div>
                 </div>
             {% endif %}
-        </div>
+        </{{ model ? 'label' : 'div' }}>
     </article>
 {% endmacro %}

@@ -1,9 +1,15 @@
 {# templates/macros/buttons.html.twig #}
 
 {% macro button(label, options = {}) %}
-    {# Choix du tag : a si href est présent, sinon button #}
-    {% set tag = options.href is defined ? 'a' : 'button' %}
-    
+    {# Extraction des options de base #}
+    {% set href = options.href|default(null) %}
+    {% set tag = href ? 'a' : 'button' %}
+    {% set variant = options.variant|default('primary') %}
+    {% set size = options.size|default('md') %}
+    {% set icon = options.icon|default(null) %}
+    {% set icon_pos = options.icon_pos|default('left') %}
+    {% set attr = options.attr|default({}) %}
+
     {# Configuration des variantes #}
     {% set variants = {
         'primary': 'btn-pill-primary',
@@ -24,30 +30,29 @@
         'xl': 'px-9 py-4 text-lg gap-3'
     } %}
 
-    {# Extraction des options #}
-    {% set variant = options.variant|default('primary') %}
-    {% set size = options.size|default('md') %}
-    {% set icon = options.icon|default(null) %}
-    {% set icon_pos = options.icon_pos|default('left') %}
-    {% set attr = options.attr|default([]) %}
-
-    {# Construction des classes finales #}
-    {# On retire le padding par défaut si une taille spécifique est demandée, mais ici on gère via l'ordre des classes #}
+    {# Construction des classes #}
     {% set final_class = [
+        'btn-base inline-flex items-center justify-center font-bold text-center transition-all',
         variants[variant]|default(variants.primary),
-        sizes[size]|default(''),
-        'shadow-lg font-bold px-10'
+        sizes[size]|default(sizes.md),
+        attr.class|default('')
     ]|join(' ')|trim %}
 
     <{{ tag }}
         {% if tag == 'a' %}
-            href="{{ options.href }}"
+            href="{{ href }}"
+            {% if options.external|default(false) %}target="_blank" rel="noopener noreferrer"{% endif %}
         {% else %}
             type="{{ options.type|default('button') }}"
+            {% if options.disabled|default(false) %}disabled{% endif %}
         {% endif %}
+        
         class="{{ final_class }}"
+
         {% for name, value in attr %}
-            {{ name }}="{{ value }}"
+            {% if name != 'class' %}
+                {{ name }}="{{ value }}"
+            {% endif %}
         {% endfor %}
     >
         {% if icon and icon_pos == 'left' %}
@@ -55,7 +60,7 @@
         {% endif %}
 
         {% if label %}
-            <span>{{ label }}</span>
+            <span class="truncate">{{ label }}</span>
         {% endif %}
 
         {% if icon and icon_pos == 'right' %}
@@ -64,10 +69,9 @@
     </{{ tag }}>
 {% endmacro %}
 
-{# Macro interne pour le rendu des icônes (FontAwesome ou SVG) #}
 {% macro render_icon(icon) %}
     {% if '<svg' in icon %}
-        <span class="w-4 h-4 flex items-center justify-center shrink-0">
+        <span class="w-5 h-5 flex items-center justify-center shrink-0">
             {{ icon|raw }}
         </span>
     {% else %}

@@ -3,6 +3,7 @@
 {% block title %}Historique des mélanges{% endblock %}
 
 {% block body %}
+    {% import 'macros/buttons.html.twig' as buttons %}
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="text-center mb-10">
             <h1 class="text-4xl font-bold text-stone-800">
@@ -18,10 +19,12 @@
                 <div class="text-center py-16">
                     <i class="fa-solid fa-flask text-stone-300 text-5xl mb-4 block"></i>
                     <p class="text-stone-500 text-lg mb-6">Vous n'avez pas encore de mélange sauvegardé.</p>
-                    <a href="{{ path('index_spicy_match') }}"
-                       class="btn-pill-primary mt-2">
-                        <i class="fa-solid fa-fire"></i>Créer mon premier mélange
-                    </a>
+                    {{ buttons.button('Créer mon premier mélange', {
+                        href: path('index_spicy_match'),
+                        variant: 'primary',
+                        class: 'mt-2',
+                        icon: 'fa-solid fa-fire'
+                    }) }}
                 </div>
             {% else %}
                 <div class="space-y-3">

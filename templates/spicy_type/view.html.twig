@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ aromaticCompound.name }} — SpicyMatch{% endblock %}
+{% block title %}{{ spicyType.name }} — SpicyMatch{% endblock %}
 
 {% block body %}
 {% import 'macros/buttons.html.twig' as buttons %}
@@ -9,18 +9,18 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
     {# Fil d'Ariane #}
     <nav class="mb-8">
-        <a href="{{ path('index_aromatic_compound') }}" class="text-stone-500 hover:text-saffron-700 text-sm flex items-center gap-2 transition-colors">
+        <a href="{{ path('index_spicy_type') }}" class="text-stone-500 hover:text-saffron-700 text-sm flex items-center gap-2 transition-colors">
             <i class="fa-solid fa-arrow-left text-xs"></i>
-            Retour aux composés
+            Retour aux types
         </a>
     </nav>
 
     {# En-tête #}
     <header class="mb-10">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-saffron-100 text-saffron-700 text-xs font-bold uppercase tracking-wider mb-4">
-            <i class="fa-solid fa-atom"></i> Composé Aromatique
+            <i class="fa-solid fa-tags"></i> Type d'Épice
         </div>
-        <h1 class="text-5xl font-display font-bold text-stone-900">{{ aromaticCompound.name }}</h1>
+        <h1 class="text-5xl font-display font-bold text-stone-900">{{ spicyType.name }}</h1>
     </header>
 
     {# Grille principale #}
@@ -28,33 +28,33 @@
         <div class="lg:col-span-2 space-y-8">
             <section class="card-warm p-8">
                 <h2 class="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-info text-saffron-500"></i> Description
+                    <i class="fa-solid fa-circle-info text-saffron-500"></i> Définition
                 </h2>
                 <div class="text-stone-600 leading-relaxed space-y-4">
-                    {{ aromaticCompound.description|default('Aucune description détaillée disponible.')|nl2br }}
+                    {{ spicyType.description|default('Aucune définition détaillée disponible.')|nl2br }}
                 </div>
             </section>
 
-            {% if aromaticCompound.cooking %}
+            {% if spicyType.cooking %}
                 <section class="card-warm p-8">
                     <h2 class="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-mortar-pestle text-saffron-500"></i> En cuisine
+                        <i class="fa-solid fa-mortar-pestle text-saffron-500"></i> Usage général
                     </h2>
                     <div class="text-stone-600 leading-relaxed">
-                        {{ aromaticCompound.cooking|nl2br }}
+                        {{ spicyType.cooking|nl2br }}
                     </div>
                 </section>
             {% endif %}
         </div>
 
         <aside class="space-y-8">
-            {% if aromaticCompound.informations %}
+            {% if spicyType.informations %}
                 <section class="card-warm p-8">
                     <h2 class="text-lg font-bold text-stone-900 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-flask text-saffron-500"></i> Note scientifique
+                        <i class="fa-solid fa-flask text-saffron-500"></i> Note botanique
                     </h2>
                     <div class="text-sm text-stone-600 leading-relaxed">
-                        {{ aromaticCompound.informations|nl2br }}
+                        {{ spicyType.informations|nl2br }}
                     </div>
                 </section>
             {% endif %}
@@ -62,12 +62,12 @@
     </div>
 
     {# Zone Épices liées #}
-    {% set allSpices = aromaticCompound.spices|merge(aromaticCompound.secondarySpices) %}
+    {% set allSpices = spicyType.spices %}
     <section class="pt-10 border-t border-stone-200" x-data="{ gridMode: false, limit: 8 }">
         
         <div class="flex items-center justify-between mb-8">
             <h3 class="text-2xl font-bold text-stone-900 flex items-center gap-3">
-                <i class="fa-solid fa-pepper-hot text-paprika-600"></i> Épices liées
+                <i class="fa-solid fa-pepper-hot text-paprika-600"></i> Épices de ce type
                 <span class="text-sm font-normal text-stone-400">({{ allSpices|length }})</span>
             </h3>
 
@@ -81,7 +81,7 @@
         
         {% if allSpices is not empty %}
             
-            {# --- MODE SLIDER (Statique, 8 épices max) --- #}
+            {# --- MODE SLIDER (8 épices max) --- #}
             <div x-show="!gridMode" class="space-y-6">
                 <div class="embla" data-controller="carousel">
                     <div class="embla__viewport" data-carousel-target="viewport">
@@ -107,7 +107,7 @@
                 </div>
             </div>
 
-            {# --- MODE GRILLE (Toutes les épices, chargement progressif) --- #}
+            {# --- MODE GRILLE (Progressif) --- #}
             <div x-show="gridMode" x-cloak class="space-y-10">
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
                     {% for spice in allSpices %}

@@ -1,5 +1,7 @@
 {% extends 'base.html.twig' %}
 
+{% import 'macros/buttons.html.twig' as buttons %}
+
 {% block title %}Création de compte{% endblock %}
 
 {% block body %}
@@ -51,9 +53,13 @@
             </div>
 
             <div>
-                {{ form_widget(form.Valider, {
-                    'label': 'Créer mon compte',
-                    'attr': {'class': 'btn-pill-primary w-full justify-center cursor-pointer py-3'}
+                {{ buttons.button('Créer mon compte', {
+                    variant: 'primary',
+                    type: 'submit',
+                    attr: {
+                        'name': form.Valider.vars.full_name,
+                        'class': 'w-full justify-center cursor-pointer py-3'
+                    }
                 }) }}
             </div>
 

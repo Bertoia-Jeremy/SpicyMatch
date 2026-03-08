@@ -1,5 +1,7 @@
 {% extends 'base.html.twig' %}
 
+{% import 'macros/buttons.html.twig' as buttons %}
+
 {% block title %}SpicyMatch — Groupes aromatiques{% endblock %}
 
 {% block body %}
@@ -13,9 +15,12 @@
     <div class="bg-white border border-stone-200 rounded-2xl p-8 text-center">
         <i class="fa-solid fa-layer-group text-4xl text-saffron-400 mb-4"></i>
         <p class="text-stone-500">Le catalogue des groupes aromatiques arrive bientôt.</p>
-        <a href="{{ path('index_spices') }}" class="btn-pill-outline mt-6 inline-flex">
-            <i class="fa-solid fa-arrow-left"></i> Voir les épices
-        </a>
+        {{ buttons.button('Voir les épices', {
+            href: path('index_spices'),
+            variant: 'outline',
+            icon: 'fa-solid fa-arrow-left',
+            attr: { class: 'mt-6 inline-flex' }
+        }) }}
     </div>
 </section>
 {% endblock %}

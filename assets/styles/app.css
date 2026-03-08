@@ -11,6 +11,7 @@
 @import "./components/cards.css";
 @import "./components/footer.css";
 @import "./components/filters.css";
+@import "./components/carousel.css";
 
 /* Sources pour le scan Tailwind v4 */
 @source "../../templates/**/*.html.twig";

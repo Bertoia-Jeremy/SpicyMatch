@@ -1,17 +1,13 @@
-{% macro cardSpicyMatch(spice, littleCard, score) %}
-{% import "components/_macro_card_little_spice.html.twig" as macroCardSpice %}
+{% macro cardSpicyMatch(spice, isSelection, score) %}
+    {% import "components/_macro_card_spice.html.twig" as macroCardSpice %}
 
-    <div class="flex flex-col items-center m-2">
-        <label for="spice_{{ spice.id }}" class="cursor-pointer">
-            {{ macroCardSpice.cardLittleSpice(spice, littleCard) }}
-        </label>
-        <input id="spice_{{ spice.id }}" type="checkbox" data-model="spices.selectedSpices" value="{{ spice.id }}" class="mt-2 h-4 w-4 text-saffron-600 border-stone-300 rounded focus:ring-saffron-500">
-        {% if score is not null %}
-            <div class="w-[180px] mt-1 bg-stone-200 rounded-full h-1.5">
-                <div class="h-1.5 rounded-full bg-saffron-600" style="width: {{ score }}%"></div>
-            </div>
-            <span class="text-xs text-stone-400 mt-0.5">{{ score }}%</span>
-        {% endif %}
+    <div class="m-2 w-[160px] sm:w-[180px]">
+        {{ macroCardSpice.cardSpice(spice, {
+            isSelection: isSelection,
+            score: score,
+            compact: true,
+            model: 'spices.selectedSpices',
+            showQuickView: true
+        }) }}
     </div>
-
 {% endmacro %}

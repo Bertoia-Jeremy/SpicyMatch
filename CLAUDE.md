@@ -186,7 +186,7 @@ js_interop:
   importmap: assets/importmap.php  # déclarer les dépendances JS (version + CDN)
 
 design_system:
-  fichier_source: assets/styles/app.scss
+  fichier_source: assets/styles/app.css
   tokens_theme: "@theme { --color-*, --font-display, --spacing }"
   palette:
     saffron:  "accent primaire — orange chaud (400→800)"

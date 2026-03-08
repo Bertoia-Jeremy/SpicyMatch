@@ -1,0 +1,65 @@
+{# templates/macros/filters.html.twig #}
+
+{% macro filter_dropdown(label, content, options = {}) %}
+    {# Extraction des options #}
+    {% set count = options.count|default(0) %}
+    {% set reset_url = options.reset_url|default(null) %}
+    {% set class = options.class|default('') %}
+    {% set open = options.open|default(false) %}
+
+    <details class="group relative {{ class }}" {{ open ? 'open' : '' }}>
+        <summary class="flex items-center gap-2 border-b border-stone-300 pb-1.5 text-stone-700 transition-colors cursor-pointer hover:border-saffron-400 hover:text-stone-900 [&::-webkit-details-marker]:hidden">
+            <span class="text-sm font-medium">{{ label }}</span>
+
+            {% if count > 0 %}
+                <span class="inline-flex items-center justify-center w-4 h-4 bg-saffron-600 text-white text-[10px] font-bold rounded-full">
+                    {{ count }}
+                </span>
+            {% endif %}
+
+            <span class="transition-transform group-open:-rotate-180">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-3.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path>
+                </svg>
+            </span>
+        </summary>
+
+        <div class="z-50 w-72 divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white shadow-xl group-open:absolute group-open:start-0 group-open:top-10 overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-3 bg-stone-50/50">
+                <span class="text-xs font-medium text-stone-500 uppercase tracking-wider">
+                    {{ count }} Sélectionné{{ count > 1 ? 's' : '' }}
+                </span>
+
+                {% if reset_url %}
+                    <a href="{{ reset_url }}" class="text-xs text-stone-400 underline transition-colors hover:text-paprika-700">
+                        Réinitialiser
+                    </a>
+                {% elseif options.reset_click is defined %}
+                    <button type="button" @click="{{ options.reset_click }}" class="text-xs text-stone-400 underline transition-colors hover:text-paprika-700">
+                        Réinitialiser
+                    </button>
+                {% endif %}
+            </div>
+
+            <div class="p-4 max-h-72 overflow-y-auto custom-scrollbar">
+                {{ content|raw }}
+            </div>
+        </div>
+    </details>
+{% endmacro %}
+
+{% macro checkbox(label, name, value, checked = false, id = null) %}
+    {% set id = id|default(name ~ '_' ~ value) %}
+    <label for="{{ id }}" class="inline-flex items-center gap-3 group/item cursor-pointer w-full py-1">
+        <input type="checkbox" 
+               name="{{ name }}" 
+               value="{{ value }}" 
+               id="{{ id }}" 
+               {{ checked ? 'checked' : '' }}
+               class="size-4.5 rounded border-stone-300 text-saffron-600 shadow-sm focus:ring-saffron-600/20 transition-all cursor-pointer">
+
+        <span class="text-sm font-medium text-stone-700 group-hover/item:text-saffron-700 transition-colors">
+            {{ label }}
+        </span>
+    </label>
+{% endmacro %}

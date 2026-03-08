@@ -1,6 +1,9 @@
 {% import "components/_macro_card_spicy_match.html.twig" as macroCardSpicyMatch %}
 
 <div class="w-full px-4" {{ attributes }}>
+    {# Quick View Modal accessible partout dans le Lab #}
+    {% include 'components/_spice_modal.html.twig' %}
+
     {% set compatibleSpices = this.results.compatibleSpices %}
     {% set selectedSpices = this.results.selectedSpices %}
 

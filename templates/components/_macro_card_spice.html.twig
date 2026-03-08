@@ -1,59 +1,103 @@
-{% macro cardSpice(spice) %}
-    {% set color = spice.aromaticGroups ? spice.aromaticGroups.color : '#78716C' %}
-    {% set imageUrl = vich_uploader_asset(spice, 'imageFile') %}
+{# templates/components/_macro_card_spice.html.twig #}
 
-    <article class="card-warm flex flex-col overflow-hidden h-full group cursor-pointer">
+{% macro cardSpice(spice, options = {}) %}
+    {# Gestion hybride Entité (objet) vs LiveComponent (tableau associatif) #}
+    {% if spice is iterable %}
+        {# C'est un tableau (retourné par getResults() dans SpicyMatch) #}
+        {% set spiceId = spice.id %}
+        {% set spiceName = spice.name %}
+        {% set spiceDescription = spice.description|default(null) %}
+        {% set color = spice.color|default('#78716C') %}
+        {% set groupName = spice.groupName|default(null) %}
+        {% set imageUrl = spice.file ? asset('uploads/spices/' ~ spice.file) : null %}
+    {% else %}
+        {# C'est une entité Spices #}
+        {% set spiceId = spice.id %}
+        {% set spiceName = spice.name %}
+        {% set spiceDescription = spice.description %}
+        {% set color = spice.aromaticGroups ? spice.aromaticGroups.color : '#78716C' %}
+        {% set groupName = spice.aromaticGroups ? spice.aromaticGroups.name : null %}
+        {% set imageUrl = vich_uploader_asset(spice, 'imageFile') %}
+    {% endif %}
+    
+    {# Options #}
+    {% set isSelection = options.isSelection|default(false) %}
+    {% set score = options.score|default(null) %}
+    {% set compact = options.compact|default(false) %}
+    {% set showQuickView = options.showQuickView|default(true) %}
+    {% set model = options.model|default(null) %}
 
-        {# ── Image ── #}
-        <div class="relative overflow-hidden aspect-square bg-stone-100">
+    <article class="card-warm flex flex-col overflow-hidden h-full group relative {{ compact ? 'max-w-[180px]' : '' }}">
+        
+        {# ── Zone Interactive (Image + Hover) ── #}
+        <div class="relative overflow-hidden aspect-square bg-stone-100 cursor-pointer"
+             {% if showQuickView %}
+             @click.prevent="$dispatch('open-spice-modal', { url: '{{ path('view_spice', { id: spiceId }) }}' })"
+             {% endif %}>
+            
             {% if imageUrl %}
-                <img
-                    src="{{ imageUrl }}"
-                    alt="{{ spice.name }}"
-                    loading="lazy"
-                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-108">
+                <img src="{{ imageUrl }}" alt="{{ spiceName }}" loading="lazy"
+                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
             {% else %}
-                <img
-                    src="https://loremflickr.com/400/400/spice"
-                    alt="{{ spice.name }}"
-                    loading="lazy"
-                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-108">
+                <img src="https://loremflickr.com/400/400/spice" alt="{{ spiceName }}" loading="lazy"
+                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
             {% endif %}
 
-            {# Quick-view hint au hover #}
+            {# Overlay Quick View #}
+            {% if showQuickView %}
             <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                  style="background: linear-gradient(to top, {{ color }}CC 0%, transparent 60%)">
-                <span class="bg-white/90 text-stone-800 text-xs font-semibold px-3 py-1.5 rounded-full shadow-md translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                    <i class="fa-solid fa-magnifying-glass mr-1"></i>Aperçu rapide
+                <span class="bg-white/90 text-stone-800 text-[10px] font-bold px-2.5 py-1.5 rounded-full shadow-md translate-y-2 group-hover:translate-y-0 transition-transform duration-300 uppercase tracking-wider">
+                    <i class="fa-solid fa-magnifying-glass mr-1"></i>Aperçu
                 </span>
             </div>
+            {% endif %}
 
-            {# Barre couleur groupe #}
+            {# Badge de Score (si présent) #}
+            {% if score is not null %}
+                <div class="absolute top-2 right-2 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-lg shadow-sm border border-stone-100 flex flex-col items-center min-w-[40px]">
+                    <span class="text-[10px] font-bold text-saffron-600 leading-none">{{ score }}%</span>
+                    <span class="text-[8px] text-stone-400 uppercase font-bold tracking-tighter">Match</span>
+                </div>
+            {% endif %}
+
             <div class="absolute bottom-0 left-0 right-0 h-1" style="background-color: {{ color }}"></div>
         </div>
 
         {# ── Contenu ── #}
-        <div class="flex flex-col flex-1 p-4 gap-2">
-            <h3 class="font-semibold text-stone-900 text-sm leading-snug line-clamp-2 group-hover:text-saffron-700 transition-colors duration-200">
-                {{ spice.name }}
-            </h3>
+        <div class="flex flex-col flex-1 p-3 gap-1.5">
+            <div class="flex items-start justify-between gap-2">
+                <h3 class="font-bold text-stone-900 {{ compact ? 'text-xs' : 'text-sm' }} leading-snug line-clamp-2 group-hover:text-saffron-700 transition-colors duration-200">
+                    {{ spiceName }}
+                </h3>
+                
+                {# Checkbox de sélection (si mode sélection) #}
+                {% if model %}
+                    <div class="shrink-0 pt-0.5">
+                        <input type="checkbox" 
+                               id="spice_{{ spiceId }}"
+                               data-model="{{ model }}" 
+                               value="{{ spiceId }}"
+                               {% if isSelection %}checked{% endif %}
+                               class="size-4 rounded border-stone-300 text-saffron-600 focus:ring-saffron-500/20 transition-all cursor-pointer">
+                    </div>
+                {% endif %}
+            </div>
 
-            {% if spice.aromaticGroups %}
-                {#
-                  Badge couleur dynamique via inline style (hex du groupe).
-                  Tailwind ne peut pas générer des classes depuis des valeurs dynamiques
-                  donc on utilise style avec opacity hex (#rrggbbAA).
-                #}
-                <span class="inline-flex items-center gap-1 self-start text-xs font-medium px-2 py-0.5 rounded-full leading-none"
-                      style="background-color: {{ color }}22; color: {{ color }}; border: 1px solid {{ color }}44">
-                    {{ spice.aromaticGroups.name }}
+            {% if not compact and groupName %}
+                <span class="inline-flex items-center gap-1 self-start text-[10px] font-bold px-2 py-0.5 rounded-full leading-none uppercase tracking-wide"
+                      style="background-color: {{ color }}15; color: {{ color }}; border: 1px solid {{ color }}30">
+                    {{ groupName }}
                 </span>
             {% endif %}
 
-            {% if spice.description %}
-                <p class="text-xs text-stone-400 line-clamp-2 leading-relaxed mt-auto pt-1">
-                    {{ spice.description }}
-                </p>
+            {# Barre de progression de score (plus visuelle) #}
+            {% if score is not null %}
+                <div class="w-full mt-auto pt-2">
+                    <div class="h-1 w-full bg-stone-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-saffron-500 transition-all duration-1000" style="width: {{ score }}%"></div>
+                    </div>
+                </div>
             {% endif %}
         </div>
     </article>

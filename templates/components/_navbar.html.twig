@@ -1,3 +1,5 @@
+{% import 'macros/buttons.html.twig' as buttons %}
+
 <nav x-data="{ open: false }" class="sticky top-0 z-50 bg-cream/80 backdrop-blur-md border-b border-saffron-700/10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-20">
@@ -150,13 +152,17 @@
                         </div>
                     </div>
                 {% else %}
-                    <a href="{{ path('app_login') }}" class="btn-pill-outline">
-                        Connexion
-                    </a>
-                    <a href="{{ path('index_register') }}" class="btn-pill-primary">
-                        <i class="fa-solid fa-user-plus text-xs"></i>
-                        Commencer
-                    </a>
+                    {{ buttons.button('Connexion', {
+                        href: path('app_login'),
+                        variant: 'outline',
+                        size: 'sm'
+                    }) }}
+                    {{ buttons.button('Commencer', {
+                        href: path('index_register'),
+                        variant: 'primary',
+                        size: 'sm',
+                        icon: 'fa-solid fa-user-plus text-xs'
+                    }) }}
                 {% endif %}
             </div>
 
@@ -350,15 +356,20 @@
 
         {# Footer du drawer — CTAs ou profil #}
         {% if not is_granted("ROLE_USER") %}
-            <div class="px-5 py-5 border-t border-stone-200/60 space-y-2.5 bg-cream">
-                <a href="{{ path('index_register') }}" @click="open = false"
-                   class="btn-pill-primary w-full justify-center py-3">
-                    <i class="fa-solid fa-user-plus text-xs"></i>Commencer gratuitement
-                </a>
-                <a href="{{ path('app_login') }}" @click="open = false"
-                   class="btn-pill-outline w-full justify-center py-2.5">
-                    Connexion
-                </a>
+            <div class="px-5 py-6 border-t border-stone-200/60 space-y-3 bg-cream">
+                {{ buttons.button('Commencer gratuitement', {
+                    href: path('index_register'),
+                    variant: 'primary',
+                    class: 'w-full justify-center py-4',
+                    icon: 'fa-solid fa-user-plus text-xs',
+                    attr: {'@click': 'open = false'}
+                }) }}
+                {{ buttons.button('Connexion', {
+                    href: path('app_login'),
+                    variant: 'outline',
+                    class: 'w-full justify-center py-3.5',
+                    attr: {'@click': 'open = false'}
+                }) }}
             </div>
         {% endif %}
     </div>

@@ -20,6 +20,7 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/fontawesome.min.css" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/solid.min.css" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/regular.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/brands.min.css" crossorigin="anonymous">
 
         {% block stylesheets %}
             <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}">
@@ -40,7 +41,7 @@
 
         {% include 'components/_navbar.html.twig' %}
 
-        <main id="main-content" class="min-h-screen pt-20">
+        <main id="main-content" class="min-h-screen">
             {% block body %}{% endblock %}
         </main>
 

@@ -1,6 +1,6 @@
-import './bootstrap.js';
+import 'bootstrap';
 import Alpine from 'alpinejs';
-import './haptics.js';
+import 'haptics';
 
 window.Alpine = Alpine;
 Alpine.start();

@@ -3,7 +3,7 @@
 {% block title %}SpicyMatch - Créez des mélanges d'épices parfaits{% endblock %}
 
 {% block body %}
-
+{% import 'macros/buttons.html.twig' as buttons %}
 
 {# ===== HERO SECTION PREMIUM ===== #}
 <section class="relative min-h-[90vh] flex items-center overflow-hidden bg-cream py-20">
@@ -46,25 +46,31 @@
                 {# CTAs #}
                 <div class="flex flex-wrap gap-6 pt-4">
                     {% if is_granted('ROLE_USER') %}
-                        <a href="{{ path('index_spicy_match') }}" 
-                           class="group relative inline-flex items-center gap-3 bg-paprika-900 text-cream px-10 py-5 rounded-full text-lg font-bold transition-all hover:bg-paprika-800 shadow-2xl shadow-paprika-900/30 hover:-translate-y-1">
-                            <span>Lancer un mélange</span>
-                            <i class="fa-solid fa-arrow-right text-sm transition-transform group-hover:translate-x-1"></i>
-                        </a>
-                        <a href="{{ path('index_spices') }}" 
-                           class="inline-flex items-center gap-3 bg-white border border-stone-200 text-stone-800 px-10 py-5 rounded-full text-lg font-bold transition-all hover:bg-stone-50 hover:border-stone-300">
-                            Explorer la bibliothèque
-                        </a>
+                        {{ buttons.button('Lancer un mélange', {
+                            href: path('index_spicy_match'),
+                            variant: 'paprika',
+                            size: 'lg',
+                            icon: 'fa-solid fa-arrow-right',
+                            icon_pos: 'right',
+                        }) }}
+                        {{ buttons.button('Explorer la bibliothèque', {
+                            href: path('index_spices'),
+                            variant: 'white',
+                            size: 'lg',
+                        }) }}
                     {% else %}
-                        <a href="{{ path('index_register') }}" 
-                           class="group relative inline-flex items-center gap-3 bg-paprika-900 text-cream px-10 py-5 rounded-full text-lg font-bold transition-all hover:bg-paprika-800 shadow-2xl shadow-paprika-900/30 hover:-translate-y-1">
-                            <span>Commencer l'expérience</span>
-                            <i class="fa-solid fa-sparkles text-saffron-400"></i>
-                        </a>
-                        <a href="{{ path('index_spices') }}" 
-                           class="inline-flex items-center gap-3 bg-white border border-stone-200 text-stone-800 px-10 py-5 rounded-full text-lg font-bold transition-all hover:bg-stone-50 hover:border-stone-300">
-                            Explorer les épices
-                        </a>
+                        {{ buttons.button("Commencer l'expérience", {
+                            href: path('index_register'),
+                            variant: 'paprika',
+                            size: 'lg',
+                            icon: 'fa-solid fa-sparkles text-saffron-400',
+                            icon_pos: 'right',
+                        }) }}
+                        {{ buttons.button('Explorer les épices', {
+                            href: path('index_spices'),
+                            variant: 'white',
+                            size: 'lg',
+                        }) }}
                     {% endif %}
                 </div>
 
@@ -250,11 +256,13 @@
                     <div class="bg-white/90 backdrop-blur-sm border border-stone-200 rounded-xl px-6 py-4 text-center shadow-lg">
                         <i class="fa-solid fa-lock text-saffron-500 text-xl mb-2 block"></i>
                         <p class="text-stone-700 text-sm font-medium mb-3">+ 8 autres épices compatibles</p>
-                        <a href="{{ path('index_register') }}"
-                           class="inline-flex items-center gap-1.5 bg-paprika-900 hover:bg-paprika-800 text-cream text-sm font-semibold px-5 py-2.5 rounded-full transition-colors">
-                            Créer un compte pour voir
-                            <i class="fa-solid fa-arrow-right text-xs"></i>
-                        </a>
+                        {{ buttons.button('Créer un compte pour voir', {
+                            href: path('index_register'),
+                            variant: 'paprika',
+                            size: 'sm',
+                            icon: 'fa-solid fa-arrow-right text-xs',
+                            icon_pos: 'right'
+                        }) }}
                     </div>
                 </div>
             </div>
@@ -267,10 +275,13 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 class="text-2xl font-bold text-stone-800 mb-3">Prêt à composer un nouveau mélange ?</h2>
         <p class="text-stone-500 mb-8">Sélectionnez vos épices et laissez l'algorithme trouver les meilleures associations.</p>
-        <a href="{{ path('index_spicy_match') }}"
-           class="inline-flex items-center gap-2 bg-paprika-900 hover:bg-paprika-800 text-cream px-8 py-3.5 rounded-full text-lg font-semibold transition-colors shadow-lg shadow-paprika-900/20">
-            <i class="fa-solid fa-flask"></i>Lancer un mélange
-        </a>
+        {{ buttons.button('Lancer un mélange', {
+            href: path('index_spicy_match'),
+            variant: 'paprika',
+            size: 'lg',
+            icon: 'fa-solid fa-flask',
+            class: 'shadow-lg shadow-paprika-900/20 px-8'
+        }) }}
     </div>
 </section>
 {% endif %}

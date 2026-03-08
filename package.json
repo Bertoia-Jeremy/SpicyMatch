@@ -10,8 +10,8 @@
     "tailwindcss": "^4.1.8"
   },
   "scripts": {
-    "dev": "tailwindcss -i ./assets/styles/app.scss -o ./public/assets/css/app.css --watch",
-    "build": "tailwindcss -i ./assets/styles/app.scss -o ./public/assets/css/app.css --minify"
+    "dev": "tailwindcss -i ./assets/styles/app.css -o ./public/assets/css/app.css --watch",
+    "build": "tailwindcss -i ./assets/styles/app.css -o ./public/assets/css/app.css --minify"
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.1.8"

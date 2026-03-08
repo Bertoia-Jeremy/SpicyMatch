@@ -57,9 +57,13 @@
                     </div>
                 {% endif %}
 
-                <button type="submit" class="btn-pill-primary w-full justify-center py-3 mt-2">
-                    Se connecter
-                </button>
+                {% import 'macros/buttons.html.twig' as buttons %}
+                {{ buttons.button('Se connecter', {
+                    type: 'submit',
+                    variant: 'primary',
+                    class: 'w-full justify-center py-4 mt-2',
+                    icon: 'fa-solid fa-right-to-bracket text-xs'
+                }) }}
             </form>
         </div>
     </div>

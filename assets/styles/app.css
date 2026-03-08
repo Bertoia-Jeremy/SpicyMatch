@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* Configuration du thème et des variables */
+@import "./theme.css";
+
+/* Styles de base et globaux */
+@import "./base/global.css";
+
+/* Composants du Design System */
+@import "./components/buttons.css";
+@import "./components/cards.css";
+@import "./components/footer.css";
+@import "./components/filters.css";
+
+/* Sources pour le scan Tailwind v4 */
+@source "../../templates/**/*.html.twig";
+@source "../../assets/**/*.js";

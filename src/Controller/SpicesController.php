@@ -36,10 +36,12 @@ class SpicesController extends AbstractController
             ? $this->spicesRepository->findFiltered($agId, $stId)
             : $this->spicesRepository->findAll();
 
+        $limit = $request->query->getInt('limit', 12);
+
         $spices = $paginator->paginate(
             $query,
             $request->query->getInt('page', 1),
-            12
+            $limit
         );
 
         return $this->render('spices/index.html.twig', [

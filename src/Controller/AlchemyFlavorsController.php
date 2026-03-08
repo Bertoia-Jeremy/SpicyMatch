@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\AlchemyFlavors;
+use App\Repository\AlchemyFlavorsRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -13,10 +14,10 @@ use Symfony\Component\Routing\Annotation\Route;
 class AlchemyFlavorsController extends AbstractController
 {
     #[Route('/', name: 'index_alchemy_flavors')]
-    public function index(): Response
+    public function index(AlchemyFlavorsRepository $repository): Response
     {
         return $this->render('alchemy_flavors/index.html.twig', [
-            'controller_name' => 'AlchemyFlavorsController',
+            'alchemyFlavors' => $repository->findAll(),
         ]);
     }
 

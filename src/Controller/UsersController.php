@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Entity\Users;
 use App\Form\UsersMailType;
 use App\Repository\AchievementRepository;
+use App\Repository\SpicyMatchHistoryRepository;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,6 +23,7 @@ class UsersController extends AbstractController
     public function __construct(
         private readonly UsersRepository $usersRepository,
         private readonly AchievementRepository $achievementRepository,
+        private readonly SpicyMatchHistoryRepository $historyRepository,
     ) {
     }
 
@@ -39,8 +41,15 @@ class UsersController extends AbstractController
     #[Route('/history', name: 'history_user', methods: ['GET'])]
     public function history(): Response
     {
+        /** @var Users $user */
+        $user = $this->getUser();
+
+        // findByUser handles the join with SpicyMatch to find the user
+        $histories = $this->historyRepository->findByUser($user);
+
         return $this->render('users/history.html.twig', [
             'user' => 'history',
+            'latestHistories' => array_slice($histories, 0, 5),
         ]);
     }
 
@@ -90,8 +99,12 @@ class UsersController extends AbstractController
         /** @var Users $user */
         $user = $this->getUser();
 
+        // findByUser handles the join with SpicyMatch to find the user
+        $histories = $this->historyRepository->findByUser($user);
+
         return $this->render('users/profile.html.twig', [
             'progression' => $user->getProgression(),
+            'latestHistories' => array_slice($histories, 0, 3),
         ]);
     }
 

@@ -101,11 +101,27 @@ class SpicyMatch extends AbstractController
         $spicyMatch = $spicyMatchFactory->create();
         $spicyMatch->setUser($this->getUser());
 
-        foreach ($this->spices['selectedSpices'] as $spiceId) {
+        // Extraction des IDs depuis la structure SpicyMatch (tableau plat d'IDs)
+        $selectedIds = array_map('intval', $this->spices['selectedSpices']);
+
+        foreach ($selectedIds as $spiceId) {
             /** @var Spices|null $spice */
-            $spice = $this->spicesRepository->find((int) $spiceId);
+            $spice = $this->spicesRepository->find($spiceId);
             if ($spice) {
                 $spicyMatch->addSpice($spice);
+            }
+        }
+
+        // On recalcule les résultats pour les sauvegarder dans l'entité SpicyMatchResult
+        // Cela permet de garder une trace des scores au moment du mélange
+        $results = $this->getResults();
+        foreach ($results['compatibleSpices'] as $compatibleData) {
+            $spice = $this->spicesRepository->find($compatibleData['id']);
+            if ($spice) {
+                $result = new \App\Entity\SpicyMatchResult();
+                $result->setSpice($spice);
+                $result->setScore((int) $compatibleData['score']);
+                $spicyMatch->addResult($result);
             }
         }
 

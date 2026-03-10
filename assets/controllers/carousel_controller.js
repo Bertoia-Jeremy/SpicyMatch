@@ -15,16 +15,35 @@ export default class extends Controller {
 
         // Ecouter les changements pour mettre à jour l'état des boutons
         const onSelect = () => this.updateButtons();
-        
+
         this.embla.on('select', onSelect);
         this.embla.on('init', onSelect);
         this.embla.on('reInit', onSelect);
 
         // Mise à jour initiale
         this.updateButtons();
+
+        // ReInit après le prochain frame de rendu pour gérer le cas où Alpine
+        // aurait masqué/démasqué l'élément avant la mesure initiale d'Embla
+        requestAnimationFrame(() => {
+            this.embla?.reInit();
+            this.updateButtons();
+        });
+
+        // Écoute l'événement dispatché par Alpine quand le slider redevient visible
+        this._reinitHandler = () => {
+            requestAnimationFrame(() => {
+                this.embla?.reInit();
+                this.updateButtons();
+            });
+        };
+        window.addEventListener('carousel:reinit', this._reinitHandler);
     }
 
     disconnect() {
+        if (this._reinitHandler) {
+            window.removeEventListener('carousel:reinit', this._reinitHandler);
+        }
         if (this.embla) {
             this.embla.destroy();
         }

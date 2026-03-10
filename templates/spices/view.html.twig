@@ -5,82 +5,7 @@
 
 {% block body %}
 
-{#
-  Quick View frame — rendu quand la modale Alpine charge /epices/{id}.
-  Le contenu complet de la page est en dehors de ce frame (Turbo l'ignore).
-#}
-<turbo-frame id="spice_quick_view">
-    {% set color = spice.aromaticGroups ? spice.aromaticGroups.color : '#78716C' %}
-    {% set imageUrl = vich_uploader_asset(spice, 'imageFile') %}
-
-    <div class="p-6">
-        {# En-tête : image + nom + groupe #}
-        <div class="flex gap-4 mb-5">
-            {% if imageUrl %}
-                <img src="{{ imageUrl }}" alt="{{ spice.name }}"
-                     class="w-24 h-24 rounded-2xl object-cover shrink-0 shadow-sm">
-            {% else %}
-                <img src="https://loremflickr.com/96/96/spice"
-                     alt="{{ spice.name }}"
-                     class="w-24 h-24 rounded-2xl object-cover shrink-0 shadow-sm">
-            {% endif %}
-            <div class="flex-1 min-w-0">
-                <h2 class="text-xl font-bold text-stone-900 mb-1">{{ spice.name }}</h2>
-                {% if spice.aromaticGroups %}
-                    <span class="inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full"
-                          style="background-color: {{ color }}22; color: {{ color }}; border: 1px solid {{ color }}44">
-                        {{ spice.aromaticGroups.name }}
-                    </span>
-                {% endif %}
-            </div>
-        </div>
-
-        {# Description #}
-        {% if spice.description %}
-            <p class="text-stone-600 text-sm leading-relaxed mb-5">{{ spice.description }}</p>
-        {% endif %}
-
-        {# Saveurs principales #}
-        {% set flavors = [] %}
-        {% for ac in spice.aromaticsCompounds %}
-            {% for f in ac.AlchemyFlavors %}
-                {% set flavors = flavors|merge([f]) %}
-            {% endfor %}
-        {% endfor %}
-        {% if flavors|length > 0 %}
-            <div class="mb-4">
-                <p class="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">
-                    <i class="fa-solid fa-droplet text-turmeric-500 mr-1"></i>Saveurs
-                </p>
-                <div class="flex flex-wrap gap-1.5">
-                    {% for flavor in flavors|slice(0, 6) %}
-                        <span class="tag-primary text-xs">{{ flavor.name }}</span>
-                    {% endfor %}
-                    {% if flavors|length > 6 %}
-                        <span class="tag-secondary text-xs">+{{ flavors|length - 6 }}</span>
-                    {% endif %}
-                </div>
-            </div>
-        {% endif %}
-
-        {# Composés aromatiques #}
-        {% if spice.aromaticsCompounds|length > 0 %}
-            <div>
-                <p class="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">
-                    <i class="fa-solid fa-atom text-saffron-600 mr-1"></i>Composés aromatiques
-                </p>
-                <div class="flex flex-wrap gap-1.5">
-                    {% for ac in spice.aromaticsCompounds|slice(0, 5) %}
-                        <span class="tag-secondary text-xs">{{ ac.name }}</span>
-                    {% endfor %}
-                    {% if spice.aromaticsCompounds|length > 5 %}
-                        <span class="tag-secondary text-xs">+{{ spice.aromaticsCompounds|length - 5 }}</span>
-                    {% endif %}
-                </div>
-            </div>
-        {% endif %}
-    </div>
-</turbo-frame>
+{% set color = spice.aromaticGroups ? spice.aromaticGroups.color : '#78716C' %}
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
@@ -94,7 +19,10 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
         <div class="md:col-span-2">
             {% if spice.aromaticGroups %}
-                <span class="tag-secondary mb-3 inline-block">{{ spice.aromaticGroups.name }}</span>
+                <span class="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full mb-3"
+                      style="background-color: {{ color }}22; color: {{ color }}; border: 1px solid {{ color }}44">
+                    {{ spice.aromaticGroups.name }}
+                </span>
             {% endif %}
             <h1 class="text-4xl font-bold text-stone-900 mb-3">{{ spice.name }}</h1>
             <p class="text-stone-600 text-lg leading-relaxed">{{ spice.description }}</p>

@@ -84,8 +84,9 @@ class SpicesRepository extends ServiceEntityRepository
     public function findAllSpices(): array
     {
         return $this->createQueryBuilder('s')
-            ->select('s.id', 's.name', 's.description', 's.file', 'ag.color', 'ag.name AS groupName')
+            ->select('s.id', 's.name', 's.description', 's.file', 'ag.id AS agId', 'ag.color', 'ag.name AS groupName', 'st.id AS stId')
             ->leftJoin('s.aromaticGroups', 'ag')
+            ->leftJoin('s.spicyType', 'st')
             ->orderBy('ag.name')
             ->addOrderBy('s.name')
             ->getQuery()
@@ -130,11 +131,11 @@ class SpicesRepository extends ServiceEntityRepository
      * @return Spices[]
      */
     /**
-     * Filter spices by aromatic group and/or spicy type.
+     * Filter spices by aromatic group, spicy type and/or name prefix.
      *
      * @return Spices[]
      */
-    public function findFiltered(?int $aromaticGroupId, ?int $spicyTypeId): array
+    public function findFiltered(?int $aromaticGroupId, ?int $spicyTypeId, ?string $search = null): array
     {
         $qb = $this->createQueryBuilder('s')
             ->orderBy('s.name', 'ASC');
@@ -147,6 +148,11 @@ class SpicesRepository extends ServiceEntityRepository
         if ($spicyTypeId !== null) {
             $qb->andWhere('s.spicyType = :stId')
                 ->setParameter('stId', $spicyTypeId);
+        }
+
+        if ($search !== null && $search !== '') {
+            $qb->andWhere('s.name LIKE :search')
+                ->setParameter('search', $search . '%');
         }
 
         return $qb->getQuery()->getResult();

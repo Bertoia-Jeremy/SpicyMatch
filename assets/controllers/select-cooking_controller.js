@@ -19,5 +19,8 @@ export default class extends Controller
 
         const response = await fetch(url, { method: 'GET' });
         parentElement.innerHTML = await response.json();
+
+        // Signal au bloc Alpine parent de se replier
+        this.element.dispatchEvent(new CustomEvent('cooking-confirmed', { bubbles: true }));
     }
 }

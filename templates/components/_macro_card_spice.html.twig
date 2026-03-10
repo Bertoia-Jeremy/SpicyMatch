@@ -32,7 +32,7 @@
         {# ── Zone 1 : Image (Trigger MODALE uniquement) ── #}
         <div class="relative overflow-hidden aspect-square bg-stone-100 cursor-pointer"
              {% if showQuickView %}
-             @click.prevent.stop="$dispatch('open-spice-modal', { url: '{{ path('view_spice', { id: spiceId }) }}' })"
+             @click.prevent.stop="$dispatch('open-spice-modal', { url: '{{ path('quick_view_spice', { id: spiceId }) }}', fullUrl: '{{ path('view_spice', { id: spiceId }) }}' })"
              {% endif %}>
             
             {% if imageUrl %}

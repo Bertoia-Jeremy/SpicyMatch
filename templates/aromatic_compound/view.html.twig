@@ -73,7 +73,7 @@
 
             {% if allSpices|length > 8 %}
                 <div class="flex items-center bg-stone-100 p-1 rounded-xl">
-                    <button @click="gridMode = false" :class="!gridMode ? 'bg-white shadow-sm text-saffron-600' : 'text-stone-400'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Slider</button>
+                    <button @click="gridMode = false; $nextTick(() => window.dispatchEvent(new CustomEvent('carousel:reinit')))" :class="!gridMode ? 'bg-white shadow-sm text-saffron-600' : 'text-stone-400'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Slider</button>
                     <button @click="gridMode = true" :class="gridMode ? 'bg-white shadow-sm text-saffron-600' : 'text-stone-400'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Grille</button>
                 </div>
             {% endif %}

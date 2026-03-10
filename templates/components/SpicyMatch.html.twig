@@ -1,12 +1,96 @@
 {% import "components/_macro_card_spicy_match.html.twig" as macroCardSpicyMatch %}
 {% import 'macros/buttons.html.twig' as buttons %}
+{% import 'macros/filters.html.twig' as filters %}
 
 <div class="w-full px-4" {{ attributes }}>
-    {# Quick View Modal accessible partout dans le Lab #}
-    {% include 'components/_spice_modal.html.twig' %}
-
     {% set compatibleSpices = this.results.compatibleSpices %}
     {% set selectedSpices = this.results.selectedSpices %}
+    {% set filterCount = (this.filterAgId ? 1 : 0) + (this.filterStId ? 1 : 0) + (this.search ? 1 : 0) %}
+
+    {# ── Barre de filtres + recherche ── #}
+    <div class="flex flex-wrap items-end gap-4 sm:gap-6 mb-6">
+
+        {# Filtre Groupe Aromatique #}
+        {% set ag_content %}
+            <div class="flex flex-col gap-2">
+                {% for group in this.aromaticGroups %}
+                    <label class="flex items-center gap-3 cursor-pointer group/item">
+                        <input type="radio"
+                               name="filterAgId"
+                               value="{{ group.id }}"
+                               data-model="filterAgId"
+                               {{ this.filterAgId == group.id ? 'checked' : '' }}
+                               class="size-4 border-stone-300 text-saffron-600 focus:ring-saffron-600/20 cursor-pointer">
+                        <span class="text-sm font-medium text-stone-700 group-hover/item:text-saffron-700 transition-colors">
+                            {{ group.name }}
+                        </span>
+                    </label>
+                {% endfor %}
+            </div>
+        {% endset %}
+        {{ filters.filter_dropdown('Groupe Aromatique', ag_content, {
+            count: this.filterAgId ? 1 : 0,
+            reset_click: "$dispatch('live:action', {action: 'resetFilters'})"
+        }) }}
+
+        {# Filtre Type d'Épice #}
+        {% set st_content %}
+            <div class="flex flex-col gap-2">
+                {% for type in this.spicyTypes %}
+                    <label class="flex items-center gap-3 cursor-pointer group/item">
+                        <input type="radio"
+                               name="filterStId"
+                               value="{{ type.id }}"
+                               data-model="filterStId"
+                               {{ this.filterStId == type.id ? 'checked' : '' }}
+                               class="size-4 border-stone-300 text-saffron-600 focus:ring-saffron-600/20 cursor-pointer">
+                        <span class="text-sm font-medium text-stone-700 group-hover/item:text-saffron-700 transition-colors">
+                            {{ type.name }}
+                        </span>
+                    </label>
+                {% endfor %}
+            </div>
+        {% endset %}
+        {{ filters.filter_dropdown("Type d'Épice", st_content, {
+            count: this.filterStId ? 1 : 0,
+            reset_click: "$dispatch('live:action', {action: 'resetFilters'})"
+        }) }}
+
+        {# Barre de recherche #}
+        <div class="relative flex-1 min-w-45">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs pointer-events-none"></i>
+            <input
+                type="text"
+                data-model="search"
+                placeholder="Rechercher une épice…"
+                value="{{ this.search }}"
+                class="w-full pl-8 {{ this.search ? 'pr-8' : 'pr-3' }} py-2 bg-white border border-spice-border rounded-xl text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-saffron-600/30 focus:border-saffron-400 transition">
+            {% if this.search %}
+                <button type="button"
+                        data-action="live#action"
+                        data-live-action-param="clearSearch"
+                        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
+                        aria-label="Effacer la recherche">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            {% endif %}
+        </div>
+
+        {# Reset global #}
+        {% if filterCount > 0 %}
+            <button type="button"
+                    data-action="live#action"
+                    data-live-action-param="resetFilters"
+                    class="pb-1.5 text-xs font-bold uppercase tracking-widest text-stone-400 hover:text-paprika-700 transition-colors">
+                Effacer tout
+            </button>
+        {% endif %}
+    </div>
+
+    {# Compteur #}
+    <p class="text-xs text-stone-400 text-right -mt-4 mb-4">
+        {{ compatibleSpices|length }} épice{{ compatibleSpices|length != 1 ? 's' : '' }} disponible{{ compatibleSpices|length != 1 ? 's' : '' }}
+    </p>
 
     {% if selectedSpices is empty %}
         <div class="w-full text-center py-6 mb-4">
@@ -66,6 +150,7 @@
         </form>
     {% endif %}
 
+
     <form class="flex flex-wrap justify-around items-center" data-model="spices">
         {% if compatibleSpices is not empty %}
             {% for spice in compatibleSpices %}
@@ -73,7 +158,12 @@
             {% endfor %}
         {% else %}
             <div class="w-full bg-spice-surface border border-spice-border text-stone-700 px-4 py-3 rounded-xl text-center text-sm">
-                <i class="fa-solid fa-circle-info text-saffron-500 mr-1.5"></i>Aucune épice supplémentaire n'est compatible avec votre sélection.
+                <i class="fa-solid fa-circle-info text-saffron-500 mr-1.5"></i>
+                {% if this.search %}
+                    Aucune épice ne correspond à « {{ this.search }} ».
+                {% else %}
+                    Aucune épice supplémentaire n'est compatible avec votre sélection.
+                {% endif %}
             </div>
         {% endif %}
     </form>

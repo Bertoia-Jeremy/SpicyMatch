@@ -1,12 +1,22 @@
 <div {{ attributes }} class="relative">
     <input
-        class="w-56 px-4 py-1.5 border border-spice-border rounded-full bg-white/80 text-stone-700
+        class="w-56 pl-4 {{ this.query ? 'pr-8' : 'pr-4' }} py-1.5 border border-spice-border rounded-full bg-white/80 text-stone-700
                placeholder-stone-400 text-sm backdrop-blur-sm
                focus:outline-none focus:ring-1 focus:ring-saffron-600/30 focus:border-saffron-600/40
                transition-colors"
-        type="search" placeholder="Rechercher..." aria-label="Rechercher"
+        type="text" placeholder="Rechercher..." aria-label="Rechercher"
+        value="{{ this.query }}"
         data-model="query" data-action="live#update"
     >
+    {% if this.query %}
+        <button type="button"
+                data-action="live#action"
+                data-live-action-param="clearQuery"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
+                aria-label="Effacer la recherche">
+            <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+    {% endif %}
     {% if this.results is defined and this.results is not empty %}
         <div class="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-spice-border z-50 overflow-hidden">
             {% for result in this.results %}

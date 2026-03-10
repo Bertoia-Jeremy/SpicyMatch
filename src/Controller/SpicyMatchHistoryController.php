@@ -9,13 +9,16 @@ use App\Entity\PreparationTips;
 use App\Entity\Spices;
 use App\Entity\SpicyMatchHistory;
 use App\Entity\Users;
+use App\Message\FavoriteToggledEvent;
 use App\Repository\CookingTipsRepository;
 use App\Repository\PreparationTipsRepository;
 use App\Repository\SpicyMatchHistoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -27,6 +30,7 @@ class SpicyMatchHistoryController extends AbstractController
         private readonly SpicyMatchHistoryRepository $historyRepository,
         private readonly PreparationTipsRepository $preparationTipsRepository,
         private readonly CookingTipsRepository $cookingTipsRepository,
+        private readonly MessageBusInterface $bus,
     ) {
     }
 
@@ -38,6 +42,18 @@ class SpicyMatchHistoryController extends AbstractController
 
         return $this->render('spicy_match_history/index.html.twig', [
             'spicymatch_histories' => $this->historyRepository->findByUser($user),
+            'favoriteCount'        => $this->historyRepository->countFavoritesByUser($user),
+        ]);
+    }
+
+    #[Route('/favorites', name: 'favorites_spicy_match_history', methods: ['GET'])]
+    public function favorites(): Response
+    {
+        /** @var Users $user */
+        $user = $this->getUser();
+
+        return $this->render('spicy_match_history/favorites.html.twig', [
+            'spicymatch_histories' => $this->historyRepository->findFavoritesByUser($user),
         ]);
     }
 
@@ -50,15 +66,36 @@ class SpicyMatchHistoryController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
+        if ($spicyMatchHistory->getPreparationTips()->isEmpty()) {
+            return $this->redirectToRoute('view_spicy_match', ['id' => $spicyMatchHistory->getSpicyMatch()->getId()]);
+        }
+
         $cookingsByStep = [0 => [], 1 => [], 2 => [], 3 => [], 4 => []];
         foreach ($spicyMatchHistory->getCookingTips() as $cooking) {
             $step = $cooking->getStep() ?? 0;
             $cookingsByStep[$step][] = $cooking;
         }
 
+        // Calcul des composés aromatiques partagés entre toutes les épices du mélange
+        $sharedCompounds = null;
+        foreach ($spicyMatchHistory->getSpicyMatch()->getSpices() as $spice) {
+            $compounds = $spice->getAromaticsCompounds()->toArray();
+            if ($sharedCompounds === null) {
+                $sharedCompounds = $compounds;
+            } else {
+                $sharedCompounds = array_uintersect(
+                    $sharedCompounds,
+                    $compounds,
+                    static fn ($a, $b) => $a->getId() <=> $b->getId()
+                );
+            }
+        }
+
         return $this->render('spicy_match_history/view.html.twig', [
-            'preparations'   => $spicyMatchHistory->getPreparationTips(),
-            'cookingsByStep' => $cookingsByStep,
+            'preparations'    => $spicyMatchHistory->getPreparationTips(),
+            'cookingsByStep'  => $cookingsByStep,
+            'sharedCompounds' => array_values($sharedCompounds ?? []),
+            'spicyMatch'      => $spicyMatchHistory->getSpicyMatch(),
         ]);
     }
 
@@ -97,6 +134,50 @@ class SpicyMatchHistoryController extends AbstractController
         }
 
         return $this->json($this->renderView('Exception/Error.html.twig', ['codeError' => '173']));
+    }
+
+    #[Route('/{id}/rename', name: 'rename_spicy_match_history', methods: ['POST'])]
+    public function rename(
+        SpicyMatchHistory $spicyMatchHistory,
+        Request $request,
+        EntityManagerInterface $entityManager,
+    ): JsonResponse {
+        /** @var Users $currentUser */
+        $currentUser = $this->getUser();
+        if ($spicyMatchHistory->getSpicyMatch()->getUser() !== $currentUser) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $title = trim((string) ($data['title'] ?? ''));
+        $spicyMatchHistory->setTitle($title !== '' ? $title : null);
+        $spicyMatchHistory->setUpdatedAt(new \DateTimeImmutable());
+        $entityManager->flush();
+
+        return $this->json(['title' => $spicyMatchHistory->getTitle()]);
+    }
+
+    #[Route('/{id}/favorite/toggle', name: 'toggle_favorite_spicy_match_history', methods: ['POST'])]
+    public function toggleFavorite(
+        SpicyMatchHistory $spicyMatchHistory,
+        EntityManagerInterface $entityManager,
+    ): JsonResponse {
+        /** @var Users $currentUser */
+        $currentUser = $this->getUser();
+        if ($spicyMatchHistory->getSpicyMatch()->getUser() !== $currentUser) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $spicyMatchHistory->setFavorite(!$spicyMatchHistory->isFavorite());
+        $spicyMatchHistory->setUpdatedAt(new \DateTimeImmutable());
+        $entityManager->flush();
+
+        // Dispatch async gamification event uniquement quand on ajoute aux favoris
+        if ($spicyMatchHistory->isFavorite()) {
+            $this->bus->dispatch(new FavoriteToggledEvent($currentUser->getId()));
+        }
+
+        return $this->json(['favorite' => $spicyMatchHistory->isFavorite()]);
     }
 
     private function handleCookingTip(

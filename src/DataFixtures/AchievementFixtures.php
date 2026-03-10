@@ -69,6 +69,38 @@ class AchievementFixtures extends Fixture
                 'rarity'       => AchievementRarity::LEGENDARY,
             ],
 
+            // --- N_FAVORITES ---
+            [
+                'slug'         => 'favorites_1',
+                'name'         => 'Premier Coup de Cœur',
+                'description'  => 'Ajoutez votre premier mélange à vos favoris.',
+                'icon'         => 'fa-solid fa-star',
+                'trigger'      => AchievementTrigger::N_FAVORITES,
+                'triggerValue' => 1,
+                'xpReward'     => 15,
+                'rarity'       => AchievementRarity::COMMON,
+            ],
+            [
+                'slug'         => 'favorites_5',
+                'name'         => 'Collectionneur d\'Arômes',
+                'description'  => 'Ajoutez 5 mélanges à vos favoris.',
+                'icon'         => 'fa-solid fa-bookmark',
+                'trigger'      => AchievementTrigger::N_FAVORITES,
+                'triggerValue' => 5,
+                'xpReward'     => 60,
+                'rarity'       => AchievementRarity::RARE,
+            ],
+            [
+                'slug'         => 'favorites_10',
+                'name'         => 'Bibliothèque des Saveurs',
+                'description'  => 'Ajoutez 10 mélanges à vos favoris.',
+                'icon'         => 'fa-solid fa-book-open',
+                'trigger'      => AchievementTrigger::N_FAVORITES,
+                'triggerValue' => 10,
+                'xpReward'     => 150,
+                'rarity'       => AchievementRarity::EPIC,
+            ],
+
             // --- N_SPICES_USED ---
             [
                 'slug'         => 'spices_3',

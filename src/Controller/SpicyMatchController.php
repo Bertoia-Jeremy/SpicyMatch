@@ -39,6 +39,10 @@ class SpicyMatchController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
+        if ($spicyMatch->getSpices()->isEmpty()) {
+            return $this->redirectToRoute('index_spicy_match');
+        }
+
         $spicyMatchHistory = $spicyMatchHistoryFactory->create($spicyMatch);
         $entityManager->persist($spicyMatchHistory);
         $entityManager->flush();

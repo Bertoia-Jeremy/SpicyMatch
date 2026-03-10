@@ -7,8 +7,10 @@ namespace App\Controller;
 use App\Entity\Users;
 use App\Form\UsersMailType;
 use App\Repository\AchievementRepository;
+use App\Repository\SpiceViewRepository;
 use App\Repository\SpicyMatchHistoryRepository;
 use App\Repository\UsersRepository;
+use App\Service\AvatarCatalogService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,6 +26,8 @@ class UsersController extends AbstractController
         private readonly UsersRepository $usersRepository,
         private readonly AchievementRepository $achievementRepository,
         private readonly SpicyMatchHistoryRepository $historyRepository,
+        private readonly SpiceViewRepository $spiceViewRepository,
+        private readonly AvatarCatalogService $avatarCatalog,
     ) {
     }
 
@@ -64,11 +68,36 @@ class UsersController extends AbstractController
     #[Route('/configuration', name: 'configuration_user', methods: ['GET'])]
     public function configuration(): Response
     {
+        /** @var Users $user */
         $user = $this->getUser();
 
         return $this->render('users/configuration.html.twig', [
-            'user' => $user,
+            'user'         => $user,
+            'avatarCatalog' => $this->avatarCatalog->getCatalogWithStatus($user->getProgression()),
         ]);
+    }
+
+    #[Route('/avatar', name: 'avatar_upload_user', methods: ['POST'])]
+    public function selectAvatar(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        /** @var Users $user */
+        $user = $this->getUser();
+
+        if (!$this->isCsrfTokenValid('avatar_select', $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token invalide.');
+
+            return $this->redirectToRoute('configuration_user');
+        }
+
+        $slug = (string) $request->request->get('avatar_slug', '');
+
+        if ($this->avatarCatalog->isUnlocked($slug, $user->getProgression())) {
+            $user->setAvatar($slug);
+            $user->setUpdatedAt(new \DateTimeImmutable());
+            $entityManager->flush();
+        }
+
+        return $this->redirectToRoute('configuration_user');
     }
 
     #[Route('/userMail', name: 'mail_user', methods: ['GET', 'POST'])]
@@ -99,12 +128,19 @@ class UsersController extends AbstractController
         /** @var Users $user */
         $user = $this->getUser();
 
-        // findByUser handles the join with SpicyMatch to find the user
         $histories = $this->historyRepository->findByUser($user);
 
+        $stats = [
+            'totalBlends'       => count($histories),
+            'distinctSpices'    => $this->historyRepository->countDistinctSpicesByUser($user),
+            'favorites'         => $this->historyRepository->countFavoritesByUser($user),
+            'spicesViewed'      => $this->spiceViewRepository->countDistinctSpicesByUser($user),
+        ];
+
         return $this->render('users/profile.html.twig', [
-            'progression' => $user->getProgression(),
+            'progression'     => $user->getProgression(),
             'latestHistories' => array_slice($histories, 0, 3),
+            'stats'           => $stats,
         ]);
     }
 

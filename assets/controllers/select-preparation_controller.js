@@ -7,10 +7,14 @@ export default class extends Controller
         spicyMatchHistoryUrl: String,
         spiceId: Number,
         preparationId: Number,
+        selectedId: { type: Number, default: 0 },
     };
 
     async selectPreparation(event) {
-        this.preparationIdValue = event.currentTarget.dataset.preparationId;
+        const clickedId = parseInt(event.currentTarget.dataset.preparationId);
+        const isDeselecting = this.selectedIdValue === clickedId;
+
+        this.preparationIdValue = clickedId;
         const parentElement = this.preparationTarget.parentElement;
 
         const url = new URL(this.spicyMatchHistoryUrlValue, window.location.origin);
@@ -19,5 +23,12 @@ export default class extends Controller
 
         const response = await fetch(url, { method: 'GET' });
         parentElement.innerHTML = await response.json();
+
+        this.selectedIdValue = isDeselecting ? 0 : clickedId;
+
+        this.element.dispatchEvent(new CustomEvent('preparation-updated', {
+            bubbles: true,
+            detail: { spiceId: this.spiceIdValue, selected: !isDeselecting },
+        }));
     }
 }

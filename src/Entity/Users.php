@@ -53,6 +53,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'last_login_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeInterface $lastLoginAt = null;
 
+    #[ORM\Column(name: 'avatar', type: 'string', length: 100, nullable: true)]
+    private ?string $avatar = null;
+
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: SpicyMatch::class, orphanRemoval: true)]
     private Collection $spicyMatches;
 
@@ -194,6 +197,18 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    public function getAvatar(): ?string
+    {
+        return $this->avatar;
+    }
+
+    public function setAvatar(?string $avatar): self
+    {
+        $this->avatar = $avatar;
+
+        return $this;
     }
 
     public function getMail(): string|null

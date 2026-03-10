@@ -15,7 +15,7 @@
     x-data="{ modalOpen: false, selectedUrl: null, fullPageUrl: null }"
     @open-spice-modal.window="
         selectedUrl = $event.detail.url;
-        fullPageUrl = $event.detail.url;
+        fullPageUrl = $event.detail.fullUrl ?? $event.detail.url;
         modalOpen = true;
     "
     @keydown.escape.window="modalOpen = false">

@@ -1,0 +1,18 @@
+{#
+  Composant avatar réutilisable.
+  Variables :
+    - slug       (string|null) : slug de l'avatar (ex: 'crown') — null → avatar par défaut
+    - sizeClass  (string)      : classes Tailwind taille/texte (défaut : 'w-16 h-16 text-2xl')
+    - borderClass (string)     : classes de bordure (défaut : 'border-2 border-saffron-400/30')
+  Usage :
+    {% include 'components/_avatar.html.twig' with { slug: app.user.avatar } %}
+    {% include 'components/_avatar.html.twig' with { slug: app.user.avatar, sizeClass: 'w-24 h-24 text-3xl' } %}
+#}
+{% set av = avatar_data(slug ?? null) %}
+{% set sizeClass = sizeClass ?? 'w-16 h-16 text-2xl' %}
+{% set borderClass = borderClass ?? 'border-2 border-saffron-400/30' %}
+
+<div class="{{ sizeClass }} {{ borderClass }} rounded-full flex items-center justify-center shrink-0"
+     style="background-color: {{ av.bg }}">
+    <i class="fa-solid {{ av.icon }}" style="color: {{ av.text }}"></i>
+</div>

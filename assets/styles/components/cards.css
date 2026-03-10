@@ -8,7 +8,7 @@
     border-color: var(--color-spice-border);
     box-shadow:
       0 4px 6px -1px rgba(194, 65, 12, 0.06),
-      0 20px 40px -8px rgba(194, 65, 12, 0.18),
+      0 10px 20px -8px rgba(194, 65, 12, 0.18),
       0 0 0 1px rgba(254, 215, 170, 0.5);
     transform: translateY(-3px);
   }

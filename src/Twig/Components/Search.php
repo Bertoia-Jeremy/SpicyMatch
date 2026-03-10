@@ -6,6 +6,7 @@ namespace App\Twig\Components;
 
 use App\Repository\SpicesRepository;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
+use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
@@ -20,6 +21,12 @@ class Search
     public function __construct(
         private SpicesRepository $spicesRepository
     ) {
+    }
+
+    #[LiveAction]
+    public function clearQuery(): void
+    {
+        $this->query = '';
     }
 
     public function getResults(): array

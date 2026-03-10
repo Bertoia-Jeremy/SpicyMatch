@@ -6,7 +6,9 @@ namespace App\Twig\Components;
 
 use App\Entity\Spices;
 use App\Factory\SpicyMatchFactory;
+use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpicesRepository;
+use App\Repository\SpicyTypeRepository;
 use App\Service\CompatibilityScoreService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,14 +28,35 @@ class SpicyMatch extends AbstractController
     #[LiveProp(writable: true)]
     public ?string $selectedAromaticGroup = null;
 
+    #[LiveProp(writable: true)]
+    public string $search = '';
+
+    #[LiveProp(writable: true)]
+    public string $filterAgId = '';
+
+    #[LiveProp(writable: true)]
+    public string $filterStId = '';
+
     public function __construct(
         private readonly SpicesRepository $spicesRepository,
         private readonly CompatibilityScoreService $compatibilityScoreService,
+        private readonly AromaticGroupsRepository $aromaticGroupsRepository,
+        private readonly SpicyTypeRepository $spicyTypeRepository,
     ) {
         $this->spices = [
             'selectedSpices'   => [],
             'compatibleSpices' => $spicesRepository->findAllSpices(),
         ];
+    }
+
+    public function getAromaticGroups(): array
+    {
+        return $this->aromaticGroupsRepository->findAll();
+    }
+
+    public function getSpicyTypes(): array
+    {
+        return $this->spicyTypeRepository->findAll();
     }
 
     public function getResults(): array
@@ -66,14 +89,53 @@ class SpicyMatch extends AbstractController
             usort($compatibleSpices, function (array $a, array $b) {
                 $groupA = $a['groupName'] === $this->selectedAromaticGroup ? 0 : 1;
                 $groupB = $b['groupName'] === $this->selectedAromaticGroup ? 0 : 1;
+
                 return $groupA <=> $groupB;
             });
+        }
+
+        if ($this->filterAgId !== '') {
+            $agId = (int) $this->filterAgId;
+            $compatibleSpices = array_values(array_filter(
+                $compatibleSpices,
+                fn (array $s) => ($s['agId'] ?? null) === $agId
+            ));
+        }
+
+        if ($this->filterStId !== '') {
+            $stId = (int) $this->filterStId;
+            $compatibleSpices = array_values(array_filter(
+                $compatibleSpices,
+                fn (array $s) => ($s['stId'] ?? null) === $stId
+            ));
+        }
+
+        if ($this->search !== '') {
+            $needle = mb_strtolower($this->search);
+            $compatibleSpices = array_values(array_filter(
+                $compatibleSpices,
+                fn (array $s) => str_starts_with(mb_strtolower($s['name']), $needle)
+            ));
         }
 
         return [
             'selectedSpices'   => $selectedSpicesData,
             'compatibleSpices' => $compatibleSpices,
         ];
+    }
+
+    #[LiveAction]
+    public function resetFilters(): void
+    {
+        $this->filterAgId = '';
+        $this->filterStId = '';
+        $this->search = '';
+    }
+
+    #[LiveAction]
+    public function clearSearch(): void
+    {
+        $this->search = '';
     }
 
     #[LiveAction]

@@ -142,17 +142,17 @@ tooling:
 
 scripts:
   php:
-    - composer check-cs       # vérifier le style
-    - composer fix-cs         # corriger le style
-    - composer rector-dry     # dry-run Rector
-    - composer rector         # appliquer Rector
-    - composer phpstan        # analyse statique
+    - docker exec -w /var/www/html/spicymatch docker_php-8.4 composer check-cs       # vérifier le style
+    - docker exec -w /var/www/html/spicymatch docker_php-8.4 composer fix-cs         # corriger le style
+    - docker exec -w /var/www/html/spicymatch docker_php-8.4 composer rector-dry     # dry-run Rector
+    - docker exec -w /var/www/html/spicymatch docker_php-8.4 composer rector         # appliquer Rector
+    - docker exec -w /var/www/html/spicymatch docker_php-8.4 composer phpstan        # analyse statique
   js:
     - yarn dev                # watch Tailwind CLI
     - yarn build              # build Tailwind CLI minifié
   doctrine:
-    - php bin/console doctrine:schema:update --force   # apply schema changes
-    - php bin/console doctrine:fixtures:load --append --group=GroupName
+    - docker exec -w /var/www/html/spicymatch docker_php-8.4 php bin/console doctrine:schema:update --force   # apply schema changes
+    - docker exec -w /var/www/html/spicymatch docker_php-8.4 php bin/console doctrine:fixtures:load --append --group=GroupName
 
 conventions:
   commits: Conventional Commits (feat/fix/chore/refactor + scope optionnel)
@@ -173,10 +173,19 @@ architecture:
       - AchievementTrigger (FIRST_MATCH, N_MATCHES, N_SPICES_USED, FIRST_DISCOVERY, N_FAVORITES)
       - AchievementRarity (COMMON, RARE, EPIC, LEGENDARY)
     level_formula: "level = floor(sqrt(xp / 100)) + 1"
-    fixtures: AchievementFixtures (8 achievements, --append --group=AchievementFixtures)
+    fixtures: AchievementFixtures (11 achievements, --append --group=AchievementFixtures)
+      ⚠️ Les fixtures existent déjà en base → utiliser INSERT IGNORE SQL direct pour ajouter de nouveaux achievements sans purge
+      ⚠️ La colonne DB s'appelle trigger_type (pas trigger — mot réservé MariaDB)
     services:
       - CompatibilityScoreService  # scores 0-100 avec mainCompounds, secondaryCompounds, alchemyFlavors
-      - GamificationService        # async via Messenger
+      - GamificationHandler        # async via Messenger (MatchSavedEvent)
+      - FavoriteGamificationHandler # async via Messenger (FavoriteToggledEvent → N_FAVORITES achievements)
+    avatars:
+      - Système d'avatars prédéfinis (slugs en DB, FontAwesome + couleurs CSS — zéro upload)
+      - AvatarCatalogService: catalog 11 avatars, unlock par level ou achievement slug
+      - AvatarExtension: fonction Twig avatar_data(slug) → retourne {icon, bg, text, label, ...}
+      - Composant: {% include 'components/_avatar.html.twig' with { slug, sizeClass, borderClass } %}
+      - Users::$avatar = slug VARCHAR(100), plus de Vich Uploader pour les avatars
 
 js_interop:
   alpine:
@@ -184,6 +193,12 @@ js_interop:
     - [x-cloak] { display: none !important } dans app.scss
     - Modals self-contained avec x-data="{ open: false }" par composant
   importmap: assets/importmap.php  # déclarer les dépendances JS (version + CDN)
+  live_component_gotchas:
+    - "data-model ne fonctionne QUE dans le template du LiveComponent — jamais depuis un include externe"
+    - "Pour les filtres du Lab, tout doit être dans SpicyMatch.html.twig (data-model='filterAgId', 'filterStId', 'search')"
+    - "Pour reset dans LC: LiveAction resetFilters() appelé via data-action='live#action' data-live-action-param='resetFilters'"
+    - "SpicyMatch::findAllSpices() inclut agId et stId — CompatibilityScoreService aussi"
+    - "data-model='debounce(search, 150)' → INVALIDE dans cette version du LC — utiliser data-model='search' (debounce natif par défaut)"
 
 design_system:
   fichier_source: assets/styles/app.css
@@ -210,8 +225,14 @@ design_system:
     - "@source chemin relatif au fichier SCSS: '../../templates/**/*.html.twig'"
     - "Après tout changement de classes, relancer: yarn build"
   composants_reference:
-    navbar:   "templates/components/_navbar.html.twig — sticky cream/80 backdrop-blur h-20 z-50"
-    footer:   "templates/components/_footer.html.twig — bg-paprika-900 text-cream 4 colonnes"
-    search:   "templates/components/Search.html.twig — bg-white/80 rounded-full border-spice-border"
-    hero:     "templates/home/index.html.twig — grid 2 cols lg, fond bg-cream-dark + bg-noise"
+    navbar:         "templates/components/_navbar.html.twig — sticky cream/80 backdrop-blur h-20 z-50"
+    footer:         "templates/components/_footer.html.twig — bg-paprika-900 text-cream 4 colonnes"
+    search:         "templates/components/Search.html.twig — bg-white/80 rounded-full border-spice-border"
+    hero:           "templates/home/index.html.twig — grid 2 cols lg, fond bg-cream-dark + bg-noise"
+    avatar:         "templates/components/_avatar.html.twig — cercle coloré + icône FA, slug depuis Users::$avatar"
+    lab_filters:    "SpicyMatch.html.twig — filtres (groupeAro + type + search) DANS le LiveComponent via data-model"
+    catalog_filters: "templates/components/_spices_filters.html.twig — filtres GET → Turbo Frame spices_frame_id (catalogue uniquement)"
+    history_index:  "templates/spicy_match_history/index.html.twig — liste avec renommage inline (group + crayon hover) + toggle favori"
+    history_view:   "templates/spicy_match_history/view.html.twig — recette + section éducative composés aromatiques partagés"
+    history_favorites: "templates/spicy_match_history/favorites.html.twig — page dédiée aux mélanges favoris (route: favorites_spicy_match_history)"
 ```

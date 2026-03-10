@@ -40,7 +40,8 @@
             </span>
         </div>
 
-        {%  include "/components/_spices_filters.html.twig" %}
+        {# Quick View Modal — hors du LiveComponent pour éviter le reset Alpine au re-render #}
+        {% include 'components/_spice_modal.html.twig' %}
 
         {{ component('SpicyMatch') }}
     </div>

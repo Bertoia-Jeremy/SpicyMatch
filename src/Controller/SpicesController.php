@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Spices;
+use App\Entity\Users;
 use App\Repository\AromaticGroupsRepository;
+use App\Repository\SpiceViewRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
 use Knp\Component\Pager\PaginatorInterface;
@@ -29,11 +31,12 @@ class SpicesController extends AbstractController
         AromaticGroupsRepository $aromaticGroupsRepository,
         SpicyTypeRepository $spicyTypeRepository,
     ): Response {
-        $agId = filter_var($request->query->get('aromatic_group'), FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE) ?: null;
-        $stId = filter_var($request->query->get('spicy_type'), FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE) ?: null;
+        $agId   = filter_var($request->query->get('aromatic_group'), FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE) ?: null;
+        $stId   = filter_var($request->query->get('spicy_type'), FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE) ?: null;
+        $search = trim((string) $request->query->get('search', '')) ?: null;
 
-        $query = ($agId !== null || $stId !== null)
-            ? $this->spicesRepository->findFiltered($agId, $stId)
+        $query = ($agId !== null || $stId !== null || $search !== null)
+            ? $this->spicesRepository->findFiltered($agId, $stId, $search)
             : $this->spicesRepository->findAll();
 
         $limit = $request->query->getInt('limit', 12);
@@ -50,13 +53,28 @@ class SpicesController extends AbstractController
             'spicyTypes'     => $spicyTypeRepository->findAll(),
             'activeAgId'     => $agId,
             'activeStId'     => $stId,
+            'activeSearch'   => $search ?? '',
         ]);
     }
 
     #[Route('/{id<\d+>}', name: 'view_spice')]
-    public function view(Spices $spice): Response
+    public function view(Spices $spice, SpiceViewRepository $spiceViewRepository): Response
     {
+        /** @var Users|null $user */
+        $user = $this->getUser();
+        if ($user !== null) {
+            $spiceViewRepository->recordView($user, $spice);
+        }
+
         return $this->render('spices/view.html.twig', [
+            'spice' => $spice,
+        ]);
+    }
+
+    #[Route('/{id<\d+>}/apercu', name: 'quick_view_spice')]
+    public function quickView(Spices $spice): Response
+    {
+        return $this->render('spices/_quick_view.html.twig', [
             'spice' => $spice,
         ]);
     }

@@ -44,7 +44,7 @@ class SpicyMatch extends AbstractController
         private readonly SpicyTypeRepository $spicyTypeRepository,
     ) {
         $this->spices = [
-            'selectedSpices'   => [],
+            'selectedSpices' => [],
             'compatibleSpices' => $spicesRepository->findAllSpices(),
         ];
     }
@@ -64,7 +64,7 @@ class SpicyMatch extends AbstractController
         $selectedSpicesData = [];
         $compatibleSpices = $this->spices['compatibleSpices'];
 
-        if (!empty($this->spices['selectedSpices'])) {
+        if (! empty($this->spices['selectedSpices'])) {
             $ids = array_map('intval', $this->spices['selectedSpices']);
 
             // Flat arrays for display (grouped by aromatic group)
@@ -74,14 +74,16 @@ class SpicyMatch extends AbstractController
             }
 
             // Load entities for scoring
-            $selectedEntities = $this->spicesRepository->findBy(['id' => $ids]);
+            $selectedEntities = $this->spicesRepository->findBy([
+                'id' => $ids,
+            ]);
             $scored = $this->compatibilityScoreService->findCompatible($selectedEntities);
 
             // Filter out spices from the same aromatic groups as the selection
             $selectedGroupNames = array_keys($selectedSpicesData);
             $compatibleSpices = array_values(array_filter(
                 $scored,
-                fn (array $s) => !in_array($s['groupName'], $selectedGroupNames, true)
+                fn (array $s) => ! in_array($s['groupName'], $selectedGroupNames, true)
             ));
         }
 
@@ -119,7 +121,7 @@ class SpicyMatch extends AbstractController
         }
 
         return [
-            'selectedSpices'   => $selectedSpicesData,
+            'selectedSpices' => $selectedSpicesData,
             'compatibleSpices' => $compatibleSpices,
         ];
     }
@@ -152,7 +154,7 @@ class SpicyMatch extends AbstractController
 
     public function canAddMoreGroups(): bool
     {
-        return !empty($this->getResults()['compatibleSpices']);
+        return ! empty($this->getResults()['compatibleSpices']);
     }
 
     #[LiveAction]
@@ -190,6 +192,8 @@ class SpicyMatch extends AbstractController
         $entityManager->persist($spicyMatch);
         $entityManager->flush();
 
-        return $this->redirectToRoute('view_spicy_match', ['id' => $spicyMatch->getId()]);
+        return $this->redirectToRoute('view_spicy_match', [
+            'id' => $spicyMatch->getId(),
+        ]);
     }
 }

@@ -4,67 +4,6 @@
     <turbo-frame id="user_frame_id">
         {% include 'components/_user_tabs.html.twig' %}
 
-        {# Avatar selection #}
-        <div class="mt-6">
-            <h2 class="text-xl font-semibold text-stone-800 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-user-circle text-saffron-600 text-base"></i>Avatar
-            </h2>
-
-            <div class="card-warm p-5">
-                {# Avatar actuel #}
-                <div class="flex items-center gap-4 mb-5 pb-5 border-b border-spice-border">
-                    {% include 'components/_avatar.html.twig' with { slug: app.user.avatar, sizeClass: 'w-16 h-16 text-2xl' } %}
-                    <div>
-                        {% set currentAv = avatar_data(app.user.avatar) %}
-                        <div class="font-semibold text-stone-800">{{ currentAv.label }}</div>
-                        <div class="text-xs text-stone-400">Avatar actuel</div>
-                    </div>
-                </div>
-
-                {# Galerie #}
-                <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                    {% for slug, av in avatarCatalog %}
-                        {% set isActive = app.user.avatar == slug %}
-                        {% set isLocked = not av.unlocked %}
-
-                        {% if av.unlocked %}
-                            <form method="POST" action="{{ path('avatar_upload_user') }}" data-turbo="false">
-                                <input type="hidden" name="_token" value="{{ csrf_token('avatar_select') }}">
-                                <input type="hidden" name="avatar_slug" value="{{ slug }}">
-                                <button type="submit"
-                                        title="{{ av.label }}"
-                                        class="w-full flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all
-                                               {% if isActive %}ring-2 ring-saffron-500 bg-saffron-50{% else %}hover:bg-stone-100{% endif %}">
-                                    <div class="w-14 h-14 rounded-full flex items-center justify-center border-2
-                                                {% if isActive %}border-saffron-500{% else %}border-transparent{% endif %}"
-                                         style="background-color: {{ av.bg }}">
-                                        <i class="fa-solid {{ av.icon }} text-xl" style="color: {{ av.text }}"></i>
-                                    </div>
-                                    <span class="text-[11px] text-stone-600 font-medium leading-tight text-center">{{ av.label }}</span>
-                                    {% if isActive %}
-                                        <span class="text-[10px] text-saffron-600 font-semibold">Actif</span>
-                                    {% endif %}
-                                </button>
-                            </form>
-                        {% else %}
-                            {# Verrouillé #}
-                            <div title="{{ av.unlockLabel }}"
-                                 class="group/locked flex flex-col items-center gap-1.5 p-2 rounded-xl opacity-50 hover:opacity-90 cursor-not-allowed select-none transition-all">
-                                <div class="w-14 h-14 group-hover/locked:w-16 group-hover/locked:h-16 rounded-full flex items-center justify-center border-2 border-dashed border-stone-300 bg-stone-100 group-hover/locked:bg-stone-800 group-hover/locked:border-stone-700 relative transition-all duration-200">
-                                    <i class="fa-solid {{ av.icon }} text-xl text-stone-400 group-hover/locked:text-white group-hover/locked:text-2xl transition-all duration-200"></i>
-                                    <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-stone-400 group-hover/locked:bg-stone-700 flex items-center justify-center transition-colors">
-                                        <i class="fa-solid fa-lock text-[9px] text-white"></i>
-                                    </div>
-                                </div>
-                                <span class="text-[11px] text-stone-400 group-hover/locked:text-stone-700 font-medium leading-tight text-center transition-colors">{{ av.label }}</span>
-                                <span class="text-[10px] text-stone-400 group-hover/locked:text-stone-600 leading-tight text-center transition-colors">{{ av.unlockLabel }}</span>
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-
         {# Mail #}
         <div class="mt-6">
             <h2 class="text-xl font-semibold text-stone-800 mb-4 flex items-center gap-2">
@@ -84,5 +23,41 @@
                 </div>
             </turbo-frame>
         </div>
+
+        {# Gamification opt-out #}
+        {% if app.user.progression %}
+        <div class="mt-6">
+            <h2 class="text-xl font-semibold text-stone-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved text-saffron-600 text-base"></i>Gamification & Vie privée
+            </h2>
+            <div class="card-warm p-5">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="text-sm font-medium text-stone-800">Système de progression (XP, niveaux, succès)</p>
+                        <p class="text-xs text-stone-500 mt-1">
+                            {% if app.user.progression.gamificationEnabled %}
+                                Activé — tes actions donnent de l'XP et débloquent des succès.
+                            {% else %}
+                                Désactivé — aucune donnée de progression n'est collectée.
+                            {% endif %}
+                        </p>
+                    </div>
+                    <form action="{{ path('toggle_gamification_user') }}" method="POST" class="shrink-0">
+                        <input type="hidden" name="_token" value="{{ csrf_token('toggle_gamification') }}">
+                        <button type="submit"
+                                class="text-sm px-4 py-1.5 rounded-full border transition-colors
+                                       {% if app.user.progression.gamificationEnabled %}
+                                           border-stone-300 text-stone-600 hover:bg-stone-50
+                                       {% else %}
+                                           border-saffron-400 text-saffron-700 hover:bg-saffron-50
+                                       {% endif %}">
+                            {{ app.user.progression.gamificationEnabled ? 'Désactiver' : 'Activer' }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
     </turbo-frame>
 {% endblock %}

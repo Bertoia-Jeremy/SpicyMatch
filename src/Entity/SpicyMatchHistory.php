@@ -38,7 +38,9 @@ class SpicyMatchHistory
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $title = null;
 
-    #[ORM\Column(options: ['default' => false])]
+    #[ORM\Column(options: [
+        'default' => false,
+    ])]
     private bool $favorite = false;
 
     #[ORM\Column]
@@ -93,7 +95,7 @@ class SpicyMatchHistory
 
     public function addPreparationTip(PreparationTips $tip): static
     {
-        if (!$this->preparationTips->contains($tip)) {
+        if (! $this->preparationTips->contains($tip)) {
             $this->preparationTips->add($tip);
         }
 
@@ -117,7 +119,7 @@ class SpicyMatchHistory
 
     public function addCookingTip(CookingTips $tip): static
     {
-        if (!$this->cookingTips->contains($tip)) {
+        if (! $this->cookingTips->contains($tip)) {
             $this->cookingTips->add($tip);
         }
 

@@ -29,21 +29,21 @@ class UsersFixtures extends Fixture
         $usersData = [
             'admin' => [
                 'username' => 'admin',
-                'mail'     => 'admin@spicymatch.local',
+                'mail' => 'admin@spicymatch.local',
                 'password' => 'Admin1234!',
-                'roles'    => ['ROLE_ADMIN'],
+                'roles' => ['ROLE_ADMIN'],
             ],
             'alice' => [
                 'username' => 'alice',
-                'mail'     => 'alice@spicymatch.local',
+                'mail' => 'alice@spicymatch.local',
                 'password' => 'Alice1234!',
-                'roles'    => [],
+                'roles' => [],
             ],
             'bob' => [
                 'username' => 'bob',
-                'mail'     => 'bob@spicymatch.local',
+                'mail' => 'bob@spicymatch.local',
                 'password' => 'Bob1234!',
-                'roles'    => [],
+                'roles' => [],
             ],
         ];
 
@@ -54,9 +54,7 @@ class UsersFixtures extends Fixture
                 ->setRoles($data['roles'])
                 ->setCreatedAt($now)
                 ->setUpdatedAt($now)
-                ->setPassword(
-                    $this->passwordHasher->hashPassword($user, $data['password'])
-                );
+                ->setPassword($this->passwordHasher->hashPassword($user, $data['password']));
 
             $this->addReference('user_' . $key, $user);
             $manager->persist($user);

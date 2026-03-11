@@ -27,7 +27,9 @@ class SpicyMatchResult
     #[ORM\JoinColumn(nullable: false)]
     private ?Spices $spice = null;
 
-    /** Normalized score 0–100 */
+    /**
+     * Normalized score 0–100.
+     */
     #[ORM\Column]
     private int $score = 0;
 

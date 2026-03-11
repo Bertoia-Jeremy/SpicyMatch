@@ -42,7 +42,7 @@ class SpicyMatchHistoryController extends AbstractController
 
         return $this->render('spicy_match_history/index.html.twig', [
             'spicymatch_histories' => $this->historyRepository->findByUser($user),
-            'favoriteCount'        => $this->historyRepository->countFavoritesByUser($user),
+            'favoriteCount' => $this->historyRepository->countFavoritesByUser($user),
         ]);
     }
 
@@ -67,10 +67,18 @@ class SpicyMatchHistoryController extends AbstractController
         }
 
         if ($spicyMatchHistory->getPreparationTips()->isEmpty()) {
-            return $this->redirectToRoute('view_spicy_match', ['id' => $spicyMatchHistory->getSpicyMatch()->getId()]);
+            return $this->redirectToRoute('view_spicy_match', [
+                'id' => $spicyMatchHistory->getSpicyMatch()->getId(),
+            ]);
         }
 
-        $cookingsByStep = [0 => [], 1 => [], 2 => [], 3 => [], 4 => []];
+        $cookingsByStep = [
+            0 => [],
+            1 => [],
+            2 => [],
+            3 => [],
+            4 => [],
+        ];
         foreach ($spicyMatchHistory->getCookingTips() as $cooking) {
             $step = $cooking->getStep() ?? 0;
             $cookingsByStep[$step][] = $cooking;
@@ -79,7 +87,8 @@ class SpicyMatchHistoryController extends AbstractController
         // Calcul des composés aromatiques partagés entre toutes les épices du mélange
         $sharedCompounds = null;
         foreach ($spicyMatchHistory->getSpicyMatch()->getSpices() as $spice) {
-            $compounds = $spice->getAromaticsCompounds()->toArray();
+            $compounds = $spice->getAromaticsCompounds()
+                ->toArray();
             if ($sharedCompounds === null) {
                 $sharedCompounds = $compounds;
             } else {
@@ -92,10 +101,10 @@ class SpicyMatchHistoryController extends AbstractController
         }
 
         return $this->render('spicy_match_history/view.html.twig', [
-            'preparations'    => $spicyMatchHistory->getPreparationTips(),
-            'cookingsByStep'  => $cookingsByStep,
+            'preparations' => $spicyMatchHistory->getPreparationTips(),
+            'cookingsByStep' => $cookingsByStep,
             'sharedCompounds' => array_values($sharedCompounds ?? []),
-            'spicyMatch'      => $spicyMatchHistory->getSpicyMatch(),
+            'spicyMatch' => $spicyMatchHistory->getSpicyMatch(),
         ]);
     }
 
@@ -114,12 +123,15 @@ class SpicyMatchHistoryController extends AbstractController
         $spiceId = (int) $request->query->get('spiceId');
 
         // Verify the requested spice belongs to this match
-        $matchSpiceIds = $spicyMatchHistory->getSpicyMatch()->getSpices()
+        $matchSpiceIds = $spicyMatchHistory->getSpicyMatch()
+            ->getSpices()
             ->map(fn (Spices $s) => $s->getId())
             ->toArray();
 
-        if (!in_array($spiceId, $matchSpiceIds, true)) {
-            return $this->json($this->renderView('Exception/Error.html.twig', ['codeError' => '105']));
+        if (! in_array($spiceId, $matchSpiceIds, true)) {
+            return $this->json($this->renderView('Exception/Error.html.twig', [
+                'codeError' => '105',
+            ]));
         }
 
         $cookingTipId = (int) $request->query->get('cookingId');
@@ -133,7 +145,9 @@ class SpicyMatchHistoryController extends AbstractController
             return $this->handlePreparationTip($spicyMatchHistory, $spiceId, $preparationTipId, $entityManager);
         }
 
-        return $this->json($this->renderView('Exception/Error.html.twig', ['codeError' => '173']));
+        return $this->json($this->renderView('Exception/Error.html.twig', [
+            'codeError' => '173',
+        ]));
     }
 
     #[Route('/{id}/rename', name: 'rename_spicy_match_history', methods: ['POST'])]
@@ -154,7 +168,9 @@ class SpicyMatchHistoryController extends AbstractController
         $spicyMatchHistory->setUpdatedAt(new \DateTimeImmutable());
         $entityManager->flush();
 
-        return $this->json(['title' => $spicyMatchHistory->getTitle()]);
+        return $this->json([
+            'title' => $spicyMatchHistory->getTitle(),
+        ]);
     }
 
     #[Route('/{id}/favorite/toggle', name: 'toggle_favorite_spicy_match_history', methods: ['POST'])]
@@ -168,7 +184,7 @@ class SpicyMatchHistoryController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
-        $spicyMatchHistory->setFavorite(!$spicyMatchHistory->isFavorite());
+        $spicyMatchHistory->setFavorite(! $spicyMatchHistory->isFavorite());
         $spicyMatchHistory->setUpdatedAt(new \DateTimeImmutable());
         $entityManager->flush();
 
@@ -177,7 +193,9 @@ class SpicyMatchHistoryController extends AbstractController
             $this->bus->dispatch(new FavoriteToggledEvent($currentUser->getId()));
         }
 
-        return $this->json(['favorite' => $spicyMatchHistory->isFavorite()]);
+        return $this->json([
+            'favorite' => $spicyMatchHistory->isFavorite(),
+        ]);
     }
 
     private function handleCookingTip(
@@ -199,15 +217,19 @@ class SpicyMatchHistoryController extends AbstractController
         if ($existing?->getId() === $cookingTipId) {
             // Toggle OFF: remove and return all tips for this spice
             $history->removeCookingTip($existing);
-            $cookings = $this->cookingTipsRepository->findBy(['spice' => $spiceId]);
+            $cookings = $this->cookingTipsRepository->findBy([
+                'spice' => $spiceId,
+            ]);
         } else {
             // Toggle ON: replace existing (if any) with the new tip
             if ($existing) {
                 $history->removeCookingTip($existing);
             }
             $cookingTip = $this->cookingTipsRepository->find($cookingTipId);
-            if (!$cookingTip instanceof CookingTips || $cookingTip->getSpice()?->getId() !== $spiceId) {
-                return $this->json($this->renderView('Exception/Error.html.twig', ['codeError' => '105']));
+            if (! $cookingTip instanceof CookingTips || $cookingTip->getSpice()?->getId() !== $spiceId) {
+                return $this->json($this->renderView('Exception/Error.html.twig', [
+                    'codeError' => '105',
+                ]));
             }
             $history->addCookingTip($cookingTip);
             $cookings = [$cookingTip];
@@ -218,7 +240,9 @@ class SpicyMatchHistoryController extends AbstractController
 
         $html = '';
         foreach ($cookings as $cooking) {
-            $html .= $this->renderView('components/_card_spicy_tips.html.twig', ['cookingTip' => $cooking]);
+            $html .= $this->renderView('components/_card_spicy_tips.html.twig', [
+                'cookingTip' => $cooking,
+            ]);
         }
 
         return $this->json($html);
@@ -243,15 +267,19 @@ class SpicyMatchHistoryController extends AbstractController
         if ($existing?->getId() === $preparationTipId) {
             // Toggle OFF: remove and return all tips for this spice
             $history->removePreparationTip($existing);
-            $preparations = $this->preparationTipsRepository->findBy(['spice' => $spiceId]);
+            $preparations = $this->preparationTipsRepository->findBy([
+                'spice' => $spiceId,
+            ]);
         } else {
             // Toggle ON: replace existing (if any) with the new tip
             if ($existing) {
                 $history->removePreparationTip($existing);
             }
             $preparationTip = $this->preparationTipsRepository->find($preparationTipId);
-            if (!$preparationTip instanceof PreparationTips || $preparationTip->getSpice()?->getId() !== $spiceId) {
-                return $this->json($this->renderView('Exception/Error.html.twig', ['codeError' => '146']));
+            if (! $preparationTip instanceof PreparationTips || $preparationTip->getSpice()?->getId() !== $spiceId) {
+                return $this->json($this->renderView('Exception/Error.html.twig', [
+                    'codeError' => '146',
+                ]));
             }
             $history->addPreparationTip($preparationTip);
             $preparations = [$preparationTip];
@@ -262,7 +290,9 @@ class SpicyMatchHistoryController extends AbstractController
 
         $html = '';
         foreach ($preparations as $preparation) {
-            $html .= $this->renderView('components/_card_spicy_tips.html.twig', ['preparationTip' => $preparation]);
+            $html .= $this->renderView('components/_card_spicy_tips.html.twig', [
+                'preparationTip' => $preparation,
+            ]);
         }
 
         return $this->json($html);

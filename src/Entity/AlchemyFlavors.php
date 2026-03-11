@@ -42,10 +42,7 @@ class AlchemyFlavors
     /**
      * @var Collection<int, AromaticCompound>
      */
-    #[ORM\ManyToMany(
-        targetEntity: AromaticCompound::class,
-        mappedBy: 'alchemyFlavors'
-    )]
+    #[ORM\ManyToMany(targetEntity: AromaticCompound::class, mappedBy: 'alchemyFlavors')]
     private Collection $aromaticsCompounds;
 
     public function __construct()

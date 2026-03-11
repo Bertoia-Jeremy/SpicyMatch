@@ -8,24 +8,35 @@
         <div class="p-4">
             {% if progression %}
                 {% set lvl = progression.level %}
-                {% set xpMin = (lvl - 1) * (lvl - 1) * 100 %}
-                {% set xpMax = lvl * lvl * 100 %}
+                {% set xpMin = (lvl - 1) * (lvl - 1) * 10 %}
+                {% set xpMax = lvl * lvl * 10 %}
                 {% set range = xpMax - xpMin %}
                 {% set pct = range > 0 ? ((progression.xp - xpMin) / range * 100)|round(1) : 100 %}
 
                 <div class="mb-6 p-4 bg-linear-to-r from-turmeric-50 to-saffron-50 border border-saffron-200 rounded-xl">
-                    <div class="flex items-center gap-2 mb-1">
-                        <i class="fa-solid fa-star text-turmeric-500 text-lg"></i>
-                        <span class="text-2xl font-bold text-saffron-700">Niveau {{ progression.level }}</span>
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-star text-turmeric-500 text-lg"></i>
+                            <span class="text-2xl font-bold text-saffron-700">Niveau {{ progression.level }}</span>
+                            {% if lvl >= 50 %}<span class="text-xs font-medium text-turmeric-600 bg-turmeric-100 px-2 py-0.5 rounded-full">MAX</span>{% endif %}
+                        </div>
+                        {% if progression.equippedBadge %}
+                            <div class="flex items-center gap-1.5 text-xs text-stone-500">
+                                <i class="{{ progression.equippedBadge.achievement.icon }} text-saffron-500"></i>
+                                <span class="font-medium text-stone-700">{{ progression.equippedBadge.achievement.name }}</span>
+                            </div>
+                        {% endif %}
                     </div>
-                    <div class="text-sm text-stone-500 mb-2">{{ progression.xp }} XP — encore {{ progression.xpToNextLevel }} XP pour le niveau suivant</div>
+                    <div class="text-sm text-stone-500 mb-2">{{ progression.xp }} XP
+                        {% if lvl < 50 %}— encore {{ progression.xpToNextLevel }} XP pour le niveau suivant{% endif %}
+                    </div>
                     <div class="w-full bg-saffron-100 rounded-full h-2.5 overflow-hidden">
-                        <div class="h-2.5 rounded-full bg-linear-to-r from-turmeric-400 to-saffron-600 transition-all" style="width: {{ pct }}%"></div>
+                        <div class="h-2.5 rounded-full bg-linear-to-r from-turmeric-400 to-saffron-600 transition-all" style="width: {{ lvl >= 50 ? 100 : pct }}%"></div>
                     </div>
                     <div class="flex justify-between text-[10px] text-stone-400 mt-1">
                         <span>Niv. {{ lvl }}</span>
-                        <span>{{ pct }}%</span>
-                        <span>Niv. {{ lvl + 1 }}</span>
+                        <span>{{ lvl >= 50 ? 'MAX' : (pct ~ '%') }}</span>
+                        {% if lvl < 50 %}<span>Niv. {{ lvl + 1 }}</span>{% endif %}
                     </div>
                 </div>
 

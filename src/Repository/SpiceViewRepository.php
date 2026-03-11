@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
-use App\Entity\SpiceView;
 use App\Entity\Spices;
+use App\Entity\SpiceView;
 use App\Entity\Users;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -20,23 +20,31 @@ class SpiceViewRepository extends ServiceEntityRepository
         parent::__construct($registry, SpiceView::class);
     }
 
-    public function recordView(Users $user, Spices $spice): void
+    /**
+     * Records a spice view for today.
+     * Returns true if this is a new view (not seen today), false if already recorded.
+     */
+    public function recordView(Users $user, Spices $spice): bool
     {
         $today = new \DateTimeImmutable('today');
 
         $existing = $this->findOneBy([
-            'user'      => $user,
-            'spice'     => $spice,
+            'user' => $user,
+            'spice' => $spice,
             'viewedDay' => $today,
         ]);
 
         if ($existing !== null) {
-            return;
+            return false;
         }
 
         $view = new SpiceView($user, $spice);
-        $this->getEntityManager()->persist($view);
-        $this->getEntityManager()->flush();
+        $this->getEntityManager()
+            ->persist($view);
+        $this->getEntityManager()
+            ->flush();
+
+        return true;
     }
 
     public function countDistinctSpicesByUser(Users $user): int

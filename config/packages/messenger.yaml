@@ -20,6 +20,9 @@ framework:
             Symfony\Component\Notifier\Message\ChatMessage: async
             Symfony\Component\Notifier\Message\SmsMessage: async
             App\Message\MatchSavedEvent: async
+            App\Message\FavoriteToggledEvent: async
+            App\Message\SpiceReadEvent: async
+            App\Message\EasterEggFoundEvent: async
 
 # when@test:
 #    framework:

@@ -23,3 +23,12 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    # Gamification XP strategies — tagged for injection into GamificationEngine
+    App\Gamification\Strategy\:
+        resource: '../src/Gamification/Strategy/'
+        tags: ['gamification.xp_strategy']
+
+    App\Gamification\GamificationEngine:
+        arguments:
+            $strategies: !tagged_iterator gamification.xp_strategy

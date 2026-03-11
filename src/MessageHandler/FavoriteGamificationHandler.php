@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\MessageHandler;
 
 use App\Entity\UserProgression;
-use App\Enum\AchievementTrigger;
+use App\Gamification\GamificationEngine;
 use App\Message\FavoriteToggledEvent;
-use App\Repository\AchievementRepository;
 use App\Repository\SpicyMatchHistoryRepository;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,7 +18,7 @@ class FavoriteGamificationHandler
     public function __construct(
         private readonly UsersRepository $usersRepository,
         private readonly SpicyMatchHistoryRepository $historyRepository,
-        private readonly AchievementRepository $achievementRepository,
+        private readonly GamificationEngine $engine,
         private readonly EntityManagerInterface $em,
     ) {
     }
@@ -41,16 +40,9 @@ class FavoriteGamificationHandler
 
         $favoriteCount = $this->historyRepository->countFavoritesByUser($user);
 
-        foreach ($this->achievementRepository->findByTrigger(AchievementTrigger::N_FAVORITES) as $achievement) {
-            if ($progression->hasAchievement($achievement)) {
-                continue;
-            }
-
-            if ($favoriteCount >= $achievement->getTriggerValue()) {
-                $progression->unlockAchievement($achievement);
-                $progression->addXp($achievement->getXpReward());
-            }
-        }
+        $this->engine->process($progression, 'favorite_toggled', [
+            'favoriteCount' => $favoriteCount,
+        ]);
 
         $this->em->flush();
     }

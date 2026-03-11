@@ -35,13 +35,14 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         $container = static::getContainer();
 
         /** @var EntityManagerInterface $em */
-        $em = $container->get('doctrine')->getManager();
+        $em = $container->get('doctrine')
+            ->getManager();
         /** @var SpicesRepository $repo */
         $repo = $em->getRepository(Spices::class);
 
-        $this->spicesRepo   = $repo;
+        $this->spicesRepo = $repo;
         $this->scoreService = $container->get(CompatibilityScoreService::class);
-        $this->groupFinder  = $container->get(SpiceGroupFinderService::class);
+        $this->groupFinder = $container->get(SpiceGroupFinderService::class);
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -66,10 +67,7 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         $thym = $this->findSpiceByName('Thym Commun');
         self::assertNotNull($thym);
 
-        $compoundNames = array_map(
-            fn ($c) => $c->getName(),
-            $thym->getAromaticsCompounds()->toArray()
-        );
+        $compoundNames = array_map(fn ($c) => $c->getName(), $thym->getAromaticsCompounds()->toArray());
 
         self::assertContains('Thymol', $compoundNames);
         self::assertContains('Carvacrol', $compoundNames);
@@ -86,7 +84,7 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
      */
     public function testThymAndOriganHaveCompatibleSpices(): void
     {
-        $thym   = $this->findSpiceByName('Thym Commun');
+        $thym = $this->findSpiceByName('Thym Commun');
         $origan = $this->findSpiceByName('Origan Méditerranéen');
 
         self::assertNotNull($thym);
@@ -148,14 +146,14 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
      */
     public function testAnisFamilyCompatibility(): void
     {
-        $fenouil  = $this->findSpiceByName('Fenouil (graines)');
+        $fenouil = $this->findSpiceByName('Fenouil (graines)');
         $badianne = $this->findSpiceByName('Anis Étoilé (Badiane)');
 
         self::assertNotNull($fenouil);
         self::assertNotNull($badianne);
 
         $results = $this->scoreService->findCompatible([$fenouil, $badianne]);
-        $names   = array_column($results, 'name');
+        $names = array_column($results, 'name');
 
         self::assertContains('Anis Vert', $names, 'Anis Vert should be compatible with Fenouil+Badiane');
         self::assertContains('Estragon Français', $names, 'Estragon should be compatible');
@@ -167,14 +165,14 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
      */
     public function testCapsaicineFamilyCompatibility(): void
     {
-        $piment  = $this->findSpiceByName('Piment de Cayenne');
+        $piment = $this->findSpiceByName('Piment de Cayenne');
         $paprika = $this->findSpiceByName('Paprika Doux');
 
         self::assertNotNull($piment);
         self::assertNotNull($paprika);
 
         $results = $this->scoreService->findCompatible([$piment, $paprika]);
-        $names   = array_column($results, 'name');
+        $names = array_column($results, 'name');
 
         self::assertContains('Piment d\'Espelette', $names);
     }
@@ -190,7 +188,7 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         self::assertNotNull($curcuma);
 
         $results = $this->scoreService->findCompatible([$curcuma]);
-        $names   = array_column($results, 'name');
+        $names = array_column($results, 'name');
 
         self::assertContains('Gingembre Séché', $names, 'Gingembre should be compatible with Curcuma');
     }
@@ -257,9 +255,19 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         $results = $this->scoreService->findCompatible([$thym]);
         self::assertNotEmpty($results);
 
-        $required = ['id', 'name', 'file', 'color', 'groupName', 'score', 'mainCompoundsCount', 'secondaryCompoundsCount', 'alchemyFlavorsCount'];
+        $required = [
+            'id',
+            'name',
+            'file',
+            'color',
+            'groupName',
+            'score',
+            'mainCompoundsCount',
+            'secondaryCompoundsCount',
+            'alchemyFlavorsCount',
+        ];
         foreach ($required as $key) {
-            self::assertArrayHasKey($key, $results[0], "Key '$key' missing from output");
+            self::assertArrayHasKey($key, $results[0], "Key '{$key}' missing from output");
         }
         self::assertSame(0, $results[0]['alchemyFlavorsCount']);
     }
@@ -292,7 +300,7 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
 
     public function testFindTopPairsSortedByScoreDescending(): void
     {
-        $pairs  = $this->groupFinder->findTopPairs(20);
+        $pairs = $this->groupFinder->findTopPairs(20);
         $scores = array_column($pairs, 'score');
         $sorted = $scores;
         rsort($sorted);
@@ -400,15 +408,9 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         self::assertNotNull($thym);
 
         // Get compound IDs from thym
-        $compoundIds = array_map(
-            fn ($c) => $c->getId(),
-            $thym->getAromaticsCompounds()->toArray()
-        );
+        $compoundIds = array_map(fn ($c) => $c->getId(), $thym->getAromaticsCompounds()->toArray());
 
-        $candidates = $this->spicesRepo->findCandidatesForScoring(
-            $compoundIds,
-            [$thym->getId()]
-        );
+        $candidates = $this->spicesRepo->findCandidatesForScoring($compoundIds, [$thym->getId()]);
 
         $candidateIds = array_map(fn ($s) => $s->getId(), $candidates);
         self::assertNotContains($thym->getId(), $candidateIds, 'Selected spice must not appear in candidates');
@@ -419,18 +421,17 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         $thym = $this->findSpiceByName('Thym Commun');
         self::assertNotNull($thym);
 
-        $compoundIds = array_map(
-            fn ($c) => $c->getId(),
-            $thym->getAromaticsCompounds()->toArray()
-        );
+        $compoundIds = array_map(fn ($c) => $c->getId(), $thym->getAromaticsCompounds()->toArray());
 
         $candidates = $this->spicesRepo->findCandidatesForScoring($compoundIds, [$thym->getId()]);
 
         self::assertNotEmpty($candidates);
         // Access collections — should not trigger lazy-load exceptions
         foreach ($candidates as $c) {
-            $mainCount = $c->getAromaticsCompounds()->count();
-            $secCount  = $c->getSecondaryAromaticsCompounds()->count();
+            $mainCount = $c->getAromaticsCompounds()
+                ->count();
+            $secCount = $c->getSecondaryAromaticsCompounds()
+                ->count();
             self::assertGreaterThanOrEqual(0, $mainCount + $secCount);
         }
     }
@@ -441,6 +442,8 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
 
     private function findSpiceByName(string $name): ?Spices
     {
-        return $this->spicesRepo->findOneBy(['name' => $name]);
+        return $this->spicesRepo->findOneBy([
+            'name' => $name,
+        ]);
     }
 }

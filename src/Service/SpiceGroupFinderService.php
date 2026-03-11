@@ -32,22 +32,22 @@ class SpiceGroupFinderService
         $rows = $this->spicesRepository->findTopCompatiblePairs($limit);
 
         return array_map(fn (array $row) => [
-            'score'            => (int) $row['score'],
-            'shared_main'      => (int) $row['shared_main'],
+            'score' => (int) $row['score'],
+            'shared_main' => (int) $row['shared_main'],
             'shared_secondary' => (int) $row['shared_secondary'],
-            'spices'           => [
+            'spices' => [
                 [
-                    'id'        => (int) $row['s1_id'],
-                    'name'      => $row['s1_name'],
-                    'file'      => $row['s1_file'] ?? null,
-                    'color'     => $row['s1_color'] ?? null,
+                    'id' => (int) $row['s1_id'],
+                    'name' => $row['s1_name'],
+                    'file' => $row['s1_file'] ?? null,
+                    'color' => $row['s1_color'] ?? null,
                     'groupName' => $row['s1_group'] ?? null,
                 ],
                 [
-                    'id'        => (int) $row['s2_id'],
-                    'name'      => $row['s2_name'],
-                    'file'      => $row['s2_file'] ?? null,
-                    'color'     => $row['s2_color'] ?? null,
+                    'id' => (int) $row['s2_id'],
+                    'name' => $row['s2_name'],
+                    'file' => $row['s2_file'] ?? null,
+                    'color' => $row['s2_color'] ?? null,
                     'groupName' => $row['s2_group'] ?? null,
                 ],
             ],
@@ -64,29 +64,29 @@ class SpiceGroupFinderService
         $rows = $this->spicesRepository->findTopCompatibleTriplets($limit);
 
         return array_map(fn (array $row) => [
-            'score'            => (int) $row['score'],
-            'shared_main'      => (int) $row['shared_main'],
+            'score' => (int) $row['score'],
+            'shared_main' => (int) $row['shared_main'],
             'shared_secondary' => (int) $row['shared_secondary'],
-            'spices'           => [
+            'spices' => [
                 [
-                    'id'        => (int) $row['s1_id'],
-                    'name'      => $row['s1_name'],
-                    'file'      => $row['s1_file'] ?? null,
-                    'color'     => $row['s1_color'] ?? null,
+                    'id' => (int) $row['s1_id'],
+                    'name' => $row['s1_name'],
+                    'file' => $row['s1_file'] ?? null,
+                    'color' => $row['s1_color'] ?? null,
                     'groupName' => $row['s1_group'] ?? null,
                 ],
                 [
-                    'id'        => (int) $row['s2_id'],
-                    'name'      => $row['s2_name'],
-                    'file'      => $row['s2_file'] ?? null,
-                    'color'     => $row['s2_color'] ?? null,
+                    'id' => (int) $row['s2_id'],
+                    'name' => $row['s2_name'],
+                    'file' => $row['s2_file'] ?? null,
+                    'color' => $row['s2_color'] ?? null,
                     'groupName' => $row['s2_group'] ?? null,
                 ],
                 [
-                    'id'        => (int) $row['s3_id'],
-                    'name'      => $row['s3_name'],
-                    'file'      => $row['s3_file'] ?? null,
-                    'color'     => $row['s3_color'] ?? null,
+                    'id' => (int) $row['s3_id'],
+                    'name' => $row['s3_name'],
+                    'file' => $row['s3_file'] ?? null,
+                    'color' => $row['s3_color'] ?? null,
                     'groupName' => $row['s3_group'] ?? null,
                 ],
             ],

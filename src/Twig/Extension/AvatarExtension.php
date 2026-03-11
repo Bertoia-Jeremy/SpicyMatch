@@ -10,8 +10,9 @@ use Twig\TwigFunction;
 
 class AvatarExtension extends AbstractExtension
 {
-    public function __construct(private readonly AvatarCatalogService $avatarCatalog)
-    {
+    public function __construct(
+        private readonly AvatarCatalogService $avatarCatalog,
+    ) {
     }
 
     /**
@@ -19,9 +20,7 @@ class AvatarExtension extends AbstractExtension
      */
     public function getFunctions(): array
     {
-        return [
-            new TwigFunction('avatar_data', $this->getAvatarData(...)),
-        ];
+        return [new TwigFunction('avatar_data', $this->getAvatarData(...))];
     }
 
     /**

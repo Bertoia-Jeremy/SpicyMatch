@@ -12,8 +12,12 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-#[UniqueEntity(fields: ['username'], message: 'Le pseudo existe déjà', errorPath: 'username', ignoreNull: false, repositoryMethod: 'findNonDeletedBy')]
-#[UniqueEntity(fields: ['mail'], message: 'Cet email est déjà utilisé.', errorPath: 'mail', ignoreNull: true, repositoryMethod: 'findNonDeletedBy')]
+#[UniqueEntity(fields: [
+    'username',
+], message: 'Le pseudo existe déjà', errorPath: 'username', ignoreNull: false, repositoryMethod: 'findNonDeletedBy')]
+#[UniqueEntity(fields: [
+    'mail',
+], message: 'Cet email est déjà utilisé.', errorPath: 'mail', ignoreNull: true, repositoryMethod: 'findNonDeletedBy')]
 #[ORM\Entity(repositoryClass: UsersRepository::class)]
 #[ORM\Table(name: 'users')]
 class Users implements UserInterface, PasswordAuthenticatedUserInterface
@@ -211,7 +215,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getMail(): string|null
+    public function getMail(): ?string
     {
         return $this->mail;
     }
@@ -256,9 +260,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeSpicyMatch(SpicyMatch $spicyMatch): static
     {
         // set the owning side to null (unless already changed)
-        if ($this->spicyMatches->removeElement(
-            $spicyMatch
-        ) && $spicyMatch->getUserId() === $this) {
+        if ($this->spicyMatches->removeElement($spicyMatch) && $spicyMatch->getUserId() === $this) {
             $spicyMatch->setUserId(null);
         }
 

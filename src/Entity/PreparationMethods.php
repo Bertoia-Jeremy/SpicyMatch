@@ -34,10 +34,7 @@ class PreparationMethods
     #[ORM\OneToMany(
         mappedBy: 'preparationMethod',
         targetEntity: PreparationTips::class,
-        cascade: [
-            'persist',
-            'remove',
-        ])]
+        cascade: ['persist', 'remove'])]
     private Collection $preparationTips;
 
     #[ORM\Column(type: Types::TEXT)]

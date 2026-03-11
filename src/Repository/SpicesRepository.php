@@ -84,7 +84,16 @@ class SpicesRepository extends ServiceEntityRepository
     public function findAllSpices(): array
     {
         return $this->createQueryBuilder('s')
-            ->select('s.id', 's.name', 's.description', 's.file', 'ag.id AS agId', 'ag.color', 'ag.name AS groupName', 'st.id AS stId')
+            ->select(
+                's.id',
+                's.name',
+                's.description',
+                's.file',
+                'ag.id AS agId',
+                'ag.color',
+                'ag.name AS groupName',
+                'st.id AS stId'
+            )
             ->leftJoin('s.aromaticGroups', 'ag')
             ->leftJoin('s.spicyType', 'st')
             ->orderBy('ag.name')
@@ -125,9 +134,6 @@ class SpicesRepository extends ServiceEntityRepository
      * (main or secondary), excluding already-selected spice IDs.
      * Compounds and AlchemyFlavors are eagerly loaded to avoid N+1 during scoring.
      *
-     * @param int[] $sharedCompoundIds
-     * @param int[] $excludedSpiceIds
-     *
      * @return Spices[]
      */
     /**
@@ -155,7 +161,8 @@ class SpicesRepository extends ServiceEntityRepository
                 ->setParameter('search', $search . '%');
         }
 
-        return $qb->getQuery()->getResult();
+        return $qb->getQuery()
+            ->getResult();
     }
 
     public function findCandidatesForScoring(array $sharedCompoundIds, array $excludedSpiceIds): array
@@ -233,10 +240,13 @@ class SpicesRepository extends ServiceEntityRepository
             LIMIT :limit
         ';
 
-        $stmt = $this->getEntityManager()->getConnection()->prepare($sql);
+        $stmt = $this->getEntityManager()
+            ->getConnection()
+            ->prepare($sql);
         $stmt->bindValue('limit', $limit, ParameterType::INTEGER);
 
-        return $stmt->executeQuery()->fetchAllAssociative();
+        return $stmt->executeQuery()
+            ->fetchAllAssociative();
     }
 
     /**
@@ -289,9 +299,12 @@ class SpicesRepository extends ServiceEntityRepository
             LIMIT :limit
         ';
 
-        $stmt = $this->getEntityManager()->getConnection()->prepare($sql);
+        $stmt = $this->getEntityManager()
+            ->getConnection()
+            ->prepare($sql);
         $stmt->bindValue('limit', $limit, ParameterType::INTEGER);
 
-        return $stmt->executeQuery()->fetchAllAssociative();
+        return $stmt->executeQuery()
+            ->fetchAllAssociative();
     }
 }

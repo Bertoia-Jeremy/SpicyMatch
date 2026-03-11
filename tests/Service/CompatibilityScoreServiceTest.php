@@ -30,18 +30,21 @@ class CompatibilityScoreServiceTest extends TestCase
     private SpicesRepository&MockObject $repository;
     private CompatibilityScoreService $service;
 
-    /** @var array<int, AromaticCompound> */
+    /**
+     * @var array<int, AromaticCompound>
+     */
     private array $compounds = [];
 
     protected function setUp(): void
     {
         $this->repository = $this->createMock(SpicesRepository::class);
-        $this->service    = new CompatibilityScoreService($this->repository);
+        $this->service = new CompatibilityScoreService($this->repository);
 
         // Pre-build 10 distinct compound mocks (id 1–10)
         for ($i = 1; $i <= 10; ++$i) {
             $c = $this->createMock(AromaticCompound::class);
-            $c->method('getId')->willReturn($i);
+            $c->method('getId')
+                ->willReturn($i);
             $this->compounds[$i] = $c;
         }
     }
@@ -244,16 +247,13 @@ class CompatibilityScoreServiceTest extends TestCase
             $this->makeSpice(2, main: [1, 2], secondary: []),
             $this->makeSpice(3, main: [1, 2], secondary: []),
             $this->makeSpice(4, main: [1, 2], secondary: []),
-            $this->makeSpice(5, main: [1],    secondary: []),  // compound 2 absent
+            $this->makeSpice(5, main: [1], secondary: []),  // compound 2 absent
         ];
 
         $this->repository
             ->expects(self::once())
             ->method('findCandidatesForScoring')
-            ->with(
-                self::callback(fn (array $ids) => $ids === [1]),
-                self::anything()
-            )
+            ->with(self::callback(fn (array $ids) => $ids === [1]), self::anything())
             ->willReturn([]);
 
         $this->service->findCompatible($spices);
@@ -353,13 +353,13 @@ class CompatibilityScoreServiceTest extends TestCase
      * → shared = {1, 2}
      * Cumin (main: thymol=1, carvacrol=2, secondary: limonene=3) as candidate
      * candidateMax = 2×3 + 1 = 7, raw = 2×3 = 6
-     * score = round(6/7×100) = 86
+     * score = round(6/7×100) = 86.
      */
     public function testThymOriganFamilyScenario(): void
     {
-        $thym   = $this->makeSpice(1, main: [1, 2], secondary: []);
+        $thym = $this->makeSpice(1, main: [1, 2], secondary: []);
         $origan = $this->makeSpice(2, main: [2, 1], secondary: []);
-        $cumin  = $this->makeSpice(3, main: [1, 2], secondary: [3]);
+        $cumin = $this->makeSpice(3, main: [1, 2], secondary: [3]);
 
         $this->repository
             ->method('findCandidatesForScoring')
@@ -377,13 +377,13 @@ class CompatibilityScoreServiceTest extends TestCase
      * Piment (main: capsaicine=5) + Paprika (main: capsaicine=5, secondary: piperine=6)
      * → shared = {5} (strict: capsaicine in both)
      * Poivre (main: piperine=6, secondary: limonene=7) as candidate
-     * shared compound 5 is NOT in Poivre → score = 0 → excluded
+     * shared compound 5 is NOT in Poivre → score = 0 → excluded.
      */
     public function testCandidateWithNoSharedCompoundExcluded(): void
     {
-        $piment = $this->makeSpice(1, main: [5],    secondary: []);
-        $paprika = $this->makeSpice(2, main: [5],   secondary: [6]);
-        $poivre  = $this->makeSpice(3, main: [6],   secondary: [7]);
+        $piment = $this->makeSpice(1, main: [5], secondary: []);
+        $paprika = $this->makeSpice(2, main: [5], secondary: [6]);
+        $poivre = $this->makeSpice(3, main: [6], secondary: [7]);
 
         $this->repository
             ->method('findCandidatesForScoring')
@@ -398,8 +398,8 @@ class CompatibilityScoreServiceTest extends TestCase
     // ──────────────────────────────────────────────────────────────────────────
 
     /**
-     * @param int[]  $main
-     * @param int[]  $secondary
+     * @param int[] $main
+     * @param int[] $secondary
      */
     private function makeSpice(
         int $id,
@@ -408,17 +408,24 @@ class CompatibilityScoreServiceTest extends TestCase
         bool $withGroup = false,
     ): Spices&MockObject {
         $spice = $this->createMock(Spices::class);
-        $spice->method('getId')->willReturn($id);
-        $spice->method('getName')->willReturn('Spice #' . $id);
-        $spice->method('getFile')->willReturn(null);
+        $spice->method('getId')
+            ->willReturn($id);
+        $spice->method('getName')
+            ->willReturn('Spice #' . $id);
+        $spice->method('getFile')
+            ->willReturn(null);
 
         if ($withGroup) {
             $group = $this->createMock(AromaticGroups::class);
-            $group->method('getColor')->willReturn('#ff0000');
-            $group->method('getName')->willReturn('Test Group');
-            $spice->method('getAromaticGroups')->willReturn($group);
+            $group->method('getColor')
+                ->willReturn('#ff0000');
+            $group->method('getName')
+                ->willReturn('Test Group');
+            $spice->method('getAromaticGroups')
+                ->willReturn($group);
         } else {
-            $spice->method('getAromaticGroups')->willReturn(null);
+            $spice->method('getAromaticGroups')
+                ->willReturn(null);
         }
 
         $mainCollection = new ArrayCollection(
@@ -428,8 +435,10 @@ class CompatibilityScoreServiceTest extends TestCase
             array_map(fn (int $cid) => $this->compounds[$cid], $secondary)
         );
 
-        $spice->method('getAromaticsCompounds')->willReturn($mainCollection);
-        $spice->method('getSecondaryAromaticsCompounds')->willReturn($secCollection);
+        $spice->method('getAromaticsCompounds')
+            ->willReturn($mainCollection);
+        $spice->method('getSecondaryAromaticsCompounds')
+            ->willReturn($secCollection);
 
         return $spice;
     }

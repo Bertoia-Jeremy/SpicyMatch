@@ -10,4 +10,14 @@ enum AchievementRarity: string
     case RARE = 'rare';
     case EPIC = 'epic';
     case LEGENDARY = 'legendary';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::COMMON => 'Graine',
+            self::RARE => 'Infusion',
+            self::EPIC => 'Extraction',
+            self::LEGENDARY => 'Essence',
+        };
+    }
 }

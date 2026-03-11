@@ -48,15 +48,12 @@ class SpicyMatchController extends AbstractController
         $entityManager->flush();
 
         // Dispatch async gamification event
-        $bus->dispatch(new MatchSavedEvent(
-            $spicyMatchHistory->getId(),
-            $currentUser->getId()
-        ));
+        $bus->dispatch(new MatchSavedEvent($spicyMatchHistory->getId(), $currentUser->getId()));
 
         return $this->render('spicy_match/view.html.twig', [
             'spicyMatchHistory' => $spicyMatchHistory,
-            'spicyMatch'        => $spicyMatch,
-            'spices'            => $spicyMatch->getSpices(),
+            'spicyMatch' => $spicyMatch,
+            'spices' => $spicyMatch->getSpices(),
         ]);
     }
 }

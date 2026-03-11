@@ -30,7 +30,9 @@ class Achievement
     #[ORM\Column(type: 'text')]
     private string $description = '';
 
-    /** FontAwesome class or emoji */
+    /**
+     * FontAwesome class or emoji.
+     */
     #[ORM\Column(length: 100)]
     private string $icon = 'fa-star';
 
@@ -45,6 +47,12 @@ class Achievement
 
     #[ORM\Column(enumType: AchievementRarity::class)]
     private AchievementRarity $rarity = AchievementRarity::COMMON;
+
+    /**
+     * Used only for EASTER_EGG_FOUND trigger — identifies the specific secret.
+     */
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $easterEggSlug = null;
 
     public function getId(): ?int
     {
@@ -143,6 +151,18 @@ class Achievement
     public function setRarity(AchievementRarity $rarity): static
     {
         $this->rarity = $rarity;
+
+        return $this;
+    }
+
+    public function getEasterEggSlug(): ?string
+    {
+        return $this->easterEggSlug;
+    }
+
+    public function setEasterEggSlug(?string $easterEggSlug): static
+    {
+        $this->easterEggSlug = $easterEggSlug;
 
         return $this;
     }

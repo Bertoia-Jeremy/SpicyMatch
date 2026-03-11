@@ -31,13 +31,18 @@ class SpicyMatch
     /**
      * @var Collection<int, SpicyMatchResult>
      */
-    #[ORM\OneToMany(mappedBy: 'spicyMatch', targetEntity: SpicyMatchResult::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'spicyMatch', targetEntity: SpicyMatchResult::class, cascade: [
+        'persist',
+        'remove',
+    ], orphanRemoval: true)]
     private Collection $results;
 
     /**
      * @var Collection<int, SpicyMatchHistory>
      */
-    #[ORM\OneToMany(mappedBy: 'spicyMatch', targetEntity: SpicyMatchHistory::class, cascade: ['remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'spicyMatch', targetEntity: SpicyMatchHistory::class, cascade: [
+        'remove',
+    ], orphanRemoval: true)]
     private Collection $spicyMatchHistories;
 
     #[ORM\Column]
@@ -101,7 +106,7 @@ class SpicyMatch
 
     public function addSpice(Spices $spice): static
     {
-        if (!$this->spices->contains($spice)) {
+        if (! $this->spices->contains($spice)) {
             $this->spices->add($spice);
         }
 
@@ -130,7 +135,7 @@ class SpicyMatch
 
     public function addResult(SpicyMatchResult $result): static
     {
-        if (!$this->results->contains($result)) {
+        if (! $this->results->contains($result)) {
             $this->results->add($result);
             $result->setSpicyMatch($this);
         }

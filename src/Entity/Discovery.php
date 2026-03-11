@@ -79,7 +79,7 @@ class Discovery
 
     public function addSpice(Spices $spice): static
     {
-        if (!$this->spices->contains($spice)) {
+        if (! $this->spices->contains($spice)) {
             $this->spices->add($spice);
         }
 

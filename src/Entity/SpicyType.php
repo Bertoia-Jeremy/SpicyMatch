@@ -42,10 +42,7 @@ class SpicyType
     /**
      * @var Collection<int, Spices>
      */
-    #[ORM\OneToMany(
-        targetEntity: Spices::class,
-        mappedBy: 'spicyType'
-    )]
+    #[ORM\OneToMany(targetEntity: Spices::class, mappedBy: 'spicyType')]
     private Collection $spices;
 
     public function __construct()
@@ -163,9 +160,7 @@ class SpicyType
     public function removeSpice(Spices $spice): self
     {
         // set the owning side to null (unless already changed)
-        if ($this->spices->removeElement(
-            $spice
-        ) && $spice->getSpicyType() === $this) {
+        if ($this->spices->removeElement($spice) && $spice->getSpicyType() === $this) {
             $spice->setSpicyType(null);
         }
 

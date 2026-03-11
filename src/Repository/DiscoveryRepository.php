@@ -20,6 +20,8 @@ class DiscoveryRepository extends ServiceEntityRepository
 
     public function findByHash(string $hash): ?Discovery
     {
-        return $this->findOneBy(['combinationHash' => $hash]);
+        return $this->findOneBy([
+            'combinationHash' => $hash,
+        ]);
     }
 }

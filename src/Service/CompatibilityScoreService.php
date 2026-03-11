@@ -50,14 +50,14 @@ class CompatibilityScoreService
             $seen = [];
             foreach ($spice->getAromaticsCompounds() as $compound) {
                 $cid = $compound->getId();
-                if (!isset($seen[$cid])) {
+                if (! isset($seen[$cid])) {
                     $compoundPresence[$cid] = ($compoundPresence[$cid] ?? 0) + 1;
                     $seen[$cid] = true;
                 }
             }
             foreach ($spice->getSecondaryAromaticsCompounds() as $compound) {
                 $cid = $compound->getId();
-                if (!isset($seen[$cid])) {
+                if (! isset($seen[$cid])) {
                     $compoundPresence[$cid] = ($compoundPresence[$cid] ?? 0) + 1;
                     $seen[$cid] = true;
                 }
@@ -65,20 +65,14 @@ class CompatibilityScoreService
         }
 
         // Step 2: Keep only compounds shared by ALL selected spices (strict intersection)
-        $sharedCompoundIds = array_keys(array_filter(
-            $compoundPresence,
-            fn (int $count) => $count >= $n
-        ));
+        $sharedCompoundIds = array_keys(array_filter($compoundPresence, fn (int $count) => $count >= $n));
 
         if (empty($sharedCompoundIds)) {
             return [];
         }
 
         // Step 3: Load candidate spices (have ≥1 shared compound, not in current selection)
-        $candidates = $this->spicesRepository->findCandidatesForScoring(
-            $sharedCompoundIds,
-            $selectedIds
-        );
+        $candidates = $this->spicesRepository->findCandidatesForScoring($sharedCompoundIds, $selectedIds);
 
         if (empty($candidates)) {
             return [];
@@ -121,9 +115,9 @@ class CompatibilityScoreService
             $score = min(100, (int) round($raw / $candidateMax * 100));
 
             $results[] = [
-                'spice'                   => $candidate,
-                'score'                   => $score,
-                'mainCompoundsCount'      => $mainCount,
+                'spice' => $candidate,
+                'score' => $score,
+                'mainCompoundsCount' => $mainCount,
                 'secondaryCompoundsCount' => $secondaryCount,
             ];
         }
@@ -140,17 +134,17 @@ class CompatibilityScoreService
             /** @var Spices $spice */
             $spice = $r['spice'];
             $output[] = [
-                'id'                      => $spice->getId(),
-                'name'                    => $spice->getName(),
-                'file'                    => $spice->getFile(),
-                'agId'                    => $spice->getAromaticGroups()?->getId(),
-                'color'                   => $spice->getAromaticGroups()?->getColor(),
-                'groupName'               => $spice->getAromaticGroups()?->getName(),
-                'stId'                    => $spice->getSpicyType()?->getId(),
-                'score'                   => $r['score'],
-                'mainCompoundsCount'      => $r['mainCompoundsCount'],
+                'id' => $spice->getId(),
+                'name' => $spice->getName(),
+                'file' => $spice->getFile(),
+                'agId' => $spice->getAromaticGroups()?->getId(),
+                'color' => $spice->getAromaticGroups()?->getColor(),
+                'groupName' => $spice->getAromaticGroups()?->getName(),
+                'stId' => $spice->getSpicyType()?->getId(),
+                'score' => $r['score'],
+                'mainCompoundsCount' => $r['mainCompoundsCount'],
                 'secondaryCompoundsCount' => $r['secondaryCompoundsCount'],
-                'alchemyFlavorsCount'     => 0,  // kept for backwards compat, not used in scoring
+                'alchemyFlavorsCount' => 0,  // kept for backwards compat, not used in scoring
             ];
         }
 

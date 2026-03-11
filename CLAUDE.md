@@ -137,7 +137,7 @@ tooling:
   refactoring:
     - Rector (SymfonySetList SYMFONY_72, CODE_QUALITY, CONSTRUCTOR_INJECTION)
   testing:
-    - PHPUnit 9.5 + BrowserKit
+    - PHPUnit 13.0.5 + BrowserKit
     - Doctrine Fixtures (données de test, groupes nommés)
 
 scripts:
@@ -147,6 +147,8 @@ scripts:
     - docker exec -w /var/www/html/spicymatch docker_php-8.4 composer rector-dry     # dry-run Rector
     - docker exec -w /var/www/html/spicymatch docker_php-8.4 composer rector         # appliquer Rector
     - docker exec -w /var/www/html/spicymatch docker_php-8.4 composer phpstan        # analyse statique
+    - docker exec -w /var/www/html/spicymatch docker_php-8.4 php vendor/bin/phpunit --testsuite=Unit        # tests unitaires
+    - docker exec -w /var/www/html/spicymatch docker_php-8.4 php vendor/bin/phpunit --testsuite=Integration # tests d'intégration (DB requise)
   js:
     - yarn dev                # watch Tailwind CLI
     - yarn build              # build Tailwind CLI minifié
@@ -158,6 +160,18 @@ conventions:
   commits: Conventional Commits (feat/fix/chore/refactor + scope optionnel)
   php_style: PSR-12, short array syntax [], attributs PHP 8+ (pas d'annotations Doctrine)
   no_hooks: pas de Husky ni commitlint configuré
+  testing:
+    suites:
+      Unit: tests/Service, tests/Entity, tests/Enum, tests/Gamification
+      Integration: tests/Integration  (nécessite DB + fixtures)
+      Controller: tests/Controller
+    patterns:
+      - Pas de base TestCase custom — extends PHPUnit\Framework\TestCase pour les units
+      - Classes final → impossibles à mocker avec createMock() → utiliser une vraie instance + dépendance mockée
+        ⚠️ Exemple: AchievementChecker est final → injecter AchievementRepository mocké dans un vrai AchievementChecker
+      - PHPUnit 13 gotcha: createMock() sans expects() génère un notice → utiliser createStub() OU ajouter #[AllowMockObjectsWithoutExpectations] sur la classe de test
+      - Reflection pour accéder aux propriétés private dans les tests Entity: new \ReflectionProperty(Cls::class, 'field')->setValue($obj, $val)
+      - willReturnCallback() sur un mock déjà configuré avec willReturn() dans setUp() → le setUp() prend le dessus (PHPUnit 13 first-wins) → ne pas mettre de stubs globaux dans setUp() si le test a besoin d'overrider
 
 architecture:
   pattern: MVC Symfony (Controller > Service > Repository > Entity)
@@ -166,26 +180,48 @@ architecture:
   admin: EasyAdmin (back-office séparé)
   gamification:
     entities:
-      - UserProgression (level, xp, OneToOne Users)
-      - Achievement (slug, name, trigger_type enum, triggerValue, xpReward, rarity enum)
+      - UserProgression (xp, level computed, OneToOne Users, gamificationEnabled, equippedBadge, totalSpicesRead, currentReadingStreak, longestReadingStreak, lastReadDate)
+      - Achievement (slug, name, trigger_type enum, triggerValue, xpReward, rarity enum, easterEggSlug nullable)
       - UserAchievement (joint table UserProgression <-> Achievement, unlockedAt)
+      - PendingGamificationNotification (user, type, payload json, createdAt, deliveredAt nullable) — file Turbo Streams
+      - SpiceView (user, spice, viewedDay — unique par jour)
     enums:
-      - AchievementTrigger (FIRST_MATCH, N_MATCHES, N_SPICES_USED, FIRST_DISCOVERY, N_FAVORITES)
-      - AchievementRarity (COMMON, RARE, EPIC, LEGENDARY)
-    level_formula: "level = floor(sqrt(xp / 100)) + 1"
-    fixtures: AchievementFixtures (11 achievements, --append --group=AchievementFixtures)
-      ⚠️ Les fixtures existent déjà en base → utiliser INSERT IGNORE SQL direct pour ajouter de nouveaux achievements sans purge
-      ⚠️ La colonne DB s'appelle trigger_type (pas trigger — mot réservé MariaDB)
+      - AchievementTrigger: FIRST_MATCH, N_MATCHES, N_SPICES_USED, FIRST_DISCOVERY, N_FAVORITES, SPICE_READ, READING_STREAK, EASTER_EGG_FOUND
+      - AchievementRarity: COMMON/RARE/EPIC/LEGENDARY — méthode label() → Graine/Infusion/Extraction/Essence
+    level_formula: "level = min(50, floor(sqrt(xp / 10)) + 1)  — level 50 = ~24 010 XP"
+    xp_sources: "match_saved +10, spice_read +5 (nouvelle vue seulement), easter_egg +75 (défaut), achievement_reward variable"
+    fixtures:
+      - 21 achievements en DB (11 originaux + 10 v2 via docs/achievements_v2.sql)
+      - ⚠️ Toujours utiliser INSERT IGNORE SQL direct (pas les fixtures Doctrine — elles purgent)
+      - ⚠️ La colonne DB s'appelle trigger_type (pas trigger — mot réservé MariaDB)
+      - ⚠️ Valeurs enum en minuscules en DB (common/rare/epic/legendary, n_matches, etc.)
     services:
-      - CompatibilityScoreService  # scores 0-100 avec mainCompounds, secondaryCompounds, alchemyFlavors
-      - GamificationHandler        # async via Messenger (MatchSavedEvent)
-      - FavoriteGamificationHandler # async via Messenger (FavoriteToggledEvent → N_FAVORITES achievements)
-    avatars:
-      - Système d'avatars prédéfinis (slugs en DB, FontAwesome + couleurs CSS — zéro upload)
-      - AvatarCatalogService: catalog 11 avatars, unlock par level ou achievement slug
-      - AvatarExtension: fonction Twig avatar_data(slug) → retourne {icon, bg, text, label, ...}
-      - Composant: {% include 'components/_avatar.html.twig' with { slug, sizeClass, borderClass } %}
-      - Users::$avatar = slug VARCHAR(100), plus de Vich Uploader pour les avatars
+      - CompatibilityScoreService     # scores 0-100 avec mainCompounds, secondaryCompounds, alchemyFlavors
+      - GamificationEngine            # orchestrateur central — Strategy pattern, guard opt-out, persist notifications
+      - AchievementChecker            # final class — maps eventType → triggers → isMet() — injecter repo, pas mocker
+      - GamificationHandler           # async Messenger (MatchSavedEvent → engine 'match_saved')
+      - FavoriteGamificationHandler   # async Messenger (FavoriteToggledEvent → engine 'favorite_toggled')
+      - SpiceReadGamificationHandler  # async Messenger (SpiceReadEvent → engine 'spice_read')
+      - EasterEggGamificationHandler  # async Messenger (EasterEggFoundEvent → engine 'easter_egg_found')
+    event_subscriber:
+      - GamificationNotificationSubscriber (KernelEvents::RESPONSE priority -10) — injecte Turbo Streams avant </body>
+    xp_strategies:
+      - MatchXpStrategy    (match_saved → +10 fixe)
+      - SpiceReadXpStrategy (spice_read → +5 si context['isNewView'], sinon 0)
+      - EasterEggXpStrategy (easter_egg_found → context['xpAmount'] ?? 75)
+      - Tag services: gamification.xp_strategy — injectés via !tagged_iterator dans GamificationEngine
+    routes_gamification:
+      - POST /secret/{slug}          → easter_egg_trigger (EasterEggController, JSON response)
+      - POST /users/gamification/toggle → toggle_gamification_user (CSRF: toggle_gamification)
+      - POST /users/badge/equip/{id}    → equip_badge_user (CSRF: equip_badge_{id})
+    avatar:
+      - Le badge équipé (UserProgression::$equippedBadge) EST l'avatar : son icône + la couleur de sa rareté
+      - Composant: templates/components/_avatar.html.twig
+        → paramètre `equippedBadge` (UserAchievement|null) prioritaire sur `slug`
+        → couleurs rareté : common=#f5f5f4/#78716c, rare=#dbeafe/#1d4ed8, epic=#f3e8ff/#7e22ce, legendary=#fef9c3/#a16207
+        → fallback slug : avatar_data(slug) via AvatarExtension (dead code — conservé pour la migration)
+      - Sélection avatar supprimée de configuration.html.twig — route avatar_upload_user supprimée
+      - Dead code (à supprimer dans une prochaine passe) : AvatarCatalogService, AvatarExtension, Users::$avatar
 
 js_interop:
   alpine:
@@ -229,7 +265,7 @@ design_system:
     footer:         "templates/components/_footer.html.twig — bg-paprika-900 text-cream 4 colonnes"
     search:         "templates/components/Search.html.twig — bg-white/80 rounded-full border-spice-border"
     hero:           "templates/home/index.html.twig — grid 2 cols lg, fond bg-cream-dark + bg-noise"
-    avatar:         "templates/components/_avatar.html.twig — cercle coloré + icône FA, slug depuis Users::$avatar"
+    avatar:         "templates/components/_avatar.html.twig — badge équipé prioritaire (icône + couleur rareté), fallback slug"
     lab_filters:    "SpicyMatch.html.twig — filtres (groupeAro + type + search) DANS le LiveComponent via data-model"
     catalog_filters: "templates/components/_spices_filters.html.twig — filtres GET → Turbo Frame spices_frame_id (catalogue uniquement)"
     history_index:  "templates/spicy_match_history/index.html.twig — liste avec renommage inline (group + crayon hover) + toggle favori"

@@ -25,7 +25,7 @@ class SpiceGroupFinderServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->repository = $this->createMock(SpicesRepository::class);
-        $this->service    = new SpiceGroupFinderService($this->repository);
+        $this->service = new SpiceGroupFinderService($this->repository);
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -34,7 +34,8 @@ class SpiceGroupFinderServiceTest extends TestCase
 
     public function testFindTopPairsReturnsEmptyArrayWhenNoData(): void
     {
-        $this->repository->method('findTopCompatiblePairs')->willReturn([]);
+        $this->repository->method('findTopCompatiblePairs')
+            ->willReturn([]);
         self::assertSame([], $this->service->findTopPairs());
     }
 
@@ -52,22 +53,23 @@ class SpiceGroupFinderServiceTest extends TestCase
     public function testFindTopPairsOutputFormat(): void
     {
         $row = [
-            's1_id'    => '1',
-            's1_name'  => 'Thym',
-            's1_file'  => null,
+            's1_id' => '1',
+            's1_name' => 'Thym',
+            's1_file' => null,
             's1_color' => '#15803d',
             's1_group' => 'Monoterpènes',
-            's2_id'    => '2',
-            's2_name'  => 'Origan',
-            's2_file'  => null,
+            's2_id' => '2',
+            's2_name' => 'Origan',
+            's2_file' => null,
             's2_color' => '#15803d',
             's2_group' => 'Monoterpènes',
-            'score'          => '6',
-            'shared_main'    => '2',
+            'score' => '6',
+            'shared_main' => '2',
             'shared_secondary' => '0',
         ];
 
-        $this->repository->method('findTopCompatiblePairs')->willReturn([$row]);
+        $this->repository->method('findTopCompatiblePairs')
+            ->willReturn([$row]);
 
         $result = $this->service->findTopPairs(1);
 
@@ -101,22 +103,23 @@ class SpiceGroupFinderServiceTest extends TestCase
     public function testFindTopPairsNullColorAndGroupHandled(): void
     {
         $row = [
-            's1_id'    => '10',
-            's1_name'  => 'Épice sans groupe',
-            's1_file'  => null,
+            's1_id' => '10',
+            's1_name' => 'Épice sans groupe',
+            's1_file' => null,
             's1_color' => null,
             's1_group' => null,
-            's2_id'    => '11',
-            's2_name'  => 'Épice B',
-            's2_file'  => 'image.jpg',
+            's2_id' => '11',
+            's2_name' => 'Épice B',
+            's2_file' => 'image.jpg',
             's2_color' => null,
             's2_group' => null,
-            'score'           => '3',
-            'shared_main'     => '1',
+            'score' => '3',
+            'shared_main' => '1',
             'shared_secondary' => '0',
         ];
 
-        $this->repository->method('findTopCompatiblePairs')->willReturn([$row]);
+        $this->repository->method('findTopCompatiblePairs')
+            ->willReturn([$row]);
 
         $result = $this->service->findTopPairs(1);
 
@@ -131,7 +134,8 @@ class SpiceGroupFinderServiceTest extends TestCase
 
     public function testFindTopTripletsReturnsEmptyArrayWhenNoData(): void
     {
-        $this->repository->method('findTopCompatibleTriplets')->willReturn([]);
+        $this->repository->method('findTopCompatibleTriplets')
+            ->willReturn([]);
         self::assertSame([], $this->service->findTopTriplets());
     }
 
@@ -149,27 +153,28 @@ class SpiceGroupFinderServiceTest extends TestCase
     public function testFindTopTripletsOutputFormat(): void
     {
         $row = [
-            's1_id'    => '1',
-            's1_name'  => 'Thym',
-            's1_file'  => null,
+            's1_id' => '1',
+            's1_name' => 'Thym',
+            's1_file' => null,
             's1_color' => '#15803d',
             's1_group' => 'Monoterpènes',
-            's2_id'    => '2',
-            's2_name'  => 'Origan',
-            's2_file'  => null,
+            's2_id' => '2',
+            's2_name' => 'Origan',
+            's2_file' => null,
             's2_color' => '#15803d',
             's2_group' => 'Monoterpènes',
-            's3_id'    => '3',
-            's3_name'  => 'Cumin',
-            's3_file'  => null,
+            's3_id' => '3',
+            's3_name' => 'Cumin',
+            's3_file' => null,
             's3_color' => '#15803d',
             's3_group' => 'Monoterpènes',
-            'score'           => '6',
-            'shared_main'     => '2',
+            'score' => '6',
+            'shared_main' => '2',
             'shared_secondary' => '0',
         ];
 
-        $this->repository->method('findTopCompatibleTriplets')->willReturn([$row]);
+        $this->repository->method('findTopCompatibleTriplets')
+            ->willReturn([$row]);
 
         $result = $this->service->findTopTriplets(1);
 
@@ -188,13 +193,28 @@ class SpiceGroupFinderServiceTest extends TestCase
     public function testFindTopTripletsOutputContainsAllRequiredSpiceKeys(): void
     {
         $row = [
-            's1_id' => '1', 's1_name' => 'A', 's1_file' => null, 's1_color' => null, 's1_group' => null,
-            's2_id' => '2', 's2_name' => 'B', 's2_file' => null, 's2_color' => null, 's2_group' => null,
-            's3_id' => '3', 's3_name' => 'C', 's3_file' => null, 's3_color' => null, 's3_group' => null,
-            'score' => '9', 'shared_main' => '3', 'shared_secondary' => '0',
+            's1_id' => '1',
+            's1_name' => 'A',
+            's1_file' => null,
+            's1_color' => null,
+            's1_group' => null,
+            's2_id' => '2',
+            's2_name' => 'B',
+            's2_file' => null,
+            's2_color' => null,
+            's2_group' => null,
+            's3_id' => '3',
+            's3_name' => 'C',
+            's3_file' => null,
+            's3_color' => null,
+            's3_group' => null,
+            'score' => '9',
+            'shared_main' => '3',
+            'shared_secondary' => '0',
         ];
 
-        $this->repository->method('findTopCompatibleTriplets')->willReturn([$row]);
+        $this->repository->method('findTopCompatibleTriplets')
+            ->willReturn([$row]);
         $result = $this->service->findTopTriplets(1);
 
         foreach ($result[0]['spices'] as $spice) {

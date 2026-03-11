@@ -45,11 +45,7 @@ class AromaticGroups
     /**
      * @var Collection<int, Spices>
      */
-    #[ORM\OneToMany(
-        targetEntity: Spices::class,
-        mappedBy: 'aromaticGroups',
-        orphanRemoval: true
-    )]
+    #[ORM\OneToMany(targetEntity: Spices::class, mappedBy: 'aromaticGroups', orphanRemoval: true)]
     private Collection $spices;
 
     public function __construct()
@@ -179,9 +175,7 @@ class AromaticGroups
     public function removeSpice(Spices $spice): self
     {
         // set the owning side to null (unless already changed)
-        if ($this->spices->removeElement(
-            $spice
-        ) && $spice->getAromaticGroups() === $this) {
+        if ($this->spices->removeElement($spice) && $spice->getAromaticGroups() === $this) {
             $spice->setAromaticGroups(null);
         }
 

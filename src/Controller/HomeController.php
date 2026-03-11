@@ -22,14 +22,10 @@ class HomeController extends AbstractController
             if ($lastLogin->format('Y-m-d') < $today->format('Y-m-d')) {
                 $this->addFlash('info', 'Bienvenue de retour, ' . $user->getUserIdentifier() . '!');
             }
-        } else if ($user) {
+        } elseif ($user) {
             $this->addFlash('info', 'Bienvenue, ' . $user->getUserIdentifier() . '!');
         }
 
-        return $this->render(
-            'home/index.html.twig',
-            [
-            ]
-        );
+        return $this->render('home/index.html.twig', []);
     }
 }

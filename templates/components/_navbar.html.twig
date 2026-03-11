@@ -103,9 +103,9 @@
                     <div x-data="{ dropdownOpen: false }" class="relative">
                         <button @click="dropdownOpen = !dropdownOpen"
                                 class="flex items-center gap-2 bg-spice-surface border border-spice-border text-stone-700
-                                       hover:border-saffron-600/40 hover:text-saffron-700 rounded-full px-4 py-2
+                                       hover:border-saffron-600/40 hover:text-saffron-700 rounded-full px-3 py-1.5
                                        text-sm font-medium transition-all">
-                            <i class="fa-regular fa-circle-user text-saffron-600"></i>
+                            {% include 'components/_avatar.html.twig' with { slug: app.user.avatar, sizeClass: 'w-7 h-7 text-sm', equippedBadge: app.user.progression ? app.user.progression.equippedBadge : null } %}
                             {{ app.user.username|capitalize }}
                             {% if navLevel %}
                                 <span class="px-1.5 py-0.5 text-xs font-bold bg-turmeric-400 text-stone-900 rounded-full leading-none">
@@ -304,9 +304,7 @@
                 <div class="px-3">
                     {# Identity strip #}
                     <div class="flex items-center gap-3 px-3 py-3 mb-1 bg-spice-surface rounded-xl border border-spice-border">
-                        <div class="w-9 h-9 rounded-full bg-saffron-100 border border-saffron-300/50 flex items-center justify-center shrink-0">
-                            <i class="fa-regular fa-user text-saffron-600 text-sm"></i>
-                        </div>
+                        {% include 'components/_avatar.html.twig' with { slug: app.user.avatar, sizeClass: 'w-9 h-9 text-base shrink-0', equippedBadge: app.user.progression ? app.user.progression.equippedBadge : null } %}
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-semibold text-stone-800 truncate">{{ app.user.username|capitalize }}</p>
                             {% if navLevel %}

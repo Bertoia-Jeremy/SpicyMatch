@@ -19,7 +19,7 @@ class RegistrationController extends AbstractController
 {
     public function __construct(
         private readonly UsersFactory $usersFactory,
-        private readonly UsersRepository $usersRepository
+        private readonly UsersRepository $usersRepository,
     ) {
     }
 
@@ -28,7 +28,7 @@ class RegistrationController extends AbstractController
         Request $request,
         UserPasswordHasherInterface $userPasswordHasher,
         UserAuthenticatorInterface $authenticator,
-        LoginFormAuthenticator $loginFormAuthenticator
+        LoginFormAuthenticator $loginFormAuthenticator,
     ): Response {
         $user = $this->usersFactory->create();
         $form = $this->createForm(RegistrationFormType::class, $user);
@@ -36,22 +36,12 @@ class RegistrationController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $user = $form->getData();
-            $user->setPassword(
-                $userPasswordHasher->hashPassword(
-                    $user,
-                    $form->get('plainPassword')
-                        ->getData()
-                )
-            );
+            $user->setPassword($userPasswordHasher->hashPassword($user, $form->get('plainPassword')->getData()));
             $this->usersRepository->addOrUpdate($user);
 
             $this->addFlash('success', 'Votre compte a été créé avec succès !');
 
-            return $authenticator->authenticateUser(
-                $user,
-                $loginFormAuthenticator,
-                $request
-            );
+            return $authenticator->authenticateUser($user, $loginFormAuthenticator, $request);
         }
 
         return $this->render('registration/register.html.twig', [

@@ -19,7 +19,7 @@ class Search
     public string $query = '';
 
     public function __construct(
-        private SpicesRepository $spicesRepository
+        private SpicesRepository $spicesRepository,
     ) {
     }
 

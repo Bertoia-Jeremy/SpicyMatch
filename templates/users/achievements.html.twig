@@ -58,12 +58,7 @@
                 'epic':      'bg-purple-100 text-purple-700',
                 'legendary': 'bg-turmeric-300/30 text-turmeric-700',
             } %}
-            {% set rarityLabels = {
-                'common':    'Commun',
-                'rare':      'Rare',
-                'epic':      'Épique',
-                'legendary': 'Légendaire',
-            } %}
+{# rarityLabels remplacé par achievement.rarity.label() — voir ci-dessous #}
             {% set iconCircleClasses = {
                 'common':    'bg-stone-200 text-stone-600',
                 'rare':      'bg-blue-100 text-blue-600',
@@ -93,6 +88,17 @@
                         {% elseif trigger == 'n_spices_used' %}
                             {% set progressCurrent = min(progression.uniqueSpicesUsed, achievement.triggerValue) %}
                             {% set progressLabel = progressCurrent ~ ' / ' ~ achievement.triggerValue ~ ' épices max' %}
+                        {% elseif trigger == 'n_favorites' %}
+                            {% set progressCurrent = min(progression.userAchievements|length, achievement.triggerValue) %}
+                            {% set progressLabel = progressCurrent ~ ' / ' ~ achievement.triggerValue ~ ' favoris' %}
+                        {% elseif trigger == 'spice_read' %}
+                            {% set progressCurrent = min(progression.totalSpicesRead, achievement.triggerValue) %}
+                            {% set progressLabel = progressCurrent ~ ' / ' ~ achievement.triggerValue ~ ' fiches lues' %}
+                        {% elseif trigger == 'reading_streak' %}
+                            {% set progressCurrent = min(progression.longestReadingStreak, achievement.triggerValue) %}
+                            {% set progressLabel = progressCurrent ~ ' / ' ~ achievement.triggerValue ~ ' jours' %}
+                        {% elseif trigger == 'easter_egg_found' %}
+                            {% set progressLabel = 'À découvrir...' %}
                         {% endif %}
                     {% endif %}
                     {% set progressPct = progressMax > 0 ? (progressCurrent / progressMax * 100)|round(0) : 0 %}
@@ -128,7 +134,7 @@
                         {# Badges rarity + XP #}
                         <div class="flex items-center justify-center gap-2 flex-wrap">
                             <span class="text-xs px-2 py-0.5 rounded-full font-medium {{ badgeClasses[rarity] ?? 'bg-stone-100 text-stone-600' }}">
-                                {{ rarityLabels[rarity] ?? rarity }}
+                                    {{ achievement.rarity.label() }}
                             </span>
                             <span class="text-xs px-2 py-0.5 rounded-full bg-turmeric-300/20 text-turmeric-700 font-medium">
                                 +{{ achievement.xpReward }} XP
@@ -138,10 +144,24 @@
                         {# Section basse : date ou barre de progression #}
                         <div class="mt-auto pt-1">
                             {% if isUnlocked %}
-                                <p class="text-center text-xs text-stone-400">
+                                <p class="text-center text-xs text-stone-400 mb-2">
                                     <i class="fa-solid fa-calendar-check mr-1"></i>
                                     Débloqué le {{ ua.unlockedAt|date('d/m/Y') }}
                                 </p>
+                                {% set isEquipped = progression.equippedBadge and progression.equippedBadge.id == ua.id %}
+                                {% if isEquipped %}
+                                    <p class="text-center text-xs font-semibold text-saffron-600">
+                                        <i class="fa-solid fa-shield-halved mr-1"></i>Badge équipé
+                                    </p>
+                                {% else %}
+                                    <form action="{{ path('equip_badge_user', {id: ua.id}) }}" method="POST" class="text-center">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('equip_badge_' ~ ua.id) }}">
+                                        <button type="submit"
+                                                class="text-xs px-3 py-1 rounded-full border border-saffron-400 text-saffron-700 hover:bg-saffron-50 transition-colors">
+                                            <i class="fa-solid fa-shield-halved mr-1"></i>Équiper
+                                        </button>
+                                    </form>
+                                {% endif %}
                             {% elseif progressLabel == 'À venir' %}
                                 <p class="text-center text-xs text-stone-400 italic">
                                     <i class="fa-solid fa-hourglass-half mr-1"></i>Fonctionnalité à venir

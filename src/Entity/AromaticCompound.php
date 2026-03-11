@@ -42,28 +42,19 @@ class AromaticCompound
     /**
      * @var Collection<int, Spices>
      */
-    #[ORM\ManyToMany(
-        targetEntity: Spices::class,
-        mappedBy: 'aromaticsCompounds'
-    )]
+    #[ORM\ManyToMany(targetEntity: Spices::class, mappedBy: 'aromaticsCompounds')]
     private Collection $spices;
 
     /**
      * @var Collection<int, AlchemyFlavors>
      */
-    #[ORM\ManyToMany(
-        targetEntity: AlchemyFlavors::class,
-        inversedBy: 'aromaticsCompounds'
-    )]
+    #[ORM\ManyToMany(targetEntity: AlchemyFlavors::class, inversedBy: 'aromaticsCompounds')]
     private Collection $alchemyFlavors;
 
     /**
      * @var Collection<int, Spices>
      */
-    #[ORM\ManyToMany(
-        targetEntity: Spices::class,
-        mappedBy: 'secondary_aromatics_compounds'
-    )]
+    #[ORM\ManyToMany(targetEntity: Spices::class, mappedBy: 'secondary_aromatics_compounds')]
     private Collection $secondary_spices;
 
     public function __construct()

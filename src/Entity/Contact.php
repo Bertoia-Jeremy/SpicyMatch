@@ -28,7 +28,9 @@ class Contact
     #[ORM\Column(name: 'message', type: 'text')]
     private ?string $message = null;
 
-    #[ORM\Column(name: 'is_treated', type: 'boolean', options: ['default' => false])]
+    #[ORM\Column(name: 'is_treated', type: 'boolean', options: [
+        'default' => false,
+    ])]
     private bool $isTreated = false;
 
     #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]

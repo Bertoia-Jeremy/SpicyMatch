@@ -38,7 +38,10 @@ class SearchTest extends KernelTestCase
         $this->assertEmpty($component->get('results'));
 
         // Test case 3: Valid query with results
-        $expectedResults = [['id' => 1, 'name' => 'Cinnamon']];
+        $expectedResults = [[
+            'id' => 1,
+            'name' => 'Cinnamon',
+        ]];
         $mockSpicesRepository->expects($this->once())
             ->method('search')
             ->with('cinn')

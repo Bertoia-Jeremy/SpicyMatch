@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\MessageHandler;
 
 use App\Entity\UserProgression;
-use App\Gamification\GamificationEngine;
 use App\Message\EasterEggFoundEvent;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -16,7 +15,7 @@ class EasterEggGamificationHandler
 {
     public function __construct(
         private readonly UsersRepository $usersRepository,
-        private readonly GamificationEngine $engine,
+        private readonly \App\Gamification\GamificationManagerInterface $manager,
         private readonly EntityManagerInterface $em,
     ) {
     }
@@ -36,7 +35,7 @@ class EasterEggGamificationHandler
             $this->em->persist($progression);
         }
 
-        $this->engine->process($progression, 'easter_egg_found', [
+        $this->manager->process($progression, 'easter_egg_found', [
             'easterEggSlug' => $event->easterEggSlug,
             'xpAmount' => $event->xpAmount,
         ]);

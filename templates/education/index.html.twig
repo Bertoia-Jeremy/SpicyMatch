@@ -1,0 +1,90 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Quiz Éducatif{% endblock %}
+
+{% block body %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <h1 class="text-3xl font-bold text-stone-800 mb-2">Quiz Éducatif</h1>
+  <p class="text-stone-600 mb-8">Teste tes connaissances sur les épices et leurs compatibilités aromatiques.</p>
+
+  {# Flash messages #}
+  {% for label, messages in app.flashes %}
+    {% for message in messages %}
+      <div class="mb-4 px-4 py-3 rounded-lg text-sm
+        {{ label == 'warning' ? 'bg-turmeric-100 text-turmeric-800 border border-turmeric-300' : '' }}
+        {{ label == 'error' ? 'bg-red-100 text-red-800 border border-red-300' : '' }}
+        {{ label == 'success' ? 'bg-green-100 text-green-800 border border-green-300' : '' }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endfor %}
+
+  {# Start a new session #}
+  <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6 mb-8">
+    <h2 class="text-xl font-semibold text-stone-800 mb-4">Nouvelle partie</h2>
+
+    <form method="post" action="{{ path('education_start') }}">
+      <input type="hidden" name="_token" value="{{ csrf_token('education_start') }}">
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        {# Game mode #}
+        <div>
+          <label class="block text-sm font-medium text-stone-700 mb-2">Mode de jeu</label>
+          {% for mode in modes %}
+            <label class="flex items-center gap-2 px-3 py-2 rounded-lg border border-stone-200 cursor-pointer hover:bg-cream mb-2 transition-colors">
+              <input type="radio" name="mode" value="{{ mode.value }}"
+                {{ loop.first ? 'checked' : '' }}
+                class="text-saffron-600 focus:ring-saffron-500">
+              <span class="text-stone-800 font-medium">{{ mode.label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+
+        {# Difficulty #}
+        <div>
+          <label class="block text-sm font-medium text-stone-700 mb-2">Difficulté</label>
+          {% for difficulty in difficulties %}
+            <label class="flex items-center gap-2 px-3 py-2 rounded-lg border border-stone-200 cursor-pointer hover:bg-cream mb-2 transition-colors">
+              <input type="radio" name="difficulty" value="{{ difficulty.value }}"
+                {{ loop.first ? 'checked' : '' }}
+                class="text-saffron-600 focus:ring-saffron-500">
+              <span class="text-stone-800 font-medium">{{ difficulty.label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <button type="submit" class="btn-pill-primary">
+        <i class="fa-solid fa-play mr-2"></i>Commencer
+      </button>
+    </form>
+  </div>
+
+  {# Recent sessions #}
+  {% if recentSessions is not empty %}
+    <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6">
+      <h2 class="text-xl font-semibold text-stone-800 mb-4">Parties récentes</h2>
+      <div class="space-y-3">
+        {% for session in recentSessions %}
+          <a href="{{ path(session.isFinished ? 'education_result' : 'education_play', { id: session.id }) }}"
+             class="flex items-center justify-between px-4 py-3 rounded-lg border border-stone-200 hover:bg-cream transition-colors group">
+            <div class="flex items-center gap-3">
+              <span class="text-sm font-medium text-stone-800">{{ session.gameMode.label }}</span>
+              <span class="tag-secondary text-xs">{{ session.difficulty.label }}</span>
+            </div>
+            <div class="flex items-center gap-4 text-sm text-stone-600">
+              {% if session.isFinished %}
+                <span>{{ session.correctAnswers }}/{{ session.totalQuestions }} correct</span>
+                <span class="font-semibold text-saffron-600">+{{ session.score }} XP</span>
+              {% else %}
+                <span class="text-turmeric-600 font-medium">En cours</span>
+              {% endif %}
+              <span>{{ session.startedAt|date('d/m H:i') }}</span>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

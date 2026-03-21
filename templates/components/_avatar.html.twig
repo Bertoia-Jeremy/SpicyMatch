@@ -5,25 +5,36 @@
     - slug          (string|null)          : slug d'avatar fallback (ex: 'crown') — null → avatar par défaut
     - sizeClass     (string)               : classes Tailwind taille/texte (défaut : 'w-16 h-16 text-2xl')
     - borderClass   (string)               : classes de bordure (défaut : 'border-2 border-saffron-400/30')
+    - level         (int|null)             : niveau à afficher en badge overlay (défaut : null — pas de badge)
   Usage :
-    {% include 'components/_avatar.html.twig' with { equippedBadge: progression.equippedBadge, sizeClass: 'w-24 h-24 text-3xl' } %}
+    {% include 'components/_avatar.html.twig' with { equippedBadge: progression.equippedBadge, sizeClass: 'w-24 h-24 text-3xl', level: progression.level } %}
     {% include 'components/_avatar.html.twig' with { slug: app.user.avatar } %}
 #}
 {% set sizeClass = sizeClass ?? 'w-16 h-16 text-2xl' %}
 {% set borderClass = borderClass ?? 'border-2 border-saffron-400/30' %}
+{% set level = level ?? null %}
 
-{% if equippedBadge is defined and equippedBadge %}
-    {% set rarity = equippedBadge.achievement.rarity.value %}
-    {% set rarityBg   = { 'common': '#f5f5f4', 'rare': '#dbeafe', 'epic': '#f3e8ff', 'legendary': '#fef9c3' } %}
-    {% set rarityText = { 'common': '#78716c', 'rare': '#1d4ed8', 'epic': '#7e22ce', 'legendary': '#a16207' } %}
-    <div class="{{ sizeClass }} {{ borderClass }} rounded-full flex items-center justify-center shrink-0"
-         style="background-color: {{ rarityBg[rarity] ?? '#fff7ed' }}">
-        <i class="{{ equippedBadge.achievement.icon }}" style="color: {{ rarityText[rarity] ?? '#9a3412' }}"></i>
-    </div>
-{% else %}
-    {% set av = avatar_data(slug ?? null) %}
-    <div class="{{ sizeClass }} {{ borderClass }} rounded-full flex items-center justify-center shrink-0"
-         style="background-color: {{ av.bg }}">
-        <i class="fa-solid {{ av.icon }}" style="color: {{ av.text }}"></i>
-    </div>
-{% endif %}
+<div class="relative inline-flex shrink-0">
+    {% if equippedBadge is defined and equippedBadge %}
+        {% set rarity = equippedBadge.achievement.rarity.value %}
+        {% set rarityBg   = { 'common': '#dcfce7', 'rare': '#dbeafe', 'epic': '#f3e8ff', 'legendary': '#fef9c3' } %}
+        {% set rarityText = { 'common': '#16a34a', 'rare': '#1d4ed8', 'epic': '#7e22ce', 'legendary': '#a16207' } %}
+        {% set rarityRing = { 'common': '#22c55e', 'rare': '#3b82f6', 'epic': '#a855f7', 'legendary': '#eab308'  } %}
+        <div class="{{ sizeClass }} rounded-full flex items-center justify-center shrink-0"
+             style="background-color: {{ rarityBg[rarity] ?? '#fff7ed' }}; box-shadow: 0 0 0 2px white, 0 0 0 4px {{ rarityRing[rarity] ?? '#f59e0b' }}">
+            <i class="{{ equippedBadge.achievement.icon }}" style="color: {{ rarityText[rarity] ?? '#9a3412' }}"></i>
+        </div>
+    {% else %}
+        {% set av = avatar_data(slug ?? null) %}
+        <div class="{{ sizeClass }} {{ borderClass }} rounded-full flex items-center justify-center shrink-0"
+             style="background-color: {{ av.bg }}">
+            <i class="fa-solid {{ av.icon }}" style="color: {{ av.text }}"></i>
+        </div>
+    {% endif %}
+
+    {% if level %}
+        <span class="absolute -bottom-1 -right-1 px-1.5 py-0.5 text-[10px] font-bold bg-turmeric-400 text-stone-900 rounded-full leading-none ring-2 ring-white">
+            {{ level }}
+        </span>
+    {% endif %}
+</div>

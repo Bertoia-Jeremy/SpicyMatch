@@ -11,8 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * XP and level tracking per user.
- * Level thresholds: level = min(50, floor(sqrt(xp / 10)) + 1)
- * Level 50 requires ~24 010 XP (~40h of interaction).
+ * Level formula: level = floor((xp / 100)^(1/1.3)), no cap.
  */
 #[ORM\Entity(repositoryClass: UserProgressionRepository::class)]
 class UserProgression
@@ -126,30 +125,80 @@ class UserProgression
     }
 
     /**
-     * Level = min(50, floor(sqrt(xp / 10)) + 1). Level 50 = 24 010 XP.
+     * Level calculation using PHP 8.4 Property Hooks.
+     * Formula: XP = 100 * level^1.3
+     * Inverse: Level = (XP / 100)^(1/1.3)
+     * No cap — levels scale infinitely (level 100 ≈ 100k XP).
      */
-    public function getLevel(): int
-    {
-        return min(50, (int) floor(sqrt($this->xp / 10)) + 1);
+    public int $level {
+        get {
+            if ($this->xp === 0) {
+                return 1;
+            }
+            // level = (xp / 100) ^ (1 / 1.3)
+            $calculated = (int) floor(pow($this->xp / 100, 1 / 1.3));
+
+            return max(1, $calculated);
+        }
     }
 
     /**
-     * XP needed to reach next level (0 if already at max level 50).
+     * XP needed to reach next level.
      */
+    public int $xpToNextLevel {
+        get {
+            $nextLevel = $this->level + 1;
+            // XP required for next level = 100 * nextLevel^1.3
+            $requiredXp = (int) ceil(100 * pow($nextLevel, 1.3));
+
+            return max(0, $requiredXp - $this->xp);
+        }
+    }
+
+    /**
+     * Progress percentage within current level (0.0–100.0).
+     */
+    public float $progressPercent {
+        get {
+            $currentLevel = $this->level;
+            $xpForCurrent = $currentLevel <= 1 ? 0 : (int) ceil(100 * pow($currentLevel, 1.3));
+            $xpForNext = (int) ceil(100 * pow($currentLevel + 1, 1.3));
+            $range = $xpForNext - $xpForCurrent;
+
+            if ($range <= 0) {
+                return 100.0;
+            }
+
+            return round(($this->xp - $xpForCurrent) / $range * 100, 1);
+        }
+    }
+
+    public function getLevel(): int
+    {
+        return $this->level;
+    }
+
     public function getXpToNextLevel(): int
     {
-        $currentLevel = $this->getLevel();
-        if ($currentLevel >= 50) {
-            return 0;
-        }
-        $nextLevel = $currentLevel + 1;
+        return $this->xpToNextLevel;
+    }
 
-        return ($nextLevel * $nextLevel * 10) - $this->xp;
+    public function getProgressPercent(): float
+    {
+        return $this->progressPercent;
     }
 
     public function getTotalMatches(): int
     {
         return $this->totalMatches;
+    }
+
+    public function setTotalMatches(int $count): static
+    {
+        $this->totalMatches = $count;
+        $this->updatedAt = new \DateTimeImmutable();
+
+        return $this;
     }
 
     public function incrementMatches(): static
@@ -176,6 +225,14 @@ class UserProgression
     public function getDiscoveries(): int
     {
         return $this->discoveries;
+    }
+
+    public function setDiscoveries(int $count): static
+    {
+        $this->discoveries = $count;
+        $this->updatedAt = new \DateTimeImmutable();
+
+        return $this;
     }
 
     public function incrementDiscoveries(): static

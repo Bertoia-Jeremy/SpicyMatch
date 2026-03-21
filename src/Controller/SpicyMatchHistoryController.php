@@ -68,7 +68,8 @@ class SpicyMatchHistoryController extends AbstractController
 
         if ($spicyMatchHistory->getPreparationTips()->isEmpty()) {
             return $this->redirectToRoute('view_spicy_match', [
-                'id' => $spicyMatchHistory->getSpicyMatch()->getId(),
+                'id' => $spicyMatchHistory->getSpicyMatch()
+                    ->getId(),
             ]);
         }
 
@@ -163,6 +164,13 @@ class SpicyMatchHistoryController extends AbstractController
         }
 
         $data = json_decode($request->getContent(), true);
+
+        if (! $this->isCsrfTokenValid('history_action_' . $spicyMatchHistory->getId(), $data['_token'] ?? '')) {
+            return $this->json([
+                'error' => 'Invalid CSRF token',
+            ], 403);
+        }
+
         $title = trim((string) ($data['title'] ?? ''));
         $spicyMatchHistory->setTitle($title !== '' ? $title : null);
         $spicyMatchHistory->setUpdatedAt(new \DateTimeImmutable());
@@ -176,12 +184,20 @@ class SpicyMatchHistoryController extends AbstractController
     #[Route('/{id}/favorite/toggle', name: 'toggle_favorite_spicy_match_history', methods: ['POST'])]
     public function toggleFavorite(
         SpicyMatchHistory $spicyMatchHistory,
+        Request $request,
         EntityManagerInterface $entityManager,
     ): JsonResponse {
         /** @var Users $currentUser */
         $currentUser = $this->getUser();
         if ($spicyMatchHistory->getSpicyMatch()->getUser() !== $currentUser) {
             throw $this->createAccessDeniedException();
+        }
+
+        $token = $request->headers->get('X-CSRF-Token', '');
+        if (! $this->isCsrfTokenValid('history_action_' . $spicyMatchHistory->getId(), $token)) {
+            return $this->json([
+                'error' => 'Invalid CSRF token',
+            ], 403);
         }
 
         $spicyMatchHistory->setFavorite(! $spicyMatchHistory->isFavorite());

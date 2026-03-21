@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\MessageHandler;
 
 use App\Entity\UserProgression;
-use App\Gamification\GamificationEngine;
 use App\Message\MatchSavedEvent;
 use App\Repository\SpicyMatchHistoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -16,7 +15,7 @@ class GamificationHandler
 {
     public function __construct(
         private readonly SpicyMatchHistoryRepository $historyRepository,
-        private readonly GamificationEngine $engine,
+        private readonly \App\Gamification\GamificationManagerInterface $manager,
         private readonly EntityManagerInterface $em,
     ) {
     }
@@ -42,15 +41,16 @@ class GamificationHandler
             $this->em->persist($progression);
         }
 
-        $progression->incrementMatches();
+        if ($progression->isGamificationEnabled()) {
+            // Idempotent: count from DB instead of incrementing (safe on Messenger retry)
+            $matchCount = $this->historyRepository->countByUser($user);
+            $progression->setTotalMatches($matchCount);
 
-        $spiceCount = $spicyMatch->getSpices()
-            ->count();
-        if ($spiceCount > $progression->getUniqueSpicesUsed()) {
-            $progression->setUniqueSpicesUsed($spiceCount);
+            $uniqueSpiceCount = $this->historyRepository->countDistinctSpicesByUser($user);
+            $progression->setUniqueSpicesUsed($uniqueSpiceCount);
         }
 
-        $this->engine->process($progression, 'match_saved');
+        $this->manager->process($progression, 'match_saved');
 
         $this->em->flush();
     }

@@ -29,14 +29,19 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
      */
     public function findByUser(Users $user): array
     {
+        return $this->findByUserQuery($user)
+            ->getResult();
+    }
+
+    public function findByUserQuery(Users $user): \Doctrine\ORM\Query
+    {
         return $this->createQueryBuilder('smh')
             ->join('smh.spicyMatch', 'sm')
             ->where('sm.user = :user')
             ->andWhere('smh.deletedAt IS NULL')
             ->setParameter('user', $user)
             ->orderBy('smh.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->getQuery();
     }
 
     /**
@@ -62,6 +67,18 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
             ->join('smh.spicyMatch', 'sm')
             ->where('sm.user = :user')
             ->andWhere('smh.favorite = true')
+            ->andWhere('smh.deletedAt IS NULL')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function countByUser(Users $user): int
+    {
+        return (int) $this->createQueryBuilder('smh')
+            ->select('COUNT(smh.id)')
+            ->join('smh.spicyMatch', 'sm')
+            ->where('sm.user = :user')
             ->andWhere('smh.deletedAt IS NULL')
             ->setParameter('user', $user)
             ->getQuery()

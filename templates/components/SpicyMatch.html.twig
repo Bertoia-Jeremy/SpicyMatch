@@ -7,6 +7,28 @@
     {% set selectedSpices = this.results.selectedSpices %}
     {% set filterCount = (this.filterAgId ? 1 : 0) + (this.filterStId ? 1 : 0) + (this.search ? 1 : 0) %}
 
+    {# ── Toggle Auto / Manuel ── #}
+    <div class="flex items-center justify-end mb-4">
+        <div class="inline-flex rounded-full bg-stone-100 p-0.5 border border-stone-200/60">
+            <label class="cursor-pointer">
+                <input type="radio" name="mode" value="auto" data-model="mode"
+                       {{ this.mode == 'auto' ? 'checked' : '' }} class="sr-only peer">
+                <span class="peer-checked:bg-white peer-checked:text-saffron-700 peer-checked:shadow-sm
+                             px-3 py-1 rounded-full text-xs font-medium text-stone-500 transition-all">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-1 text-[10px]"></i>Auto
+                </span>
+            </label>
+            <label class="cursor-pointer">
+                <input type="radio" name="mode" value="manual" data-model="mode"
+                       {{ this.mode == 'manual' ? 'checked' : '' }} class="sr-only peer">
+                <span class="peer-checked:bg-white peer-checked:text-stone-700 peer-checked:shadow-sm
+                             px-3 py-1 rounded-full text-xs font-medium text-stone-500 transition-all">
+                    <i class="fa-solid fa-hand mr-1 text-[10px]"></i>Manuel
+                </span>
+            </label>
+        </div>
+    </div>
+
     {# ── Barre de filtres + recherche ── #}
     <div class="flex flex-wrap items-end gap-4 sm:gap-6 mb-6">
 

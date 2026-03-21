@@ -90,6 +90,9 @@ class Spices
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $benefits = null;
 
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
+    private ?string $slug = null;
+
     public function __construct()
     {
         $this->aromaticsCompounds = new ArrayCollection();
@@ -369,6 +372,18 @@ class Spices
     public function setBenefits(?string $benefits): static
     {
         $this->benefits = $benefits;
+
+        return $this;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): static
+    {
+        $this->slug = $slug;
 
         return $this;
     }

@@ -43,4 +43,7 @@ return [
     'embla-carousel' => [
         'version' => '8.6.0',
     ],
+    'chart.js' => [
+        'version' => '3.9.1',
+    ],
 ];

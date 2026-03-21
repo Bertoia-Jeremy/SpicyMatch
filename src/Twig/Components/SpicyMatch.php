@@ -37,6 +37,9 @@ class SpicyMatch extends AbstractController
     #[LiveProp(writable: true)]
     public string $filterStId = '';
 
+    #[LiveProp(writable: true)]
+    public string $mode = 'auto';
+
     public function __construct(
         private readonly SpicesRepository $spicesRepository,
         private readonly CompatibilityScoreService $compatibilityScoreService,
@@ -73,18 +76,28 @@ class SpicyMatch extends AbstractController
                 $selectedSpicesData[$spice['groupName']][] = $spice;
             }
 
-            // Load entities for scoring
-            $selectedEntities = $this->spicesRepository->findBy([
-                'id' => $ids,
-            ]);
-            $scored = $this->compatibilityScoreService->findCompatible($selectedEntities);
+            if ($this->mode === 'auto') {
+                // Load entities for scoring
+                $selectedEntities = $this->spicesRepository->findBy([
+                    'id' => $ids,
+                ]);
+                $scored = $this->compatibilityScoreService->findCompatible($selectedEntities);
 
-            // Filter out spices from the same aromatic groups as the selection
-            $selectedGroupNames = array_keys($selectedSpicesData);
-            $compatibleSpices = array_values(array_filter(
-                $scored,
-                fn (array $s) => ! in_array($s['groupName'], $selectedGroupNames, true)
-            ));
+                // Filter out spices from the same aromatic groups as the selection
+                $selectedGroupNames = array_keys($selectedSpicesData);
+                $compatibleSpices = array_values(array_filter(
+                    $scored,
+                    fn (array $s) => ! in_array($s['groupName'], $selectedGroupNames, true)
+                ));
+            } else {
+                // Manual mode: show all spices except already selected, no scoring
+                $selectedGroupNames = array_keys($selectedSpicesData);
+                $compatibleSpices = array_values(array_filter(
+                    $compatibleSpices,
+                    fn (array $s) => ! in_array($s['groupName'], $selectedGroupNames, true)
+                        && ! in_array($s['id'], $ids, true)
+                ));
+            }
         }
 
         if ($this->selectedAromaticGroup !== null) {

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\MessageHandler;
 
 use App\Entity\UserProgression;
-use App\Gamification\GamificationEngine;
 use App\Message\FavoriteToggledEvent;
 use App\Repository\SpicyMatchHistoryRepository;
 use App\Repository\UsersRepository;
@@ -18,7 +17,7 @@ class FavoriteGamificationHandler
     public function __construct(
         private readonly UsersRepository $usersRepository,
         private readonly SpicyMatchHistoryRepository $historyRepository,
-        private readonly GamificationEngine $engine,
+        private readonly \App\Gamification\GamificationManagerInterface $manager,
         private readonly EntityManagerInterface $em,
     ) {
     }
@@ -40,7 +39,7 @@ class FavoriteGamificationHandler
 
         $favoriteCount = $this->historyRepository->countFavoritesByUser($user);
 
-        $this->engine->process($progression, 'favorite_toggled', [
+        $this->manager->process($progression, 'favorite_toggled', [
             'favoriteCount' => $favoriteCount,
         ]);
 

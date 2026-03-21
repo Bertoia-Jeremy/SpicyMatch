@@ -43,19 +43,25 @@
                              async saveTitle() {
                                  this.editing = false;
                                  const t = this.title.trim();
-                                 await fetch('{{ path('rename_spicy_match_history', {id: history.id}) }}', {
-                                     method: 'POST',
-                                     headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                                     body: JSON.stringify({ title: t })
-                                 });
+                                 try {
+                                     const res = await fetch('{{ path('rename_spicy_match_history', {id: history.id}) }}', {
+                                         method: 'POST',
+                                         headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                                         body: JSON.stringify({ title: t, _token: '{{ csrf_token('history_action_' ~ history.id) }}' })
+                                     });
+                                     if (!res.ok) { console.error('Rename failed', res.status); }
+                                 } catch (e) { console.error('Rename error', e); }
                              },
                              async toggleFavorite() {
-                                 const res = await fetch('{{ path('toggle_favorite_spicy_match_history', {id: history.id}) }}', {
-                                     method: 'POST',
-                                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                                 });
-                                 const data = await res.json();
-                                 this.favorite = data.favorite;
+                                 try {
+                                     const res = await fetch('{{ path('toggle_favorite_spicy_match_history', {id: history.id}) }}', {
+                                         method: 'POST',
+                                         headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-Token': '{{ csrf_token('history_action_' ~ history.id) }}' }
+                                     });
+                                     if (!res.ok) { console.error('Toggle failed', res.status); return; }
+                                     const data = await res.json();
+                                     this.favorite = data.favorite;
+                                 } catch (e) { console.error('Toggle error', e); }
                              }
                          }">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

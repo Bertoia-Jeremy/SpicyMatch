@@ -8,6 +8,7 @@ use App\Entity\Achievement;
 use App\Entity\UserProgression;
 use App\Enum\AchievementTrigger;
 use App\Repository\AchievementRepository;
+use App\Repository\AromaticGroupsRepository;
 
 /**
  * Checks which achievements are newly unlocked for a given event.
@@ -16,6 +17,7 @@ final class AchievementChecker
 {
     public function __construct(
         private readonly AchievementRepository $achievementRepository,
+        private readonly AromaticGroupsRepository $aromaticGroupsRepository,
     ) {
     }
 
@@ -57,9 +59,15 @@ final class AchievementChecker
                 AchievementTrigger::N_MATCHES,
                 AchievementTrigger::N_SPICES_USED,
             ],
-            'spice_read' => [AchievementTrigger::SPICE_READ, AchievementTrigger::READING_STREAK],
+            'spice_read' => [
+                AchievementTrigger::SPICE_READ,
+                AchievementTrigger::READING_STREAK,
+                AchievementTrigger::FIRST_DISCOVERY,
+                AchievementTrigger::ALL_TERPENES_VISITED,
+            ],
             'favorite_toggled' => [AchievementTrigger::N_FAVORITES],
             'easter_egg_found' => [AchievementTrigger::EASTER_EGG_FOUND],
+            'game_completed' => [AchievementTrigger::FIRST_GAME, AchievementTrigger::N_GAMES_COMPLETED],
             default => [],
         };
     }
@@ -76,8 +84,27 @@ final class AchievementChecker
             AchievementTrigger::N_FAVORITES => ($context['favoriteCount'] ?? 0) >= $achievement->getTriggerValue(),
             AchievementTrigger::SPICE_READ => $progression->getTotalSpicesRead() >= $achievement->getTriggerValue(),
             AchievementTrigger::READING_STREAK => $progression->getLongestReadingStreak() >= $achievement->getTriggerValue(),
-            AchievementTrigger::FIRST_DISCOVERY => $progression->getDiscoveries() >= 1,
+            AchievementTrigger::FIRST_DISCOVERY => $progression->getDiscoveries() >= $achievement->getTriggerValue(),
             AchievementTrigger::EASTER_EGG_FOUND => ($context['easterEggSlug'] ?? '') === $achievement->getEasterEggSlug(),
+            AchievementTrigger::ALL_TERPENES_VISITED => $this->checkAllTerpenesVisited($progression),
+            AchievementTrigger::FIRST_GAME => ($context['gamesCompleted'] ?? 0) >= 1,
+            AchievementTrigger::N_GAMES_COMPLETED => ($context['gamesCompleted'] ?? 0) >= $achievement->getTriggerValue(),
         };
+    }
+
+    private function checkAllTerpenesVisited(UserProgression $progression): bool
+    {
+        $stats = $progression->getUser()?->getStats();
+        if ($stats === null) {
+            return false;
+        }
+
+        $totalGroups = $this->aromaticGroupsRepository->count([]);
+        if ($totalGroups === 0) {
+            return false;
+        }
+
+        // Using PHP 8.4 Property Hook visitedGroupsCount
+        return $stats->visitedGroupsCount >= $totalGroups;
     }
 }

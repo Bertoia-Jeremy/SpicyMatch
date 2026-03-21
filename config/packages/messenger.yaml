@@ -22,7 +22,8 @@ framework:
             App\Message\MatchSavedEvent: async
             App\Message\FavoriteToggledEvent: async
             App\Message\SpiceReadEvent: async
-            App\Message\EasterEggFoundEvent: async
+            App\Message\GameCompletedEvent: async
+            # App\Message\EasterEggFoundEvent: sync # Default is sync
 
 # when@test:
 #    framework:

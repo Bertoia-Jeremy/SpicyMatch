@@ -14,4 +14,7 @@ enum AchievementTrigger: string
     case SPICE_READ = 'spice_read';
     case READING_STREAK = 'reading_streak';
     case EASTER_EGG_FOUND = 'easter_egg_found';
+    case ALL_TERPENES_VISITED = 'all_terpenes_visited';
+    case FIRST_GAME = 'first_game';
+    case N_GAMES_COMPLETED = 'n_games_completed';
 }

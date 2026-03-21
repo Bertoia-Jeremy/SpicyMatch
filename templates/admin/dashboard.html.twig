@@ -1,10 +1,137 @@
-{% extends'@EasyAdmin/layout.html.twig' %}
+{% extends '@EasyAdmin/layout.html.twig' %}
 
 {% block content %}
+<div class="container-fluid">
+  <h1 class="h3 mb-4">Dashboard SpicyMatch</h1>
 
-    <div class="bg-gray-100 p-8 rounded-lg shadow-md">
-        <h1 class="text-4xl font-bold text-gray-800 mb-4">Administration</h1>
-        <p class="text-lg text-gray-600"></p>
+  {# KPI Cards #}
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h6 class="card-subtitle text-muted">Utilisateurs</h6>
+          <h2 class="card-title mt-2 mb-0">{{ userStats.totalUsers }}</h2>
+          <small class="text-success">+{{ userStats.newUsers }} cette semaine</small>
+        </div>
+      </div>
     </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h6 class="card-subtitle text-muted">Actifs (30j)</h6>
+          <h2 class="card-title mt-2 mb-0">{{ userStats.activeUsers }}</h2>
+          <small class="text-muted">Niveau moyen : {{ userStats.avgLevel }}</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h6 class="card-subtitle text-muted">Mélanges</h6>
+          <h2 class="card-title mt-2 mb-0">{{ matchStats.totalMatches }}</h2>
+          <small class="text-muted">~{{ matchStats.avgSpicesPerMatch }} épices/mélange</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h6 class="card-subtitle text-muted">Quiz joués</h6>
+          <h2 class="card-title mt-2 mb-0">{{ educationStats.totalGames }}</h2>
+          <small class="text-muted">Précision moy. : {{ educationStats.avgAccuracy }}%</small>
+        </div>
+      </div>
+    </div>
+  </div>
 
+  {# Gamification stats #}
+  <div class="row g-3 mb-4">
+    <div class="col-sm-4">
+      <div class="card text-center">
+        <div class="card-body">
+          <h6 class="card-subtitle text-muted">Succès débloqués</h6>
+          <h2 class="card-title mt-2 mb-0">{{ gamificationStats.totalUnlocked }}</h2>
+          <small class="text-muted">Taux : {{ gamificationStats.unlockRate }}%</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-8">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-subtitle text-muted mb-3">Distribution des niveaux</h6>
+          {{ render_chart(levelChart) }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Charts row #}
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-subtitle text-muted mb-3">Épices les plus consultées</h6>
+          {{ render_chart(spiceChart) }}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-subtitle text-muted mb-3">Activité mélanges (30 derniers jours)</h6>
+          {{ render_chart(activityChart) }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Top spices in matches #}
+  {% if spiceStats.topInMatches is not empty %}
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-subtitle text-muted mb-3">Épices les plus utilisées en mélanges</h6>
+          <table class="table table-sm table-striped">
+            <thead>
+              <tr><th>#</th><th>Épice</th><th>Utilisations</th></tr>
+            </thead>
+            <tbody>
+              {% for spice in spiceStats.topInMatches %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ spice.name }}</td>
+                <td>{{ spice.uses }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% if spiceStats.groupPopularity is not empty %}
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-subtitle text-muted mb-3">Groupes aromatiques populaires</h6>
+          <table class="table table-sm table-striped">
+            <thead>
+              <tr><th>Groupe</th><th>Consultations</th></tr>
+            </thead>
+            <tbody>
+              {% for group in spiceStats.groupPopularity %}
+              <tr>
+                <td>{{ group.name }}</td>
+                <td>{{ group.cnt }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
 {% endblock %}

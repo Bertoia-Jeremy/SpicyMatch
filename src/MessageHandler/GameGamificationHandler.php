@@ -1,0 +1,54 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\MessageHandler;
+
+use App\Entity\UserProgression;
+use App\Gamification\GamificationManagerInterface;
+use App\Message\GameCompletedEvent;
+use App\Repository\GameSessionRepository;
+use App\Repository\UsersRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+
+#[AsMessageHandler]
+class GameGamificationHandler
+{
+    public function __construct(
+        private readonly UsersRepository $usersRepository,
+        private readonly GameSessionRepository $sessionRepository,
+        private readonly GamificationManagerInterface $manager,
+        private readonly EntityManagerInterface $em,
+    ) {
+    }
+
+    public function __invoke(GameCompletedEvent $event): void
+    {
+        $user = $this->usersRepository->find($event->userId);
+        if ($user === null) {
+            return;
+        }
+
+        $progression = $user->getProgression();
+        if ($progression === null) {
+            $progression = new UserProgression();
+            $progression->setUser($user);
+            $user->setProgression($progression);
+            $this->em->persist($progression);
+        }
+
+        // Idempotent: count total finished sessions from DB
+        $gamesCompleted = $this->sessionRepository->countFinishedByUser($user);
+
+        $this->manager->process($progression, 'game_completed', [
+            'xpEarned' => $event->xpEarned,
+            'gamesCompleted' => $gamesCompleted,
+            'gameMode' => $event->gameMode,
+            'correctAnswers' => $event->correctAnswers,
+            'totalQuestions' => $event->totalQuestions,
+        ]);
+
+        $this->em->flush();
+    }
+}

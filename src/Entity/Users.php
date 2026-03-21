@@ -66,6 +66,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: UserProgression::class, cascade: ['persist', 'remove'])]
     private ?UserProgression $progression = null;
 
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: UserStat::class, cascade: ['persist', 'remove'])]
+    private ?UserStat $stats = null;
+
     public function __construct()
     {
         $this->spicyMatches = new ArrayCollection();
@@ -243,6 +246,18 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function setProgression(?UserProgression $progression): static
     {
         $this->progression = $progression;
+
+        return $this;
+    }
+
+    public function getStats(): ?UserStat
+    {
+        return $this->stats;
+    }
+
+    public function setStats(?UserStat $stats): static
+    {
+        $this->stats = $stats;
 
         return $this;
     }

@@ -21,8 +21,11 @@ export default class extends Controller
         url.searchParams.set('spiceId', this.spiceIdValue);
         url.searchParams.set('preparationId', this.preparationIdValue);
 
-        const response = await fetch(url, { method: 'GET' });
-        parentElement.innerHTML = await response.json();
+        try {
+            const response = await fetch(url, { method: 'GET' });
+            if (!response.ok) { console.error('Preparation fetch failed', response.status); return; }
+            parentElement.innerHTML = await response.json();
+        } catch (e) { console.error('Preparation fetch error', e); return; }
 
         this.selectedIdValue = isDeselecting ? 0 : clickedId;
 

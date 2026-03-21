@@ -132,6 +132,108 @@ class AchievementFixtures extends Fixture
                 'xpReward' => 200,
                 'rarity' => AchievementRarity::EPIC,
             ],
+
+            // --- EASTER EGGS ---
+            [
+                'slug' => 'egg_grain_de_sel',
+                'name' => 'Grain de Sel',
+                'description' => 'Vous avez trouvé l\'icône cachée du footer !',
+                'icon' => 'fa-solid fa-salt-shaker',
+                'trigger' => AchievementTrigger::EASTER_EGG_FOUND,
+                'triggerValue' => 1,
+                'xpReward' => 50,
+                'rarity' => AchievementRarity::RARE,
+                'easterEggSlug' => 'grain_de_sel',
+            ],
+            [
+                'slug' => 'egg_perdu_dans_le_souk',
+                'name' => 'Perdu dans le Souk',
+                'description' => 'Même perdu, vous avez su garder votre calme.',
+                'icon' => 'fa-solid fa-map-signs',
+                'trigger' => AchievementTrigger::EASTER_EGG_FOUND,
+                'triggerValue' => 1,
+                'xpReward' => 50,
+                'rarity' => AchievementRarity::RARE,
+                'easterEggSlug' => 'perdu_dans_le_souk',
+            ],
+            [
+                'slug' => 'egg_alchimiste_de_l_ombre',
+                'name' => 'Alchimiste de l\'Ombre',
+                'description' => 'Maîtrise totale de la lumière et de l\'obscurité.',
+                'icon' => 'fa-solid fa-moon',
+                'trigger' => AchievementTrigger::EASTER_EGG_FOUND,
+                'triggerValue' => 1,
+                'xpReward' => 50,
+                'rarity' => AchievementRarity::RARE,
+                'easterEggSlug' => 'alchimiste_de_l_ombre',
+            ],
+            [
+                'slug' => 'egg_temps_de_l_infusion',
+                'name' => 'Temps de l\'Infusion',
+                'description' => 'La patience est la clé d\'un bon mélange (4:20).',
+                'icon' => 'fa-solid fa-hourglass-end',
+                'trigger' => AchievementTrigger::EASTER_EGG_FOUND,
+                'triggerValue' => 1,
+                'xpReward' => 100,
+                'rarity' => AchievementRarity::EPIC,
+                'easterEggSlug' => 'temps_de_l_infusion',
+            ],
+            [
+                'slug' => 'egg_equilibre_des_contraires',
+                'name' => 'Équilibre des Contraires',
+                'description' => 'Le feu et la glace réunis dans un prisme.',
+                'icon' => 'fa-solid fa-yin-yang',
+                'trigger' => AchievementTrigger::EASTER_EGG_FOUND,
+                'triggerValue' => 1,
+                'xpReward' => 100,
+                'rarity' => AchievementRarity::EPIC,
+                'easterEggSlug' => 'equilibre_des_contraires',
+            ],
+            [
+                'slug' => 'egg_secret_du_curry',
+                'name' => 'Secret du Curry',
+                'description' => 'La sainte trinité : Curcuma, Cumin, Gingembre.',
+                'icon' => 'fa-solid fa-scroll',
+                'trigger' => AchievementTrigger::EASTER_EGG_FOUND,
+                'triggerValue' => 1,
+                'xpReward' => 150,
+                'rarity' => AchievementRarity::EPIC,
+                'easterEggSlug' => 'secret_du_curry',
+            ],
+            [
+                'slug' => 'egg_le_poids_de_l_or',
+                'name' => 'Le Poids de l\'Or',
+                'description' => 'Vous avez trouvé la valeur du Poivre Noir.',
+                'icon' => 'fa-solid fa-coins',
+                'trigger' => AchievementTrigger::EASTER_EGG_FOUND,
+                'triggerValue' => 1,
+                'xpReward' => 100,
+                'rarity' => AchievementRarity::EPIC,
+                'easterEggSlug' => 'le_poids_de_l_or',
+            ],
+            [
+                'slug' => 'egg_la_recette_perdue',
+                'name' => 'La Recette Perdue',
+                'description' => 'Les 4 mots sacrés ont été réunis.',
+                'icon' => 'fa-solid fa-key',
+                'trigger' => AchievementTrigger::EASTER_EGG_FOUND,
+                'triggerValue' => 1,
+                'xpReward' => 200,
+                'rarity' => AchievementRarity::EPIC,
+                'easterEggSlug' => 'la_recette_perdue',
+            ],
+
+            // --- SPECIAL ---
+            [
+                'slug' => 'prisme_des_terpenes',
+                'name' => 'Prisme des Terpènes',
+                'description' => 'Explorez au moins une épice de chaque grande famille aromatique.',
+                'icon' => 'fa-solid fa-gem',
+                'trigger' => AchievementTrigger::ALL_TERPENES_VISITED,
+                'triggerValue' => 1,
+                'xpReward' => 1000,
+                'rarity' => AchievementRarity::LEGENDARY,
+            ],
         ];
 
         foreach ($achievements as $data) {
@@ -143,7 +245,8 @@ class AchievementFixtures extends Fixture
                 ->setTrigger($data['trigger'])
                 ->setTriggerValue($data['triggerValue'])
                 ->setXpReward($data['xpReward'])
-                ->setRarity($data['rarity']);
+                ->setRarity($data['rarity'])
+                ->setEasterEggSlug($data['easterEggSlug'] ?? null);
 
             $manager->persist($achievement);
             $this->addReference('achievement_' . $data['slug'], $achievement);

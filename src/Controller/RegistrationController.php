@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\UserProgression;
+use App\Entity\UserStat;
 use App\Factory\UsersFactory;
 use App\Form\RegistrationFormType;
 use App\Repository\UsersRepository;
 use App\Security\LoginFormAuthenticator;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,6 +23,7 @@ class RegistrationController extends AbstractController
     public function __construct(
         private readonly UsersFactory $usersFactory,
         private readonly UsersRepository $usersRepository,
+        private readonly EntityManagerInterface $em,
     ) {
     }
 
@@ -38,6 +42,19 @@ class RegistrationController extends AbstractController
             $user = $form->getData();
             $user->setPassword($userPasswordHasher->hashPassword($user, $form->get('plainPassword')->getData()));
             $this->usersRepository->addOrUpdate($user);
+
+            // Init gamification entities
+            $progression = new UserProgression();
+            $progression->setUser($user);
+            $user->setProgression($progression);
+            $this->em->persist($progression);
+
+            $stats = new UserStat();
+            $stats->setUser($user);
+            $user->setStats($stats);
+            $this->em->persist($stats);
+
+            $this->em->flush();
 
             $this->addFlash('success', 'Votre compte a été créé avec succès !');
 

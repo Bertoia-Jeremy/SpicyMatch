@@ -12,6 +12,7 @@ use App\Repository\SpiceViewRepository;
 use App\Repository\SpicyMatchHistoryRepository;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -42,17 +43,20 @@ class UsersController extends AbstractController
     }
 
     #[Route('/history', name: 'history_user', methods: ['GET'])]
-    public function history(): Response
+    public function history(Request $request, PaginatorInterface $paginator): Response
     {
         /** @var Users $user */
         $user = $this->getUser();
 
-        // findByUser handles the join with SpicyMatch to find the user
-        $histories = $this->historyRepository->findByUser($user);
+        $pagination = $paginator->paginate(
+            $this->historyRepository->findByUserQuery($user),
+            $request->query->getInt('page', 1),
+            10,
+        );
 
         return $this->render('users/history.html.twig', [
             'user' => 'history',
-            'latestHistories' => array_slice($histories, 0, 5),
+            'pagination' => $pagination,
         ]);
     }
 
@@ -114,6 +118,7 @@ class UsersController extends AbstractController
 
         return $this->render('users/profile.html.twig', [
             'progression' => $user->getProgression(),
+            'userStats' => $user->getStats(),
             'latestHistories' => array_slice($histories, 0, 3),
             'stats' => $stats,
         ]);

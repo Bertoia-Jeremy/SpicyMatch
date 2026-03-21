@@ -17,10 +17,16 @@ export default class extends Controller
         url.searchParams.set('spiceId', this.spiceIdValue);
         url.searchParams.set('cookingId', this.cookingIdValue);
 
-        const response = await fetch(url, { method: 'GET' });
-        parentElement.innerHTML = await response.json();
+        try {
+            const response = await fetch(url, { method: 'GET' });
+            if (!response.ok) { console.error('Cooking fetch failed', response.status); return; }
+            parentElement.innerHTML = await response.json();
+        } catch (e) { console.error('Cooking fetch error', e); return; }
 
-        // Signal au bloc Alpine parent de se replier
-        this.element.dispatchEvent(new CustomEvent('cooking-confirmed', { bubbles: true }));
+        // Signal au bloc Alpine parent de se replier + mettre à jour le compteur
+        this.element.dispatchEvent(new CustomEvent('cooking-confirmed', {
+            bubbles: true,
+            detail: { spiceId: this.spiceIdValue },
+        }));
     }
 }

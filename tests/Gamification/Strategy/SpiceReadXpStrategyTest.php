@@ -32,13 +32,17 @@ final class SpiceReadXpStrategyTest extends TestCase
     public function testCalculateReturnsFiveXpOnNewView(): void
     {
         $progression = new UserProgression();
-        self::assertSame(5, $this->strategy->calculate($progression, ['isNewView' => true]));
+        self::assertSame(5, $this->strategy->calculate($progression, [
+            'isNewView' => true,
+        ]));
     }
 
     public function testCalculateReturnsZeroXpWhenNotNewView(): void
     {
         $progression = new UserProgression();
-        self::assertSame(0, $this->strategy->calculate($progression, ['isNewView' => false]));
+        self::assertSame(0, $this->strategy->calculate($progression, [
+            'isNewView' => false,
+        ]));
     }
 
     public function testCalculateReturnsZeroXpWhenIsNewViewMissing(): void

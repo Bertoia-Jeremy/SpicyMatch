@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Entity;
 
 use App\Entity\Achievement;
-use App\Entity\UserAchievement;
 use App\Entity\UserProgression;
 use App\Enum\AchievementRarity;
 use App\Enum\AchievementTrigger;
@@ -24,62 +23,66 @@ final class UserProgressionTest extends TestCase
 
     public function testLevelOneAtZeroXp(): void
     {
-        self::assertSame(1, $this->progression->getLevel());
+        self::assertSame(1, $this->progression->level);
     }
 
-    public function testLevelTwoAt10Xp(): void
+    public function testLevelTwoAt247Xp(): void
     {
-        // floor(sqrt(10/10)) + 1 = floor(1) + 1 = 2
-        $this->progression->addXp(10);
-        self::assertSame(2, $this->progression->getLevel());
+        // 100 * 2^1.3 = 246.22 => needs 247 for level 2
+        $this->progression->addXp(247);
+        self::assertSame(2, $this->progression->level);
     }
 
-    public function testLevelThreeAt40Xp(): void
+    public function testLevelThreeAt418Xp(): void
     {
-        // floor(sqrt(40/10)) + 1 = floor(2) + 1 = 3
-        $this->progression->addXp(40);
-        self::assertSame(3, $this->progression->getLevel());
+        // 100 * 3^1.3 = 417.11 => needs 418 for level 3
+        $this->progression->addXp(418);
+        self::assertSame(3, $this->progression->level);
     }
 
-    public function testLevel50At24010Xp(): void
+    public function testLevel50At16200Xp(): void
     {
-        // floor(sqrt(2401)) + 1 = 49 + 1 = 50
-        $this->progression->addXp(24010);
-        self::assertSame(50, $this->progression->getLevel());
+        // floor((16200 / 100) ^ (1/1.3)) = floor(162^0.769) = 50
+        $this->progression->addXp(16200);
+        self::assertSame(50, $this->progression->level);
     }
 
-    public function testLevelCappedAt50WhenXpExceedsThreshold(): void
+    public function testLevelScalesWithoutCap(): void
     {
+        // floor((99999 / 100) ^ (1/1.3)) = 203 — no cap
         $this->progression->addXp(99999);
-        self::assertSame(50, $this->progression->getLevel());
+        self::assertSame(203, $this->progression->level);
     }
 
     // ── XP to next level ─────────────────────────────────────────────────────
 
     public function testXpToNextLevelAtZeroXp(): void
     {
-        // level 1 → 2 : 2² × 10 = 40 XP required
-        self::assertSame(40, $this->progression->getXpToNextLevel());
+        // level 1 → 2 : 100 * 2^1.3 = 246.22 => 247 XP required
+        self::assertSame(247, $this->progression->xpToNextLevel);
     }
 
-    public function testXpToNextLevelAt40Xp(): void
+    public function testXpToNextLevelAt418Xp(): void
     {
-        $this->progression->addXp(40); // level 3
-        // level 3 → 4 : 4² × 10 - 40 = 160 - 40 = 120
-        self::assertSame(120, $this->progression->getXpToNextLevel());
+        $this->progression->addXp(418); // level 3
+        // level 3 → 4 : 100 * 4^1.3 = 606.28 => 607 XP required
+        // 607 - 418 = 189
+        self::assertSame(189, $this->progression->xpToNextLevel);
     }
 
-    public function testXpToNextLevelIsZeroAtMaxLevel(): void
+    public function testXpToNextLevelIsAlwaysPositive(): void
     {
-        $this->progression->addXp(24010); // level 50
-        self::assertSame(0, $this->progression->getXpToNextLevel());
+        // level 58 at 20000 XP → next level 59 requires 20050 XP → 50 remaining
+        $this->progression->addXp(20000);
+        self::assertSame(50, $this->progression->xpToNextLevel);
     }
 
     // ── addXp ─────────────────────────────────────────────────────────────────
 
     public function testAddXpAccumulates(): void
     {
-        $this->progression->addXp(10)->addXp(5);
+        $this->progression->addXp(10)
+            ->addXp(5);
         self::assertSame(15, $this->progression->getXp());
     }
 
@@ -95,12 +98,100 @@ final class UserProgressionTest extends TestCase
         self::assertSame(0, $this->progression->getXp());
     }
 
+    // ── progressPercent ──────────────────────────────────────────────────────
+
+    public function testProgressPercentAtZeroXp(): void
+    {
+        // Level 1, xpForCurrent=0, xpForNext=247
+        // (0 - 0) / 247 * 100 = 0
+        self::assertSame(0.0, $this->progression->progressPercent);
+    }
+
+    public function testProgressPercentMidLevel(): void
+    {
+        $this->progression->addXp(100);
+        // Level 1, range = 247-0 = 247
+        // 100/247*100 = 40.5
+        self::assertSame(40.5, $this->progression->progressPercent);
+    }
+
+    public function testProgressPercentAtExactLevelBoundary(): void
+    {
+        $this->progression->addXp(247);
+        // Level 2, xpForCurrent=247, xpForNext=418
+        // (247-247)/(418-247)*100 = 0.0
+        self::assertSame(0.0, $this->progression->progressPercent);
+    }
+
+    public function testProgressPercentNeverExceedsHundred(): void
+    {
+        // Even with very high XP, progressPercent should stay in 0-100 range
+        $this->progression->addXp(99999);
+        $percent = $this->progression->progressPercent;
+        self::assertGreaterThanOrEqual(0.0, $percent);
+        self::assertLessThanOrEqual(100.0, $percent);
+    }
+
+    // ── updatedAt tracking ─────────────────────────────────────────────────
+
+    public function testAddXpUpdatesTimestamp(): void
+    {
+        $before = $this->progression->getUpdatedAt();
+        usleep(1000); // 1ms
+        $this->progression->addXp(10);
+        self::assertGreaterThanOrEqual($before, $this->progression->getUpdatedAt());
+    }
+
+    public function testSetTotalMatchesUpdatesTimestamp(): void
+    {
+        $before = $this->progression->getUpdatedAt();
+        usleep(1000);
+        $this->progression->setTotalMatches(5);
+        self::assertGreaterThanOrEqual($before, $this->progression->getUpdatedAt());
+    }
+
+    public function testDisableGamificationUpdatesTimestamp(): void
+    {
+        $before = $this->progression->getUpdatedAt();
+        usleep(1000);
+        $this->progression->disableGamification();
+        self::assertGreaterThanOrEqual($before, $this->progression->getUpdatedAt());
+    }
+
+    // ── setters / incrementers ─────────────────────────────────────────────
+
+    public function testSetUniqueSpicesUsed(): void
+    {
+        $this->progression->setUniqueSpicesUsed(42);
+        self::assertSame(42, $this->progression->getUniqueSpicesUsed());
+    }
+
+    public function testSetDiscoveries(): void
+    {
+        $this->progression->setDiscoveries(15);
+        self::assertSame(15, $this->progression->getDiscoveries());
+    }
+
+    public function testIncrementDiscoveries(): void
+    {
+        $this->progression->incrementDiscoveries();
+        $this->progression->incrementDiscoveries();
+        self::assertSame(2, $this->progression->getDiscoveries());
+    }
+
+    public function testIncrementMatches(): void
+    {
+        $this->progression->incrementMatches();
+        self::assertSame(1, $this->progression->getTotalMatches());
+    }
+
     // ── incrementSpicesRead ───────────────────────────────────────────────────
 
     public function testIncrementSpicesRead(): void
     {
         self::assertSame(0, $this->progression->getTotalSpicesRead());
-        $this->progression->incrementSpicesRead()->incrementSpicesRead();
+        $this->progression->incrementSpicesRead()
+            ->incrementSpicesRead();
         self::assertSame(2, $this->progression->getTotalSpicesRead());
     }
 

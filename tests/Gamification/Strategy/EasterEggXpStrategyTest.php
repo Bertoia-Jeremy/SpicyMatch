@@ -32,7 +32,9 @@ final class EasterEggXpStrategyTest extends TestCase
     public function testCalculateReturnsXpAmountFromContext(): void
     {
         $progression = new UserProgression();
-        self::assertSame(100, $this->strategy->calculate($progression, ['xpAmount' => 100]));
+        self::assertSame(100, $this->strategy->calculate($progression, [
+            'xpAmount' => 100,
+        ]));
     }
 
     public function testCalculateReturnsDefaultXpWhenAmountMissing(): void
@@ -44,6 +46,8 @@ final class EasterEggXpStrategyTest extends TestCase
     public function testCalculateReturnsDefaultXpWhenAmountIsNull(): void
     {
         $progression = new UserProgression();
-        self::assertSame(75, $this->strategy->calculate($progression, ['xpAmount' => null]));
+        self::assertSame(75, $this->strategy->calculate($progression, [
+            'xpAmount' => null,
+        ]));
     }
 }

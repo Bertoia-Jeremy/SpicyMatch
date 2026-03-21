@@ -39,6 +39,9 @@ final class MatchXpStrategyTest extends TestCase
     public function testCalculateIgnoresContext(): void
     {
         $progression = new UserProgression();
-        self::assertSame(10, $this->strategy->calculate($progression, ['isNewView' => true, 'xpAmount' => 999]));
+        self::assertSame(10, $this->strategy->calculate($progression, [
+            'isNewView' => true,
+            'xpAmount' => 999,
+        ]));
     }
 }

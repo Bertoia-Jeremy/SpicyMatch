@@ -10,6 +10,7 @@ use App\Enum\AchievementRarity;
 use App\Enum\AchievementTrigger;
 use App\Gamification\AchievementChecker;
 use App\Repository\AchievementRepository;
+use App\Repository\AromaticGroupsRepository;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -18,13 +19,15 @@ use PHPUnit\Framework\TestCase;
 final class AchievementCheckerTest extends TestCase
 {
     private AchievementRepository&MockObject $repo;
+    private AromaticGroupsRepository&MockObject $aromaticGroupsRepo;
     private AchievementChecker $checker;
     private UserProgression $progression;
 
     protected function setUp(): void
     {
         $this->repo = $this->createMock(AchievementRepository::class);
-        $this->checker = new AchievementChecker($this->repo);
+        $this->aromaticGroupsRepo = $this->createMock(AromaticGroupsRepository::class);
+        $this->checker = new AchievementChecker($this->repo, $this->aromaticGroupsRepo);
         $this->progression = new UserProgression();
     }
 
@@ -162,7 +165,9 @@ final class AchievementCheckerTest extends TestCase
         $achievement = $this->makeAchievement(AchievementTrigger::N_FAVORITES, 5);
         $this->stubRepo(AchievementTrigger::N_FAVORITES, [$achievement]);
 
-        $result = $this->checker->check($this->progression, 'favorite_toggled', ['favoriteCount' => 5]);
+        $result = $this->checker->check($this->progression, 'favorite_toggled', [
+            'favoriteCount' => 5,
+        ]);
 
         self::assertCount(1, $result);
     }
@@ -174,7 +179,9 @@ final class AchievementCheckerTest extends TestCase
 
         self::assertSame(
             [],
-            $this->checker->check($this->progression, 'favorite_toggled', ['favoriteCount' => 4])
+            $this->checker->check($this->progression, 'favorite_toggled', [
+                'favoriteCount' => 4,
+            ])
         );
     }
 
@@ -193,7 +200,9 @@ final class AchievementCheckerTest extends TestCase
         $achievement = $this->makeAchievement(AchievementTrigger::EASTER_EGG_FOUND, 0, 'first_egg');
         $this->stubRepo(AchievementTrigger::EASTER_EGG_FOUND, [$achievement]);
 
-        $result = $this->checker->check($this->progression, 'easter_egg_found', ['easterEggSlug' => 'first_egg']);
+        $result = $this->checker->check($this->progression, 'easter_egg_found', [
+            'easterEggSlug' => 'first_egg',
+        ]);
 
         self::assertCount(1, $result);
     }
@@ -205,7 +214,9 @@ final class AchievementCheckerTest extends TestCase
 
         self::assertSame(
             [],
-            $this->checker->check($this->progression, 'easter_egg_found', ['easterEggSlug' => 'wrong_slug'])
+            $this->checker->check($this->progression, 'easter_egg_found', [
+                'easterEggSlug' => 'wrong_slug',
+            ])
         );
     }
 
@@ -215,6 +226,167 @@ final class AchievementCheckerTest extends TestCase
         $this->stubRepo(AchievementTrigger::EASTER_EGG_FOUND, [$achievement]);
 
         self::assertSame([], $this->checker->check($this->progression, 'easter_egg_found', []));
+    }
+
+    // ── FIRST_GAME ──────────────────────────────────────────────────────────
+
+    public function testUnlocksFirstGameWhenGamesCompletedIsOne(): void
+    {
+        $achievement = $this->makeAchievement(AchievementTrigger::FIRST_GAME, 1);
+        $this->stubRepo(AchievementTrigger::FIRST_GAME, [$achievement]);
+
+        $result = $this->checker->check($this->progression, 'game_completed', [
+            'gamesCompleted' => 1,
+        ]);
+
+        self::assertCount(1, $result);
+    }
+
+    // ── N_GAMES_COMPLETED ──────────────────────────────────────────────────
+
+    public function testUnlocksNGamesCompletedWhenThresholdReached(): void
+    {
+        $achievement = $this->makeAchievement(AchievementTrigger::N_GAMES_COMPLETED, 10);
+        $this->stubRepo(AchievementTrigger::N_GAMES_COMPLETED, [$achievement]);
+
+        $result = $this->checker->check($this->progression, 'game_completed', [
+            'gamesCompleted' => 10,
+        ]);
+
+        self::assertCount(1, $result);
+    }
+
+    public function testDoesNotUnlockNGamesCompletedBelowThreshold(): void
+    {
+        $achievement = $this->makeAchievement(AchievementTrigger::N_GAMES_COMPLETED, 10);
+        $this->stubRepo(AchievementTrigger::N_GAMES_COMPLETED, [$achievement]);
+
+        self::assertSame(
+            [],
+            $this->checker->check($this->progression, 'game_completed', [
+                'gamesCompleted' => 9,
+            ])
+        );
+    }
+
+    // ── FIRST_DISCOVERY ──────────────────────────────────────────────────────
+
+    public function testUnlocksFirstDiscoveryWhenDiscoveriesReachThreshold(): void
+    {
+        $achievement = $this->makeAchievement(AchievementTrigger::FIRST_DISCOVERY, 1);
+        $this->stubRepo(AchievementTrigger::FIRST_DISCOVERY, [$achievement]);
+
+        $this->setField('discoveries', 1);
+
+        $result = $this->checker->check($this->progression, 'spice_read', []);
+
+        self::assertCount(1, $result);
+    }
+
+    public function testDoesNotUnlockFirstDiscoveryBelowThreshold(): void
+    {
+        $achievement = $this->makeAchievement(AchievementTrigger::FIRST_DISCOVERY, 5);
+        $this->stubRepo(AchievementTrigger::FIRST_DISCOVERY, [$achievement]);
+
+        $this->setField('discoveries', 4);
+
+        self::assertSame([], $this->checker->check($this->progression, 'spice_read', []));
+    }
+
+    // ── ALL_TERPENES_VISITED ───────────────────────────────────────────────
+
+    public function testAllTerpenesVisitedReturnsFalseWhenStatsNull(): void
+    {
+        $achievement = $this->makeAchievement(AchievementTrigger::ALL_TERPENES_VISITED, 1);
+        $this->stubRepo(AchievementTrigger::ALL_TERPENES_VISITED, [$achievement]);
+
+        // progression has no user → getUser() returns null → stats null
+        self::assertSame([], $this->checker->check($this->progression, 'spice_read', []));
+    }
+
+    public function testAllTerpenesVisitedReturnsFalseWhenZeroGroups(): void
+    {
+        $achievement = $this->makeAchievement(AchievementTrigger::ALL_TERPENES_VISITED, 1);
+        $this->stubRepo(AchievementTrigger::ALL_TERPENES_VISITED, [$achievement]);
+
+        $stats = new \App\Entity\UserStat();
+        $user = $this->createMock(\App\Entity\Users::class);
+        $user->method('getStats')
+            ->willReturn($stats);
+        $this->progression->setUser($user);
+
+        $this->aromaticGroupsRepo->method('count')
+            ->willReturn(0);
+
+        self::assertSame([], $this->checker->check($this->progression, 'spice_read', []));
+    }
+
+    public function testAllTerpenesVisitedReturnsTrueWhenAllGroupsVisited(): void
+    {
+        $achievement = $this->makeAchievement(AchievementTrigger::ALL_TERPENES_VISITED, 1);
+        $this->stubRepo(AchievementTrigger::ALL_TERPENES_VISITED, [$achievement]);
+
+        $stats = new \App\Entity\UserStat();
+        $stats->addVisitedAromaticGroup(1);
+        $stats->addVisitedAromaticGroup(2);
+        $stats->addVisitedAromaticGroup(3);
+
+        $user = $this->createMock(\App\Entity\Users::class);
+        $user->method('getStats')
+            ->willReturn($stats);
+        $this->progression->setUser($user);
+
+        $this->aromaticGroupsRepo->method('count')
+            ->willReturn(3);
+
+        $result = $this->checker->check($this->progression, 'spice_read', []);
+
+        self::assertCount(1, $result);
+    }
+
+    public function testAllTerpenesVisitedReturnsFalseWhenNotAllGroupsVisited(): void
+    {
+        $achievement = $this->makeAchievement(AchievementTrigger::ALL_TERPENES_VISITED, 1);
+        $this->stubRepo(AchievementTrigger::ALL_TERPENES_VISITED, [$achievement]);
+
+        $stats = new \App\Entity\UserStat();
+        $stats->addVisitedAromaticGroup(1);
+        $stats->addVisitedAromaticGroup(2);
+
+        $user = $this->createMock(\App\Entity\Users::class);
+        $user->method('getStats')
+            ->willReturn($stats);
+        $this->progression->setUser($user);
+
+        $this->aromaticGroupsRepo->method('count')
+            ->willReturn(5);
+
+        self::assertSame([], $this->checker->check($this->progression, 'spice_read', []));
+    }
+
+    // ── Multiple triggers for same event ────────────────────────────────────
+
+    public function testMatchSavedChecksAllThreeTriggers(): void
+    {
+        $firstMatch = $this->makeAchievement(AchievementTrigger::FIRST_MATCH, 1);
+        $nMatches = $this->makeAchievement(AchievementTrigger::N_MATCHES, 5);
+        $nSpices = $this->makeAchievement(AchievementTrigger::N_SPICES_USED, 3);
+
+        $this->repo->method('findByTrigger')
+            ->willReturnCallback(fn (AchievementTrigger $t) => match ($t) {
+                AchievementTrigger::FIRST_MATCH => [$firstMatch],
+                AchievementTrigger::N_MATCHES => [$nMatches],
+                AchievementTrigger::N_SPICES_USED => [$nSpices],
+                default => [],
+            });
+
+        $this->setField('totalMatches', 5);
+        $this->setField('uniqueSpicesUsed', 3);
+
+        $result = $this->checker->check($this->progression, 'match_saved', []);
+
+        // All 3 should unlock
+        self::assertCount(3, $result);
     }
 
     // ── Already owned ─────────────────────────────────────────────────────────
@@ -273,9 +445,7 @@ final class AchievementCheckerTest extends TestCase
     private function stubRepo(AchievementTrigger $trigger, array $achievements): void
     {
         $this->repo->method('findByTrigger')
-            ->willReturnCallback(
-                fn (AchievementTrigger $t) => $t === $trigger ? $achievements : []
-            );
+            ->willReturnCallback(fn (AchievementTrigger $t) => $t === $trigger ? $achievements : []);
     }
 
     private function setField(string $field, mixed $value): void

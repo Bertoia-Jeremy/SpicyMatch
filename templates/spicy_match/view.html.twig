@@ -10,17 +10,33 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
          x-data="{
              spiceStatus: {},
+             nextOpenId: null,
+             spiceIds: [{{ spices|map(s => s.id)|join(', ') }}],
              totalSpices: {{ spices|length }},
-             isReady(id) { const s = this.spiceStatus[id]; return s && s.prep && s.cooking; },
-             get readyCount() { return Object.values(this.spiceStatus).filter(s => s && s.prep && s.cooking).length; },
-             get allReady() { return this.readyCount >= this.totalSpices; }
+             isReady(id) {
+                 const s = this.spiceStatus[id];
+                 return !!(s && s.prep && s.cooking);
+             },
+             get readyCount() {
+                 return Object.values(this.spiceStatus).filter(s => s && s.prep && s.cooking).length;
+             },
+             get allReady() {
+                 return this.readyCount >= this.totalSpices;
+             }
          }"
-         @preparation-updated="
-             if (!spiceStatus[$event.detail.spiceId]) spiceStatus[$event.detail.spiceId] = { prep: false, cooking: false };
-             spiceStatus[$event.detail.spiceId].prep = $event.detail.selected"
-         @cooking-confirmed="
-             if (!spiceStatus[$event.detail.spiceId]) spiceStatus[$event.detail.spiceId] = { prep: false, cooking: false };
-             spiceStatus[$event.detail.spiceId].cooking = true">
+         @preparation-updated.window="
+             const id = $event.detail.spiceId;
+             const cur = spiceStatus[id] || { prep: false, cooking: false };
+             spiceStatus = { ...spiceStatus, [id]: { ...cur, prep: $event.detail.selected } }"
+         @cooking-confirmed.window="
+             const id = $event.detail.spiceId;
+             const sel = $event.detail.selected;
+             const cur = spiceStatus[id] || { prep: false, cooking: false };
+             spiceStatus = { ...spiceStatus, [id]: { ...cur, cooking: sel } };
+             if (sel) {
+                 const idx = spiceIds.indexOf(id);
+                 if (idx >= 0 && idx < spiceIds.length - 1) { nextOpenId = spiceIds[idx + 1]; }
+             }">
         <div class="mb-6">
             <a href="{{ path('index_spicy_match') }}" class="inline-flex items-center gap-1.5 text-stone-500 hover:text-saffron-700 text-sm transition-colors">
                 <i class="fa-solid fa-arrow-left text-[10px]"></i>Retour au Lab
@@ -35,8 +51,9 @@
 
         {% for spice in spices %}
             <div class="flex flex-col items-center justify-center mb-4"
-                 x-data="{ open: true }"
-                 @cooking-confirmed="open = false; $nextTick(() => { const next = $el.nextElementSibling; if (next && next.__x) { next.__x.$data.open = true; next.scrollIntoView({ behavior: 'smooth', block: 'start' }); } })">
+                 x-data="{ open: {{ loop.first ? 'true' : 'false' }} }"
+                 @cooking-confirmed.window="if ($event.detail.spiceId == {{ spice.id }} && $event.detail.selected) open = false"
+                 x-effect="if (nextOpenId == {{ spice.id }}) { open = true; nextOpenId = null; $nextTick(() => requestAnimationFrame(() => $el.scrollIntoView({ behavior: 'smooth', block: 'start' }))); }">
                 <div class="w-full max-w-4xl">
                     {# En-tête cliquable pour replier/déplier #}
                     <button type="button"
@@ -88,7 +105,7 @@
                                         preparationTip.id
                                     )}}
                                 {% endfor %}
-                                <input type="hidden" name="_token" value="{{ csrf_token('remove_item') }}" />
+                                <input type="hidden" name="_token" value="{{ csrf_token('history_edit_' ~ spicyMatchHistory.id) }}" />
                             </form>
                         </div>
 
@@ -109,7 +126,7 @@
                                         cookingTip.id
                                     )}}
                                 {% endfor %}
-                                <input type="hidden" name="_token" value="{{ csrf_token('remove_item') }}" />
+                                <input type="hidden" name="_token" value="{{ csrf_token('history_edit_' ~ spicyMatchHistory.id) }}" />
                             </form>
                         </div>
                     </div>

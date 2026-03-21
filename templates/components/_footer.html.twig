@@ -107,7 +107,7 @@
 
     {# ── Scroll to Top ── #}
     <div x-data="{ visible: false }"
-         x-init="window.addEventListener('scroll', () => { visible = window.scrollY > 400 })"
+         @scroll.window="visible = window.scrollY > 400"
          class="fixed bottom-8 right-8 z-40">
         <button x-show="visible" x-cloak
                 x-transition:enter="transition ease-out duration-300"

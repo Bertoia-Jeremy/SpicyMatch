@@ -175,8 +175,11 @@ class SpicyMatch extends AbstractController
         EntityManagerInterface $entityManager,
         SpicyMatchFactory $spicyMatchFactory,
     ): \Symfony\Component\HttpFoundation\RedirectResponse {
+        $isManual = $this->mode === 'manual';
+
         $spicyMatch = $spicyMatchFactory->create();
         $spicyMatch->setUser($this->getUser());
+        $spicyMatch->setIsManual($isManual);
 
         // Extraction des IDs depuis la structure SpicyMatch (tableau plat d'IDs)
         $selectedIds = array_map('intval', $this->spices['selectedSpices']);
@@ -189,16 +192,18 @@ class SpicyMatch extends AbstractController
             }
         }
 
-        // On recalcule les résultats pour les sauvegarder dans l'entité SpicyMatchResult
-        // Cela permet de garder une trace des scores au moment du mélange
-        $results = $this->getResults();
-        foreach ($results['compatibleSpices'] as $compatibleData) {
-            $spice = $this->spicesRepository->find($compatibleData['id']);
-            if ($spice) {
-                $result = new \App\Entity\SpicyMatchResult();
-                $result->setSpice($spice);
-                $result->setScore((int) $compatibleData['score']);
-                $spicyMatch->addResult($result);
+        // En mode auto, on sauvegarde les résultats scorés pour référence
+        // En mode manuel, pas de score de compatibilité → on skip les results
+        if (! $isManual) {
+            $results = $this->getResults();
+            foreach ($results['compatibleSpices'] as $compatibleData) {
+                $spice = $this->spicesRepository->find($compatibleData['id']);
+                if ($spice) {
+                    $result = new \App\Entity\SpicyMatchResult();
+                    $result->setSpice($spice);
+                    $result->setScore((int) $compatibleData['score']);
+                    $spicyMatch->addResult($result);
+                }
             }
         }
 

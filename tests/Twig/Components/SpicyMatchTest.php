@@ -233,4 +233,171 @@ class SpicyMatchTest extends TestCase
         self::assertSame('', $component->filterStId);
         self::assertSame('', $component->search);
     }
+
+    // ── Manual mode: getResults() ───────────────────────────────────────────
+
+    public function testManualModeResultsHaveNoScoreKey(): void
+    {
+        $this->spicesRepo->method('findSpicesForMatch')
+            ->willReturn([
+                ['id' => 1, 'name' => 'Cannelle', 'groupName' => 'Chaud', 'color' => '#C00'],
+            ]);
+
+        $component = $this->makeComponent();
+        $component->mode = 'manual';
+        $component->spices = [
+            'selectedSpices' => ['1'],
+            'compatibleSpices' => $this->allSpices,
+        ];
+
+        $results = $component->getResults();
+
+        foreach ($results['compatibleSpices'] as $spice) {
+            self::assertArrayNotHasKey('score', $spice, 'Manual mode should not contain score key');
+        }
+    }
+
+    public function testManualModeWithMultipleSelectionsExcludesSameGroups(): void
+    {
+        // Sélection de Cannelle (Chaud) et Cumin (Terreux)
+        $this->spicesRepo->method('findSpicesForMatch')
+            ->willReturn([
+                ['id' => 1, 'name' => 'Cannelle', 'groupName' => 'Chaud', 'color' => '#C00'],
+                ['id' => 2, 'name' => 'Cumin', 'groupName' => 'Terreux', 'color' => '#A52'],
+            ]);
+
+        $component = $this->makeComponent();
+        $component->mode = 'manual';
+        $component->spices = [
+            'selectedSpices' => ['1', '2'],
+            'compatibleSpices' => $this->allSpices,
+        ];
+
+        $results = $component->getResults();
+        $ids = array_column($results['compatibleSpices'], 'id');
+
+        // Exclut Cannelle(1), Cumin(2), Gingembre(4 = même groupe Chaud)
+        self::assertNotContains(1, $ids);
+        self::assertNotContains(2, $ids);
+        self::assertNotContains(4, $ids);
+        // Reste Poivre(3) et Coriandre(5)
+        self::assertContains(3, $ids);
+        self::assertContains(5, $ids);
+    }
+
+    public function testManualModeWithAllSpicesSelectedReturnsEmpty(): void
+    {
+        // Sélection depuis chaque groupe → plus rien en compatible
+        $this->spicesRepo->method('findSpicesForMatch')
+            ->willReturn([
+                ['id' => 1, 'name' => 'Cannelle', 'groupName' => 'Chaud', 'color' => '#C00'],
+                ['id' => 2, 'name' => 'Cumin', 'groupName' => 'Terreux', 'color' => '#A52'],
+                ['id' => 3, 'name' => 'Poivre', 'groupName' => 'Piquant', 'color' => '#333'],
+                ['id' => 5, 'name' => 'Coriandre', 'groupName' => 'Herbacé', 'color' => '#0A0'],
+            ]);
+
+        $component = $this->makeComponent();
+        $component->mode = 'manual';
+        $component->spices = [
+            'selectedSpices' => ['1', '2', '3', '5'],
+            'compatibleSpices' => $this->allSpices,
+        ];
+
+        $results = $component->getResults();
+        self::assertEmpty($results['compatibleSpices']);
+    }
+
+    // ── Manual mode: filters still work ─────────────────────────────────────
+
+    public function testManualModeRespectsSearchFilter(): void
+    {
+        $this->spicesRepo->method('findSpicesForMatch')
+            ->willReturn([
+                ['id' => 1, 'name' => 'Cannelle', 'groupName' => 'Chaud', 'color' => '#C00'],
+            ]);
+
+        $component = $this->makeComponent();
+        $component->mode = 'manual';
+        $component->search = 'poi';
+        $component->spices = [
+            'selectedSpices' => ['1'],
+            'compatibleSpices' => $this->allSpices,
+        ];
+
+        $results = $component->getResults();
+        self::assertCount(1, $results['compatibleSpices']);
+        self::assertSame('Poivre', $results['compatibleSpices'][0]['name']);
+    }
+
+    public function testManualModeRespectsAromaticGroupFilter(): void
+    {
+        $this->spicesRepo->method('findSpicesForMatch')
+            ->willReturn([
+                ['id' => 1, 'name' => 'Cannelle', 'groupName' => 'Chaud', 'color' => '#C00'],
+            ]);
+
+        $component = $this->makeComponent();
+        $component->mode = 'manual';
+        $component->filterAgId = '4'; // Herbacé
+        $component->spices = [
+            'selectedSpices' => ['1'],
+            'compatibleSpices' => $this->allSpices,
+        ];
+
+        $results = $component->getResults();
+        self::assertCount(1, $results['compatibleSpices']);
+        self::assertSame('Coriandre', $results['compatibleSpices'][0]['name']);
+    }
+
+    public function testManualModeRespectsSpicyTypeFilter(): void
+    {
+        $this->spicesRepo->method('findSpicesForMatch')
+            ->willReturn([
+                ['id' => 1, 'name' => 'Cannelle', 'groupName' => 'Chaud', 'color' => '#C00'],
+            ]);
+
+        $component = $this->makeComponent();
+        $component->mode = 'manual';
+        $component->filterStId = '2'; // stId=2 → Coriandre only
+        $component->spices = [
+            'selectedSpices' => ['1'],
+            'compatibleSpices' => $this->allSpices,
+        ];
+
+        $results = $component->getResults();
+        self::assertCount(1, $results['compatibleSpices']);
+        self::assertSame('Coriandre', $results['compatibleSpices'][0]['name']);
+    }
+
+    // ── canAddMoreGroups in manual mode ─────────────────────────────────────
+
+    public function testCanAddMoreGroupsInManualModeWithAvailableSpices(): void
+    {
+        $this->spicesRepo->method('findSpicesForMatch')
+            ->willReturn([
+                ['id' => 1, 'name' => 'Cannelle', 'groupName' => 'Chaud', 'color' => '#C00'],
+            ]);
+
+        $component = $this->makeComponent();
+        $component->mode = 'manual';
+        $component->spices = [
+            'selectedSpices' => ['1'],
+            'compatibleSpices' => $this->allSpices,
+        ];
+
+        self::assertTrue($component->canAddMoreGroups());
+    }
+
+    // ── clearSearch ─────────────────────────────────────────────────────────
+
+    public function testClearSearchInManualMode(): void
+    {
+        $component = $this->makeComponent();
+        $component->mode = 'manual';
+        $component->search = 'test';
+
+        $component->clearSearch();
+
+        self::assertSame('', $component->search);
+    }
 }

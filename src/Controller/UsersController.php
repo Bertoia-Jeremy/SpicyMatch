@@ -124,6 +124,17 @@ class UsersController extends AbstractController
         ]);
     }
 
+    #[Route('/favorites', name: 'favorites_user', methods: ['GET'])]
+    public function favorites(): Response
+    {
+        /** @var Users $user */
+        $user = $this->getUser();
+
+        return $this->render('users/favorites.html.twig', [
+            'favorites' => $this->historyRepository->findFavoritesByUser($user),
+        ]);
+    }
+
     #[Route('/achievements', name: 'achievements_user', methods: ['GET'])]
     public function achievements(): Response
     {

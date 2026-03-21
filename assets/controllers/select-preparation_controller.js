@@ -7,31 +7,76 @@ export default class extends Controller
         spicyMatchHistoryUrl: String,
         spiceId: Number,
         preparationId: Number,
-        selectedId: { type: Number, default: 0 },
     };
 
+    #abortController = null;
+
     async selectPreparation(event) {
-        const clickedId = parseInt(event.currentTarget.dataset.preparationId);
-        const isDeselecting = this.selectedIdValue === clickedId;
+        const card = event.currentTarget;
+        const clickedId = parseInt(card.dataset.preparationId);
+        const isDeselecting = this.preparationIdValue === clickedId;
 
-        this.preparationIdValue = clickedId;
-        const parentElement = this.preparationTarget.parentElement;
+        if (this.#abortController) {
+            this.#abortController.abort();
+        }
+        this.#abortController = new AbortController();
 
+        const csrfToken = this.element.querySelector('[name="_token"]')?.value || '';
         const url = new URL(this.spicyMatchHistoryUrlValue, window.location.origin);
-        url.searchParams.set('spiceId', this.spiceIdValue);
-        url.searchParams.set('preparationId', this.preparationIdValue);
 
         try {
-            const response = await fetch(url, { method: 'GET' });
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-Token': csrfToken,
+                },
+                body: new URLSearchParams({
+                    spiceId: this.spiceIdValue,
+                    preparationId: clickedId,
+                }),
+                signal: this.#abortController.signal,
+            });
             if (!response.ok) { console.error('Preparation fetch failed', response.status); return; }
-            parentElement.innerHTML = await response.json();
-        } catch (e) { console.error('Preparation fetch error', e); return; }
+        } catch (e) {
+            if (e.name === 'AbortError') return;
+            console.error('Preparation fetch error', e);
+            return;
+        }
 
-        this.selectedIdValue = isDeselecting ? 0 : clickedId;
+        if (isDeselecting) {
+            // Deselect: show all cards again
+            this.preparationIdValue = 0;
+            this.preparationTargets.forEach(t => {
+                t.classList.remove('hidden');
+                const inner = t.querySelector(':scope > div');
+                if (inner) {
+                    inner.classList.remove('border-saffron-500', 'bg-saffron-50/50', 'shadow-sm', 'ring-1', 'ring-saffron-400/30');
+                    inner.classList.add('border-stone-200');
+                }
+            });
+        } else {
+            // Select: hide others, highlight selected
+            this.preparationIdValue = clickedId;
+            this.preparationTargets.forEach(t => {
+                const inner = t.querySelector(':scope > div');
+                if (t === card) {
+                    inner?.classList.remove('border-stone-200');
+                    inner?.classList.add('border-saffron-500', 'bg-saffron-50/50', 'shadow-sm', 'ring-1', 'ring-saffron-400/30');
+                } else {
+                    t.classList.add('hidden');
+                }
+            });
+        }
 
-        this.element.dispatchEvent(new CustomEvent('preparation-updated', {
-            bubbles: true,
+        window.dispatchEvent(new CustomEvent('preparation-updated', {
             detail: { spiceId: this.spiceIdValue, selected: !isDeselecting },
         }));
+    }
+
+    disconnect() {
+        if (this.#abortController) {
+            this.#abortController.abort();
+        }
     }
 }

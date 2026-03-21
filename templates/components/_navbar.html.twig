@@ -52,7 +52,7 @@
                          x-transition:leave="transition ease-in duration-100"
                          x-transition:leave-start="opacity-100 translate-y-0"
                          x-transition:leave-end="opacity-0 translate-y-1"
-                         @click.away="dropdownOpen = false"
+                         @click.outside="dropdownOpen = false"
                          class="absolute left-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-spice-border z-50 overflow-hidden">
                         <a href="{{ path('index_aromatic_compound') }}"
                            class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
@@ -126,7 +126,7 @@
                              x-transition:leave="transition ease-in duration-100"
                              x-transition:leave-start="opacity-100 translate-y-0"
                              x-transition:leave-end="opacity-0 translate-y-1"
-                             @click.away="dropdownOpen = false"
+                             @click.outside="dropdownOpen = false"
                              class="absolute right-0 mt-3 w-48 bg-white rounded-xl shadow-lg border border-spice-border z-50 overflow-hidden">
                             <a href="{{ path('profile_user') }}"
                                class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">

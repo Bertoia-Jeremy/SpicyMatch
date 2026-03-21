@@ -54,6 +54,9 @@ class SpicyMatch
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $deletedAt = null;
 
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isManual = false;
+
     public function __construct()
     {
         $this->spices = new ArrayCollection();
@@ -183,6 +186,18 @@ class SpicyMatch
     public function setDeletedAt(?\DateTimeImmutable $deletedAt): static
     {
         $this->deletedAt = $deletedAt;
+
+        return $this;
+    }
+
+    public function isManual(): bool
+    {
+        return $this->isManual;
+    }
+
+    public function setIsManual(bool $isManual): static
+    {
+        $this->isManual = $isManual;
 
         return $this;
     }

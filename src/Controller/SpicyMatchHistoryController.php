@@ -19,7 +19,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('ROLE_USER')]
@@ -102,6 +102,7 @@ class SpicyMatchHistoryController extends AbstractController
         }
 
         return $this->render('spicy_match_history/view.html.twig', [
+            'spicyMatchHistory' => $spicyMatchHistory,
             'preparations' => $spicyMatchHistory->getPreparationTips(),
             'cookingsByStep' => $cookingsByStep,
             'sharedCompounds' => array_values($sharedCompounds ?? []),
@@ -109,7 +110,7 @@ class SpicyMatchHistoryController extends AbstractController
         ]);
     }
 
-    #[Route('/edit/{id}', name: 'edit_spicy_match_history', methods: ['GET'])]
+    #[Route('/edit/{id}', name: 'edit_spicy_match_history', methods: ['POST'])]
     public function edit(
         SpicyMatchHistory $spicyMatchHistory,
         Request $request,
@@ -121,7 +122,14 @@ class SpicyMatchHistoryController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
-        $spiceId = (int) $request->query->get('spiceId');
+        $token = $request->headers->get('X-CSRF-Token', '');
+        if (! $this->isCsrfTokenValid('history_edit_' . $spicyMatchHistory->getId(), $token)) {
+            return $this->json([
+                'error' => 'Invalid CSRF token',
+            ], 403);
+        }
+
+        $spiceId = (int) $request->request->get('spiceId');
 
         // Verify the requested spice belongs to this match
         $matchSpiceIds = $spicyMatchHistory->getSpicyMatch()
@@ -135,8 +143,8 @@ class SpicyMatchHistoryController extends AbstractController
             ]));
         }
 
-        $cookingTipId = (int) $request->query->get('cookingId');
-        $preparationTipId = (int) $request->query->get('preparationId');
+        $cookingTipId = (int) $request->request->get('cookingId');
+        $preparationTipId = (int) $request->request->get('preparationId');
 
         if ($cookingTipId) {
             return $this->handleCookingTip($spicyMatchHistory, $spiceId, $cookingTipId, $entityManager);

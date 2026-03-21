@@ -1,5 +1,32 @@
-<div class="alert alert-danger" role="alert">
-  <p>
-    Une erreur est survenue, merci de contacter l'administrateur du site si le problème persiste. Erreur code : {{ codeError }}
-  </p>
-</div>
+{% extends 'base.html.twig' %}
+
+{% block title %}SpicyMatch — Erreur{% endblock %}
+
+{% block body %}
+{% import 'macros/buttons.html.twig' as buttons %}
+
+<section class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+    <div class="bg-white border border-stone-200 rounded-2xl p-10">
+        <div class="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-6">
+            <i class="fa-solid fa-triangle-exclamation text-red-500 text-2xl"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-stone-900 mb-3">Une erreur est survenue</h1>
+        {% if codeError is defined %}
+            <p class="text-stone-400 text-sm mb-2">Code d'erreur : <code class="bg-stone-100 px-2 py-0.5 rounded text-stone-600">{{ codeError }}</code></p>
+        {% endif %}
+        <p class="text-stone-500 mb-8">Si le problème persiste, merci de contacter l'administrateur.</p>
+        <div class="flex gap-3 justify-center">
+            {{ buttons.button('Accueil', {
+                href: path('home'),
+                variant: 'primary',
+                icon: 'fa-solid fa-house'
+            }) }}
+            {{ buttons.button('Signaler', {
+                href: path('new_contact'),
+                variant: 'outline',
+                icon: 'fa-solid fa-envelope'
+            }) }}
+        </div>
+    </div>
+</section>
+{% endblock %}

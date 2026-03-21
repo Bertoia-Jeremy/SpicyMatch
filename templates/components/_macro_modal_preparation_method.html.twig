@@ -1,16 +1,46 @@
 {% macro modal(id, name, createModal) %}
+    {% import 'macros/buttons.html.twig' as buttons %}
 
-    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#target_{{ id }}">
-        En savoir plus sur la méthode {{ name }}
-    </button>
+    <div x-data="{ open: false }">
+        {{ buttons.button('Méthode ' ~ name, {
+            variant: 'outline',
+            size: 'sm',
+            icon: 'fa-solid fa-circle-info text-xs',
+            attr: { '@click': 'open = true' }
+        }) }}
 
-    {% if createModal %}
-        {{ include('/components/_modal.html.twig', {
-            modalTitle: "Explication de la méthode : #{ name }",
-            modalSrc: path('view_preparation_methods', { 'id': id }),
-            id: 'preparation_methode_frame_id',
-            target:"target_#{ id }"
-        })}}
-    {% endif %}            
+        {% if createModal %}
+            <div
+                x-show="open"
+                x-cloak
+                class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop"
+                @click.self="open = false"
+            >
+                <div class="bg-white rounded-2xl shadow-2xl border border-stone-100 max-w-lg w-full mx-4">
+                    <div class="flex items-center justify-between p-5 border-b border-spice-border">
+                        <h5 class="text-lg font-semibold text-stone-800 flex items-center gap-2">
+                            <i class="fa-solid fa-mortar-pestle text-saffron-600 text-base"></i>{{ name }}
+                        </h5>
+                        <button @click="open = false" aria-label="Fermer la modale" class="text-stone-400 hover:text-stone-600 text-2xl leading-none">&times;</button>
+                    </div>
+                    <turbo-frame
+                        class="block p-5"
+                        src="{{ path('view_preparation_methods', { 'id': id }) }}"
+                        id="preparation_methode_frame_{{ id }}"
+                        loading="lazy"
+                    >
+                        <div class="text-stone-400 text-sm text-center py-4">Chargement...</div>
+                    </turbo-frame>
+                    <div class="flex justify-end p-4 border-t border-spice-border">
+                        {{ buttons.button('Fermer', {
+                            variant: 'outline',
+                            size: 'sm',
+                            attr: { '@click': 'open = false' }
+                        }) }}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
 
 {% endmacro %}

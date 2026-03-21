@@ -2,12 +2,21 @@
 
 {% block content %}
     <turbo-frame id="user_frame_id">
-        <div class="list-group list-group-horizontal">
-            <a href="{{ path('profile_user') }}" class="list-group-item list-group-item-action list-group-item-light">Profil</a>
-            <a href="{{ path('configuration_user') }}" class="list-group-item list-group-item-action list-group-item-light">Configuration</a>
-            <a href="{{ path('history_user') }}" class="list-group-item list-group-item-action list-group-item-light">Historique</a>
-            <a href="{{ path('security_user') }}" class="list-group-item list-group-item-action list-group-item-light active">Sécurité</a>
+        {% include 'components/_user_tabs.html.twig' %}
+
+        <div class="mt-6 space-y-4">
+            <div class="card-warm p-5">
+                <h3 class="font-semibold text-stone-800 mb-1 flex items-center gap-2">
+                    <i class="fa-solid fa-key text-saffron-600"></i>Mot de passe
+                </h3>
+                <p class="text-stone-500 text-sm">La modification du mot de passe n'est pas encore disponible.</p>
+            </div>
+            <div class="card-warm p-5">
+                <h3 class="font-semibold text-stone-800 mb-1 flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-saffron-600"></i>Authentification
+                </h3>
+                <p class="text-stone-500 text-sm">Aucune option de double authentification configurée pour le moment.</p>
+            </div>
         </div>
-        Sécurité
     </turbo-frame>
 {% endblock %}

@@ -11,11 +11,10 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Vich\UploaderBundle\Mapping\Annotation as Vich;
+use Vich\UploaderBundle\Mapping\Attribute\Uploadable;
+use Vich\UploaderBundle\Mapping\Attribute\UploadableField;
 
-/**
- * @Vich\Uploadable
- */
+#[Uploadable]
 #[ORM\Entity(repositoryClass: SpicesRepository::class)]
 #[ORM\Table(name: 'spices')]
 class Spices
@@ -45,21 +44,19 @@ class Spices
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $informations = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeInterface $created_at = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeInterface $updated_at = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $file = null;
 
-    /**
-     * @Vich\UploadableField(mapping="spice_images", fileNameProperty="file", size="imageSize")
-     */
+    #[UploadableField(mapping: 'spice_images', fileNameProperty: 'file', size: 'imageSize')]
     private ?File $imageFile = null;
 
     #[ORM\Column(type: 'integer')]
@@ -68,44 +65,33 @@ class Spices
     /**
      * @var Collection<int, AromaticCompound>
      */
-    #[ORM\ManyToMany(
-        targetEntity: AromaticCompound::class,
-        inversedBy: 'spices'
-    )]
+    #[ORM\ManyToMany(targetEntity: AromaticCompound::class, inversedBy: 'spices')]
     private Collection $aromaticsCompounds;
 
     /**
      * @var Collection<int, AromaticCompound>
      */
-    #[ORM\ManyToMany(
-        targetEntity: AromaticCompound::class,
-        inversedBy: 'secondary_spices'
-    )]
+    #[ORM\ManyToMany(targetEntity: AromaticCompound::class, inversedBy: 'secondary_spices')]
     #[ORM\JoinTable(name: 'secondary_spices_aromatic_compound')]
     private Collection $secondary_aromatics_compounds;
 
     /**
      * @var Collection<int, CookingTips>
      */
-    #[ORM\OneToMany(
-        mappedBy: 'spice',
-        targetEntity: CookingTips::class,
-        orphanRemoval: true
-    )]
+    #[ORM\OneToMany(mappedBy: 'spice', targetEntity: CookingTips::class, orphanRemoval: true)]
     private Collection $cookingTips;
 
     /**
      * @var Collection<int, PreparationTips>
      */
-    #[ORM\OneToMany(
-        mappedBy: 'spice',
-        targetEntity: PreparationTips::class,
-        orphanRemoval: true
-    )]
+    #[ORM\OneToMany(mappedBy: 'spice', targetEntity: PreparationTips::class, orphanRemoval: true)]
     private Collection $preparationTips;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $benefits = null;
+
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
+    private ?string $slug = null;
 
     public function __construct()
     {
@@ -243,17 +229,14 @@ class Spices
     /**
      * @param File|UploadedFile|null $imageFile
      */
-    public function setImageFile(
-        ?File $imageFile = null
-    ): void {
+    public function setImageFile(?File $imageFile = null): void
+    {
         $this->imageFile = $imageFile;
 
         if ($imageFile instanceof File) {
             // It is required that at least one field changes if you are using doctrine
             // otherwise the event listeners won't be called and the file is lost
-            $this->updated_at = new \DateTime(
-                'now'
-            );
+            $this->updated_at = new \DateTimeImmutable('now');
         }
     }
 
@@ -346,9 +329,7 @@ class Spices
     public function removeCookingTip(CookingTips $cookingTip): static
     {
         // set the owning side to null (unless already changed)
-        if ($this->cookingTips->removeElement(
-            $cookingTip
-        ) && $cookingTip->getSpice() === $this) {
+        if ($this->cookingTips->removeElement($cookingTip) && $cookingTip->getSpice() === $this) {
             $cookingTip->setSpice(null);
         }
 
@@ -376,9 +357,7 @@ class Spices
     public function removePreparationTip(PreparationTips $preparationTip): static
     {
         // set the owning side to null (unless already changed)
-        if ($this->preparationTips->removeElement(
-            $preparationTip
-        ) && $preparationTip->getSpice() === $this) {
+        if ($this->preparationTips->removeElement($preparationTip) && $preparationTip->getSpice() === $this) {
             $preparationTip->setSpice(null);
         }
 
@@ -393,6 +372,18 @@ class Spices
     public function setBenefits(?string $benefits): static
     {
         $this->benefits = $benefits;
+
+        return $this;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): static
+    {
+        $this->slug = $slug;
 
         return $this;
     }

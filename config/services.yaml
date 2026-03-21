@@ -23,3 +23,20 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    # Gamification XP strategies — tagged for injection into GamificationManager
+    App\Gamification\Strategy\:
+        resource: '../src/Gamification/Strategy/'
+        tags: ['gamification.xp_strategy']
+
+    # Education question generators — tagged for injection into GameSessionManager
+    App\Service\Education\QcmQuestionGenerator:
+        tags: ['education.question_generator']
+
+    App\Service\Education\GameSessionManager:
+        arguments:
+            $generators: !tagged_iterator education.question_generator
+
+    App\Service\NewsletterService:
+        arguments:
+            $appSecret: '%kernel.secret%'

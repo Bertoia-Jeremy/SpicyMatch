@@ -10,11 +10,7 @@ class SpicyMatchFactory
 {
     public function create(): SpicyMatch
     {
-        $spicymatch = new SpicyMatch();
-        $spicymatch->setCreatedAt(new \DateTime())
-            ->setUpdatedAt(new \DateTime())
-        ;
-
-        return $spicymatch;
+        // Constructor initializes createdAt and updatedAt as DateTimeImmutable
+        return new SpicyMatch();
     }
 }

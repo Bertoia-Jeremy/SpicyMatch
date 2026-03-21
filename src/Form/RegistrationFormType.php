@@ -29,9 +29,6 @@ class RegistrationFormType extends AbstractType
             ])
             ->add('plainPassword', PasswordType::class, [
                 'label' => 'Mot de passe',
-                'toggle' => true,
-                'hidden_label' => 'Masquer',
-                'visible_label' => 'Afficher',
                 'mapped' => false,
                 'attr' => [
                     'autocomplete' => 'new-password',
@@ -53,13 +50,12 @@ class RegistrationFormType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        // TODO => vérifier l'email si il est déjà présent en BDD, mettre les contraintes dans l'entité
         $resolver->setDefaults(
             [
                 'data_class' => Users::class,
                 'csrf_protection' => true,
                 'csrf_field_name' => '_token',
-                'csrf_token_id' => 'contact_crsf_token',
+                'csrf_token_id' => 'registration_csrf_token',
             ]
         );
     }

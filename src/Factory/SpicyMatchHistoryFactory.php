@@ -12,11 +12,8 @@ class SpicyMatchHistoryFactory
     public function create(SpicyMatch $spicyMatch): SpicyMatchHistory
     {
         $spicyMatchHistory = new SpicyMatchHistory();
-        $spicyMatchHistory->setSpicyMatchId($spicyMatch)
-            ->setCreatedAt(new \DateTime())
-            ->setUpdatedAt(new \DateTime())
-            ->setFavorite(false)
-        ;
+        // Constructor initializes dates as DateTimeImmutable and favorite defaults to false
+        $spicyMatchHistory->setSpicyMatch($spicyMatch);
 
         return $spicyMatchHistory;
     }

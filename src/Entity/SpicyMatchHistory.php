@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\SpicyMatchHistoryRepository;
-use Doctrine\DBAL\Types\Types;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SpicyMatchHistoryRepository::class)]
@@ -14,68 +17,118 @@ class SpicyMatchHistory
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'spicyMatchHistories')]
     #[ORM\JoinColumn(nullable: false, name: 'spicy_match_id')]
-    private ?SpicyMatch $spicy_match_id = null;
+    private ?SpicyMatch $spicyMatch = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $preparation_tips_ids = null;
+    /**
+     * @var Collection<int, PreparationTips>
+     */
+    #[ORM\ManyToMany(targetEntity: PreparationTips::class)]
+    #[ORM\JoinTable(name: 'spicy_match_history_preparation_tips')]
+    private Collection $preparationTips;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $cooking_tips_ids = null;
+    /**
+     * @var Collection<int, CookingTips>
+     */
+    #[ORM\ManyToMany(targetEntity: CookingTips::class)]
+    #[ORM\JoinTable(name: 'spicy_match_history_cooking_tips')]
+    private Collection $cookingTips;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $title = null;
 
+    #[ORM\Column(options: [
+        'default' => false,
+    ])]
+    private bool $favorite = false;
+
     #[ORM\Column]
-    private ?bool $favorite = null;
+    private \DateTimeImmutable $createdAt;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $created_at = null;
+    #[ORM\Column]
+    private \DateTimeImmutable $updatedAt;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $updated_at = null;
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $deletedAt = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $deleted_at = null;
+    public function __construct()
+    {
+        $this->preparationTips = new ArrayCollection();
+        $this->cookingTips = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
+    public function getSpicyMatch(): ?SpicyMatch
+    {
+        return $this->spicyMatch;
+    }
+
+    public function setSpicyMatch(?SpicyMatch $spicyMatch): static
+    {
+        $this->spicyMatch = $spicyMatch;
+
+        return $this;
+    }
+
+    /**
+     * @deprecated Use getSpicyMatch()
+     */
     public function getSpicyMatchId(): ?SpicyMatch
     {
-        return $this->spicy_match_id;
+        return $this->spicyMatch;
     }
 
-    public function setSpicyMatchId(?SpicyMatch $spicy_match_id): static
+    /**
+     * @return Collection<int, PreparationTips>
+     */
+    public function getPreparationTips(): Collection
     {
-        $this->spicy_match_id = $spicy_match_id;
+        return $this->preparationTips;
+    }
+
+    public function addPreparationTip(PreparationTips $tip): static
+    {
+        if (! $this->preparationTips->contains($tip)) {
+            $this->preparationTips->add($tip);
+        }
 
         return $this;
     }
 
-    public function getPreparationTipsIds(): ?string
+    public function removePreparationTip(PreparationTips $tip): static
     {
-        return $this->preparation_tips_ids;
-    }
-
-    public function setPreparationTipsIds(?string $preparation_tips_ids): static
-    {
-        $this->preparation_tips_ids = $preparation_tips_ids;
+        $this->preparationTips->removeElement($tip);
 
         return $this;
     }
 
-    public function getCookingTipsIds(): ?string
+    /**
+     * @return Collection<int, CookingTips>
+     */
+    public function getCookingTips(): Collection
     {
-        return $this->cooking_tips_ids;
+        return $this->cookingTips;
     }
 
-    public function setCookingTipsIds(?string $cooking_tips_ids): static
+    public function addCookingTip(CookingTips $tip): static
     {
-        $this->cooking_tips_ids = $cooking_tips_ids;
+        if (! $this->cookingTips->contains($tip)) {
+            $this->cookingTips->add($tip);
+        }
+
+        return $this;
+    }
+
+    public function removeCookingTip(CookingTips $tip): static
+    {
+        $this->cookingTips->removeElement($tip);
 
         return $this;
     }
@@ -92,7 +145,7 @@ class SpicyMatchHistory
         return $this;
     }
 
-    public function isFavorite(): ?bool
+    public function isFavorite(): bool
     {
         return $this->favorite;
     }
@@ -104,38 +157,38 @@ class SpicyMatchHistory
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
+    public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->created_at;
+        return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeInterface $created_at): static
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
-        $this->created_at = $created_at;
+        $this->createdAt = $createdAt;
 
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeInterface
+    public function getUpdatedAt(): \DateTimeImmutable
     {
-        return $this->updated_at;
+        return $this->updatedAt;
     }
 
-    public function setUpdatedAt(\DateTimeInterface $updated_at): static
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     {
-        $this->updated_at = $updated_at;
+        $this->updatedAt = $updatedAt;
 
         return $this;
     }
 
-    public function getDeletedAt(): ?\DateTimeInterface
+    public function getDeletedAt(): ?\DateTimeImmutable
     {
-        return $this->deleted_at;
+        return $this->deletedAt;
     }
 
-    public function setDeletedAt(?\DateTimeInterface $deleted_at): static
+    public function setDeletedAt(?\DateTimeImmutable $deletedAt): static
     {
-        $this->deleted_at = $deleted_at;
+        $this->deletedAt = $deletedAt;
 
         return $this;
     }

@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Quiz — Question {{ questionNumber }}{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10" x-data="{ selected: null, submitted: false, startTime: Date.now() }">
+
+  {# Progress bar #}
+  <div class="mb-6">
+    <div class="flex items-center justify-between text-sm text-stone-600 mb-2">
+      <span>Question {{ questionNumber }} / {{ session.totalQuestions }}</span>
+      <span class="tag-secondary text-xs">{{ session.difficulty.label }}</span>
+    </div>
+    <div class="w-full bg-stone-200 rounded-full h-2">
+      <div class="bg-saffron-500 h-2 rounded-full transition-all duration-300"
+           style="width: {{ (questionNumber / session.totalQuestions * 100)|round }}%"></div>
+    </div>
+  </div>
+
+  {# Question card #}
+  <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6 mb-6">
+    {# Base spice info #}
+    <div class="text-center mb-6">
+      <p class="text-lg font-semibold text-stone-800">{{ question.prompt }}</p>
+    </div>
+
+    {# Options #}
+    <form method="post" action="{{ path('education_answer', { id: session.id }) }}" id="answerForm">
+      <div class="space-y-3 mb-6">
+        {% for option in question.options %}
+          <label class="flex items-center gap-3 px-4 py-3 rounded-xl border-2 cursor-pointer transition-all duration-200"
+                 :class="{
+                   'border-saffron-500 bg-saffron-50 ring-2 ring-saffron-500/30': selected === '{{ option.name }}',
+                   'border-stone-200 hover:border-saffron-300 hover:bg-cream': selected !== '{{ option.name }}'
+                 }"
+                 @click="selected = '{{ option.name }}'">
+            <input type="radio" name="answer" value="{{ option.name }}"
+                   class="text-saffron-600 focus:ring-saffron-500"
+                   x-model="selected">
+            <span class="text-stone-800 font-medium">{{ option.name }}</span>
+          </label>
+        {% endfor %}
+      </div>
+
+      <input type="hidden" name="_token" value="{{ csrf_token('education_answer') }}">
+      <input type="hidden" name="timeSpentMs" x-bind:value="Date.now() - startTime">
+
+      <button type="submit"
+              class="btn-pill-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+              :disabled="!selected || submitted"
+              @click="submitted = true">
+        Valider
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

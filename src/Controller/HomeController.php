@@ -13,11 +13,19 @@ class HomeController extends AbstractController
     #[Route('/', name: 'home')]
     public function index(): Response
     {
-        // TODO => Voir pour faire un message d'acceuil à la premiere connexion journalière
-        return $this->render(
-            'home/index.html.twig',
-            [
-            ]
-        );
+        $user = $this->getUser();
+
+        if ($user && $user->getLastLoginAt()) {
+            $today = new \DateTimeImmutable();
+            $lastLogin = $user->getLastLoginAt();
+
+            if ($lastLogin->format('Y-m-d') < $today->format('Y-m-d')) {
+                $this->addFlash('info', 'Bienvenue de retour, ' . $user->getUserIdentifier() . '!');
+            }
+        } elseif ($user) {
+            $this->addFlash('info', 'Bienvenue, ' . $user->getUserIdentifier() . '!');
+        }
+
+        return $this->render('home/index.html.twig', []);
     }
 }

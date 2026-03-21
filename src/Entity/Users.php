@@ -12,7 +12,12 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-#[UniqueEntity(fields: ['username'], message: 'Le pseudo existe déjà')]
+#[UniqueEntity(fields: [
+    'username',
+], message: 'Le pseudo existe déjà', errorPath: 'username', ignoreNull: false, repositoryMethod: 'findNonDeletedBy')]
+#[UniqueEntity(fields: [
+    'mail',
+], message: 'Cet email est déjà utilisé.', errorPath: 'mail', ignoreNull: true, repositoryMethod: 'findNonDeletedBy')]
 #[ORM\Entity(repositoryClass: UsersRepository::class)]
 #[ORM\Table(name: 'users')]
 class Users implements UserInterface, PasswordAuthenticatedUserInterface
@@ -37,20 +42,32 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'password', type: 'string')]
     private ?string $password = null;
 
-    #[ORM\Column(name: 'mail', type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(name: 'mail', type: 'string', length: 255, unique: true, nullable: true)]
     private ?string $mail = null;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime')]
+    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     private ?\DateTimeInterface $created_at = null;
 
-    #[ORM\Column(name: 'updated_at', type: 'datetime')]
+    #[ORM\Column(name: 'updated_at', type: 'datetime_immutable')]
     private ?\DateTimeInterface $updated_at = null;
 
-    #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
+    #[ORM\Column(name: 'deleted_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
 
-    #[ORM\OneToMany(mappedBy: 'user_id', targetEntity: SpicyMatch::class, orphanRemoval: true)]
+    #[ORM\Column(name: 'last_login_at', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeInterface $lastLoginAt = null;
+
+    #[ORM\Column(name: 'avatar', type: 'string', length: 100, nullable: true)]
+    private ?string $avatar = null;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: SpicyMatch::class, orphanRemoval: true)]
     private Collection $spicyMatches;
+
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: UserProgression::class, cascade: ['persist', 'remove'])]
+    private ?UserProgression $progression = null;
+
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: UserStat::class, cascade: ['persist', 'remove'])]
+    private ?UserStat $stats = null;
 
     public function __construct()
     {
@@ -142,6 +159,18 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getLastLoginAt(): ?\DateTimeInterface
+    {
+        return $this->lastLoginAt;
+    }
+
+    public function setLastLoginAt(?\DateTimeInterface $lastLoginAt): self
+    {
+        $this->lastLoginAt = $lastLoginAt;
+
+        return $this;
+    }
+
     /**
      * @see PasswordAuthenticatedUserInterface
      */
@@ -177,7 +206,19 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         // $this->plainPassword = null;
     }
 
-    public function getMail(): string|null
+    public function getAvatar(): ?string
+    {
+        return $this->avatar;
+    }
+
+    public function setAvatar(?string $avatar): self
+    {
+        $this->avatar = $avatar;
+
+        return $this;
+    }
+
+    public function getMail(): ?string
     {
         return $this->mail;
     }
@@ -197,6 +238,30 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->spicyMatches;
     }
 
+    public function getProgression(): ?UserProgression
+    {
+        return $this->progression;
+    }
+
+    public function setProgression(?UserProgression $progression): static
+    {
+        $this->progression = $progression;
+
+        return $this;
+    }
+
+    public function getStats(): ?UserStat
+    {
+        return $this->stats;
+    }
+
+    public function setStats(?UserStat $stats): static
+    {
+        $this->stats = $stats;
+
+        return $this;
+    }
+
     public function addSpicyMatch(SpicyMatch $spicyMatch): static
     {
         if (! $this->spicyMatches->contains($spicyMatch)) {
@@ -210,9 +275,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeSpicyMatch(SpicyMatch $spicyMatch): static
     {
         // set the owning side to null (unless already changed)
-        if ($this->spicyMatches->removeElement(
-            $spicyMatch
-        ) && $spicyMatch->getUserId() === $this) {
+        if ($this->spicyMatches->removeElement($spicyMatch) && $spicyMatch->getUserId() === $this) {
             $spicyMatch->setUserId(null);
         }
 

@@ -1,13 +1,21 @@
-<div class="container">
-    <div class="alert alert-{{ type }} w-75 text-center">
+{% set styles = {
+    'success': 'bg-green-100 border-green-400 text-green-700',
+    'error':   'bg-red-100 border-red-400 text-red-700',
+    'warning': 'bg-turmeric-300/20 border-turmeric-400 text-turmeric-600',
+    'info':    'bg-blue-100 border-blue-400 text-blue-700',
+} %}
+<div class="max-w-7xl mx-auto px-4 py-3">
+    <div role="alert" aria-live="assertive"
+         class="{{ styles[type]|default('bg-stone-100 border-stone-400 text-stone-700') }} border px-4 py-3 rounded-lg w-3/4 mx-auto text-center text-sm font-medium">
         {{ this.message }}
     </div>
 </div>
 
-{# 
+{#
     Pour l'utiliser dans twig :
         {{ component('Alert', {
             type: 'success',
             message: 'L\'envoi du message s\'est bien passé'
-        }) }} 
+        }) }}
+    Types disponibles : success, error, warning, info
 #}

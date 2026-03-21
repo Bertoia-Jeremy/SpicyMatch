@@ -16,9 +16,11 @@ return [
         'path' => './assets/app.js',
         'entrypoint' => true,
     ],
-    'alpine' => [
-        'path' => './assets/alpine.js',
-        'entrypoint' => false,
+    'bootstrap' => [
+        'path' => './assets/bootstrap.js',
+    ],
+    'haptics' => [
+        'path' => './assets/haptics.js',
     ],
     '@hotwired/stimulus' => [
         'version' => '3.2.2',
@@ -31,5 +33,17 @@ return [
     ],
     '@symfony/ux-live-component' => [
         'path' => './vendor/symfony/ux-live-component/assets/dist/live_controller.js',
+    ],
+    'alpinejs' => [
+        'version' => '3.14.9',
+    ],
+    'web-haptics' => [
+        'path' => './assets/vendor/web-haptics.js',
+    ],
+    'embla-carousel' => [
+        'version' => '8.6.0',
+    ],
+    'chart.js' => [
+        'version' => '3.9.1',
     ],
 ];

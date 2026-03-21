@@ -30,41 +30,31 @@ class AromaticCompound
     #[ORM\Column(name: 'informations', type: 'text', nullable: true)]
     private ?string $informations = null;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime')]
+    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     private ?\DateTimeInterface $created_at = null;
 
-    #[ORM\Column(name: 'updated_at', type: 'datetime')]
+    #[ORM\Column(name: 'updated_at', type: 'datetime_immutable')]
     private ?\DateTimeInterface $updated_at = null;
 
-    #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
+    #[ORM\Column(name: 'deleted_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
 
     /**
      * @var Collection<int, Spices>
      */
-    #[ORM\ManyToMany(
-        targetEntity: Spices::class,
-        mappedBy: 'aromaticsCompounds'
-    )]
+    #[ORM\ManyToMany(targetEntity: Spices::class, mappedBy: 'aromaticsCompounds')]
     private Collection $spices;
 
     /**
      * @var Collection<int, AlchemyFlavors>
      */
-    #[ORM\ManyToMany(
-        targetEntity: AlchemyFlavors::class,
-        inversedBy: 'aromaticsCompounds'
-    )]
+    #[ORM\ManyToMany(targetEntity: AlchemyFlavors::class, inversedBy: 'aromaticsCompounds')]
     private Collection $alchemyFlavors;
 
     /**
      * @var Collection<int, Spices>
      */
-    #[ORM\ManyToMany(
-        targetEntity: Spices::class,
-        mappedBy: 'secondary_aromatics_compounds'
-    )]
-    #[ORM\JoinTable(name: 'secondary_spices_aromatic_compound')]
+    #[ORM\ManyToMany(targetEntity: Spices::class, mappedBy: 'secondary_aromatics_compounds')]
     private Collection $secondary_spices;
 
     public function __construct()

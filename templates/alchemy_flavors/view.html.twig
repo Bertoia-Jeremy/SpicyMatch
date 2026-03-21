@@ -1,25 +1,80 @@
 {% extends 'base.html.twig' %}
-{% block title %}Saveurs - Présentation{% endblock %}
+
+{% block title %}{{ alchemyFlavor.name }} — SpicyMatch{% endblock %}
 
 {% block body %}
-    <div class="container">
+{% import 'macros/buttons.html.twig' as buttons %}
 
-        {# Centré -> Nom - Groupe épice + photo #}
-        <div class="row my-3">
-            <div class="d-flex justify-content-between">
-                <div class="col-lg-6 d-flex flex-column justify-content-center align-items-center px-2">
-                    <h2>{{ alchemyFlavor.name }}</h2>
-                    <p class="text-justify">{{ alchemyFlavor.description }}</p>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <nav class="mb-8">
+        <a href="{{ path('index_alchemy_flavors') }}" class="text-stone-500 hover:text-saffron-700 text-sm flex items-center gap-2 transition-colors">
+            <i class="fa-solid fa-arrow-left text-xs"></i>
+            Retour aux saveurs
+        </a>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div class="lg:col-span-2 space-y-8">
+            <header>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-turmeric-100 text-turmeric-700 text-xs font-bold uppercase tracking-wider mb-4">
+                    <i class="fa-solid fa-flask-vial"></i> Saveur d'Alchimie
                 </div>
-            </div>
+                <h1 class="text-5xl font-display font-bold text-stone-900">{{ alchemyFlavor.name }}</h1>
+            </header>
+
+            <section class="card-warm p-8">
+                <h2 class="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-turmeric-500"></i> Profil gustatif
+                </h2>
+                <div class="text-stone-600 leading-relaxed space-y-4">
+                    {{ alchemyFlavor.description|default('Aucun profil détaillé disponible.')|nl2br }}
+                </div>
+            </section>
+
+            {% if alchemyFlavor.cooking %}
+                <section class="card-warm p-8">
+                    <h2 class="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-mortar-pestle text-turmeric-500"></i> Accords culinaires
+                    </h2>
+                    <div class="text-stone-600 leading-relaxed">
+                        {{ alchemyFlavor.cooking|nl2br }}
+                    </div>
+                </section>
+            {% endif %}
+
+            {% if alchemyFlavor.informations %}
+                <section class="card-warm p-8">
+                    <h2 class="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-flask text-turmeric-500"></i> Note scientifique
+                    </h2>
+                    <div class="text-stone-600 leading-relaxed">
+                        {{ alchemyFlavor.informations|nl2br }}
+                    </div>
+                </section>
+            {% endif %}
         </div>
 
-        <div class="row my-2">
-        {# Revoir les conseils cuisine, sur qui pour ensuite faire une meilleure présentation #}
-            <h3>Conseils cuisine</h3>
-            <p>{{ alchemyFlavor.cooking }}</p>
-            <p>{{ alchemyFlavor.informations }}</p>
+        <div class="space-y-8">
+            <section>
+                <h3 class="text-xl font-bold text-stone-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-atom text-saffron-600"></i> Composés associés
+                </h3>
+                
+                {% if alchemyFlavor.aromaticsCompounds is not empty %}
+                    <div class="grid grid-cols-1 gap-3">
+                        {% for compound in alchemyFlavor.aromaticsCompounds %}
+                            <a href="{{ path('view_aromatic_compound', {id: compound.id}) }}" 
+                               class="flex items-center justify-between p-4 bg-white border border-stone-200 rounded-xl hover:border-saffron-400 hover:shadow-md transition-all group">
+                                <span class="font-semibold text-stone-700 group-hover:text-saffron-700">{{ compound.name }}</span>
+                                <i class="fa-solid fa-chevron-right text-stone-300 text-xs group-hover:text-saffron-500 transition-colors"></i>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-stone-400 italic">Aucun composé lié.</p>
+                {% endif %}
+            </section>
         </div>
     </div>
+</div>
 {% endblock %}
-

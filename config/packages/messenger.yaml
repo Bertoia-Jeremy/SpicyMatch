@@ -19,9 +19,11 @@ framework:
             Symfony\Component\Mailer\Messenger\SendEmailMessage: async
             Symfony\Component\Notifier\Message\ChatMessage: async
             Symfony\Component\Notifier\Message\SmsMessage: async
-
-            # Route your messages to the transports
-            # 'App\Message\YourMessage': async
+            App\Message\MatchSavedEvent: async
+            App\Message\FavoriteToggledEvent: async
+            App\Message\SpiceReadEvent: async
+            App\Message\GameCompletedEvent: async
+            # App\Message\EasterEggFoundEvent: sync # Default is sync
 
 # when@test:
 #    framework:

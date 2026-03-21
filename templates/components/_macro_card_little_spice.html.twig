@@ -1,22 +1,43 @@
 {% macro cardLittleSpice(spice, littleCard) %}
 
 {% if littleCard == true %}
-    {% set className = "little-card-80h" %}
+    {# Conservez vos classes de hauteur personnalisées si elles ne sont pas directement remplaçables par h-XX de Tailwind #}
+    {# ou définissez-les dans la section 'theme.extend.height' de tailwind.config.js #}
+    {% set cardHeightClass = "h-20" %} {# Exemple: Tailwind h-20 (80px) #}
 {% else %}
-    {% set className = "little-card-180h" %}
+    {% set cardHeightClass = "h-44" %} {# Exemple: Tailwind h-44 (176px, proche de 180px) #}
 {% endif %}
 
-{% if spice.color is defined %}
-    {% set color = spice.color %}
+{% if spice.color is defined and spice.color is not null %}
+    {% set spiceHexColor = spice.color %}
+{% elseif spice.aromaticGroups is defined and spice.aromaticGroups.color is defined and spice.aromaticGroups.color is not null %}
+    {% set spiceHexColor = spice.aromaticGroups.color %}
 {% else %}
-    {% set color = spice.aromaticGroups.color %}
+    {% set spiceHexColor = '#CCCCCC' %} {# Une couleur par défaut si aucune n'est trouvée #}
 {% endif %}
 
-<div class="little-card-wrap">
-    <div class="{{ className }} bg-dark shadow-{{ color |trim('#')|upper}}">
-        <div class="card-bg rounded" style="background-image: url({{  vich_uploader_asset(spice, 'imageFile', 'App\\Entity\\Spices')}})"></div>
-        <div class="text-color-white d-flex justify-content-center align-items-end h-100 py-2">
-            <h3 class="mb-0">{{ spice.name }}</h3>
+{# Assurer que spiceHexColor est une chaîne et commence par # #}
+{% if not spiceHexColor starts with '#' %}
+    {% set spiceHexColor = '#CCCCCC' %} {# Fallback si la couleur n'est pas au bon format #}
+{% endif %}
+
+<div class="little-card-wrap m-2.5 transform perspective-800 preserve-3d cursor-pointer">
+    {# bg-neutral-800 est un gris foncé. Ajustez selon vos préférences. #}
+    {# Pour l'ombre dynamique, nous utilisons les valeurs arbitraires de Tailwind. #}
+    {# Note: la syntaxe `shadow-[...]` est sensible. Assurez-vous que spiceHexColor est bien un hex valide. #}
+    <div class="{{ cardHeightClass }} bg-neutral-800 rounded-lg shadow-[5px_5px_5px_0_{{ spiceHexColor }},inset_0_0_0_5px_{{ spiceHexColor }},inset_0_0_0_6px_{{ spiceHexColor }}] relative overflow-hidden">
+        {% set littleSpiceImg = vich_uploader_asset(spice, 'imageFile', 'App\\Entity\\Spices') %}
+        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-50 transition-opacity duration-1000 ease-out pointer-events-none rounded-lg" style="background-image: url({{ littleSpiceImg ?: 'https://loremflickr.com/300/180/spice' }})"></div>
+        <div class="text-white flex justify-center items-end h-full p-2 relative z-10">
+            {# Ajustez la taille du texte et la graisse selon vos besoins, ex: text-lg font-semibold #}
+            {% set nameLength = spice.name|length %}
+            {% set textSizeClass = 'text-base' %}
+            {% if nameLength > 15 %}
+                {% set textSizeClass = 'text-sm' %}
+            {% elseif nameLength < 8 %}
+                {% set textSizeClass = 'text-lg' %}
+            {% endif %}
+            <h3 class="mb-0 {{ textSizeClass }} font-medium">{{ spice.name }}</h3>
         </div>
     </div>
 </div>

@@ -1,32 +1,126 @@
-<div class="container pt-0">
-    <form action="" class="form-control rounded w-100 d-flex flex-wrap justify-content-evenly align-items-center">
-        <div class="col m-2">
-            <select class="form-select" name="sr_overstats" id="aromaticGroupMatch">
-                <option value="null" selected>Filtrer par groupe aromatique</option>
-                <option value="id1">Les terpènes chauds</option>
-                <option value="id2">Les aldéhydes fruités</option>
-            </select>
+{#
+  Filtres du catalogue épices.
+  Variables attendues : aromaticGroups, spicyTypes, activeAgId, activeStId, activeSearch
+  Soumission via form GET → Turbo Frame #spices_frame_id.
+#}
+{% import 'macros/filters.html.twig' as filters %}
+
+{% set activeAgId = activeAgId|default(null) %}
+{% set activeStId = activeStId|default(null) %}
+{% set activeSearch = activeSearch|default('') %}
+{% set aromaticGroups = aromaticGroups|default([]) %}
+{% set spicyTypes = spicyTypes|default([]) %}
+{% set activeCount = (activeAgId ? 1 : 0) + (activeStId ? 1 : 0) + (activeSearch ? 1 : 0) %}
+
+<div x-data="{
+    activeCount: {{ activeCount }},
+    submitForm() {
+        this.$refs.filterForm.requestSubmit();
+    },
+    resetForm() {
+        this.$refs.filterForm.querySelectorAll('input[type=radio], input[type=checkbox]').forEach(i => i.checked = false);
+        this.$refs.filterForm.querySelectorAll('select').forEach(s => s.value = '');
+        this.activeCount = 0;
+        this.$refs.filterForm.requestSubmit();
+    }
+}" class="mb-8">
+
+    <form
+        x-ref="filterForm"
+        method="GET"
+        action="{{ path('index_spices') }}"
+        data-turbo-frame="spices_frame_id"
+        class="flex flex-wrap items-end gap-6 sm:gap-10">
+
+        {# Filtre Groupe Aromatique #}
+        {% set aromatic_content %}
+            <div class="flex flex-col gap-2">
+                {% for group in aromaticGroups %}
+                    <label class="flex items-center gap-3 cursor-pointer group/item">
+                        <input type="radio"
+                               name="aromatic_group"
+                               value="{{ group.id }}"
+                               {{ activeAgId == group.id ? 'checked' : '' }}
+                               @change="activeCount = Array.from($refs.filterForm.querySelectorAll('input[type=radio]:checked')).length; submitForm()"
+                               class="size-4 border-stone-300 text-saffron-600 focus:ring-saffron-600/20 cursor-pointer">
+                        <span class="text-sm font-medium text-stone-700 group-hover/item:text-saffron-700 transition-colors">
+                            {{ group.name }}
+                        </span>
+                    </label>
+                {% endfor %}
+            </div>
+        {% endset %}
+        {{ filters.filter_dropdown('Groupe Aromatique', aromatic_content, {
+            count: activeAgId ? 1 : 0,
+            reset_click: 'resetForm()'
+        }) }}
+
+        {# Filtre Type d'Épice #}
+        {% set spicy_content %}
+            <div class="flex flex-col gap-2">
+                {% for type in spicyTypes %}
+                    <label class="flex items-center gap-3 cursor-pointer group/item">
+                        <input type="radio"
+                               name="spicy_type"
+                               value="{{ type.id }}"
+                               {{ activeStId == type.id ? 'checked' : '' }}
+                               @change="activeCount = Array.from($refs.filterForm.querySelectorAll('input[type=radio]:checked')).length; submitForm()"
+                               class="size-4 border-stone-300 text-saffron-600 focus:ring-saffron-600/20 cursor-pointer">
+                        <span class="text-sm font-medium text-stone-700 group-hover/item:text-saffron-700 transition-colors">
+                            {{ type.name }}
+                        </span>
+                    </label>
+                {% endfor %}
+            </div>
+        {% endset %}
+        {{ filters.filter_dropdown("Type d'Épice", spicy_content, {
+            count: activeStId ? 1 : 0,
+            reset_click: 'resetForm()'
+        }) }}
+
+        {# Barre de recherche texte #}
+        <div class="relative flex-1 min-w-45">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs pointer-events-none"></i>
+            <input
+                type="text"
+                name="search"
+                value="{{ activeSearch }}"
+                placeholder="Rechercher…"
+                autocomplete="off"
+                @input.debounce.200ms="activeCount = ($event.target.value ? 1 : 0) + Array.from($refs.filterForm.querySelectorAll('input[type=radio]:checked')).length; submitForm()"
+                class="w-full pl-8 pr-3 py-2 bg-white border border-spice-border rounded-xl text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-saffron-600/30 focus:border-saffron-400 transition">
         </div>
-        <div class="col m-2">
-            <select class="form-select" name="sr_overstats" id="aromaticGroupMatch">
-                <option value="null" selected>Filtrer par composé aromatique</option>
-                <option value="id1">Les terpènes chauds</option>
-                <option value="id2">Les aldéhydes fruités</option>
-            </select>
-        </div>
-        <div class="col m-2">
-            <select class="form-select" name="sr_overstats" id="aromaticGroupMatch">
-                <option value="null" selected>Filtrer par type d'épice</option>
-                <option value="id1">Les terpènes chauds</option>
-                <option value="id2">Les aldéhydes fruités</option>
-            </select>
-        </div>
-        <div class="col m-2">
-            <select class="form-select" name="sr_overstats" id="aromaticGroupMatch">
-                <option value="null" selected>Filtrer par saveur</option>
-                <option value="id1">Les terpènes chauds</option>
-                <option value="id2">Les aldéhydes fruités</option>
-            </select>
-        </div>
+
+        <button
+            type="button"
+            x-show="activeCount > 0"
+            @click="resetForm()"
+            class="pb-1.5 text-xs font-bold uppercase tracking-widest text-stone-400 hover:text-paprika-700 transition-colors">
+            Effacer tout
+        </button>
     </form>
+
+    {# Chips filtres actifs ... (inchangé) #}
+    {% if activeAgId or activeStId %}
+        <div class="flex flex-wrap gap-2 mt-6">
+            {% if activeAgId %}
+                {% for group in aromaticGroups %}{% if group.id == activeAgId %}
+                    <a href="{{ path('index_spices', activeStId ? { spicy_type: activeStId } : {}) }}"
+                       class="inline-flex items-center gap-1.5 bg-saffron-50/50 border border-saffron-200 text-saffron-800 text-xs font-semibold px-3 py-1.5 rounded-full hover:bg-saffron-100 transition-colors">
+                        <span class="text-stone-400 font-normal">Groupe :</span> {{ group.name }}
+                        <i class="fa-solid fa-xmark ml-1 text-[10px] text-saffron-400"></i>
+                    </a>
+                {% endif %}{% endfor %}
+            {% endif %}
+            {% if activeStId %}
+                {% for type in spicyTypes %}{% if type.id == activeStId %}
+                    <a href="{{ path('index_spices', activeAgId ? { aromatic_group: activeAgId } : {}) }}"
+                       class="inline-flex items-center gap-1.5 bg-saffron-50/50 border border-saffron-200 text-saffron-800 text-xs font-semibold px-3 py-1.5 rounded-full hover:bg-saffron-100 transition-colors">
+                        <span class="text-stone-400 font-normal">Type :</span> {{ type.name }}
+                        <i class="fa-solid fa-xmark ml-1 text-[10px] text-saffron-400"></i>
+                    </a>
+                {% endif %}{% endfor %}
+            {% endif %}
+        </div>
+    {% endif %}
 </div>

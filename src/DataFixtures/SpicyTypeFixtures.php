@@ -10,19 +10,48 @@ use Doctrine\Persistence\ObjectManager;
 
 class SpicyTypeFixtures extends Fixture
 {
+    /**
+     * @var array<string, array{name: string, description: string}>
+     */
+    private const TYPES = [
+        'graine' => [
+            'name' => 'Graine',
+            'description' => 'Épices issues de graines séchées (poivre, cumin, coriandre, cardamome…).',
+        ],
+        'poudre' => [
+            'name' => 'Poudre',
+            'description' => 'Épices réduites en poudre fine, souvent issues de baies ou de rhizomes séchés.',
+        ],
+        'rhizome' => [
+            'name' => 'Rhizome / Racine',
+            'description' => 'Épices issues de rhizomes ou racines souterrains (gingembre, curcuma, galanga…).',
+        ],
+        'ecorce' => [
+            'name' => 'Écorce / Bâton',
+            'description' => 'Épices obtenues par séchage d\'écorce aromatique (cannelle, cassia…).',
+        ],
+        'feuille' => [
+            'name' => 'Feuille / Herbe',
+            'description' => 'Épices et herbes aromatiques issues de feuilles séchées (laurier, thym, origan…).',
+        ],
+        'fleur' => [
+            'name' => 'Fleur / Stigmate',
+            'description' => 'Épices récoltées sur des fleurs ou leurs parties (safran, clou de girofle, câpre…).',
+        ],
+    ];
+
     public function load(ObjectManager $manager): void
     {
-        // copy("/home/jbertoia/Images/tige.jpeg", "/home/jbertoia/Images/tige_$i.jpeg");
+        $now = new \DateTimeImmutable('now');
 
-        for ($i = 0; $i < 6; ++$i) {
+        foreach (self::TYPES as $key => $data) {
             $entity = new SpicyType();
-            $entity->setName('spicy_type_' . $i)
-                ->setCreatedAt(new \DateTime('now'))
-                ->setUpdatedAt(new \DateTime('now'))
-            // ->setImageFile(new UploadedFile("/home/jbertoia/Images/tige_$i.jpeg", 'testTige.jpeg',
-            //    null, null, true))
-            ;
-            $this->addReference($i . 'spicyType', $entity);
+            $entity->setName($data['name'])
+                ->setDescription($data['description'])
+                ->setCreatedAt($now)
+                ->setUpdatedAt($now);
+
+            $this->addReference('spicyType_' . $key, $entity);
             $manager->persist($entity);
         }
 

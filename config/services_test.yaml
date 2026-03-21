@@ -1,0 +1,10 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\Service\CompatibilityScoreService:
+        public: true
+
+    App\Service\SpiceGroupFinderService:
+        public: true

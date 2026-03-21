@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\SpicyMatchRepository;
-use Doctrine\DBAL\Types\Types;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SpicyMatchRepository::class)]
@@ -16,96 +19,185 @@ class SpicyMatch
 
     #[ORM\ManyToOne(inversedBy: 'spicyMatches')]
     #[ORM\JoinColumn(nullable: false, name: 'user_id')]
-    private ?Users $user_id = null;
+    private ?Users $user = null;
 
-    #[ORM\Column(type: Types::TEXT)]
-    private string $spices_ids = '';
+    /**
+     * @var Collection<int, Spices>
+     */
+    #[ORM\ManyToMany(targetEntity: Spices::class)]
+    #[ORM\JoinTable(name: 'spicy_match_spices')]
+    private Collection $spices;
+
+    /**
+     * @var Collection<int, SpicyMatchResult>
+     */
+    #[ORM\OneToMany(mappedBy: 'spicyMatch', targetEntity: SpicyMatchResult::class, cascade: [
+        'persist',
+        'remove',
+    ], orphanRemoval: true)]
+    private Collection $results;
+
+    /**
+     * @var Collection<int, SpicyMatchHistory>
+     */
+    #[ORM\OneToMany(mappedBy: 'spicyMatch', targetEntity: SpicyMatchHistory::class, cascade: [
+        'remove',
+    ], orphanRemoval: true)]
+    private Collection $spicyMatchHistories;
+
+    #[ORM\Column]
+    private \DateTimeImmutable $createdAt;
+
+    #[ORM\Column]
+    private \DateTimeImmutable $updatedAt;
 
     #[ORM\Column(nullable: true)]
-    private ?int $nb_spice = null;
+    private ?\DateTimeImmutable $deletedAt = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $created_at = null;
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isManual = false;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $updated_at = null;
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $deleted_at = null;
+    public function __construct()
+    {
+        $this->spices = new ArrayCollection();
+        $this->results = new ArrayCollection();
+        $this->spicyMatchHistories = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
+    public function getUser(): ?Users
+    {
+        return $this->user;
+    }
+
+    public function setUser(?Users $user): static
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
+    /**
+     * @deprecated Use getUser()
+     */
     public function getUserId(): ?Users
     {
-        return $this->user_id;
+        return $this->user;
     }
 
-    public function setUserId(?Users $user_id): static
+    /**
+     * @deprecated Use setUser()
+     */
+    public function setUserId(?Users $user): static
     {
-        $this->user_id = $user_id;
+        return $this->setUser($user);
+    }
+
+    /**
+     * @return Collection<int, Spices>
+     */
+    public function getSpices(): Collection
+    {
+        return $this->spices;
+    }
+
+    public function addSpice(Spices $spice): static
+    {
+        if (! $this->spices->contains($spice)) {
+            $this->spices->add($spice);
+        }
 
         return $this;
     }
 
-    public function getSpicesIds(): string
+    public function removeSpice(Spices $spice): static
     {
-        return $this->spices_ids;
-    }
-
-    public function setSpicesIds(string $spices_ids): static
-    {
-        $this->spices_ids = $spices_ids;
+        $this->spices->removeElement($spice);
 
         return $this;
     }
 
-    public function getNbSpice(): ?int
+    public function getSpiceCount(): int
     {
-        return $this->nb_spice;
+        return $this->spices->count();
     }
 
-    public function setNbSpice(?int $nb_spice): static
+    /**
+     * @return Collection<int, SpicyMatchResult>
+     */
+    public function getResults(): Collection
     {
-        $this->nb_spice = $nb_spice;
+        return $this->results;
+    }
+
+    public function addResult(SpicyMatchResult $result): static
+    {
+        if (! $this->results->contains($result)) {
+            $this->results->add($result);
+            $result->setSpicyMatch($this);
+        }
 
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
+    /**
+     * @return Collection<int, SpicyMatchHistory>
+     */
+    public function getSpicyMatchHistories(): Collection
     {
-        return $this->created_at;
+        return $this->spicyMatchHistories;
     }
 
-    public function setCreatedAt(\DateTimeInterface $created_at): static
+    public function getCreatedAt(): \DateTimeImmutable
     {
-        $this->created_at = $created_at;
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
 
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeInterface
+    public function getUpdatedAt(): \DateTimeImmutable
     {
-        return $this->updated_at;
+        return $this->updatedAt;
     }
 
-    public function setUpdatedAt(\DateTimeInterface $updated_at): static
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     {
-        $this->updated_at = $updated_at;
+        $this->updatedAt = $updatedAt;
 
         return $this;
     }
 
-    public function getDeletedAt(): ?\DateTimeInterface
+    public function getDeletedAt(): ?\DateTimeImmutable
     {
-        return $this->deleted_at;
+        return $this->deletedAt;
     }
 
-    public function setDeletedAt(?\DateTimeInterface $deleted_at): static
+    public function setDeletedAt(?\DateTimeImmutable $deletedAt): static
     {
-        $this->deleted_at = $deleted_at;
+        $this->deletedAt = $deletedAt;
+
+        return $this;
+    }
+
+    public function isManual(): bool
+    {
+        return $this->isManual;
+    }
+
+    public function setIsManual(bool $isManual): static
+    {
+        $this->isManual = $isManual;
 
         return $this;
     }

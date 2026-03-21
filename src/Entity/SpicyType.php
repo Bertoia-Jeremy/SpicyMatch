@@ -30,22 +30,19 @@ class SpicyType
     #[ORM\Column(name: 'informations', type: 'text', nullable: true)]
     private ?string $informations = null;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime')]
+    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     private ?\DateTimeInterface $created_at = null;
 
-    #[ORM\Column(name: 'updated_at', type: 'datetime')]
+    #[ORM\Column(name: 'updated_at', type: 'datetime_immutable')]
     private ?\DateTimeInterface $updated_at = null;
 
-    #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
+    #[ORM\Column(name: 'deleted_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
 
     /**
      * @var Collection<int, Spices>
      */
-    #[ORM\OneToMany(
-        targetEntity: Spices::class,
-        mappedBy: 'spicyType'
-    )]
+    #[ORM\OneToMany(targetEntity: Spices::class, mappedBy: 'spicyType')]
     private Collection $spices;
 
     public function __construct()
@@ -163,9 +160,7 @@ class SpicyType
     public function removeSpice(Spices $spice): self
     {
         // set the owning side to null (unless already changed)
-        if ($this->spices->removeElement(
-            $spice
-        ) && $spice->getSpicyType() === $this) {
+        if ($this->spices->removeElement($spice) && $spice->getSpicyType() === $this) {
             $spice->setSpicyType(null);
         }
 

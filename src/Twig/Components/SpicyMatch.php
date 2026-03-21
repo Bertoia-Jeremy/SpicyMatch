@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Twig\Components;
 
+use App\Entity\Spices;
 use App\Factory\SpicyMatchFactory;
+use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpicesRepository;
-use App\Service\SpiceMatchmakerService;
+use App\Repository\SpicyTypeRepository;
+use App\Service\CompatibilityScoreService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -22,9 +25,26 @@ class SpicyMatch extends AbstractController
     #[LiveProp(writable: true)]
     public array $spices;
 
+    #[LiveProp(writable: true)]
+    public ?string $selectedAromaticGroup = null;
+
+    #[LiveProp(writable: true)]
+    public string $search = '';
+
+    #[LiveProp(writable: true)]
+    public string $filterAgId = '';
+
+    #[LiveProp(writable: true)]
+    public string $filterStId = '';
+
+    #[LiveProp(writable: true)]
+    public string $mode = 'auto';
+
     public function __construct(
-        private SpicesRepository $spicesRepository,
-        private SpiceMatchmakerService $spiceMatchmakerService
+        private readonly SpicesRepository $spicesRepository,
+        private readonly CompatibilityScoreService $compatibilityScoreService,
+        private readonly AromaticGroupsRepository $aromaticGroupsRepository,
+        private readonly SpicyTypeRepository $spicyTypeRepository,
     ) {
         $this->spices = [
             'selectedSpices' => [],
@@ -32,58 +52,160 @@ class SpicyMatch extends AbstractController
         ];
     }
 
+    public function getAromaticGroups(): array
+    {
+        return $this->aromaticGroupsRepository->findAll();
+    }
+
+    public function getSpicyTypes(): array
+    {
+        return $this->spicyTypeRepository->findAll();
+    }
+
     public function getResults(): array
     {
+        $selectedSpicesData = [];
+        $compatibleSpices = $this->spices['compatibleSpices'];
+
         if (! empty($this->spices['selectedSpices'])) {
-            $idsString = $this->spiceMatchmakerService->arrayToString($this->spices['selectedSpices']);
+            $ids = array_map('intval', $this->spices['selectedSpices']);
 
-            $selectedSpices = $this->spicesRepository->findSpicesForMatch($idsString);
-
-            foreach ($selectedSpices as $spice) {
-                $groupByAromaticGroup[$spice['groupName']][] = $spice;
+            // Flat arrays for display (grouped by aromatic group)
+            $selectedFlat = $this->spicesRepository->findSpicesForMatch(implode(',', $ids));
+            foreach ($selectedFlat as $spice) {
+                $selectedSpicesData[$spice['groupName']][] = $spice;
             }
 
-            $sharedAromaticsCompounds = $this->spiceMatchmakerService->getAllSharedAromaticsCompounds(
-                $this->spices['selectedSpices']
-            );
-            if ($sharedAromaticsCompounds) {
-                // Récupération de tous les ids des épices possédant ces composés aromatiques par ordre d'affinités aux composés
-                $idsCompatibleSpices = $this->spicesRepository->getByAromaticsCompounds(
-                    $sharedAromaticsCompounds['main'],
-                    $sharedAromaticsCompounds['secondary']
-                );
+            if ($this->mode === 'auto') {
+                // Load entities for scoring
+                $selectedEntities = $this->spicesRepository->findBy([
+                    'id' => $ids,
+                ]);
+                $scored = $this->compatibilityScoreService->findCompatible($selectedEntities);
 
-                $idsWithoutSelectedSpices = array_diff($idsCompatibleSpices, $this->spices['selectedSpices']);
-                $idsStringCompatibleSpices = implode(',', $idsWithoutSelectedSpices);
-
-                if ($idsStringCompatibleSpices === '') {
-                    $compatibleSpices = false;
-                } else {
-                    $compatibleSpices = $this->spicesRepository->findSpicesForMatch($idsStringCompatibleSpices);
-                }
+                // Filter out spices from the same aromatic groups as the selection
+                $selectedGroupNames = array_keys($selectedSpicesData);
+                $compatibleSpices = array_values(array_filter(
+                    $scored,
+                    fn (array $s) => ! in_array($s['groupName'], $selectedGroupNames, true)
+                ));
+            } else {
+                // Manual mode: show all spices except already selected, no scoring
+                $selectedGroupNames = array_keys($selectedSpicesData);
+                $compatibleSpices = array_values(array_filter(
+                    $compatibleSpices,
+                    fn (array $s) => ! in_array($s['groupName'], $selectedGroupNames, true)
+                        && ! in_array($s['id'], $ids, true)
+                ));
             }
         }
 
-        if (! isset($compatibleSpices)) {
-            $compatibleSpices = $this->spices['compatibleSpices'];
+        if ($this->selectedAromaticGroup !== null) {
+            usort($compatibleSpices, function (array $a, array $b) {
+                $groupA = $a['groupName'] === $this->selectedAromaticGroup ? 0 : 1;
+                $groupB = $b['groupName'] === $this->selectedAromaticGroup ? 0 : 1;
+
+                return $groupA <=> $groupB;
+            });
+        }
+
+        if ($this->filterAgId !== '') {
+            $agId = (int) $this->filterAgId;
+            $compatibleSpices = array_values(array_filter(
+                $compatibleSpices,
+                fn (array $s) => ($s['agId'] ?? null) === $agId
+            ));
+        }
+
+        if ($this->filterStId !== '') {
+            $stId = (int) $this->filterStId;
+            $compatibleSpices = array_values(array_filter(
+                $compatibleSpices,
+                fn (array $s) => ($s['stId'] ?? null) === $stId
+            ));
+        }
+
+        if ($this->search !== '') {
+            $needle = mb_strtolower($this->search);
+            $compatibleSpices = array_values(array_filter(
+                $compatibleSpices,
+                fn (array $s) => str_starts_with(mb_strtolower($s['name']), $needle)
+            ));
         }
 
         return [
-            'selectedSpices' => $groupByAromaticGroup ?? $this->spices['selectedSpices'],
+            'selectedSpices' => $selectedSpicesData,
             'compatibleSpices' => $compatibleSpices,
         ];
     }
 
     #[LiveAction]
+    public function resetFilters(): void
+    {
+        $this->filterAgId = '';
+        $this->filterStId = '';
+        $this->search = '';
+    }
+
+    #[LiveAction]
+    public function clearSearch(): void
+    {
+        $this->search = '';
+    }
+
+    #[LiveAction]
+    public function selectAromaticGroup(string $groupName): void
+    {
+        $this->selectedAromaticGroup = $groupName;
+    }
+
+    #[LiveAction]
+    public function addGroup(): void
+    {
+        $this->spices['selectedSpices'][] = [];
+    }
+
+    public function canAddMoreGroups(): bool
+    {
+        return ! empty($this->getResults()['compatibleSpices']);
+    }
+
+    #[LiveAction]
     public function nextStep(
         EntityManagerInterface $entityManager,
-        SpicyMatchFactory $spicyMatchFactory
+        SpicyMatchFactory $spicyMatchFactory,
     ): \Symfony\Component\HttpFoundation\RedirectResponse {
-        $spicyMatch = $spicyMatchFactory->create();
+        $isManual = $this->mode === 'manual';
 
-        $spicyMatch->setUserId($this->getUser())
-            ->setNbSpice(count($this->spices['selectedSpices']))
-            ->setSpicesIds($this->spiceMatchmakerService->arrayToString($this->spices['selectedSpices']));
+        $spicyMatch = $spicyMatchFactory->create();
+        $spicyMatch->setUser($this->getUser());
+        $spicyMatch->setIsManual($isManual);
+
+        // Extraction des IDs depuis la structure SpicyMatch (tableau plat d'IDs)
+        $selectedIds = array_map('intval', $this->spices['selectedSpices']);
+
+        foreach ($selectedIds as $spiceId) {
+            /** @var Spices|null $spice */
+            $spice = $this->spicesRepository->find($spiceId);
+            if ($spice) {
+                $spicyMatch->addSpice($spice);
+            }
+        }
+
+        // En mode auto, on sauvegarde les résultats scorés pour référence
+        // En mode manuel, pas de score de compatibilité → on skip les results
+        if (! $isManual) {
+            $results = $this->getResults();
+            foreach ($results['compatibleSpices'] as $compatibleData) {
+                $spice = $this->spicesRepository->find($compatibleData['id']);
+                if ($spice) {
+                    $result = new \App\Entity\SpicyMatchResult();
+                    $result->setSpice($spice);
+                    $result->setScore((int) $compatibleData['score']);
+                    $spicyMatch->addResult($result);
+                }
+            }
+        }
 
         $entityManager->persist($spicyMatch);
         $entityManager->flush();

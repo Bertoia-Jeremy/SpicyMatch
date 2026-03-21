@@ -1,68 +1,151 @@
 {% extends 'base.html.twig' %}
+{% import 'macros/buttons.html.twig' as buttons %}
 {% import "components/_macro_modal_preparation_method.html.twig" as macroModalPreparationMethod %}
 {% import "components/_macro_card_cooking_view_match.html.twig" as macroCooking %}
 {% import "components/_macro_card_preparation_view_match.html.twig" as macroPreparation %}
 
-{% block title %}SpicyMatch{% endblock %}
+{% block title %}Finalisation du mélange — SpicyMatch{% endblock %}
 
 {% block body %}
-    <div class="container-fluid">
-        <div class="container justify-content-center">
-            <h2>Finalisation du mélange :</h2>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
+         x-data="{
+             spiceStatus: {},
+             nextOpenId: null,
+             spiceIds: [{{ spices|map(s => s.id)|join(', ') }}],
+             totalSpices: {{ spices|length }},
+             isReady(id) {
+                 const s = this.spiceStatus[id];
+                 return !!(s && s.prep && s.cooking);
+             },
+             get readyCount() {
+                 return Object.values(this.spiceStatus).filter(s => s && s.prep && s.cooking).length;
+             },
+             get allReady() {
+                 return this.readyCount >= this.totalSpices;
+             }
+         }"
+         @preparation-updated.window="
+             const id = $event.detail.spiceId;
+             const cur = spiceStatus[id] || { prep: false, cooking: false };
+             spiceStatus = { ...spiceStatus, [id]: { ...cur, prep: $event.detail.selected } }"
+         @cooking-confirmed.window="
+             const id = $event.detail.spiceId;
+             const sel = $event.detail.selected;
+             const cur = spiceStatus[id] || { prep: false, cooking: false };
+             spiceStatus = { ...spiceStatus, [id]: { ...cur, cooking: sel } };
+             if (sel) {
+                 const idx = spiceIds.indexOf(id);
+                 if (idx >= 0 && idx < spiceIds.length - 1) { nextOpenId = spiceIds[idx + 1]; }
+             }">
+        <div class="mb-6">
+            <a href="{{ path('index_spicy_match') }}" class="inline-flex items-center gap-1.5 text-stone-500 hover:text-saffron-700 text-sm transition-colors">
+                <i class="fa-solid fa-arrow-left text-[10px]"></i>Retour au Lab
+            </a>
+        </div>
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-stone-800">
+                <i class="fa-solid fa-flask text-saffron-600 mr-2"></i>Finalisation du mélange
+            </h1>
+            <p class="mt-2 text-stone-500">Choisissez les méthodes de préparation et les moments d'insertion pour chaque épice.</p>
         </div>
 
         {% for spice in spices %}
-            <div class="w-100 d-flex flex-column align-items-center justify-content-center">
-                <div class="w-75">
-                    <div>
-                        <h4 class="text-center" {{ stimulus_controller('hello') }}><u>{{ spice.name|upper }}</u></h4>
-                        <div class="d-flex justify-content-start align-items-center flex-wrap">
-                            <div class="row d-flex justify-content-center align-items-center p-2 my-2">
-                                <div class="d-flex flex-column my-2">
-                                    <h5>Sélectionner votre méthode de préparation :</h5>
-                                    <form 
-                                        {{ stimulus_controller('select-preparation', {
-                                            spicyMatchHistoryUrl: path('edit_spicy_match_history', {id: spicyMatchHistory.id}),
-                                            spiceId: spice.id
-                                        }) }}
-                                        class="d-flex justify-content-center align-items-stretch"
-                                    >
-                                        {% for preparationTip in spice.preparationTips %}
-                                            {{ macroPreparation.cardView(
-                                                preparationTip.title, 
-                                                preparationTip.advantages,
-                                                preparationTip.id
-                                            )}}
-                                        {% endfor %}
-                                        <input type="hidden" name="_token" value="{{ csrf_token('remove_item') }}" />
-                                    </form>
-                                </div>
-                                <div class="d-flex flex-column my-2">
-                                    <h5>Sélectionner le moment d'insertion de l'épice :</h5>
-                                    <form 
-                                        {{ stimulus_controller('select-cooking', {
-                                            spicyMatchHistoryUrl: path('edit_spicy_match_history', {id: spicyMatchHistory.id}),
-                                            spiceId: spice.id
-                                        }) }}
-                                        class="d-flex justify-content-center align-items-stretch"
-                                    >
-                                        {% set cookingTips = spice.cookingTips|sort((a, b) => a.step <=> b.step) %}
-                                        {% for cookingTip in cookingTips %}
-                                            {{ macroCooking.cardView(
-                                                cookingTip.cookingStep, 
-                                                cookingTip.advantages,
-                                                cookingTip.id
-                                            )}}
-                                        {% endfor %}  
-                                        <input type="hidden" name="_token" value="{{ csrf_token('remove_item') }}" />
-                                    </form>
-                                </div>
-                            </div>
+            <div class="flex flex-col items-center justify-center mb-4"
+                 x-data="{ open: {{ loop.first ? 'true' : 'false' }} }"
+                 @cooking-confirmed.window="if ($event.detail.spiceId == {{ spice.id }} && $event.detail.selected) open = false"
+                 x-effect="if (nextOpenId == {{ spice.id }}) { open = true; nextOpenId = null; $nextTick(() => requestAnimationFrame(() => $el.scrollIntoView({ behavior: 'smooth', block: 'start' }))); }">
+                <div class="w-full max-w-4xl">
+                    {# En-tête cliquable pour replier/déplier #}
+                    <button type="button"
+                            class="w-full flex items-center gap-3 mb-4 pb-3 border-b text-left group transition-colors duration-300"
+                            :class="isReady({{ spice.id }}) ? 'border-emerald-300' : 'border-spice-border'"
+                            @click="open = !open">
+                        {# Numéro ou checkmark #}
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300"
+                             :class="isReady({{ spice.id }})
+                                 ? 'bg-emerald-100 border border-emerald-400 text-emerald-600'
+                                 : 'bg-spice-surface border border-spice-border text-saffron-700'">
+                            <i x-show="isReady({{ spice.id }})" x-transition class="fa-solid fa-check text-sm"></i>
+                            <span x-show="!isReady({{ spice.id }})" class="text-xs font-bold">{{ loop.index }}</span>
+                        </div>
+                        <h2 class="font-display text-2xl font-bold flex-1 transition-colors duration-300"
+                            :class="isReady({{ spice.id }}) ? 'text-emerald-800' : 'text-stone-900'">
+                            {{ spice.name }}
+                        </h2>
+                        <span x-show="isReady({{ spice.id }})" x-transition
+                              class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                            Prête
+                        </span>
+                        <i class="fa-solid fa-chevron-down text-stone-400 transition-transform duration-200 group-hover:text-saffron-600"
+                           :class="open ? '' : '-rotate-180'"></i>
+                    </button>
+
+                    {# Volet collapsible #}
+                    <div x-show="open"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 -translate-y-2"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 -translate-y-2">
+
+                        <div class="mb-6">
+                            <h3 class="font-display text-lg font-semibold mb-3 text-stone-700">Méthode de préparation :</h3>
+                            <form
+                                {{ stimulus_controller('select-preparation', {
+                                    spicyMatchHistoryUrl: path('edit_spicy_match_history', {id: spicyMatchHistory.id}),
+                                    spiceId: spice.id
+                                }) }}
+                                class="flex flex-wrap justify-center -mx-2"
+                            >
+                                {% for preparationTip in spice.preparationTips %}
+                                    {{ macroPreparation.cardView(
+                                        preparationTip.title,
+                                        preparationTip.advantages,
+                                        preparationTip.id
+                                    )}}
+                                {% endfor %}
+                                <input type="hidden" name="_token" value="{{ csrf_token('history_edit_' ~ spicyMatchHistory.id) }}" />
+                            </form>
+                        </div>
+
+                        <div class="mb-6">
+                            <h3 class="font-display text-lg font-semibold mb-3 text-stone-700">Moment d'insertion :</h3>
+                            <form
+                                {{ stimulus_controller('select-cooking', {
+                                    spicyMatchHistoryUrl: path('edit_spicy_match_history', {id: spicyMatchHistory.id}),
+                                    spiceId: spice.id
+                                }) }}
+                                class="flex flex-wrap justify-center -mx-2"
+                            >
+                                {% set cookingTips = spice.cookingTips|sort((a, b) => a.step <=> b.step) %}
+                                {% for cookingTip in cookingTips %}
+                                    {{ macroCooking.cardView(
+                                        cookingTip.cookingStep,
+                                        cookingTip.advantages,
+                                        cookingTip.id
+                                    )}}
+                                {% endfor %}
+                                <input type="hidden" name="_token" value="{{ csrf_token('history_edit_' ~ spicyMatchHistory.id) }}" />
+                            </form>
                         </div>
                     </div>
                 </div>
-                <div class="w-75 border border-primary my-3 rounded" ></div>
+                <div class="w-full max-w-4xl border-t my-6 transition-colors duration-300"
+                     :class="isReady({{ spice.id }}) ? 'border-emerald-300' : 'border-spice-border'"></div>
             </div>
         {% endfor %}
+
+        <div class="flex flex-col items-center gap-2 mt-4 mb-8">
+            <a :href="allReady ? '{{ path('view_spicy_match_history', {id: spicyMatchHistory.id}) }}' : '#'"
+               :class="allReady ? '' : 'opacity-40 pointer-events-none cursor-not-allowed'"
+               class="btn-base btn-pill-primary inline-flex items-center justify-center font-bold text-center transition-all px-7 py-3 text-base gap-2.5">
+                <i class="fa-solid fa-book-open text-sm flex items-center justify-center shrink-0" aria-hidden="true"></i>
+                <span class="truncate" x-text="allReady ? 'Voir ma recette finale' : 'Finalise la préparation de chaque épice'"></span>
+            </a>
+            <p x-show="!allReady" class="text-stone-400 text-xs mt-1">
+                <span x-text="readyCount"></span> / {{ spices|length }} épice(s) prête(s)
+            </p>
+        </div>
     </div>
 {% endblock %}

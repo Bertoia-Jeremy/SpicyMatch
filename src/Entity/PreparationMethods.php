@@ -19,13 +19,13 @@ class PreparationMethods
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeInterface $created_at = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeInterface $updated_at = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
 
     /**
@@ -34,10 +34,7 @@ class PreparationMethods
     #[ORM\OneToMany(
         mappedBy: 'preparationMethod',
         targetEntity: PreparationTips::class,
-        cascade: [
-            'persist',
-            'remove',
-        ])]
+        cascade: ['persist', 'remove'])]
     private Collection $preparationTips;
 
     #[ORM\Column(type: Types::TEXT)]

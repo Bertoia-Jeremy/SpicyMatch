@@ -2,72 +2,191 @@
 {% import "components/_macro_card_little_spice.html.twig" as macroCardSpice %}
 {% import "components/_macro_modal_preparation_method.html.twig" as macroModalPreparationMethod %}
 
-{% block title %}SpicymatchHistory{% endblock %}
+{% block title %}Recette de mélange{% endblock %}
 
 {% block body %}
-    <div class="text-center my-4">
-        <h1>Recette des mélanges</h1>
-    </div>
-
-    <div class="container">
-        <div class="text-center">
-            <h3 class="mb-2"><u>Préparation des épices :</u></h3>
+    {% import 'macros/buttons.html.twig' as buttons %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="mb-6">
+            <a href="{{ path('profile_user') }}" class="inline-flex items-center gap-1.5 text-stone-500 hover:text-saffron-700 text-sm transition-colors">
+                <i class="fa-solid fa-arrow-left text-[10px]"></i>Retour au profil
+            </a>
+        </div>
+        <div class="text-center mb-10"
+             x-data="{
+                 editing: false,
+                 title: '{{ spicyMatchHistory.title ? spicyMatchHistory.title|e('js') : '' }}',
+                 favorite: {{ spicyMatchHistory.isFavorite ? 'true' : 'false' }},
+                 fallbackTitle: '{{ ('Recette du ' ~ spicyMatchHistory.createdAt|date('d/m/Y à H:i'))|e('js') }}',
+                 async saveTitle() {
+                     const t = this.title.trim();
+                     try {
+                         const res = await fetch('{{ path('rename_spicy_match_history', {id: spicyMatchHistory.id}) }}', {
+                             method: 'POST',
+                             headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                             body: JSON.stringify({ title: t, _token: '{{ csrf_token('history_action_' ~ spicyMatchHistory.id) }}' })
+                         });
+                         if (!res.ok) { console.error('Rename failed', res.status); return; }
+                         this.editing = false;
+                     } catch (e) { console.error('Rename error', e); }
+                 },
+                 async toggleFavorite() {
+                     try {
+                         const res = await fetch('{{ path('toggle_favorite_spicy_match_history', {id: spicyMatchHistory.id}) }}', {
+                             method: 'POST',
+                             headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-Token': '{{ csrf_token('history_action_' ~ spicyMatchHistory.id) }}' }
+                         });
+                         if (!res.ok) { console.error('Toggle failed', res.status); return; }
+                         const data = await res.json();
+                         this.favorite = data.favorite;
+                         window.dispatchEvent(new CustomEvent('toast', { detail: { message: data.favorite ? 'Ajouté aux favoris' : 'Supprimé des favoris', icon: data.favorite ? 'fa-solid fa-star' : 'fa-regular fa-star' } }));
+                     } catch (e) { console.error('Toggle error', e); }
+                 }
+             }">
+            <h1 class="text-4xl font-bold text-stone-800">
+                <i class="fa-solid fa-book-open text-saffron-700 mr-2"></i>
+                <span x-show="!editing"
+                      @dblclick="editing = true"
+                      class="cursor-pointer group"
+                      title="Double-cliquer pour renommer">
+                    <span x-text="title || fallbackTitle"></span>
+                    {% if spicyMatch.isManual %}
+                        <span class="inline-flex items-center gap-1 text-[13px] font-medium text-stone-500 bg-stone-100 border border-stone-200 px-2.5 py-1 rounded-full align-middle ml-2" title="Mélange créé manuellement — compatibilité non garantie">
+                            <i class="fa-solid fa-hand text-[10px]"></i>Manuel
+                        </span>
+                    {% endif %}
+                    <i class="fa-solid fa-pencil text-sm text-stone-300 group-hover:text-saffron-500 ml-2 transition-colors"></i>
+                </span>
+                <input x-show="editing" x-cloak
+                       type="text"
+                       x-model="title"
+                       @blur="saveTitle()"
+                       @keydown.enter="saveTitle()"
+                       @keydown.escape="editing = false"
+                       x-ref="titleInput"
+                       x-effect="if (editing) $nextTick(() => $refs.titleInput.focus())"
+                       class="bg-transparent border-b-2 border-saffron-500 text-stone-800 text-4xl font-bold text-center outline-none w-full max-w-lg"
+                       placeholder="Nom du mélange">
+            </h1>
+            <button type="button"
+                    @click="toggleFavorite()"
+                    class="mt-3 text-2xl transition-colors focus:outline-none"
+                    :class="favorite ? 'text-turmeric-500 hover:text-turmeric-400' : 'text-stone-300 hover:text-turmeric-400'"
+                    :title="favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'">
+                <i :class="favorite ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
+                <span class="text-sm font-medium" x-text="favorite ? 'Dans vos favoris' : 'Ajouter aux favoris'"></span>
+            </button>
         </div>
 
-        {% set preparationMethodsArray = [] %}
-        {% for preparation in preparations %}
-            <article class="d-flex flex-column w-100 bg-light shadow rounded my-3 p-3">
-                <h4 class="mb-1">{{ preparation.spice.name ~ ' - ' ~ preparation.title }}</h4>
-                <p class="text-muted mb-0">{{ preparation.spice.aromaticGroups.name }}</p>
-                <div class="w-25 pb-1 mb-2 rounded shadow-{{ preparation.spice.aromaticGroups.color |trim('#')|upper}}"></div>
-                <p>{{ preparation.text|nl2br }}</p>
-                <div class="align-self-end text-end w-50">
-                    {% if preparation.preparationMethod is not null %}
-                        {% set methodId = preparation.preparationMethod.id %}
-
-                        {% if preparationMethodsArray.methodId is not defined %}
-                            {% set preparationMethodsArray = preparationMethodsArray|merge([{ methodId: methodId }]) %}
-                            {% set createModal = true %}
-                        {% else %}
-                            {% set createModal = false %}
-                        {% endif %}
-
-                        {{ macroModalPreparationMethod.modal(
-                            methodId, 
-                            preparation.preparationMethod.name, 
-                            createModal
-                        )}}
-                    {% endif %}
-                </div>
-            </article>
-        {% endfor %}
-    </div>
-
-    <div class="text-center">
-        <h3>Moment d'insertion des épices :</h3>
-    </div>
-
-    <div class="d-flex justify-content-center align-items-stretch">
-        {% set stepsTitle = ["Avant", "Début", "Milieu", "Fin", "Après"] %}    
-
-        {% for step, cookings in cookingsByStep %}
-            <div class="border rounded d-flex flex-column justify-content-start align-items-center m-3 py-3 px-2 shadow">
-                <h4 class="h1 text-primary">{{ stepsTitle[step] }}</h4>
-                <div class="border border-primary w-100 mb-3"></div>
-                <div class="list-group list-group-flush bg-light rounded">
-                    <div class="d-flex flex-column justify-content-center align-items-center">
-                        {% for cooking in cookings %}
-                            {# TODO => utiliser le templates des cards pour le mélange des épices (photos + couleurs) #}
-                            <div class="m-2">
-                                <a class="text-decoration-none" href="{{ path('view_spice', {"id" : cooking.spice.id}) }}">
-                                    {{ macroCardSpice.cardLittleSpice(cooking.spice, true) }}
-                                </a>
-                            </div>
-                        {% endfor %}
-                    </div>
+        {% if spicyMatch.isManual %}
+            <div class="max-w-2xl mx-auto mb-8 bg-stone-50 border border-stone-200 rounded-xl p-4 flex items-start gap-3">
+                <i class="fa-solid fa-hand text-stone-400 text-lg mt-0.5 shrink-0"></i>
+                <div>
+                    <p class="text-sm font-semibold text-stone-700">Mélange manuel</p>
+                    <p class="text-xs text-stone-500 mt-0.5">Ce mélange a été composé librement, sans passer par l'algorithme de compatibilité. Les épices n'ont pas forcément de composés aromatiques en commun — le résultat peut être surprenant !</p>
                 </div>
             </div>
-        {% endfor %}
-        
-    </div>   
+        {% endif %}
+
+        {# Préparation des épices #}
+        <div class="mb-14">
+            <h2 class="text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-mortar-pestle text-saffron-600"></i>
+                Préparation des épices
+            </h2>
+
+            {% set preparationMethodsArray = [] %}
+            {% for preparation in preparations %}
+                <article class="bg-white border border-stone-200 rounded-xl shadow-sm p-5 mb-3">
+                    <h4 class="font-semibold text-stone-800 mb-1">{{ preparation.spice.name ~ ' — ' ~ preparation.title }}</h4>
+                    <p class="text-stone-500 text-sm mb-2">{{ preparation.spice.aromaticGroups.name }}</p>
+                    <div class="w-16 h-1 mb-3 rounded" style="background-color: {{ preparation.spice.aromaticGroups.color ?? '#C2410C' }}"></div>
+                    <p class="text-stone-700 text-sm leading-relaxed">{{ preparation.text|nl2br }}</p>
+                    <div class="mt-3 text-right">
+                        {% if preparation.preparationMethod is not null %}
+                            {% set methodId = preparation.preparationMethod.id %}
+                            {% if preparationMethodsArray.methodId is not defined %}
+                                {% set preparationMethodsArray = preparationMethodsArray|merge([{ methodId: methodId }]) %}
+                                {% set createModal = true %}
+                            {% else %}
+                                {% set createModal = false %}
+                            {% endif %}
+                            {{ macroModalPreparationMethod.modal(
+                                methodId,
+                                preparation.preparationMethod.name,
+                                createModal
+                            )}}
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+
+        {# Moments d'insertion #}
+        <div class="mb-12">
+            <h2 class="text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-timeline text-saffron-600"></i>
+                Moments d'insertion des épices
+            </h2>
+
+            <div class="flex flex-wrap justify-center gap-4">
+                {% set stepsTitle = ["Avant", "Début", "Milieu", "Fin", "Après"] %}
+
+                {% for step, cookings in cookingsByStep %}
+                    <div class="flex-1 min-w-[180px] max-w-[220px] bg-white border border-stone-200 rounded-xl shadow-sm p-5 flex flex-col items-center">
+                        <h3 class="text-xl font-bold text-saffron-700 mb-2">{{ stepsTitle[step] }}</h3>
+                        <div class="w-full h-0.5 bg-spice-border mb-4"></div>
+                        <div class="flex flex-wrap justify-center gap-2">
+                            {% for cooking in cookings %}
+                                <a href="{{ path('view_spice', {id: cooking.spice.id}) }}">
+                                    {{ macroCardSpice.cardLittleSpice(cooking.spice, true) }}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# Section éducative : pourquoi ce mélange fonctionne #}
+        {% if sharedCompounds is not empty %}
+            <div class="mb-12 bg-spice-surface border border-spice-border rounded-2xl p-6">
+                <h2 class="text-2xl font-bold text-stone-800 mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-atom text-saffron-600"></i>
+                    Pourquoi ce mélange fonctionne
+                </h2>
+                <p class="text-stone-500 text-sm mb-4">
+                    Ces épices partagent <strong class="text-stone-700">{{ sharedCompounds|length }} composé{{ sharedCompounds|length > 1 ? 's' : '' }} aromatique{{ sharedCompounds|length > 1 ? 's' : '' }}</strong> en commun — c'est ce qui crée leur affinité olfactive et gustative.
+                </p>
+                <div class="flex flex-wrap gap-2">
+                    {% for compound in sharedCompounds %}
+                        <a href="{{ path('view_aromatic_compound', {id: compound.id}) }}"
+                           class="tag-primary inline-flex items-center gap-1.5 text-sm hover:opacity-80 transition-opacity">
+                            <i class="fa-solid fa-flask text-xs"></i>
+                            {{ compound.name }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% elseif spicyMatch.spices|length > 1 %}
+            <div class="mb-12 bg-white border border-stone-200 rounded-2xl p-6 text-center">
+                <i class="fa-solid fa-atom text-stone-300 text-3xl mb-3 block"></i>
+                <p class="text-stone-500 text-sm">
+                    {% if spicyMatch.isManual %}
+                        Mélange manuel — la compatibilité aromatique n'a pas été calculée. Ces épices peuvent partager des composés ou non.
+                    {% else %}
+                        Ces épices n'ont pas de composé aromatique principal en commun — leur association repose sur la complémentarité et le contraste.
+                    {% endif %}
+                </p>
+            </div>
+        {% endif %}
+
+        <div class="flex justify-center mt-10">
+            {{ buttons.button('Créer un nouveau mélange', {
+                href: path('index_spicy_match'),
+                variant: 'primary',
+                icon: 'fa-solid fa-flask text-sm'
+            }) }}
+        </div>
+    </div>
 {% endblock %}

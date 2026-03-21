@@ -1,38 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
+use App\Entity\Spices;
 use App\Entity\SpicyMatchHistory;
-use App\Repository\SpicesRepository;
 
+/**
+ * Utility service for SpicyMatchHistory.
+ * Spices are accessed directly via $history->getSpicyMatch()->getSpices().
+ */
 class SpicyMatchHistoryService
 {
-    public function __construct(
-        private SpicesRepository $spicesRepository
-    ) {
-    }
-
-    public function getSpicesFromHistories($histories): array
+    /**
+     * Returns all spices across a collection of SpicyMatchHistory, keyed by spice ID.
+     *
+     * @param iterable<SpicyMatchHistory> $histories
+     *
+     * @return array<int, Spices>
+     */
+    public function getSpicesFromHistories(iterable $histories): array
     {
-        $spicesHistoriesString = '';
-
+        $spices = [];
         foreach ($histories as $history) {
             /** @var SpicyMatchHistory $history */
-            $spicesHistoriesString .= $history->getSpicesIds() . ',';
-        }
-
-        $spicesHistoriesString = trim($spicesHistoriesString, ',');
-
-        return $this->getSpicesFromHistory($spicesHistoriesString);
-    }
-
-    public function getSpicesFromHistory(string $spicesHistoriesString): array
-    {
-        $spicesArray = $this->spicesRepository->findSpicesForMatch($spicesHistoriesString);
-
-        $spices = [];
-        foreach ($spicesArray as $spice) {
-            $spices[$spice['id']] = $spice;
+            foreach ($history->getSpicyMatch()->getSpices() as $spice) {
+                $spices[$spice->getId()] = $spice;
+            }
         }
 
         return $spices;

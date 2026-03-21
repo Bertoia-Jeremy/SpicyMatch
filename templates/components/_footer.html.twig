@@ -1,46 +1,127 @@
-<footer class="pt-4 bg-light mt-5">
-    <div class="d-flex justify-content-around justify-content-around">
-        <div class="col-6 col-md-3 d-flex justify-content-center mb-4">
-            <div>
-                <h5>Epices</h5>
-                <ul class="nav flex-column">
-                    <li class="nav-item mb-2"><a href="{{ path('index_aromatic_compound') }}" class="nav-link p-0 text-muted">Par composé aromatique</a></li>
-                    <li class="nav-item mb-2"><a href="{{ path('index_aromatic_groups') }}" class="nav-link p-0 text-muted">Par groupe aromatique</a></li>
-                    <li class="nav-item mb-2"><a href="{{ path('index_spicy_type') }}" class="nav-link p-0 text-muted">Par type d'épice</a></li>
-                    <li class="nav-item mb-2"><a href="{{ path('index_alchemy_flavors') }}"  class="nav-link p-0 text-muted">Par saveur</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="col-6 col-md-3 d-flex justify-content-center">
-            <div>
-                <h5>Autres</h5>
-                <ul class="nav flex-column">
-                    <li class="nav-item mb-2"><a href="{{ path('home') }}" class="nav-link p-0 text-muted">Accueil</a></li>
-                    <li class="nav-item mb-2"><a href="{{ path('index_spicy_match') }}" class="nav-link p-0 text-muted">Créer mon mélange</a></li>
-                    <li class="nav-item mb-2"><a href="{{ path('new_contact') }}" class="nav-link p-0 text-muted">Contactez-moi</a></li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="col-md-5">
-            <form>
-                <h5>Recevoir des newsletter <i class="fa-regular fa-newspaper"></i></h5>
-                <p>Recevez un mail lorsque des nouveautés sont ajoutées au site. </p>
-                <div class="d-flex flex-column w-100 gap-2">
-                    <label for="newsletter1" class="visually-hidden">Adresse Mail</label>
-                    <input id="newsletter1" type="text" class="form-control" placeholder="Adresse mail">
-                    <button class="btn btn-primary" type="button">Souscrire</button>
+{# Footer inspired by CodePen structure with SpicyMatch identity #}
+<footer class="bg-paprika-950 text-cream" role="contentinfo">
+    <div class="max-w-7xl mx-auto px-6 py-12 lg:py-16">
+        
+        {# ── Main Footer Content ── #}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-16">
+            
+            {# Column 1: Brand & About #}
+            <div class="space-y-6">
+                <a href="{{ path('home') }}" class="group flex items-center gap-3 no-underline">
+                    <div class="w-10 h-10 bg-saffron-600 flex items-center justify-center rounded-xl shadow-lg shadow-saffron-900/20 group-hover:bg-saffron-500 transition-colors shrink-0">
+                        <i class="fa-solid fa-mortar-pestle text-white text-lg"></i>
+                    </div>
+                    <span class="font-display text-2xl font-bold tracking-tight text-white">
+                        Spicy<span class="text-saffron-500 italic">Match</span>
+                    </span>
+                </a>
+                <p class="text-cream/50 text-sm leading-relaxed max-w-xs">
+                    L'alchimie aromatique au service de vos recettes. Découvrez des accords invisibles et sublimez vos créations culinaires grâce à la science des épices.
+                </p>
+                <div class="flex items-center gap-4">
+                    <a href="#" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-cream/40 hover:text-saffron-400 hover:border-saffron-400/30 transition-all">
+                        <i class="fa-brands fa-instagram"></i>
+                    </a>
+                    <a href="#" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-cream/40 hover:text-saffron-400 hover:border-saffron-400/30 transition-all">
+                        <i class="fa-brands fa-pinterest-p"></i>
+                    </a>
+                    <a href="#" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-cream/40 hover:text-saffron-400 hover:border-saffron-400/30 transition-all">
+                        <i class="fa-brands fa-x-twitter"></i>
+                    </a>
                 </div>
-            </form>
+            </div>
+
+            {# Column 2: Navigation #}
+            <div>
+                <h4 class="text-white font-bold text-lg mb-8 relative inline-block">
+                    Navigation
+                    <span class="absolute -bottom-2 left-0 w-8 h-1 bg-saffron-500 rounded-full"></span>
+                </h4>
+                <ul class="space-y-4 list-none p-0">
+                    <li><a href="{{ path('home') }}" class="text-cream/60 hover:text-saffron-400 transition-colors text-sm flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all"></i>Accueil</a></li>
+                    <li><a href="{{ path('index_spices') }}" class="text-cream/60 hover:text-saffron-400 transition-colors text-sm flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all"></i>Catalogue des épices</a></li>
+                    <li><a href="{{ path('index_spicy_match') }}" class="text-cream/60 hover:text-saffron-400 transition-colors text-sm flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all"></i>Le Lab (Match)</a></li>
+                    <li><a href="{{ path('new_contact') }}" class="text-cream/60 hover:text-saffron-400 transition-colors text-sm flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all"></i>Contactez-nous</a></li>
+                </ul>
+            </div>
+
+            {# Column 3: Science #}
+            <div>
+                <h4 class="text-white font-bold text-lg mb-8 relative inline-block">
+                    Science & Art
+                    <span class="absolute -bottom-2 left-0 w-8 h-1 bg-saffron-500 rounded-full"></span>
+                </h4>
+                <ul class="space-y-4 list-none p-0">
+                    <li><a href="{{ path('index_aromatic_compound') }}" class="text-cream/60 hover:text-saffron-400 transition-colors text-sm flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all"></i>Composés aromatiques</a></li>
+                    <li><a href="{{ path('index_aromatic_groups') }}" class="text-cream/60 hover:text-saffron-400 transition-colors text-sm flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all"></i>Groupes de saveurs</a></li>
+                    <li><a href="{{ path('index_spicy_type') }}" class="text-cream/60 hover:text-saffron-400 transition-colors text-sm flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all"></i>Classification</a></li>
+                    <li><a href="{{ path('index_preparation_methods') }}" class="text-cream/60 hover:text-saffron-400 transition-colors text-sm flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all"></i>Méthodes de préparation</a></li>
+                </ul>
+            </div>
+
+            {# Column 4: Newsletter / Account #}
+            <div>
+                <h4 class="text-white font-bold text-lg mb-8 relative inline-block">
+                    Expérience
+                    <span class="absolute -bottom-2 left-0 w-8 h-1 bg-saffron-500 rounded-full"></span>
+                </h4>
+                <div class="space-y-4">
+                    <p class="text-cream/50 text-xs italic leading-relaxed">
+                        Rejoignez notre communauté de passionnés et recevez nos dernières découvertes alchimiques.
+                    </p>
+                    {% if not is_granted('ROLE_USER') %}
+                        {% import 'macros/buttons.html.twig' as buttons %}
+                        {{ buttons.button("S'inscrire", {
+                            href: path('index_register'),
+                            variant: 'primary',
+                            size: 'sm',
+                            class: 'w-full justify-center py-3'
+                        }) }}
+                    {% else %}
+                        <a href="{{ path('profile_user') }}" class="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 hover:border-saffron-600/30 transition-all group">
+                            <div class="w-8 h-8 rounded-full bg-saffron-600/20 flex items-center justify-center text-saffron-500 group-hover:bg-saffron-600 group-hover:text-white transition-colors">
+                                <i class="fa-regular fa-user"></i>
+                            </div>
+                            <span class="text-sm font-medium text-cream/70">Mon Compte</span>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
         </div>
+
+        {# ── Footer Bottom Bar ── #}
+        <div class="py-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="text-cream/30 text-xs font-medium tracking-[0.2em] uppercase">
+                &copy; {{ "now"|date("Y") }} SpicyMatch — <span class="italic font-display normal-case tracking-normal">L'Art de l'Alchimie Culinaire</span>
+            </div>
+            
+            <div class="flex items-center gap-8">
+                <a href="#" class="text-cream/30 hover:text-cream/60 transition-colors text-[10px] uppercase tracking-widest no-underline">Mentions Légales</a>
+                <a href="#" class="text-cream/30 hover:text-cream/60 transition-colors text-[10px] uppercase tracking-widest no-underline">Confidentialité</a>
+                <a href="{{ path('new_contact') }}" class="text-cream/30 hover:text-cream/60 transition-colors text-[10px] uppercase tracking-widest no-underline">Contact</a>
+            </div>
+        </div>
+
     </div>
 
-    <div class=" container text-center border-top my-0 py-3">
-        <p class="mb-0">© 2024 SpicyMatch. Tous droits réservés.</p>
-        {# <ul class="list-unstyled d-flex">
-            <li class="ms-3"><a class="link-dark" href="#"><svg class="bi" width="24" height="24"><use xlink:href="#twitter"></use></svg></a></li>
-            <li class="ms-3"><a class="link-dark" href="#"><svg class="bi" width="24" height="24"><use xlink:href="#instagram"></use></svg></a></li>
-            <li class="ms-3"><a class="link-dark" href="#"><svg class="bi" width="24" height="24"><use xlink:href="#facebook"></use></svg></a></li>
-        </ul> #}
+    {# ── Scroll to Top ── #}
+    <div x-data="{ visible: false }"
+         @scroll.window="visible = window.scrollY > 400"
+         class="fixed bottom-8 right-8 z-40">
+        <button x-show="visible" x-cloak
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-y-4 scale-90"
+                x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                x-transition:leave-end="opacity-0 translate-y-4 scale-90"
+                @click="window.scrollTo({ top: 0, behavior: 'smooth' })"
+                class="w-12 h-12 rounded-2xl bg-saffron-600 hover:bg-saffron-500 text-white
+                       shadow-2xl shadow-saffron-900/40 flex items-center justify-center
+                       transition-all duration-300 group cursor-pointer border border-saffron-400/20">
+            <i class="fa-solid fa-arrow-up transition-transform group-hover:-translate-y-1"></i>
+        </button>
     </div>
+
 </footer>

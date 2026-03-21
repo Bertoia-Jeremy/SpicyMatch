@@ -1,0 +1,60 @@
+.embla {
+  position: relative;
+  --slide-spacing: 1.25rem;
+  --slide-size: 100%;
+}
+
+.embla__viewport {
+  overflow: hidden;
+  width: 100%;
+}
+
+.embla__container {
+  display: flex;
+  backface-visibility: hidden;
+  margin-left: calc(var(--slide-spacing) * -1);
+  align-items: stretch; /* Force la même hauteur pour tous les slides */
+}
+
+.embla__slide {
+  flex: 0 0 var(--slide-size);
+  min-width: 0;
+  padding-left: var(--slide-spacing);
+  height: auto;
+}
+
+.embla__slide > * {
+  height: 100%; /* La carte prend toute la hauteur du slide */
+}
+
+/* Responsive sizes */
+@media (min-width: 1280px) { .embla { --slide-size: 16.666667%; } } /* 6 items */
+@media (min-width: 1024px) and (max-width: 1279px) { .embla { --slide-size: 20%; } } /* 5 items */
+@media (min-width: 768px) and (max-width: 1023px) { .embla { --slide-size: 33.333333%; } } /* 3 items */
+@media (max-width: 767px) { .embla { --slide-size: 50%; } } /* 2 items */
+
+.embla__button {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background-color: white;
+  border: 1px solid #E7E5E4;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #57534E;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.embla__button:hover:not(:disabled) {
+  border-color: var(--color-saffron-400);
+  color: var(--color-saffron-600);
+  transform: scale(1.05);
+}
+
+.embla__button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}

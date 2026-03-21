@@ -1,25 +1,48 @@
 {% extends 'base.html.twig' %}
-{% block title %}SpicyMatch{% endblock %}
+{% block title %}Le Lab — SpicyMatch{% endblock %}
 {% block metas %}
     <meta name="turbo-cache-control" content="no-preview">
 {% endblock %}
 
 {% block body %}
-    <div class="container-fluid">
-        <div class="container justify-content-center">
-            <h2>Mélangeons des épices</h2>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="text-center mb-8">
+            <h1 class="font-display text-4xl md:text-5xl font-bold text-stone-900">
+                <i class="fa-solid fa-fire text-saffron-600 mr-2"></i>Le Lab
+            </h1>
+            <p class="mt-2 text-stone-500">Sélectionnez vos épices, l'algorithme trouve les associations parfaites.</p>
         </div>
-        
-        {# GROUPE 1 #}
-        {# TODO => Gérer la grosseur des noms en fonction de la longueur#}
-        {# TODO => Selectionner le groupe de l'épice choisie, trier sur ça pour la 1ere et l'afficher #}
-        {# TODO => Faire le bouton Ajouter un groupe de mélange, (tout en prenant en compte les groupes fait auparavant) #}
-        {# TODO => Réduire dans les groupes ajoutés les groupes actuellement utilisés #}
-        {# TODO => Anticiper et bloquer quand on ne peut pas ajouter un groupe de plus (A faire en fonction du level d'exp ?) (car plus de possibilité) #}
 
-        {%  include "/components/_spices_filters.html.twig" %}
+        {% if is_granted('ROLE_USER') and app.user.progression %}
+        <div class="flex justify-center mb-6">
+            <div class="inline-flex items-center gap-2 bg-turmeric-300/20 border border-turmeric-400/30
+                        text-turmeric-700 text-xs font-semibold px-4 py-2 rounded-full">
+                <i class="fa-solid fa-star text-turmeric-500"></i>
+                +50 XP par mélange sauvegardé — Niveau {{ app.user.progression.level }} actuel
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="flex items-center justify-center mb-8 text-xs font-bold uppercase tracking-widest">
+            <span class="flex items-center gap-2 text-saffron-700">
+                <span class="w-6 h-6 rounded-full bg-saffron-700 text-cream flex items-center justify-center text-[10px]">1</span>
+                Sélectionner
+            </span>
+            <span class="w-10 h-px bg-stone-300 mx-3"></span>
+            <span class="flex items-center gap-2 text-stone-400">
+                <span class="w-6 h-6 rounded-full bg-stone-200 text-stone-500 flex items-center justify-center text-[10px]">2</span>
+                Analyser
+            </span>
+            <span class="w-10 h-px bg-stone-300 mx-3"></span>
+            <span class="flex items-center gap-2 text-stone-400">
+                <span class="w-6 h-6 rounded-full bg-stone-200 text-stone-500 flex items-center justify-center text-[10px]">3</span>
+                Sauvegarder
+            </span>
+        </div>
+
+        {# Quick View Modal — hors du LiveComponent pour éviter le reset Alpine au re-render #}
+        {% include 'components/_spice_modal.html.twig' %}
 
         {{ component('SpicyMatch') }}
-        {# BOUTON AJOUTER UN GROUPE #}
     </div>
 {% endblock %}

@@ -23,8 +23,8 @@ class EasyAdminSubscriber implements EventSubscriberInterface
     {
         $instance = $event->getEntityInstance();
 
-        $instance->setCreatedAt(new \DateTime('now'))
-            ->setUpdatedAt(new \DateTime('now'));
+        $instance->setCreatedAt(new \DateTimeImmutable('now'))
+            ->setUpdatedAt(new \DateTimeImmutable('now'));
 
         if (! ($instance instanceof CookingTips)) {
             return;
@@ -37,7 +37,7 @@ class EasyAdminSubscriber implements EventSubscriberInterface
     {
         $instance = $event->getEntityInstance();
 
-        $instance->setUpdatedAt(new \DateTime('now'));
+        $instance->setUpdatedAt(new \DateTimeImmutable('now'));
     }
 
     private function setCookingTipsStep(CookingTips $cookingTips): void

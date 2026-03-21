@@ -1,0 +1,5 @@
+.modal-backdrop {
+  background: rgba(28, 25, 23, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}

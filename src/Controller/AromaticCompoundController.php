@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\AromaticCompound;
+use App\Repository\AromaticCompoundRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -13,10 +14,10 @@ use Symfony\Component\Routing\Annotation\Route;
 class AromaticCompoundController extends AbstractController
 {
     #[Route('/', name: 'index_aromatic_compound')]
-    public function index(): Response
+    public function index(AromaticCompoundRepository $repository): Response
     {
         return $this->render('aromatic_compound/index.html.twig', [
-            'controller_name' => 'AromaticCompoundController',
+            'aromaticCompounds' => $repository->findAll(),
         ]);
     }
 

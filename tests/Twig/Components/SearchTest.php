@@ -1,5 +1,9 @@
 <?php
 
+namespace App\Tests\Twig\Components;
+
+use App\Repository\SpicesRepository;
+use App\Twig\Components\Search;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\UX\LiveComponent\Test\InteractsWithLiveComponents;
 
@@ -7,34 +11,52 @@ class SearchTest extends KernelTestCase
 {
     use InteractsWithLiveComponents;
 
-    public function testCanRenderAndInteract(): void
+    public function testSearchFunctionality(): void
     {
-        // TODO => Finaliser les tests pour valider la barre de recherche
-        $testComponent = $this->createLiveComponent(
-            name: 'Search', // can also use FQCN (Search::class)
-            data: [
-                'foo' => 'bar',
-            ],
-        );
+        $mockSpicesRepository = $this->createMock(SpicesRepository::class);
 
-        // render the component html
-        $this->assertStringContainsString('Count: 0', $testComponent->render());
+        // Test case 1: Empty query
+        $mockSpicesRepository->expects($this->once())
+            ->method('search')
+            ->with('')
+            ->willReturn([]);
 
-        // call live actions
-        $testComponent
-            ->call('increase')
-            ->call('increase', [
-                'amount' => 2,
-            ]) // call a live action with arguments
-        ;
+        $component = $this->createLiveComponent(Search::class, [], [
+            SpicesRepository::class => $mockSpicesRepository,
+        ]);
 
-        $this->assertStringContainsString('Count: 3', $testComponent->render());
+        $component->set('query', '');
+        $this->assertEmpty($component->get('results'));
 
-        // set live props
-        $testComponent
-            ->set('count', 99)
-        ;
+        // Test case 2: Short query (less than 2 characters)
+        $mockSpicesRepository->expects($this->once())
+            ->method('search')
+            ->with('a')
+            ->willReturn([]);
 
-        $this->assertStringContainsString('Count: 99', $testComponent->render());
+        $component->set('query', 'a');
+        $this->assertEmpty($component->get('results'));
+
+        // Test case 3: Valid query with results
+        $expectedResults = [[
+            'id' => 1,
+            'name' => 'Cinnamon',
+        ]];
+        $mockSpicesRepository->expects($this->once())
+            ->method('search')
+            ->with('cinn')
+            ->willReturn($expectedResults);
+
+        $component->set('query', 'cinn');
+        $this->assertEquals($expectedResults, $component->get('results'));
+
+        // Test case 4: Valid query with no results
+        $mockSpicesRepository->expects($this->once())
+            ->method('search')
+            ->with('xyz')
+            ->willReturn([]);
+
+        $component->set('query', 'xyz');
+        $this->assertEmpty($component->get('results'));
     }
 }

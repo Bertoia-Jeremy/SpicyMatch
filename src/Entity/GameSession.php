@@ -192,6 +192,13 @@ class GameSession
         return $this;
     }
 
+    public function setDurationSeconds(?int $durationSeconds): static
+    {
+        $this->durationSeconds = $durationSeconds;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, GameQuestion>
      */

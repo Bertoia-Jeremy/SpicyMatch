@@ -1,0 +1,141 @@
+<div>
+  {# Header: progress + score #}
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600">
+        <i class="fa-solid fa-wine-glass"></i>
+      </div>
+      <div>
+        <h2 class="text-lg font-bold text-stone-800">Palais Fin</h2>
+        <p class="text-xs text-stone-500">Devine l'épice grâce aux indices</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3 text-sm">
+      <span class="tag-secondary">{{ this.questionNumber }}/{{ this.totalQuestions }}</span>
+      <span class="font-semibold text-saffron-600">{{ this.totalScore }} pts</span>
+    </div>
+  </div>
+
+  {# Progress bar #}
+  <div class="w-full bg-stone-200 rounded-full h-2 mb-8">
+    <div class="bg-saffron-500 h-2 rounded-full transition-all duration-300"
+         style="width: {{ (this.questionNumber / this.totalQuestions) * 100 }}%"></div>
+  </div>
+
+  {% if this.isFinished %}
+    {# Game over — summary #}
+    <div class="text-center py-12">
+      <div class="w-24 h-24 mx-auto mb-6 rounded-full border-8 flex items-center justify-center
+        {{ this.correctCount >= (this.totalQuestions * 0.8) ? 'border-green-400 text-green-700' : (this.correctCount >= (this.totalQuestions * 0.5) ? 'border-turmeric-400 text-turmeric-700' : 'border-red-400 text-red-700') }}">
+        <div class="text-2xl font-bold">{{ this.totalScore }}</div>
+      </div>
+
+      <h3 class="text-xl font-bold text-stone-800 mb-2">Partie terminée !</h3>
+      <p class="text-stone-600 mb-6">
+        {{ this.correctCount }} bonne{{ this.correctCount > 1 ? 's' : '' }} réponse{{ this.correctCount > 1 ? 's' : '' }}
+        sur {{ this.totalQuestions }} — {{ this.totalScore }} points au total.
+      </p>
+
+      <button data-action="live#action"
+              data-live-action-param="finish"
+              class="btn-pill-primary">
+        <i class="fa-solid fa-flag-checkered mr-2"></i>Voir les résultats
+      </button>
+    </div>
+
+  {% elseif this.showFeedback %}
+    {# Feedback between questions #}
+    <div class="text-center py-12">
+      {% if this.lastAnswerCorrect %}
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+          <i class="fa-solid fa-circle-check text-green-500 text-3xl"></i>
+        </div>
+        <h3 class="text-lg font-bold text-green-700 mb-2">Bonne réponse !</h3>
+        <p class="text-stone-600 mb-2">
+          C'était bien <strong>{{ this.lastCorrectName }}</strong>
+        </p>
+        <p class="text-saffron-600 font-semibold">+{{ this.lastPointsEarned }} points</p>
+      {% else %}
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+          <i class="fa-solid fa-circle-xmark text-red-500 text-3xl"></i>
+        </div>
+        <h3 class="text-lg font-bold text-red-700 mb-2">Mauvaise réponse</h3>
+        <p class="text-stone-600 mb-2">
+          La bonne réponse était <strong>{{ this.lastCorrectName }}</strong>
+        </p>
+      {% endif %}
+
+      <button data-action="live#action"
+              data-live-action-param="next"
+              class="btn-pill-primary mt-6">
+        {% if this.questionNumber >= this.totalQuestions %}
+          <i class="fa-solid fa-flag-checkered mr-2"></i>Terminer
+        {% else %}
+          <i class="fa-solid fa-arrow-right mr-2"></i>Question suivante
+        {% endif %}
+      </button>
+    </div>
+
+  {% else %}
+    {# Active question: clues + guess #}
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-sm font-medium text-stone-700">
+          Indices révélés : {{ this.revealedClues|length }}/{{ this.allClues|length }}
+        </p>
+        {% if this.currentClueIndex < this.allClues|length %}
+          <button data-action="live#action"
+                  data-live-action-param="revealClue"
+                  class="text-sm text-saffron-600 hover:text-saffron-800 font-medium transition-colors">
+            <i class="fa-solid fa-eye mr-1"></i>Révéler un indice
+          </button>
+        {% else %}
+          <span class="text-xs text-stone-400">Tous les indices révélés</span>
+        {% endif %}
+      </div>
+
+      {# Revealed clues #}
+      <div class="space-y-3">
+        {% for clue in this.revealedClues %}
+          <div class="px-4 py-3 rounded-lg border border-stone-200 bg-white">
+            <span class="text-xs font-medium text-stone-500 uppercase tracking-wide">{{ clue.label }}</span>
+            {% if clue.type == 'group_color' %}
+              <div class="flex items-center gap-2 mt-1">
+                <div class="w-6 h-6 rounded-full border border-stone-200" style="background-color: {{ clue.value }}"></div>
+                <span class="text-sm text-stone-800">Cette couleur</span>
+              </div>
+            {% else %}
+              <p class="text-stone-800 mt-1">{{ clue.value }}</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+
+        {# Unrevealed clue placeholders — guard against Twig descending range when all clues revealed #}
+        {% set remainingClues = this.allClues|length - this.revealedClues|length %}
+        {% if remainingClues > 0 %}
+          {% for i in 1..remainingClues %}
+            <div class="px-4 py-3 rounded-lg border border-dashed border-stone-300 bg-stone-50">
+              <span class="text-sm text-stone-400"><i class="fa-solid fa-lock text-xs mr-1"></i>Indice verrouillé</span>
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    {# Guess options #}
+    <div class="space-y-3" x-data="{ submitting: false }">
+      <p class="text-sm font-medium text-stone-700 mb-3">Quelle est cette épice ?</p>
+      {% for option in this.guessOptions %}
+        <button type="button"
+                data-action="live#action"
+                data-live-action-param="guess"
+                data-live-spice-name-param="{{ option }}"
+                @click="submitting = true"
+                :disabled="submitting"
+                class="w-full text-left px-5 py-3 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all font-medium text-stone-800 disabled:opacity-75">
+          {{ option }}
+        </button>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>

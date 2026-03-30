@@ -240,7 +240,12 @@ class SpicyMatchTest extends TestCase
     {
         $this->spicesRepo->method('findSpicesForMatch')
             ->willReturn([
-                ['id' => 1, 'name' => 'Cannelle', 'groupName' => 'Chaud', 'color' => '#C00'],
+                [
+                    'id' => 1,
+                    'name' => 'Cannelle',
+                    'groupName' => 'Chaud',
+                    'color' => '#C00',
+                ],
             ]);
 
         $component = $this->makeComponent();
@@ -262,8 +267,18 @@ class SpicyMatchTest extends TestCase
         // Sélection de Cannelle (Chaud) et Cumin (Terreux)
         $this->spicesRepo->method('findSpicesForMatch')
             ->willReturn([
-                ['id' => 1, 'name' => 'Cannelle', 'groupName' => 'Chaud', 'color' => '#C00'],
-                ['id' => 2, 'name' => 'Cumin', 'groupName' => 'Terreux', 'color' => '#A52'],
+                [
+                    'id' => 1,
+                    'name' => 'Cannelle',
+                    'groupName' => 'Chaud',
+                    'color' => '#C00',
+                ],
+                [
+                    'id' => 2,
+                    'name' => 'Cumin',
+                    'groupName' => 'Terreux',
+                    'color' => '#A52',
+                ],
             ]);
 
         $component = $this->makeComponent();
@@ -290,10 +305,30 @@ class SpicyMatchTest extends TestCase
         // Sélection depuis chaque groupe → plus rien en compatible
         $this->spicesRepo->method('findSpicesForMatch')
             ->willReturn([
-                ['id' => 1, 'name' => 'Cannelle', 'groupName' => 'Chaud', 'color' => '#C00'],
-                ['id' => 2, 'name' => 'Cumin', 'groupName' => 'Terreux', 'color' => '#A52'],
-                ['id' => 3, 'name' => 'Poivre', 'groupName' => 'Piquant', 'color' => '#333'],
-                ['id' => 5, 'name' => 'Coriandre', 'groupName' => 'Herbacé', 'color' => '#0A0'],
+                [
+                    'id' => 1,
+                    'name' => 'Cannelle',
+                    'groupName' => 'Chaud',
+                    'color' => '#C00',
+                ],
+                [
+                    'id' => 2,
+                    'name' => 'Cumin',
+                    'groupName' => 'Terreux',
+                    'color' => '#A52',
+                ],
+                [
+                    'id' => 3,
+                    'name' => 'Poivre',
+                    'groupName' => 'Piquant',
+                    'color' => '#333',
+                ],
+                [
+                    'id' => 5,
+                    'name' => 'Coriandre',
+                    'groupName' => 'Herbacé',
+                    'color' => '#0A0',
+                ],
             ]);
 
         $component = $this->makeComponent();
@@ -313,7 +348,12 @@ class SpicyMatchTest extends TestCase
     {
         $this->spicesRepo->method('findSpicesForMatch')
             ->willReturn([
-                ['id' => 1, 'name' => 'Cannelle', 'groupName' => 'Chaud', 'color' => '#C00'],
+                [
+                    'id' => 1,
+                    'name' => 'Cannelle',
+                    'groupName' => 'Chaud',
+                    'color' => '#C00',
+                ],
             ]);
 
         $component = $this->makeComponent();
@@ -333,7 +373,12 @@ class SpicyMatchTest extends TestCase
     {
         $this->spicesRepo->method('findSpicesForMatch')
             ->willReturn([
-                ['id' => 1, 'name' => 'Cannelle', 'groupName' => 'Chaud', 'color' => '#C00'],
+                [
+                    'id' => 1,
+                    'name' => 'Cannelle',
+                    'groupName' => 'Chaud',
+                    'color' => '#C00',
+                ],
             ]);
 
         $component = $this->makeComponent();
@@ -353,7 +398,12 @@ class SpicyMatchTest extends TestCase
     {
         $this->spicesRepo->method('findSpicesForMatch')
             ->willReturn([
-                ['id' => 1, 'name' => 'Cannelle', 'groupName' => 'Chaud', 'color' => '#C00'],
+                [
+                    'id' => 1,
+                    'name' => 'Cannelle',
+                    'groupName' => 'Chaud',
+                    'color' => '#C00',
+                ],
             ]);
 
         $component = $this->makeComponent();
@@ -375,7 +425,12 @@ class SpicyMatchTest extends TestCase
     {
         $this->spicesRepo->method('findSpicesForMatch')
             ->willReturn([
-                ['id' => 1, 'name' => 'Cannelle', 'groupName' => 'Chaud', 'color' => '#C00'],
+                [
+                    'id' => 1,
+                    'name' => 'Cannelle',
+                    'groupName' => 'Chaud',
+                    'color' => '#C00',
+                ],
             ]);
 
         $component = $this->makeComponent();

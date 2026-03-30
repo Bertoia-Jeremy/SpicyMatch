@@ -1,0 +1,170 @@
+<div>
+  {# Header: progress + score #}
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600">
+        <i class="fa-solid fa-temperature-three-quarters"></i>
+      </div>
+      <div>
+        <h2 class="text-lg font-bold text-stone-800">Cuisson en Cours</h2>
+        <p class="text-xs text-stone-500">Devine le nom de l'épice lettre par lettre</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3 text-sm">
+      <span class="tag-secondary">{{ this.questionNumber }}/{{ this.totalQuestions }}</span>
+      <span class="font-semibold text-saffron-600">{{ this.correctCount }} <i class="fa-solid fa-check text-xs"></i></span>
+    </div>
+  </div>
+
+  {# Progress bar #}
+  <div class="w-full bg-stone-200 rounded-full h-2 mb-8">
+    <div class="bg-saffron-500 h-2 rounded-full transition-all duration-300"
+         style="width: {{ (this.questionNumber / this.totalQuestions) * 100 }}%"></div>
+  </div>
+
+  {% if this.isFinished %}
+    {# Game over — summary #}
+    <div class="text-center py-12">
+      <div class="w-24 h-24 mx-auto mb-6 rounded-full border-8 flex items-center justify-center
+        {{ this.correctCount >= (this.totalQuestions * 0.8) ? 'border-green-400 text-green-700' : (this.correctCount >= (this.totalQuestions * 0.5) ? 'border-turmeric-400 text-turmeric-700' : 'border-red-400 text-red-700') }}">
+        <div class="text-2xl font-bold">{{ this.correctCount }}/{{ this.questionNumber }}</div>
+      </div>
+
+      <h3 class="text-xl font-bold text-stone-800 mb-2">Partie terminée !</h3>
+      <p class="text-stone-600 mb-6">
+        Tu as trouvé {{ this.correctCount }} mot{{ this.correctCount > 1 ? 's' : '' }}
+        sur {{ this.questionNumber }}.
+      </p>
+
+      <button data-action="live#action"
+              data-live-action-param="finish"
+              class="btn-pill-primary">
+        <i class="fa-solid fa-flag-checkered mr-2"></i>Voir les résultats
+      </button>
+    </div>
+
+  {% elseif this.showFeedback %}
+    {# Word result feedback #}
+    <div class="text-center py-12">
+      {% if this.wordSolved %}
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+          <i class="fa-solid fa-circle-check text-green-500 text-3xl"></i>
+        </div>
+        <h3 class="text-lg font-bold text-green-700 mb-2">Trouvé !</h3>
+      {% else %}
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+          <i class="fa-solid fa-circle-xmark text-red-500 text-3xl"></i>
+        </div>
+        <h3 class="text-lg font-bold text-red-700 mb-2">Perdu</h3>
+      {% endif %}
+      <p class="text-stone-600 mb-2 text-xl font-mono tracking-widest">{{ this.revealedWord }}</p>
+
+      <button data-action="live#action"
+              data-live-action-param="nextWord"
+              class="btn-pill-primary mt-6">
+        {% if this.questionNumber >= this.totalQuestions %}
+          <i class="fa-solid fa-flag-checkered mr-2"></i>Terminer
+        {% else %}
+          <i class="fa-solid fa-arrow-right mr-2"></i>Mot suivant
+        {% endif %}
+      </button>
+    </div>
+
+  {% else %}
+    {# Active word #}
+    <div class="flex flex-col lg:flex-row gap-8 items-center">
+      {# Hangman SVG #}
+      <div class="flex-shrink-0">
+        <svg viewBox="0 0 200 250" class="w-40 h-48 text-stone-700">
+          {# Base structure — always visible #}
+          <line x1="20" y1="230" x2="180" y2="230" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <line x1="60" y1="230" x2="60" y2="20" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <line x1="60" y1="20" x2="140" y2="20" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <line x1="140" y1="20" x2="140" y2="50" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+
+          {# Head #}
+          {% if this.errorsCount >= 1 %}
+            <circle cx="140" cy="70" r="20" fill="none" stroke="currentColor" stroke-width="3"/>
+          {% endif %}
+
+          {# Body #}
+          {% if this.errorsCount >= 2 %}
+            <line x1="140" y1="90" x2="140" y2="150" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          {% endif %}
+
+          {# Left arm #}
+          {% if this.errorsCount >= 3 %}
+            <line x1="140" y1="110" x2="110" y2="135" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          {% endif %}
+
+          {# Right arm #}
+          {% if this.errorsCount >= 4 %}
+            <line x1="140" y1="110" x2="170" y2="135" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          {% endif %}
+
+          {# Left leg #}
+          {% if this.errorsCount >= 5 %}
+            <line x1="140" y1="150" x2="110" y2="190" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          {% endif %}
+
+          {# Right leg #}
+          {% if this.errorsCount >= 6 %}
+            <line x1="140" y1="150" x2="170" y2="190" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          {% endif %}
+
+          {# Left foot #}
+          {% if this.errorsCount >= 7 %}
+            <line x1="110" y1="190" x2="100" y2="200" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          {% endif %}
+
+          {# Right foot #}
+          {% if this.errorsCount >= 8 %}
+            <line x1="170" y1="190" x2="180" y2="200" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          {% endif %}
+        </svg>
+      </div>
+
+      <div class="flex-1 w-full">
+        {# Errors counter #}
+        <div class="flex items-center justify-between mb-4">
+          <p class="text-sm text-stone-500">
+            Erreurs : <span class="{{ this.errorsCount > this.maxErrors * 0.6 ? 'text-red-600 font-semibold' : 'text-stone-700' }}">{{ this.errorsCount }}/{{ this.maxErrors }}</span>
+          </p>
+          {% if this.hint %}
+            <p class="text-sm text-saffron-600"><i class="fa-solid fa-lightbulb mr-1"></i>{{ this.hint }}</p>
+          {% endif %}
+        </div>
+
+        {# Masked word display #}
+        <div class="text-center mb-8">
+          <p class="text-3xl font-mono tracking-[0.5em] font-bold text-stone-800 break-all">
+            {% for char in this.maskedWord|split('') %}
+              {% if char == '_' %}
+                <span class="inline-block w-6 border-b-2 border-stone-400 mx-0.5">&nbsp;</span>
+              {% elseif char == ' ' %}
+                <span class="inline-block w-4">&nbsp;</span>
+              {% else %}
+                <span class="inline-block mx-0.5">{{ char }}</span>
+              {% endif %}
+            {% endfor %}
+          </p>
+        </div>
+
+        {# Keyboard #}
+        <div class="flex flex-wrap justify-center gap-1.5" x-data="{ submitting: false }">
+          {% set alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' %}
+          {% for letter in alphabet|split('') %}
+            {% set isGuessed = letter in this.guessedLetters %}
+            <button type="button"
+                    @click="if (!submitting) { submitting = true; $wire.guessLetter('{{ letter }}').then(() => { submitting = false }) }"
+                    {{ isGuessed ? 'disabled' : '' }}
+                    class="w-9 h-9 rounded-lg text-sm font-semibold transition-all
+                      {{ isGuessed ? 'bg-stone-200 text-stone-400 cursor-not-allowed' : 'bg-white border border-stone-300 text-stone-700 hover:bg-saffron-100 hover:border-saffron-400 hover:text-saffron-700' }}">
+              {{ letter }}
+            </button>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>

@@ -1,0 +1,188 @@
+<div>
+  {# Header: score + streak #}
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600">
+        <i class="fa-solid fa-fire-flame-curved"></i>
+      </div>
+      <div>
+        <h2 class="text-lg font-bold text-stone-800">À Feu Vif</h2>
+        <p class="text-xs text-stone-500">Identifie les épices le plus vite possible</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3 text-sm">
+      <span class="font-semibold text-saffron-600">{{ this.totalScore }} pts</span>
+      {% if this.streak >= 3 %}
+        <span class="tag-primary text-xs">
+          <i class="fa-solid fa-fire mr-1"></i>x{{ this.streak }}
+        </span>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if this.isFinished %}
+    {# Time's up — summary #}
+    <div class="text-center py-12">
+      <div class="w-24 h-24 mx-auto mb-6 rounded-full border-8 flex items-center justify-center
+        {{ this.correctCount >= 10 ? 'border-green-400 text-green-700' : (this.correctCount >= 5 ? 'border-turmeric-400 text-turmeric-700' : 'border-red-400 text-red-700') }}">
+        <div class="text-2xl font-bold">{{ this.totalScore }}</div>
+      </div>
+
+      <h3 class="text-xl font-bold text-stone-800 mb-2">Temps écoulé !</h3>
+      <p class="text-stone-600 mb-2">
+        {{ this.correctCount }}/{{ this.questionsAnswered }} bonne{{ this.correctCount > 1 ? 's' : '' }} réponse{{ this.correctCount > 1 ? 's' : '' }}
+      </p>
+      <p class="text-stone-600 mb-6">{{ this.totalScore }} points au total.</p>
+
+      <button data-action="live#action"
+              data-live-action-param="finish"
+              class="btn-pill-primary">
+        <i class="fa-solid fa-flag-checkered mr-2"></i>Voir les résultats
+      </button>
+    </div>
+
+  {% else %}
+    {# Timer bar (Alpine.js managed) #}
+    <div data-live-ignore
+         x-data="{
+           timeLeft: {{ this.timeLimit }},
+           totalTime: {{ this.timeLimit }},
+           interval: null,
+           init() {
+             this.interval = setInterval(() => {
+               this.timeLeft--;
+               if (this.timeLeft <= 0) {
+                 clearInterval(this.interval);
+                 this.$wire.timeout();
+               }
+             }, 1000);
+           },
+           destroy() {
+             if (this.interval) clearInterval(this.interval);
+           },
+           get pct() { return Math.max(0, (this.timeLeft / this.totalTime) * 100) },
+           get color() {
+             if (this.timeLeft <= 10) return 'bg-red-500';
+             if (this.timeLeft <= 30) return 'bg-turmeric-500';
+             return 'bg-saffron-500';
+           }
+         }"
+         class="mb-8">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm text-stone-500">
+          <i class="fa-solid fa-clock mr-1"></i>Temps restant
+        </span>
+        <span class="text-sm font-semibold"
+              :class="timeLeft <= 10 ? 'text-red-600' : 'text-stone-700'"
+              x-text="Math.floor(timeLeft / 60) + ':' + String(timeLeft % 60).padStart(2, '0')">
+        </span>
+      </div>
+      <div class="w-full bg-stone-200 rounded-full h-3">
+        <div class="h-3 rounded-full transition-all duration-1000"
+             :class="color"
+             :style="'width: ' + pct + '%'"></div>
+      </div>
+    </div>
+
+    {# Stats row #}
+    <div class="flex items-center justify-center gap-6 mb-6 text-sm text-stone-600">
+      <span><i class="fa-solid fa-check text-green-500 mr-1"></i>{{ this.correctCount }}</span>
+      <span><i class="fa-solid fa-question text-stone-400 mr-1"></i>{{ this.questionsAnswered }}</span>
+      {% if this.streak >= 3 %}
+        <span class="text-saffron-600 font-semibold"><i class="fa-solid fa-fire mr-1"></i>Série de {{ this.streak }}</span>
+      {% endif %}
+    </div>
+
+    {# Last answer feedback (inline, not a separate state) #}
+    {% if this.questionsAnswered > 0 %}
+      <div class="mb-6 text-center text-sm">
+        {% if this.lastAnswerCorrect %}
+          <span class="text-green-600 font-medium">
+            <i class="fa-solid fa-check-circle mr-1"></i>Correct ! +{{ this.lastPointsEarned }} pts
+          </span>
+        {% else %}
+          <span class="text-red-600 font-medium">
+            <i class="fa-solid fa-times-circle mr-1"></i>C'était {{ this.lastCorrectName }}
+          </span>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {# Spice card info (without name) #}
+    <div class="bg-white border border-stone-200 rounded-2xl p-6 mb-6">
+      <p class="text-xs text-stone-500 uppercase tracking-wide mb-3">Quelle est cette épice ?</p>
+
+      {% if this.currentCard.file is defined and this.currentCard.file %}
+        <div class="flex justify-center mb-4">
+          <img src="{{ asset('uploads/spices/' ~ this.currentCard.file) }}"
+               alt="?"
+               class="w-20 h-20 rounded-xl object-cover border border-stone-200">
+        </div>
+      {% endif %}
+
+      {% if this.currentCard.description is defined and this.currentCard.description %}
+        <p class="text-sm text-stone-600 mb-3">{{ this.currentCard.description }}</p>
+      {% endif %}
+
+      <div class="space-y-2 text-sm">
+        {% if this.currentCard.aromaticGroup is defined and this.currentCard.aromaticGroup.name %}
+          <div class="flex items-center gap-2">
+            <span class="text-stone-500">Famille :</span>
+            <span class="flex items-center gap-1.5">
+              {% if this.currentCard.aromaticGroup.color %}
+                <span class="w-3 h-3 rounded-full inline-block" style="background-color: {{ this.currentCard.aromaticGroup.color }}"></span>
+              {% endif %}
+              {{ this.currentCard.aromaticGroup.name }}
+            </span>
+          </div>
+        {% endif %}
+
+        {% if this.currentCard.spicyType is defined and this.currentCard.spicyType %}
+          <div><span class="text-stone-500">Type :</span> {{ this.currentCard.spicyType }}</div>
+        {% endif %}
+
+        {% if this.currentCard.alchemyFlavors is defined and this.currentCard.alchemyFlavors|length > 0 %}
+          <div>
+            <span class="text-stone-500">Saveurs :</span>
+            {% for flavor in this.currentCard.alchemyFlavors %}
+              <span class="tag-secondary text-xs">{{ flavor }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% if this.currentCard.mainCompounds is defined and this.currentCard.mainCompounds|length > 0 %}
+          <div>
+            <span class="text-stone-500">Composés principaux :</span>
+            {{ this.currentCard.mainCompounds|join(', ') }}
+          </div>
+        {% endif %}
+
+        {% if this.currentCard.secondaryCompounds is defined and this.currentCard.secondaryCompounds|length > 0 %}
+          <div>
+            <span class="text-stone-500">Composés secondaires :</span>
+            {{ this.currentCard.secondaryCompounds|join(', ') }}
+          </div>
+        {% endif %}
+
+        {% if this.currentCard.cookingTips is defined and this.currentCard.cookingTips|length > 0 %}
+          <div>
+            <span class="text-stone-500">Conseil :</span>
+            {{ this.currentCard.cookingTips[0].title ?? this.currentCard.cookingTips[0].cookingStep ?? '' }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# Name options #}
+    <div class="grid grid-cols-2 gap-3" x-data="{ submitting: false }">
+      {% for name in this.nameOptions %}
+        <button type="button"
+                @click="if (!submitting) { submitting = true; $wire.answer('{{ name|e('js') }}').then(() => { submitting = false }) }"
+                :disabled="submitting"
+                class="px-4 py-3 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all text-center font-medium text-stone-800 disabled:opacity-75">
+          {{ name }}
+        </button>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>

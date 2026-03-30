@@ -31,6 +31,68 @@
                     Créer un mélange
                 </a>
 
+                {# Dropdown L'Académie #}
+                <div x-data="{ dropdownOpen: false }" class="relative">
+                    <button @click="dropdownOpen = !dropdownOpen"
+                            :aria-expanded="dropdownOpen"
+                            aria-haspopup="true"
+                            class="flex items-center gap-1 text-sm font-medium text-stone-700 hover:text-saffron-700 transition-colors">
+                        L'Académie
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200"
+                             :class="dropdownOpen ? 'rotate-180' : ''"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+
+                    <div x-show="dropdownOpen" x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         @click.outside="dropdownOpen = false"
+                         class="absolute left-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-spice-border z-50 overflow-hidden">
+                        <a href="{{ path('education_index', { mode: 'qcm' }) }}"
+                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                            <i class="fa-solid fa-utensils text-saffron-500 w-4 text-center text-xs"></i>
+                            Le Choix du Chef
+                        </a>
+                        <a href="{{ path('education_play_live', { mode: 'survival' }) }}"
+                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                            <i class="fa-solid fa-pepper-hot text-saffron-500 w-4 text-center text-xs"></i>
+                            Défi de Scoville
+                        </a>
+                        <a href="{{ path('education_play_live', { mode: 'guess_who' }) }}"
+                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                            <i class="fa-solid fa-wine-glass text-saffron-500 w-4 text-center text-xs"></i>
+                            Palais Fin
+                        </a>
+                        <a href="{{ path('education_play_live', { mode: 'intrus' }) }}"
+                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                            <i class="fa-solid fa-ban text-saffron-500 w-4 text-center text-xs"></i>
+                            Hors Saison
+                        </a>
+                        <a href="{{ path('education_play_live', { mode: 'hangman' }) }}"
+                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                            <i class="fa-solid fa-temperature-three-quarters text-saffron-500 w-4 text-center text-xs"></i>
+                            Cuisson en Cours
+                        </a>
+                        <a href="{{ path('education_play_live', { mode: 'chrono' }) }}"
+                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                            <i class="fa-solid fa-fire-flame-curved text-saffron-500 w-4 text-center text-xs"></i>
+                            À Feu Vif
+                        </a>
+                        <div class="border-t border-spice-border"></div>
+                        <a href="{{ path('education_index') }}"
+                           class="flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-saffron-700 hover:bg-spice-surface transition-colors">
+                            <i class="fa-solid fa-graduation-cap text-saffron-500 w-4 text-center text-xs"></i>
+                            Toute l'Académie
+                        </a>
+                    </div>
+                </div>
+
                 {# Dropdown Épices #}
                 <div x-data="{ dropdownOpen: false }" class="relative">
                     <button @click="dropdownOpen = !dropdownOpen"
@@ -293,6 +355,55 @@
                           hover:bg-spice-surface hover:text-saffron-700 transition-colors">
                     <i class="fa-solid fa-flask-vial text-saffron-400 w-4 text-center text-xs shrink-0"></i>
                     Par saveur
+                </a>
+            </div>
+
+            <div class="mx-6 border-t border-stone-200/60 my-2"></div>
+
+            {# Section L'Académie #}
+            <div class="px-3 mb-2">
+                <p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">L'Académie</p>
+                <a href="{{ path('education_index', { mode: 'qcm' }) }}" @click="open = false"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
+                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                    <i class="fa-solid fa-utensils text-saffron-400 w-4 text-center text-xs shrink-0"></i>
+                    Le Choix du Chef
+                </a>
+                <a href="{{ path('education_play_live', { mode: 'survival' }) }}" @click="open = false"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
+                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                    <i class="fa-solid fa-pepper-hot text-saffron-400 w-4 text-center text-xs shrink-0"></i>
+                    Défi de Scoville
+                </a>
+                <a href="{{ path('education_play_live', { mode: 'guess_who' }) }}" @click="open = false"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
+                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                    <i class="fa-solid fa-wine-glass text-saffron-400 w-4 text-center text-xs shrink-0"></i>
+                    Palais Fin
+                </a>
+                <a href="{{ path('education_play_live', { mode: 'intrus' }) }}" @click="open = false"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
+                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                    <i class="fa-solid fa-ban text-saffron-400 w-4 text-center text-xs shrink-0"></i>
+                    Hors Saison
+                </a>
+                <a href="{{ path('education_play_live', { mode: 'hangman' }) }}" @click="open = false"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
+                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                    <i class="fa-solid fa-temperature-three-quarters text-saffron-400 w-4 text-center text-xs shrink-0"></i>
+                    Cuisson en Cours
+                </a>
+                <a href="{{ path('education_play_live', { mode: 'chrono' }) }}" @click="open = false"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
+                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
+                    <i class="fa-solid fa-fire-flame-curved text-saffron-400 w-4 text-center text-xs shrink-0"></i>
+                    À Feu Vif
+                </a>
+                <a href="{{ path('education_index') }}" @click="open = false"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-saffron-700
+                          hover:bg-spice-surface transition-colors">
+                    <i class="fa-solid fa-graduation-cap text-saffron-500 w-4 text-center text-xs shrink-0"></i>
+                    Toute l'Académie
                 </a>
             </div>
 

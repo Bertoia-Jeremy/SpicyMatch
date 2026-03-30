@@ -37,6 +37,14 @@ services:
         arguments:
             $generators: !tagged_iterator education.question_generator
 
+    App\Service\Education\AcademyManager:
+        arguments:
+            $cache: '@academy.cache'
+
+    App\EventListener\AcademyCacheInvalidator:
+        arguments:
+            $cache: '@academy.cache'
+
     App\Service\NewsletterService:
         arguments:
             $appSecret: '%kernel.secret%'

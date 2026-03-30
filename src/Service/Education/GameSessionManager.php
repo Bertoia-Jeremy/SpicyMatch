@@ -146,6 +146,52 @@ class GameSessionManager
         return $xpEarned;
     }
 
+    /**
+     * Create and immediately finish a GameSession from Live Component data.
+     * No GameQuestion rows — only the session summary is persisted.
+     */
+    public function createFinishedSession(
+        Users $user,
+        GameMode $mode,
+        GameDifficulty $difficulty,
+        int $correctAnswers,
+        int $totalQuestions,
+        ?int $durationSeconds = null,
+    ): GameSession {
+        $session = new GameSession();
+        $session->setUser($user);
+        $session->setGameMode($mode);
+        $session->setDifficulty($difficulty);
+        $session->setTotalQuestions($totalQuestions);
+
+        for ($i = 0; $i < $correctAnswers; ++$i) {
+            $session->incrementCorrectAnswers();
+        }
+
+        $session->finish();
+
+        if ($durationSeconds !== null) {
+            $session->setDurationSeconds($durationSeconds);
+        }
+
+        $xpEarned = $this->calculateXp($session);
+        $session->setScore($xpEarned);
+
+        $this->em->persist($session);
+        $this->em->flush();
+
+        $this->bus->dispatch(new GameCompletedEvent(
+            userId: $user->getId(),
+            sessionId: $session->getId(),
+            gameMode: $mode->value,
+            correctAnswers: $correctAnswers,
+            totalQuestions: $totalQuestions,
+            xpEarned: $xpEarned,
+        ));
+
+        return $session;
+    }
+
     public function calculateXp(GameSession $session): int
     {
         $base = $session->getCorrectAnswers()

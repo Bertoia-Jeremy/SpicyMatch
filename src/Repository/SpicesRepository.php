@@ -202,6 +202,84 @@ class SpicesRepository extends ServiceEntityRepository
     }
 
     /**
+     * Find spices that share ZERO aromatic compounds (main or secondary) with the given spice.
+     *
+     * Uses NOT EXISTS subqueries for efficiency — no PHP scoring needed.
+     *
+     * @return Spices[]
+     */
+    public function findIncompatibleWith(Spices $spice, array $excludeIds = []): array
+    {
+        $sql = '
+            SELECT s.id
+            FROM spices s
+            WHERE s.id != :spiceId
+                AND s.deleted_at IS NULL
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM spices_aromatic_compound sac_base
+                    JOIN spices_aromatic_compound sac_candidate
+                        ON sac_candidate.aromatic_compound_id = sac_base.aromatic_compound_id
+                    WHERE sac_base.spices_id = :spiceId
+                        AND sac_candidate.spices_id = s.id
+                )
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM spices_aromatic_compound sac_base2
+                    JOIN secondary_spices_aromatic_compound ssac_candidate
+                        ON ssac_candidate.aromatic_compound_id = sac_base2.aromatic_compound_id
+                    WHERE sac_base2.spices_id = :spiceId
+                        AND ssac_candidate.spices_id = s.id
+                )
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM secondary_spices_aromatic_compound ssac_base
+                    JOIN spices_aromatic_compound sac_candidate2
+                        ON sac_candidate2.aromatic_compound_id = ssac_base.aromatic_compound_id
+                    WHERE ssac_base.spices_id = :spiceId
+                        AND sac_candidate2.spices_id = s.id
+                )
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM secondary_spices_aromatic_compound ssac_base2
+                    JOIN secondary_spices_aromatic_compound ssac_candidate2
+                        ON ssac_candidate2.aromatic_compound_id = ssac_base2.aromatic_compound_id
+                    WHERE ssac_base2.spices_id = :spiceId
+                        AND ssac_candidate2.spices_id = s.id
+                )
+        ';
+
+        $params = [
+            'spiceId' => $spice->getId(),
+        ];
+        $types = [
+            'spiceId' => ParameterType::INTEGER,
+        ];
+
+        if (! empty($excludeIds)) {
+            $sql .= ' AND s.id NOT IN (:excludeIds)';
+            $params['excludeIds'] = $excludeIds;
+        }
+
+        $conn = $this->getEntityManager()
+            ->getConnection();
+        $ids = $conn->executeQuery($sql, $params, $types)
+            ->fetchFirstColumn();
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('s')
+            ->addSelect('ag')
+            ->leftJoin('s.aromaticGroups', 'ag')
+            ->where('s.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Find the top compatible spice pairs based on shared aromatic compounds.
      *
      * Uses raw SQL self-join on pivot tables for performance.

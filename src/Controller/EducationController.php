@@ -176,6 +176,37 @@ class EducationController extends AbstractController
         ]);
     }
 
+    #[Route('/play-live/{mode}', name: 'education_play_live', methods: ['GET'])]
+    public function playLive(string $mode, Request $request): Response
+    {
+        $gameMode = GameMode::tryFrom($mode);
+
+        if ($gameMode === null || ! $gameMode->isLiveComponent()) {
+            throw $this->createNotFoundException();
+        }
+
+        $difficulty = GameDifficulty::tryFrom($request->query->getString('difficulty')) ?? GameDifficulty::EASY;
+
+        /** @var Users $user */
+        $user = $this->getUser();
+
+        $todayCount = $this->sessionRepository->countTodayByUser($user, $gameMode);
+
+        if ($todayCount >= 5) {
+            $this->addFlash('warning', sprintf(
+                'Limite quotidienne atteinte (5 sessions %s par jour).',
+                $gameMode->label(),
+            ));
+
+            return $this->redirectToRoute('education_index');
+        }
+
+        return $this->render('education/play_live.html.twig', [
+            'mode' => $gameMode,
+            'difficulty' => $difficulty,
+        ]);
+    }
+
     #[Route('/result/{id}', name: 'education_result', methods: ['GET'])]
     public function result(int $id): Response
     {

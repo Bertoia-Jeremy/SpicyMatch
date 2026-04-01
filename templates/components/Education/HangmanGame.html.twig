@@ -1,4 +1,4 @@
-<div>
+<div {{ attributes }}>
   {# Header: progress + score #}
   <div class="flex items-center justify-between mb-6">
     <div class="flex items-center gap-3">
@@ -156,7 +156,10 @@
           {% for letter in alphabet|split('') %}
             {% set isGuessed = letter in this.guessedLetters %}
             <button type="button"
-                    @click="if (!submitting) { submitting = true; $wire.guessLetter('{{ letter }}').then(() => { submitting = false }) }"
+                    data-action="live#action"
+                    data-live-action-param="guessLetter"
+                    data-live-letter-param="{{ letter }}"
+                    @click="if (!submitting) { submitting = true }"
                     {{ isGuessed ? 'disabled' : '' }}
                     class="w-9 h-9 rounded-lg text-sm font-semibold transition-all
                       {{ isGuessed ? 'bg-stone-200 text-stone-400 cursor-not-allowed' : 'bg-white border border-stone-300 text-stone-700 hover:bg-saffron-100 hover:border-saffron-400 hover:text-saffron-700' }}">

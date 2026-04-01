@@ -1,4 +1,4 @@
-<div>
+<div {{ attributes }}>
   {# Header: score + streak #}
   <div class="flex items-center justify-between mb-6">
     <div class="flex items-center gap-3">
@@ -36,24 +36,29 @@
 
       <button data-action="live#action"
               data-live-action-param="finish"
-              class="btn-pill-primary">
+              data-loading="action(finish)|addAttribute(disabled)"
+              class="btn-pill-primary disabled:opacity-75">
         <i class="fa-solid fa-flag-checkered mr-2"></i>Voir les résultats
       </button>
     </div>
 
   {% else %}
-    {# Timer bar (Alpine.js managed) #}
-    <div data-live-ignore
-         x-data="{
-           timeLeft: {{ this.timeLimit }},
+    {# Timer — Alpine countdown basé sur wall-clock (pas de data-live-ignore) #}
+    <div x-data="{
+           timeLeft: Math.max(0, {{ this.timeLimit }} - Math.floor(Date.now() / 1000 - {{ this.startedAt }})),
            totalTime: {{ this.timeLimit }},
            interval: null,
            init() {
+             if (this.timeLeft <= 0) {
+               this.$refs.timeoutBtn.click();
+               return;
+             }
              this.interval = setInterval(() => {
-               this.timeLeft--;
+               this.timeLeft = Math.max(0, {{ this.timeLimit }} - Math.floor(Date.now() / 1000 - {{ this.startedAt }}));
                if (this.timeLeft <= 0) {
                  clearInterval(this.interval);
-                 this.$wire.timeout();
+                 this.interval = null;
+                 this.$refs.timeoutBtn.click();
                }
              }, 1000);
            },
@@ -68,6 +73,10 @@
            }
          }"
          class="mb-8">
+      <button x-ref="timeoutBtn"
+              data-action="live#action"
+              data-live-action-param="timeout"
+              class="hidden" aria-hidden="true"></button>
       <div class="flex items-center justify-between mb-2">
         <span class="text-sm text-stone-500">
           <i class="fa-solid fa-clock mr-1"></i>Temps restant
@@ -93,7 +102,7 @@
       {% endif %}
     </div>
 
-    {# Last answer feedback (inline, not a separate state) #}
+    {# Last answer feedback (inline) #}
     {% if this.questionsAnswered > 0 %}
       <div class="mb-6 text-center text-sm">
         {% if this.lastAnswerCorrect %}
@@ -125,11 +134,11 @@
       {% endif %}
 
       <div class="space-y-2 text-sm">
-        {% if this.currentCard.aromaticGroup is defined and this.currentCard.aromaticGroup.name %}
+        {% if this.currentCard.aromaticGroup is defined and this.currentCard.aromaticGroup.name is defined %}
           <div class="flex items-center gap-2">
             <span class="text-stone-500">Famille :</span>
             <span class="flex items-center gap-1.5">
-              {% if this.currentCard.aromaticGroup.color %}
+              {% if this.currentCard.aromaticGroup.color is defined and this.currentCard.aromaticGroup.color %}
                 <span class="w-3 h-3 rounded-full inline-block" style="background-color: {{ this.currentCard.aromaticGroup.color }}"></span>
               {% endif %}
               {{ this.currentCard.aromaticGroup.name }}
@@ -173,12 +182,14 @@
       </div>
     </div>
 
-    {# Name options #}
-    <div class="grid grid-cols-2 gap-3" x-data="{ submitting: false }">
+    {# Name options — data-loading natif LC pour anti double-clic #}
+    <div class="grid grid-cols-2 gap-3">
       {% for name in this.nameOptions %}
         <button type="button"
-                @click="if (!submitting) { submitting = true; $wire.answer('{{ name|e('js') }}').then(() => { submitting = false }) }"
-                :disabled="submitting"
+                data-action="live#action"
+                data-live-action-param="answer"
+                data-live-spice-name-param="{{ name|e('html_attr') }}"
+                data-loading="action(answer)|addAttribute(disabled)"
                 class="px-4 py-3 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all text-center font-medium text-stone-800 disabled:opacity-75">
           {{ name }}
         </button>

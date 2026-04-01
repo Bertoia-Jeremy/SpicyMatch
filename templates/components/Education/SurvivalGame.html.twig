@@ -1,4 +1,4 @@
-<div>
+<div {{ attributes }}>
   {# Header: chain length + status #}
   <div class="flex items-center justify-between mb-6">
     <div class="flex items-center gap-3">
@@ -57,7 +57,10 @@
     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" x-data="{ submitting: false }">
       {% for spice in this.startingSpices %}
         <button type="button"
-                @click="if (!submitting) { submitting = true; $wire.start({{ spice.id }}) }"
+                data-action="live#action"
+                data-live-action-param="start"
+                data-live-spice-id-param="{{ spice.id }}"
+                @click="if (!submitting) { submitting = true }"
                 :disabled="submitting"
                 class="p-4 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all text-left group disabled:opacity-75">
           <div class="flex items-center gap-3">
@@ -113,7 +116,10 @@
     <div class="grid grid-cols-2 gap-4" x-data="{ selected: null, submitting: false }">
       {% for option in this.options %}
         <button type="button"
-                @click="if (!submitting) { selected = {{ option.id }}; submitting = true; $wire.pick({{ option.id }}) }"
+                data-action="live#action"
+                data-live-action-param="pick"
+                data-live-spice-id-param="{{ option.id }}"
+                @click="if (!submitting) { selected = {{ option.id }}; submitting = true }"
                 :class="selected === {{ option.id }} ? 'ring-2 ring-saffron-500 border-saffron-400' : ''"
                 :disabled="submitting"
                 class="relative p-4 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all text-left group disabled:opacity-75">

@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
+use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
@@ -62,9 +63,6 @@ class ChronoGame extends AbstractController
     public bool $lastAnswerCorrect = false;
 
     #[LiveProp]
-    public bool $showFeedback = false;
-
-    #[LiveProp]
     public string $lastCorrectName = '';
 
     #[LiveProp]
@@ -95,20 +93,16 @@ class ChronoGame extends AbstractController
         $gameDifficulty = GameDifficulty::from($this->difficulty);
         $this->timeLimit = $this->academyManager->getChronoTimeLimit($gameDifficulty);
 
-        $this->generateQuestion();
+        // Init session avant generateQuestion (qui y mergera correctName + questionStartedAt)
+        $this->requestStack->getSession()->set('game_' . $this->gameToken, [
+            'startedAt' => $this->startedAt,
+        ]);
 
-        // Store start time in session for anti-cheat
-        $this->requestStack->getSession()
-            ->set('game_' . $this->gameToken, [
-                'correctName' => $this->requestStack->getSession()
-                    ->get('game_' . $this->gameToken, [])['correctName'] ?? '',
-                'startedAt' => $this->startedAt,
-                'questionStartedAt' => time(),
-            ]);
+        $this->generateQuestion();
     }
 
     #[LiveAction]
-    public function answer(string $spiceName): void
+    public function answer(#[LiveArg] string $spiceName): void
     {
         if ($this->isFinished) {
             return;

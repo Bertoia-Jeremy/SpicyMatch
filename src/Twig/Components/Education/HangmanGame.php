@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
+use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
@@ -99,7 +100,7 @@ class HangmanGame extends AbstractController
     }
 
     #[LiveAction]
-    public function guessLetter(string $letter): void
+    public function guessLetter(#[LiveArg] string $letter): void
     {
         if ($this->wordSolved || $this->wordFailed || $this->isFinished) {
             return;

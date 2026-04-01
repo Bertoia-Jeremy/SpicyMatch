@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
+use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
@@ -97,7 +98,7 @@ class SurvivalGame extends AbstractController
     }
 
     #[LiveAction]
-    public function start(int $spiceId): void
+    public function start(#[LiveArg] int $spiceId): void
     {
         if ($this->isStarted) {
             return;
@@ -116,7 +117,7 @@ class SurvivalGame extends AbstractController
     }
 
     #[LiveAction]
-    public function pick(int $spiceId): void
+    public function pick(#[LiveArg] int $spiceId): void
     {
         if (! $this->isStarted || $this->isGameOver || $this->isVictory) {
             return;

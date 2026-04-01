@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
+use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
@@ -95,7 +96,7 @@ class IntrusGame extends AbstractController
     }
 
     #[LiveAction]
-    public function answer(int $spiceId): void
+    public function answer(#[LiveArg] int $spiceId): void
     {
         if ($this->showFeedback || $this->isFinished) {
             return;

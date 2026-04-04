@@ -10,6 +10,7 @@ use App\Form\UsersMailType;
 use App\Repository\AchievementRepository;
 use App\Repository\SpiceViewRepository;
 use App\Repository\SpicyMatchHistoryRepository;
+use App\Repository\UserAchievementRepository;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
@@ -26,6 +27,7 @@ class UsersController extends AbstractController
     public function __construct(
         private readonly UsersRepository $usersRepository,
         private readonly AchievementRepository $achievementRepository,
+        private readonly UserAchievementRepository $userAchievementRepository,
         private readonly SpicyMatchHistoryRepository $historyRepository,
         private readonly SpiceViewRepository $spiceViewRepository,
     ) {
@@ -140,10 +142,14 @@ class UsersController extends AbstractController
     {
         /** @var Users $user */
         $user = $this->getUser();
+        $progression = $user->getProgression();
 
         return $this->render('users/achievements.html.twig', [
-            'progression' => $user->getProgression(),
+            'progression' => $progression,
             'allAchievements' => $this->achievementRepository->findAllOrdered(),
+            'userAchievements' => $progression
+                ? $this->userAchievementRepository->findByProgressionWithAchievement($progression)
+                : [],
         ]);
     }
 

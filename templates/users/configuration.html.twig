@@ -24,6 +24,33 @@
             </turbo-frame>
         </div>
 
+        {# Réactiver l'onboarding #}
+        <div class="mt-6">
+            <h2 class="text-xl font-semibold text-stone-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-compass text-saffron-600 text-base"></i>Parcours de découverte
+            </h2>
+            <div class="card-warm p-5">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="text-sm font-medium text-stone-800">Revoir l'introduction</p>
+                        <p class="text-xs text-stone-500 mt-1">
+                            Relance le guide de démarrage pour redécouvrir les fonctionnalités principales.
+                        </p>
+                    </div>
+                    <button type="button"
+                            x-data
+                            @click="
+                                localStorage.removeItem('sm_onboarding_done');
+                                window.location.href = '{{ path('home') }}';
+                            "
+                            class="shrink-0 text-sm px-4 py-1.5 rounded-full border border-saffron-400
+                                   text-saffron-700 hover:bg-saffron-50 transition-colors">
+                        <i class="fa-solid fa-rotate-left mr-1.5"></i>Relancer
+                    </button>
+                </div>
+            </div>
+        </div>
+
         {# Gamification opt-out #}
         {% if app.user.progression %}
         <div class="mt-6">

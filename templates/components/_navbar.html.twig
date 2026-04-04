@@ -162,6 +162,7 @@
 
                 {% if is_granted("ROLE_USER") %}
                     {% set navLevel = app.user.progression ? app.user.progression.level : null %}
+                    {% set navStreak = app.user.progression ? app.user.progression.currentReadingStreak : 0 %}
                     <div x-data="{ dropdownOpen: false }" class="relative">
                         <button @click="dropdownOpen = !dropdownOpen"
                                 class="flex items-center gap-2 bg-spice-surface border border-spice-border text-stone-700
@@ -172,6 +173,13 @@
                             {% if navLevel %}
                                 <span class="px-1.5 py-0.5 text-xs font-bold bg-turmeric-400 text-stone-900 rounded-full leading-none">
                                     {{ navLevel }}
+                                </span>
+                            {% endif %}
+                            {% if navStreak > 0 %}
+                                <span class="flex items-center gap-0.5 text-xs font-bold leading-none
+                                             {{ navStreak >= 7 ? 'text-paprika-700' : 'text-saffron-600' }}"
+                                      title="Streak de lecture : {{ navStreak }} jour{{ navStreak > 1 ? 's' : '' }} consécutif{{ navStreak > 1 ? 's' : '' }}">
+                                    🔥{{ navStreak }}j
                                 </span>
                             {% endif %}
                             <svg class="w-3 h-3 text-stone-400 transition-transform duration-200"
@@ -412,15 +420,21 @@
             {# Section utilisateur #}
             {% if is_granted("ROLE_USER") %}
                 {% set navLevel = app.user.progression ? app.user.progression.level : null %}
+                {% set navStreak = app.user.progression ? app.user.progression.currentReadingStreak : 0 %}
                 <div class="px-3">
                     {# Identity strip #}
                     <div class="flex items-center gap-3 px-3 py-3 mb-1 bg-spice-surface rounded-xl border border-spice-border">
                         {% include 'components/_avatar.html.twig' with { slug: app.user.avatar, sizeClass: 'w-9 h-9 text-base shrink-0', equippedBadge: app.user.progression ? app.user.progression.equippedBadge : null } %}
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-semibold text-stone-800 truncate">{{ app.user.username|capitalize }}</p>
-                            {% if navLevel %}
-                                <p class="text-xs text-stone-500">Niveau {{ navLevel }}</p>
-                            {% endif %}
+                            <p class="text-xs text-stone-500 flex items-center gap-2">
+                                {% if navLevel %}Niveau {{ navLevel }}{% endif %}
+                                {% if navStreak > 0 %}
+                                    <span class="{{ navStreak >= 7 ? 'text-paprika-600' : 'text-saffron-600' }} font-semibold">
+                                        🔥 {{ navStreak }}j
+                                    </span>
+                                {% endif %}
+                            </p>
                         </div>
                         {% if navLevel %}
                             <span class="px-2 py-0.5 text-xs font-bold bg-turmeric-400 text-stone-900 rounded-full shrink-0">

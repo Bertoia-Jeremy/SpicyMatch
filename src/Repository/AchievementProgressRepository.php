@@ -51,4 +51,23 @@ class AchievementProgressRepository extends ServiceEntityRepository
             'user' => $user,
         ]);
     }
+
+    /**
+     * Retourne l'achievement en cours le plus avancé (non complété) pour affichage dans le banner home.
+     * Trie par (progress / triggerValue) DESC pour prioriser le plus proche de la complétion.
+     */
+    public function findMostAdvancedNotCompleted(Users $user): ?AchievementProgress
+    {
+        return $this->createQueryBuilder('ap')
+            ->join('ap.achievement', 'a')
+            ->addSelect('a')
+            ->where('ap.user = :user')
+            ->andWhere('ap.progress < a.triggerValue')
+            ->andWhere('ap.progress > 0')
+            ->orderBy('ap.progress / a.triggerValue', 'DESC')
+            ->setMaxResults(1)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

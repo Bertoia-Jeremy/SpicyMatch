@@ -11,15 +11,15 @@
 
             {# ── Construire le lookup slug → UserAchievement ─────────────── #}
             {% set unlockedMap = {} %}
-            {% for ua in progression.userAchievements %}
+            {% for ua in userAchievements %}
                 {% set unlockedMap = unlockedMap|merge({ (ua.achievement.slug): ua }) %}
             {% endfor %}
 
             {# ── Stats globales ──────────────────────────────────────────── #}
-            {% set unlockedCount = progression.userAchievements|length %}
+            {% set unlockedCount = userAchievements|length %}
             {% set totalCount = allAchievements|length %}
             {% set xpFromAchievements = 0 %}
-            {% for ua in progression.userAchievements %}
+            {% for ua in userAchievements %}
                 {% set xpFromAchievements = xpFromAchievements + ua.achievement.xpReward %}
             {% endfor %}
             {% set globalPct = totalCount > 0 ? (unlockedCount / totalCount * 100)|round(0) : 0 %}

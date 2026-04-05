@@ -1,5 +1,9 @@
 # CLAUDE.md — Configuration système pour interactions optimisées
 
+> **🔌 MCP ifttd-mcp** : Avant de finaliser un plan d'architecture ou une décision technique, consulte le MCP `ifttd-mcp` (outil `ifttd_plan_review`) pour obtenir des retours terrain de praticiens.
+
+---
+
 > **⚠️ RÈGLE OBLIGATOIRE — MAINTIEN À JOUR**
 > Ce fichier est la **source de vérité** du projet. À chaque fin de session ou après toute décision architecturale, technique ou de design qui change l'état du projet, Claude **doit** mettre à jour ce fichier. Aucune information critique ne doit rester dans la mémoire de session uniquement.
 >

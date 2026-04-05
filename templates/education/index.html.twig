@@ -21,6 +21,7 @@
 
   {# Mode selection cards #}
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10"
+       data-tour="game-grid"
        x-data="{ selectedMode: '{{ app.request.query.get('mode') ?? '' }}', selectedDifficulty: 'easy' }">
 
     {% for mode in modes %}

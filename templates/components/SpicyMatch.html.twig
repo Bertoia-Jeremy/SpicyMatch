@@ -50,10 +50,12 @@
                 {% endfor %}
             </div>
         {% endset %}
-        {{ filters.filter_dropdown('Groupe Aromatique', ag_content, {
-            count: this.filterAgId ? 1 : 0,
-            reset_click: "$dispatch('live:action', {action: 'resetFilters'})"
-        }) }}
+        <div data-tour="lab-aromatic-filter">
+            {{ filters.filter_dropdown('Groupe Aromatique', ag_content, {
+                count: this.filterAgId ? 1 : 0,
+                reset_click: "$dispatch('live:action', {action: 'resetFilters'})"
+            }) }}
+        </div>
 
         {# Filtre Type d'Épice #}
         {% set st_content %}

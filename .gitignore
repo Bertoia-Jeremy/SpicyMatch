@@ -43,3 +43,5 @@ phpstan.neon
 .gitignore
 .pnp.loader.mjs
 yarn.lock
+docs/*
+TODO.txt

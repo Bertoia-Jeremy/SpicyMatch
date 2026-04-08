@@ -27,7 +27,7 @@
     {% set showQuickView = options.showQuickView|default(true) %}
     {% set model = options.model|default(null) %}
 
-    <article class="card-warm flex flex-col overflow-hidden h-full group relative {{ compact ? 'max-w-[180px]' : '' }}">
+    <article x-data class="card-warm flex flex-col overflow-hidden h-full group relative {{ compact ? 'max-w-[180px]' : '' }}">
         
         {# ── Zone 1 : Image (Trigger MODALE uniquement) ── #}
         <div class="relative overflow-hidden aspect-square bg-stone-100 cursor-pointer"

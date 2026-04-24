@@ -239,11 +239,10 @@ architecture:
     avatar:
       - Le badge équipé (UserProgression::$equippedBadge) EST l'avatar : son icône + la couleur de sa rareté
       - Composant: templates/components/_avatar.html.twig
-        → paramètre `equippedBadge` (UserAchievement|null) prioritaire sur `slug`
+        → paramètre `equippedBadge` (UserAchievement|null) — null = cercle neutre
         → couleurs rareté : common=#f5f5f4/#78716c, rare=#dbeafe/#1d4ed8, epic=#f3e8ff/#7e22ce, legendary=#fef9c3/#a16207
-        → fallback slug : avatar_data(slug) via AvatarExtension (dead code — conservé pour la migration)
-      - Sélection avatar supprimée de configuration.html.twig — route avatar_upload_user supprimée
-      - Dead code (à supprimer dans une prochaine passe) : AvatarCatalogService, AvatarExtension, Users::$avatar
+      - Sélection avatar retirée de configuration.html.twig
+      - AvatarCatalogService + AvatarExtension + Users::$avatar supprimés (2026-04-24)
 
   education:
     description: "Mini-jeux éducatifs sur les épices — 6 modes actifs (QCM route-based + 5 Live Components)"

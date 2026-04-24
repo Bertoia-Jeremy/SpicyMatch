@@ -61,6 +61,18 @@ export async function createTestUser(
 }
 
 /**
+ * Promote a test user to ROLE_ADMIN via direct SQL. Manual test fixture only —
+ * never used outside Playwright specs that need admin access.
+ */
+export function promoteToAdmin(userId: number): void {
+  const sql = `UPDATE users SET roles = '["ROLE_ADMIN"]' WHERE id = ${userId}`;
+  execSync(
+    `docker exec p8.4 php /var/www/html/spicymatch/bin/console doctrine:query:sql ${JSON.stringify(sql)}`,
+    { stdio: 'pipe' },
+  );
+}
+
+/**
  * Delete a test user via an admin endpoint (or mark deleted if no endpoint exists).
  * Called in afterEach — keeps the DB tidy.
  */

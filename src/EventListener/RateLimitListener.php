@@ -97,10 +97,7 @@ final class RateLimitListener
         }
 
         // User mutation routes — POST-only, matched by suffix patterns.
-        if (preg_match(
-            '#^/users/(gamification/toggle|badge/equip/\d+|difficulty/update|avatar/upload)$#',
-            $path,
-        ) === 1) {
+        if (preg_match('#^/users/(gamification/toggle|badge/equip/\d+|difficulty/update)$#', $path) === 1) {
             return $this->userActionsLimiter;
         }
 

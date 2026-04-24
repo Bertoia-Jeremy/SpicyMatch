@@ -132,4 +132,113 @@ final class AdminStatsServiceTest extends TestCase
         self::assertSame(15, $result[0]['sessions']);
         self::assertStringContainsString('15 sessions', $result[0]['reason']);
     }
+
+    public function testGetUserStatsShape(): void
+    {
+        $this->connection->method('fetchOne')
+            ->willReturn(100, 5, 42, 7.3);
+
+        $stats = $this->service->getUserStats();
+        self::assertSame(100, $stats['totalUsers']);
+        self::assertSame(5, $stats['newUsers']);
+        self::assertSame(42, $stats['activeUsers']);
+        self::assertSame(7.3, $stats['avgLevel']);
+    }
+
+    public function testGetGamificationStatsComputesRate(): void
+    {
+        $this->connection->method('fetchOne')
+            ->willReturn(50, 10, 5); // 50 unlocks, 10 users, 5 achievements → 50/(10*5)=100%
+        $this->connection->method('fetchAllAssociative')
+            ->willReturn([
+                [
+                    'bucket' => '0',
+                    'cnt' => '3',
+                ],
+                [
+                    'bucket' => '5',
+                    'cnt' => '2',
+                ],
+            ]);
+
+        $stats = $this->service->getGamificationStats();
+        self::assertSame(50, $stats['totalUnlocked']);
+        self::assertSame(100.0, $stats['unlockRate']);
+        self::assertSame([
+            0 => 3,
+            5 => 2,
+        ], $stats['levelDistribution']);
+    }
+
+    public function testGetGamificationStatsGuardsDivisionByZero(): void
+    {
+        $this->connection->method('fetchOne')
+            ->willReturn(0, 0, 0);
+        $this->connection->method('fetchAllAssociative')
+            ->willReturn([]);
+
+        $stats = $this->service->getGamificationStats();
+        self::assertSame(0.0, $stats['unlockRate']);
+        self::assertSame([], $stats['levelDistribution']);
+    }
+
+    public function testGetSpiceStatsShape(): void
+    {
+        $this->connection->method('fetchAllAssociative')
+            ->willReturn(
+                [[
+                    'name' => 'Poivre',
+                    'views' => '42',
+                ]],
+                [[
+                    'name' => 'Curcuma',
+                    'uses' => '7',
+                ]],
+                [[
+                    'name' => 'Monoterpènes',
+                    'cnt' => '120',
+                ]],
+            );
+
+        $stats = $this->service->getSpiceStats();
+        self::assertSame('Poivre', $stats['topViewed'][0]['name']);
+        self::assertSame(42, $stats['topViewed'][0]['views']);
+        self::assertSame('Curcuma', $stats['topInMatches'][0]['name']);
+        self::assertSame(7, $stats['topInMatches'][0]['uses']);
+        self::assertSame('Monoterpènes', $stats['groupPopularity'][0]['name']);
+        self::assertSame(120, $stats['groupPopularity'][0]['cnt']);
+    }
+
+    public function testGetEducationStatsShape(): void
+    {
+        $this->connection->method('fetchOne')
+            ->willReturn(150, 78.5);
+
+        $stats = $this->service->getEducationStats();
+        self::assertSame(150, $stats['totalGames']);
+        self::assertSame(78.5, $stats['avgAccuracy']);
+    }
+
+    public function testGetMatchStatsShape(): void
+    {
+        $this->connection->method('fetchOne')
+            ->willReturn(200, 3.4);
+        $this->connection->method('fetchAllAssociative')
+            ->willReturn([
+                [
+                    'date' => '2026-04-20',
+                    'count' => '12',
+                ],
+                [
+                    'date' => '2026-04-21',
+                    'count' => '8',
+                ],
+            ]);
+
+        $stats = $this->service->getMatchStats();
+        self::assertSame(200, $stats['totalMatches']);
+        self::assertSame(3.4, $stats['avgSpicesPerMatch']);
+        self::assertCount(2, $stats['recentActivity']);
+        self::assertSame(12, $stats['recentActivity'][0]['count']);
+    }
 }

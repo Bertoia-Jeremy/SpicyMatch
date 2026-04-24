@@ -1,47 +1,23 @@
+{% import 'components/Education/_game_header.html.twig' as game_header %}
 <div {{ attributes }}>
-  {# Header: progress + score #}
-  <div class="flex items-center justify-between mb-6">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600">
-        <i class="fa-solid fa-temperature-three-quarters"></i>
-      </div>
-      <div>
-        <h2 class="text-lg font-bold text-stone-800">Cuisson en Cours</h2>
-        <p class="text-xs text-stone-500">Devine le nom de l'épice lettre par lettre</p>
-      </div>
-    </div>
-    <div class="flex items-center gap-3 text-sm">
-      <span class="tag-secondary">{{ this.questionNumber }}/{{ this.totalQuestions }}</span>
-      <span class="font-semibold text-saffron-600">{{ this.correctCount }} <i class="fa-solid fa-check text-xs"></i></span>
-    </div>
-  </div>
-
-  {# Progress bar #}
-  <div class="w-full bg-stone-200 rounded-full h-2 mb-8">
-    <div class="bg-saffron-500 h-2 rounded-full transition-all duration-300"
-         style="width: {{ (this.questionNumber / this.totalQuestions) * 100 }}%"></div>
-  </div>
+  {{ game_header.header(
+      icon = 'fa-solid fa-temperature-three-quarters',
+      title = 'Cuisson en Cours',
+      subtitle = 'Devine le nom de l\'épice lettre par lettre',
+      current = this.questionNumber,
+      total = this.totalQuestions,
+      scoreLabel = this.correctCount ~ ' <i class="fa-solid fa-check text-xs"></i>',
+  ) }}
 
   {% if this.isFinished %}
-    {# Game over — summary #}
-    <div class="text-center py-12">
-      <div class="w-24 h-24 mx-auto mb-6 rounded-full border-8 flex items-center justify-center
-        {{ this.correctCount >= (this.totalQuestions * 0.8) ? 'border-turmeric-400 text-turmeric-700' : (this.correctCount >= (this.totalQuestions * 0.5) ? 'border-turmeric-400 text-turmeric-700' : 'border-paprika-400 text-paprika-700') }}">
-        <div class="text-2xl font-bold">{{ this.correctCount }}/{{ this.questionNumber }}</div>
-      </div>
-
-      <h3 class="text-xl font-bold text-stone-800 mb-2">Partie terminée !</h3>
-      <p class="text-stone-600 mb-6">
-        Tu as trouvé {{ this.correctCount }} mot{{ this.correctCount > 1 ? 's' : '' }}
-        sur {{ this.questionNumber }}.
-      </p>
-
-      <button data-action="live#action"
-              data-live-action-param="finish"
-              class="btn-pill-primary">
-        <i class="fa-solid fa-flag-checkered mr-2"></i>Voir les résultats
-      </button>
-    </div>
+    {{ game_header.game_over_summary(
+        circleLabel = this.correctCount ~ '/' ~ this.questionNumber,
+        title = 'Partie terminée !',
+        paragraphHtml = 'Tu as trouvé ' ~ this.correctCount ~ ' mot' ~ (this.correctCount > 1 ? 's' : '') ~ ' sur ' ~ this.questionNumber ~ '.',
+        buttonLabel = 'Voir les résultats',
+        buttonAction = 'finish',
+        variant = this.correctCount >= (this.totalQuestions * 0.5) ? 'success' : 'failure',
+    ) }}
 
   {% elseif this.showFeedback %}
     {# Word result feedback #}

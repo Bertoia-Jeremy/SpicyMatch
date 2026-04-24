@@ -1,61 +1,29 @@
+{% import 'components/Education/_game_header.html.twig' as game_header %}
 <div {{ attributes }}>
-  {# Header: progress + score #}
-  <div class="flex items-center justify-between mb-6">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600">
-        <i class="fa-solid fa-ban"></i>
-      </div>
-      <div>
-        <h2 class="text-lg font-bold text-stone-800">Hors Saison</h2>
-        <p class="text-xs text-stone-500">
-          {% if this.isInverted %}
-            Trouve le compatible
-          {% else %}
-            Trouve l'intrus
-          {% endif %}
-        </p>
-      </div>
-    </div>
-    <div class="flex items-center gap-3 text-sm">
-      <span class="tag-secondary">{{ this.questionNumber }}/{{ this.totalQuestions }}</span>
-      <span class="font-semibold text-saffron-600">{{ this.correctCount }} <i class="fa-solid fa-check text-xs"></i></span>
-    </div>
-  </div>
-
-  {# Progress bar #}
-  <div class="w-full bg-stone-200 rounded-full h-2 mb-8">
-    <div class="bg-saffron-500 h-2 rounded-full transition-all duration-300"
-         style="width: {{ (this.questionNumber / this.totalQuestions) * 100 }}%"></div>
-  </div>
+  {{ game_header.header(
+      icon = 'fa-solid fa-ban',
+      title = 'Hors Saison',
+      subtitle = this.isInverted ? 'Trouve le compatible' : 'Trouve l\'intrus',
+      current = this.questionNumber,
+      total = this.totalQuestions,
+      scoreLabel = this.correctCount ~ ' <i class="fa-solid fa-check text-xs"></i>',
+  ) }}
 
   {% if this.isFinished %}
-    {# Game over — show summary and finish button #}
-    <div class="text-center py-12">
-      <div class="w-24 h-24 mx-auto mb-6 rounded-full border-8 flex items-center justify-center
-        {{ this.correctCount >= (this.totalQuestions * 0.8) ? 'border-turmeric-400 text-turmeric-700' : (this.correctCount >= (this.totalQuestions * 0.5) ? 'border-turmeric-400 text-turmeric-700' : 'border-paprika-400 text-paprika-700') }}">
-        <div class="text-2xl font-bold">
-          {{ this.correctCount }}/{{ this.answers|length }}
-        </div>
-      </div>
+    {{ game_header.game_over_summary(
+        circleLabel = this.correctCount ~ '/' ~ this.answers|length,
+        title = 'Partie terminée !',
+        paragraphHtml = 'Tu as trouvé ' ~ this.correctCount ~ ' bonne' ~ (this.correctCount > 1 ? 's' : '') ~ ' réponse' ~ (this.correctCount > 1 ? 's' : '') ~ ' sur ' ~ this.answers|length ~ ' questions.',
+        buttonLabel = 'Voir les résultats',
+        buttonAction = 'finish',
+        variant = this.correctCount >= (this.totalQuestions * 0.5) ? 'success' : 'failure',
+    ) }}
 
-      <h3 class="text-xl font-bold text-stone-800 mb-2">Partie terminée !</h3>
-      <p class="text-stone-600 mb-6">
-        Tu as trouvé {{ this.correctCount }} bonne{{ this.correctCount > 1 ? 's' : '' }} réponse{{ this.correctCount > 1 ? 's' : '' }}
-        sur {{ this.answers|length }} questions.
-      </p>
-
-      {# Answer history dots #}
-      <div class="flex justify-center gap-1.5 mb-8">
-        {% for answer in this.answers %}
-          <div class="w-3 h-3 rounded-full {{ answer.correct ? 'bg-turmeric-400' : 'bg-paprika-400' }}"></div>
-        {% endfor %}
-      </div>
-
-      <button data-action="live#action"
-              data-live-action-param="finish"
-              class="btn-pill-primary">
-        <i class="fa-solid fa-flag-checkered mr-2"></i>Voir les résultats
-      </button>
+    {# Answer history dots — Intrus-specific detail below the summary. #}
+    <div class="flex justify-center gap-1.5 -mt-6 mb-8">
+      {% for answer in this.answers %}
+        <div class="w-3 h-3 rounded-full {{ answer.correct ? 'bg-turmeric-400' : 'bg-paprika-400' }}"></div>
+      {% endfor %}
     </div>
 
   {% elseif this.showFeedback %}
@@ -95,38 +63,10 @@
       <p class="text-stone-700 text-lg">{{ this.prompt }}</p>
     </div>
 
-    {# Options grid #}
+    {% import 'components/Education/_option_card.html.twig' as option_card %}
     <div class="grid grid-cols-2 gap-4" x-data="{ selected: null, submitting: false }">
       {% for option in this.options %}
-        <button type="button"
-                data-action="live#action"
-                data-live-action-param="answer"
-                data-live-spice-id-param="{{ option.id }}"
-                @click="if (!submitting) { selected = {{ option.id }}; submitting = true }"
-                :class="selected === {{ option.id }} ? 'ring-2 ring-saffron-500 border-saffron-400' : ''"
-                :disabled="submitting"
-                class="relative p-4 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all text-left group disabled:opacity-75 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30">
-          <div class="flex items-center gap-3">
-            {% if option.file %}
-              <img src="{{ asset('uploads/spices/' ~ option.file) }}"
-                   alt="{{ option.name }}"
-                   class="w-12 h-12 rounded-lg object-cover">
-            {% else %}
-              <div class="w-12 h-12 rounded-lg flex items-center justify-center text-xl"
-                   style="background-color: {{ option.color ?? '#f5f5f4' }}20">
-                <i class="fa-solid fa-seedling" style="color: {{ option.color ?? '#78716c' }}"></i>
-              </div>
-            {% endif %}
-            <div>
-              <p class="font-semibold text-stone-800 group-hover:text-saffron-700 transition-colors">
-                {{ option.name }}
-              </p>
-              {% if option.color %}
-                <div class="w-3 h-3 rounded-full mt-1" style="background-color: {{ option.color }}"></div>
-              {% endif %}
-            </div>
-          </div>
-        </button>
+        {{ option_card.option(option, 'answer', 'spiceId', 'md', false) }}
       {% endfor %}
     </div>
   {% endif %}

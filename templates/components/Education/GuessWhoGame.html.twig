@@ -26,7 +26,7 @@
     {# Game over — summary #}
     <div class="text-center py-12">
       <div class="w-24 h-24 mx-auto mb-6 rounded-full border-8 flex items-center justify-center
-        {{ this.correctCount >= (this.totalQuestions * 0.8) ? 'border-green-400 text-green-700' : (this.correctCount >= (this.totalQuestions * 0.5) ? 'border-turmeric-400 text-turmeric-700' : 'border-red-400 text-red-700') }}">
+        {{ this.correctCount >= (this.totalQuestions * 0.8) ? 'border-turmeric-400 text-turmeric-700' : (this.correctCount >= (this.totalQuestions * 0.5) ? 'border-turmeric-400 text-turmeric-700' : 'border-paprika-400 text-paprika-700') }}">
         <div class="text-2xl font-bold">{{ this.totalScore }}</div>
       </div>
 
@@ -47,19 +47,19 @@
     {# Feedback between questions #}
     <div class="text-center py-12">
       {% if this.lastAnswerCorrect %}
-        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
-          <i class="fa-solid fa-circle-check text-green-500 text-3xl"></i>
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-turmeric-100 flex items-center justify-center">
+          <i class="fa-solid fa-circle-check text-turmeric-600 text-3xl"></i>
         </div>
-        <h3 class="text-lg font-bold text-green-700 mb-2">Bonne réponse !</h3>
+        <h3 class="text-lg font-bold text-turmeric-700 mb-2">Bonne réponse !</h3>
         <p class="text-stone-600 mb-2">
           C'était bien <strong>{{ this.lastCorrectName }}</strong>
         </p>
         <p class="text-saffron-600 font-semibold">+{{ this.lastPointsEarned }} points</p>
       {% else %}
-        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
-          <i class="fa-solid fa-circle-xmark text-red-500 text-3xl"></i>
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-paprika-100 flex items-center justify-center">
+          <i class="fa-solid fa-circle-xmark text-paprika-500 text-3xl"></i>
         </div>
-        <h3 class="text-lg font-bold text-red-700 mb-2">Mauvaise réponse</h3>
+        <h3 class="text-lg font-bold text-paprika-700 mb-2">Mauvaise réponse</h3>
         <p class="text-stone-600 mb-2">
           La bonne réponse était <strong>{{ this.lastCorrectName }}</strong>
         </p>
@@ -130,9 +130,9 @@
                 data-action="live#action"
                 data-live-action-param="guess"
                 data-live-spice-name-param="{{ option }}"
-                @click="submitting = true"
+                @click="if (!submitting) { submitting = true }"
                 :disabled="submitting"
-                class="w-full text-left px-5 py-3 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all font-medium text-stone-800 disabled:opacity-75">
+                class="w-full text-left px-5 py-3 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all font-medium text-stone-800 disabled:opacity-75 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30">
           {{ option }}
         </button>
       {% endfor %}

@@ -13,6 +13,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Vich\UploaderBundle\Form\Type\VichImageType;
 
+/**
+ * @extends AbstractCrudController<Spices>
+ */
 class SpicesCrudController extends AbstractCrudController
 {
     public static function getEntityFqcn(): string

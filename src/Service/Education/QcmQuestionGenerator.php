@@ -28,7 +28,7 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
         $allSpices = $this->spicesRepository->findAllSpices();
         $candidates = array_values(array_filter(
             $allSpices,
-            fn (array $s) => ! in_array($s['id'], $excludeSpiceIds, true)
+            fn (array $s) => ! in_array((int) $s['id'], $excludeSpiceIds, true)
         ));
 
         if (count($candidates) < 5) {
@@ -70,13 +70,13 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
             // Build options (1 correct + 3 distractors), shuffle
             $options = array_merge(
                 [[
-                    'id' => $correct['id'],
-                    'name' => $correct['name'],
+                    'id' => (int) $correct['id'],
+                    'name' => (string) $correct['name'],
                 ]],
                 array_map(
                     fn (array $s) => [
-                        'id' => $s['id'],
-                        'name' => $s['name'],
+                        'id' => (int) $s['id'],
+                        'name' => (string) $s['name'],
                     ],
                     array_slice($distractors, 0, 3)
                 )
@@ -85,13 +85,13 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
 
             return [
                 'type' => 'qcm',
-                'prompt' => sprintf('Quelle épice se marie le mieux avec %s ?', $baseData['name']),
+                'prompt' => sprintf('Quelle épice se marie le mieux avec %s ?', (string) $baseData['name']),
                 'baseSpice' => [
-                    'id' => $baseData['id'],
-                    'name' => $baseData['name'],
+                    'id' => (int) $baseData['id'],
+                    'name' => (string) $baseData['name'],
                 ],
                 'options' => $options,
-                'correctAnswer' => $correct['name'],
+                'correctAnswer' => (string) $correct['name'],
                 'metadata' => [
                     'correctScore' => $correct['score'],
                     'difficulty' => $difficulty->value,
@@ -103,6 +103,11 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
     }
 
     /**
+     * @param array<string, mixed>       $correct
+     * @param list<array<string, mixed>> $bottomPool
+     * @param list<array<string, mixed>> $allScored
+     * @param array<string, mixed>       $baseData
+     *
      * @return list<array<string, mixed>>
      */
     private function pickDistractors(
@@ -135,7 +140,7 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
                 $candidates,
                 fn (array $a, array $b) => abs($a['score'] - $correctScore) <=> abs($b['score'] - $correctScore)
             );
-            $distractors = array_values($candidates);
+            $distractors = $candidates;
         } else {
             // MEDIUM: distractors from same group but lower scores
             foreach ($bottomPool as $s) {

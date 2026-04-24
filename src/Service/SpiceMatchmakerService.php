@@ -25,6 +25,11 @@ class SpiceMatchmakerService
         return trim($idsString, ',');
     }
 
+    /**
+     * @param list<int> $spices
+     *
+     * @return false|array{main: list<int>, secondary: list<int>}
+     */
     public function getAllSharedAromaticsCompounds(array $spices): false|array
     {
         // Récupération de tous les composés aromatiques
@@ -45,9 +50,9 @@ class SpiceMatchmakerService
     }
 
     /**
-     * @param array<int> $spicesId
+     * @param list<int> $spicesId
      *
-     * @return array<string, array>
+     * @return array{main: array<int, int>, secondary: array<int, int>}
      */
     private function getAllAromaticsCompounds(array $spicesId): array
     {
@@ -81,7 +86,9 @@ class SpiceMatchmakerService
     }
 
     /**
-     * @param array<array<int>> $allAromaticsCompoundsIds
+     * @param array{main: array<int, int>, secondary: array<int, int>} $allAromaticsCompoundsIds
+     *
+     * @return array{main: list<int>, secondary: list<int>}
      */
     private function getAromaticsCompoundsInCommon(array $allAromaticsCompoundsIds, int $numberSpices): array
     {
@@ -111,8 +118,14 @@ class SpiceMatchmakerService
         ];
     }
 
+    /**
+     * @param \Traversable<\App\Entity\AromaticCompound> $iteratorAromaticCompound
+     * @param array<int, int>                            $allAromaticsCompoundsIds
+     *
+     * @return array<int, int>
+     */
     private function getAromaticsCompoundsFromIteratorSpice(
-        $iteratorAromaticCompound,
+        \Traversable $iteratorAromaticCompound,
         array $allAromaticsCompoundsIds,
     ): array {
         foreach ($iteratorAromaticCompound as $aromaticCompound) {

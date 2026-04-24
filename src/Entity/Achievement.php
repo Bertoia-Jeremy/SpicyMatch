@@ -6,6 +6,8 @@ namespace App\Entity;
 
 use App\Enum\AchievementRarity;
 use App\Enum\AchievementTrigger;
+use App\Enum\GameDifficulty;
+use App\Enum\GameMode;
 use App\Repository\AchievementRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -53,6 +55,37 @@ class Achievement
      */
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $easterEggSlug = null;
+
+    /**
+     * Feature flag to enable/disable an achievement without deleting it.
+     * New achievements are seeded disabled and activated after QA.
+     */
+    #[ORM\Column(options: [
+        'default' => true,
+    ])]
+    private bool $enabled = true;
+
+    /**
+     * Optional context: restrict the achievement to a specific game mode.
+     * Null = wildcard (any mode counts).
+     */
+    #[ORM\Column(nullable: true, enumType: GameMode::class)]
+    private ?GameMode $contextGameMode = null;
+
+    /**
+     * Optional context: restrict the achievement to a specific aromatic group.
+     * Null = wildcard (any group counts).
+     */
+    #[ORM\ManyToOne(targetEntity: AromaticGroups::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?AromaticGroups $contextAromaticGroup = null;
+
+    /**
+     * Optional context: restrict the achievement to sessions played at a specific difficulty.
+     * Null = wildcard.
+     */
+    #[ORM\Column(nullable: true, enumType: GameDifficulty::class)]
+    private ?GameDifficulty $contextDifficulty = null;
 
     public function getId(): ?int
     {
@@ -163,6 +196,54 @@ class Achievement
     public function setEasterEggSlug(?string $easterEggSlug): static
     {
         $this->easterEggSlug = $easterEggSlug;
+
+        return $this;
+    }
+
+    public function isEnabled(): bool
+    {
+        return $this->enabled;
+    }
+
+    public function setEnabled(bool $enabled): static
+    {
+        $this->enabled = $enabled;
+
+        return $this;
+    }
+
+    public function getContextGameMode(): ?GameMode
+    {
+        return $this->contextGameMode;
+    }
+
+    public function setContextGameMode(?GameMode $contextGameMode): static
+    {
+        $this->contextGameMode = $contextGameMode;
+
+        return $this;
+    }
+
+    public function getContextAromaticGroup(): ?AromaticGroups
+    {
+        return $this->contextAromaticGroup;
+    }
+
+    public function setContextAromaticGroup(?AromaticGroups $contextAromaticGroup): static
+    {
+        $this->contextAromaticGroup = $contextAromaticGroup;
+
+        return $this;
+    }
+
+    public function getContextDifficulty(): ?GameDifficulty
+    {
+        return $this->contextDifficulty;
+    }
+
+    public function setContextDifficulty(?GameDifficulty $contextDifficulty): static
+    {
+        $this->contextDifficulty = $contextDifficulty;
 
         return $this;
     }

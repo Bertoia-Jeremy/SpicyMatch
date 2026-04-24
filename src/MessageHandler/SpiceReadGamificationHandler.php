@@ -6,10 +6,12 @@ namespace App\MessageHandler;
 
 use App\Entity\UserProgression;
 use App\Message\SpiceReadEvent;
+use App\Repository\ProcessedGamificationEventRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpiceViewRepository;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
@@ -21,6 +23,8 @@ class SpiceReadGamificationHandler
         private readonly SpiceViewRepository $spiceViewRepository,
         private readonly \App\Gamification\GamificationManagerInterface $manager,
         private readonly EntityManagerInterface $em,
+        private readonly ProcessedGamificationEventRepository $processedEvents,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -28,6 +32,18 @@ class SpiceReadGamificationHandler
     {
         $user = $this->usersRepository->find($event->userId);
         if ($user === null) {
+            return;
+        }
+
+        // Idempotence — one award per (user, spice, day). Retries of the same event
+        // never double-count, but a new day = new event key = fresh award.
+        $eventKey = sprintf('read:%d:%s', $event->spiceId, date('Y-m-d'));
+        if (! $this->processedEvents->claim($user, 'spice_read', $eventKey)) {
+            $this->logger->info('gamification.spice_read.duplicate', [
+                'userId' => $user->getId(),
+                'spiceId' => $event->spiceId,
+            ]);
+
             return;
         }
 
@@ -39,26 +55,23 @@ class SpiceReadGamificationHandler
             $this->em->persist($progression);
         }
 
-        // Only track if gamification is enabled
         if ($progression->isGamificationEnabled()) {
+            // Idempotent counters: recompute from DB, no raw incrementSpicesRead().
+            $distinctCount = $this->spiceViewRepository->countDistinctSpicesByUser($user);
+            $progression->setDiscoveries($distinctCount);
+            $progression->setTotalSpicesRead($this->spiceViewRepository->countByUser($user));
+
             if ($event->isNewViewToday) {
-                $progression->incrementSpicesRead();
                 $progression->recordReadingStreak();
             }
 
-            // Idempotent: set discoveries from DB count (safe on Messenger retry)
-            $distinctCount = $this->spiceViewRepository->countDistinctSpicesByUser($user);
-            $progression->setDiscoveries($distinctCount);
-
-            // Update stats
+            // Stats side: record visited spice + aromatic group.
             $stats = $this->manager->getOrCreateStats($user);
             $stats->recordVisitedSpice($event->spiceId);
 
             $spice = $this->spicesRepository->find($event->spiceId);
-            if ($spice && $group = $spice->getAromaticGroups()) {
-                if ($group->getId()) {
-                    $stats->addVisitedAromaticGroup($group->getId());
-                }
+            if ($spice && ($group = $spice->getAromaticGroups()) && $group->getId()) {
+                $stats->addVisitedAromaticGroup($group->getId());
             }
         }
 

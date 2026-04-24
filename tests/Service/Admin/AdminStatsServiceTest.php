@@ -10,8 +10,13 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * AdminStatsService — powers the admin gamification dashboard.
+ * Uses raw DBAL queries; we mock the Connection and assert on the
+ * shape of the returned arrays (not the exact SQL strings).
+ */
 #[AllowMockObjectsWithoutExpectations]
-class AdminStatsServiceTest extends TestCase
+final class AdminStatsServiceTest extends TestCase
 {
     private Connection&MockObject $connection;
     private AdminStatsService $service;
@@ -22,124 +27,109 @@ class AdminStatsServiceTest extends TestCase
         $this->service = new AdminStatsService($this->connection);
     }
 
-    public function testGetUserStatsReturnsCorrectStructure(): void
+    public function testAchievementUnlockRateReturnsEmptyWhenNoUsers(): void
     {
         $this->connection->method('fetchOne')
-            ->willReturnOnConsecutiveCalls(42, 15, 5, 8.3);
+            ->willReturn(0);
+        $this->connection->expects(self::never())->method('fetchAllAssociative');
 
-        $result = $this->service->getUserStats();
-
-        self::assertArrayHasKey('totalUsers', $result);
-        self::assertArrayHasKey('activeUsers', $result);
-        self::assertArrayHasKey('newUsers', $result);
-        self::assertArrayHasKey('avgLevel', $result);
-        self::assertSame(42, $result['totalUsers']);
-        self::assertSame(15, $result['activeUsers']);
-        self::assertSame(5, $result['newUsers']);
-        self::assertSame(8.3, $result['avgLevel']);
+        self::assertSame([], $this->service->achievementUnlockRate());
     }
 
-    public function testGetGamificationStatsReturnsCorrectStructure(): void
+    public function testAchievementUnlockRateShapesRows(): void
     {
         $this->connection->method('fetchOne')
-            ->willReturnOnConsecutiveCalls(20, 50, 10);
-
+            ->willReturn(10); // 10 total users
         $this->connection->method('fetchAllAssociative')
             ->willReturn([
                 [
-                    'level_bucket' => 0,
-                    'cnt' => 5,
+                    'slug' => 'first-match',
+                    'name' => 'Premier mélange',
+                    'rarity' => 'common',
+                    'unlocks' => 8,
                 ],
                 [
-                    'level_bucket' => 5,
-                    'cnt' => 3,
+                    'slug' => 'rare-one',
+                    'name' => 'Rare',
+                    'rarity' => 'rare',
+                    'unlocks' => 2,
                 ],
             ]);
 
-        $result = $this->service->getGamificationStats();
-
-        self::assertArrayHasKey('totalAchievements', $result);
-        self::assertArrayHasKey('totalUnlocked', $result);
-        self::assertArrayHasKey('unlockRate', $result);
-        self::assertArrayHasKey('levelDistribution', $result);
-        self::assertSame(20, $result['totalAchievements']);
-        self::assertSame(50, $result['totalUnlocked']);
-        self::assertSame(25.0, $result['unlockRate']); // 50 / (10 * 20) * 100
-        self::assertSame([
-            0 => 5,
-            5 => 3,
-        ], $result['levelDistribution']);
+        $result = $this->service->achievementUnlockRate();
+        self::assertCount(2, $result);
+        self::assertSame('first-match', $result[0]['slug']);
+        self::assertSame(80.0, $result[0]['unlock_rate']); // 8/10 × 100
+        self::assertSame(20.0, $result[1]['unlock_rate']); // 2/10 × 100
     }
 
-    public function testGetEducationStatsReturnsCorrectStructure(): void
+    public function testSessionsPerModePerDayCasts(): void
     {
-        $this->connection->method('fetchOne')
-            ->willReturnOnConsecutiveCalls(30, 75.5);
+        $this->connection->method('fetchAllAssociative')
+            ->willReturn([
+                [
+                    'day' => '2026-04-20',
+                    'game_mode' => 'intrus',
+                    'count' => '12',
+                ],
+                [
+                    'day' => '2026-04-21',
+                    'game_mode' => 'chrono',
+                    'count' => '7',
+                ],
+            ]);
 
+        $result = $this->service->sessionsPerModePerDay(30);
+        self::assertCount(2, $result);
+        self::assertSame(12, $result[0]['count']);
+        self::assertSame('intrus', $result[0]['game_mode']);
+    }
+
+    public function testXpPerDayComputesAverage(): void
+    {
+        $this->connection->method('fetchAllAssociative')
+            ->willReturn([
+                [
+                    'day' => '2026-04-20',
+                    'total_xp' => '100',
+                    'active_users' => '10',
+                ],
+                [
+                    'day' => '2026-04-21',
+                    'total_xp' => '0',
+                    'active_users' => '0',
+                ],
+            ]);
+
+        $result = $this->service->xpPerDay(30);
+        self::assertSame(10.0, $result[0]['avg_xp_per_user']);
+        self::assertSame(0.0, $result[1]['avg_xp_per_user']); // division by zero guarded
+    }
+
+    public function testAnomaliesReturnsEmptyWhenBelowThreshold(): void
+    {
         $this->connection->method('fetchAllAssociative')
             ->willReturn([]);
-
-        $result = $this->service->getEducationStats();
-
-        self::assertArrayHasKey('totalGames', $result);
-        self::assertArrayHasKey('avgAccuracy', $result);
-        self::assertArrayHasKey('byMode', $result);
-        self::assertSame(30, $result['totalGames']);
-        self::assertSame(75.5, $result['avgAccuracy']);
+        self::assertSame([], $this->service->anomalies(10));
     }
 
-    public function testGetMatchStatsReturnsCorrectStructure(): void
+    public function testAnomaliesShapesRows(): void
     {
-        $this->connection->method('fetchOne')
-            ->willReturnOnConsecutiveCalls(100, 3.2);
-
         $this->connection->method('fetchAllAssociative')
             ->willReturn([
                 [
-                    'date' => '2026-03-19',
-                    'count' => 5,
+                    'user_id' => 42,
+                    'username' => 'cheater',
+                    'flagged_day' => '2026-04-20',
+                    'sessions' => '15',
+                    'total_xp' => '800',
                 ],
             ]);
 
-        $result = $this->service->getMatchStats();
-
-        self::assertArrayHasKey('totalMatches', $result);
-        self::assertArrayHasKey('avgSpicesPerMatch', $result);
-        self::assertArrayHasKey('recentActivity', $result);
-        self::assertSame(100, $result['totalMatches']);
-        self::assertSame(3.2, $result['avgSpicesPerMatch']);
-        self::assertCount(1, $result['recentActivity']);
-    }
-
-    public function testGetSpiceStatsReturnsCorrectStructure(): void
-    {
-        $this->connection->method('fetchAllAssociative')
-            ->willReturnOnConsecutiveCalls(
-                [
-                    [
-                        'name' => 'Cannelle',
-                        'views' => 50,
-                    ],
-                ],
-                [
-                    [
-                        'name' => 'Cumin',
-                        'uses' => 30,
-                    ],
-                ],
-                [
-                    [
-                        'name' => 'Chaud',
-                        'cnt' => 80,
-                    ],
-                ]
-            );
-
-        $result = $this->service->getSpiceStats();
-
-        self::assertArrayHasKey('topViewed', $result);
-        self::assertArrayHasKey('topInMatches', $result);
-        self::assertArrayHasKey('groupPopularity', $result);
-        self::assertSame('Cannelle', $result['topViewed'][0]['name']);
+        $result = $this->service->anomalies(10);
+        self::assertCount(1, $result);
+        self::assertSame(42, $result[0]['user_id']);
+        self::assertSame(15, $result[0]['sessions']);
+        self::assertStringContainsString('15 sessions', $result[0]['reason']);
     }
 }

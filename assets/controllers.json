@@ -15,15 +15,6 @@
                 }
             }
         },
-        "@symfony/ux-toggle-password": {
-            "toggle-password": {
-                "enabled": false,
-                "fetch": "eager",
-                "autoimport": {
-                    "@symfony/ux-toggle-password/dist/style.min.css": true
-                }
-            }
-        },
         "@symfony/ux-turbo": {
             "turbo-core": {
                 "enabled": true,

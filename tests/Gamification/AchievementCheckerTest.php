@@ -9,8 +9,28 @@ use App\Entity\UserProgression;
 use App\Enum\AchievementRarity;
 use App\Enum\AchievementTrigger;
 use App\Gamification\AchievementChecker;
+use App\Gamification\Evaluator\AllPreparationMethodsReadEvaluator;
+use App\Gamification\Evaluator\AllTerpenesVisitedEvaluator;
+use App\Gamification\Evaluator\EasterEggFoundEvaluator;
+use App\Gamification\Evaluator\FirstDiscoveryEvaluator;
+use App\Gamification\Evaluator\FirstGameEvaluator;
+use App\Gamification\Evaluator\FirstMatchEvaluator;
+use App\Gamification\Evaluator\GamePerfectRunEvaluator;
+use App\Gamification\Evaluator\GameScoreThresholdEvaluator;
+use App\Gamification\Evaluator\GroupMasteryReadEvaluator;
+use App\Gamification\Evaluator\NFavoritesEvaluator;
+use App\Gamification\Evaluator\NGamesCompletedEvaluator;
+use App\Gamification\Evaluator\NMatchesEvaluator;
+use App\Gamification\Evaluator\NSpicesUsedEvaluator;
+use App\Gamification\Evaluator\NUniqueSpicesUsedInGamesEvaluator;
+use App\Gamification\Evaluator\ReadingStreakEvaluator;
+use App\Gamification\Evaluator\SpiceReadEvaluator;
+use App\Gamification\Evaluator\TriggerEvaluatorRegistry;
 use App\Repository\AchievementRepository;
 use App\Repository\AromaticGroupsRepository;
+use App\Repository\GameSessionRepository;
+use App\Repository\PreparationMethodsRepository;
+use App\Repository\SpiceViewRepository;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -27,7 +47,30 @@ final class AchievementCheckerTest extends TestCase
     {
         $this->repo = $this->createMock(AchievementRepository::class);
         $this->aromaticGroupsRepo = $this->createMock(AromaticGroupsRepository::class);
-        $this->checker = new AchievementChecker($this->repo, $this->aromaticGroupsRepo);
+        $spiceViewRepo = $this->createStub(SpiceViewRepository::class);
+        $gameSessionRepo = $this->createStub(GameSessionRepository::class);
+        $prepMethodsRepo = $this->createStub(PreparationMethodsRepository::class);
+
+        $registry = new TriggerEvaluatorRegistry([
+            new FirstMatchEvaluator(),
+            new NMatchesEvaluator(),
+            new NSpicesUsedEvaluator(),
+            new NFavoritesEvaluator(),
+            new SpiceReadEvaluator(),
+            new ReadingStreakEvaluator(),
+            new FirstDiscoveryEvaluator(),
+            new FirstGameEvaluator(),
+            new NGamesCompletedEvaluator(),
+            new EasterEggFoundEvaluator(),
+            new AllTerpenesVisitedEvaluator($this->aromaticGroupsRepo),
+            new GameScoreThresholdEvaluator($gameSessionRepo),
+            new GamePerfectRunEvaluator($gameSessionRepo),
+            new GroupMasteryReadEvaluator($spiceViewRepo),
+            new NUniqueSpicesUsedInGamesEvaluator($gameSessionRepo),
+            new AllPreparationMethodsReadEvaluator($prepMethodsRepo, $spiceViewRepo),
+        ]);
+
+        $this->checker = new AchievementChecker($this->repo, $registry);
         $this->progression = new UserProgression();
     }
 

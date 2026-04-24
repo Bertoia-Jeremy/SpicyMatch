@@ -26,7 +26,7 @@
     {# Game over — summary #}
     <div class="text-center py-12">
       <div class="w-24 h-24 mx-auto mb-6 rounded-full border-8 flex items-center justify-center
-        {{ this.correctCount >= (this.totalQuestions * 0.8) ? 'border-green-400 text-green-700' : (this.correctCount >= (this.totalQuestions * 0.5) ? 'border-turmeric-400 text-turmeric-700' : 'border-red-400 text-red-700') }}">
+        {{ this.correctCount >= (this.totalQuestions * 0.8) ? 'border-turmeric-400 text-turmeric-700' : (this.correctCount >= (this.totalQuestions * 0.5) ? 'border-turmeric-400 text-turmeric-700' : 'border-paprika-400 text-paprika-700') }}">
         <div class="text-2xl font-bold">{{ this.correctCount }}/{{ this.questionNumber }}</div>
       </div>
 
@@ -47,15 +47,15 @@
     {# Word result feedback #}
     <div class="text-center py-12">
       {% if this.wordSolved %}
-        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
-          <i class="fa-solid fa-circle-check text-green-500 text-3xl"></i>
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-turmeric-100 flex items-center justify-center">
+          <i class="fa-solid fa-circle-check text-turmeric-600 text-3xl"></i>
         </div>
-        <h3 class="text-lg font-bold text-green-700 mb-2">Trouvé !</h3>
+        <h3 class="text-lg font-bold text-turmeric-700 mb-2">Trouvé !</h3>
       {% else %}
-        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
-          <i class="fa-solid fa-circle-xmark text-red-500 text-3xl"></i>
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-paprika-100 flex items-center justify-center">
+          <i class="fa-solid fa-circle-xmark text-paprika-500 text-3xl"></i>
         </div>
-        <h3 class="text-lg font-bold text-red-700 mb-2">Perdu</h3>
+        <h3 class="text-lg font-bold text-paprika-700 mb-2">Perdu</h3>
       {% endif %}
       <p class="text-stone-600 mb-2 text-xl font-mono tracking-widest">{{ this.revealedWord }}</p>
 
@@ -71,6 +71,32 @@
     </div>
 
   {% else %}
+    {# Timer — Stimulus-driven. data-live-ignore prevents morphdom from re-connecting. #}
+    {% if this.expiresAt > 0 %}
+      <div data-live-ignore
+           data-controller="game-timer"
+           data-game-timer-expires-at-value="{{ this.expiresAt }}"
+           data-game-timer-total-seconds-value="{{ this.timeLimit }}"
+           data-game-timer-danger-threshold-value="5"
+           data-game-timer-warning-threshold-value="15"
+           class="mb-6">
+        <button data-game-timer-target="timeoutButton"
+                data-action="live#action"
+                data-live-action-param="timeout"
+                class="hidden" aria-hidden="true"></button>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs text-stone-500"><i class="fa-solid fa-clock mr-1"></i>Temps restant</span>
+          <span data-game-timer-target="label"
+                aria-live="polite"
+                class="text-xs font-semibold text-stone-700"></span>
+        </div>
+        <div class="w-full bg-stone-200 rounded-full h-2">
+          <div data-game-timer-target="bar"
+               class="h-2 rounded-full transition-all duration-1000 bg-saffron-500"></div>
+        </div>
+      </div>
+    {% endif %}
+
     {# Active word #}
     <div class="flex flex-col lg:flex-row gap-8 items-center">
       {# Hangman SVG #}
@@ -128,7 +154,7 @@
         {# Errors counter #}
         <div class="flex items-center justify-between mb-4">
           <p class="text-sm text-stone-500">
-            Erreurs : <span class="{{ this.errorsCount > this.maxErrors * 0.6 ? 'text-red-600 font-semibold' : 'text-stone-700' }}">{{ this.errorsCount }}/{{ this.maxErrors }}</span>
+            Erreurs : <span class="{{ this.errorsCount > this.maxErrors * 0.6 ? 'text-paprika-600 font-semibold' : 'text-stone-700' }}">{{ this.errorsCount }}/{{ this.maxErrors }}</span>
           </p>
           {% if this.hint %}
             <p class="text-sm text-saffron-600"><i class="fa-solid fa-lightbulb mr-1"></i>{{ this.hint }}</p>
@@ -150,8 +176,9 @@
           </p>
         </div>
 
-        {# Keyboard #}
-        <div class="flex flex-wrap justify-center gap-1.5" x-data="{ submitting: false }">
+        {# Keyboard — data-loading disables the individual letter while its action is in flight,
+           so the rest of the keyboard stays usable (unlike a global Alpine submitting flag). #}
+        <div class="flex flex-wrap justify-center gap-1.5">
           {% set alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' %}
           {% for letter in alphabet|split('') %}
             {% set isGuessed = letter in this.guessedLetters %}
@@ -159,14 +186,15 @@
                     data-action="live#action"
                     data-live-action-param="guessLetter"
                     data-live-letter-param="{{ letter }}"
-                    @click="if (!submitting) { submitting = true }"
+                    data-loading="action(guessLetter)|addAttribute(disabled)"
                     {{ isGuessed ? 'disabled' : '' }}
-                    class="w-9 h-9 rounded-lg text-sm font-semibold transition-all
+                    class="w-9 h-9 rounded-lg text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30
                       {{ isGuessed ? 'bg-stone-200 text-stone-400 cursor-not-allowed' : 'bg-white border border-stone-300 text-stone-700 hover:bg-saffron-100 hover:border-saffron-400 hover:text-saffron-700' }}">
               {{ letter }}
             </button>
           {% endfor %}
         </div>
+
       </div>
     </div>
   {% endif %}

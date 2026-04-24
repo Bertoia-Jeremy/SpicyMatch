@@ -237,4 +237,30 @@ class GameSessionManagerTest extends TestCase
         $manager = $this->makeManager();
         self::assertSame(15, $manager->calculateXp($session));
     }
+
+    // ── Anti-farming guard on createFinishedSession (Live Component flow) ──
+
+    public function testCreateFinishedSessionThrowsAtDailyLimit(): void
+    {
+        $user = $this->createStub(Users::class);
+        $user->method('getId')
+            ->willReturn(1);
+
+        // Mirror what startSession() enforces — LC sessions MUST be capped too.
+        $this->sessionRepo->expects(self::once())
+            ->method('countTodayByUser')
+            ->with($user, GameMode::INTRUS)
+            ->willReturn(5);
+
+        // No persist, no dispatch — the throw must happen before.
+        $this->em->expects(self::never())->method('persist');
+        $this->em->expects(self::never())->method('flush');
+        $this->bus->expects(self::never())->method('dispatch');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('/Limite quotidienne atteinte/');
+
+        $this->makeManager()
+            ->createFinishedSession($user, GameMode::INTRUS, GameDifficulty::EASY, 5, 10, 30);
+    }
 }

@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Service\Education;
 
+use App\Entity\CookingTips;
 use App\Entity\Spices;
+use App\Entity\Users;
 use App\Enum\GameDifficulty;
+use App\Enum\GameMode;
 use App\Repository\SpicesRepository;
 use App\Service\CompatibilityScoreService;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -35,7 +38,9 @@ class AcademyManager
     /**
      * Find spices with 0 compatibility (no shared aromatic compound at all).
      *
-     * @return Spices[]
+     * @param list<int> $excludeIds
+     *
+     * @return list<Spices>
      */
     public function findIntruders(Spices $baseSpice, array $excludeIds = []): array
     {
@@ -76,6 +81,8 @@ class AcademyManager
      * Filter scored spices by difficulty threshold.
      *
      * @param array<array{score: int}> $scoredSpices Already sorted by score desc
+     *
+     * @return list<array<string, mixed>>
      */
     public function filterByDifficulty(array $scoredSpices, GameDifficulty $difficulty): array
     {
@@ -112,6 +119,8 @@ class AcademyManager
 
     /**
      * Pick a random spice card, excluding given IDs.
+     *
+     * @param list<int> $excludeIds
      *
      * @return array<string, mixed>|null
      */
@@ -208,12 +217,15 @@ class AcademyManager
      * Classic: 3 compatible + 1 intruder, find the intruder.
      * Inverted: 3 intruders + 1 compatible, find the compatible.
      *
-     * @return array{type: string, prompt: string, baseSpice: array, options: array, correctAnswerId: int, isInverted: bool, metadata: array}|null
+     * @param list<int> $excludeBaseIds
+     *
+     * @return array{type: string, prompt: string, baseSpice: array<string, mixed>, options: array<int, array<string, mixed>>, correctAnswerId: int, isInverted: bool, metadata: array<string, mixed>}|null
      */
     public function generateIntrusQuestion(
         GameDifficulty $difficulty,
         array $excludeBaseIds = [],
         bool $inverted = false,
+        bool $strict = false,
     ): ?array {
         $allSpices = $this->spicesRepository->findAll();
         $candidates = array_filter($allSpices, fn (Spices $s) => ! in_array($s->getId(), $excludeBaseIds, true));
@@ -226,7 +238,9 @@ class AcademyManager
 
         foreach ($candidates as $baseSpice) {
             $compatibles = $this->findCompatibleSpices($baseSpice);
-            $intruders = $this->findIntruders($baseSpice, $excludeBaseIds);
+            $intruders = $strict
+                ? $this->findStrictIntruders($baseSpice, $excludeBaseIds)
+                : $this->findIntruders($baseSpice, $excludeBaseIds);
 
             if ($inverted) {
                 // Need ≥1 compatible + ≥3 intruders
@@ -254,7 +268,9 @@ class AcademyManager
     /**
      * Generate options for the next survival pick.
      *
-     * @return array<array{id: int, name: string, file: ?string, color: ?string, groupName: ?string, isCompatible: bool}>
+     * @param list<int> $usedIds
+     *
+     * @return list<array{id: int, name: string, file: ?string, color: ?string, groupName: ?string, isCompatible: bool}>
      */
     public function generateSurvivalOptions(
         Spices $current,
@@ -429,6 +445,8 @@ class AcademyManager
 
     /**
      * Count available clue types for a spice card (used to filter eligible spices for Guess Who).
+     *
+     * @param array<string, mixed> $spiceCard
      */
     public function countAvailableClues(array $spiceCard): int
     {
@@ -520,6 +538,8 @@ class AcademyManager
     /**
      * Pick a random spice suitable for hangman.
      * EASY prefers shorter names (≤ 12 chars).
+     *
+     * @param list<int> $excludeIds
      */
     public function pickHangmanSpice(GameDifficulty $difficulty, array $excludeIds = []): ?Spices
     {
@@ -546,7 +566,9 @@ class AcademyManager
     /**
      * Generate distractor name options for Chrono or Guess Who.
      *
-     * @return string[] Shuffled array of spice names including the correct one
+     * @param list<string> $excludeNames
+     *
+     * @return list<string> Shuffled array of spice names including the correct one
      */
     public function generateNameOptions(string $correctName, int $optionsCount, array $excludeNames = []): array
     {
@@ -567,9 +589,165 @@ class AcademyManager
     }
 
     // ──────────────────────────────────────────────
+    // Briefing — Plan de Travail
+    // ──────────────────────────────────────────────
+
+    /**
+     * Pick a target spice for the briefing screen.
+     * Returns null for QCM/INTRUS (they don't need a pre-selected target).
+     * Excludes recently visited spices (FIFO 10 from UserStat) for variety.
+     */
+    public function pickTargetSpice(GameMode $mode, GameDifficulty $difficulty, Users $user): ?Spices
+    {
+        if ($mode === GameMode::QCM || $mode === GameMode::INTRUS) {
+            return null;
+        }
+
+        $excludeIds = $user->getStats()?->getLastVisitedSpices() ?? [];
+        $allSpices = $this->spicesRepository->findAll();
+
+        $candidates = array_filter($allSpices, fn (Spices $s) => ! in_array($s->getId(), $excludeIds, true));
+
+        // For Hangman EASY, prefer shorter names
+        if ($mode === GameMode::HANGMAN && $difficulty === GameDifficulty::EASY) {
+            $short = array_filter($candidates, fn (Spices $s) => mb_strlen($s->getName()) <= 12);
+            if (! empty($short)) {
+                $candidates = $short;
+            }
+        }
+
+        if (empty($candidates)) {
+            // Fallback: ignore exclusions
+            $candidates = $allSpices;
+        }
+
+        $candidates = array_values($candidates);
+
+        return $candidates[array_rand($candidates)];
+    }
+
+    /**
+     * Pick a random CookingTip for the given spice (used in the briefing infographic).
+     */
+    public function randomCookingTipFor(Spices $spice): ?CookingTips
+    {
+        $tips = $spice->getCookingTips()
+            ->toArray();
+
+        if (empty($tips)) {
+            return null;
+        }
+
+        return $tips[array_rand($tips)];
+    }
+
+    /**
+     * Get the rules/consignes for a given game mode (displayed in the briefing).
+     *
+     * @return string[]
+     */
+    public function getRulesFor(GameMode $mode): array
+    {
+        return match ($mode) {
+            GameMode::QCM => [
+                'Trouve l\'épice la plus compatible parmi 4 propositions.',
+                'Chaque bonne réponse te rapporte des XP.',
+                '10 questions au total — pas de retour en arrière.',
+            ],
+            GameMode::SURVIVAL => [
+                'Enchaîne les épices compatibles avec l\'épice de départ.',
+                'Une seule erreur et la partie est terminée.',
+                'Plus tu avances, plus tu gagnes d\'XP.',
+            ],
+            GameMode::GUESS_WHO => [
+                'Des indices apparaissent un par un pour identifier l\'épice mystère.',
+                'Moins tu utilises d\'indices, plus tu gagnes de points.',
+                '8 épices à deviner au total.',
+            ],
+            GameMode::INTRUS => [
+                'Parmi 4 épices, trouve celle qui n\'a rien en commun avec les autres.',
+                'Certaines questions sont inversées : trouve la compatible !',
+                '10 questions — attention aux pièges visuels.',
+            ],
+            GameMode::HANGMAN => [
+                'Devine le nom de l\'épice lettre par lettre.',
+                'Les accents sont ignorés — tape la lettre de base.',
+                'Trop d\'erreurs et le pendu est complet.',
+            ],
+            GameMode::CHRONO => [
+                'Identifie chaque épice le plus vite possible.',
+                'Tu vois la photo et les caractéristiques, mais pas le nom.',
+                'Le temps est compté — chaque seconde compte.',
+            ],
+        };
+    }
+
+    // ──────────────────────────────────────────────
+    // Intrus — mode strict (Chef de Partie)
+    // ──────────────────────────────────────────────
+
+    /**
+     * Find intruders for strict mode (Chef de Partie).
+     * Instead of 0-compatibility, returns spices with low but non-zero score (1-15/100).
+     * These are trickier to spot as intruders.
+     *
+     * @param list<int> $excludeIds
+     *
+     * @return list<Spices>
+     */
+    public function findStrictIntruders(Spices $baseSpice, array $excludeIds = []): array
+    {
+        $cacheKey = 'academy.intruders.strict.' . $baseSpice->getId();
+
+        $allStrictIntruders = $this->cache->get($cacheKey, function (ItemInterface $item) use ($baseSpice): array {
+            $item->expiresAfter(3600);
+
+            $compatibles = $this->compatibilityScoreService->findCompatible([$baseSpice]);
+
+            // Keep only scores 1–15 : barely compatible = hard to distinguish
+            $lowScored = array_filter($compatibles, fn (array $c) => $c['score'] >= 1 && $c['score'] <= 15);
+
+            if (empty($lowScored)) {
+                // Fallback: widen to 1–25
+                $lowScored = array_filter($compatibles, fn (array $c) => $c['score'] >= 1 && $c['score'] <= 25);
+            }
+
+            if (empty($lowScored)) {
+                // Ultimate fallback: true intruders
+                return $this->spicesRepository->findIncompatibleWith($baseSpice);
+            }
+
+            // Load full entities
+            $ids = array_column($lowScored, 'id');
+
+            return $this->spicesRepository->createQueryBuilder('s')
+                ->addSelect('ag')
+                ->leftJoin('s.aromaticGroups', 'ag')
+                ->where('s.id IN (:ids)')
+                ->setParameter('ids', $ids)
+                ->getQuery()
+                ->getResult();
+        });
+
+        if (empty($excludeIds)) {
+            return $allStrictIntruders;
+        }
+
+        $excludeFlipped = array_flip($excludeIds);
+
+        return array_values(array_filter(
+            $allStrictIntruders,
+            fn (Spices $s) => ! isset($excludeFlipped[$s->getId()]),
+        ));
+    }
+
+    // ──────────────────────────────────────────────
     // Private helpers
     // ──────────────────────────────────────────────
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     private function buildAllSpiceCards(): array
     {
         $spices = $this->spicesRepository->createQueryBuilder('s')
@@ -654,7 +832,10 @@ class AcademyManager
     }
 
     /**
-     * @return array{type: string, prompt: string, baseSpice: array, options: array, correctAnswerId: int, isInverted: bool, metadata: array}
+     * @param list<array<string, mixed>>|list<Spices> $compatibles
+     * @param list<Spices>                            $intruders
+     *
+     * @return array{type: string, prompt: string, baseSpice: array<string, mixed>, options: array<int, array<string, mixed>>, correctAnswerId: int, isInverted: bool, metadata: array<string, mixed>}
      */
     private function buildIntrusQuestion(
         Spices $baseSpice,
@@ -771,6 +952,10 @@ class AcademyManager
      * Filter compatible spices based on difficulty for Intrus mode.
      *
      * EASY: score > 70, MEDIUM: 40-70, HARD: 20-50
+     *
+     * @param list<array<string, mixed>> $compatibles
+     *
+     * @return list<array<string, mixed>>
      */
     private function filterCompatiblesForIntrus(array $compatibles, GameDifficulty $difficulty): array
     {
@@ -787,7 +972,7 @@ class AcademyManager
 
         // Fallback: if no spices match the range, use all compatibles
         if (count($filtered) < 3) {
-            return array_values($compatibles);
+            return $compatibles;
         }
 
         return $filtered;

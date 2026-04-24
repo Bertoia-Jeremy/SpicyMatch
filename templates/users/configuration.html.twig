@@ -51,6 +51,53 @@
             </div>
         </div>
 
+        {# Difficulté / Posture #}
+        <div class="mt-6">
+            <h2 class="text-xl font-semibold text-stone-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-gauge-high text-saffron-600 text-base"></i>Posture de jeu
+            </h2>
+            <div class="card-warm p-5">
+                <p class="text-sm text-stone-600 mb-3">
+                    Ta posture détermine la difficulté par défaut des jeux et modifie certains éléments visuels.
+                </p>
+                <form action="{{ path('update_difficulty_user') }}" method="POST">
+                    <input type="hidden" name="_token" value="{{ csrf_token('update_difficulty') }}">
+                    {% set difficulties = [
+                        { value: 'easy', label: 'Commis', multiplier: '1' },
+                        { value: 'medium', label: 'Cuisinier', multiplier: '1.5' },
+                        { value: 'hard', label: 'Chef de Partie', multiplier: '2' }
+                    ] %}
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        {% for d in difficulties %}
+                            <label class="cursor-pointer">
+                                <input type="radio" name="difficulty" value="{{ d.value }}"
+                                       class="peer sr-only"
+                                       {{ app.user.preferredDifficulty.value == d.value ? 'checked' : '' }}>
+                                <span class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-colors
+                                    peer-checked:bg-saffron-600 peer-checked:text-white peer-checked:border-saffron-600
+                                    bg-stone-100 text-stone-700 border-stone-200 hover:bg-stone-200">
+                                    {{ d.label }}
+                                    <span class="text-xs opacity-75">(x{{ d.multiplier }})</span>
+                                </span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                    <div class="text-xs text-stone-500 mb-3">
+                        {% if app.user.preferredDifficulty.value == 'hard' %}
+                            <strong>Chef de Partie :</strong> couleurs des groupes aromatiques masquées, chrono réduit au Pendu, intrus plus subtils.
+                        {% elseif app.user.preferredDifficulty.value == 'medium' %}
+                            <strong>Cuisinier :</strong> difficulté intermédiaire, comportement standard.
+                        {% else %}
+                            <strong>Commis :</strong> aides visuelles complètes, plus de temps, indices supplémentaires.
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="text-sm px-4 py-1.5 rounded-full border border-saffron-400 text-saffron-700 hover:bg-saffron-50 transition-colors">
+                        Enregistrer
+                    </button>
+                </form>
+            </div>
+        </div>
+
         {# Gamification opt-out #}
         {% if app.user.progression %}
         <div class="mt-6">

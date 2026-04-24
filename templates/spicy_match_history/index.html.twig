@@ -27,7 +27,6 @@
         </div>
 
         <turbo-frame id="history_frame_id">
-            {% import "components/_macro_card_spicy_match_history.html.twig" as macroCardSpicyMatchHistory %}
 
             {% if spicymatch_histories is empty %}
                 <div class="text-center py-16">
@@ -102,7 +101,9 @@
                                     </div>
                                     <div class="flex flex-wrap gap-1.5 items-center">
                                         {% for spice in history.spicyMatch.spices %}
-                                            {{ macroCardSpicyMatchHistory.cardSpicyMatch(spice) }}
+                                            <span class="inline-flex items-center gap-1.5 bg-spice-surface border border-spice-border text-stone-700 text-xs font-medium px-2.5 py-1 rounded-full">
+                                                {{ spice.name }}
+                                            </span>
                                         {% endfor %}
                                         {% if history.spicyMatch.isManual %}
                                             <span class="inline-flex items-center gap-1 text-[11px] font-medium text-stone-500 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full" title="Mélange créé manuellement — compatibilité non garantie">

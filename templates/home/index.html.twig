@@ -145,8 +145,8 @@
 </section>
 
 
-{# ===== BANNER PROGRESSION (utilisateurs connectés uniquement) ===== #}
-{% if is_granted('ROLE_USER') and app.user.progression %}
+{# ===== BANNER PROGRESSION (utilisateurs connectés avec gamification active) ===== #}
+{% if is_granted('ROLE_USER') and app.user.progression and app.user.progression.gamificationEnabled %}
     {% set prog = app.user.progression %}
     {% set streak = prog.currentReadingStreak %}
     {% set xpPct = prog.progressPercent %}
@@ -157,7 +157,6 @@
             {# Identité + niveau #}
             <div class="flex items-center gap-3 shrink-0">
                 {% include 'components/_avatar.html.twig' with {
-                    slug: app.user.avatar,
                     sizeClass: 'w-10 h-10 text-base shrink-0',
                     equippedBadge: prog.equippedBadge
                 } %}

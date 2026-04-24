@@ -6,8 +6,10 @@ namespace App\MessageHandler;
 
 use App\Entity\UserProgression;
 use App\Message\EasterEggFoundEvent;
+use App\Repository\ProcessedGamificationEventRepository;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
@@ -17,6 +19,8 @@ class EasterEggGamificationHandler
         private readonly UsersRepository $usersRepository,
         private readonly \App\Gamification\GamificationManagerInterface $manager,
         private readonly EntityManagerInterface $em,
+        private readonly ProcessedGamificationEventRepository $processedEvents,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -24,6 +28,16 @@ class EasterEggGamificationHandler
     {
         $user = $this->usersRepository->find($event->userId);
         if ($user === null) {
+            return;
+        }
+
+        // Idempotence — one award per (user, slug).
+        if (! $this->processedEvents->claim($user, 'easter_egg_found', 'egg:' . $event->easterEggSlug)) {
+            $this->logger->info('gamification.easter_egg.duplicate', [
+                'userId' => $user->getId(),
+                'slug' => $event->easterEggSlug,
+            ]);
+
             return;
         }
 

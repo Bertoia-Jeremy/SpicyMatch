@@ -8,6 +8,8 @@ use App\Entity\Users;
 use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use App\Repository\GameSessionRepository;
+use App\Repository\SpicesRepository;
+use App\Service\Education\AcademyManager;
 use App\Service\Education\GameSessionManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,6 +25,8 @@ class EducationController extends AbstractController
     public function __construct(
         private readonly GameSessionManager $sessionManager,
         private readonly GameSessionRepository $sessionRepository,
+        private readonly AcademyManager $academyManager,
+        private readonly SpicesRepository $spicesRepository,
         private readonly EntityManagerInterface $em,
     ) {
     }
@@ -33,10 +37,49 @@ class EducationController extends AbstractController
         /** @var Users $user */
         $user = $this->getUser();
 
+        $modes = array_filter(GameMode::cases(), fn (GameMode $m) => $m->isEnabled());
+
+        // Build per-mode daily session counters so the user sees the remaining
+        // games and the ×0.5 XP threshold before clicking a card.
+        $dailyCounts = [];
+        foreach ($modes as $mode) {
+            $dailyCounts[$mode->value] = $this->sessionRepository->countTodayByUser($user, $mode);
+        }
+
         return $this->render('education/index.html.twig', [
-            'modes' => array_filter(GameMode::cases(), fn (GameMode $m) => $m->isEnabled()),
+            'modes' => $modes,
             'difficulties' => GameDifficulty::cases(),
             'recentSessions' => $this->sessionRepository->findByUser($user, 5),
+            'dailyCounts' => $dailyCounts,
+            'maxDailySessions' => 5,
+            'reducedXpThreshold' => 3,
+        ]);
+    }
+
+    #[Route('/briefing', name: 'education_briefing', methods: ['POST'])]
+    public function briefing(Request $request): Response
+    {
+        if (! $this->isCsrfTokenValid('education_briefing', $request->request->getString('_token'))) {
+            $this->addFlash('error', 'Token CSRF invalide.');
+
+            return $this->redirectToRoute('education_index');
+        }
+
+        /** @var Users $user */
+        $user = $this->getUser();
+
+        $mode = GameMode::tryFrom($request->request->getString('mode')) ?? GameMode::QCM;
+        $difficulty = GameDifficulty::tryFrom($request->request->getString('difficulty')) ?? GameDifficulty::EASY;
+
+        $targetSpice = $this->academyManager->pickTargetSpice($mode, $difficulty, $user);
+        $cookingTip = $targetSpice !== null ? $this->academyManager->randomCookingTipFor($targetSpice) : null;
+
+        return $this->render('education/briefing.html.twig', [
+            'mode' => $mode,
+            'difficulty' => $difficulty,
+            'targetSpice' => $targetSpice,
+            'cookingTip' => $cookingTip,
+            'rules' => $this->academyManager->getRulesFor($mode),
         ]);
     }
 
@@ -55,14 +98,29 @@ class EducationController extends AbstractController
             return $this->redirectToRoute('education_index');
         }
 
+        // Resolve target spice from briefing form
+        $targetSpiceId = $request->request->getInt('targetSpiceId') ?: null;
+        $targetSpice = $targetSpiceId !== null ? $this->spicesRepository->find($targetSpiceId) : null;
+
+        // LC modes create their own GameSession via createFinishedSession() at end of game —
+        // don't create a stale empty one here or we'd double-count daily sessions.
+        if ($mode !== GameMode::QCM) {
+            return $this->redirectToRoute('education_play_live', [
+                'mode' => $mode->value,
+                'difficulty' => $difficulty->value,
+                'targetSpiceId' => $targetSpice?->getId(),
+            ]);
+        }
+
         try {
-            $session = $this->sessionManager->startSession($user, $mode, $difficulty);
+            $session = $this->sessionManager->startSession($user, $mode, $difficulty, $targetSpice);
         } catch (\RuntimeException $e) {
             $this->addFlash('warning', $e->getMessage());
 
             return $this->redirectToRoute('education_index');
         }
 
+        // QCM uses the route-based flow
         return $this->redirectToRoute('education_play', [
             'id' => $session->getId(),
         ]);
@@ -201,9 +259,15 @@ class EducationController extends AbstractController
             return $this->redirectToRoute('education_index');
         }
 
+        // Resolve target spice from query string — LC modes no longer create a
+        // placeholder GameSession at briefing time.
+        $targetSpiceId = $request->query->getInt('targetSpiceId') ?: null;
+        $targetSpice = $targetSpiceId !== null ? $this->spicesRepository->find($targetSpiceId) : null;
+
         return $this->render('education/play_live.html.twig', [
             'mode' => $gameMode,
             'difficulty' => $difficulty,
+            'targetSpice' => $targetSpice,
         ]);
     }
 

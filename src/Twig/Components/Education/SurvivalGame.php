@@ -100,6 +100,15 @@ class SurvivalGame extends AbstractController
     #[LiveAction]
     public function start(#[LiveArg] int $spiceId): void
     {
+        $session = $this->requestStack->getSession();
+        $secretKey = 'game_' . $this->gameToken;
+        $secret = $session->get($secretKey, []);
+
+        // Replay guard: only honor start() if the session has no current spice yet.
+        if (($secret['currentSpiceId'] ?? null) !== null) {
+            return;
+        }
+
         if ($this->isStarted) {
             return;
         }
@@ -125,8 +134,16 @@ class SurvivalGame extends AbstractController
 
         // Validate server-side from session secret
         $session = $this->requestStack->getSession();
-        $secret = $session->get('game_' . $this->gameToken, []);
+        $secretKey = 'game_' . $this->gameToken;
+        $secret = $session->get($secretKey, []);
         $compatibleIds = $secret['compatibleIds'] ?? [];
+        $sessionCurrent = $secret['currentSpiceId'] ?? null;
+
+        // Replay guard: the server-side currentSpiceId must match the LiveProp.
+        // Otherwise the client is replaying an old snapshot — reject silently.
+        if ($sessionCurrent !== $this->currentSpiceId) {
+            return;
+        }
 
         $isCompatible = in_array($spiceId, $compatibleIds, true);
 
@@ -150,6 +167,9 @@ class SurvivalGame extends AbstractController
         }
 
         ++$this->chainLength;
+        // Mirror in session for authoritative finish() read.
+        $secret['chainLength'] = $this->chainLength;
+        $session->set($secretKey, $secret);
         $this->usedIds[] = $spiceId;
 
         $spice = $this->findSpiceById($spiceId);
@@ -175,14 +195,19 @@ class SurvivalGame extends AbstractController
         /** @var Users $user */
         $user = $this->getUser();
 
+        // Authoritative chainLength from session, never LiveProp.
+        $session = $this->requestStack->getSession();
+        $secret = $session->get('game_' . $this->gameToken, []);
+        $serverChain = (int) ($secret['chainLength'] ?? 0);
+
         $durationSeconds = time() - $this->startedAt;
 
         $gameSession = $this->sessionManager->createFinishedSession(
             $user,
             GameMode::SURVIVAL,
             GameDifficulty::from($this->difficulty),
-            $this->chainLength,
-            max($this->chainLength, 1),
+            $serverChain,
+            max($serverChain, 1),
             $durationSeconds,
         );
 
@@ -234,7 +259,7 @@ class SurvivalGame extends AbstractController
             'groupName' => $o['groupName'] ?? null,
         ], $options);
 
-        // Store compatible IDs in session for server-side validation
+        // Store compatible IDs + current spice anchor in session for server-side validation
         $compatibleIds = [];
 
         foreach ($options as $o) {
@@ -246,6 +271,7 @@ class SurvivalGame extends AbstractController
         $this->requestStack->getSession()
             ->set('game_' . $this->gameToken, [
                 'compatibleIds' => $compatibleIds,
+                'currentSpiceId' => $this->currentSpiceId,
             ]);
     }
 

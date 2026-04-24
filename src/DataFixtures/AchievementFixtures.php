@@ -7,6 +7,7 @@ namespace App\DataFixtures;
 use App\Entity\Achievement;
 use App\Enum\AchievementRarity;
 use App\Enum\AchievementTrigger;
+use App\Enum\GameMode;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
@@ -234,6 +235,79 @@ class AchievementFixtures extends Fixture
                 'xpReward' => 1000,
                 'rarity' => AchievementRarity::LEGENDARY,
             ],
+
+            // ── v3 : Gameplay & Exploration (enabled=false → activation progressive) ──
+
+            [
+                'slug' => 'apprenti_terpenes',
+                'name' => 'Apprenti des Terpènes',
+                'description' => 'Consultez au moins 5 épices d\'une même famille aromatique.',
+                'icon' => 'fa-solid fa-leaf',
+                'trigger' => AchievementTrigger::GROUP_MASTERY_READ,
+                'triggerValue' => 5,
+                'xpReward' => 80,
+                'rarity' => AchievementRarity::RARE,
+                'enabled' => false,
+                // contextAromaticGroup set via SQL after insert (FK needed)
+            ],
+            [
+                'slug' => 'rat_bibliotheque_gourmand',
+                'name' => 'Rat de Bibliothèque Gourmand',
+                'description' => 'Consultez 20 fiches d\'épices différentes.',
+                'icon' => 'fa-solid fa-book-open-reader',
+                'trigger' => AchievementTrigger::SPICE_READ,
+                'triggerValue' => 20,
+                'xpReward' => 100,
+                'rarity' => AchievementRarity::RARE,
+                'enabled' => false,
+            ],
+            [
+                'slug' => 'puriste_phenols',
+                'name' => 'Puriste des Phénols',
+                'description' => 'Obtenez un score d\'au moins 20 en Défi de Scoville sur les épices phénoliques.',
+                'icon' => 'fa-solid fa-flask-vial',
+                'trigger' => AchievementTrigger::GAME_SCORE_THRESHOLD,
+                'triggerValue' => 20,
+                'xpReward' => 150,
+                'rarity' => AchievementRarity::EPIC,
+                'enabled' => false,
+                'contextGameMode' => GameMode::SURVIVAL,
+                // contextAromaticGroup set via SQL after insert (FK needed)
+            ],
+            [
+                'slug' => 'nez_selectif',
+                'name' => 'Nez Sélectif',
+                'description' => 'Réalisez 5 parties parfaites en Hors Saison.',
+                'icon' => 'fa-solid fa-wine-glass',
+                'trigger' => AchievementTrigger::GAME_PERFECT_RUN,
+                'triggerValue' => 5,
+                'xpReward' => 200,
+                'rarity' => AchievementRarity::EPIC,
+                'enabled' => false,
+                'contextGameMode' => GameMode::INTRUS,
+            ],
+            [
+                'slug' => 'tour_du_monde',
+                'name' => 'Le Tour du Monde',
+                'description' => 'Utilisez 50 épices différentes dans les jeux de l\'Académie.',
+                'icon' => 'fa-solid fa-earth-americas',
+                'trigger' => AchievementTrigger::N_UNIQUE_SPICES_USED_IN_GAMES,
+                'triggerValue' => 50,
+                'xpReward' => 300,
+                'rarity' => AchievementRarity::LEGENDARY,
+                'enabled' => false,
+            ],
+            [
+                'slug' => 'expert_methodes',
+                'name' => 'Expert des Méthodes',
+                'description' => 'Consultez au moins une épice pour chaque méthode de préparation existante.',
+                'icon' => 'fa-solid fa-utensils',
+                'trigger' => AchievementTrigger::ALL_PREPARATION_METHODS_READ,
+                'triggerValue' => 0,
+                'xpReward' => 200,
+                'rarity' => AchievementRarity::EPIC,
+                'enabled' => false,
+            ],
         ];
 
         foreach ($achievements as $data) {
@@ -246,7 +320,12 @@ class AchievementFixtures extends Fixture
                 ->setTriggerValue($data['triggerValue'])
                 ->setXpReward($data['xpReward'])
                 ->setRarity($data['rarity'])
-                ->setEasterEggSlug($data['easterEggSlug'] ?? null);
+                ->setEasterEggSlug($data['easterEggSlug'] ?? null)
+                ->setEnabled($data['enabled'] ?? true);
+
+            if (isset($data['contextGameMode'])) {
+                $achievement->setContextGameMode($data['contextGameMode']);
+            }
 
             $manager->persist($achievement);
             $this->addReference('achievement_' . $data['slug'], $achievement);

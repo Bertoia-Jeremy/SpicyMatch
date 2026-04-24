@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\AromaticGroups;
 use App\Entity\GameSession;
 use App\Entity\Users;
+use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -63,6 +65,9 @@ class GameSessionRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    /**
+     * @return \Doctrine\ORM\Query<null, mixed>
+     */
     public function findByUserQuery(Users $user): \Doctrine\ORM\Query
     {
         return $this->createQueryBuilder('gs')
@@ -70,5 +75,70 @@ class GameSessionRepository extends ServiceEntityRepository
             ->setParameter('user', $user)
             ->orderBy('gs.startedAt', 'DESC')
             ->getQuery();
+    }
+
+    /**
+     * Max score achieved by this user in the given mode, restricted to sessions
+     * whose target spice belongs to a specific aromatic group. Drives
+     * GAME_SCORE_THRESHOLD achievements with contextAromaticGroup set.
+     */
+    public function maxScoreInModeForGroup(
+        Users $user,
+        GameMode $mode,
+        AromaticGroups $group,
+        ?GameDifficulty $difficulty = null,
+    ): int {
+        $qb = $this->createQueryBuilder('gs')
+            ->select('COALESCE(MAX(gs.score), 0)')
+            ->innerJoin('gs.targetSpice', 's')
+            ->innerJoin('s.aromaticGroups', 'ag')
+            ->where('gs.user = :user')
+            ->andWhere('gs.gameMode = :mode')
+            ->andWhere('ag = :group')
+            ->andWhere('gs.finishedAt IS NOT NULL')
+            ->setParameter('user', $user)
+            ->setParameter('mode', $mode->value)
+            ->setParameter('group', $group);
+
+        if ($difficulty !== null) {
+            $qb->andWhere('gs.difficulty = :difficulty')
+                ->setParameter('difficulty', $difficulty->value);
+        }
+
+        return (int) $qb->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Number of perfect runs (correctAnswers === totalQuestions) in the given mode.
+     */
+    public function countPerfectRunsByMode(Users $user, GameMode $mode): int
+    {
+        return (int) $this->createQueryBuilder('gs')
+            ->select('COUNT(gs.id)')
+            ->where('gs.user = :user')
+            ->andWhere('gs.gameMode = :mode')
+            ->andWhere('gs.finishedAt IS NOT NULL')
+            ->andWhere('gs.correctAnswers = gs.totalQuestions')
+            ->andWhere('gs.totalQuestions > 0')
+            ->setParameter('user', $user)
+            ->setParameter('mode', $mode->value)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Count of distinct target spices the user has played against across all finished sessions.
+     */
+    public function countDistinctTargetSpices(Users $user): int
+    {
+        return (int) $this->createQueryBuilder('gs')
+            ->select('COUNT(DISTINCT gs.targetSpice)')
+            ->where('gs.user = :user')
+            ->andWhere('gs.targetSpice IS NOT NULL')
+            ->andWhere('gs.finishedAt IS NOT NULL')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

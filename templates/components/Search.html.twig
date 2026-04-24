@@ -7,6 +7,7 @@
         type="text" placeholder="Rechercher..." aria-label="Rechercher"
         value="{{ this.query }}"
         data-model="query" data-action="live#update"
+        @keydown.enter.prevent="window.location.href = '{{ path('search_results') }}?q=' + encodeURIComponent($el.value)"
     >
     {% if this.query %}
         <button type="button"
@@ -17,23 +18,37 @@
             <i class="fa-solid fa-xmark text-xs"></i>
         </button>
     {% endif %}
-    {% if this.results is defined and this.results is not empty %}
+    {% if this.query|length >= 2 %}
         <div class="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-spice-border z-50 overflow-hidden">
-            {% for result in this.results %}
-                {% if result.type == 'spice' %}
-                    <a href="{{ path('view_spice', {id: result.id}) }}"
-                       class="block px-4 py-2.5 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 border-b border-stone-100 last:border-0 transition-colors">
-                        {{ result.name }}
-                        <span class="text-xs text-saffron-600 ml-1">Épice</span>
+            {% if this.results is defined and this.results is not empty %}
+                {% for result in this.results %}
+                    {% if result.type == 'spice' %}
+                        <a href="{{ path('view_spice', {id: result.id}) }}"
+                           class="block px-4 py-2.5 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 border-b border-stone-100 last:border-0 transition-colors">
+                            {{ result.name }}
+                            <span class="text-xs text-saffron-600 ml-1">Épice</span>
+                        </a>
+                    {% else %}
+                        <a href="{{ path('view_aromatic_compound', {id: result.id}) }}"
+                           class="block px-4 py-2.5 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 border-b border-stone-100 last:border-0 transition-colors">
+                            {{ result.name }}
+                            <span class="text-xs text-turmeric-600 ml-1">Composé</span>
+                        </a>
+                    {% endif %}
+                {% endfor %}
+                <a href="{{ path('search_results') }}?q={{ this.query|url_encode }}"
+                   class="flex items-center justify-center gap-1.5 px-4 py-2 text-xs text-stone-400 hover:text-saffron-700 hover:bg-stone-50 border-t border-stone-100 transition-colors">
+                    <i class="fa-solid fa-magnifying-glass text-[10px]"></i>Voir tous les résultats
+                </a>
+            {% else %}
+                <div class="px-4 py-4 text-center">
+                    <p class="text-sm text-stone-400">Aucun résultat pour <span class="text-stone-600 font-medium">« {{ this.query }} »</span></p>
+                    <a href="{{ path('search_results') }}?q={{ this.query|url_encode }}"
+                       class="inline-flex items-center gap-1 mt-2 text-xs text-saffron-600 hover:underline">
+                        <i class="fa-solid fa-arrow-right text-[10px]"></i>Page de recherche complète
                     </a>
-                {% else %}
-                    <a href="{{ path('view_aromatic_compound', {id: result.id}) }}"
-                       class="block px-4 py-2.5 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 border-b border-stone-100 last:border-0 transition-colors">
-                        {{ result.name }}
-                        <span class="text-xs text-turmeric-600 ml-1">Composé</span>
-                    </a>
-                {% endif %}
-            {% endfor %}
+                </div>
+            {% endif %}
         </div>
     {% endif %}
 </div>

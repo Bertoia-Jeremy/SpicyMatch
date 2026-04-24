@@ -45,6 +45,9 @@ class Discovery
         $this->discoveredAt = new \DateTimeImmutable();
     }
 
+    /**
+     * @param list<int> $spiceIds
+     */
     public static function buildHash(array $spiceIds): string
     {
         sort($spiceIds);

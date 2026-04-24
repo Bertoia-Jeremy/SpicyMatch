@@ -129,23 +129,12 @@
 
                 {% if progression.userAchievements is not empty %}
                     <h3 class="text-lg font-semibold text-stone-800 mb-3 mt-8">Succès débloqués</h3>
-                    {% set cardClass = {
-                        'common':    'border-green-300 bg-green-50',
-                        'rare':      'border-blue-300 bg-blue-50',
-                        'epic':      'border-purple-300 bg-purple-50',
-                        'legendary': 'border-turmeric-400 bg-turmeric-300/20',
-                    } %}
-                    {% set badgeClass = {
-                        'common':    'bg-green-100 text-green-700',
-                        'rare':      'bg-blue-100 text-blue-700',
-                        'epic':      'bg-purple-100 text-purple-700',
-                        'legendary': 'bg-turmeric-300/30 text-turmeric-700',
-                    } %}
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {% for ua in progression.userAchievements %}
-                            {% set rarity = ua.achievement.rarity.value %}
+                            {% set uaColors = rarity_colors(ua.achievement.rarity) %}
                             {% set isEquipped = progression.equippedBadge and progression.equippedBadge.id == ua.id %}
-                            <div class="flex items-start gap-3 p-3 rounded-xl {{ isEquipped ? 'border-2 border-stone-800 shadow-md' : 'border' }} {{ cardClass[rarity] ?? 'border-stone-200' }}"
+                            <div class="flex items-start gap-3 p-3 rounded-xl {{ isEquipped ? 'border-2 border-stone-800 shadow-md' : 'border' }}"
+                                 style="{% if not isEquipped %}border-color: {{ uaColors.ring }}50; background-color: {{ uaColors.bg }}40;{% endif %}"
                                  x-data="{ equipping: false }"
                             >
                                 <div class="text-2xl w-8 text-center shrink-0">
@@ -160,7 +149,8 @@
                                     </div>
                                     <div class="text-xs text-stone-500 mt-0.5">{{ ua.achievement.description }}</div>
                                     <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                                        <span class="text-xs px-2 py-0.5 rounded-full {{ badgeClass[rarity] ?? 'bg-stone-100 text-stone-600' }}">+{{ ua.achievement.xpReward }} XP</span>
+                                        <span class="text-xs px-2 py-0.5 rounded-full"
+                                              style="background-color: {{ uaColors.bg }}; color: {{ uaColors.text }}">+{{ ua.achievement.xpReward }} XP</span>
                                         <span class="text-xs text-stone-400">{{ ua.unlockedAt|date('d/m/Y') }}</span>
                                         {% if isEquipped %}
                                             <span class="text-xs font-semibold text-saffron-600">

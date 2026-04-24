@@ -19,14 +19,14 @@
                     L'alchimie aromatique au service de vos recettes. Découvrez des accords invisibles et sublimez vos créations culinaires grâce à la science des épices.
                 </p>
                 <div class="flex items-center gap-4">
-                    <a href="#" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-cream/40 hover:text-saffron-400 hover:border-saffron-400/30 transition-all">
-                        <i class="fa-brands fa-instagram"></i>
+                    <a href="#" aria-label="Instagram" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-cream/70 hover:text-saffron-400 hover:border-saffron-400/30 transition-all">
+                        <i class="fa-brands fa-instagram" aria-hidden="true"></i>
                     </a>
-                    <a href="#" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-cream/40 hover:text-saffron-400 hover:border-saffron-400/30 transition-all">
-                        <i class="fa-brands fa-pinterest-p"></i>
+                    <a href="#" aria-label="Pinterest" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-cream/70 hover:text-saffron-400 hover:border-saffron-400/30 transition-all">
+                        <i class="fa-brands fa-pinterest-p" aria-hidden="true"></i>
                     </a>
-                    <a href="#" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-cream/40 hover:text-saffron-400 hover:border-saffron-400/30 transition-all">
-                        <i class="fa-brands fa-x-twitter"></i>
+                    <a href="#" aria-label="X (Twitter)" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-cream/70 hover:text-saffron-400 hover:border-saffron-400/30 transition-all">
+                        <i class="fa-brands fa-x-twitter" aria-hidden="true"></i>
                     </a>
                 </div>
             </div>
@@ -42,6 +42,7 @@
                     <li><a href="{{ path('index_spices') }}" class="text-cream/60 hover:text-saffron-400 transition-colors text-sm flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all"></i>Catalogue des épices</a></li>
                     <li><a href="{{ path('index_spicy_match') }}" class="text-cream/60 hover:text-saffron-400 transition-colors text-sm flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all"></i>Le Lab (Match)</a></li>
                     <li><a href="{{ path('new_contact') }}" class="text-cream/60 hover:text-saffron-400 transition-colors text-sm flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all"></i>Contactez-nous</a></li>
+                    <li><a href="{{ path('help_index') }}" class="text-cream/60 hover:text-saffron-400 transition-colors text-sm flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all"></i>Centre d'aide</a></li>
                 </ul>
             </div>
 
@@ -92,14 +93,14 @@
 
         {# ── Footer Bottom Bar ── #}
         <div class="py-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
-            <div class="text-cream/30 text-xs font-medium tracking-[0.2em] uppercase">
+            <div class="text-cream/70 text-xs font-medium tracking-[0.2em] uppercase">
                 &copy; {{ "now"|date("Y") }} SpicyMatch — <span class="italic font-display normal-case tracking-normal">L'Art de l'Alchimie Culinaire</span>
             </div>
             
             <div class="flex items-center gap-8">
-                <a href="#" class="text-cream/30 hover:text-cream/60 transition-colors text-[10px] uppercase tracking-widest no-underline">Mentions Légales</a>
-                <a href="#" class="text-cream/30 hover:text-cream/60 transition-colors text-[10px] uppercase tracking-widest no-underline">Confidentialité</a>
-                <a href="{{ path('new_contact') }}" class="text-cream/30 hover:text-cream/60 transition-colors text-[10px] uppercase tracking-widest no-underline">Contact</a>
+                <a href="#" class="text-cream/70 hover:text-cream/60 transition-colors text-[10px] uppercase tracking-widest no-underline">Mentions Légales</a>
+                <a href="#" class="text-cream/70 hover:text-cream/60 transition-colors text-[10px] uppercase tracking-widest no-underline">Confidentialité</a>
+                <a href="{{ path('new_contact') }}" class="text-cream/70 hover:text-cream/60 transition-colors text-[10px] uppercase tracking-widest no-underline">Contact</a>
             </div>
         </div>
 

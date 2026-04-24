@@ -9,15 +9,23 @@ use App\Entity\Users;
 use App\Repository\SpicesRepository;
 use App\Service\EasterEggService;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 final class EasterEggServiceTest extends TestCase
 {
     private MessageBusInterface $bus;
     private SpicesRepository $spicesRepository;
     private EntityManagerInterface $em;
+    private RequestStack $requestStack;
+    private Session $session;
     private EasterEggService $service;
 
     protected function setUp(): void
@@ -25,7 +33,21 @@ final class EasterEggServiceTest extends TestCase
         $this->bus = $this->createMock(MessageBusInterface::class);
         $this->spicesRepository = $this->createMock(SpicesRepository::class);
         $this->em = $this->createMock(EntityManagerInterface::class);
-        $this->service = new EasterEggService($this->bus, $this->spicesRepository, $this->em);
+
+        $this->session = new Session(new MockArraySessionStorage());
+        $this->requestStack = new RequestStack();
+        // Push a request so getSession() resolves to our mock session
+        $request = new \Symfony\Component\HttpFoundation\Request();
+        $request->setSession($this->session);
+        $this->requestStack->push($request);
+
+        $this->service = new EasterEggService(
+            $this->bus,
+            $this->spicesRepository,
+            $this->em,
+            $this->requestStack,
+            new NullLogger(),
+        );
 
         // Default mock for bus dispatch
         $this->bus->method('dispatch')
@@ -43,24 +65,26 @@ final class EasterEggServiceTest extends TestCase
     {
         $user = $this->makeUser(123);
 
-        self::assertFalse($this->service->handleEgg($user, 'alchimiste_de_l_ombre', [
-            'count' => 4,
-        ]));
-        self::assertTrue($this->service->handleEgg($user, 'alchimiste_de_l_ombre', [
-            'count' => 5,
-        ]));
+        // Client payload is ignored — session counter is the source of truth.
+        $this->session->set('easter_egg.alchimiste_count', 4);
+        self::assertFalse($this->service->handleEgg($user, 'alchimiste_de_l_ombre'));
+
+        $this->session->set('easter_egg.alchimiste_count', 5);
+        self::assertTrue($this->service->handleEgg($user, 'alchimiste_de_l_ombre'));
     }
 
     public function testValidateTempsDeLInfusion(): void
     {
         $user = $this->makeUser(123);
 
-        self::assertFalse($this->service->handleEgg($user, 'temps_de_l_infusion', [
-            'duration' => 259,
-        ]));
-        self::assertTrue($this->service->handleEgg($user, 'temps_de_l_infusion', [
-            'duration' => 260,
-        ]));
+        // Duration is derived from a server-issued timestamp in session, not from client payload.
+        $this->session->set('easter_egg.infusion_started_at', time() - 259);
+        self::assertFalse($this->service->handleEgg($user, 'temps_de_l_infusion'));
+
+        // Rebuild the service so the UserStat idempotence guard starts fresh between two asserts
+        $user2 = $this->makeUser(124);
+        $this->session->set('easter_egg.infusion_started_at', time() - 260);
+        self::assertTrue($this->service->handleEgg($user2, 'temps_de_l_infusion'));
     }
 
     public function testValidateLePoidsDeLOr(): void

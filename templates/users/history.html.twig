@@ -10,11 +10,10 @@
                 <h2 class="text-xl font-semibold text-stone-800 flex items-center gap-2">
                     <i class="fa-solid fa-clock-rotate-left text-saffron-600 text-base"></i>Historique des mélanges
                 </h2>
-                {{ buttons.button("Tout voir", {
-                    href: path('index_spicy_match_history'),
-                    variant: 'outline',
-                    size: 'xs'
-                }) }}
+                <a href="{{ path('index_spicy_match_history') }}"
+                   class="text-sm text-saffron-700 hover:text-saffron-600 hover:underline transition-colors font-medium">
+                    Tout voir
+                </a>
             </div>
 
             {% if pagination|length > 0 %}

@@ -146,12 +146,15 @@ tooling:
 
 scripts:
   php:
+    - docker exec -w /var/www/html/spicymatch p8.4 composer ci              # ⭐ check-cs + phpstan + test-unit (à passer avant chaque commit)
     - docker exec -w /var/www/html/spicymatch p8.4 composer check-cs       # vérifier le style
     - docker exec -w /var/www/html/spicymatch p8.4 composer fix-cs         # corriger le style
     - docker exec -w /var/www/html/spicymatch p8.4 composer rector-dry     # dry-run Rector
     - docker exec -w /var/www/html/spicymatch p8.4 composer rector         # appliquer Rector
-    - docker exec -w /var/www/html/spicymatch p8.4 composer phpstan        # analyse statique
-    - docker exec -w /var/www/html/spicymatch p8.4 php vendor/bin/phpunit --testsuite=Unit        # tests unitaires
+    - docker exec -w /var/www/html/spicymatch p8.4 composer phpstan        # analyse statique (baseline figée dans phpstan-baseline.neon)
+    - docker exec -w /var/www/html/spicymatch p8.4 composer test-unit      # phpunit Unit (sans coverage)
+    # ⭐ `composer ci` doit passer avant chaque commit. Toute nouvelle erreur PHPStan bloque CI.
+    # Pour corriger le baseline après un vrai fix : `phpstan analyze --generate-baseline=phpstan-baseline.neon`
     - docker exec -w /var/www/html/spicymatch p8.4 php vendor/bin/phpunit --testsuite=Integration # tests d'intégration (DB requise)
   js:
     - yarn dev                # watch Tailwind CLI

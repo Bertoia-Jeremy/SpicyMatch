@@ -8,8 +8,10 @@ use App\Entity\UserProgression;
 use App\Gamification\GamificationManagerInterface;
 use App\Message\GameCompletedEvent;
 use App\Repository\GameSessionRepository;
+use App\Repository\ProcessedGamificationEventRepository;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
@@ -20,6 +22,8 @@ class GameGamificationHandler
         private readonly GameSessionRepository $sessionRepository,
         private readonly GamificationManagerInterface $manager,
         private readonly EntityManagerInterface $em,
+        private readonly ProcessedGamificationEventRepository $processedEvents,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -27,6 +31,16 @@ class GameGamificationHandler
     {
         $user = $this->usersRepository->find($event->userId);
         if ($user === null) {
+            return;
+        }
+
+        // Idempotence — each finished GameSession is awarded once.
+        if (! $this->processedEvents->claim($user, 'game_completed', 'session:' . $event->sessionId)) {
+            $this->logger->info('gamification.game_completed.duplicate', [
+                'userId' => $user->getId(),
+                'sessionId' => $event->sessionId,
+            ]);
+
             return;
         }
 
@@ -47,6 +61,7 @@ class GameGamificationHandler
             'gameMode' => $event->gameMode,
             'correctAnswers' => $event->correctAnswers,
             'totalQuestions' => $event->totalQuestions,
+            'score' => $event->xpEarned,
         ]);
 
         $this->em->flush();

@@ -4,19 +4,37 @@ declare(strict_types=1);
 
 namespace App\Tests\Entity;
 
+use App\Entity\UserProgression;
+use App\Entity\Users;
 use App\Entity\UserStat;
 use PHPUnit\Framework\TestCase;
 
 final class UserStatTest extends TestCase
 {
-    public function testTotalActionsHook(): void
+    public function testTotalActionsHookReadsFromProgression(): void
     {
+        $progression = new UserProgression();
+        (new \ReflectionProperty(UserProgression::class, 'totalMatches'))->setValue($progression, 5);
+        (new \ReflectionProperty(UserProgression::class, 'totalSpicesRead'))->setValue($progression, 1);
+
+        $user = new Users();
+        $user->setProgression($progression);
+
         $stats = new UserStat();
-        $stats->setTotalMatches(5);
-        $stats->incrementSpicesRead(); // 1
+        $stats->setUser($user);
         $stats->incrementEasterEggsFound(); // 1
 
         self::assertSame(7, $stats->totalActions);
+    }
+
+    public function testTotalActionsHookWithNoProgressionIsZeroPlusEasterEggs(): void
+    {
+        $user = new Users();
+        $stats = new UserStat();
+        $stats->setUser($user);
+        $stats->incrementEasterEggsFound();
+
+        self::assertSame(1, $stats->totalActions);
     }
 
     public function testVisitedGroupsCountHook(): void
@@ -51,14 +69,6 @@ final class UserStatTest extends TestCase
         self::assertContains(12, $spices);
     }
 
-    public function testIncrementTotalMatches(): void
-    {
-        $stats = new UserStat();
-        $stats->setTotalMatches(0);
-        $stats->setTotalMatches(1);
-        self::assertSame(1, $stats->getTotalMatches());
-    }
-
     public function testIncrementEasterEggsFound(): void
     {
         $stats = new UserStat();
@@ -82,24 +92,13 @@ final class UserStatTest extends TestCase
         self::assertSame(1, $stats->visitedGroupsCount);
     }
 
-    public function testIncrementSpicesRead(): void
+    public function testRecordFoundEggIsIdempotent(): void
     {
         $stats = new UserStat();
-        $stats->incrementSpicesRead();
-        self::assertSame(1, $stats->getTotalSpicesRead());
-    }
+        $stats->recordFoundEgg('grain_de_sel');
+        $stats->recordFoundEgg('grain_de_sel');
 
-    public function testTotalActionsIsSumOfAllCounters(): void
-    {
-        $stats = new UserStat();
-        $stats->setTotalMatches(5);
-        for ($i = 0; $i < 3; ++$i) {
-            $stats->incrementSpicesRead();
-        }
-        $stats->incrementEasterEggsFound();
-        $stats->incrementEasterEggsFound();
-
-        // totalMatches(5) + totalSpicesRead(3) + easterEggsFound(2) = 10
-        self::assertSame(10, $stats->totalActions);
+        self::assertSame(['grain_de_sel'], $stats->getFoundEggSlugs());
+        self::assertTrue($stats->hasFoundEgg('grain_de_sel'));
     }
 }

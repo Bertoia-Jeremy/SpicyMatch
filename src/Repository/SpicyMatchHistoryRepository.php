@@ -11,11 +11,6 @@ use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<SpicyMatchHistory>
- *
- * @method SpicyMatchHistory|null find($id, $lockMode = null, $lockVersion = null)
- * @method SpicyMatchHistory|null findOneBy(array $criteria, array $orderBy = null)
- * @method SpicyMatchHistory[]    findAll()
- * @method SpicyMatchHistory[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class SpicyMatchHistoryRepository extends ServiceEntityRepository
 {
@@ -33,6 +28,9 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @return \Doctrine\ORM\Query<null, mixed>
+     */
     public function findByUserQuery(Users $user): \Doctrine\ORM\Query
     {
         return $this->createQueryBuilder('smh')

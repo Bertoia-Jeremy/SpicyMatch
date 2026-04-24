@@ -24,7 +24,7 @@
     {# Time's up — summary #}
     <div class="text-center py-12">
       <div class="w-24 h-24 mx-auto mb-6 rounded-full border-8 flex items-center justify-center
-        {{ this.correctCount >= 10 ? 'border-green-400 text-green-700' : (this.correctCount >= 5 ? 'border-turmeric-400 text-turmeric-700' : 'border-red-400 text-red-700') }}">
+        {{ this.correctCount >= 10 ? 'border-turmeric-400 text-turmeric-700' : (this.correctCount >= 5 ? 'border-turmeric-400 text-turmeric-700' : 'border-paprika-400 text-paprika-700') }}">
         <div class="text-2xl font-bold">{{ this.totalScore }}</div>
       </div>
 
@@ -43,37 +43,16 @@
     </div>
 
   {% else %}
-    {# Timer — Alpine countdown basé sur wall-clock (pas de data-live-ignore) #}
-    <div x-data="{
-           timeLeft: Math.max(0, {{ this.timeLimit }} - Math.floor(Date.now() / 1000 - {{ this.startedAt }})),
-           totalTime: {{ this.timeLimit }},
-           interval: null,
-           init() {
-             if (this.timeLeft <= 0) {
-               this.$refs.timeoutBtn.click();
-               return;
-             }
-             this.interval = setInterval(() => {
-               this.timeLeft = Math.max(0, {{ this.timeLimit }} - Math.floor(Date.now() / 1000 - {{ this.startedAt }}));
-               if (this.timeLeft <= 0) {
-                 clearInterval(this.interval);
-                 this.interval = null;
-                 this.$refs.timeoutBtn.click();
-               }
-             }, 1000);
-           },
-           destroy() {
-             if (this.interval) clearInterval(this.interval);
-           },
-           get pct() { return Math.max(0, (this.timeLeft / this.totalTime) * 100) },
-           get color() {
-             if (this.timeLeft <= 10) return 'bg-red-500';
-             if (this.timeLeft <= 30) return 'bg-turmeric-500';
-             return 'bg-saffron-500';
-           }
-         }"
+    {# Timer — Stimulus-driven (CSP-friendly, no inline JS). data-live-ignore
+       prevents morphdom from re-running connect() on every LC re-render. #}
+    <div data-live-ignore
+         data-controller="game-timer"
+         data-game-timer-expires-at-value="{{ this.startedAt + this.timeLimit }}"
+         data-game-timer-total-seconds-value="{{ this.timeLimit }}"
+         data-game-timer-danger-threshold-value="10"
+         data-game-timer-warning-threshold-value="30"
          class="mb-8">
-      <button x-ref="timeoutBtn"
+      <button data-game-timer-target="timeoutButton"
               data-action="live#action"
               data-live-action-param="timeout"
               class="hidden" aria-hidden="true"></button>
@@ -81,21 +60,19 @@
         <span class="text-sm text-stone-500">
           <i class="fa-solid fa-clock mr-1"></i>Temps restant
         </span>
-        <span class="text-sm font-semibold"
-              :class="timeLeft <= 10 ? 'text-red-600' : 'text-stone-700'"
-              x-text="Math.floor(timeLeft / 60) + ':' + String(timeLeft % 60).padStart(2, '0')">
-        </span>
+        <span data-game-timer-target="label"
+              aria-live="polite"
+              class="text-sm font-semibold text-stone-700"></span>
       </div>
       <div class="w-full bg-stone-200 rounded-full h-3">
-        <div class="h-3 rounded-full transition-all duration-1000"
-             :class="color"
-             :style="'width: ' + pct + '%'"></div>
+        <div data-game-timer-target="bar"
+             class="h-3 rounded-full transition-all duration-1000 bg-saffron-500"></div>
       </div>
     </div>
 
     {# Stats row #}
     <div class="flex items-center justify-center gap-6 mb-6 text-sm text-stone-600">
-      <span><i class="fa-solid fa-check text-green-500 mr-1"></i>{{ this.correctCount }}</span>
+      <span><i class="fa-solid fa-check text-turmeric-600 mr-1"></i>{{ this.correctCount }}</span>
       <span><i class="fa-solid fa-question text-stone-400 mr-1"></i>{{ this.questionsAnswered }}</span>
       {% if this.streak >= 3 %}
         <span class="text-saffron-600 font-semibold"><i class="fa-solid fa-fire mr-1"></i>Série de {{ this.streak }}</span>
@@ -106,11 +83,11 @@
     {% if this.questionsAnswered > 0 %}
       <div class="mb-6 text-center text-sm">
         {% if this.lastAnswerCorrect %}
-          <span class="text-green-600 font-medium">
+          <span class="text-turmeric-600 font-medium">
             <i class="fa-solid fa-check-circle mr-1"></i>Correct ! +{{ this.lastPointsEarned }} pts
           </span>
         {% else %}
-          <span class="text-red-600 font-medium">
+          <span class="text-paprika-600 font-medium">
             <i class="fa-solid fa-times-circle mr-1"></i>C'était {{ this.lastCorrectName }}
           </span>
         {% endif %}
@@ -190,7 +167,7 @@
                 data-live-action-param="answer"
                 data-live-spice-name-param="{{ name|e('html_attr') }}"
                 data-loading="action(answer)|addAttribute(disabled)"
-                class="px-4 py-3 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all text-center font-medium text-stone-800 disabled:opacity-75">
+                class="px-4 py-3 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all text-center font-medium text-stone-800 disabled:opacity-75 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30">
           {{ name }}
         </button>
       {% endfor %}

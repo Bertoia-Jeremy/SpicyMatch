@@ -19,13 +19,21 @@
         {% set groupName = spice.aromaticGroups ? spice.aromaticGroups.name : null %}
         {% set imageUrl = vich_uploader_asset(spice, 'imageFile') %}
     {% endif %}
-    
+
     {# Options #}
     {% set isSelection = options.isSelection|default(false) %}
     {% set score = options.score|default(null) %}
     {% set compact = options.compact|default(false) %}
     {% set showQuickView = options.showQuickView|default(true) %}
     {% set model = options.model|default(null) %}
+
+    {# Mode "Chef de Partie" : neutralise les couleurs de groupe aromatique.
+       Override possible via options.monochrome ; sinon hérite de la globale isMonochrome
+       (DifficultyExtension) qui dépend de la préférence utilisateur. #}
+    {% set effectiveMonochrome = options.monochrome ?? (isMonochrome ?? false) %}
+    {% if effectiveMonochrome %}
+        {% set color = '#78716C' %}
+    {% endif %}
 
     <article x-data class="card-warm flex flex-col overflow-hidden h-full group relative {{ compact ? 'max-w-[180px]' : '' }}">
         
@@ -89,10 +97,14 @@
                 {% endif %}
             </div>
 
-            {% if groupName %}
+            {% if groupName and not effectiveMonochrome %}
                 <span class="inline-flex items-center gap-1 self-start text-[9px] font-bold px-2 py-0.5 rounded-full leading-none uppercase tracking-wide"
                       style="background-color: {{ color }}15; color: {{ color }}; border: 1px solid {{ color }}30">
                     {{ groupName }}
+                </span>
+            {% elseif groupName %}
+                <span class="inline-flex items-center gap-1 self-start text-[9px] font-bold px-2 py-0.5 rounded-full leading-none uppercase tracking-wide bg-stone-100 text-stone-500 border border-stone-200">
+                    ???
                 </span>
             {% endif %}
 

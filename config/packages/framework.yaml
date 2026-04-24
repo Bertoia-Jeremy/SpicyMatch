@@ -18,6 +18,23 @@ framework:
     php_errors:
         log: true
 
+    rate_limiter:
+        # Existing — applied inline in EasterEggController.
+        gamification_api:
+            policy: 'token_bucket'
+            limit: 20
+            rate: { interval: '1 minute', amount: 20 }
+        # Live Component actions (answer, pick, guess, guessLetter, etc.) — applied by RateLimitListener.
+        lc_actions:
+            policy: 'token_bucket'
+            limit: 60
+            rate: { interval: '1 minute', amount: 60 }
+        # User-triggered mutations (toggle gamification, equip badge, rename history). Lower cap — these are rare in normal use.
+        user_actions:
+            policy: 'token_bucket'
+            limit: 30
+            rate: { interval: '1 minute', amount: 30 }
+
 when@test:
     framework:
         test: true

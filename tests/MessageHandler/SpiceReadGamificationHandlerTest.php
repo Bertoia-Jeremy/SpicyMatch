@@ -12,6 +12,7 @@ use App\Entity\UserStat;
 use App\Gamification\GamificationManagerInterface;
 use App\Message\SpiceReadEvent;
 use App\MessageHandler\SpiceReadGamificationHandler;
+use App\Repository\ProcessedGamificationEventRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpiceViewRepository;
 use App\Repository\UsersRepository;
@@ -19,6 +20,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 #[AllowMockObjectsWithoutExpectations]
 final class SpiceReadGamificationHandlerTest extends TestCase
@@ -28,6 +30,7 @@ final class SpiceReadGamificationHandlerTest extends TestCase
     private SpiceViewRepository&MockObject $spiceViewRepo;
     private GamificationManagerInterface&MockObject $manager;
     private EntityManagerInterface&MockObject $em;
+    private ProcessedGamificationEventRepository&MockObject $processedEvents;
     private SpiceReadGamificationHandler $handler;
 
     protected function setUp(): void
@@ -37,12 +40,18 @@ final class SpiceReadGamificationHandlerTest extends TestCase
         $this->spiceViewRepo = $this->createMock(SpiceViewRepository::class);
         $this->manager = $this->createMock(GamificationManagerInterface::class);
         $this->em = $this->createMock(EntityManagerInterface::class);
+        $this->processedEvents = $this->createMock(ProcessedGamificationEventRepository::class);
+        $this->processedEvents->method('claim')
+            ->willReturn(true);
+
         $this->handler = new SpiceReadGamificationHandler(
             $this->usersRepo,
             $this->spicesRepo,
             $this->spiceViewRepo,
             $this->manager,
             $this->em,
+            $this->processedEvents,
+            new NullLogger(),
         );
     }
 
@@ -94,6 +103,9 @@ final class SpiceReadGamificationHandlerTest extends TestCase
         $this->usersRepo->method('find')
             ->willReturn($user);
         $this->spiceViewRepo->method('countDistinctSpicesByUser')
+            ->willReturn(1);
+        // countByUser drives totalSpicesRead in the idempotent handler.
+        $this->spiceViewRepo->method('countByUser')
             ->willReturn(1);
         $this->spicesRepo->method('find')
             ->willReturn(null);

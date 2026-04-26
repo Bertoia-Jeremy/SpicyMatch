@@ -76,7 +76,7 @@
                                 {{ not isUnlocked ? 'opacity-60 grayscale' : '' }}
                                 transition-all duration-200"
                          style="{% if isUnlocked and not isEquipped %}border-color: {{ rarityColors.ring }}50; background-color: {{ rarityColors.bg }}40;{% else %}background-color: white;{% endif %}"
-                         x-data="{ equipping: false }">
+                         x-data="equipButton">
 
                         {# Indicateur en haut à droite #}
                         <div class="absolute top-3 right-3">
@@ -127,16 +127,10 @@
                                     <div class="text-center">
                                         <button type="button"
                                                 :disabled="equipping"
-                                                @click="
-                                                    equipping = true;
-                                                    fetch('{{ path('equip_badge_user', {id: ua.id}) }}', {
-                                                        method: 'POST',
-                                                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                                                        body: '_token={{ csrf_token('equip_badge_' ~ ua.id) }}'
-                                                    }).then(() => {
-                                                        Turbo.visit('{{ path('achievements_user') }}', { action: 'replace' });
-                                                    }).catch(() => { equipping = false; });
-                                                "
+                                                @click="equip"
+                                                data-equip-url="{{ path('equip_badge_user', {id: ua.id}) }}"
+                                                data-equip-token="{{ csrf_token('equip_badge_' ~ ua.id) }}"
+                                                data-equip-redirect="{{ path('achievements_user') }}"
                                                 class="text-xs px-3 py-1 rounded-full border border-saffron-400 text-saffron-700 hover:bg-saffron-50 transition-colors cursor-pointer">
                                             <span x-show="!equipping"><i class="fa-solid fa-shield-halved mr-1"></i>Équiper</span>
                                             <span x-show="equipping" x-cloak><i class="fa-solid fa-spinner fa-spin mr-1"></i>…</span>

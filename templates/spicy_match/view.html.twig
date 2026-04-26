@@ -8,35 +8,7 @@
 
 {% block body %}
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
-         x-data="{
-             spiceStatus: {},
-             nextOpenId: null,
-             spiceIds: [{{ spices|map(s => s.id)|join(', ') }}],
-             totalSpices: {{ spices|length }},
-             isReady(id) {
-                 const s = this.spiceStatus[id];
-                 return !!(s && s.prep && s.cooking);
-             },
-             get readyCount() {
-                 return Object.values(this.spiceStatus).filter(s => s && s.prep && s.cooking).length;
-             },
-             get allReady() {
-                 return this.readyCount >= this.totalSpices;
-             }
-         }"
-         @preparation-updated.window="
-             const id = $event.detail.spiceId;
-             const cur = spiceStatus[id] || { prep: false, cooking: false };
-             spiceStatus = { ...spiceStatus, [id]: { ...cur, prep: $event.detail.selected } }"
-         @cooking-confirmed.window="
-             const id = $event.detail.spiceId;
-             const sel = $event.detail.selected;
-             const cur = spiceStatus[id] || { prep: false, cooking: false };
-             spiceStatus = { ...spiceStatus, [id]: { ...cur, cooking: sel } };
-             if (sel) {
-                 const idx = spiceIds.indexOf(id);
-                 if (idx >= 0 && idx < spiceIds.length - 1) { nextOpenId = spiceIds[idx + 1]; }
-             }">
+         x-data="cookingChecklist('{{ spices|map(s => s.id)|join(',') }}')">
         <div class="mb-6">
             <a href="{{ path('index_spicy_match') }}" class="inline-flex items-center gap-1.5 text-stone-500 hover:text-saffron-700 text-sm transition-colors">
                 <i class="fa-solid fa-arrow-left text-[10px]"></i>Retour au Lab
@@ -51,15 +23,14 @@
 
         {% for spice in spices %}
             <div class="flex flex-col items-center justify-center mb-4"
-                 x-data="{ open: {{ loop.first ? 'true' : 'false' }} }"
-                 @cooking-confirmed.window="if ($event.detail.spiceId == {{ spice.id }} && $event.detail.selected) open = false"
-                 x-effect="if (nextOpenId == {{ spice.id }}) { open = true; nextOpenId = null; $nextTick(() => requestAnimationFrame(() => $el.scrollIntoView({ behavior: 'smooth', block: 'start' }))); }">
+                 x-data="cookingAccordion({{ spice.id }}, {{ loop.first ? 'true' : 'false' }})"
+                 x-effect="onNextOpen(nextOpenId)">
                 <div class="w-full max-w-4xl">
                     {# En-tête cliquable pour replier/déplier #}
                     <button type="button"
                             class="w-full flex items-center gap-3 mb-4 pb-3 border-b text-left group transition-colors duration-300"
                             :class="isReady({{ spice.id }}) ? 'border-emerald-300' : 'border-spice-border'"
-                            @click="open = !open">
+                            @click="toggle">
                         {# Numéro ou checkmark #}
                         <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300"
                              :class="isReady({{ spice.id }})

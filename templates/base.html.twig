@@ -50,11 +50,8 @@
         {# {% include 'components/_cookie_consent.html.twig' %} #}
 
         {# Toast flash global — écoute l'événement "toast" sur window #}
-        <div x-data="{ toasts: [] }"
-             @toast.window="
-                 const t = { id: Date.now(), message: $event.detail.message, icon: $event.detail.icon || 'fa-solid fa-check' };
-                 toasts.push(t);
-                 setTimeout(() => toasts = toasts.filter(x => x.id !== t.id), 2000)"
+        <div x-data="notificationHost"
+             @toast.window="onToast($event)"
              class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none"
              aria-live="polite" aria-atomic="false" role="status">
             <template x-for="t in toasts" :key="t.id">

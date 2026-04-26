@@ -13,20 +13,10 @@
             {% if favorites|length > 0 %}
                 <div class="space-y-4">
                     {% for history in favorites %}
-                        <div x-data="{
-                                 removed: false,
-                                 async removeFavorite() {
-                                     try {
-                                         const res = await fetch('{{ path('toggle_favorite_spicy_match_history', {id: history.id}) }}', {
-                                             method: 'POST',
-                                             headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-Token': '{{ csrf_token('history_action_' ~ history.id) }}' }
-                                         });
-                                         if (!res.ok) { console.error('Toggle failed', res.status); return; }
-                                         this.removed = true;
-                                         window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Supprimé des favoris', icon: 'fa-regular fa-star' } }));
-                                     } catch (e) { console.error('Toggle error', e); }
-                                 }
-                             }"
+                        <div x-data="favoriteRemover(
+                                '{{ path('toggle_favorite_spicy_match_history', {id: history.id}) }}',
+                                '{{ csrf_token('history_action_' ~ history.id) }}'
+                             )"
                              x-show="!removed"
                              x-transition:leave="transition ease-in duration-200"
                              x-transition:leave-start="opacity-100 translate-x-0"
@@ -50,7 +40,7 @@
                                 <div class="flex items-center gap-4 shrink-0">
                                     <span class="text-sm text-stone-400">{{ history.createdAt|date('d/m/Y') }}</span>
                                     <button type="button"
-                                            @click="removeFavorite()"
+                                            @click="removeFavorite"
                                             class="text-xl transition-colors focus:outline-none text-turmeric-500 hover:text-stone-300"
                                             title="Retirer des favoris">
                                         <i class="fa-solid fa-star"></i>

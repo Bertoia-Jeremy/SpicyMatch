@@ -22,11 +22,11 @@
   {# Mode selection cards #}
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10"
        data-tour="game-grid"
-       x-data="{ selectedMode: '{{ app.request.query.get('mode') ?? '' }}', selectedDifficulty: 'easy' }">
+       x-data="modeSelector('{{ app.request.query.get('mode') ?? '' }}', 'easy')">
 
     {% for mode in modes %}
       <button type="button"
-              @click="selectedMode = '{{ mode.value }}'"
+              @click="pickMode('{{ mode.value }}')"
               :class="selectedMode === '{{ mode.value }}'
                 ? 'ring-2 ring-saffron-500 border-saffron-400 bg-spice-surface'
                 : 'border-stone-200 bg-white hover:bg-cream'"
@@ -70,7 +70,7 @@
           <div class="flex gap-2">
             {% for difficulty in difficulties %}
               <button type="button"
-                      @click="selectedDifficulty = '{{ difficulty.value }}'"
+                      @click="pickDifficulty('{{ difficulty.value }}')"
                       :class="selectedDifficulty === '{{ difficulty.value }}'
                         ? 'bg-saffron-600 text-white'
                         : 'bg-stone-100 text-stone-700 hover:bg-stone-200'"

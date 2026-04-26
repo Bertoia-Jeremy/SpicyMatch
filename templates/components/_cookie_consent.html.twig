@@ -1,5 +1,10 @@
-{# Cookie consent banner — include in base.html.twig #}
-<div x-data="cookieConsent()" x-show="visible" x-cloak
+{# Cookie consent banner — include in base.html.twig.
+   Logic lives in assets/alpine_components.js (Alpine.data('cookieConsent')).
+   The component reads data-consent-{url,token,version} on mount. #}
+<div x-data="cookieConsent" x-show="visible" x-cloak
+     data-consent-url="{{ path('consent_save') }}"
+     data-consent-token="{{ csrf_token('cookie_consent') }}"
+     data-consent-version="{{ constant('App\\Service\\CookieConsentService::CURRENT_VERSION') }}"
      class="fixed bottom-0 inset-x-0 z-50 p-4 sm:p-6">
   <div class="max-w-2xl mx-auto bg-white border border-spice-border rounded-2xl shadow-lg p-6">
     <h3 class="text-lg font-semibold text-stone-800 mb-2">Nous respectons votre vie privée</h3>
@@ -24,46 +29,15 @@
     </div>
 
     <div class="flex flex-wrap gap-3">
-      <button @click="accept(true, true)" class="btn-pill-primary text-sm">
+      <button @click="acceptAll" class="btn-pill-primary text-sm">
         Tout accepter
       </button>
-      <button @click="accept(analytics, functional)" class="btn-pill-outline text-sm">
+      <button @click="acceptChoices" class="btn-pill-outline text-sm">
         Confirmer la sélection
       </button>
-      <button @click="accept(false, false)" class="text-sm text-stone-500 hover:text-stone-700 underline">
+      <button @click="rejectAll" class="text-sm text-stone-500 hover:text-stone-700 underline">
         Tout refuser
       </button>
     </div>
   </div>
 </div>
-
-<script>
-function cookieConsent() {
-  return {
-    visible: false,
-    analytics: false,
-    functional: true,
-    init() {
-      try {
-        const cookie = document.cookie.split('; ').find(r => r.startsWith('sm_consent='));
-        if (!cookie) { this.visible = true; return; }
-        const data = JSON.parse(decodeURIComponent(cookie.split('=')[1]));
-        if ((data.version || 0) < {{ constant('App\\Service\\CookieConsentService::CURRENT_VERSION') }}) {
-          this.visible = true;
-        }
-      } catch(e) { this.visible = true; }
-    },
-    async accept(analytics, functional) {
-      try {
-        const res = await fetch('{{ path("consent_save") }}', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ analytics, functional, _token: '{{ csrf_token("cookie_consent") }}' })
-        });
-        if (!res.ok) { console.error('Consent save failed', res.status); return; }
-        this.visible = false;
-      } catch (e) { console.error('Consent save error', e); }
-    }
-  }
-}
-</script>

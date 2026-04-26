@@ -1,7 +1,7 @@
 {% macro modal(id, name, createModal) %}
     {% import 'macros/buttons.html.twig' as buttons %}
 
-    <div x-data="{ open: false }">
+    <div x-data="toggle">
         {{ buttons.button('Méthode ' ~ name, {
             variant: 'outline',
             size: 'sm',

@@ -107,8 +107,7 @@
     </div>
 
     {# ── Scroll to Top ── #}
-    <div x-data="{ visible: false }"
-         @scroll.window="visible = window.scrollY > 400"
+    <div x-data="scrollTop"
          class="fixed bottom-8 right-8 z-40">
         <button x-show="visible" x-cloak
                 x-transition:enter="transition ease-out duration-300"
@@ -117,7 +116,7 @@
                 x-transition:leave="transition ease-in duration-200"
                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                 x-transition:leave-end="opacity-0 translate-y-4 scale-90"
-                @click="window.scrollTo({ top: 0, behavior: 'smooth' })"
+                @click="scrollUp"
                 class="w-12 h-12 rounded-2xl bg-saffron-600 hover:bg-saffron-500 text-white
                        shadow-2xl shadow-saffron-900/40 flex items-center justify-center
                        transition-all duration-300 group cursor-pointer border border-saffron-400/20">

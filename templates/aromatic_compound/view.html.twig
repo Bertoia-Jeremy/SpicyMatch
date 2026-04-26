@@ -65,7 +65,7 @@
 
     {# Zone Épices liées #}
     {% set allSpices = aromaticCompound.spices|merge(aromaticCompound.secondarySpices) %}
-    <section class="pt-10 border-t border-stone-200" x-data="{ gridMode: false, limit: 8 }">
+    <section class="pt-10 border-t border-stone-200" x-data="spicesLimit({{ allSpices|length }})">
         
         <div class="flex items-center justify-between mb-8">
             <h3 class="text-2xl font-bold text-stone-900 flex items-center gap-3">
@@ -75,8 +75,8 @@
 
             {% if allSpices|length > 8 %}
                 <div class="flex items-center bg-stone-100 p-1 rounded-xl">
-                    <button @click="gridMode = false; $nextTick(() => window.dispatchEvent(new CustomEvent('carousel:reinit')))" :class="!gridMode ? 'bg-white shadow-sm text-saffron-600' : 'text-stone-400'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Slider</button>
-                    <button @click="gridMode = true" :class="gridMode ? 'bg-white shadow-sm text-saffron-600' : 'text-stone-400'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Grille</button>
+                    <button @click="setGrid" :class="!gridMode ? 'bg-white shadow-sm text-saffron-600' : 'text-stone-400'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Slider</button>
+                    <button @click="setList" :class="gridMode ? 'bg-white shadow-sm text-saffron-600' : 'text-stone-400'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Grille</button>
                 </div>
             {% endif %}
         </div>
@@ -124,11 +124,11 @@
                 </div>
 
                 {% if allSpices|length > 8 %}
-                <div class="flex justify-center" x-show="limit < {{ allSpices|length }}">
+                <div class="flex justify-center" x-show="hasMore()">
                     {{ buttons.button('Charger plus d\'épices', {
                         variant: 'outline',
                         icon: 'fa-solid fa-plus',
-                        attr: { '@click': 'limit += 8' }
+                        attr: { '@click': 'showMore' }
                     }) }}
                 </div>
                 {% endif %}

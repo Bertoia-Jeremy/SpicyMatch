@@ -64,7 +64,7 @@
     </div>
 
     {% import 'components/Education/_option_card.html.twig' as option_card %}
-    <div class="grid grid-cols-2 gap-4" x-data="{ selected: null, submitting: false }">
+    <div class="grid grid-cols-2 gap-4" x-data="submitOnceGrid">
       {% for option in this.options %}
         {{ option_card.option(option, 'answer', 'spiceId', 'md', false) }}
       {% endfor %}

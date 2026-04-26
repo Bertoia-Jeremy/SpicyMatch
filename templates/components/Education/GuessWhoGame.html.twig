@@ -99,14 +99,14 @@
     </div>
 
     {# Guess options #}
-    <div class="space-y-3" x-data="{ submitting: false }">
+    <div class="space-y-3" x-data="hangmanKeyboard">
       <p class="text-sm font-medium text-stone-700 mb-3">Quelle est cette épice ?</p>
       {% for option in this.guessOptions %}
         <button type="button"
                 data-action="live#action"
                 data-live-action-param="guess"
                 data-live-spice-name-param="{{ option }}"
-                @click="if (!submitting) { submitting = true }"
+                @click="guess"
                 :disabled="submitting"
                 class="w-full text-left px-5 py-3 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all font-medium text-stone-800 disabled:opacity-75 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30">
           {{ option }}

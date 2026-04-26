@@ -1,6 +1,6 @@
 {% import 'macros/buttons.html.twig' as buttons %}
 
-<nav x-data="{ open: false }"
+<nav x-data="toggle"
      x-effect="document.getElementById('main-content').inert = open"
      class="sticky top-0 z-50 bg-cream/80 backdrop-blur-md border-b border-saffron-700/10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -34,7 +34,7 @@
                 </a>
 
                 {# Dropdown L'Académie #}
-                <div x-data="{ dropdownOpen: false }" @keydown.escape="dropdownOpen = false" class="relative">
+                <div x-data="dropdown" @keydown.escape="dropdownOpen = false" class="relative">
                     <button @click="dropdownOpen = !dropdownOpen"
                             :aria-expanded="dropdownOpen"
                             aria-haspopup="true"
@@ -96,7 +96,7 @@
                 </div>
 
                 {# Dropdown Épices #}
-                <div x-data="{ dropdownOpen: false }" @keydown.escape="dropdownOpen = false" class="relative">
+                <div x-data="dropdown" @keydown.escape="dropdownOpen = false" class="relative">
                     <button @click="dropdownOpen = !dropdownOpen"
                             :aria-expanded="dropdownOpen"
                             aria-haspopup="true"
@@ -165,7 +165,7 @@
                 {% if is_granted("ROLE_USER") %}
                     {% set navLevel = app.user.progression ? app.user.progression.level : null %}
                     {% set navStreak = app.user.progression ? app.user.progression.currentReadingStreak : 0 %}
-                    <div x-data="{ dropdownOpen: false }" @keydown.escape="dropdownOpen = false" class="relative">
+                    <div x-data="dropdown" @keydown.escape="dropdownOpen = false" class="relative">
                         <button @click="dropdownOpen = !dropdownOpen"
                                 class="flex items-center gap-2 bg-spice-surface border border-spice-border text-stone-700
                                        hover:border-saffron-600/40 hover:text-saffron-700 rounded-full px-3 py-1.5

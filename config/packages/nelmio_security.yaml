@@ -30,22 +30,22 @@ nelmio_security:
         hosts: []
         content_types: []
         enforce:
+            # Disable automatic `'unsafe-inline'` fallback when nonce is used.
+            # We target modern browsers only; the CSP build of Alpine + registered
+            # components means we never need inline eval.
+            level1_fallback: false
             # Base directives — whitelisted origins come from CLAUDE.md stack:
             #   - FontAwesome CSS/fonts: cdnjs.cloudflare.com
             #   - Alpine.js / Stimulus ESM: jsdelivr.net (importmap)
             #   - Turbo + app code: self
             default-src:
                 - 'self'
-            # Kept 'unsafe-inline' on script-src because Alpine.js attribute
-            # handlers (`@click="..."`, `x-data="..."`) are inline scripts under
-            # CSP2. The high-risk inline scripts (timers with setInterval,
-            # toast auto-dismiss, fetch callbacks) have been migrated to
-            # Stimulus controllers — only lightweight DOM toggles remain inline.
-            # Full strict script-src requires Alpine CSP build + Alpine.data()
-            # refactor of every x-data literal (tracked in backlog).
+            # Alpine CSP build (@alpinejs/csp) + assets/alpine_components.js
+            # registry — all x-data literals migrated to named Alpine.data()
+            # components, all event handlers call methods (not inline expr).
+            # No `'unsafe-inline'` needed. See ADR-007 Phase 2.
             script-src:
                 - 'self'
-                - "'unsafe-inline'"
                 - 'https://cdn.jsdelivr.net'
             style-src:
                 - 'self'

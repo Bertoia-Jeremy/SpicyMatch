@@ -36,6 +36,7 @@ return [
     ],
     'alpinejs' => [
         'version' => '3.14.9',
+        'package_specifier' => '@alpinejs/csp',
     ],
     'web-haptics' => [
         'path' => './assets/vendor/web-haptics.js',

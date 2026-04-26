@@ -10,11 +10,8 @@
                 <i class="fa-solid fa-clock-rotate-left text-saffron-600 mr-2"></i>Historique des mélanges
             </h1>
             <p class="mt-2 text-stone-500">Retrouvez toutes vos recettes sauvegardées.</p>
-            <div x-data="{ count: {{ favoriteCount }} }"
-                 @toast.window="
-                    const msg = $event.detail.message;
-                    if (msg === 'Ajouté aux favoris') count++;
-                    else if (msg === 'Supprimé des favoris') count--;"
+            <div x-data="favoriteCount({{ favoriteCount }})"
+                 @toast.window="onToast($event)"
                  x-show="count > 0"
                  x-transition>
                 <a href="{{ path('favorites_spicy_match_history') }}"
@@ -43,46 +40,25 @@
                 <div class="space-y-3">
                     {% for history in spicymatch_histories %}
                         <div class="bg-white border border-stone-200 rounded-xl shadow-sm hover:shadow-md hover:border-saffron-400/50 transition-all p-5"
-                             x-data="{
-                                 editing: false,
-                                 title: '{{ history.title ? history.title|e('js') : '' }}',
-                                 favorite: {{ history.isFavorite ? 'true' : 'false' }},
-                                 fallbackTitle: '{{ ('Recette du ' ~ history.createdAt|date('d/m/Y à H:i'))|e('js') }}',
-                                 async saveTitle() {
-                                     const t = this.title.trim();
-                                     try {
-                                         const res = await fetch('{{ path('rename_spicy_match_history', {id: history.id}) }}', {
-                                             method: 'POST',
-                                             headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                                             body: JSON.stringify({ title: t, _token: '{{ csrf_token('history_action_' ~ history.id) }}' })
-                                         });
-                                         if (!res.ok) { console.error('Rename failed', res.status); return; }
-                                         this.editing = false;
-                                     } catch (e) { console.error('Rename error', e); }
-                                 },
-                                 async toggleFavorite() {
-                                     try {
-                                         const res = await fetch('{{ path('toggle_favorite_spicy_match_history', {id: history.id}) }}', {
-                                             method: 'POST',
-                                             headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-Token': '{{ csrf_token('history_action_' ~ history.id) }}' }
-                                         });
-                                         if (!res.ok) { console.error('Toggle failed', res.status); return; }
-                                         const data = await res.json();
-                                         this.favorite = data.favorite;
-                                         window.dispatchEvent(new CustomEvent('toast', { detail: { message: data.favorite ? 'Ajouté aux favoris' : 'Supprimé des favoris', icon: data.favorite ? 'fa-solid fa-star' : 'fa-regular fa-star' } }));
-                                     } catch (e) { console.error('Toggle error', e); }
-                                 }
-                             }">
+                             x-data="historyItem(
+                                {{ history.id }},
+                                '{{ path('rename_spicy_match_history', {id: history.id}) }}',
+                                '{{ path('toggle_favorite_spicy_match_history', {id: history.id}) }}',
+                                '{{ csrf_token('history_action_' ~ history.id) }}',
+                                '{{ history.title ? history.title|e('js') : '' }}',
+                                {{ history.isFavorite ? 'true' : 'false' }},
+                                '{{ ('Recette du ' ~ history.createdAt|date('d/m/Y à H:i'))|e('js') }}'
+                             )">
                             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                 <div class="flex-1 min-w-0">
                                     {# Titre inline-éditable (double-clic ou clic icône crayon) #}
-                                    <div class="mb-2 group" @dblclick.stop="editing = true">
+                                    <div class="mb-2 group" @dblclick.stop="startEdit">
                                         <h2 x-show="!editing"
                                             class="inline-flex items-center gap-1.5 text-lg font-semibold text-stone-800 cursor-pointer hover:text-saffron-700 transition-colors"
                                             title="Double-cliquez pour renommer">
-                                            <span x-text="title || fallbackTitle"></span>
+                                            <span x-text="displayTitle()"></span>
                                             <button type="button"
-                                                    @click.stop="editing = true"
+                                                    @click.stop="startEdit"
                                                     class="opacity-0 group-hover:opacity-100 transition-opacity text-stone-300 hover:text-saffron-600 text-[11px] leading-none"
                                                     title="Renommer">
                                                 <i class="fa-solid fa-pencil"></i>
@@ -92,9 +68,9 @@
                                                x-model="title"
                                                x-ref="titleInput"
                                                x-effect="editing && $nextTick(() => $refs.titleInput?.focus())"
-                                               @blur="saveTitle()"
-                                               @keydown.enter="saveTitle()"
-                                               @keydown.escape="editing = false"
+                                               @blur="saveTitle"
+                                               @keydown.enter="saveTitle"
+                                               @keydown.escape="cancelEdit"
                                                @click.stop
                                                class="w-full text-lg font-semibold text-stone-800 border border-saffron-300 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-saffron-600/30"
                                                :placeholder="fallbackTitle">
@@ -115,7 +91,7 @@
                                 <div class="flex items-center gap-4 shrink-0">
                                     {# Étoile favori cliquable #}
                                     <button type="button"
-                                            @click.stop="toggleFavorite()"
+                                            @click.stop="toggleFavorite"
                                             class="text-xl transition-colors focus:outline-none"
                                             :class="favorite ? 'text-turmeric-500 hover:text-turmeric-400' : 'text-stone-300 hover:text-turmeric-400'"
                                             :title="favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'">

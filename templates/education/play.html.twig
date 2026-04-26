@@ -3,7 +3,7 @@
 {% block title %}Quiz — Question {{ questionNumber }}{% endblock %}
 
 {% block body %}
-<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10" x-data="{ selected: null, submitted: false, startTime: Date.now() }">
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10" x-data="qcmForm">
 
   {# Progress bar #}
   <div class="mb-6">
@@ -33,7 +33,7 @@
                    'border-saffron-500 bg-saffron-50 ring-2 ring-saffron-500/30': selected === '{{ option.name }}',
                    'border-stone-200 hover:border-saffron-300 hover:bg-cream': selected !== '{{ option.name }}'
                  }"
-                 @click="selected = '{{ option.name }}'">
+                 @click="pick('{{ option.name|e('js') }}')">
             <input type="radio" name="answer" value="{{ option.name }}"
                    class="text-saffron-600 focus:ring-saffron-500"
                    x-model="selected">
@@ -43,12 +43,12 @@
       </div>
 
       <input type="hidden" name="_token" value="{{ csrf_token('education_answer') }}">
-      <input type="hidden" name="timeSpentMs" x-bind:value="Date.now() - startTime">
+      <input type="hidden" name="timeSpentMs" x-bind:value="elapsed()">
 
       <button type="submit"
               class="btn-pill-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
               :disabled="!selected || submitted"
-              @click="submitted = true">
+              @click="submit">
         Valider
       </button>
     </form>

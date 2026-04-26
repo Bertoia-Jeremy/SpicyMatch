@@ -36,7 +36,7 @@
       <p class="text-sm text-stone-500">Sélectionne l'épice avec laquelle tu veux commencer ta chaîne.</p>
     </div>
 
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" x-data="{ selected: null, submitting: false }">
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" x-data="submitOnceGrid">
       {% for spice in this.startingSpices %}
         {{ option_card.option(spice, 'start', 'spiceId', 'sm', true) }}
       {% endfor %}
@@ -67,7 +67,7 @@
       <p class="text-stone-700 text-lg mt-4">Quelle épice est compatible ?</p>
     </div>
 
-    <div class="grid grid-cols-2 gap-4" x-data="{ selected: null, submitting: false }">
+    <div class="grid grid-cols-2 gap-4" x-data="submitOnceGrid">
       {% for option in this.options %}
         {{ option_card.option(option, 'pick', 'spiceId', 'md', false) }}
       {% endfor %}

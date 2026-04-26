@@ -135,7 +135,7 @@
                             {% set isEquipped = progression.equippedBadge and progression.equippedBadge.id == ua.id %}
                             <div class="flex items-start gap-3 p-3 rounded-xl {{ isEquipped ? 'border-2 border-stone-800 shadow-md' : 'border' }}"
                                  style="{% if not isEquipped %}border-color: {{ uaColors.ring }}50; background-color: {{ uaColors.bg }}40;{% endif %}"
-                                 x-data="{ equipping: false }"
+                                 x-data="equipButton"
                             >
                                 <div class="text-2xl w-8 text-center shrink-0">
                                     <i class="{{ ua.achievement.icon }}"></i>
@@ -159,16 +159,10 @@
                                         {% else %}
                                             <button type="button"
                                                     :disabled="equipping"
-                                                    @click="
-                                                        equipping = true;
-                                                        fetch('{{ path('equip_badge_user', {id: ua.id}) }}', {
-                                                            method: 'POST',
-                                                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                                                            body: '_token={{ csrf_token('equip_badge_' ~ ua.id) }}'
-                                                        }).then(() => {
-                                                            Turbo.visit('{{ path('profile_user') }}', { action: 'replace' });
-                                                        }).catch(() => { equipping = false; });
-                                                    "
+                                                    @click="equip"
+                                                    data-equip-url="{{ path('equip_badge_user', {id: ua.id}) }}"
+                                                    data-equip-token="{{ csrf_token('equip_badge_' ~ ua.id) }}"
+                                                    data-equip-redirect="{{ path('profile_user') }}"
                                                     class="text-xs px-2.5 py-0.5 rounded-full border border-saffron-400 text-saffron-700 hover:bg-saffron-50 transition-colors cursor-pointer">
                                                 <span x-show="!equipping"><i class="fa-solid fa-shield-halved mr-0.5"></i>Équiper</span>
                                                 <span x-show="equipping" x-cloak><i class="fa-solid fa-spinner fa-spin mr-0.5"></i>…</span>

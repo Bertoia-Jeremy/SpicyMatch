@@ -8,6 +8,7 @@ use App\Entity\Users;
 use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use App\Service\Education\AcademyManager;
+use App\Service\Education\DifficultyRuleApplier;
 use App\Service\Education\GameSessionManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -75,6 +76,21 @@ class HangmanGame extends AbstractController
     public int $startedAt = 0;
 
     /**
+     * Server-side expiration timestamp (anti-cheat).
+     */
+    #[LiveProp]
+    public int $expiresAt = 0;
+
+    /**
+     * Time limit in seconds for display.
+     */
+    #[LiveProp]
+    public int $timeLimit = 60;
+
+    #[LiveProp]
+    public bool $isTimedOut = false;
+
+    /**
      * @var int[]
      */
     #[LiveProp]
@@ -83,6 +99,7 @@ class HangmanGame extends AbstractController
     public function __construct(
         private readonly AcademyManager $academyManager,
         private readonly GameSessionManager $sessionManager,
+        private readonly DifficultyRuleApplier $difficultyRuleApplier,
         private readonly RequestStack $requestStack,
     ) {
     }
@@ -95,8 +112,25 @@ class HangmanGame extends AbstractController
 
         $gameDifficulty = GameDifficulty::from($this->difficulty);
         $this->maxErrors = $this->academyManager->getHangmanMaxErrors($gameDifficulty);
+        $this->timeLimit = $this->difficultyRuleApplier->hangmanTimeLimitSeconds($gameDifficulty);
+        $this->expiresAt = time() + $this->timeLimit;
+
+        // Server-side authoritative expiresAt: the LiveProp is mirrored but NEVER trusted on server.
+        $this->requestStack->getSession()
+            ->set('game_' . $this->gameToken, [
+                'expiresAt' => $this->expiresAt,
+                'correctCount' => 0,
+                'completedWords' => [],
+            ]);
 
         $this->generateWord();
+    }
+
+    #[LiveAction]
+    public function timeout(): void
+    {
+        $this->isTimedOut = true;
+        $this->isFinished = true;
     }
 
     #[LiveAction]
@@ -106,17 +140,34 @@ class HangmanGame extends AbstractController
             return;
         }
 
-        $normalized = $this->academyManager->normalizeChar($letter);
+        $session = $this->requestStack->getSession();
+        $secretKey = 'game_' . $this->gameToken;
+        $secret = $session->get($secretKey, []);
 
-        if (in_array($normalized, $this->guessedLetters, true)) {
+        // Server-side timer validation — expiresAt is read from session, NOT LiveProp.
+        $serverExpiresAt = $secret['expiresAt'] ?? 0;
+        if ($serverExpiresAt > 0 && time() > $serverExpiresAt) {
+            $this->isTimedOut = true;
+            $this->isFinished = true;
+
             return;
         }
 
+        $normalized = $this->academyManager->normalizeChar($letter);
+
+        // Session-side dedup guard (source of truth — LiveProp is tamperable via replay).
+        $serverGuessed = $secret['guessedLetters'] ?? [];
+
+        if (\in_array($normalized, $serverGuessed, true)) {
+            return;
+        }
+
+        $serverGuessed[] = $normalized;
+        $secret['guessedLetters'] = $serverGuessed;
+        $session->set($secretKey, $secret);
+
         $this->guessedLetters[] = $normalized;
 
-        // Get the actual word from session
-        $session = $this->requestStack->getSession();
-        $secret = $session->get('game_' . $this->gameToken, []);
         $word = $secret['word'] ?? '';
 
         if ($word === '') {
@@ -135,9 +186,17 @@ class HangmanGame extends AbstractController
         // Check win: no underscores left
         if (! str_contains($this->maskedWord, '_')) {
             $this->wordSolved = true;
-            ++$this->correctCount;
             $this->revealedWord = $word;
             $this->showFeedback = true;
+
+            $completed = $secret['completedWords'] ?? [];
+            if (! \in_array($this->questionNumber, $completed, true)) {
+                $completed[] = $this->questionNumber;
+                $secret['completedWords'] = $completed;
+                $secret['correctCount'] = \count($completed);
+                $session->set($secretKey, $secret);
+                ++$this->correctCount;
+            }
         }
 
         // Check lose
@@ -164,6 +223,14 @@ class HangmanGame extends AbstractController
             return;
         }
 
+        // Reset timer for the new word — authoritative value stored in session.
+        $this->expiresAt = time() + $this->timeLimit;
+        $session = $this->requestStack->getSession();
+        $secretKey = 'game_' . $this->gameToken;
+        $secret = $session->get($secretKey, []);
+        $secret['expiresAt'] = $this->expiresAt;
+        $session->set($secretKey, $secret);
+
         $this->generateWord();
     }
 
@@ -173,14 +240,21 @@ class HangmanGame extends AbstractController
         /** @var Users $user */
         $user = $this->getUser();
 
+        // Authoritative counts from session, never LiveProps.
+        $session = $this->requestStack->getSession();
+        $secret = $session->get('game_' . $this->gameToken, []);
+        $serverCorrect = (int) ($secret['correctCount'] ?? 0);
+        $completed = $secret['completedWords'] ?? [];
+        $totalWords = max(\count($completed), 1);
+
         $durationSeconds = time() - $this->startedAt;
 
         $gameSession = $this->sessionManager->createFinishedSession(
             $user,
             GameMode::HANGMAN,
             GameDifficulty::from($this->difficulty),
-            $this->correctCount,
-            $this->questionNumber,
+            $serverCorrect,
+            $totalWords,
             $durationSeconds,
         );
 
@@ -221,10 +295,11 @@ class HangmanGame extends AbstractController
         $this->guessedLetters = [];
         $this->maskedWord = $this->academyManager->buildMask($word, $this->guessedLetters);
 
-        // Store secret in session
+        // Store secret in session — reset guessedLetters on new word.
         $this->requestStack->getSession()
             ->set('game_' . $this->gameToken, [
                 'word' => $word,
+                'guessedLetters' => [],
             ]);
     }
 }

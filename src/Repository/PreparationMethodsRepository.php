@@ -8,11 +8,6 @@ use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<PreparationMethods>
- *
- * @method PreparationMethods|null find($id, $lockMode = null, $lockVersion = null)
- * @method PreparationMethods|null findOneBy(array $criteria, array $orderBy = null)
- * @method PreparationMethods[]    findAll()
- * @method PreparationMethods[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class PreparationMethodsRepository extends ServiceEntityRepository
 {

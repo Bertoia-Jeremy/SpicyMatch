@@ -6,6 +6,7 @@ namespace App\Service\Education;
 
 use App\Entity\GameQuestion;
 use App\Entity\GameSession;
+use App\Entity\Spices;
 use App\Entity\Users;
 use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
@@ -30,8 +31,12 @@ class GameSessionManager
     ) {
     }
 
-    public function startSession(Users $user, GameMode $mode, GameDifficulty $difficulty): GameSession
-    {
+    public function startSession(
+        Users $user,
+        GameMode $mode,
+        GameDifficulty $difficulty,
+        ?Spices $targetSpice = null,
+    ): GameSession {
         $todayCount = $this->sessionRepository->countTodayByUser($user, $mode);
         if ($todayCount >= self::MAX_DAILY_SESSIONS) {
             throw new \RuntimeException(sprintf(
@@ -45,6 +50,10 @@ class GameSessionManager
         $session->setUser($user);
         $session->setGameMode($mode);
         $session->setDifficulty($difficulty);
+
+        if ($targetSpice !== null) {
+            $session->setTargetSpice($targetSpice);
+        }
 
         $this->em->persist($session);
         $this->em->flush();
@@ -157,12 +166,26 @@ class GameSessionManager
         int $correctAnswers,
         int $totalQuestions,
         ?int $durationSeconds = null,
+        ?Spices $targetSpice = null,
     ): GameSession {
+        $todayCount = $this->sessionRepository->countTodayByUser($user, $mode);
+        if ($todayCount >= self::MAX_DAILY_SESSIONS) {
+            throw new \RuntimeException(sprintf(
+                'Limite quotidienne atteinte (%d sessions %s par jour).',
+                self::MAX_DAILY_SESSIONS,
+                $mode->label(),
+            ));
+        }
+
         $session = new GameSession();
         $session->setUser($user);
         $session->setGameMode($mode);
         $session->setDifficulty($difficulty);
         $session->setTotalQuestions($totalQuestions);
+
+        if ($targetSpice !== null) {
+            $session->setTargetSpice($targetSpice);
+        }
 
         for ($i = 0; $i < $correctAnswers; ++$i) {
             $session->incrementCorrectAnswers();

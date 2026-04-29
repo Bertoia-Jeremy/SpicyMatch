@@ -47,6 +47,7 @@ class AcademyCacheInvalidator
 
         if ($entity->getId() !== null) {
             $this->cache->delete('academy.intruders.' . $entity->getId());
+            $this->cache->delete('academy.intruders.strict.' . $entity->getId());
         }
     }
 }

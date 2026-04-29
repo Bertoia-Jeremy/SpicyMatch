@@ -12,15 +12,36 @@ use App\Entity\UserStat;
 use App\Enum\AchievementRarity;
 use App\Enum\AchievementTrigger;
 use App\Gamification\AchievementChecker;
+use App\Gamification\Evaluator\AllPreparationMethodsReadEvaluator;
+use App\Gamification\Evaluator\AllTerpenesVisitedEvaluator;
+use App\Gamification\Evaluator\EasterEggFoundEvaluator;
+use App\Gamification\Evaluator\FirstDiscoveryEvaluator;
+use App\Gamification\Evaluator\FirstGameEvaluator;
+use App\Gamification\Evaluator\FirstMatchEvaluator;
+use App\Gamification\Evaluator\GamePerfectRunEvaluator;
+use App\Gamification\Evaluator\GameScoreThresholdEvaluator;
+use App\Gamification\Evaluator\GroupMasteryReadEvaluator;
+use App\Gamification\Evaluator\NFavoritesEvaluator;
+use App\Gamification\Evaluator\NGamesCompletedEvaluator;
+use App\Gamification\Evaluator\NMatchesEvaluator;
+use App\Gamification\Evaluator\NSpicesUsedEvaluator;
+use App\Gamification\Evaluator\NUniqueSpicesUsedInGamesEvaluator;
+use App\Gamification\Evaluator\ReadingStreakEvaluator;
+use App\Gamification\Evaluator\SpiceReadEvaluator;
+use App\Gamification\Evaluator\TriggerEvaluatorRegistry;
 use App\Gamification\XpStrategyInterface;
 use App\Repository\AchievementProgressRepository;
 use App\Repository\AchievementRepository;
 use App\Repository\AromaticGroupsRepository;
+use App\Repository\GameSessionRepository;
+use App\Repository\PreparationMethodsRepository;
+use App\Repository\SpiceViewRepository;
 use App\Service\GamificationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 /**
  * AchievementChecker is final — we use a real instance backed by a mocked
@@ -166,7 +187,7 @@ final class GamificationManagerTest extends TestCase
             ->process($this->progression, 'match_saved');
     }
 
-    public function testNoPersistWhenNoAchievementsUnlockedAndNoLevelUp(): void
+    public function testPersistsOnlyXpToastWhenNoAchievementNoLevelUp(): void
     {
         $this->achievementRepo->method('findByTrigger')
             ->willReturn([]);
@@ -174,9 +195,19 @@ final class GamificationManagerTest extends TestCase
         // 5 XP — not enough to leave level 1 (needs 40)
         $strategy = $this->stubStrategy('match_saved', 5);
 
-        $this->em->expects(self::never())->method('persist');
+        $persisted = [];
+        $this->em->method('persist')
+            ->willReturnCallback(function (object $obj) use (&$persisted): void {
+                $persisted[] = $obj;
+            });
 
         $this->makeEngine([$strategy])->process($this->progression, 'match_saved');
+
+        $notifs = array_filter($persisted, fn ($n) => $n instanceof PendingGamificationNotification);
+        self::assertCount(1, $notifs);
+        $notif = array_values($notifs)[0];
+        self::assertSame('xp_gained', $notif->getType());
+        self::assertSame(5, $notif->getPayload()['amount']);
     }
 
     // ── Level-up notification ─────────────────────────────────────────────────
@@ -205,12 +236,22 @@ final class GamificationManagerTest extends TestCase
         $this->achievementRepo->method('findByTrigger')
             ->willReturn([]);
 
-        // 5 XP — level stays at 1
+        // 5 XP — level stays at 1 (still persists an xp_gained toast, but no level_up)
         $strategy = $this->stubStrategy('match_saved', 5);
 
-        $this->em->expects(self::never())->method('persist');
+        $persisted = [];
+        $this->em->method('persist')
+            ->willReturnCallback(function (object $obj) use (&$persisted): void {
+                $persisted[] = $obj;
+            });
 
         $this->makeEngine([$strategy])->process($this->progression, 'match_saved');
+
+        $levelUps = array_filter(
+            $persisted,
+            fn ($n) => $n instanceof PendingGamificationNotification && $n->getType() === 'level_up',
+        );
+        self::assertCount(0, $levelUps);
     }
 
     // ── Context forwarding ────────────────────────────────────────────────────
@@ -304,8 +345,13 @@ final class GamificationManagerTest extends TestCase
         $this->setProgressionField('totalMatches', 7);
 
         $progress = new \App\Entity\AchievementProgress();
-        $this->achievementProgressRepo->method('findOrCreateForUser')
-            ->willReturn($progress);
+        $progress->setAchievement($achievement);
+        // Achievement id 99 — matched against `findOrCreateBatchForUser` keyed by achievement id.
+        (new \ReflectionProperty(Achievement::class, 'id'))->setValue($achievement, 99);
+        $this->achievementProgressRepo->method('findOrCreateBatchForUser')
+            ->willReturn([
+                99 => $progress,
+            ]);
 
         $this->makeEngine()
             ->process($this->progression, 'match_saved');
@@ -371,10 +417,41 @@ final class GamificationManagerTest extends TestCase
 
     private function makeEngine(array $strategies = []): GamificationManager
     {
-        return new GamificationManager($strategies, new AchievementChecker(
+        $spiceViewRepo = $this->createStub(SpiceViewRepository::class);
+        $gameSessionRepo = $this->createStub(GameSessionRepository::class);
+        $prepMethodsRepo = $this->createStub(PreparationMethodsRepository::class);
+
+        $evaluators = [
+            new FirstMatchEvaluator(),
+            new NMatchesEvaluator(),
+            new NSpicesUsedEvaluator(),
+            new NFavoritesEvaluator(),
+            new SpiceReadEvaluator(),
+            new ReadingStreakEvaluator(),
+            new FirstDiscoveryEvaluator(),
+            new FirstGameEvaluator(),
+            new NGamesCompletedEvaluator(),
+            new EasterEggFoundEvaluator(),
+            new AllTerpenesVisitedEvaluator($this->aromaticGroupsRepo),
+            new GameScoreThresholdEvaluator($gameSessionRepo),
+            new GamePerfectRunEvaluator($gameSessionRepo),
+            new GroupMasteryReadEvaluator($spiceViewRepo),
+            new NUniqueSpicesUsedInGamesEvaluator($gameSessionRepo),
+            new AllPreparationMethodsReadEvaluator($prepMethodsRepo, $spiceViewRepo),
+        ];
+        $registry = new TriggerEvaluatorRegistry($evaluators);
+
+        $checker = new AchievementChecker($this->achievementRepo, $registry);
+
+        return new GamificationManager(
+            $strategies,
+            $checker,
+            $this->em,
             $this->achievementRepo,
-            $this->aromaticGroupsRepo
-        ), $this->em, $this->achievementRepo, $this->achievementProgressRepo);
+            $this->achievementProgressRepo,
+            $registry,
+            new NullLogger(),
+        );
     }
 
     private function stubStrategy(string $eventType, int $xp): XpStrategyInterface&MockObject

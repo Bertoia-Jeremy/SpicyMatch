@@ -5,51 +5,99 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Users;
+use App\Entity\UserStat;
 use App\Message\EasterEggFoundEvent;
 use App\Repository\SpicesRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 class EasterEggService
 {
+    /**
+     * Whitelist of known egg slugs — any other slug is rejected.
+     */
+    private const array KNOWN_SLUGS = [
+        'grain_de_sel',
+        'perdu_dans_le_souk',
+        'alchimiste_de_l_ombre',
+        'temps_de_l_infusion',
+        'equilibre_des_contraires',
+        'secret_du_curry',
+        'le_poids_de_l_or',
+        'la_recette_perdue',
+    ];
+
     public function __construct(
         private readonly MessageBusInterface $bus,
         private readonly SpicesRepository $spicesRepository,
         private readonly EntityManagerInterface $em,
+        private readonly RequestStack $requestStack,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     public function handleEgg(Users $user, string $slug, array $payload = []): bool
     {
-        // 1. Check if valid egg slug (we can validate against Enum or a list)
-        // For now, accept all known slugs.
+        // 1. Whitelist check
+        if (! \in_array($slug, self::KNOWN_SLUGS, true)) {
+            $this->logger->warning('easter_egg.unknown_slug', [
+                'userId' => $user->getId(),
+                'slug' => $slug,
+            ]);
 
-        // 2. Validate conditions (server-side checks)
-        if (! $this->validateCondition($user, $slug, $payload)) {
             return false;
         }
 
-        // 3. Dispatch event
+        // 2. Idempotence — already found → silent success, no dispatch, no double-count.
+        $stats = $user->getStats();
+        if ($stats instanceof UserStat && $stats->hasFoundEgg($slug)) {
+            return true;
+        }
+
+        // 3. Server-side validation
+        if (! $this->validateCondition($user, $slug, $payload)) {
+            $this->logger->info('easter_egg.validation_failed', [
+                'userId' => $user->getId(),
+                'slug' => $slug,
+            ]);
+
+            return false;
+        }
+
+        // 4. Dispatch event
         $this->bus->dispatch(new EasterEggFoundEvent($user->getId(), $slug));
 
-        // 4. Update stats (optional, could be done by handler)
-        $stats = $user->getStats();
-        if ($stats) {
+        // 5. Record + increment counter (idempotent thanks to recordFoundEgg guard)
+        if ($stats instanceof UserStat) {
+            $stats->recordFoundEgg($slug);
             $stats->incrementEasterEggsFound();
             $this->em->persist($stats);
             $this->em->flush();
         }
 
+        $this->logger->info('easter_egg.found', [
+            'userId' => $user->getId(),
+            'slug' => $slug,
+        ]);
+
         return true;
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     private function validateCondition(Users $user, string $slug, array $payload): bool
     {
         return match ($slug) {
             'grain_de_sel' => true, // Purely interaction-based
             'perdu_dans_le_souk' => true, // 404 page interaction
-            'alchimiste_de_l_ombre' => ($payload['count'] ?? 0) >= 5, // 5 toggles
-            'temps_de_l_infusion' => ($payload['duration'] ?? 0) >= 260, // ~4min20
+            'alchimiste_de_l_ombre' => $this->validateAlchimisteCount(),
+            'temps_de_l_infusion' => $this->validateTempsInfusion(),
             'equilibre_des_contraires' => $this->validateEquilibre($user, $payload),
             'secret_du_curry' => $this->validateSecretDuCurry($user),
             'le_poids_de_l_or' => $this->validateLePoidsDeLOr($user, $payload),
@@ -58,6 +106,36 @@ class EasterEggService
         };
     }
 
+    /**
+     * Count stored server-side in session (incremented by the toggle endpoint),
+     * so the client cannot forge `{"count": 999}`.
+     */
+    private function validateAlchimisteCount(): bool
+    {
+        $session = $this->requestStack->getSession();
+        $count = (int) $session->get('easter_egg.alchimiste_count', 0);
+
+        return $count >= 5;
+    }
+
+    /**
+     * Duration computed from a server-issued timestamp in the session
+     * (set when the user opens the target page), not from the client payload.
+     */
+    private function validateTempsInfusion(): bool
+    {
+        $session = $this->requestStack->getSession();
+        $startedAt = $session->get('easter_egg.infusion_started_at');
+        if (! \is_int($startedAt)) {
+            return false;
+        }
+
+        return (time() - $startedAt) >= 260;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
     private function validateLePoidsDeLOr(Users $user, array $payload): bool
     {
         $spiceId = $payload['spiceId'] ?? null;
@@ -70,6 +148,9 @@ class EasterEggService
         return $spice?->getSlug() === 'poivre_noir';
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     private function validateLaRecettePerdue(array $payload): bool
     {
         $keywords = $payload['keywords'] ?? [];
@@ -105,6 +186,9 @@ class EasterEggService
         return $recent === array_values($ids);
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     private function validateEquilibre(Users $user, array $payload): bool
     {
         // Payload should contain the two spice IDs being compared

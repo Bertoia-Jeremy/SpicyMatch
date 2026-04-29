@@ -122,16 +122,28 @@ class GuessWhoGame extends AbstractController
         }
 
         $session = $this->requestStack->getSession();
-        $secret = $session->get('game_' . $this->gameToken, []);
+        $secretKey = 'game_' . $this->gameToken;
+        $secret = $session->get($secretKey, []);
         $correctName = $secret['correctName'] ?? '';
+        $currentStep = $secret['currentStep'] ?? null;
+        $answeredSteps = $secret['answeredSteps'] ?? [];
+
+        // Replay guard
+        if ($currentStep === null || \in_array($currentStep, $answeredSteps, true)) {
+            return;
+        }
+
+        $answeredSteps[] = $currentStep;
 
         $isCorrect = $spiceName === $correctName;
+        $correctSteps = $secret['correctSteps'] ?? [];
+        $serverScore = $secret['totalScore'] ?? 0;
 
         // Scoring: 1 clue = 10, 2 = 8, 3 = 6, 4 = 4, 5+ = 2, wrong = 0
         $points = 0;
 
         if ($isCorrect) {
-            ++$this->correctCount;
+            $correctSteps[] = $currentStep;
             $cluesUsed = count($this->revealedClues);
             $points = match (true) {
                 $cluesUsed <= 1 => 10,
@@ -140,8 +152,15 @@ class GuessWhoGame extends AbstractController
                 $cluesUsed === 4 => 4,
                 default => 2,
             };
+            $serverScore += $points;
+            ++$this->correctCount;
             $this->totalScore += $points;
         }
+
+        $secret['answeredSteps'] = $answeredSteps;
+        $secret['correctSteps'] = $correctSteps;
+        $secret['totalScore'] = $serverScore;
+        $session->set($secretKey, $secret);
 
         $this->lastAnswerCorrect = $isCorrect;
         $this->lastPointsEarned = $points;
@@ -172,14 +191,20 @@ class GuessWhoGame extends AbstractController
         /** @var Users $user */
         $user = $this->getUser();
 
+        // Authoritative counts come from session, never from LiveProps.
+        $session = $this->requestStack->getSession();
+        $secret = $session->get('game_' . $this->gameToken, []);
+        $answeredSteps = $secret['answeredSteps'] ?? [];
+        $correctSteps = $secret['correctSteps'] ?? [];
+
         $durationSeconds = time() - $this->startedAt;
 
         $gameSession = $this->sessionManager->createFinishedSession(
             $user,
             GameMode::GUESS_WHO,
             GameDifficulty::from($this->difficulty),
-            $this->correctCount,
-            $this->totalQuestions,
+            \count($correctSteps),
+            max(\count($answeredSteps), 1),
             $durationSeconds,
         );
 
@@ -230,10 +255,14 @@ class GuessWhoGame extends AbstractController
         $optionsCount = $this->academyManager->getGuessWhoOptionsCount($gameDifficulty);
         $this->guessOptions = $this->academyManager->generateNameOptions($card['name'], $optionsCount);
 
-        // Store correct answer in session
-        $this->requestStack->getSession()
-            ->set('game_' . $this->gameToken, [
-                'correctName' => $card['name'],
-            ]);
+        // Store correct answer + step nonce in session
+        $session = $this->requestStack->getSession();
+        $key = 'game_' . $this->gameToken;
+        $previous = $session->get($key, []);
+        $session->set($key, [
+            'correctName' => $card['name'],
+            'currentStep' => $this->questionNumber,
+            'answeredSteps' => $previous['answeredSteps'] ?? [],
+        ]);
     }
 }

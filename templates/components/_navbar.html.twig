@@ -1,6 +1,7 @@
 {% import 'macros/buttons.html.twig' as buttons %}
 
-<nav x-data="{ open: false }" class="sticky top-0 z-50 bg-cream/80 backdrop-blur-md border-b border-saffron-700/10">
+<nav x-data="mobileMenu"
+     class="sticky top-0 z-50 bg-cream/80 backdrop-blur-md border-b border-saffron-700/10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-20">
 
@@ -32,14 +33,14 @@
                 </a>
 
                 {# Dropdown L'Académie #}
-                <div x-data="{ dropdownOpen: false }" class="relative">
+                <div x-data="dropdown" @keydown.escape="dropdownOpen = false" class="relative">
                     <button @click="dropdownOpen = !dropdownOpen"
                             :aria-expanded="dropdownOpen"
                             aria-haspopup="true"
                             class="flex items-center gap-1 text-sm font-medium text-stone-700 hover:text-saffron-700 transition-colors">
                         L'Académie
                         <svg class="w-3.5 h-3.5 transition-transform duration-200"
-                             :class="dropdownOpen ? 'rotate-180' : ''"
+                             :class="chevronClass()"
                              fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
@@ -94,14 +95,14 @@
                 </div>
 
                 {# Dropdown Épices #}
-                <div x-data="{ dropdownOpen: false }" class="relative">
+                <div x-data="dropdown" @keydown.escape="dropdownOpen = false" class="relative">
                     <button @click="dropdownOpen = !dropdownOpen"
                             :aria-expanded="dropdownOpen"
                             aria-haspopup="true"
                             class="flex items-center gap-1 text-sm font-medium text-stone-700 hover:text-saffron-700 transition-colors">
                         Épices
                         <svg class="w-3.5 h-3.5 transition-transform duration-200"
-                             :class="dropdownOpen ? 'rotate-180' : ''"
+                             :class="chevronClass()"
                              fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
@@ -162,20 +163,30 @@
 
                 {% if is_granted("ROLE_USER") %}
                     {% set navLevel = app.user.progression ? app.user.progression.level : null %}
-                    <div x-data="{ dropdownOpen: false }" class="relative">
+                    {% set navStreak = app.user.progression ? app.user.progression.currentReadingStreak : 0 %}
+                    <div x-data="dropdown" @keydown.escape="dropdownOpen = false" class="relative">
                         <button @click="dropdownOpen = !dropdownOpen"
                                 class="flex items-center gap-2 bg-spice-surface border border-spice-border text-stone-700
                                        hover:border-saffron-600/40 hover:text-saffron-700 rounded-full px-3 py-1.5
                                        text-sm font-medium transition-all">
-                            {% include 'components/_avatar.html.twig' with { slug: app.user.avatar, sizeClass: 'w-7 h-7 text-sm', equippedBadge: app.user.progression ? app.user.progression.equippedBadge : null } %}
+                            {% include 'components/_avatar.html.twig' with { sizeClass: 'w-7 h-7 text-sm', equippedBadge: app.user.progression ? app.user.progression.equippedBadge : null } %}
                             {{ app.user.username|capitalize }}
                             {% if navLevel %}
                                 <span class="px-1.5 py-0.5 text-xs font-bold bg-turmeric-400 text-stone-900 rounded-full leading-none">
                                     {{ navLevel }}
                                 </span>
                             {% endif %}
+                            {% if navStreak > 0 %}
+                                <span class="flex items-center gap-0.5 text-xs font-bold leading-none
+                                             {{ navStreak >= 7 ? 'text-paprika-700' : 'text-saffron-600' }}"
+                                      title="Streak de lecture : {{ navStreak }} jour{{ navStreak > 1 ? 's' : '' }} consécutif{{ navStreak > 1 ? 's' : '' }}"
+                                      aria-label="Streak de lecture : {{ navStreak }} jour{{ navStreak > 1 ? 's' : '' }} consécutif{{ navStreak > 1 ? 's' : '' }}"
+                                      role="img">
+                                    <span aria-hidden="true">🔥</span>{{ navStreak }}j
+                                </span>
+                            {% endif %}
                             <svg class="w-3 h-3 text-stone-400 transition-transform duration-200"
-                                 :class="dropdownOpen ? 'rotate-180' : ''"
+                                 :class="chevronClass()"
                                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
@@ -230,16 +241,16 @@
 
             {# ── Burger mobile ── #}
             <button @click="open = !open"
-                    class="md:hidden relative w-10 h-10 flex flex-col items-center justify-center gap-[5px] rounded-xl
+                    class="md:hidden relative w-10 h-10 flex flex-col items-center justify-center gap-1.25 rounded-xl
                            text-stone-700 hover:bg-spice-surface hover:text-saffron-700
                            focus:outline-none transition-colors"
                     :aria-expanded="open" aria-label="Menu">
                 <span class="block w-5 h-0.5 bg-current rounded-full transition-all duration-300 origin-center"
-                      :class="open ? 'rotate-45 translate-y-[7px]' : ''"></span>
+                      :class="barTopClass()"></span>
                 <span class="block w-5 h-0.5 bg-current rounded-full transition-all duration-300"
-                      :class="open ? 'opacity-0 scale-x-0' : ''"></span>
+                      :class="barMiddleClass()"></span>
                 <span class="block w-5 h-0.5 bg-current rounded-full transition-all duration-300 origin-center"
-                      :class="open ? '-rotate-45 -translate-y-[7px]' : ''"></span>
+                      :class="barBottomClass()"></span>
             </button>
         </div>
     </div>
@@ -288,11 +299,11 @@
         </div>
 
         {# Corps scrollable #}
-        <div class="flex-1 overflow-y-auto py-4">
+        <div class="drawer-body flex-1 overflow-y-auto py-4">
 
             {# Navigation principale #}
             <div class="px-3 mb-2">
-                <p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">Navigation</p>
+                <p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">Navigation</p>
                 <a href="{{ path('home') }}" @click="open = false"
                    class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-stone-700
                           hover:bg-spice-surface hover:text-saffron-700 transition-colors">
@@ -331,7 +342,7 @@
 
             {# Section Épices #}
             <div class="px-3 mb-2">
-                <p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">Explorer les épices</p>
+                <p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">Explorer les épices</p>
                 <a href="{{ path('index_aromatic_compound') }}" @click="open = false"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
                           hover:bg-spice-surface hover:text-saffron-700 transition-colors">
@@ -362,7 +373,7 @@
 
             {# Section L'Académie #}
             <div class="px-3 mb-2">
-                <p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">L'Académie</p>
+                <p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">L'Académie</p>
                 <a href="{{ path('education_index', { mode: 'qcm' }) }}" @click="open = false"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
                           hover:bg-spice-surface hover:text-saffron-700 transition-colors">
@@ -412,15 +423,23 @@
             {# Section utilisateur #}
             {% if is_granted("ROLE_USER") %}
                 {% set navLevel = app.user.progression ? app.user.progression.level : null %}
+                {% set navStreak = app.user.progression ? app.user.progression.currentReadingStreak : 0 %}
                 <div class="px-3">
                     {# Identity strip #}
                     <div class="flex items-center gap-3 px-3 py-3 mb-1 bg-spice-surface rounded-xl border border-spice-border">
-                        {% include 'components/_avatar.html.twig' with { slug: app.user.avatar, sizeClass: 'w-9 h-9 text-base shrink-0', equippedBadge: app.user.progression ? app.user.progression.equippedBadge : null } %}
+                        {% include 'components/_avatar.html.twig' with {sizeClass: 'w-9 h-9 text-base shrink-0', equippedBadge: app.user.progression ? app.user.progression.equippedBadge : null } %}
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-semibold text-stone-800 truncate">{{ app.user.username|capitalize }}</p>
-                            {% if navLevel %}
-                                <p class="text-xs text-stone-500">Niveau {{ navLevel }}</p>
-                            {% endif %}
+                            <p class="text-xs text-stone-500 flex items-center gap-2">
+                                {% if navLevel %}Niveau {{ navLevel }}{% endif %}
+                                {% if navStreak > 0 %}
+                                    <span class="{{ navStreak >= 7 ? 'text-paprika-600' : 'text-saffron-600' }} font-semibold"
+                                          aria-label="Streak de lecture : {{ navStreak }} jour{{ navStreak > 1 ? 's' : '' }} consécutif{{ navStreak > 1 ? 's' : '' }}"
+                                          role="img">
+                                        <span aria-hidden="true">🔥</span> {{ navStreak }}j
+                                    </span>
+                                {% endif %}
+                            </p>
                         </div>
                         {% if navLevel %}
                             <span class="px-2 py-0.5 text-xs font-bold bg-turmeric-400 text-stone-900 rounded-full shrink-0">

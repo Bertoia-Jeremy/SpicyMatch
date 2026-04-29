@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Easter Eggs · Aide{% endblock %}
+
+{% block body %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <nav class="text-sm text-stone-500 mb-4">
+        <a href="{{ path('help_index') }}" class="hover:text-saffron-600">← Centre d'aide</a>
+    </nav>
+
+    <h1 class="text-3xl font-bold text-stone-800 mb-6">Easter Eggs</h1>
+
+    <section class="prose prose-stone max-w-none">
+        <p>
+            Certaines actions inhabituelles sur le site déclenchent des <strong>easter eggs</strong> —
+            des découvertes cachées qui te font gagner 75 XP et débloquent parfois un succès dédié.
+        </p>
+
+        <h2>Ce qu'il faut savoir (sans spoiler)</h2>
+        <ul>
+            <li>
+                <strong>Nombre</strong> : 8 easter eggs au total, disséminés dans l'interface.
+                Certains sont rapides à trouver, d'autres demandent de la patience ou une combinaison d'actions.
+            </li>
+            <li>
+                <strong>Unicité</strong> : chaque easter egg se déclenche une seule fois par compte.
+                Impossible de farmer les +75 XP en rejouant la même action.
+            </li>
+            <li>
+                <strong>Sans preuve</strong> : on ne liste pas les easter eggs — c'est le sel du jeu.
+                Tu peux voir lesquels tu as trouvés dans ton profil après les avoir débloqués.
+            </li>
+        </ul>
+
+        <h2>Quelques pistes</h2>
+        <ul>
+            <li>Explore les recoins inhabituels du site (erreurs, pages secondaires, paramètres).</li>
+            <li>Reste longtemps sur certaines pages — le temps passé compte parfois.</li>
+            <li>Observe les interactions répétitives — plusieurs clics au même endroit peuvent cacher un trigger.</li>
+            <li>Certains easter eggs demandent une séquence précise d'épices visitées.</li>
+            <li>Une recette légendaire en 4 ingrédients est cachée quelque part…</li>
+        </ul>
+
+        <p class="text-sm text-stone-500 italic mt-8">
+            Les easter eggs sont un clin d'œil, pas un examen — prends-les comme une chasse au trésor,
+            pas comme une checklist.
+        </p>
+    </section>
+</div>
+{% endblock %}

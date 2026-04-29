@@ -29,6 +29,9 @@ class Search
         $this->query = '';
     }
 
+    /**
+     * @return list<array{id: int, name: string, type: string}>
+     */
     public function getResults(): array
     {
         if ($this->query === '' || strlen($this->query) < 2) {

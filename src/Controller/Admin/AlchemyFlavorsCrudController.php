@@ -11,6 +11,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
+/**
+ * @extends AbstractCrudController<AlchemyFlavors>
+ */
 class AlchemyFlavorsCrudController extends AbstractCrudController
 {
     public static function getEntityFqcn(): string

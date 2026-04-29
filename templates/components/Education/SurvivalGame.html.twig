@@ -1,51 +1,33 @@
+{% import 'components/Education/_game_header.html.twig' as game_header %}
+{% import 'components/Education/_option_card.html.twig' as option_card %}
 <div {{ attributes }}>
-  {# Header: chain length + status #}
-  <div class="flex items-center justify-between mb-6">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600">
-        <i class="fa-solid fa-pepper-hot"></i>
-      </div>
-      <div>
-        <h2 class="text-lg font-bold text-stone-800">Défi de Scoville</h2>
-        <p class="text-xs text-stone-500">Enchaîne les épices compatibles sans erreur</p>
-      </div>
-    </div>
-    {% if this.isStarted %}
-      <div class="flex items-center gap-3 text-sm">
-        <span class="font-semibold text-saffron-600">
-          <i class="fa-solid fa-link text-xs mr-1"></i>{{ this.chainLength }}
-        </span>
-      </div>
-    {% endif %}
-  </div>
+  {{ game_header.header(
+      icon = 'fa-solid fa-pepper-hot',
+      title = 'Défi de Scoville',
+      subtitle = 'Enchaîne les épices compatibles sans erreur',
+      scoreLabel = this.isStarted ? '<i class="fa-solid fa-link text-xs mr-1"></i>' ~ this.chainLength : null,
+  ) }}
 
   {% if this.isGameOver or this.isVictory %}
-    {# Game over / Victory screen #}
-    <div class="text-center py-12">
-      <div class="w-24 h-24 mx-auto mb-6 rounded-full border-8 flex items-center justify-center
-        {{ this.isVictory ? 'border-green-400 text-green-700' : (this.chainLength >= 10 ? 'border-turmeric-400 text-turmeric-700' : 'border-red-400 text-red-700') }}">
-        <div class="text-2xl font-bold">{{ this.chainLength }}</div>
-      </div>
-
-      {% if this.isVictory %}
-        <h3 class="text-xl font-bold text-green-700 mb-2">Victoire totale !</h3>
-        <p class="text-stone-600 mb-6">Tu as épuisé toutes les compatibilités possibles !</p>
-      {% else %}
-        <h3 class="text-xl font-bold text-stone-800 mb-2">Game Over</h3>
-        <p class="text-stone-600 mb-2">
-          <strong>{{ this.lastPickedName }}</strong> n'est pas compatible avec <strong>{{ this.currentSpiceName }}</strong>.
-        </p>
-        <p class="text-stone-600 mb-6">
-          Chaîne de {{ this.chainLength }} épice{{ this.chainLength > 1 ? 's' : '' }}.
-        </p>
-      {% endif %}
-
-      <button data-action="live#action"
-              data-live-action-param="finish"
-              class="btn-pill-primary">
-        <i class="fa-solid fa-flag-checkered mr-2"></i>Voir les résultats
-      </button>
-    </div>
+    {% if this.isVictory %}
+      {{ game_header.game_over_summary(
+          circleLabel = this.chainLength,
+          title = 'Victoire totale !',
+          paragraphHtml = 'Tu as épuisé toutes les compatibilités possibles !',
+          buttonLabel = 'Voir les résultats',
+          buttonAction = 'finish',
+          variant = 'success',
+      ) }}
+    {% else %}
+      {{ game_header.game_over_summary(
+          circleLabel = this.chainLength,
+          title = 'Game Over',
+          paragraphHtml = '<strong>' ~ this.lastPickedName ~ '</strong> n\'est pas compatible avec <strong>' ~ this.currentSpiceName ~ '</strong>.<br>Chaîne de ' ~ this.chainLength ~ ' épice' ~ (this.chainLength > 1 ? 's' : '') ~ '.',
+          buttonLabel = 'Voir les résultats',
+          buttonAction = 'finish',
+          variant = this.chainLength >= 10 ? 'success' : 'failure',
+      ) }}
+    {% endif %}
 
   {% elseif not this.isStarted %}
     {# Starting spice selection #}
@@ -54,36 +36,9 @@
       <p class="text-sm text-stone-500">Sélectionne l'épice avec laquelle tu veux commencer ta chaîne.</p>
     </div>
 
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" x-data="{ submitting: false }">
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" x-data="submitOnceGrid">
       {% for spice in this.startingSpices %}
-        <button type="button"
-                data-action="live#action"
-                data-live-action-param="start"
-                data-live-spice-id-param="{{ spice.id }}"
-                @click="if (!submitting) { submitting = true }"
-                :disabled="submitting"
-                class="p-4 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all text-left group disabled:opacity-75">
-          <div class="flex items-center gap-3">
-            {% if spice.file %}
-              <img src="{{ asset('uploads/spices/' ~ spice.file) }}"
-                   alt="{{ spice.name }}"
-                   class="w-10 h-10 rounded-lg object-cover">
-            {% else %}
-              <div class="w-10 h-10 rounded-lg flex items-center justify-center text-lg"
-                   style="background-color: {{ spice.color ?? '#f5f5f4' }}20">
-                <i class="fa-solid fa-seedling" style="color: {{ spice.color ?? '#78716c' }}"></i>
-              </div>
-            {% endif %}
-            <div>
-              <p class="font-semibold text-sm text-stone-800 group-hover:text-saffron-700 transition-colors">
-                {{ spice.name }}
-              </p>
-              {% if spice.groupName %}
-                <p class="text-xs text-stone-500">{{ spice.groupName }}</p>
-              {% endif %}
-            </div>
-          </div>
-        </button>
+        {{ option_card.option(spice, 'start', 'spice-id', 'sm', true) }}
       {% endfor %}
     </div>
 
@@ -112,38 +67,9 @@
       <p class="text-stone-700 text-lg mt-4">Quelle épice est compatible ?</p>
     </div>
 
-    {# Options grid #}
-    <div class="grid grid-cols-2 gap-4" x-data="{ selected: null, submitting: false }">
+    <div class="grid grid-cols-2 gap-4" x-data="submitOnceGrid">
       {% for option in this.options %}
-        <button type="button"
-                data-action="live#action"
-                data-live-action-param="pick"
-                data-live-spice-id-param="{{ option.id }}"
-                @click="if (!submitting) { selected = {{ option.id }}; submitting = true }"
-                :class="selected === {{ option.id }} ? 'ring-2 ring-saffron-500 border-saffron-400' : ''"
-                :disabled="submitting"
-                class="relative p-4 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all text-left group disabled:opacity-75">
-          <div class="flex items-center gap-3">
-            {% if option.file %}
-              <img src="{{ asset('uploads/spices/' ~ option.file) }}"
-                   alt="{{ option.name }}"
-                   class="w-12 h-12 rounded-lg object-cover">
-            {% else %}
-              <div class="w-12 h-12 rounded-lg flex items-center justify-center text-xl"
-                   style="background-color: {{ option.color ?? '#f5f5f4' }}20">
-                <i class="fa-solid fa-seedling" style="color: {{ option.color ?? '#78716c' }}"></i>
-              </div>
-            {% endif %}
-            <div>
-              <p class="font-semibold text-stone-800 group-hover:text-saffron-700 transition-colors">
-                {{ option.name }}
-              </p>
-              {% if option.color %}
-                <div class="w-3 h-3 rounded-full mt-1" style="background-color: {{ option.color }}"></div>
-              {% endif %}
-            </div>
-          </div>
-        </button>
+        {{ option_card.option(option, 'pick', 'spice-id', 'md', false) }}
       {% endfor %}
     </div>
   {% endif %}

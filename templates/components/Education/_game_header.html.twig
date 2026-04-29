@@ -1,0 +1,66 @@
+{#
+  Macro shared by all Live Component game templates.
+  Renders the header (icon + title + subtitle + progress + right-hand score).
+
+  Usage:
+    {% import 'components/Education/_game_header.html.twig' as game_header %}
+    {{ game_header.header(
+        icon = 'fa-solid fa-ban',
+        title = 'Hors Saison',
+        subtitle = 'Trouve l\\'intrus',
+        current = this.questionNumber,
+        total = this.totalQuestions,
+        scoreLabel = this.correctCount ~ ' correctes',
+    ) }}
+
+  Any optional arg left null simply skips its rendering.
+#}
+{% macro header(icon, title, subtitle = null, current = null, total = null, scoreLabel = null) %}
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600">
+                <i class="{{ icon }}"></i>
+            </div>
+            <div>
+                <h2 class="text-lg font-bold text-stone-800">{{ title }}</h2>
+                {% if subtitle %}
+                    <p class="text-xs text-stone-500">{{ subtitle }}</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="flex items-center gap-3 text-sm">
+            {% if current is not null and total is not null %}
+                <span class="tag-secondary">{{ current }}/{{ total }}</span>
+            {% endif %}
+            {% if scoreLabel %}
+                <span class="font-semibold text-saffron-600">{{ scoreLabel|raw }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if current is not null and total is not null and total > 0 %}
+        <div class="w-full bg-stone-200 rounded-full h-2 mb-8">
+            <div class="bg-saffron-500 h-2 rounded-full transition-all duration-300"
+                 style="width: {{ (current / total) * 100 }}%"></div>
+        </div>
+    {% endif %}
+{% endmacro %}
+
+{# Summary circle + button for game-over / time-up states. #}
+{% macro game_over_summary(circleLabel, title, paragraphHtml, buttonLabel, buttonAction, variant = 'success') %}
+    {% set borderClass = variant == 'failure'
+        ? 'border-paprika-400 text-paprika-700'
+        : 'border-turmeric-400 text-turmeric-700' %}
+    <div class="text-center py-12">
+        <div class="w-24 h-24 mx-auto mb-6 rounded-full border-8 flex items-center justify-center {{ borderClass }}">
+            <div class="text-2xl font-bold">{{ circleLabel|raw }}</div>
+        </div>
+        <h3 class="text-xl font-bold text-stone-800 mb-2">{{ title }}</h3>
+        <p class="text-stone-600 mb-6">{{ paragraphHtml|raw }}</p>
+        <button data-action="live#action"
+                data-live-action-param="{{ buttonAction }}"
+                class="btn-pill-primary">
+            <i class="fa-solid fa-flag-checkered mr-2"></i>{{ buttonLabel }}
+        </button>
+    </div>
+{% endmacro %}

@@ -39,7 +39,8 @@ final class FavoriteGamificationHandlerTest extends TestCase
             $this->usersRepo,
             $this->historyRepo,
             $this->manager,
-            $this->em
+            $this->em,
+            new \Psr\Log\NullLogger(),
         );
     }
 

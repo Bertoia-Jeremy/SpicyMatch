@@ -45,10 +45,12 @@ class ChronoGame extends AbstractController
     public int $timeLimit = 120;
 
     /**
-     * @var array<string, mixed> Spice card info (without name)
+     * ID of the currently displayed spice. The full card is rebuilt server-side
+     * via `getCurrentCard()` at render time — this keeps the LC payload tiny
+     * (was ~3-5 KB per re-render with the full `$currentCard` array).
      */
     #[LiveProp]
-    public array $currentCard = [];
+    public int $currentCardId = 0;
 
     /**
      * @var string[]
@@ -94,9 +96,10 @@ class ChronoGame extends AbstractController
         $this->timeLimit = $this->academyManager->getChronoTimeLimit($gameDifficulty);
 
         // Init session avant generateQuestion (qui y mergera correctName + questionStartedAt)
-        $this->requestStack->getSession()->set('game_' . $this->gameToken, [
-            'startedAt' => $this->startedAt,
-        ]);
+        $this->requestStack->getSession()
+            ->set('game_' . $this->gameToken, [
+                'startedAt' => $this->startedAt,
+            ]);
 
         $this->generateQuestion();
     }
@@ -109,13 +112,25 @@ class ChronoGame extends AbstractController
         }
 
         $session = $this->requestStack->getSession();
-        $secret = $session->get('game_' . $this->gameToken, []);
+        $secretKey = 'game_' . $this->gameToken;
+        $secret = $session->get($secretKey, []);
         $correctName = $secret['correctName'] ?? '';
-        $questionStartedAt = $secret['questionStartedAt'] ?? time();
+        $questionStartedAt = $secret['questionStartedAt'] ?? null;
+
+        // Replay guard: questionStartedAt is consumed on each answer → null until next generate.
+        if ($questionStartedAt === null) {
+            return;
+        }
+
+        $serverCorrectCount = $secret['correctCount'] ?? 0;
+        $serverQuestions = $secret['questionsAnswered'] ?? 0;
+        $serverScore = $secret['totalScore'] ?? 0;
+        $serverStreak = $secret['streak'] ?? 0;
 
         $isCorrect = $spiceName === $correctName;
         $serverElapsed = time() - $questionStartedAt;
 
+        ++$serverQuestions;
         ++$this->questionsAnswered;
         $this->lastAnswerCorrect = $isCorrect;
         $this->lastCorrectName = $correctName;
@@ -123,33 +138,45 @@ class ChronoGame extends AbstractController
         $points = 0;
 
         if ($isCorrect) {
+            ++$serverCorrectCount;
+            ++$serverStreak;
             ++$this->correctCount;
             ++$this->streak;
 
             // Base points
             $base = 10;
 
-            // Speed bonus based on server-side elapsed time
-            if ($serverElapsed <= 3) {
-                $base = (int) ($base * 2);
-            } elseif ($serverElapsed <= 5) {
+            // Speed bonus — tightened thresholds to account for ~300 ms LC round-trip.
+            if ($serverElapsed <= 2) {
+                $base *= 2;
+            } elseif ($serverElapsed <= 4) {
                 $base = (int) ($base * 1.5);
             }
 
             // Streak bonus
-            if ($this->streak >= 5) {
-                $base = (int) ($base * 2);
-            } elseif ($this->streak >= 3) {
+            if ($serverStreak >= 5) {
+                $base *= 2;
+            } elseif ($serverStreak >= 3) {
                 $base = (int) ($base * 1.5);
             }
 
             $points = $base;
+            $serverScore += $points;
             $this->totalScore += $points;
         } else {
+            $serverStreak = 0;
             $this->streak = 0;
         }
 
         $this->lastPointsEarned = $points;
+
+        // Persist authoritative state to session; mirror kept on LiveProps for UI.
+        $secret['correctCount'] = $serverCorrectCount;
+        $secret['questionsAnswered'] = $serverQuestions;
+        $secret['totalScore'] = $serverScore;
+        $secret['streak'] = $serverStreak;
+        $secret['questionStartedAt'] = null;
+        $session->set($secretKey, $secret);
 
         // Check if global time is up (server-side validation)
         $totalElapsed = time() - $this->startedAt;
@@ -171,11 +198,13 @@ class ChronoGame extends AbstractController
             return;
         }
 
-        // Server-side validation: check actual elapsed time
+        // Server-side validation: only accept timeout once the actual limit has elapsed
+        // (no early-finish window — prevents client triggering finish while the current
+        // question still accepts answers).
         $totalElapsed = time() - $this->startedAt;
 
-        if ($totalElapsed < $this->timeLimit - 2) {
-            return; // Suspicious early timeout, ignore
+        if ($totalElapsed < $this->timeLimit) {
+            return;
         }
 
         $this->isFinished = true;
@@ -187,14 +216,20 @@ class ChronoGame extends AbstractController
         /** @var Users $user */
         $user = $this->getUser();
 
+        // Authoritative counts come from session, never LiveProps.
+        $session = $this->requestStack->getSession();
+        $secret = $session->get('game_' . $this->gameToken, []);
+        $serverCorrect = (int) ($secret['correctCount'] ?? 0);
+        $serverQuestions = (int) ($secret['questionsAnswered'] ?? 0);
+
         $durationSeconds = time() - $this->startedAt;
 
         $gameSession = $this->sessionManager->createFinishedSession(
             $user,
             GameMode::CHRONO,
             GameDifficulty::from($this->difficulty),
-            $this->correctCount,
-            max($this->questionsAnswered, 1),
+            $serverCorrect,
+            max($serverQuestions, 1),
             $durationSeconds,
         );
 
@@ -231,8 +266,8 @@ class ChronoGame extends AbstractController
             $this->recentIds = array_slice($this->recentIds, -5);
         }
 
-        // Build display card (filter info by difficulty — hide name)
-        $this->currentCard = $this->buildDisplayCard($card, $gameDifficulty);
+        // Only the ID travels to the client — full card is resolved at render time.
+        $this->currentCardId = (int) $card['id'];
 
         // Generate name options
         $optionsCount = $this->academyManager->getChronoOptionsCount($gameDifficulty);
@@ -244,6 +279,38 @@ class ChronoGame extends AbstractController
         $secret['correctName'] = $card['name'];
         $secret['questionStartedAt'] = time();
         $session->set('game_' . $this->gameToken, $secret);
+    }
+
+    /**
+     * @var array<string, mixed>|null
+     */
+    private ?array $resolvedCardCache = null;
+
+    /**
+     * Resolve the current card at render time from the cached spice cards — keeps the
+     * LiveProp payload lean (only `currentCardId` travels to the client).
+     *
+     * @return array<string, mixed>
+     */
+    public function getCurrentCard(): array
+    {
+        if ($this->resolvedCardCache !== null) {
+            return $this->resolvedCardCache;
+        }
+
+        if ($this->currentCardId === 0) {
+            return $this->resolvedCardCache = [];
+        }
+
+        $cards = $this->academyManager->getAllSpiceCards();
+        if (! isset($cards[$this->currentCardId])) {
+            return $this->resolvedCardCache = [];
+        }
+
+        return $this->resolvedCardCache = $this->buildDisplayCard(
+            $cards[$this->currentCardId],
+            GameDifficulty::from($this->difficulty),
+        );
     }
 
     /**

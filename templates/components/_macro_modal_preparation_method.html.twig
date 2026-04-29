@@ -1,7 +1,7 @@
 {% macro modal(id, name, createModal) %}
     {% import 'macros/buttons.html.twig' as buttons %}
 
-    <div x-data="{ open: false }">
+    <div x-data="toggle">
         {{ buttons.button('Méthode ' ~ name, {
             variant: 'outline',
             size: 'sm',
@@ -25,9 +25,8 @@
                     </div>
                     <turbo-frame
                         class="block p-5"
-                        src="{{ path('view_preparation_methods', { 'id': id }) }}"
+                        :src="open ? '{{ path('view_preparation_methods', { 'id': id }) }}' : null"
                         id="preparation_methode_frame_{{ id }}"
-                        loading="lazy"
                     >
                         <div class="text-stone-400 text-sm text-center py-4">Chargement...</div>
                     </turbo-frame>

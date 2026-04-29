@@ -1,5 +1,9 @@
 # CLAUDE.md — Configuration système pour interactions optimisées
 
+> **🔌 MCP ifttd-mcp** : Avant de finaliser un plan d'architecture ou une décision technique, consulte le MCP `ifttd-mcp` (outil `ifttd_plan_review`) pour obtenir des retours terrain de praticiens.
+
+---
+
 > **⚠️ RÈGLE OBLIGATOIRE — MAINTIEN À JOUR**
 > Ce fichier est la **source de vérité** du projet. À chaque fin de session ou après toute décision architecturale, technique ou de design qui change l'état du projet, Claude **doit** mettre à jour ce fichier. Aucune information critique ne doit rester dans la mémoire de session uniquement.
 >
@@ -142,12 +146,15 @@ tooling:
 
 scripts:
   php:
+    - docker exec -w /var/www/html/spicymatch p8.4 composer ci              # ⭐ check-cs + phpstan + test-unit (à passer avant chaque commit)
     - docker exec -w /var/www/html/spicymatch p8.4 composer check-cs       # vérifier le style
     - docker exec -w /var/www/html/spicymatch p8.4 composer fix-cs         # corriger le style
     - docker exec -w /var/www/html/spicymatch p8.4 composer rector-dry     # dry-run Rector
     - docker exec -w /var/www/html/spicymatch p8.4 composer rector         # appliquer Rector
-    - docker exec -w /var/www/html/spicymatch p8.4 composer phpstan        # analyse statique
-    - docker exec -w /var/www/html/spicymatch p8.4 php vendor/bin/phpunit --testsuite=Unit        # tests unitaires
+    - docker exec -w /var/www/html/spicymatch p8.4 composer phpstan        # analyse statique (baseline figée dans phpstan-baseline.neon)
+    - docker exec -w /var/www/html/spicymatch p8.4 composer test-unit      # phpunit Unit (sans coverage)
+    # ⭐ `composer ci` doit passer avant chaque commit. Toute nouvelle erreur PHPStan bloque CI.
+    # Pour corriger le baseline après un vrai fix : `phpstan analyze --generate-baseline=phpstan-baseline.neon`
     - docker exec -w /var/www/html/spicymatch p8.4 php vendor/bin/phpunit --testsuite=Integration # tests d'intégration (DB requise)
   js:
     - yarn dev                # watch Tailwind CLI
@@ -232,11 +239,10 @@ architecture:
     avatar:
       - Le badge équipé (UserProgression::$equippedBadge) EST l'avatar : son icône + la couleur de sa rareté
       - Composant: templates/components/_avatar.html.twig
-        → paramètre `equippedBadge` (UserAchievement|null) prioritaire sur `slug`
+        → paramètre `equippedBadge` (UserAchievement|null) — null = cercle neutre
         → couleurs rareté : common=#f5f5f4/#78716c, rare=#dbeafe/#1d4ed8, epic=#f3e8ff/#7e22ce, legendary=#fef9c3/#a16207
-        → fallback slug : avatar_data(slug) via AvatarExtension (dead code — conservé pour la migration)
-      - Sélection avatar supprimée de configuration.html.twig — route avatar_upload_user supprimée
-      - Dead code (à supprimer dans une prochaine passe) : AvatarCatalogService, AvatarExtension, Users::$avatar
+      - Sélection avatar retirée de configuration.html.twig
+      - AvatarCatalogService + AvatarExtension + Users::$avatar supprimés (2026-04-24)
 
   education:
     description: "Mini-jeux éducatifs sur les épices — 6 modes actifs (QCM route-based + 5 Live Components)"

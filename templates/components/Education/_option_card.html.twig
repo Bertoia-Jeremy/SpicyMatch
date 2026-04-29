@@ -1,0 +1,49 @@
+{#
+  Spice option card used by IntrusGame / SurvivalGame / ChronoGame option grids.
+  Shared shape: image-or-fallback icon + name + group/color strip, selectable via
+  a Live Component action.
+
+  Arguments:
+    option        — {id, name, file?, color?, groupName?}
+    action        — live action name (e.g. 'answer', 'pick')
+    paramName     — data-live-*-param name ('spiceId' by default)
+    sizeClass     — 'md' (default) or 'sm' (smaller icon + no group line)
+    showGroupLine — bool, default true: renders groupName under the option name
+
+  Alpine state is local to this card via `submitting/selected` — keep the grid
+  wrapper's x-data for shared state off this macro's surface.
+#}
+{% macro option(option, action, paramName = 'spice-id', sizeClass = 'md', showGroupLine = true) %}
+    {% set iconBox = sizeClass == 'sm' ? 'w-10 h-10 text-lg' : 'w-12 h-12 text-xl' %}
+    <button type="button"
+            data-action="live#action"
+            data-live-action-param="{{ action }}"
+            data-live-{{ paramName }}-param="{{ option.id }}"
+            data-loading="addAttribute(disabled)"
+            @click="pick({{ option.id }})"
+            :class="cardClass({{ option.id }})"
+            class="relative p-4 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all text-left group disabled:opacity-75 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30">
+        <div class="flex items-center gap-3">
+            {% if option.file %}
+                <img src="{{ asset('uploads/spices/' ~ option.file) }}"
+                     alt="{{ option.name }}"
+                     class="{{ iconBox|split(' ')|slice(0, 2)|join(' ') }} rounded-lg object-cover">
+            {% else %}
+                <div class="{{ iconBox }} rounded-lg flex items-center justify-center"
+                     style="background-color: {{ option.color ?? '#f5f5f4' }}20">
+                    <i class="fa-solid fa-seedling" style="color: {{ option.color ?? '#78716c' }}"></i>
+                </div>
+            {% endif %}
+            <div>
+                <p class="font-semibold text-{{ sizeClass == 'sm' ? 'sm' : 'base' }} text-stone-800 group-hover:text-saffron-700 transition-colors">
+                    {{ option.name }}
+                </p>
+                {% if showGroupLine and option.groupName is defined and option.groupName %}
+                    <p class="text-xs text-stone-500">{{ option.groupName }}</p>
+                {% elseif option.color is defined and option.color %}
+                    <div class="w-3 h-3 rounded-full mt-1" style="background-color: {{ option.color }}"></div>
+                {% endif %}
+            </div>
+        </div>
+    </button>
+{% endmacro %}

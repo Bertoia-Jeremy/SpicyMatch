@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\GameDifficulty;
 use App\Repository\UsersRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -57,9 +58,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'last_login_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeInterface $lastLoginAt = null;
 
-    #[ORM\Column(name: 'avatar', type: 'string', length: 100, nullable: true)]
-    private ?string $avatar = null;
-
+    /**
+     * @var Collection<int, SpicyMatch>
+     */
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: SpicyMatch::class, orphanRemoval: true)]
     private Collection $spicyMatches;
 
@@ -68,6 +69,16 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: UserStat::class, cascade: ['persist', 'remove'])]
     private ?UserStat $stats = null;
+
+    /**
+     * Difficulté préférée de l'utilisateur — pilote les règles transverses
+     * (rendu monochrome, chrono Hangman, sélection intrus stricte).
+     * EASY = Commis, MEDIUM = Cuisinier, HARD = Chef de Partie.
+     */
+    #[ORM\Column(enumType: GameDifficulty::class, options: [
+        'default' => 'easy',
+    ])]
+    private GameDifficulty $preferredDifficulty = GameDifficulty::EASY;
 
     public function __construct()
     {
@@ -116,6 +127,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return array_unique($roles);
     }
 
+    /**
+     * @param list<string> $roles
+     */
     public function setRoles(array $roles): self
     {
         $this->roles = $roles;
@@ -206,18 +220,6 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         // $this->plainPassword = null;
     }
 
-    public function getAvatar(): ?string
-    {
-        return $this->avatar;
-    }
-
-    public function setAvatar(?string $avatar): self
-    {
-        $this->avatar = $avatar;
-
-        return $this;
-    }
-
     public function getMail(): ?string
     {
         return $this->mail;
@@ -278,6 +280,18 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         if ($this->spicyMatches->removeElement($spicyMatch) && $spicyMatch->getUserId() === $this) {
             $spicyMatch->setUserId(null);
         }
+
+        return $this;
+    }
+
+    public function getPreferredDifficulty(): GameDifficulty
+    {
+        return $this->preferredDifficulty;
+    }
+
+    public function setPreferredDifficulty(GameDifficulty $preferredDifficulty): static
+    {
+        $this->preferredDifficulty = $preferredDifficulty;
 
         return $this;
     }

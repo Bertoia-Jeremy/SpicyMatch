@@ -1,0 +1,89 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Plan de Travail — {{ mode.label }}{% endblock %}
+
+{% block body %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+  {# ── Header ── #}
+  <div class="text-center mb-8">
+    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-saffron-100 text-saffron-600 mb-4">
+      <i class="{{ mode.icon }} text-2xl"></i>
+    </div>
+    <h1 class="text-2xl font-bold text-stone-800 mb-1">{{ mode.label }}</h1>
+    <div class="flex items-center justify-center gap-2">
+      <span class="tag-secondary">{{ difficulty_label(difficulty) }}</span>
+      <span class="tag-secondary">{{ difficulty.xpMultiplier }}x XP</span>
+    </div>
+  </div>
+
+  {# ── Consignes ── #}
+  <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6 mb-6">
+    <h2 class="text-lg font-semibold text-stone-800 mb-3">
+      <i class="fa-solid fa-scroll text-saffron-600 mr-2"></i>Tes consignes
+    </h2>
+    <ul class="space-y-2">
+      {% for rule in rules %}
+        <li class="flex items-start gap-2 text-sm text-stone-700">
+          <i class="fa-solid fa-check text-saffron-500 mt-0.5 shrink-0"></i>
+          <span>{{ rule }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  {# ── Épice cible (si applicable) ── #}
+  {% if targetSpice %}
+    {% from 'components/_macro_card_spice.html.twig' import cardSpice %}
+    <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6 mb-6">
+      <h2 class="text-lg font-semibold text-stone-800 mb-4">
+        <i class="fa-solid fa-mortar-pestle text-saffron-600 mr-2"></i>Ton ingrédient du jour
+      </h2>
+      <div class="max-w-[240px] mx-auto">
+        {{ cardSpice(targetSpice, { showQuickView: false }) }}
+      </div>
+    </div>
+  {% endif %}
+
+  {# ── Conseil de cuisson (si disponible) ── #}
+  {% if cookingTip %}
+    <div class="bg-turmeric-50 border border-turmeric-200 rounded-2xl p-5 mb-6">
+      <div class="flex items-start gap-3">
+        <div class="shrink-0 w-8 h-8 rounded-lg bg-turmeric-100 flex items-center justify-center">
+          <i class="fa-solid fa-lightbulb text-turmeric-600 text-sm"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold text-turmeric-800 mb-1">{{ cookingTip.title }}</h3>
+          {% if cookingTip.cookingStep %}
+            <p class="text-xs text-turmeric-700 leading-relaxed">{{ cookingTip.cookingStep }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  {# ── Monochrome warning ── #}
+  {% if isMonochrome %}
+    <div class="bg-stone-100 border border-stone-300 rounded-xl p-4 mb-6 text-center">
+      <p class="text-sm text-stone-600">
+        <i class="fa-solid fa-eye-slash mr-1"></i>
+        Mode <strong>Chef de Partie</strong> — les couleurs des groupes aromatiques sont masquées.
+      </p>
+    </div>
+  {% endif %}
+
+  {# ── Bouton de lancement ── #}
+  <form method="post" action="{{ path('education_start') }}" class="text-center">
+    <input type="hidden" name="_token" value="{{ csrf_token('education_start') }}">
+    <input type="hidden" name="mode" value="{{ mode.value }}">
+    <input type="hidden" name="difficulty" value="{{ difficulty.value }}">
+    {% if targetSpice %}
+      <input type="hidden" name="targetSpiceId" value="{{ targetSpice.id }}">
+    {% endif %}
+    <button type="submit" class="btn-pill-primary text-lg px-8 py-3">
+      <i class="fa-solid fa-fire-burner mr-2"></i>Lancer la brigade
+    </button>
+  </form>
+
+</div>
+{% endblock %}

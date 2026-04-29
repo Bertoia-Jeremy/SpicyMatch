@@ -1,0 +1,95 @@
+nelmio_security:
+    # Send X-Frame-Options to block clickjacking.
+    clickjacking:
+        paths:
+            '^/.*': DENY
+
+    # Strict-Transport-Security — 1 year, include subdomains.
+    forced_ssl:
+        enabled: false # Enable in prod only (see when@prod below)
+        hsts_max_age: 31536000
+        hsts_subdomains: true
+        hsts_preload: false
+
+    # X-Content-Type-Options: nosniff.
+    content_type:
+        nosniff: true
+
+    # Referrer-Policy
+    referrer_policy:
+        policies:
+            - 'strict-origin-when-cross-origin'
+
+    # XSS protection — X-XSS-Protection is deprecated but some scanners still flag its absence.
+    xss_protection:
+        enabled: true
+        mode_block: true
+
+    csp:
+        enabled: true
+        hosts: []
+        content_types: []
+        enforce:
+            # Disable automatic `'unsafe-inline'` fallback when nonce is used.
+            # We target modern browsers only; the CSP build of Alpine + registered
+            # components means we never need inline eval.
+            level1_fallback: false
+            # Base directives — whitelisted origins come from CLAUDE.md stack:
+            #   - FontAwesome CSS/fonts: cdnjs.cloudflare.com
+            #   - Alpine.js / Stimulus ESM: jsdelivr.net (importmap)
+            #   - Turbo + app code: self
+            default-src:
+                - 'self'
+            # Alpine.js attribute handlers (`@click="..."`, `x-data="..."`)
+            # require `'unsafe-inline'`. The @alpinejs/csp build was tried but its
+            # parser only supports dot-path access (no method calls / ternary /
+            # comparisons), making most existing templates incompatible without
+            # a full ground-up rewrite. See ADR-007 Phase 2.
+            # Symfony UX Live Component imports `live.min.css` as a JS module;
+            # AssetMapper aliases the CSS to `data:application/javascript,` shim.
+            script-src:
+                - 'self'
+                - "'unsafe-inline'"
+                - "'unsafe-eval'" # Alpine.js regular build uses new Function()
+                - 'https://cdn.jsdelivr.net'
+                - 'data:'
+            style-src:
+                - 'self'
+                - "'unsafe-inline'" # Tailwind utility classes + inline style="..." for rarity colors
+                - 'https://cdnjs.cloudflare.com'
+                - 'https://fonts.googleapis.com' # Google Fonts CSS
+            img-src:
+                - 'self'
+                - 'data:'
+                - 'blob:'
+                - 'https://loremflickr.com' # Spice catalog placeholder images
+            connect-src:
+                - 'self'
+            font-src:
+                - 'self'
+                - 'https://cdnjs.cloudflare.com'
+                - 'https://fonts.gstatic.com' # Google Fonts WOFF2
+                - 'data:'
+            frame-ancestors:
+                - "'none'"
+            base-uri:
+                - "'self'"
+            form-action:
+                - "'self'"
+            object-src:
+                - "'none'"
+
+when@prod:
+    nelmio_security:
+        forced_ssl:
+            enabled: true
+
+when@test:
+    nelmio_security:
+        csp:
+            enforce:
+                # Relaxed for tests — BrowserKit doesn't enforce headers but some
+                # assertions check their presence.
+                default-src: ['*']
+                script-src: ['*', "'unsafe-inline'", "'unsafe-eval'"]
+                style-src: ['*', "'unsafe-inline'"]

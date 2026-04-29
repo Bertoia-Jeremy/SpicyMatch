@@ -11,11 +11,6 @@ use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<Spices>
- *
- * @method Spices|null find($id, $lockMode = null, $lockVersion = null)
- * @method Spices|null findOneBy(array $criteria, array $orderBy = null)
- * @method Spices[]    findAll()
- * @method Spices[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class SpicesRepository extends ServiceEntityRepository
 {
@@ -46,6 +41,9 @@ class SpicesRepository extends ServiceEntityRepository
         }
     }
 
+    /**
+     * @return list<Spices>
+     */
     public function findAllByStringIds(string $stringIds): array
     {
         $arrayIds = explode(',', $stringIds);
@@ -103,6 +101,9 @@ class SpicesRepository extends ServiceEntityRepository
         ;
     }
 
+    /**
+     * @return list<array{id: int, name: string, type: string}>
+     */
     public function search(string $word): array
     {
         $sql = 'SELECT s.id, s.name, IF(1, "spice", "") as `type`
@@ -128,18 +129,9 @@ class SpicesRepository extends ServiceEntityRepository
     }
 
     /**
-     * Load candidate spices for compatibility scoring.
-     *
-     * Returns Spices that have at least one of the given shared compound IDs
-     * (main or secondary), excluding already-selected spice IDs.
-     * Compounds and AlchemyFlavors are eagerly loaded to avoid N+1 during scoring.
-     *
-     * @return Spices[]
-     */
-    /**
      * Filter spices by aromatic group, spicy type and/or name prefix.
      *
-     * @return Spices[]
+     * @return list<Spices>
      */
     public function findFiltered(?int $aromaticGroupId, ?int $spicyTypeId, ?string $search = null): array
     {
@@ -165,6 +157,18 @@ class SpicesRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * Load candidate spices for compatibility scoring.
+     *
+     * Returns Spices that have at least one of the given shared compound IDs
+     * (main or secondary), excluding already-selected spice IDs.
+     * Compounds and AlchemyFlavors are eagerly loaded to avoid N+1 during scoring.
+     *
+     * @param list<int> $sharedCompoundIds
+     * @param list<int> $excludedSpiceIds
+     *
+     * @return list<Spices>
+     */
     public function findCandidatesForScoring(array $sharedCompoundIds, array $excludedSpiceIds): array
     {
         if (empty($sharedCompoundIds)) {
@@ -206,7 +210,9 @@ class SpicesRepository extends ServiceEntityRepository
      *
      * Uses NOT EXISTS subqueries for efficiency — no PHP scoring needed.
      *
-     * @return Spices[]
+     * @param list<int> $excludeIds
+     *
+     * @return list<Spices>
      */
     public function findIncompatibleWith(Spices $spice, array $excludeIds = []): array
     {

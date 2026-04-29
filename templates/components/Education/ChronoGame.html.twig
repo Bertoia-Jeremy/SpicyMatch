@@ -1,79 +1,34 @@
+{% import 'components/Education/_game_header.html.twig' as game_header %}
 <div {{ attributes }}>
-  {# Header: score + streak #}
-  <div class="flex items-center justify-between mb-6">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600">
-        <i class="fa-solid fa-fire-flame-curved"></i>
-      </div>
-      <div>
-        <h2 class="text-lg font-bold text-stone-800">À Feu Vif</h2>
-        <p class="text-xs text-stone-500">Identifie les épices le plus vite possible</p>
-      </div>
-    </div>
-    <div class="flex items-center gap-3 text-sm">
-      <span class="font-semibold text-saffron-600">{{ this.totalScore }} pts</span>
-      {% if this.streak >= 3 %}
-        <span class="tag-primary text-xs">
-          <i class="fa-solid fa-fire mr-1"></i>x{{ this.streak }}
-        </span>
-      {% endif %}
-    </div>
-  </div>
+  {% set streakPill = this.streak >= 3 ? ' <span class="tag-primary text-xs"><i class="fa-solid fa-fire mr-1"></i>x' ~ this.streak ~ '</span>' : '' %}
+  {{ game_header.header(
+      icon = 'fa-solid fa-fire-flame-curved',
+      title = 'À Feu Vif',
+      subtitle = 'Identifie les épices le plus vite possible',
+      scoreLabel = this.totalScore ~ ' pts' ~ streakPill,
+  ) }}
 
   {% if this.isFinished %}
-    {# Time's up — summary #}
-    <div class="text-center py-12">
-      <div class="w-24 h-24 mx-auto mb-6 rounded-full border-8 flex items-center justify-center
-        {{ this.correctCount >= 10 ? 'border-green-400 text-green-700' : (this.correctCount >= 5 ? 'border-turmeric-400 text-turmeric-700' : 'border-red-400 text-red-700') }}">
-        <div class="text-2xl font-bold">{{ this.totalScore }}</div>
-      </div>
-
-      <h3 class="text-xl font-bold text-stone-800 mb-2">Temps écoulé !</h3>
-      <p class="text-stone-600 mb-2">
-        {{ this.correctCount }}/{{ this.questionsAnswered }} bonne{{ this.correctCount > 1 ? 's' : '' }} réponse{{ this.correctCount > 1 ? 's' : '' }}
-      </p>
-      <p class="text-stone-600 mb-6">{{ this.totalScore }} points au total.</p>
-
-      <button data-action="live#action"
-              data-live-action-param="finish"
-              data-loading="action(finish)|addAttribute(disabled)"
-              class="btn-pill-primary disabled:opacity-75">
-        <i class="fa-solid fa-flag-checkered mr-2"></i>Voir les résultats
-      </button>
-    </div>
+    {{ game_header.game_over_summary(
+        circleLabel = this.totalScore,
+        title = 'Temps écoulé !',
+        paragraphHtml = this.correctCount ~ '/' ~ this.questionsAnswered ~ ' bonne' ~ (this.correctCount > 1 ? 's' : '') ~ ' réponse' ~ (this.correctCount > 1 ? 's' : '') ~ '<br>' ~ this.totalScore ~ ' points au total.',
+        buttonLabel = 'Voir les résultats',
+        buttonAction = 'finish',
+        variant = this.correctCount >= 5 ? 'success' : 'failure',
+    ) }}
 
   {% else %}
-    {# Timer — Alpine countdown basé sur wall-clock (pas de data-live-ignore) #}
-    <div x-data="{
-           timeLeft: Math.max(0, {{ this.timeLimit }} - Math.floor(Date.now() / 1000 - {{ this.startedAt }})),
-           totalTime: {{ this.timeLimit }},
-           interval: null,
-           init() {
-             if (this.timeLeft <= 0) {
-               this.$refs.timeoutBtn.click();
-               return;
-             }
-             this.interval = setInterval(() => {
-               this.timeLeft = Math.max(0, {{ this.timeLimit }} - Math.floor(Date.now() / 1000 - {{ this.startedAt }}));
-               if (this.timeLeft <= 0) {
-                 clearInterval(this.interval);
-                 this.interval = null;
-                 this.$refs.timeoutBtn.click();
-               }
-             }, 1000);
-           },
-           destroy() {
-             if (this.interval) clearInterval(this.interval);
-           },
-           get pct() { return Math.max(0, (this.timeLeft / this.totalTime) * 100) },
-           get color() {
-             if (this.timeLeft <= 10) return 'bg-red-500';
-             if (this.timeLeft <= 30) return 'bg-turmeric-500';
-             return 'bg-saffron-500';
-           }
-         }"
+    {# Timer — Stimulus-driven (CSP-friendly, no inline JS). data-live-ignore
+       prevents morphdom from re-running connect() on every LC re-render. #}
+    <div data-live-ignore
+         data-controller="game-timer"
+         data-game-timer-expires-at-value="{{ this.startedAt + this.timeLimit }}"
+         data-game-timer-total-seconds-value="{{ this.timeLimit }}"
+         data-game-timer-danger-threshold-value="10"
+         data-game-timer-warning-threshold-value="30"
          class="mb-8">
-      <button x-ref="timeoutBtn"
+      <button data-game-timer-target="timeoutButton"
               data-action="live#action"
               data-live-action-param="timeout"
               class="hidden" aria-hidden="true"></button>
@@ -81,21 +36,19 @@
         <span class="text-sm text-stone-500">
           <i class="fa-solid fa-clock mr-1"></i>Temps restant
         </span>
-        <span class="text-sm font-semibold"
-              :class="timeLeft <= 10 ? 'text-red-600' : 'text-stone-700'"
-              x-text="Math.floor(timeLeft / 60) + ':' + String(timeLeft % 60).padStart(2, '0')">
-        </span>
+        <span data-game-timer-target="label"
+              aria-live="polite"
+              class="text-sm font-semibold text-stone-700"></span>
       </div>
       <div class="w-full bg-stone-200 rounded-full h-3">
-        <div class="h-3 rounded-full transition-all duration-1000"
-             :class="color"
-             :style="'width: ' + pct + '%'"></div>
+        <div data-game-timer-target="bar"
+             class="h-3 rounded-full transition-all duration-1000 bg-saffron-500"></div>
       </div>
     </div>
 
     {# Stats row #}
     <div class="flex items-center justify-center gap-6 mb-6 text-sm text-stone-600">
-      <span><i class="fa-solid fa-check text-green-500 mr-1"></i>{{ this.correctCount }}</span>
+      <span><i class="fa-solid fa-check text-turmeric-600 mr-1"></i>{{ this.correctCount }}</span>
       <span><i class="fa-solid fa-question text-stone-400 mr-1"></i>{{ this.questionsAnswered }}</span>
       {% if this.streak >= 3 %}
         <span class="text-saffron-600 font-semibold"><i class="fa-solid fa-fire mr-1"></i>Série de {{ this.streak }}</span>
@@ -106,11 +59,11 @@
     {% if this.questionsAnswered > 0 %}
       <div class="mb-6 text-center text-sm">
         {% if this.lastAnswerCorrect %}
-          <span class="text-green-600 font-medium">
+          <span class="text-turmeric-600 font-medium">
             <i class="fa-solid fa-check-circle mr-1"></i>Correct ! +{{ this.lastPointsEarned }} pts
           </span>
         {% else %}
-          <span class="text-red-600 font-medium">
+          <span class="text-paprika-600 font-medium">
             <i class="fa-solid fa-times-circle mr-1"></i>C'était {{ this.lastCorrectName }}
           </span>
         {% endif %}
@@ -190,7 +143,7 @@
                 data-live-action-param="answer"
                 data-live-spice-name-param="{{ name|e('html_attr') }}"
                 data-loading="action(answer)|addAttribute(disabled)"
-                class="px-4 py-3 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all text-center font-medium text-stone-800 disabled:opacity-75">
+                class="px-4 py-3 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all text-center font-medium text-stone-800 disabled:opacity-75 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30">
           {{ name }}
         </button>
       {% endfor %}

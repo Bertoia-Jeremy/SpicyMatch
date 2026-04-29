@@ -1,7 +1,9 @@
 {
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
     "@eslint/js": "^9.25.1",
     "@fortawesome/fontawesome-free": "^6.7.2",
+    "@playwright/test": "^1.48.0",
     "alpinejs": "^3.14.9",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.25.1",
@@ -11,7 +13,10 @@
   },
   "scripts": {
     "dev": "tailwindcss -i ./assets/styles/app.css -o ./public/assets/css/app.css --watch",
-    "build": "tailwindcss -i ./assets/styles/app.css -o ./public/assets/css/app.css --minify"
+    "build": "tailwindcss -i ./assets/styles/app.css -o ./public/assets/css/app.css --minify",
+    "e2e": "playwright test --config=tests/playwright/playwright.config.ts",
+    "e2e:a11y": "playwright test --config=tests/playwright/playwright.config.ts --grep=@a11y",
+    "e2e:install": "playwright install chromium"
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.1.8"

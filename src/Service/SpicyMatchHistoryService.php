@@ -23,8 +23,8 @@ class SpicyMatchHistoryService
     public function getSpicesFromHistories(iterable $histories): array
     {
         $spices = [];
+        /** @var SpicyMatchHistory $history */
         foreach ($histories as $history) {
-            /** @var SpicyMatchHistory $history */
             foreach ($history->getSpicyMatch()->getSpices() as $spice) {
                 $spices[$spice->getId()] = $spice;
             }

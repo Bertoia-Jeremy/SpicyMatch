@@ -13,7 +13,7 @@
 
         {# Avatar #}
         <div class="shrink-0 flex justify-center">
-          {% include 'components/_avatar.html.twig' with { slug: app.user.avatar, sizeClass: 'w-24 h-24 text-3xl', equippedBadge: _badge } %}
+          {% include 'components/_avatar.html.twig' with {sizeClass: 'w-24 h-24 text-3xl', equippedBadge: _badge } %}
         </div>
 
         {# Infos utilisateur #}
@@ -36,20 +36,14 @@
               </span>
             </div>
 
-            {# Succès équipé #}
+            {# Succès équipé — colors driven by the centralized RarityExtension #}
             {% if _badge %}
-              {% set _rarity = _badge.achievement.rarity.value %}
-              {% set _rarityPill = {
-                'common':    ['bg-green-50',  'text-green-700',  'border-green-200',  'text-green-400'],
-                'rare':      ['bg-blue-50',   'text-blue-700',   'border-blue-200',   'text-blue-400'],
-                'epic':      ['bg-purple-50', 'text-purple-700', 'border-purple-200', 'text-purple-400'],
-                'legendary': ['bg-yellow-50', 'text-yellow-700', 'border-yellow-200', 'text-yellow-400'],
-              } %}
-              {% set _colors = _rarityPill[_rarity] ?? ['bg-stone-50', 'text-stone-600', 'border-stone-200', 'text-stone-400'] %}
+              {% set _colors = rarity_colors(_badge.achievement.rarity) %}
               <div class="flex items-center gap-2 mb-2 justify-center md:justify-start flex-wrap">
-                <span class="text-[10px] text-stone-400 font-semibold uppercase tracking-widest">Succès équipé</span>
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-semibold {{ _colors[0] }} {{ _colors[1] }} {{ _colors[2] }}">
-                  <i class="{{ _badge.achievement.icon }} {{ _colors[3] }} text-[10px]"></i>
+                <span class="text-xs text-stone-500 font-semibold uppercase tracking-widest">Succès équipé</span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-semibold"
+                      style="background-color: {{ _colors.bg }}; color: {{ _colors.text }}; border-color: {{ _colors.ring }}60">
+                  <i class="{{ _badge.achievement.icon }} text-xs" style="color: {{ _colors.ring }}"></i>
                   {{ _badge.achievement.name }}
                   <span class="font-normal opacity-60">· {{ _badge.achievement.rarity.label }}</span>
                 </span>
@@ -57,7 +51,7 @@
             {% endif %}
           {% endif %}
 
-          <p class="text-stone-400 text-sm">Membre depuis le {{ app.user.createdAt|date('d/m/Y') }}</p>
+          <p class="text-stone-500 text-sm">Membre depuis le {{ app.user.createdAt|date('d/m/Y') }}</p>
         </div>
       </div>
 

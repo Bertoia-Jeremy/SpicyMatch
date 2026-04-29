@@ -21,14 +21,13 @@
 
   {# Mode selection cards #}
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10"
-       x-data="{ selectedMode: '{{ app.request.query.get('mode') ?? '' }}', selectedDifficulty: 'easy' }">
+       data-tour="game-grid"
+       x-data="modeSelector('{{ app.request.query.get('mode') ?? '' }}', 'easy')">
 
     {% for mode in modes %}
       <button type="button"
-              @click="selectedMode = '{{ mode.value }}'"
-              :class="selectedMode === '{{ mode.value }}'
-                ? 'ring-2 ring-saffron-500 border-saffron-400 bg-spice-surface'
-                : 'border-stone-200 bg-white hover:bg-cream'"
+              @click="pickMode('{{ mode.value }}')"
+              :class="modeCardClass('{{ mode.value }}')"
               class="relative text-left p-5 rounded-2xl border shadow-sm transition-all cursor-pointer group">
         <div class="flex items-center gap-3 mb-3">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600 group-hover:bg-saffron-200 transition-colors">
@@ -37,12 +36,24 @@
           <h3 class="font-semibold text-stone-800">{{ mode.label }}</h3>
         </div>
         <p class="text-sm text-stone-600 leading-relaxed">{{ mode.description }}</p>
-        <div class="mt-3 flex items-center gap-2 text-xs text-stone-500">
+        <div class="mt-3 flex items-center gap-2 text-xs text-stone-500 flex-wrap">
           <span class="tag-secondary">{{ mode.xpPerCorrect }} XP/correct</span>
           {% if mode.totalQuestions %}
             <span class="tag-secondary">{{ mode.totalQuestions }} questions</span>
           {% else %}
             <span class="tag-secondary">∞ questions</span>
+          {% endif %}
+          {% set count = dailyCounts[mode.value] ?? 0 %}
+          {% set remaining = maxDailySessions - count %}
+          {% if remaining <= 0 %}
+            <span class="tag-secondary bg-paprika-100 text-paprika-700 border-paprika-300">Limite atteinte</span>
+          {% elseif count >= reducedXpThreshold %}
+            <span class="tag-secondary bg-turmeric-100 text-turmeric-700 border-turmeric-300"
+                  title="XP réduit de 50% au-delà de {{ reducedXpThreshold }} parties/jour">
+              {{ remaining }} restantes · ×0.5 XP
+            </span>
+          {% else %}
+            <span class="tag-secondary">{{ remaining }}/{{ maxDailySessions }} aujourd'hui</span>
           {% endif %}
         </div>
       </button>
@@ -57,10 +68,8 @@
           <div class="flex gap-2">
             {% for difficulty in difficulties %}
               <button type="button"
-                      @click="selectedDifficulty = '{{ difficulty.value }}'"
-                      :class="selectedDifficulty === '{{ difficulty.value }}'
-                        ? 'bg-saffron-600 text-white'
-                        : 'bg-stone-100 text-stone-700 hover:bg-stone-200'"
+                      @click="pickDifficulty('{{ difficulty.value }}')"
+                      :class="difficultyButtonClass('{{ difficulty.value }}')"
                       class="px-4 py-2 rounded-full text-sm font-medium transition-colors">
                 {{ difficulty.label }}
                 <span class="text-xs opacity-75">(×{{ difficulty.xpMultiplier }})</span>
@@ -69,24 +78,15 @@
           </div>
         </div>
 
-        {# QCM uses the form POST flow, Live Component modes use GET link #}
-        <template x-if="selectedMode === 'qcm'">
-          <form method="post" action="{{ path('education_start') }}">
-            <input type="hidden" name="_token" value="{{ csrf_token('education_start') }}">
-            <input type="hidden" name="mode" :value="selectedMode">
-            <input type="hidden" name="difficulty" :value="selectedDifficulty">
-            <button type="submit" class="btn-pill-primary whitespace-nowrap">
-              <i class="fa-solid fa-play mr-2"></i>Commencer
-            </button>
-          </form>
-        </template>
-
-        <template x-if="selectedMode && selectedMode !== 'qcm'">
-          <a :href="'/education/play-live/' + selectedMode + '?difficulty=' + selectedDifficulty"
-             class="btn-pill-primary inline-flex items-center whitespace-nowrap">
-            <i class="fa-solid fa-play mr-2"></i>Commencer
-          </a>
-        </template>
+        {# All modes go through the briefing first #}
+        <form method="post" action="{{ path('education_briefing') }}" data-turbo="false">
+          <input type="hidden" name="_token" value="{{ csrf_token('education_briefing') }}">
+          <input type="hidden" name="mode" :value="selectedMode">
+          <input type="hidden" name="difficulty" :value="selectedDifficulty">
+          <button type="submit" class="btn-pill-primary whitespace-nowrap">
+            <i class="fa-solid fa-play mr-2"></i>Préparer le service
+          </button>
+        </form>
       </div>
     </div>
   </div>

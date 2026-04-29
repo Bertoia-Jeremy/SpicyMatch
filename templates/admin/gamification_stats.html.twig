@@ -1,0 +1,133 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Stats Gamification · Admin{% endblock %}
+
+{% block body %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <h1 class="text-3xl font-bold text-stone-800 mb-2">Stats Gamification</h1>
+    <p class="text-stone-600 mb-8">Indicateurs métier et anomalies détectées sur les 30 derniers jours.</p>
+
+    {# Widget 1 — Unlock rate par achievement #}
+    <section class="mb-10">
+        <h2 class="text-xl font-semibold text-stone-800 mb-4">Taux de débloquage par succès</h2>
+        {% if unlockRates is empty %}
+            <p class="text-stone-500 italic">Pas encore de données.</p>
+        {% else %}
+            <div class="bg-white rounded-2xl border border-stone-200 p-6">
+                <canvas id="chartUnlockRates" height="120"></canvas>
+            </div>
+        {% endif %}
+    </section>
+
+    {# Widget 2 — XP / jour #}
+    <section class="mb-10">
+        <h2 class="text-xl font-semibold text-stone-800 mb-4">XP cumulé / jour (30j)</h2>
+        <div class="bg-white rounded-2xl border border-stone-200 p-6">
+            <canvas id="chartXpPerDay" height="100"></canvas>
+        </div>
+    </section>
+
+    {# Widget 3 — Sessions par mode #}
+    <section class="mb-10">
+        <h2 class="text-xl font-semibold text-stone-800 mb-4">Sessions par mode (30j)</h2>
+        <div class="bg-white rounded-2xl border border-stone-200 p-6">
+            <canvas id="chartSessionsPerMode" height="100"></canvas>
+        </div>
+    </section>
+
+    {# Widget 4 — Anomalies #}
+    <section class="mb-10">
+        <h2 class="text-xl font-semibold text-stone-800 mb-4">
+            Anomalies détectées
+            <span class="text-sm text-stone-500 font-normal">(> 10 sessions / jour)</span>
+        </h2>
+        {% if anomalies is empty %}
+            <p class="text-stone-500 italic">Aucune anomalie détectée.</p>
+        {% else %}
+            <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead class="bg-cream border-b border-stone-200 text-left">
+                        <tr>
+                            <th class="px-4 py-2">Utilisateur</th>
+                            <th class="px-4 py-2">Raison</th>
+                            <th class="px-4 py-2">Sessions</th>
+                            <th class="px-4 py-2">XP total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for a in anomalies %}
+                        <tr class="border-b border-stone-100">
+                            <td class="px-4 py-2 font-medium text-stone-800">{{ a.username }}</td>
+                            <td class="px-4 py-2 text-stone-600">{{ a.reason }}</td>
+                            <td class="px-4 py-2 text-paprika-600 font-semibold">{{ a.sessions }}</td>
+                            <td class="px-4 py-2 text-stone-700">{{ a.total_xp }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </section>
+</div>
+
+{# Data payloads — picked up by the Stimulus controller (kept small & JSON-safe) #}
+<script type="application/json" id="stats-unlock-rates">{{ unlockRates|json_encode|raw }}</script>
+<script type="application/json" id="stats-xp-per-day">{{ xpPerDay|json_encode|raw }}</script>
+<script type="application/json" id="stats-sessions-per-mode">{{ sessionsPerMode|json_encode|raw }}</script>
+
+<script nonce="{{ csp_nonce('script') }}" src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script nonce="{{ csp_nonce('script') }}">
+(() => {
+    const parse = (id) => JSON.parse(document.getElementById(id).textContent);
+
+    // Chart 1 — Unlock rate
+    const unlock = parse('stats-unlock-rates');
+    if (unlock.length) {
+        new Chart(document.getElementById('chartUnlockRates'), {
+            type: 'bar',
+            data: {
+                labels: unlock.map(x => x.name),
+                datasets: [{
+                    label: 'Débloqué par (%) des utilisateurs',
+                    data: unlock.map(x => x.unlock_rate),
+                    backgroundColor: '#f59e0b',
+                }],
+            },
+            options: { indexAxis: 'y', scales: { x: { beginAtZero: true, max: 100 } } },
+        });
+    }
+
+    // Chart 2 — XP per day
+    const xp = parse('stats-xp-per-day');
+    new Chart(document.getElementById('chartXpPerDay'), {
+        type: 'line',
+        data: {
+            labels: xp.map(x => x.day),
+            datasets: [
+                { label: 'XP total', data: xp.map(x => x.total_xp), borderColor: '#d97706', fill: false, tension: 0.3 },
+                { label: 'XP moyen / user actif', data: xp.map(x => x.avg_xp_per_user), borderColor: '#a16207', fill: false, tension: 0.3 },
+            ],
+        },
+    });
+
+    // Chart 3 — Sessions / mode (stacked area)
+    const sessions = parse('stats-sessions-per-mode');
+    const days = [...new Set(sessions.map(s => s.day))].sort();
+    const modes = [...new Set(sessions.map(s => s.game_mode))];
+    const palette = ['#f59e0b', '#ef4444', '#eab308', '#84cc16', '#06b6d4', '#a855f7'];
+    const datasets = modes.map((m, i) => ({
+        label: m,
+        data: days.map(d => (sessions.find(s => s.day === d && s.game_mode === m) || { count: 0 }).count),
+        backgroundColor: palette[i % palette.length] + '80',
+        borderColor: palette[i % palette.length],
+        fill: true,
+        stack: 'total',
+    }));
+    new Chart(document.getElementById('chartSessionsPerMode'), {
+        type: 'line',
+        data: { labels: days, datasets },
+        options: { scales: { y: { stacked: true, beginAtZero: true } } },
+    });
+})();
+</script>
+{% endblock %}

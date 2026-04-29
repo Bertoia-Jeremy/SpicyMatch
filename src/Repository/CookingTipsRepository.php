@@ -8,11 +8,6 @@ use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<CookingTips>
- *
- * @method CookingTips|null find($id, $lockMode = null, $lockVersion = null)
- * @method CookingTips|null findOneBy(array $criteria, array $orderBy = null)
- * @method CookingTips[]    findAll()
- * @method CookingTips[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class CookingTipsRepository extends ServiceEntityRepository
 {
@@ -21,6 +16,9 @@ class CookingTipsRepository extends ServiceEntityRepository
         parent::__construct($registry, CookingTips::class);
     }
 
+    /**
+     * @return list<CookingTips>
+     */
     public function findAllByStringIds(string $stringIds): array
     {
         $arrayIds = explode(',', $stringIds);

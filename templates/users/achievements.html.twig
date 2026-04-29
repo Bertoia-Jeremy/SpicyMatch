@@ -11,15 +11,15 @@
 
             {# ── Construire le lookup slug → UserAchievement ─────────────── #}
             {% set unlockedMap = {} %}
-            {% for ua in progression.userAchievements %}
+            {% for ua in userAchievements %}
                 {% set unlockedMap = unlockedMap|merge({ (ua.achievement.slug): ua }) %}
             {% endfor %}
 
             {# ── Stats globales ──────────────────────────────────────────── #}
-            {% set unlockedCount = progression.userAchievements|length %}
+            {% set unlockedCount = userAchievements|length %}
             {% set totalCount = allAchievements|length %}
             {% set xpFromAchievements = 0 %}
-            {% for ua in progression.userAchievements %}
+            {% for ua in userAchievements %}
                 {% set xpFromAchievements = xpFromAchievements + ua.achievement.xpReward %}
             {% endfor %}
             {% set globalPct = totalCount > 0 ? (unlockedCount / totalCount * 100)|round(0) : 0 %}
@@ -45,59 +45,27 @@
                 </div>
             </div>
 
-            {# ── Maps de classes par rarity ───────────────────────────────── #}
-            {% set cardClasses = {
-                'common':    'border-green-300 bg-green-50',
-                'rare':      'border-blue-300 bg-blue-50',
-                'epic':      'border-purple-300 bg-purple-50',
-                'legendary': 'border-turmeric-400 bg-turmeric-300/20',
-            } %}
-            {% set badgeClasses = {
-                'common':    'bg-green-100 text-green-700',
-                'rare':      'bg-blue-100 text-blue-700',
-                'epic':      'bg-purple-100 text-purple-700',
-                'legendary': 'bg-turmeric-300/30 text-turmeric-700',
-            } %}
-            {% set iconCircleClasses = {
-                'common':    'bg-green-100 text-green-600',
-                'rare':      'bg-blue-100 text-blue-600',
-                'epic':      'bg-purple-100 text-purple-600',
-                'legendary': 'bg-turmeric-300/30 text-turmeric-600',
-            } %}
-
             {# ── Grille achievements ──────────────────────────────────────── #}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {% for achievement in allAchievements %}
                     {% set rarity = achievement.rarity.value %}
+                    {% set rarityColors = rarity_colors(achievement.rarity) %}
                     {% set trigger = achievement.trigger.value %}
                     {% set isUnlocked = unlockedMap[achievement.slug] is defined %}
                     {% set ua = isUnlocked ? unlockedMap[achievement.slug] : null %}
 
-                    {# Calcul progression pour cards verrouillées #}
+                    {# Generic progress lookup — driven by AchievementProgress rows persisted
+                       by the gamification manager (ProgressTrackableEvaluator::currentValue). #}
                     {% set progressCurrent = 0 %}
                     {% set progressMax = achievement.triggerValue %}
-                    {% set progressLabel = 'À venir' %}
+                    {% set progressLabel = 'Pas encore commencé' %}
+                    {% set storedProgress = progressByAchievementId[achievement.id] ?? null %}
                     {% if not isUnlocked %}
-                        {% if trigger == 'first_match' %}
-                            {% set progressCurrent = min(progression.totalMatches, 1) %}
-                            {% set progressLabel = progressCurrent ~ ' / 1 mélange' %}
-                        {% elseif trigger == 'n_matches' %}
-                            {% set progressCurrent = min(progression.totalMatches, achievement.triggerValue) %}
-                            {% set progressLabel = progressCurrent ~ ' / ' ~ achievement.triggerValue ~ ' mélanges' %}
-                        {% elseif trigger == 'n_spices_used' %}
-                            {% set progressCurrent = min(progression.uniqueSpicesUsed, achievement.triggerValue) %}
-                            {% set progressLabel = progressCurrent ~ ' / ' ~ achievement.triggerValue ~ ' épices max' %}
-                        {% elseif trigger == 'n_favorites' %}
-                            {% set progressCurrent = min(progression.userAchievements|length, achievement.triggerValue) %}
-                            {% set progressLabel = progressCurrent ~ ' / ' ~ achievement.triggerValue ~ ' favoris' %}
-                        {% elseif trigger == 'spice_read' %}
-                            {% set progressCurrent = min(progression.totalSpicesRead, achievement.triggerValue) %}
-                            {% set progressLabel = progressCurrent ~ ' / ' ~ achievement.triggerValue ~ ' fiches lues' %}
-                        {% elseif trigger == 'reading_streak' %}
-                            {% set progressCurrent = min(progression.longestReadingStreak, achievement.triggerValue) %}
-                            {% set progressLabel = progressCurrent ~ ' / ' ~ achievement.triggerValue ~ ' jours' %}
-                        {% elseif trigger == 'easter_egg_found' %}
-                            {% set progressLabel = 'À découvrir...' %}
+                        {% if trigger == 'easter_egg_found' %}
+                            {% set progressLabel = 'À découvrir…' %}
+                        {% elseif storedProgress %}
+                            {% set progressCurrent = min(storedProgress.progress, achievement.triggerValue) %}
+                            {% set progressLabel = progressCurrent ~ ' / ' ~ achievement.triggerValue %}
                         {% endif %}
                     {% endif %}
                     {% set progressPct = progressMax > 0 ? (progressCurrent / progressMax * 100)|round(0) : 0 %}
@@ -105,10 +73,10 @@
                     {% set isEquipped = isUnlocked and progression.equippedBadge and progression.equippedBadge.id == ua.id %}
                     <div class="relative rounded-2xl p-5 flex flex-col gap-3
                                 {{ isEquipped ? 'border-2 border-stone-800 shadow-md' : 'border' }}
-                                {{ cardClasses[rarity] ?? 'border-stone-200 bg-white' }}
                                 {{ not isUnlocked ? 'opacity-60 grayscale' : '' }}
                                 transition-all duration-200"
-                         x-data="{ equipping: false }">
+                         style="{% if isUnlocked and not isEquipped %}border-color: {{ rarityColors.ring }}50; background-color: {{ rarityColors.bg }}40;{% else %}background-color: white;{% endif %}"
+                         x-data="equipButton">
 
                         {# Indicateur en haut à droite #}
                         <div class="absolute top-3 right-3">
@@ -119,10 +87,10 @@
                             {% endif %}
                         </div>
 
-                        {# Icône centrée dans un cercle coloré #}
+                        {# Icône centrée dans un cercle coloré — driven by RarityExtension hex palette #}
                         <div class="flex justify-center">
-                            <div class="w-14 h-14 rounded-full flex items-center justify-center text-2xl
-                                        {{ isUnlocked ? (iconCircleClasses[rarity] ?? 'bg-turmeric-300/30 text-turmeric-600') : 'bg-stone-200 text-stone-500' }}">
+                            <div class="w-14 h-14 rounded-full flex items-center justify-center text-2xl"
+                                 style="{% if isUnlocked %}background-color: {{ rarityColors.bg }}; color: {{ rarityColors.text }};{% else %}background-color: #e7e5e4; color: #78716c;{% endif %}">
                                 <i class="{{ achievement.icon }}"></i>
                             </div>
                         </div>
@@ -135,7 +103,8 @@
 
                         {# Badges rarity + XP #}
                         <div class="flex items-center justify-center gap-2 flex-wrap">
-                            <span class="text-xs px-2 py-0.5 rounded-full font-medium {{ badgeClasses[rarity] ?? 'bg-stone-100 text-stone-600' }}">
+                            <span class="text-xs px-2 py-0.5 rounded-full font-medium"
+                                  style="background-color: {{ rarityColors.bg }}; color: {{ rarityColors.text }}">
                                     {{ achievement.rarity.label() }}
                             </span>
                             <span class="text-xs px-2 py-0.5 rounded-full bg-turmeric-300/20 text-turmeric-700 font-medium">
@@ -158,25 +127,19 @@
                                     <div class="text-center">
                                         <button type="button"
                                                 :disabled="equipping"
-                                                @click="
-                                                    equipping = true;
-                                                    fetch('{{ path('equip_badge_user', {id: ua.id}) }}', {
-                                                        method: 'POST',
-                                                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                                                        body: '_token={{ csrf_token('equip_badge_' ~ ua.id) }}'
-                                                    }).then(() => {
-                                                        Turbo.visit('{{ path('achievements_user') }}', { action: 'replace' });
-                                                    }).catch(() => { equipping = false; });
-                                                "
+                                                @click="equip"
+                                                data-equip-url="{{ path('equip_badge_user', {id: ua.id}) }}"
+                                                data-equip-token="{{ csrf_token('equip_badge_' ~ ua.id) }}"
+                                                data-equip-redirect="{{ path('achievements_user') }}"
                                                 class="text-xs px-3 py-1 rounded-full border border-saffron-400 text-saffron-700 hover:bg-saffron-50 transition-colors cursor-pointer">
                                             <span x-show="!equipping"><i class="fa-solid fa-shield-halved mr-1"></i>Équiper</span>
                                             <span x-show="equipping" x-cloak><i class="fa-solid fa-spinner fa-spin mr-1"></i>…</span>
                                         </button>
                                     </div>
                                 {% endif %}
-                            {% elseif progressLabel == 'À venir' %}
+                            {% elseif progressLabel == 'Pas encore commencé' %}
                                 <p class="text-center text-xs text-stone-400 italic">
-                                    <i class="fa-solid fa-hourglass-half mr-1"></i>Fonctionnalité à venir
+                                    <i class="fa-solid fa-hourglass-half mr-1"></i>Pas encore commencé
                                 </p>
                             {% else %}
                                 <div class="flex justify-between text-xs text-stone-500 mb-1">

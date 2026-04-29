@@ -28,6 +28,16 @@ turbo-frame[aria-busy="true"] {
   border-radius: 0.5rem;
 }
 
+/* Spotlight overlay — onboarding guided tour */
+.spotlight-overlay {
+  position: fixed;
+  z-index: 55;
+  box-shadow: 0 0 0 9999px rgba(28, 25, 23, 0.6);
+  border-radius: 12px;
+  pointer-events: none;
+  transition: top 0.3s ease, left 0.3s ease, width 0.3s ease, height 0.3s ease;
+}
+
 .bg-noise {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
   background-size: 200px 200px;

@@ -12,6 +12,8 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: GameSessionRepository::class)]
+#[ORM\Index(name: 'idx_gs_user_mode_started', columns: ['user_id', 'game_mode', 'started_at'])]
+#[ORM\Index(name: 'idx_gs_user_finished', columns: ['user_id', 'finished_at'])]
 class GameSession
 {
     #[ORM\Id]
@@ -52,6 +54,21 @@ class GameSession
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $finishedAt = null;
+
+    /**
+     * Server-side timeout for time-limited games (e.g. Hangman in Chef de Partie mode).
+     * Validated on every LiveAction to prevent client-side timer tampering.
+     */
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $expiresAt = null;
+
+    /**
+     * Spice cible présentée dans le briefing pour les modes qui en ont une
+     * (Survival, GuessWho, Hangman, Chrono). Null pour QCM/Intrus.
+     */
+    #[ORM\ManyToOne(targetEntity: Spices::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Spices $targetSpice = null;
 
     /**
      * @var Collection<int, GameQuestion>
@@ -230,5 +247,34 @@ class GameSession
     public function isFinished(): bool
     {
         return $this->isFinished;
+    }
+
+    public function getExpiresAt(): ?\DateTimeImmutable
+    {
+        return $this->expiresAt;
+    }
+
+    public function setExpiresAt(?\DateTimeImmutable $expiresAt): static
+    {
+        $this->expiresAt = $expiresAt;
+
+        return $this;
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->expiresAt !== null && new \DateTimeImmutable() > $this->expiresAt;
+    }
+
+    public function getTargetSpice(): ?Spices
+    {
+        return $this->targetSpice;
+    }
+
+    public function setTargetSpice(?Spices $targetSpice): static
+    {
+        $this->targetSpice = $targetSpice;
+
+        return $this;
     }
 }

@@ -35,7 +35,17 @@ final class GameGamificationHandlerTest extends TestCase
         $this->sessionRepo = $this->createMock(GameSessionRepository::class);
         $this->manager = $this->createMock(GamificationManagerInterface::class);
         $this->em = $this->createMock(EntityManagerInterface::class);
-        $this->handler = new GameGamificationHandler($this->usersRepo, $this->sessionRepo, $this->manager, $this->em);
+        $processedEvents = $this->createMock(\App\Repository\ProcessedGamificationEventRepository::class);
+        $processedEvents->method('claim')
+            ->willReturn(true);
+        $this->handler = new GameGamificationHandler(
+            $this->usersRepo,
+            $this->sessionRepo,
+            $this->manager,
+            $this->em,
+            $processedEvents,
+            new \Psr\Log\NullLogger(),
+        );
     }
 
     public function testReturnsEarlyWhenUserNotFound(): void
@@ -111,6 +121,8 @@ final class GameGamificationHandlerTest extends TestCase
                     'gameMode' => 'qcm', // string, not enum
                     'correctAnswers' => 7,
                     'totalQuestions' => 10,
+                    // `score` mirrors `xpEarned` so GameScoreThresholdEvaluator has a value to test against.
+                    'score' => 42,
                 ]
             );
 

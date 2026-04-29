@@ -22,6 +22,9 @@ class SpicyMatch extends AbstractController
 {
     use DefaultActionTrait;
 
+    /**
+     * @var array{selectedSpices: list<int|string>, compatibleSpices: list<array<string, mixed>>}
+     */
     #[LiveProp(writable: true)]
     public array $spices;
 
@@ -52,16 +55,25 @@ class SpicyMatch extends AbstractController
         ];
     }
 
+    /**
+     * @return list<\App\Entity\AromaticGroups>
+     */
     public function getAromaticGroups(): array
     {
         return $this->aromaticGroupsRepository->findAll();
     }
 
+    /**
+     * @return list<\App\Entity\SpicyType>
+     */
     public function getSpicyTypes(): array
     {
         return $this->spicyTypeRepository->findAll();
     }
 
+    /**
+     * @return array{selectedSpices: array<string, list<array<string, mixed>>>, compatibleSpices: list<array<string, mixed>>}
+     */
     public function getResults(): array
     {
         $selectedSpicesData = [];
@@ -177,8 +189,11 @@ class SpicyMatch extends AbstractController
     ): \Symfony\Component\HttpFoundation\RedirectResponse {
         $isManual = $this->mode === 'manual';
 
+        $user = $this->getUser();
+        \assert($user instanceof \App\Entity\Users || $user === null);
+
         $spicyMatch = $spicyMatchFactory->create();
-        $spicyMatch->setUser($this->getUser());
+        $spicyMatch->setUser($user);
         $spicyMatch->setIsManual($isManual);
 
         // Extraction des IDs depuis la structure SpicyMatch (tableau plat d'IDs)

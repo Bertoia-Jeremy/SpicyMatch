@@ -1,0 +1,32 @@
+sentry:
+    # DSN points at a Glitchtip instance (self-hosted, Sentry-SDK compatible).
+    # Empty/unset DSN disables reporting entirely — safe default for dev.
+    dsn: '%env(default::SENTRY_DSN)%'
+    register_error_handler: true
+
+    options:
+        environment: '%kernel.environment%'
+        release: '%env(default::APP_VERSION)%'
+        # Low-traffic project — sample everything. Lower to 0.1 if volume grows.
+        sample_rate: 1.0
+        traces_sample_rate: 0.0
+        send_default_pii: false
+        attach_stacktrace: true
+        # Filter noisy classes that don't indicate a bug.
+        ignore_exceptions:
+            - Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+            - Symfony\Component\Security\Core\Exception\AccessDeniedException
+            - Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
+            - Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException
+        before_send: 'App\Observability\SentryScrubber'
+
+    messenger:
+        enabled: true
+        # Handler retries are normal — don't report each attempt as a separate issue.
+        capture_soft_fails: false
+
+when@test:
+    sentry:
+        # Never ship test-run exceptions to the real Glitchtip instance.
+        dsn: null
+        register_error_handler: false

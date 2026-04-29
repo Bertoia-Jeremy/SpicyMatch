@@ -12,13 +12,9 @@
     - Le template view.html.twig doit contenir <turbo-frame id="spice_quick_view">
 #}
 <div
-    x-data="{ modalOpen: false, selectedUrl: null, fullPageUrl: null }"
-    @open-spice-modal.window="
-        selectedUrl = $event.detail.url;
-        fullPageUrl = $event.detail.fullUrl ?? $event.detail.url;
-        modalOpen = true;
-    "
-    @keydown.escape.window="modalOpen = false">
+    x-data="quickSpiceView"
+    @open-spice-modal.window="openSpice($event)"
+    @keydown.escape.window="close">
 
     {# ── Overlay + panneau ── #}
     <div
@@ -33,10 +29,11 @@
         x-transition:leave-end="opacity-0">
 
         {# Backdrop #}
-        <div class="modal-backdrop absolute inset-0" @click="modalOpen = false" aria-hidden="true"></div>
+        <div class="modal-backdrop absolute inset-0" @click="close" aria-hidden="true"></div>
 
         {# Panneau #}
         <div
+            data-tour="spice-modal-panel"
             class="relative bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-2xl max-h-[92vh] sm:max-h-[85vh] overflow-y-auto flex flex-col"
             x-transition:enter="transition ease-out duration-250"
             x-transition:enter-start="opacity-0 translate-y-8 sm:translate-y-0 sm:scale-95"
@@ -52,7 +49,7 @@
 
             {# Bouton fermer #}
             <button
-                @click="modalOpen = false"
+                @click="close"
                 class="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center bg-stone-100 hover:bg-stone-200 text-stone-500 rounded-full transition-colors"
                 aria-label="Fermer">
                 <i class="fa-solid fa-xmark text-sm"></i>

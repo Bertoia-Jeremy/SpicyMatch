@@ -73,8 +73,8 @@
 
             {% if allSpices|length > 8 %}
                 <div class="flex items-center bg-stone-100 p-1 rounded-xl">
-                    <button @click="setGrid" :class="!gridMode ? 'bg-white shadow-sm text-saffron-600' : 'text-stone-400'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Slider</button>
-                    <button @click="setList" :class="gridMode ? 'bg-white shadow-sm text-saffron-600' : 'text-stone-400'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Grille</button>
+                    <button @click="setGrid" :class="sliderToggleClass()" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Slider</button>
+                    <button @click="setList" :class="gridToggleClass()" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Grille</button>
                 </div>
             {% endif %}
         </div>

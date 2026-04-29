@@ -13,15 +13,15 @@
   Alpine state is local to this card via `submitting/selected` — keep the grid
   wrapper's x-data for shared state off this macro's surface.
 #}
-{% macro option(option, action, paramName = 'spiceId', sizeClass = 'md', showGroupLine = true) %}
+{% macro option(option, action, paramName = 'spice-id', sizeClass = 'md', showGroupLine = true) %}
     {% set iconBox = sizeClass == 'sm' ? 'w-10 h-10 text-lg' : 'w-12 h-12 text-xl' %}
     <button type="button"
             data-action="live#action"
             data-live-action-param="{{ action }}"
-            data-live-{{ paramName|replace({'_': '-'}) }}-param="{{ option.id }}"
+            data-live-{{ paramName }}-param="{{ option.id }}"
+            data-loading="addAttribute(disabled)"
             @click="pick({{ option.id }})"
-            :class="selected === {{ option.id }} ? 'ring-2 ring-saffron-500 border-saffron-400' : ''"
-            :disabled="submitting"
+            :class="cardClass({{ option.id }})"
             class="relative p-4 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all text-left group disabled:opacity-75 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30">
         <div class="flex items-center gap-3">
             {% if option.file %}

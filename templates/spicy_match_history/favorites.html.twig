@@ -61,7 +61,6 @@
                                     <input x-show="editing"
                                            x-model="title"
                                            x-ref="titleInput"
-                                           x-effect="editing && $nextTick(() => $refs.titleInput?.focus())"
                                            @blur="saveTitle"
                                            @keydown.enter="saveTitle"
                                            @keydown.escape="cancelEdit"

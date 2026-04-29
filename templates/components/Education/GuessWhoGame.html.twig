@@ -106,8 +106,7 @@
                 data-action="live#action"
                 data-live-action-param="guess"
                 data-live-spice-name-param="{{ option }}"
-                @click="guess"
-                :disabled="submitting"
+                data-loading="addAttribute(disabled)"
                 class="w-full text-left px-5 py-3 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all font-medium text-stone-800 disabled:opacity-75 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30">
           {{ option }}
         </button>

@@ -29,18 +29,16 @@
                     {# En-tête cliquable pour replier/déplier #}
                     <button type="button"
                             class="w-full flex items-center gap-3 mb-4 pb-3 border-b text-left group transition-colors duration-300"
-                            :class="isReady({{ spice.id }}) ? 'border-emerald-300' : 'border-spice-border'"
+                            :class="headerBorderClass({{ spice.id }})"
                             @click="toggle">
                         {# Numéro ou checkmark #}
                         <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300"
-                             :class="isReady({{ spice.id }})
-                                 ? 'bg-emerald-100 border border-emerald-400 text-emerald-600'
-                                 : 'bg-spice-surface border border-spice-border text-saffron-700'">
+                             :class="iconCircleClass({{ spice.id }})">
                             <i x-show="isReady({{ spice.id }})" x-transition class="fa-solid fa-check text-sm"></i>
-                            <span x-show="!isReady({{ spice.id }})" class="text-xs font-bold">{{ loop.index }}</span>
+                            <span x-show="isNotReady({{ spice.id }})" class="text-xs font-bold">{{ loop.index }}</span>
                         </div>
                         <h2 class="font-display text-2xl font-bold flex-1 transition-colors duration-300"
-                            :class="isReady({{ spice.id }}) ? 'text-emerald-800' : 'text-stone-900'">
+                            :class="titleClass({{ spice.id }})">
                             {{ spice.name }}
                         </h2>
                         <span x-show="isReady({{ spice.id }})" x-transition
@@ -48,7 +46,7 @@
                             Prête
                         </span>
                         <i class="fa-solid fa-chevron-down text-stone-400 transition-transform duration-200 group-hover:text-saffron-600"
-                           :class="open ? '' : '-rotate-180'"></i>
+                           :class="chevronClass()"></i>
                     </button>
 
                     {# Volet collapsible #}
@@ -103,18 +101,18 @@
                     </div>
                 </div>
                 <div class="w-full max-w-4xl border-t my-6 transition-colors duration-300"
-                     :class="isReady({{ spice.id }}) ? 'border-emerald-300' : 'border-spice-border'"></div>
+                     :class="headerBorderClass({{ spice.id }})"></div>
             </div>
         {% endfor %}
 
         <div class="flex flex-col items-center gap-2 mt-4 mb-8">
-            <a :href="allReady ? '{{ path('view_spicy_match_history', {id: spicyMatchHistory.id}) }}' : '#'"
-               :class="allReady ? '' : 'opacity-40 pointer-events-none cursor-not-allowed'"
+            <a :href="ctaHref('{{ path('view_spicy_match_history', {id: spicyMatchHistory.id}) }}')"
+               :class="ctaClass()"
                class="btn-base btn-pill-primary inline-flex items-center justify-center font-bold text-center transition-all px-7 py-3 text-base gap-2.5">
                 <i class="fa-solid fa-book-open text-sm flex items-center justify-center shrink-0" aria-hidden="true"></i>
-                <span class="truncate" x-text="allReady ? 'Voir ma recette finale' : 'Finalise la préparation de chaque épice'"></span>
+                <span class="truncate" x-text="ctaLabel()"></span>
             </a>
-            <p x-show="!allReady" class="text-stone-400 text-xs mt-1">
+            <p x-show="notAllReady" class="text-stone-400 text-xs mt-1">
                 <span x-text="readyCount"></span> / {{ spices|length }} épice(s) prête(s)
             </p>
         </div>

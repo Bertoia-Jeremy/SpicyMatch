@@ -99,7 +99,6 @@
 <div x-data="onboardingWelcome"
      x-show="visible"
      x-cloak
-     x-effect="document.querySelectorAll('main, nav, footer').forEach(el => { el.inert = visible; });"
      x-transition:enter="transition ease-out duration-300"
      x-transition:enter-start="opacity-0 scale-95"
      x-transition:enter-end="opacity-100 scale-100"
@@ -186,17 +185,16 @@
         <div class="flex items-center justify-between">
             <div class="flex gap-1.5">
                 <template x-for="i in totalSteps" :key="i">
-                    <div :class="i <= currentStep + 1
-                        ? 'w-5 h-1.5 bg-saffron-500 rounded-full'
-                        : 'w-1.5 h-1.5 bg-stone-300 rounded-full'"
+                    <div :class="stepDotClass(i)"
                          class="transition-all duration-300"></div>
                 </template>
             </div>
             <div class="flex gap-2">
                 <button @click="skip" class="text-xs text-stone-500 hover:text-stone-600 transition-colors">Passer</button>
                 <button @click="next"
+                        aria-label="Étape suivante du tutoriel"
                         class="text-xs font-semibold text-white bg-paprika-800 hover:bg-paprika-900 px-3 py-1.5 rounded-full transition-colors">
-                    <span x-text="isLastStep ? 'Terminé !' : 'Suivant →'"></span>
+                    <span x-text="nextLabel()"></span>
                 </button>
             </div>
         </div>

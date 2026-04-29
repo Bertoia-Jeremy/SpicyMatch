@@ -40,26 +40,35 @@ nelmio_security:
             #   - Turbo + app code: self
             default-src:
                 - 'self'
-            # Alpine CSP build (@alpinejs/csp) + assets/alpine_components.js
-            # registry — all x-data literals migrated to named Alpine.data()
-            # components, all event handlers call methods (not inline expr).
-            # No `'unsafe-inline'` needed. See ADR-007 Phase 2.
+            # Alpine.js attribute handlers (`@click="..."`, `x-data="..."`)
+            # require `'unsafe-inline'`. The @alpinejs/csp build was tried but its
+            # parser only supports dot-path access (no method calls / ternary /
+            # comparisons), making most existing templates incompatible without
+            # a full ground-up rewrite. See ADR-007 Phase 2.
+            # Symfony UX Live Component imports `live.min.css` as a JS module;
+            # AssetMapper aliases the CSS to `data:application/javascript,` shim.
             script-src:
                 - 'self'
+                - "'unsafe-inline'"
+                - "'unsafe-eval'" # Alpine.js regular build uses new Function()
                 - 'https://cdn.jsdelivr.net'
+                - 'data:'
             style-src:
                 - 'self'
                 - "'unsafe-inline'" # Tailwind utility classes + inline style="..." for rarity colors
                 - 'https://cdnjs.cloudflare.com'
+                - 'https://fonts.googleapis.com' # Google Fonts CSS
             img-src:
                 - 'self'
                 - 'data:'
                 - 'blob:'
+                - 'https://loremflickr.com' # Spice catalog placeholder images
             connect-src:
                 - 'self'
             font-src:
                 - 'self'
                 - 'https://cdnjs.cloudflare.com'
+                - 'https://fonts.gstatic.com' # Google Fonts WOFF2
                 - 'data:'
             frame-ancestors:
                 - "'none'"

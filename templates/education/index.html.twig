@@ -27,9 +27,7 @@
     {% for mode in modes %}
       <button type="button"
               @click="pickMode('{{ mode.value }}')"
-              :class="selectedMode === '{{ mode.value }}'
-                ? 'ring-2 ring-saffron-500 border-saffron-400 bg-spice-surface'
-                : 'border-stone-200 bg-white hover:bg-cream'"
+              :class="modeCardClass('{{ mode.value }}')"
               class="relative text-left p-5 rounded-2xl border shadow-sm transition-all cursor-pointer group">
         <div class="flex items-center gap-3 mb-3">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600 group-hover:bg-saffron-200 transition-colors">
@@ -71,9 +69,7 @@
             {% for difficulty in difficulties %}
               <button type="button"
                       @click="pickDifficulty('{{ difficulty.value }}')"
-                      :class="selectedDifficulty === '{{ difficulty.value }}'
-                        ? 'bg-saffron-600 text-white'
-                        : 'bg-stone-100 text-stone-700 hover:bg-stone-200'"
+                      :class="difficultyButtonClass('{{ difficulty.value }}')"
                       class="px-4 py-2 rounded-full text-sm font-medium transition-colors">
                 {{ difficulty.label }}
                 <span class="text-xs opacity-75">(×{{ difficulty.xpMultiplier }})</span>
@@ -83,7 +79,7 @@
         </div>
 
         {# All modes go through the briefing first #}
-        <form method="post" action="{{ path('education_briefing') }}">
+        <form method="post" action="{{ path('education_briefing') }}" data-turbo="false">
           <input type="hidden" name="_token" value="{{ csrf_token('education_briefing') }}">
           <input type="hidden" name="mode" :value="selectedMode">
           <input type="hidden" name="difficulty" :value="selectedDifficulty">

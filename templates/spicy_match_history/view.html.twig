@@ -43,17 +43,16 @@
                        @keydown.enter="saveTitle"
                        @keydown.escape="cancelEdit"
                        x-ref="titleInput"
-                       x-effect="if (editing) $nextTick(() => $refs.titleInput.focus())"
                        class="bg-transparent border-b-2 border-saffron-500 text-stone-800 text-4xl font-bold text-center outline-none w-full max-w-lg"
                        placeholder="Nom du mélange">
             </h1>
             <button type="button"
                     @click="toggleFavorite"
                     class="mt-3 text-2xl transition-colors focus:outline-none"
-                    :class="favorite ? 'text-turmeric-500 hover:text-turmeric-400' : 'text-stone-300 hover:text-turmeric-400'"
-                    :title="favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'">
-                <i :class="favorite ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
-                <span class="text-sm font-medium" x-text="favorite ? 'Dans vos favoris' : 'Ajouter aux favoris'"></span>
+                    :class="starButtonClass()"
+                    :title="starTitle()">
+                <i :class="starIconClass()"></i>
+                <span class="text-sm font-medium" x-text="starLabel()"></span>
             </button>
         </div>
 

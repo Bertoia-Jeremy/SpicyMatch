@@ -33,10 +33,10 @@
 
             {# Column 2: Navigation #}
             <div>
-                <h4 class="text-white font-bold text-lg mb-8 relative inline-block">
+                <h3 class="text-white font-bold text-lg mb-8 relative inline-block">
                     Navigation
                     <span class="absolute -bottom-2 left-0 w-8 h-1 bg-saffron-500 rounded-full"></span>
-                </h4>
+                </h3>
                 <ul class="space-y-4 list-none p-0">
                     <li><a href="{{ path('home') }}" class="text-cream/60 hover:text-saffron-400 transition-colors text-sm flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all"></i>Accueil</a></li>
                     <li><a href="{{ path('index_spices') }}" class="text-cream/60 hover:text-saffron-400 transition-colors text-sm flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all"></i>Catalogue des épices</a></li>
@@ -48,10 +48,10 @@
 
             {# Column 3: Science #}
             <div>
-                <h4 class="text-white font-bold text-lg mb-8 relative inline-block">
+                <h3 class="text-white font-bold text-lg mb-8 relative inline-block">
                     Science & Art
                     <span class="absolute -bottom-2 left-0 w-8 h-1 bg-saffron-500 rounded-full"></span>
-                </h4>
+                </h3>
                 <ul class="space-y-4 list-none p-0">
                     <li><a href="{{ path('index_aromatic_compound') }}" class="text-cream/60 hover:text-saffron-400 transition-colors text-sm flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all"></i>Composés aromatiques</a></li>
                     <li><a href="{{ path('index_aromatic_groups') }}" class="text-cream/60 hover:text-saffron-400 transition-colors text-sm flex items-center gap-2 group"><i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all"></i>Groupes de saveurs</a></li>
@@ -62,10 +62,10 @@
 
             {# Column 4: Newsletter / Account #}
             <div>
-                <h4 class="text-white font-bold text-lg mb-8 relative inline-block">
+                <h3 class="text-white font-bold text-lg mb-8 relative inline-block">
                     Expérience
                     <span class="absolute -bottom-2 left-0 w-8 h-1 bg-saffron-500 rounded-full"></span>
-                </h4>
+                </h3>
                 <div class="space-y-4">
                     <p class="text-cream/50 text-xs italic leading-relaxed">
                         Rejoignez notre communauté de passionnés et recevez nos dernières découvertes alchimiques.
@@ -117,6 +117,7 @@
                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                 x-transition:leave-end="opacity-0 translate-y-4 scale-90"
                 @click="scrollUp"
+                aria-label="Retour en haut de la page"
                 class="w-12 h-12 rounded-2xl bg-saffron-600 hover:bg-saffron-500 text-white
                        shadow-2xl shadow-saffron-900/40 flex items-center justify-center
                        transition-all duration-300 group cursor-pointer border border-saffron-400/20">

@@ -67,7 +67,6 @@
                                         <input x-show="editing"
                                                x-model="title"
                                                x-ref="titleInput"
-                                               x-effect="editing && $nextTick(() => $refs.titleInput?.focus())"
                                                @blur="saveTitle"
                                                @keydown.enter="saveTitle"
                                                @keydown.escape="cancelEdit"
@@ -93,9 +92,9 @@
                                     <button type="button"
                                             @click.stop="toggleFavorite"
                                             class="text-xl transition-colors focus:outline-none"
-                                            :class="favorite ? 'text-turmeric-500 hover:text-turmeric-400' : 'text-stone-300 hover:text-turmeric-400'"
-                                            :title="favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'">
-                                        <i :class="favorite ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
+                                            :class="starButtonClass()"
+                                            :title="starTitle()">
+                                        <i :class="starIconClass()"></i>
                                     </button>
                                     <span class="text-sm text-stone-400">{{ history.createdAt|date('d/m/Y') }}</span>
                                     <a href="{{ path('view_spicy_match_history', {'id': history.id}) }}"

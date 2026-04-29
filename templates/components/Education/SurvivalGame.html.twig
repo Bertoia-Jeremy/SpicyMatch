@@ -38,7 +38,7 @@
 
     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" x-data="submitOnceGrid">
       {% for spice in this.startingSpices %}
-        {{ option_card.option(spice, 'start', 'spiceId', 'sm', true) }}
+        {{ option_card.option(spice, 'start', 'spice-id', 'sm', true) }}
       {% endfor %}
     </div>
 
@@ -69,7 +69,7 @@
 
     <div class="grid grid-cols-2 gap-4" x-data="submitOnceGrid">
       {% for option in this.options %}
-        {{ option_card.option(option, 'pick', 'spiceId', 'md', false) }}
+        {{ option_card.option(option, 'pick', 'spice-id', 'md', false) }}
       {% endfor %}
     </div>
   {% endif %}

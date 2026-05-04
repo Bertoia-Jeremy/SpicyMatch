@@ -23,6 +23,7 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
 class SurvivalGame extends AbstractController
 {
     use DefaultActionTrait;
+    use GameSessionTrait;
 
     #[LiveProp]
     public string $difficulty = 'easy';
@@ -100,9 +101,7 @@ class SurvivalGame extends AbstractController
     #[LiveAction]
     public function start(#[LiveArg] int $spiceId): void
     {
-        $session = $this->requestStack->getSession();
-        $secretKey = 'game_' . $this->gameToken;
-        $secret = $session->get($secretKey, []);
+        $secret = $this->readSecret();
 
         // Replay guard: only honor start() if the session has no current spice yet.
         if (($secret['currentSpiceId'] ?? null) !== null) {
@@ -133,9 +132,7 @@ class SurvivalGame extends AbstractController
         }
 
         // Validate server-side from session secret
-        $session = $this->requestStack->getSession();
-        $secretKey = 'game_' . $this->gameToken;
-        $secret = $session->get($secretKey, []);
+        $secret = $this->readSecret();
         $compatibleIds = $secret['compatibleIds'] ?? [];
         $sessionCurrent = $secret['currentSpiceId'] ?? null;
 
@@ -169,7 +166,7 @@ class SurvivalGame extends AbstractController
         ++$this->chainLength;
         // Mirror in session for authoritative finish() read.
         $secret['chainLength'] = $this->chainLength;
-        $session->set($secretKey, $secret);
+        $this->writeSecret($secret);
         $this->usedIds[] = $spiceId;
 
         $spice = $this->findSpiceById($spiceId);
@@ -196,8 +193,7 @@ class SurvivalGame extends AbstractController
         $user = $this->getUser();
 
         // Authoritative chainLength from session, never LiveProp.
-        $session = $this->requestStack->getSession();
-        $secret = $session->get('game_' . $this->gameToken, []);
+        $secret = $this->readSecret();
         $serverChain = (int) ($secret['chainLength'] ?? 0);
 
         $durationSeconds = time() - $this->startedAt;
@@ -205,14 +201,13 @@ class SurvivalGame extends AbstractController
         $gameSession = $this->sessionManager->createFinishedSession(
             $user,
             GameMode::SURVIVAL,
-            GameDifficulty::from($this->difficulty),
+            GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY,
             $serverChain,
             max($serverChain, 1),
             $durationSeconds,
         );
 
-        $this->requestStack->getSession()
-            ->remove('game_' . $this->gameToken);
+        $this->removeSecret();
 
         return $this->redirectToRoute('education_result', [
             'id' => $gameSession->getId(),
@@ -248,7 +243,7 @@ class SurvivalGame extends AbstractController
             return;
         }
 
-        $gameDifficulty = GameDifficulty::from($this->difficulty);
+        $gameDifficulty = GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY;
         $options = $this->academyManager->generateSurvivalOptions($spice, $gameDifficulty, $this->usedIds);
 
         $this->options = array_map(fn (array $o) => [
@@ -268,11 +263,10 @@ class SurvivalGame extends AbstractController
             }
         }
 
-        $this->requestStack->getSession()
-            ->set('game_' . $this->gameToken, [
-                'compatibleIds' => $compatibleIds,
-                'currentSpiceId' => $this->currentSpiceId,
-            ]);
+        $this->writeSecret([
+            'compatibleIds' => $compatibleIds,
+            'currentSpiceId' => $this->currentSpiceId,
+        ]);
     }
 
     /**

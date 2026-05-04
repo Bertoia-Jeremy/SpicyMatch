@@ -15,10 +15,20 @@
 
   Any optional arg left null simply skips its rendering.
 #}
-{% macro header(icon, title, subtitle = null, current = null, total = null, scoreLabel = null) %}
+{% macro header(icon, title, subtitle = null, current = null, total = null, scoreLabel = null, quitUrl = null) %}
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600">
+            {% if quitUrl %}
+                <button type="button"
+                        x-data="confirmQuit('{{ quitUrl }}')"
+                        @click="quit()"
+                        data-turbo="false"
+                        aria-label="Quitter la partie"
+                        class="btn-pill-outline text-sm py-1.5 px-3 shrink-0">
+                    <i class="fa-solid fa-arrow-left text-xs mr-1.5" aria-hidden="true"></i>Retour
+                </button>
+            {% endif %}
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600 shrink-0">
                 <i class="{{ icon }}"></i>
             </div>
             <div>

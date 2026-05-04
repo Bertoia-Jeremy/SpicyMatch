@@ -22,6 +22,7 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
 class ChronoGame extends AbstractController
 {
     use DefaultActionTrait;
+    use GameSessionTrait;
 
     #[LiveProp]
     public string $difficulty = 'easy';
@@ -62,6 +63,9 @@ class ChronoGame extends AbstractController
     public bool $isFinished = false;
 
     #[LiveProp]
+    public bool $isInCooldown = false;
+
+    #[LiveProp]
     public bool $lastAnswerCorrect = false;
 
     #[LiveProp]
@@ -92,40 +96,48 @@ class ChronoGame extends AbstractController
         $this->gameToken = bin2hex(random_bytes(8));
         $this->startedAt = time();
 
-        $gameDifficulty = GameDifficulty::from($this->difficulty);
+        $gameDifficulty = GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY;
         $this->timeLimit = $this->academyManager->getChronoTimeLimit($gameDifficulty);
 
-        // Init session avant generateQuestion (qui y mergera correctName + questionStartedAt)
-        $this->requestStack->getSession()
-            ->set('game_' . $this->gameToken, [
-                'startedAt' => $this->startedAt,
-            ]);
+        $secret = [
+            'startedAt' => $this->startedAt,
+            'timeLimit' => $this->timeLimit,
+        ];
 
-        $this->generateQuestion();
+        $this->generateQuestion($secret);
+        $this->writeSecret($secret);
     }
 
     #[LiveAction]
-    public function answer(#[LiveArg] string $spiceName): void
+    public function answer(#[LiveArg] string $spiceName): ?RedirectResponse
     {
         if ($this->isFinished) {
-            return;
+            return null;
         }
 
-        $session = $this->requestStack->getSession();
-        $secretKey = 'game_' . $this->gameToken;
-        $secret = $session->get($secretKey, []);
+        $secret = $this->readSecret();
         $correctName = $secret['correctName'] ?? '';
         $questionStartedAt = $secret['questionStartedAt'] ?? null;
 
-        // Replay guard: questionStartedAt is consumed on each answer → null until next generate.
         if ($questionStartedAt === null) {
-            return;
+            return null;
         }
+
+        // Anti-farming: ignore clicks during wrong-answer cooldown.
+        if (time() < ($secret['wrongAnswerCooldown'] ?? 0)) {
+            $this->isInCooldown = true;
+
+            return null;
+        }
+
+        $this->isInCooldown = false;
 
         $serverCorrectCount = $secret['correctCount'] ?? 0;
         $serverQuestions = $secret['questionsAnswered'] ?? 0;
         $serverScore = $secret['totalScore'] ?? 0;
         $serverStreak = $secret['streak'] ?? 0;
+        $serverStartedAt = (int) ($secret['startedAt'] ?? $this->startedAt);
+        $serverTimeLimit = (int) ($secret['timeLimit'] ?? $this->timeLimit);
 
         $isCorrect = $spiceName === $correctName;
         $serverElapsed = time() - $questionStartedAt;
@@ -143,71 +155,66 @@ class ChronoGame extends AbstractController
             ++$this->correctCount;
             ++$this->streak;
 
-            // Base points
-            $base = 10;
+            $gameDifficulty = GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY;
+            [$t1, $t2] = match ($gameDifficulty) {
+                GameDifficulty::EASY   => [8, 12],
+                GameDifficulty::MEDIUM => [4, 8],
+                GameDifficulty::HARD   => [3, 6],
+            };
+            $base = match (true) {
+                $serverElapsed < $t1 => 5,
+                $serverElapsed < $t2 => 3,
+                default => 1,
+            };
 
-            // Speed bonus — tightened thresholds to account for ~300 ms LC round-trip.
-            if ($serverElapsed <= 2) {
-                $base *= 2;
-            } elseif ($serverElapsed <= 4) {
-                $base = (int) ($base * 1.5);
-            }
+            $streakBonus = min(max($serverStreak - 1, 0), 3);
 
-            // Streak bonus
-            if ($serverStreak >= 5) {
-                $base *= 2;
-            } elseif ($serverStreak >= 3) {
-                $base = (int) ($base * 1.5);
-            }
-
-            $points = $base;
+            $points = $base + $streakBonus;
             $serverScore += $points;
             $this->totalScore += $points;
         } else {
             $serverStreak = 0;
             $this->streak = 0;
+            $secret['wrongAnswerCooldown'] = time() + 2;
         }
 
         $this->lastPointsEarned = $points;
 
-        // Persist authoritative state to session; mirror kept on LiveProps for UI.
         $secret['correctCount'] = $serverCorrectCount;
         $secret['questionsAnswered'] = $serverQuestions;
         $secret['totalScore'] = $serverScore;
         $secret['streak'] = $serverStreak;
         $secret['questionStartedAt'] = null;
-        $session->set($secretKey, $secret);
 
-        // Check if global time is up (server-side validation)
-        $totalElapsed = time() - $this->startedAt;
+        if (time() - $serverStartedAt >= $serverTimeLimit + 3) {
+            $this->writeSecret($secret);
 
-        if ($totalElapsed >= $this->timeLimit + 3) {
-            $this->isFinished = true;
-
-            return;
+            return $this->finish();
         }
 
-        // Generate next question immediately (no feedback pause in chrono)
-        $this->generateQuestion();
+        // generateQuestion modifie $secret par référence, writeSecret une seule fois
+        $this->generateQuestion($secret);
+        $this->writeSecret($secret);
+
+        return null;
     }
 
     #[LiveAction]
-    public function timeout(): void
+    public function timeout(): ?RedirectResponse
     {
         if ($this->isFinished) {
-            return;
+            return null;
         }
 
-        // Server-side validation: only accept timeout once the actual limit has elapsed
-        // (no early-finish window — prevents client triggering finish while the current
-        // question still accepts answers).
-        $totalElapsed = time() - $this->startedAt;
+        $secret = $this->readSecret();
+        $serverStartedAt = (int) ($secret['startedAt'] ?? 0);
+        $serverTimeLimit = (int) ($secret['timeLimit'] ?? $this->timeLimit);
 
-        if ($totalElapsed < $this->timeLimit) {
-            return;
+        if ($serverStartedAt > 0 && time() - $serverStartedAt < $serverTimeLimit - 5) {
+            return null;
         }
 
-        $this->isFinished = true;
+        return $this->finish();
     }
 
     #[LiveAction]
@@ -216,39 +223,48 @@ class ChronoGame extends AbstractController
         /** @var Users $user */
         $user = $this->getUser();
 
-        // Authoritative counts come from session, never LiveProps.
-        $session = $this->requestStack->getSession();
-        $secret = $session->get('game_' . $this->gameToken, []);
+        $secret = $this->readSecret();
+
+        // Guard: orphan token (session already consumed or never started properly)
+        if (empty($secret)) {
+            return $this->redirectToRoute('education_index');
+        }
+
         $serverCorrect = (int) ($secret['correctCount'] ?? 0);
         $serverQuestions = (int) ($secret['questionsAnswered'] ?? 0);
+        $serverStartedAt = (int) ($secret['startedAt'] ?? $this->startedAt);
 
-        $durationSeconds = time() - $this->startedAt;
+        $durationSeconds = time() - $serverStartedAt;
+        $serverScore = (int) ($secret['totalScore'] ?? 0);
 
         $gameSession = $this->sessionManager->createFinishedSession(
             $user,
             GameMode::CHRONO,
-            GameDifficulty::from($this->difficulty),
+            GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY,
             $serverCorrect,
             max($serverQuestions, 1),
             $durationSeconds,
+            null,
+            $serverScore,
         );
 
-        $this->requestStack->getSession()
-            ->remove('game_' . $this->gameToken);
+        $this->removeSecret();
 
         return $this->redirectToRoute('education_result', [
             'id' => $gameSession->getId(),
         ]);
     }
 
-    private function generateQuestion(): void
+    /**
+     * @param array<string, mixed> $secret passed by reference — caller is responsible for persisting to session
+     */
+    private function generateQuestion(array &$secret): void
     {
-        $gameDifficulty = GameDifficulty::from($this->difficulty);
+        $gameDifficulty = GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY;
 
         $card = $this->academyManager->getRandomSpiceCard($this->recentIds);
 
         if ($card === null) {
-            // Reset recent to allow cycling
             $this->recentIds = [];
             $card = $this->academyManager->getRandomSpiceCard();
         }
@@ -259,26 +275,20 @@ class ChronoGame extends AbstractController
             return;
         }
 
-        // Keep only last 5 in recent
         $this->recentIds[] = $card['id'];
 
-        if (count($this->recentIds) > 5) {
+        if (\count($this->recentIds) > 5) {
             $this->recentIds = array_slice($this->recentIds, -5);
         }
 
-        // Only the ID travels to the client — full card is resolved at render time.
         $this->currentCardId = (int) $card['id'];
 
-        // Generate name options
         $optionsCount = $this->academyManager->getChronoOptionsCount($gameDifficulty);
         $this->nameOptions = $this->academyManager->generateNameOptions($card['name'], $optionsCount);
 
-        // Store correct name in session
-        $session = $this->requestStack->getSession();
-        $secret = $session->get('game_' . $this->gameToken, []);
+        // Modifie le secret par référence — le caller persiste en session
         $secret['correctName'] = $card['name'];
         $secret['questionStartedAt'] = time();
-        $session->set('game_' . $this->gameToken, $secret);
     }
 
     /**
@@ -309,7 +319,7 @@ class ChronoGame extends AbstractController
 
         return $this->resolvedCardCache = $this->buildDisplayCard(
             $cards[$this->currentCardId],
-            GameDifficulty::from($this->difficulty),
+            GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY,
         );
     }
 

@@ -8,7 +8,6 @@ use App\Entity\Users;
 use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use App\Service\Education\AcademyManager;
-use App\Service\Education\DifficultyRuleApplier;
 use App\Service\Education\GameSessionManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -23,6 +22,7 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
 class HangmanGame extends AbstractController
 {
     use DefaultActionTrait;
+    use GameSessionTrait;
 
     #[LiveProp]
     public string $difficulty = 'easy';
@@ -34,10 +34,13 @@ class HangmanGame extends AbstractController
     public int $questionNumber = 0;
 
     #[LiveProp]
-    public int $totalQuestions = 8;
+    public int $totalQuestions = 7;
 
     #[LiveProp]
     public int $correctCount = 0;
+
+    #[LiveProp]
+    public int $incorrectCount = 0;
 
     #[LiveProp]
     public string $maskedWord = '';
@@ -76,21 +79,6 @@ class HangmanGame extends AbstractController
     public int $startedAt = 0;
 
     /**
-     * Server-side expiration timestamp (anti-cheat).
-     */
-    #[LiveProp]
-    public int $expiresAt = 0;
-
-    /**
-     * Time limit in seconds for display.
-     */
-    #[LiveProp]
-    public int $timeLimit = 60;
-
-    #[LiveProp]
-    public bool $isTimedOut = false;
-
-    /**
      * @var int[]
      */
     #[LiveProp]
@@ -99,7 +87,6 @@ class HangmanGame extends AbstractController
     public function __construct(
         private readonly AcademyManager $academyManager,
         private readonly GameSessionManager $sessionManager,
-        private readonly DifficultyRuleApplier $difficultyRuleApplier,
         private readonly RequestStack $requestStack,
     ) {
     }
@@ -110,48 +97,26 @@ class HangmanGame extends AbstractController
         $this->gameToken = bin2hex(random_bytes(8));
         $this->startedAt = time();
 
-        $gameDifficulty = GameDifficulty::from($this->difficulty);
+        $gameDifficulty = GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY;
         $this->maxErrors = $this->academyManager->getHangmanMaxErrors($gameDifficulty);
-        $this->timeLimit = $this->difficultyRuleApplier->hangmanTimeLimitSeconds($gameDifficulty);
-        $this->expiresAt = time() + $this->timeLimit;
 
-        // Server-side authoritative expiresAt: the LiveProp is mirrored but NEVER trusted on server.
-        $this->requestStack->getSession()
-            ->set('game_' . $this->gameToken, [
-                'expiresAt' => $this->expiresAt,
-                'correctCount' => 0,
-                'completedWords' => [],
-            ]);
+        $this->writeSecret([
+            'correctCount' => 0,
+            'completedWords' => [],
+            'questions' => [],
+        ]);
 
         $this->generateWord();
     }
 
     #[LiveAction]
-    public function timeout(): void
-    {
-        $this->isTimedOut = true;
-        $this->isFinished = true;
-    }
-
-    #[LiveAction]
     public function guessLetter(#[LiveArg] string $letter): void
     {
-        if ($this->wordSolved || $this->wordFailed || $this->isFinished) {
+        if ($this->showFeedback || $this->wordSolved || $this->wordFailed || $this->isFinished) {
             return;
         }
 
-        $session = $this->requestStack->getSession();
-        $secretKey = 'game_' . $this->gameToken;
-        $secret = $session->get($secretKey, []);
-
-        // Server-side timer validation — expiresAt is read from session, NOT LiveProp.
-        $serverExpiresAt = $secret['expiresAt'] ?? 0;
-        if ($serverExpiresAt > 0 && time() > $serverExpiresAt) {
-            $this->isTimedOut = true;
-            $this->isFinished = true;
-
-            return;
-        }
+        $secret = $this->readSecret();
 
         $normalized = $this->academyManager->normalizeChar($letter);
 
@@ -164,9 +129,10 @@ class HangmanGame extends AbstractController
 
         $serverGuessed[] = $normalized;
         $secret['guessedLetters'] = $serverGuessed;
-        $session->set($secretKey, $secret);
+        $this->writeSecret($secret);
 
-        $this->guessedLetters[] = $normalized;
+        // Sync LiveProp from session (source of truth) — avoids stale client state
+        $this->guessedLetters = $serverGuessed;
 
         $word = $secret['word'] ?? '';
 
@@ -180,8 +146,7 @@ class HangmanGame extends AbstractController
             ++$this->errorsCount;
         }
 
-        // Update mask
-        $this->maskedWord = $this->academyManager->buildMask($word, $this->guessedLetters);
+        $this->maskedWord = $this->academyManager->buildMask($word, $serverGuessed);
 
         // Check win: no underscores left
         if (! str_contains($this->maskedWord, '_')) {
@@ -194,21 +159,45 @@ class HangmanGame extends AbstractController
                 $completed[] = $this->questionNumber;
                 $secret['completedWords'] = $completed;
                 $secret['correctCount'] = \count($completed);
-                $session->set($secretKey, $secret);
                 ++$this->correctCount;
+
+                $questions = $secret['questions'] ?? [];
+                $questions[] = [
+                    'questionIndex' => $this->questionNumber - 1,
+                    'prompt' => $this->hint ?: 'Devine l\'épice',
+                    'correctAnswer' => $word,
+                    'answerGiven' => $word,
+                    'isCorrect' => true,
+                ];
+                $secret['questions'] = $questions;
+                $this->writeSecret($secret);
             }
+
+            return;
         }
 
         // Check lose
         if ($this->errorsCount >= $this->maxErrors) {
             $this->wordFailed = true;
+            ++$this->incorrectCount;
             $this->revealedWord = $word;
             $this->showFeedback = true;
+
+            $questions = $secret['questions'] ?? [];
+            $questions[] = [
+                'questionIndex' => $this->questionNumber - 1,
+                'prompt' => $this->hint ?: 'Devine l\'épice',
+                'correctAnswer' => $word,
+                'answerGiven' => '—',
+                'isCorrect' => false,
+            ];
+            $secret['questions'] = $questions;
+            $this->writeSecret($secret);
         }
     }
 
     #[LiveAction]
-    public function nextWord(): void
+    public function nextWord(): ?RedirectResponse
     {
         $this->showFeedback = false;
         $this->wordSolved = false;
@@ -218,48 +207,52 @@ class HangmanGame extends AbstractController
         $this->errorsCount = 0;
 
         if ($this->questionNumber >= $this->totalQuestions) {
-            $this->isFinished = true;
-
-            return;
+            return $this->doFinish();
         }
 
-        // Reset timer for the new word — authoritative value stored in session.
-        $this->expiresAt = time() + $this->timeLimit;
-        $session = $this->requestStack->getSession();
-        $secretKey = 'game_' . $this->gameToken;
-        $secret = $session->get($secretKey, []);
-        $secret['expiresAt'] = $this->expiresAt;
-        $session->set($secretKey, $secret);
-
         $this->generateWord();
+
+        if ($this->isFinished) {
+            return $this->doFinish();
+        }
+
+        return null;
     }
 
     #[LiveAction]
     public function finish(): RedirectResponse
     {
+        return $this->doFinish();
+    }
+
+    private function doFinish(): RedirectResponse
+    {
         /** @var Users $user */
         $user = $this->getUser();
 
-        // Authoritative counts from session, never LiveProps.
-        $session = $this->requestStack->getSession();
-        $secret = $session->get('game_' . $this->gameToken, []);
+        $secret = $this->readSecret();
+
+        // Guard: orphan token
+        if (empty($secret)) {
+            return $this->redirectToRoute('education_index');
+        }
+
         $serverCorrect = (int) ($secret['correctCount'] ?? 0);
-        $completed = $secret['completedWords'] ?? [];
-        $totalWords = max(\count($completed), 1);
+        $questionHistory = $secret['questions'] ?? [];
 
         $durationSeconds = time() - $this->startedAt;
 
         $gameSession = $this->sessionManager->createFinishedSession(
             $user,
             GameMode::HANGMAN,
-            GameDifficulty::from($this->difficulty),
+            GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY,
             $serverCorrect,
-            $totalWords,
+            $this->questionNumber,
             $durationSeconds,
         );
 
-        $this->requestStack->getSession()
-            ->remove('game_' . $this->gameToken);
+        $this->sessionManager->addQuestionsToSession($gameSession, $questionHistory);
+        $this->removeSecret();
 
         return $this->redirectToRoute('education_result', [
             'id' => $gameSession->getId(),
@@ -269,7 +262,7 @@ class HangmanGame extends AbstractController
     private function generateWord(): void
     {
         ++$this->questionNumber;
-        $gameDifficulty = GameDifficulty::from($this->difficulty);
+        $gameDifficulty = GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY;
         $this->maxErrors = $this->academyManager->getHangmanMaxErrors($gameDifficulty);
 
         $spice = $this->academyManager->pickHangmanSpice($gameDifficulty, $this->usedSpiceIds);
@@ -284,22 +277,23 @@ class HangmanGame extends AbstractController
         $this->usedSpiceIds[] = $spice->getId();
         $word = $spice->getName();
 
-        // Build hint by difficulty
         $this->hint = match ($gameDifficulty) {
             GameDifficulty::EASY => sprintf('Famille : %s', $spice->getAromaticGroups()?->getName() ?? '?'),
             GameDifficulty::MEDIUM => sprintf('Type : %s', $spice->getSpicyType()?->getName() ?? '?'),
             GameDifficulty::HARD => '',
         };
 
-        // Pre-reveal common French tool words
         $this->guessedLetters = [];
         $this->maskedWord = $this->academyManager->buildMask($word, $this->guessedLetters);
 
-        // Store secret in session — reset guessedLetters on new word.
-        $this->requestStack->getSession()
-            ->set('game_' . $this->gameToken, [
-                'word' => $word,
-                'guessedLetters' => [],
-            ]);
+        // Preserve accumulated session state (correctCount, completedWords, questions).
+        $previous = $this->readSecret();
+        $this->writeSecret([
+            'word' => $word,
+            'guessedLetters' => [],
+            'correctCount' => $previous['correctCount'] ?? 0,
+            'completedWords' => $previous['completedWords'] ?? [],
+            'questions' => $previous['questions'] ?? [],
+        ]);
     }
 }

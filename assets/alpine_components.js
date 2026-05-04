@@ -110,12 +110,105 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
+    Alpine.data('confirmQuit', (url) => ({
+        quit() {
+            if (confirm('Quitter la partie ? Ta progression sera perdue.')) {
+                window.location.href = url;
+            }
+        },
+    }));
+
+    Alpine.data('answerOnce', () => ({
+        answered: false,
+        pick() { this.answered = true; },
+        isAnswered() { return this.answered; },
+    }));
+
     Alpine.data('hangmanKeyboard', () => ({
-        submitting: false,
-        guess() {
-            if (this.submitting) return false;
-            this.submitting = true;
-            return true;
+        pending: {},
+
+        init() {
+            new MutationObserver(() => { this.pending = {}; })
+                .observe(this.$el, { attributes: true, attributeFilter: ['data-word-num'] });
+        },
+
+        guess(letter) {
+            this.pending[letter] = true;
+        },
+
+        isPending(letter) {
+            return !!this.pending[letter];
+        },
+    }));
+
+    Alpine.data('guessWhoAutocomplete', (allNames) => ({
+        query: '',
+        suggestions: [],
+        selectedIndex: -1,
+        selectedGuess: '',
+
+        init() {
+            this.$nextTick(() => {
+                if (this.$refs.queryInput) this.$refs.queryInput.focus();
+            });
+        },
+
+        normalizeStr(s) {
+            return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+        },
+
+        filter() {
+            const q = this.normalizeStr(this.query);
+            if (q.length < 2) {
+                this.suggestions = [];
+                this.selectedIndex = -1;
+                return;
+            }
+            this.suggestions = allNames
+                .filter(n => this.normalizeStr(n).includes(q))
+                .slice(0, 6);
+            this.selectedIndex = -1;
+        },
+
+        arrowDown() {
+            this.selectedIndex = Math.min(this.selectedIndex + 1, this.suggestions.length - 1);
+        },
+
+        arrowUp() {
+            this.selectedIndex = Math.max(this.selectedIndex - 1, -1);
+        },
+
+        pick(name) {
+            this.selectedGuess = name;
+            this.query = name;
+            this.suggestions = [];
+            this.selectedIndex = -1;
+            const btn = this.$refs.submitGuessBtn;
+            if (!btn) return;
+            this.$nextTick(() => { if (btn.isConnected) btn.click(); });
+        },
+
+        submitEnter() {
+            if (this.selectedIndex >= 0 && this.suggestions[this.selectedIndex]) {
+                this.pick(this.suggestions[this.selectedIndex]);
+                return;
+            }
+            const q = this.normalizeStr(this.query);
+            const exact = allNames.find(n => this.normalizeStr(n) === q);
+            if (exact) this.pick(exact);
+        },
+
+        closeSuggestions() {
+            this.suggestions = [];
+            this.selectedIndex = -1;
+        },
+
+        hasSuggestions() {
+            return this.suggestions.length > 0;
+        },
+
+        suggestionClass(index) {
+            return index === this.selectedIndex ? 'bg-saffron-50 text-saffron-800' : 'text-stone-800';
         },
     }));
 
@@ -216,6 +309,17 @@ export default function registerAlpineComponents(Alpine) {
     }));
 
     /* ─── Education ───────────────────────────────────────────────────── */
+    Alpine.data('difficultySelector', (initial = 'easy') => ({
+        difficulty: initial,
+        pick(diff) { this.difficulty = diff; },
+        buttonClass(diff) {
+            return this.difficulty === diff
+                ? 'border-saffron-500 bg-saffron-50 text-saffron-700 ring-2 ring-saffron-200'
+                : 'border-stone-200 bg-white text-stone-700 hover:border-saffron-300 hover:bg-cream';
+        },
+        isSelected(diff) { return this.difficulty === diff; },
+    }));
+
     Alpine.data('modeSelector', (defaultMode = '', defaultDifficulty = 'easy') => ({
         selectedMode: defaultMode,
         selectedDifficulty: defaultDifficulty,

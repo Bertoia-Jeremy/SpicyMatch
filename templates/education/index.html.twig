@@ -20,20 +20,25 @@
   {% endfor %}
 
   {# Mode selection cards #}
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10"
-       data-tour="game-grid"
-       x-data="modeSelector('{{ app.request.query.get('mode') ?? '' }}', 'easy')">
-
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
     {% for mode in modes %}
-      <button type="button"
-              @click="pickMode('{{ mode.value }}')"
-              :class="modeCardClass('{{ mode.value }}')"
-              class="relative text-left p-5 rounded-2xl border shadow-sm transition-all cursor-pointer group">
+      {% set count = dailyCounts[mode.value] ?? 0 %}
+      {% set remaining = maxDailySessions - count %}
+      {% set cardUrl = path('education_briefing', { mode: mode.value, difficulty: userDifficulty }) %}
+      {% if remaining <= 0 %}
+      <a href="{{ cardUrl }}"
+         aria-disabled="true"
+         tabindex="-1"
+         class="relative block p-5 rounded-2xl border shadow-sm opacity-60 pointer-events-none bg-white border-stone-200">
+      {% else %}
+      <a href="{{ cardUrl }}"
+         class="relative block p-5 rounded-2xl border shadow-sm transition-all cursor-pointer group hover:border-saffron-300 hover:shadow-md hover:bg-cream bg-white border-stone-200">
+      {% endif %}
         <div class="flex items-center gap-3 mb-3">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600 group-hover:bg-saffron-200 transition-colors">
             <i class="{{ mode.icon }}"></i>
           </div>
-          <h3 class="font-semibold text-stone-800">{{ mode.label }}</h3>
+          <h3 class="font-semibold text-stone-800 pr-6">{{ mode.label }}</h3>
         </div>
         <p class="text-sm text-stone-600 leading-relaxed">{{ mode.description }}</p>
         <div class="mt-3 flex items-center gap-2 text-xs text-stone-500 flex-wrap">
@@ -43,10 +48,10 @@
           {% else %}
             <span class="tag-secondary">∞ questions</span>
           {% endif %}
-          {% set count = dailyCounts[mode.value] ?? 0 %}
-          {% set remaining = maxDailySessions - count %}
           {% if remaining <= 0 %}
-            <span class="tag-secondary bg-paprika-100 text-paprika-700 border-paprika-300">Limite atteinte</span>
+            <span class="tag-secondary bg-paprika-100 text-paprika-700 border-paprika-300 font-medium">
+                <i class="fa-solid fa-clock-rotate-left mr-1"></i>Reviens demain
+            </span>
           {% elseif count >= reducedXpThreshold %}
             <span class="tag-secondary bg-turmeric-100 text-turmeric-700 border-turmeric-300"
                   title="XP réduit de 50% au-delà de {{ reducedXpThreshold }} parties/jour">
@@ -56,39 +61,8 @@
             <span class="tag-secondary">{{ remaining }}/{{ maxDailySessions }} aujourd'hui</span>
           {% endif %}
         </div>
-      </button>
+      </a>
     {% endfor %}
-
-    {# Difficulty + Start section #}
-    <div x-show="selectedMode" x-cloak
-         class="sm:col-span-2 lg:col-span-3 bg-white border border-stone-200 rounded-2xl shadow-sm p-6 mt-2">
-      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div class="flex-1">
-          <label class="block text-sm font-medium text-stone-700 mb-2">Difficulté</label>
-          <div class="flex gap-2">
-            {% for difficulty in difficulties %}
-              <button type="button"
-                      @click="pickDifficulty('{{ difficulty.value }}')"
-                      :class="difficultyButtonClass('{{ difficulty.value }}')"
-                      class="px-4 py-2 rounded-full text-sm font-medium transition-colors">
-                {{ difficulty.label }}
-                <span class="text-xs opacity-75">(×{{ difficulty.xpMultiplier }})</span>
-              </button>
-            {% endfor %}
-          </div>
-        </div>
-
-        {# All modes go through the briefing first #}
-        <form method="post" action="{{ path('education_briefing') }}" data-turbo="false">
-          <input type="hidden" name="_token" value="{{ csrf_token('education_briefing') }}">
-          <input type="hidden" name="mode" :value="selectedMode">
-          <input type="hidden" name="difficulty" :value="selectedDifficulty">
-          <button type="submit" class="btn-pill-primary whitespace-nowrap">
-            <i class="fa-solid fa-play mr-2"></i>Préparer le service
-          </button>
-        </form>
-      </div>
-    </div>
   </div>
 
   {# Recent sessions #}

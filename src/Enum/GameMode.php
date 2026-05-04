@@ -74,8 +74,9 @@ enum GameMode: string
     public function totalQuestions(): ?int
     {
         return match ($this) {
-            self::QCM, self::INTRUS => 10,
-            self::GUESS_WHO, self::HANGMAN => 8,
+            self::QCM => 7,
+            self::INTRUS => 7,
+            self::GUESS_WHO, self::HANGMAN => 7,
             self::SURVIVAL, self::CHRONO => null,
         };
     }

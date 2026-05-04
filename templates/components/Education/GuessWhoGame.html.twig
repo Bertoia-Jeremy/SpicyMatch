@@ -6,30 +6,19 @@
       subtitle = 'Devine l\'épice grâce aux indices',
       current = this.questionNumber,
       total = this.totalQuestions,
-      scoreLabel = this.totalScore ~ ' pts',
+      scoreLabel = this.totalScore ~ ' pts · ' ~ this.correctCount ~ ' <i class="fa-solid fa-check text-xs text-green-600"></i>  ' ~ this.incorrectCount ~ ' <i class="fa-solid fa-xmark text-xs text-paprika-500"></i>',
+      quitUrl = path('education_briefing', { mode: 'guess_who', difficulty: this.difficulty }),
   ) }}
 
-  {% if this.isFinished %}
-    {{ game_header.game_over_summary(
-        circleLabel = this.totalScore,
-        title = 'Partie terminée !',
-        paragraphHtml = this.correctCount ~ ' bonne' ~ (this.correctCount > 1 ? 's' : '') ~ ' réponse' ~ (this.correctCount > 1 ? 's' : '') ~ ' sur ' ~ this.totalQuestions ~ ' — ' ~ this.totalScore ~ ' points au total.',
-        buttonLabel = 'Voir les résultats',
-        buttonAction = 'finish',
-        variant = this.correctCount >= (this.totalQuestions * 0.5) ? 'success' : 'failure',
-    ) }}
-
-  {% elseif this.showFeedback %}
-    {# Feedback between questions #}
-    <div class="text-center py-12">
+  {% if this.showFeedback %}
+    {# Inline feedback between questions #}
+    <div class="text-center py-10">
       {% if this.lastAnswerCorrect %}
         <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-turmeric-100 flex items-center justify-center">
           <i class="fa-solid fa-circle-check text-turmeric-600 text-3xl"></i>
         </div>
         <h3 class="text-lg font-bold text-turmeric-700 mb-2">Bonne réponse !</h3>
-        <p class="text-stone-600 mb-2">
-          C'était bien <strong>{{ this.lastCorrectName }}</strong>
-        </p>
+        <p class="text-stone-600 mb-2">C'était bien <strong>{{ this.lastCorrectName }}</strong></p>
         <p class="text-saffron-600 font-semibold">+{{ this.lastPointsEarned }} points</p>
       {% else %}
         <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-paprika-100 flex items-center justify-center">
@@ -53,41 +42,38 @@
     </div>
 
   {% else %}
-    {# Active question: clues + guess #}
+    {# Active question: clues + autocomplete input #}
     <div class="mb-8">
       <div class="flex items-center justify-between mb-4">
         <p class="text-sm font-medium text-stone-700">
-          Indices révélés : {{ this.revealedClues|length }}/{{ this.allClues|length }}
+          Indices révélés : {{ this.revealedClues|length }}/{{ this.totalCluesCount }}
         </p>
-        {% if this.currentClueIndex < this.allClues|length %}
+        {% if this.currentClueIndex < this.totalCluesCount %}
           <button data-action="live#action"
                   data-live-action-param="revealClue"
-                  class="text-sm text-saffron-600 hover:text-saffron-800 font-medium transition-colors">
-            <i class="fa-solid fa-eye mr-1"></i>Révéler un indice
+                  data-loading="action(revealClue)|addAttribute(disabled)"
+                  class="text-sm text-saffron-600 hover:text-saffron-800 font-medium transition-colors disabled:opacity-50 disabled:cursor-wait">
+            <span data-loading="action(revealClue)|hide">
+              <i class="fa-solid fa-eye mr-1"></i>Révéler un indice
+            </span>
+            <span data-loading="action(revealClue)|show">
+              <i class="fa-solid fa-spinner fa-spin mr-1"></i>Révélation…
+            </span>
           </button>
         {% else %}
           <span class="text-xs text-stone-400">Tous les indices révélés</span>
         {% endif %}
       </div>
 
-      {# Revealed clues #}
       <div class="space-y-3">
         {% for clue in this.revealedClues %}
           <div class="px-4 py-3 rounded-lg border border-stone-200 bg-white">
             <span class="text-xs font-medium text-stone-500 uppercase tracking-wide">{{ clue.label }}</span>
-            {% if clue.type == 'group_color' %}
-              <div class="flex items-center gap-2 mt-1">
-                <div class="w-6 h-6 rounded-full border border-stone-200" style="background-color: {{ clue.value }}"></div>
-                <span class="text-sm text-stone-800">Cette couleur</span>
-              </div>
-            {% else %}
               <p class="text-stone-800 mt-1">{{ clue.value }}</p>
-            {% endif %}
           </div>
         {% endfor %}
 
-        {# Unrevealed clue placeholders — guard against Twig descending range when all clues revealed #}
-        {% set remainingClues = this.allClues|length - this.revealedClues|length %}
+        {% set remainingClues = this.totalCluesCount - this.revealedClues|length %}
         {% if remainingClues > 0 %}
           {% for i in 1..remainingClues %}
             <div class="px-4 py-3 rounded-lg border border-dashed border-stone-300 bg-stone-50">
@@ -98,19 +84,49 @@
       </div>
     </div>
 
-    {# Guess options #}
-    <div class="space-y-3" x-data="hangmanKeyboard">
+    {# Autocomplete input — Alpine filters client-side, LC handles validation + scoring #}
+    <div x-data="guessWhoAutocomplete({{ this.getAllSpiceNames()|json_encode }})"
+         class="relative"
+         @click.outside="closeSuggestions()">
       <p class="text-sm font-medium text-stone-700 mb-3">Quelle est cette épice ?</p>
-      {% for option in this.guessOptions %}
-        <button type="button"
-                data-action="live#action"
-                data-live-action-param="guess"
-                data-live-spice-name-param="{{ option }}"
-                data-loading="addAttribute(disabled)"
-                class="w-full text-left px-5 py-3 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all font-medium text-stone-800 disabled:opacity-75 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30">
-          {{ option }}
-        </button>
-      {% endfor %}
+
+      {# Hidden LC action trigger — Alpine sets the param then clicks it #}
+      <button x-ref="submitGuessBtn"
+              type="button"
+              data-action="live#action"
+              data-live-action-param="guess"
+              :data-live-spice-name-param="selectedGuess"
+              class="hidden"></button>
+
+      <input type="text"
+             x-ref="queryInput"
+             x-model="query"
+             @input="filter()"
+             @keydown.down.prevent="arrowDown()"
+             @keydown.up.prevent="arrowUp()"
+             @keydown.enter.prevent="submitEnter()"
+             @keydown.escape="closeSuggestions()"
+             autocomplete="off"
+             placeholder="Commence à taper le nom…"
+             role="combobox"
+             aria-autocomplete="list"
+             :aria-expanded="hasSuggestions()"
+             aria-controls="gwg-suggestions"
+             class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-white focus:outline-none focus:ring-2 focus:ring-saffron-600/30 text-stone-800 placeholder-stone-400">
+
+      <ul id="gwg-suggestions"
+          role="listbox"
+          x-show="hasSuggestions()"
+          class="absolute z-20 w-full mt-1 bg-white border border-stone-200 rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
+        <template x-for="(name, index) in suggestions" :key="name">
+          <li @click="pick(name)"
+              :class="suggestionClass(index)"
+              role="option"
+              class="px-4 py-2.5 cursor-pointer text-sm transition-colors hover:bg-cream">
+            <span x-text="name"></span>
+          </li>
+        </template>
+      </ul>
     </div>
   {% endif %}
 </div>

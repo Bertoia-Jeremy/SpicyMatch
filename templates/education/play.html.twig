@@ -1,21 +1,20 @@
 {% extends 'base.html.twig' %}
+{% import 'components/Education/_game_header.html.twig' as game_header %}
 
-{% block title %}Quiz — Question {{ questionNumber }}{% endblock %}
+{% block title %}{{ session.gameMode.label }} — Question {{ questionNumber }}{% endblock %}
 
 {% block body %}
 <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10" x-data="qcmForm">
 
-  {# Progress bar #}
-  <div class="mb-6">
-    <div class="flex items-center justify-between text-sm text-stone-600 mb-2">
-      <span>Question {{ questionNumber }} / {{ session.totalQuestions }}</span>
-      <span class="tag-secondary text-xs">{{ session.difficulty.label }}</span>
-    </div>
-    <div class="w-full bg-stone-200 rounded-full h-2">
-      <div class="bg-saffron-500 h-2 rounded-full transition-all duration-300"
-           style="width: {{ (questionNumber / session.totalQuestions * 100)|round }}%"></div>
-    </div>
-  </div>
+  {{ game_header.header(
+      icon     = session.gameMode.icon,
+      title    = session.gameMode.label,
+      subtitle = session.gameMode.description,
+      current  = questionNumber,
+      total    = session.totalQuestions,
+      scoreLabel = session.score ~ ' pts',
+      quitUrl  = path('education_briefing', { mode: session.gameMode.value, difficulty: session.difficulty.value }),
+  ) }}
 
   {# Question card #}
   <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6 mb-6">
@@ -24,30 +23,63 @@
       <p class="text-lg font-semibold text-stone-800">{{ question.prompt }}</p>
     </div>
 
-    {# Options #}
-    <form method="post" action="{{ path('education_answer', { id: session.id }) }}" id="answerForm" @submit="submit" data-turbo="false">
+    {% if showFeedback ?? false %}
+      {# Mode feedback — options non-interactives colorées #}
       <div class="space-y-3 mb-6">
         {% for option in question.options %}
-          <label class="flex items-center gap-3 px-4 py-3 rounded-xl border-2 cursor-pointer transition-all duration-200"
-                 :class="optionSelectedClass('{{ option.name|e('js') }}')"
-                 @click="pick('{{ option.name|e('js') }}')">
-            <input type="radio" name="answer" value="{{ option.name }}"
-                   class="text-saffron-600 focus:ring-saffron-500"
-                   x-model="selected">
-            <span class="text-stone-800 font-medium">{{ option.name }}</span>
-          </label>
+          <div class="flex items-center gap-3 px-4 py-3 rounded-xl border-2
+            {% if option.name == correctAnswer %}border-green-500 bg-green-50
+            {% elseif option.name == selectedAnswer %}border-red-500 bg-red-50
+            {% else %}border-stone-200 bg-white{% endif %}">
+            {% if option.name == correctAnswer %}
+              <i class="fa-solid fa-check text-green-600 shrink-0"></i>
+            {% elseif option.name == selectedAnswer %}
+              <i class="fa-solid fa-xmark text-red-600 shrink-0"></i>
+            {% else %}
+              <div class="w-4 shrink-0"></div>
+            {% endif %}
+            <span class="font-medium text-stone-800">{{ option.name }}</span>
+          </div>
         {% endfor %}
       </div>
 
-      <input type="hidden" name="_token" value="{{ csrf_token('education_answer') }}">
-      <input type="hidden" name="timeSpentMs" x-bind:value="elapsed()">
+      <div class="text-center mb-6 py-3 rounded-xl {{ isCorrect ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">
+        <i class="fa-solid {{ isCorrect ? 'fa-circle-check' : 'fa-circle-xmark' }} mr-2"></i>
+        <span class="font-semibold">{{ isCorrect ? 'Bonne réponse !' : 'Mauvaise réponse' }}</span>
+      </div>
 
-      <button type="submit"
-              class="btn-pill-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-              :disabled="canSubmit()">
-        Valider
-      </button>
-    </form>
+      <a href="{{ path('education_play', { id: session.id }) }}"
+         class="btn-pill-primary w-full inline-flex justify-center items-center gap-2"
+         data-turbo="false">
+        <i class="fa-solid fa-arrow-right"></i>Question suivante
+      </a>
+
+    {% else %}
+      {# Mode normal — formulaire interactif #}
+      <form method="post" action="{{ path('education_answer', { id: session.id }) }}" id="answerForm" @submit="submit" data-turbo="false">
+        <div class="space-y-3 mb-6">
+          {% for option in question.options %}
+            <label class="flex items-center gap-3 px-4 py-3 rounded-xl border-2 cursor-pointer transition-all duration-200"
+                   :class="optionSelectedClass('{{ option.name|e('js') }}')"
+                   @click="pick('{{ option.name|e('js') }}')">
+              <input type="radio" name="answer" value="{{ option.name }}"
+                     class="text-saffron-600 focus:ring-saffron-500"
+                     x-model="selected">
+              <span class="text-stone-800 font-medium">{{ option.name }}</span>
+            </label>
+          {% endfor %}
+        </div>
+
+        <input type="hidden" name="_token" value="{{ csrf_token('education_answer') }}">
+        <input type="hidden" name="timeSpentMs" x-bind:value="elapsed()">
+
+        <button type="submit"
+                class="btn-pill-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="canSubmit()">
+          Valider
+        </button>
+      </form>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

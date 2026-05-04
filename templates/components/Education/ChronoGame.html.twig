@@ -1,11 +1,16 @@
 {% import 'components/Education/_game_header.html.twig' as game_header %}
 <div {{ attributes }}>
-  {% set streakPill = this.streak >= 3 ? ' <span class="tag-primary text-xs"><i class="fa-solid fa-fire mr-1"></i>x' ~ this.streak ~ '</span>' : '' %}
+  {% if this.streak >= 4 %}{% set streakBonus = '+3' %}
+  {% elseif this.streak >= 3 %}{% set streakBonus = '+2' %}
+  {% elseif this.streak >= 2 %}{% set streakBonus = '+1' %}
+  {% else %}{% set streakBonus = '' %}{% endif %}
+  {% set streakPill = this.streak >= 2 ? ' <span class="tag-primary text-xs"><i class="fa-solid fa-fire mr-1"></i>' ~ this.streak ~ ' ' ~ streakBonus ~ '</span>' : '' %}
   {{ game_header.header(
       icon = 'fa-solid fa-fire-flame-curved',
       title = 'À Feu Vif',
       subtitle = 'Identifie les épices le plus vite possible',
       scoreLabel = this.totalScore ~ ' pts' ~ streakPill,
+      quitUrl = path('education_briefing', { mode: 'chrono', difficulty: this.difficulty }),
   ) }}
 
   {% if this.isFinished %}
@@ -50,8 +55,8 @@
     <div class="flex items-center justify-center gap-6 mb-6 text-sm text-stone-600">
       <span><i class="fa-solid fa-check text-turmeric-600 mr-1"></i>{{ this.correctCount }}</span>
       <span><i class="fa-solid fa-question text-stone-400 mr-1"></i>{{ this.questionsAnswered }}</span>
-      {% if this.streak >= 3 %}
-        <span class="text-saffron-600 font-semibold"><i class="fa-solid fa-fire mr-1"></i>Série de {{ this.streak }}</span>
+      {% if this.streak >= 2 %}
+        <span class="text-saffron-600 font-semibold"><i class="fa-solid fa-fire mr-1"></i>{{ this.streak }} {{ streakBonus }}</span>
       {% endif %}
     </div>
 
@@ -135,14 +140,21 @@
       </div>
     </div>
 
-    {# Name options — data-loading natif LC pour anti double-clic #}
-    <div class="grid grid-cols-2 gap-3">
+    {# Name options — answerOnce Alpine pour anti double-clic #}
+    {% if this.isInCooldown %}
+      <div class="mb-3 text-center text-xs text-stone-400 animate-pulse">
+        <i class="fa-solid fa-hourglass-half mr-1"></i>Prépare ta prochaine réponse…
+      </div>
+    {% endif %}
+    <div class="grid grid-cols-2 gap-3" x-data="answerOnce">
       {% for name in this.nameOptions %}
         <button type="button"
                 data-action="live#action"
                 data-live-action-param="answer"
                 data-live-spice-name-param="{{ name|e('html_attr') }}"
                 data-loading="action(answer)|addAttribute(disabled)"
+                @click="pick()"
+                :disabled="isAnswered()"
                 class="px-4 py-3 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all text-center font-medium text-stone-800 disabled:opacity-75 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30">
           {{ name }}
         </button>

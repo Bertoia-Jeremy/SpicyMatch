@@ -53,23 +53,19 @@ class EducationController extends AbstractController
             'dailyCounts' => $dailyCounts,
             'maxDailySessions' => 5,
             'reducedXpThreshold' => 3,
+            'userDifficulty' => $user->getPreferredDifficulty()
+                ->value,
         ]);
     }
 
-    #[Route('/briefing', name: 'education_briefing', methods: ['POST'])]
+    #[Route('/briefing', name: 'education_briefing', methods: ['GET'])]
     public function briefing(Request $request): Response
     {
-        if (! $this->isCsrfTokenValid('education_briefing', $request->request->getString('_token'))) {
-            $this->addFlash('error', 'Token CSRF invalide.');
-
-            return $this->redirectToRoute('education_index');
-        }
-
         /** @var Users $user */
         $user = $this->getUser();
 
-        $mode = GameMode::tryFrom($request->request->getString('mode')) ?? GameMode::QCM;
-        $difficulty = GameDifficulty::tryFrom($request->request->getString('difficulty')) ?? GameDifficulty::EASY;
+        $mode = GameMode::tryFrom($request->query->getString('mode')) ?? GameMode::QCM;
+        $difficulty = GameDifficulty::tryFrom($request->query->getString('difficulty')) ?? GameDifficulty::EASY;
 
         $targetSpice = $this->academyManager->pickTargetSpice($mode, $difficulty, $user);
         $cookingTip = $targetSpice !== null ? $this->academyManager->randomCookingTipFor($targetSpice) : null;
@@ -77,6 +73,7 @@ class EducationController extends AbstractController
         return $this->render('education/briefing.html.twig', [
             'mode' => $mode,
             'difficulty' => $difficulty,
+            'difficulties' => GameDifficulty::cases(),
             'targetSpice' => $targetSpice,
             'cookingTip' => $cookingTip,
             'rules' => $this->academyManager->getRulesFor($mode),
@@ -224,13 +221,16 @@ class EducationController extends AbstractController
             ]);
         }
 
-        // Show feedback briefly then redirect to next question
-        return $this->render('education/feedback.html.twig', [
+        // getCurrentQuestionIndex() = questions->count(), already incremented after addQuestion()
+        // so it equals the 1-based number of the question just answered (no +1 needed here)
+        return $this->render('education/play.html.twig', [
             'session' => $session,
-            'correct' => $result['correct'],
-            'answer' => $answer,
-            'correctAnswer' => $correctAnswer,
             'question' => $storedQuestion,
+            'questionNumber' => $session->getCurrentQuestionIndex(),
+            'showFeedback' => true,
+            'isCorrect' => $result['correct'],
+            'selectedAnswer' => $answer,
+            'correctAnswer' => $correctAnswer,
         ]);
     }
 

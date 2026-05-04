@@ -167,6 +167,7 @@ class GameSessionManager
         int $totalQuestions,
         ?int $durationSeconds = null,
         ?Spices $targetSpice = null,
+        ?int $overrideScore = null,
     ): GameSession {
         $todayCount = $this->sessionRepository->countTodayByUser($user, $mode);
         if ($todayCount >= self::MAX_DAILY_SESSIONS) {
@@ -197,7 +198,15 @@ class GameSessionManager
             $session->setDurationSeconds($durationSeconds);
         }
 
-        $xpEarned = $this->calculateXp($session);
+        if ($overrideScore !== null) {
+            $todayCount = $this->sessionRepository->countTodayByUser($user, $mode);
+            $xpEarned = $todayCount > self::REDUCED_XP_THRESHOLD
+                ? (int) round($overrideScore * 0.5)
+                : $overrideScore;
+        } else {
+            $xpEarned = $this->calculateXp($session);
+        }
+
         $session->setScore($xpEarned);
 
         $this->em->persist($session);
@@ -213,6 +222,30 @@ class GameSessionManager
         ));
 
         return $session;
+    }
+
+    /**
+     * Persists per-question answer history for LC game modes that use createFinishedSession().
+     *
+     * @param list<array{questionIndex: int, prompt: string, correctAnswer: string, answerGiven: string, isCorrect: bool}> $questionsData
+     */
+    public function addQuestionsToSession(GameSession $gameSession, array $questionsData): void
+    {
+        foreach ($questionsData as $qData) {
+            $gq = new GameQuestion();
+            $gq->setQuestionIndex($qData['questionIndex']);
+            $gq->setQuestionData([
+                'prompt' => $qData['prompt'],
+                'correctAnswer' => $qData['correctAnswer'],
+            ]);
+            $gq->answer($qData['answerGiven'], $qData['isCorrect']);
+            $gameSession->addQuestion($gq);
+            $this->em->persist($gq);
+        }
+
+        if ($questionsData !== []) {
+            $this->em->flush();
+        }
     }
 
     public function calculateXp(GameSession $session): int

@@ -5,7 +5,8 @@
       icon = 'fa-solid fa-pepper-hot',
       title = 'Défi de Scoville',
       subtitle = 'Enchaîne les épices compatibles sans erreur',
-      scoreLabel = this.isStarted ? '<i class="fa-solid fa-link text-xs mr-1"></i>' ~ this.chainLength : null,
+      scoreLabel = '<i class="fa-solid fa-link text-xs mr-1"></i>' ~ this.chainLength,
+      quitUrl = path('education_briefing', { mode: 'survival', difficulty: this.difficulty }),
   ) }}
 
   {% if this.isGameOver or this.isVictory %}

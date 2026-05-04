@@ -23,6 +23,30 @@ class AcademyManager
     ) {
     }
 
+    /**
+     * @var list<Spices>|null
+     */
+    private ?array $allSpicesCache = null;
+
+    /**
+     * @return list<Spices>
+     */
+    private function getAllSpices(): array
+    {
+        return $this->allSpicesCache ??= $this->spicesRepository->findAll();
+    }
+
+    private ?\Transliterator $transliterator = null;
+
+    private function getTransliterator(): \Transliterator
+    {
+        if ($this->transliterator === null) {
+            $this->transliterator = \Transliterator::create('NFD; [:Nonspacing Mark:] Remove; NFC');
+        }
+
+        return $this->transliterator ?? throw new \RuntimeException('ICU transliterator unavailable');
+    }
+
     // ──────────────────────────────────────────────
     // Compatibilité (Survival, Intrus)
     // ──────────────────────────────────────────────
@@ -149,13 +173,7 @@ class AcademyManager
      */
     public function normalizeChar(string $char): string
     {
-        $transliterator = \Transliterator::create('NFD; [:Nonspacing Mark:] Remove; NFC');
-
-        if ($transliterator === null) {
-            return mb_strtoupper($char);
-        }
-
-        return mb_strtoupper($transliterator->transliterate($char));
+        return mb_strtoupper($this->getTransliterator()->transliterate($char));
     }
 
     /**
@@ -227,7 +245,15 @@ class AcademyManager
         bool $inverted = false,
         bool $strict = false,
     ): ?array {
-        $allSpices = $this->spicesRepository->findAll();
+        // 50/50 chance of a group-based "hors-groupe" question (non-inverted only)
+        if (! $inverted && random_int(0, 1) === 0) {
+            $groupQuestion = $this->generateGroupIntrusQuestion($difficulty, $excludeBaseIds);
+            if ($groupQuestion !== null) {
+                return $groupQuestion;
+            }
+        }
+
+        $allSpices = $this->getAllSpices();
         $candidates = array_filter($allSpices, fn (Spices $s) => ! in_array($s->getId(), $excludeBaseIds, true));
 
         if (count($candidates) < 5) {
@@ -260,6 +286,108 @@ class AcademyManager
             }
 
             return $this->buildIntrusQuestion($baseSpice, $compatibles, $intruders, $difficulty, $inverted);
+        }
+
+        return null;
+    }
+
+    /**
+     * Generate a "hors-groupe" intrus question: 3 spices from the same aromatic group + 1 outsider.
+     * The outsider (intruder) is a spice that belongs to a different aromatic group.
+     *
+     * @param list<int> $excludeBaseIds
+     *
+     * @return array{type: string, prompt: string, baseSpice: array<string, mixed>, options: array<int, array<string, mixed>>, correctAnswerId: int, isInverted: bool, metadata: array<string, mixed>}|null
+     */
+    private function generateGroupIntrusQuestion(GameDifficulty $difficulty, array $excludeBaseIds = []): ?array
+    {
+        $allSpices = $this->getAllSpices();
+
+        // Group spices by aromatic group ID — only keep spices that have a group
+        $byGroup = [];
+        foreach ($allSpices as $spice) {
+            $group = $spice->getAromaticGroups();
+            if ($group === null) {
+                continue;
+            }
+
+            $byGroup[$group->getId()][] = $spice;
+        }
+
+        // Keep only groups with at least 4 spices (3 same-group + 1 intruder pool)
+        $eligibleGroups = array_filter($byGroup, fn (array $spices) => count($spices) >= 4);
+
+        if (count($eligibleGroups) < 2) {
+            return null;
+        }
+
+        // Shuffle for randomness, then try each group
+        $groupIds = array_keys($eligibleGroups);
+        shuffle($groupIds);
+
+        foreach ($groupIds as $groupId) {
+            $groupSpices = $eligibleGroups[$groupId];
+            shuffle($groupSpices);
+
+            /** @var Spices $sample */
+            $sample = $groupSpices[0];
+            $groupName = $sample->getAromaticGroups()?->getName() ?? 'ce groupe';
+
+            $excludeFlipped = array_flip($excludeBaseIds);
+            $groupSpices = array_values(array_filter(
+                $groupSpices,
+                fn (Spices $s) => ! isset($excludeFlipped[$s->getId()]),
+            ));
+
+            if (\count($groupSpices) < 3) {
+                continue;
+            }
+
+            // Pick 3 spices from this group as the "non-intruders"
+            $members = array_slice($groupSpices, 0, 3);
+
+            // Pick 1 intruder from any other group
+            $outsiders = [];
+            foreach ($allSpices as $spice) {
+                if ($spice->getAromaticGroups()?->getId() !== $groupId && ! in_array(
+                    $spice->getId(),
+                    $excludeBaseIds,
+                    true
+                )) {
+                    $outsiders[] = $spice;
+                }
+            }
+
+            if (empty($outsiders)) {
+                continue;
+            }
+
+            /** @var Spices $intruder */
+            $intruder = $outsiders[array_rand($outsiders)];
+
+            $options = [];
+            foreach ($members as $member) {
+                $options[] = $this->spiceToOption($member);
+            }
+
+            $options[] = $this->spiceToOption($intruder);
+
+            shuffle($options);
+
+            return [
+                'type' => 'intrus_group',
+                'prompt' => sprintf('Quelle épice n\'appartient pas au groupe « %s » ?', $groupName),
+                'baseSpice' => [
+                    'id' => 0,
+                    'name' => '',
+                ],
+                'options' => $options,
+                'correctAnswerId' => $intruder->getId(),
+                'isInverted' => false,
+                'metadata' => [
+                    'difficulty' => $difficulty->value,
+                ],
+            ];
         }
 
         return null;
@@ -350,7 +478,7 @@ class AcademyManager
     {
         $clues = [];
 
-        // 1. Alchemy flavors (most vague)
+        // 1. Alchemy flavors
         $flavors = $spiceCard['alchemyFlavors'] ?? [];
 
         if (! empty($flavors)) {
@@ -361,15 +489,12 @@ class AcademyManager
             ];
         }
 
-        // 2. Compound count
-        $mainCount = count($spiceCard['mainCompounds'] ?? []);
-        $secCount = count($spiceCard['secondaryCompounds'] ?? []);
-
-        if ($mainCount > 0) {
+        // 2. Group name
+        if (! empty($spiceCard['aromaticGroup']['name'])) {
             $clues[] = [
-                'type' => 'compounds_count',
-                'label' => 'Composés aromatiques',
-                'value' => sprintf('%d principaux, %d secondaires', $mainCount, $secCount),
+                'type' => 'group_name',
+                'label' => 'Famille aromatique',
+                'value' => $spiceCard['aromaticGroup']['name'],
             ];
         }
 
@@ -382,25 +507,7 @@ class AcademyManager
             ];
         }
 
-        // 4. Group color (visual hint)
-        if (! empty($spiceCard['aromaticGroup']['color'])) {
-            $clues[] = [
-                'type' => 'group_color',
-                'label' => 'Couleur du groupe',
-                'value' => $spiceCard['aromaticGroup']['color'],
-            ];
-        }
-
-        // 5. Group name
-        if (! empty($spiceCard['aromaticGroup']['name'])) {
-            $clues[] = [
-                'type' => 'group_name',
-                'label' => 'Famille aromatique',
-                'value' => $spiceCard['aromaticGroup']['name'],
-            ];
-        }
-
-        // 6. Cooking tip
+        // 4. Cooking tip
         $cookingTips = $spiceCard['cookingTips'] ?? [];
 
         if (! empty($cookingTips)) {
@@ -412,24 +519,23 @@ class AcademyManager
             ];
         }
 
-        // 7. Preparation tip
-        $prepTips = $spiceCard['preparationTips'] ?? [];
+        // 5. Main compound names
+        $mainCompounds = $spiceCard['mainCompounds'] ?? [];
 
-        if (! empty($prepTips)) {
-            $tip = $prepTips[0];
+        if (! empty($mainCompounds)) {
             $clues[] = [
-                'type' => 'preparation_tip',
-                'label' => 'Préparation',
-                'value' => $tip['method'] ?? $tip['title'] ?? '',
+                'type' => 'main_compounds',
+                'label' => 'Composés principaux',
+                'value' => implode(', ', $mainCompounds),
             ];
         }
 
-        // 8. Benefits
-        if (! empty($spiceCard['benefits'])) {
+        // 6. Description
+        if (! empty($spiceCard['description'])) {
             $clues[] = [
-                'type' => 'benefits',
-                'label' => 'Bienfaits',
-                'value' => mb_substr($spiceCard['benefits'], 0, 80) . '…',
+                'type' => 'description',
+                'label' => 'Description',
+                'value' => mb_substr($spiceCard['description'], 0, 120) . '…',
             ];
         }
 
@@ -452,6 +558,10 @@ class AcademyManager
     {
         $count = 0;
 
+        if (! empty($spiceCard['description'])) {
+            ++$count;
+        }
+
         if (! empty($spiceCard['alchemyFlavors'])) {
             ++$count;
         }
@@ -464,10 +574,6 @@ class AcademyManager
             ++$count;
         }
 
-        if (! empty($spiceCard['aromaticGroup']['color'])) {
-            ++$count;
-        }
-
         if (! empty($spiceCard['aromaticGroup']['name'])) {
             ++$count;
         }
@@ -476,11 +582,7 @@ class AcademyManager
             ++$count;
         }
 
-        if (! empty($spiceCard['preparationTips'])) {
-            ++$count;
-        }
-
-        if (! empty($spiceCard['benefits'])) {
+        if (! empty($spiceCard['description'])) {
             ++$count;
         }
 
@@ -505,8 +607,8 @@ class AcademyManager
     public function getChronoTimeLimit(GameDifficulty $difficulty): int
     {
         return match ($difficulty) {
-            GameDifficulty::EASY => 120,
-            GameDifficulty::MEDIUM => 90,
+            GameDifficulty::EASY => 90,
+            GameDifficulty::MEDIUM => 75,
             GameDifficulty::HARD => 60,
         };
     }
@@ -529,9 +631,9 @@ class AcademyManager
     public function getHangmanMaxErrors(GameDifficulty $difficulty): int
     {
         return match ($difficulty) {
-            GameDifficulty::EASY => 8,
-            GameDifficulty::MEDIUM => 6,
-            GameDifficulty::HARD => 5,
+            GameDifficulty::EASY => 6,
+            GameDifficulty::MEDIUM => 5,
+            GameDifficulty::HARD => 4,
         };
     }
 
@@ -543,7 +645,7 @@ class AcademyManager
      */
     public function pickHangmanSpice(GameDifficulty $difficulty, array $excludeIds = []): ?Spices
     {
-        $allSpices = $this->spicesRepository->findAll();
+        $allSpices = $this->getAllSpices();
         $candidates = array_filter($allSpices, fn (Spices $s) => ! in_array($s->getId(), $excludeIds, true));
 
         if (empty($candidates)) {
@@ -604,7 +706,7 @@ class AcademyManager
         }
 
         $excludeIds = $user->getStats()?->getLastVisitedSpices() ?? [];
-        $allSpices = $this->spicesRepository->findAll();
+        $allSpices = $this->getAllSpices();
 
         $candidates = array_filter($allSpices, fn (Spices $s) => ! in_array($s->getId(), $excludeIds, true));
 
@@ -652,7 +754,7 @@ class AcademyManager
             GameMode::QCM => [
                 'Trouve l\'épice la plus compatible parmi 4 propositions.',
                 'Chaque bonne réponse te rapporte des XP.',
-                '10 questions au total — pas de retour en arrière.',
+                '7 questions au total — pas de retour en arrière.',
             ],
             GameMode::SURVIVAL => [
                 'Enchaîne les épices compatibles avec l\'épice de départ.',
@@ -662,12 +764,12 @@ class AcademyManager
             GameMode::GUESS_WHO => [
                 'Des indices apparaissent un par un pour identifier l\'épice mystère.',
                 'Moins tu utilises d\'indices, plus tu gagnes de points.',
-                '8 épices à deviner au total.',
+                '7 épices à deviner au total.',
             ],
             GameMode::INTRUS => [
                 'Parmi 4 épices, trouve celle qui n\'a rien en commun avec les autres.',
                 'Certaines questions sont inversées : trouve la compatible !',
-                '10 questions — attention aux pièges visuels.',
+                '7 questions — attention aux pièges visuels.',
             ],
             GameMode::HANGMAN => [
                 'Devine le nom de l\'épice lettre par lettre.',
@@ -744,6 +846,19 @@ class AcademyManager
     // ──────────────────────────────────────────────
     // Private helpers
     // ──────────────────────────────────────────────
+
+    /**
+     * @return array{id: int, name: string, file: ?string, color: ?string}
+     */
+    private function spiceToOption(Spices $spice): array
+    {
+        return [
+            'id' => $spice->getId(),
+            'name' => $spice->getName(),
+            'file' => $spice->getFile(),
+            'color' => $spice->getAromaticGroups()?->getColor(),
+        ];
+    }
 
     /**
      * @return array<int, array<string, mixed>>
@@ -856,12 +971,7 @@ class AcademyManager
             $options = [];
 
             foreach ($pickedIntruders as $intruder) {
-                $options[] = [
-                    'id' => $intruder->getId(),
-                    'name' => $intruder->getName(),
-                    'file' => $intruder->getFile(),
-                    'color' => $intruder->getAromaticGroups()?->getColor(),
-                ];
+                $options[] = $this->spiceToOption($intruder);
             }
 
             $options[] = [
@@ -923,12 +1033,7 @@ class AcademyManager
             ];
         }
 
-        $options[] = [
-            'id' => $intruder->getId(),
-            'name' => $intruder->getName(),
-            'file' => $intruder->getFile(),
-            'color' => $intruder->getAromaticGroups()?->getColor(),
-        ];
+        $options[] = $this->spiceToOption($intruder);
 
         shuffle($options);
 

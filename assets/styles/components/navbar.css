@@ -1,0 +1,134 @@
+/* ── Barre principale ─────────────────────────────────────────────── */
+.nav-bar {
+  background: var(--color-parchment);
+  border-bottom: 1px solid rgba(184, 134, 74, 0.25);
+}
+
+/* ── Toque button ─────────────────────────────────────────────────── */
+.toque-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px 10px 12px;
+  border-radius: 9999px;
+  border: 1px solid rgba(184, 134, 74, 0.4);
+  background: rgba(255, 250, 235, 0.6);
+  transition: background 300ms, border-color 300ms;
+}
+.toque-btn.is-open {
+  background: rgba(176, 57, 43, 0.08);
+  border-color: rgba(176, 57, 43, 0.5);
+}
+
+/* ── Mortar button ────────────────────────────────────────────────── */
+.mortar-btn {
+  border: 1px solid rgba(184, 134, 74, 0.4);
+  background: rgba(255, 250, 235, 0.6);
+  transition: border-color 300ms, box-shadow 300ms;
+}
+.mortar-btn:hover {
+  border-color: rgba(176, 57, 43, 0.5);
+  box-shadow: 0 0 0 3px rgba(176, 57, 43, 0.15);
+}
+
+/* ── Spice underline hover ────────────────────────────────────────── */
+.spice-underline {
+  position: relative;
+}
+.spice-underline::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: var(--color-paprika-700);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 380ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.spice-underline:hover::after,
+.spice-underline:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* ── Desktop overlay ──────────────────────────────────────────────── */
+.nav-overlay {
+  position: fixed;
+  top: var(--nav-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 49;
+  background: linear-gradient(180deg, #f4ecd2, #ebdbb0);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* ── Mobile sheet ─────────────────────────────────────────────────── */
+.nav-sheet {
+  position: fixed;
+  inset-x: 0;
+  bottom: 0;
+  z-index: 49;
+  max-height: 90dvh;
+  overflow-y: auto;
+  background: linear-gradient(180deg, #f4ecd2, #ebdbb0);
+  border-radius: 20px 20px 0 0;
+  overscroll-behavior: contain;
+}
+
+/* ── Mobile backdrop ──────────────────────────────────────────────── */
+.nav-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 48;
+  background: rgba(42, 24, 16, 0.25);
+  backdrop-filter: blur(2px);
+}
+
+/* ── Gauge bar (XP progress) ──────────────────────────────────────── */
+.gauge-bar {
+  height: 2px;
+  background: linear-gradient(to right, var(--color-paprika-700), var(--color-saffron-600), #f4c04c);
+}
+
+/* ── Seal glow animation ──────────────────────────────────────────── */
+@keyframes seal-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(176, 57, 43, 0); }
+  50%       { box-shadow: 0 0 0 4px rgba(176, 57, 43, 0.22); }
+}
+.seal-pulse {
+  animation: seal-glow 2.6s ease-in-out infinite;
+}
+
+/* ── Poles navigation items ───────────────────────────────────────── */
+.pole-item {
+  display: flex;
+  transition: color 240ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.pole-item:hover .pole-name {
+  color: var(--color-paprika-700);
+}
+.pole-item:hover .pole-arrow {
+  transform: translateX(4px);
+}
+.pole-arrow {
+  transition: transform 240ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/* ── Sheet grab handle ────────────────────────────────────────────── */
+.sheet-grab {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(184, 134, 74, 0.45);
+  margin: 0 auto;
+}
+
+/* ── pb-safe helper (iOS home bar) ───────────────────────────────── */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 1.5rem);
+}

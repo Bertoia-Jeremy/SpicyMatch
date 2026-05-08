@@ -15,7 +15,7 @@
 
   Any optional arg left null simply skips its rendering.
 #}
-{% macro header(icon, title, subtitle = null, current = null, total = null, scoreLabel = null, quitUrl = null) %}
+{% macro header(icon, title, subtitle = null, current = null, total = null, scoreLabel = null, quitUrl = null, useProgressBar = true) %}
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
             {% if quitUrl %}
@@ -43,17 +43,34 @@
                 <span class="tag-secondary">{{ current }}/{{ total }}</span>
             {% endif %}
             {% if scoreLabel %}
-                <span class="font-semibold text-saffron-600">{{ scoreLabel|raw }}</span>
+                <span class="font-semibold text-saffron-600">{{ scoreLabel }}</span>
             {% endif %}
         </div>
     </div>
 
-    {% if current is not null and total is not null and total > 0 %}
+    {% if useProgressBar and current is not null and total is not null and total > 0 %}
         <div class="w-full bg-stone-200 rounded-full h-2 mb-8">
             <div class="bg-saffron-500 h-2 rounded-full transition-all duration-300"
                  style="width: {{ (current / total) * 100 }}%"></div>
         </div>
     {% endif %}
+{% endmacro %}
+
+{# Dot-based progress — 10 segments colored ok/bad/current/empty. Replaces the bar when games need per-question state. #}
+{% macro progress_dots(answers, questionNumber, totalQuestions) %}
+    <div class="flex items-center gap-1.5 mb-6" role="progressbar"
+         aria-valuenow="{{ questionNumber }}" aria-valuemax="{{ totalQuestions }}">
+        {% for i in 1..totalQuestions %}
+            {% if i <= answers|length %}
+                {% set cls = answers[i - 1].correct ? 'bg-green-400' : 'bg-paprika-400' %}
+            {% elseif i == questionNumber %}
+                {% set cls = 'bg-saffron-500 animate-pulse' %}
+            {% else %}
+                {% set cls = 'bg-stone-200' %}
+            {% endif %}
+            <div class="h-2 rounded-full flex-1 transition-all duration-300 {{ cls }}"></div>
+        {% endfor %}
+    </div>
 {% endmacro %}
 
 {# Summary circle + button for game-over / time-up states. #}
@@ -63,9 +80,10 @@
         : 'border-turmeric-400 text-turmeric-700' %}
     <div class="text-center py-12">
         <div class="w-24 h-24 mx-auto mb-6 rounded-full border-8 flex items-center justify-center {{ borderClass }}">
-            <div class="text-2xl font-bold">{{ circleLabel|raw }}</div>
+            <div class="text-2xl font-bold">{{ circleLabel }}</div>
         </div>
         <h3 class="text-xl font-bold text-stone-800 mb-2">{{ title }}</h3>
+        {# |raw needed: SurvivalGame passes <strong> HTML for spice name in defeat message #}
         <p class="text-stone-600 mb-6">{{ paragraphHtml|raw }}</p>
         <button data-action="live#action"
                 data-live-action-param="{{ buttonAction }}"

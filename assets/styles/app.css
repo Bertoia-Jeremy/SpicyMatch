@@ -12,6 +12,9 @@
 @import "./components/footer.css";
 @import "./components/filters.css";
 @import "./components/carousel.css";
+@import "./components/lab.css";
+@import "./components/spice-view.css";
+@import "./components/navbar.css";
 
 /* Sources pour le scan Tailwind v4 */
 @source "../../templates/**/*.html.twig";

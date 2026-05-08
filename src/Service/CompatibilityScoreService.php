@@ -32,7 +32,7 @@ class CompatibilityScoreService
     /**
      * @param Spices[] $selectedSpices
      *
-     * @return array<array{id: int, name: string, file: ?string, color: ?string, groupName: ?string, score: int, mainCompoundsCount: int, secondaryCompoundsCount: int, alchemyFlavorsCount: int}>
+     * @return array<array{id: int, name: string, file: ?string, color: ?string, groupName: ?string, typeName: ?string, score: int, mainCompoundsCount: int, secondaryCompoundsCount: int, alchemyFlavorsCount: int}>
      */
     public function findCompatible(array $selectedSpices): array
     {
@@ -141,6 +141,7 @@ class CompatibilityScoreService
                 'color' => $spice->getAromaticGroups()?->getColor(),
                 'groupName' => $spice->getAromaticGroups()?->getName(),
                 'stId' => $spice->getSpicyType()?->getId(),
+                'typeName' => $spice->getSpicyType()?->getName(),
                 'score' => $r['score'],
                 'mainCompoundsCount' => $r['mainCompoundsCount'],
                 'secondaryCompoundsCount' => $r['secondaryCompoundsCount'],

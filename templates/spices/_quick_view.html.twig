@@ -1,77 +1,141 @@
 <turbo-frame id="spice_quick_view">
     {% set color = spice.aromaticGroups ? spice.aromaticGroups.color : '#78716C' %}
+    {% set groupName = spice.aromaticGroups ? spice.aromaticGroups.name : null %}
+    {% set typeName = spice.spicyType ? spice.spicyType.name : null %}
     {% set imageUrl = vich_uploader_asset(spice, 'imageFile') %}
 
-    <div class="p-6">
-        {# En-tête : image + nom + groupe #}
-        <div class="flex gap-4 mb-5">
+    {# Grille 2 colonnes : image | contenu — footer col-span-2 #}
+    <div class="grid sm:grid-cols-[300px_1fr]">
+
+        {# ── Col 1 : Image ── #}
+        <div class="relative min-h-[220px] sm:min-h-[400px]"
+             style="background: linear-gradient(135deg, {{ color }}33, {{ color }}11)">
             {% if imageUrl %}
                 <img src="{{ imageUrl }}" alt="{{ spice.name }}"
-                     class="w-24 h-24 rounded-2xl object-cover shrink-0 shadow-sm">
+                     class="absolute inset-0 w-full h-full object-cover">
             {% else %}
-                <img src="https://loremflickr.com/96/96/spice"
+                <img src="https://loremflickr.com/600/700/spice,{{ spice.name|url_encode }}"
                      alt="{{ spice.name }}"
-                     class="w-24 h-24 rounded-2xl object-cover shrink-0 shadow-sm">
+                     class="absolute inset-0 w-full h-full object-cover">
             {% endif %}
-            <div class="flex-1 min-w-0">
-                <h2 class="text-xl font-bold text-stone-900 mb-1">{{ spice.name }}</h2>
-                {% if spice.aromaticGroups %}
-                    <span class="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full"
-                          style="background-color: {{ color }}22; color: {{ color }}; border: 1px solid {{ color }}44">
-                        {{ spice.aromaticGroups.name }}
-                    </span>
-                {% endif %}
-                {% if spice.spicyType %}
-                    <span class="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full bg-stone-100 text-stone-500 ml-1">
-                        {{ spice.spicyType.name }}
-                    </span>
-                {% endif %}
-            </div>
+            {# Gradient overlay bas #}
+            <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/25 pointer-events-none"></div>
         </div>
 
-        {# Description #}
-        {% if spice.description %}
-            <p class="text-stone-600 text-sm leading-relaxed mb-5">{{ spice.description }}</p>
-        {% endif %}
+        {# ── Col 2 : Contenu scrollable ── #}
+        <div class="overflow-y-auto sm:max-h-[calc(90vh-57px)] p-7 flex flex-col gap-5
+                    scrollbar-thin scrollbar-thumb-spice-border scrollbar-track-transparent">
 
-        {# Saveurs principales #}
-        {% set flavors = [] %}
-        {% for ac in spice.aromaticsCompounds %}
-            {% for f in ac.AlchemyFlavors %}
-                {% set flavors = flavors|merge([f]) %}
+            {# Eyebrow mono : groupe · type #}
+            {% if groupName or typeName %}
+                <div class="flex items-center gap-2 font-mono text-[10.5px] tracking-[0.12em] uppercase text-stone-500">
+                    {% if groupName %}
+                        <span class="size-2.5 rounded-full flex-none" style="background: {{ color }}"></span>
+                        <span>{{ groupName }}</span>
+                    {% endif %}
+                    {% if groupName and typeName %}
+                        <span class="text-stone-300">·</span>
+                    {% endif %}
+                    {% if typeName %}
+                        <span>{{ typeName }}</span>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {# Titre — Fraunces #}
+            <h2 class="font-display font-normal text-[2.1rem] leading-[1.05] tracking-tight text-stone-900 -mt-1">
+                {{ spice.name }}
+            </h2>
+
+            {# Tags groupe + type #}
+            <div class="flex flex-wrap gap-1.5">
+                {% if groupName %}
+                    <span class="inline-flex items-center gap-1.5 text-[11.5px] font-medium px-2.5 py-1.5 rounded-full border"
+                          style="background: {{ color }}15; color: {{ color }}; border-color: {{ color }}40">
+                        <span class="size-2 rounded-full flex-none" style="background: {{ color }}"></span>
+                        {{ groupName }}
+                    </span>
+                {% endif %}
+                {% if typeName %}
+                    <span class="inline-flex items-center text-[11.5px] font-medium px-2.5 py-1.5 rounded-full
+                                 bg-stone-100 border border-stone-200 text-stone-500">
+                        {{ typeName }}
+                    </span>
+                {% endif %}
+            </div>
+
+            {# Description — serif italic avec bordure accent #}
+            {% if spice.description %}
+                <p class="font-display italic font-normal text-[15.5px] leading-relaxed text-stone-600
+                          border-l-[2px] pl-4 -ml-0.5"
+                   style="border-color: {{ color }}">
+                    {{ spice.description }}
+                </p>
+            {% endif %}
+
+            {# Saveurs dominantes #}
+            {% set flavors = [] %}
+            {% for ac in spice.aromaticsCompounds %}
+                {% for f in ac.AlchemyFlavors %}
+                    {% set flavors = flavors|merge([f]) %}
+                {% endfor %}
             {% endfor %}
-        {% endfor %}
-        {% if flavors|length > 0 %}
-            <div class="mb-4">
-                <p class="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">
-                    <i class="fa-solid fa-droplet text-turmeric-500 mr-1"></i>Saveurs
-                </p>
-                <div class="flex flex-wrap gap-1.5">
-                    {% for flavor in flavors|slice(0, 6) %}
-                        <span class="tag-primary text-xs">{{ flavor.name }}</span>
-                    {% endfor %}
-                    {% if flavors|length > 6 %}
-                        <span class="tag-secondary text-xs">+{{ flavors|length - 6 }}</span>
-                    {% endif %}
+            {% if flavors|length > 0 %}
+                <div class="flex flex-col gap-2.5">
+                    <h4 class="font-mono text-[10.5px] tracking-[0.14em] uppercase text-stone-400 flex items-center gap-2">
+                        <i class="fa-solid fa-droplet text-[10px]" style="color: {{ color }}"></i>
+                        Saveurs dominantes
+                    </h4>
+                    <div class="flex flex-wrap gap-1.5">
+                        {% for flavor in flavors|slice(0, 8) %}
+                            <span class="inline-flex items-center text-[12.5px] font-medium px-2.5 py-1 rounded-full border"
+                                  style="background: {{ color }}12; color: {{ color }}; border-color: {{ color }}30">
+                                {{ flavor.name }}
+                            </span>
+                        {% endfor %}
+                        {% if flavors|length > 8 %}
+                            <span class="text-[11px] text-stone-400 self-center">+{{ flavors|length - 8 }}</span>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
-        {% endif %}
+            {% endif %}
 
-        {# Composés aromatiques #}
-        {% if spice.aromaticsCompounds|length > 0 %}
-            <div>
-                <p class="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">
-                    <i class="fa-solid fa-atom text-saffron-600 mr-1"></i>Composés aromatiques
-                </p>
-                <div class="flex flex-wrap gap-1.5">
-                    {% for ac in spice.aromaticsCompounds|slice(0, 5) %}
-                        <span class="tag-secondary text-xs">{{ ac.name }}</span>
-                    {% endfor %}
-                    {% if spice.aromaticsCompounds|length > 5 %}
-                        <span class="tag-secondary text-xs">+{{ spice.aromaticsCompounds|length - 5 }}</span>
-                    {% endif %}
+            {# Composés aromatiques #}
+            {% if spice.aromaticsCompounds|length > 0 %}
+                <div class="flex flex-col gap-2.5">
+                    <h4 class="font-mono text-[10.5px] tracking-[0.14em] uppercase text-stone-400 flex items-center gap-2">
+                        <i class="fa-solid fa-atom text-stone-400 text-[10px]"></i>
+                        Composés aromatiques
+                    </h4>
+                    <div class="flex flex-wrap gap-1.5">
+                        {% for ac in spice.aromaticsCompounds|slice(0, 6) %}
+                            <span class="inline-flex items-center text-[12px] font-mono font-medium px-2.5 py-1 rounded-full
+                                         bg-stone-100 border border-stone-200 text-stone-600 tracking-[0.03em]">
+                                {{ ac.name }}
+                            </span>
+                        {% endfor %}
+                        {% if spice.aromaticsCompounds|length > 6 %}
+                            <span class="text-[11px] text-stone-400 self-center">+{{ spice.aromaticsCompounds|length - 6 }}</span>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
-        {% endif %}
+            {% endif %}
+
+        </div>
+
+        {# ── Footer — pleine largeur (col-span-2) ── #}
+        <div class="sm:col-span-2 border-t border-stone-200 px-7 py-4 flex items-center justify-between
+                    bg-cream/80">
+            <span class="font-mono text-[11px] text-stone-400 tracking-[0.04em]">Aperçu rapide</span>
+            <a href="{{ path('view_spice', {id: spice.id}) }}"
+               data-turbo-frame="_top"
+               class="inline-flex items-center gap-1.5 text-[13.5px] font-semibold
+                      hover:opacity-80 transition-opacity group/link"
+               style="color: var(--color-copper)">
+                Voir la fiche complète
+                <i class="fa-solid fa-arrow-right text-xs transition-transform group-hover/link:translate-x-0.5"></i>
+            </a>
+        </div>
+
     </div>
 </turbo-frame>

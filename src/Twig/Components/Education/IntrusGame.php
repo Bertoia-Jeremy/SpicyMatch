@@ -91,6 +91,12 @@ class IntrusGame extends AbstractController
     #[LiveProp]
     public array $usedBaseIds = [];
 
+    #[LiveProp]
+    public string $familyName = '';
+
+    #[LiveProp]
+    public string $familyColor = '';
+
     public function __construct(
         private readonly AcademyManager $academyManager,
         private readonly GameSessionManager $sessionManager,
@@ -262,6 +268,26 @@ class IntrusGame extends AbstractController
         $this->isInverted = $question['isInverted'];
         $this->prompt = $question['prompt'];
         $this->options = $question['options'];
+
+        // Derive majority aromatic family for the family chip
+        $this->familyName = '';
+        $this->familyColor = '';
+        $groupTally = [];
+        foreach ($this->options as $opt) {
+            if (! empty($opt['groupName'])) {
+                $groupTally[$opt['groupName']] = ($groupTally[$opt['groupName']] ?? 0) + 1;
+            }
+        }
+        if ($groupTally) {
+            arsort($groupTally);
+            $this->familyName = (string) array_key_first($groupTally);
+            foreach ($this->options as $opt) {
+                if (($opt['groupName'] ?? '') === $this->familyName) {
+                    $this->familyColor = (string) ($opt['color'] ?? '');
+                    break;
+                }
+            }
+        }
 
         // Store correct answer + step nonce in session (not in LiveProp).
         // Preserve correctSteps and questions accumulated across previous questions.

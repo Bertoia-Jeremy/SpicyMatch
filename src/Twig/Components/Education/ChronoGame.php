@@ -157,9 +157,9 @@ class ChronoGame extends AbstractController
 
             $gameDifficulty = GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY;
             [$t1, $t2] = match ($gameDifficulty) {
-                GameDifficulty::EASY   => [8, 12],
+                GameDifficulty::EASY => [8, 12],
                 GameDifficulty::MEDIUM => [4, 8],
-                GameDifficulty::HARD   => [3, 6],
+                GameDifficulty::HARD => [3, 6],
             };
             $base = match (true) {
                 $serverElapsed < $t1 => 5,

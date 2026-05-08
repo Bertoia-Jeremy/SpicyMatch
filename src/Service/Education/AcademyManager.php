@@ -848,7 +848,7 @@ class AcademyManager
     // ──────────────────────────────────────────────
 
     /**
-     * @return array{id: int, name: string, file: ?string, color: ?string}
+     * @return array{id: int, name: string, file: ?string, color: ?string, groupName: ?string}
      */
     private function spiceToOption(Spices $spice): array
     {
@@ -857,6 +857,7 @@ class AcademyManager
             'name' => $spice->getName(),
             'file' => $spice->getFile(),
             'color' => $spice->getAromaticGroups()?->getColor(),
+            'groupName' => $spice->getAromaticGroups()?->getName(),
         ];
     }
 

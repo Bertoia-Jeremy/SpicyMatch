@@ -9,6 +9,7 @@
         {% set spiceDescription = spice.description|default(null) %}
         {% set color = spice.color|default('#78716C') %}
         {% set groupName = spice.groupName|default(null) %}
+        {% set typeName = spice.typeName|default(null) %}
         {% set imageUrl = spice.file ? asset('uploads/spices/' ~ spice.file) : null %}
     {% else %}
         {# C'est une entité Spices #}
@@ -17,6 +18,7 @@
         {% set spiceDescription = spice.description %}
         {% set color = spice.aromaticGroups ? spice.aromaticGroups.color : '#78716C' %}
         {% set groupName = spice.aromaticGroups ? spice.aromaticGroups.name : null %}
+        {% set typeName = spice.spicyType ? spice.spicyType.name : null %}
         {% set imageUrl = vich_uploader_asset(spice, 'imageFile') %}
     {% endif %}
 
@@ -26,95 +28,185 @@
     {% set compact = options.compact|default(false) %}
     {% set showQuickView = options.showQuickView|default(true) %}
     {% set model = options.model|default(null) %}
+    {% set labStyle = options.labStyle|default(false) %}
 
-    {# Mode "Chef de Partie" : neutralise les couleurs de groupe aromatique.
-       Override possible via options.monochrome ; sinon hérite de la globale isMonochrome
-       (DifficultyExtension) qui dépend de la préférence utilisateur. #}
+    {# Mode "Chef de Partie" : neutralise les couleurs de groupe aromatique. #}
     {% set effectiveMonochrome = options.monochrome ?? (isMonochrome ?? false) %}
     {% if effectiveMonochrome %}
         {% set color = '#78716C' %}
     {% endif %}
 
-    <article x-data class="card-warm flex flex-col overflow-hidden h-full group relative {{ compact ? 'max-w-[180px]' : '' }}">
-        
-        {# ── Zone 1 : Image (Trigger MODALE uniquement) ── #}
-        <div class="relative overflow-hidden aspect-square bg-stone-100 cursor-pointer"
-             {% if showQuickView %}
-             @click.prevent.stop="$dispatch('open-spice-modal', { url: '{{ path('quick_view_spice', { id: spiceId }) }}', fullUrl: '{{ path('view_spice', { id: spiceId }) }}' })"
-             {% endif %}>
-            
+    <article x-data class="card-warm flex flex-col overflow-hidden h-full group relative">
+
+        {# ── Zone 1 : Image ── #}
+        {% if labStyle and model %}
+            {# Lab style: toute la zone image est un label pour la checkbox de sélection #}
+            <label for="spice_{{ spiceId }}"
+                   class="relative overflow-hidden aspect-square bg-stone-100 block cursor-pointer"
+                   @click.stop>
+        {% else %}
+            <div class="relative overflow-hidden aspect-square bg-stone-100 {{ showQuickView ? 'cursor-pointer' : '' }}"
+                 {% if showQuickView %}
+                 @click.prevent.stop="$dispatch('open-spice-modal', { url: '{{ path('quick_view_spice', { id: spiceId }) }}', fullUrl: '{{ path('view_spice', { id: spiceId }) }}' })"
+                 {% endif %}>
+        {% endif %}
+
             {% if imageUrl %}
                 <img src="{{ imageUrl }}" alt="{{ spiceName }}" loading="lazy"
-                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
             {% else %}
-                <img src="https://loremflickr.com/400/400/spice" alt="{{ spiceName }}" loading="lazy"
-                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                <img src="https://loremflickr.com/400/400/spice,{{ spiceName|url_encode }}" alt="{{ spiceName }}" loading="lazy"
+                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
             {% endif %}
 
-            {# Overlay Quick View #}
-            {% if showQuickView %}
-            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                 style="background: linear-gradient(to top, {{ color }}CC 0%, transparent 60%)">
-                <span class="bg-white/95 text-stone-800 text-[10px] font-bold px-3 py-2 rounded-full shadow-lg translate-y-2 group-hover:translate-y-0 transition-all duration-300 uppercase tracking-wider">
-                    <i class="fa-solid fa-magnifying-glass mr-1"></i>Aperçu
-                </span>
-            </div>
-            {% endif %}
+            {% if labStyle %}
+                {# Group chip top-left (sur l'image) #}
+                {% if groupName and not effectiveMonochrome %}
+                    <span class="absolute top-2.5 left-2.5 z-10 inline-flex items-center gap-1.5
+                                 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1
+                                 text-[10px] font-semibold uppercase tracking-wide leading-none pointer-events-none"
+                          style="color: {{ color }}">
+                        <span class="size-2.5 rounded-full flex-none" style="background: {{ color }}"></span>
+                        {{ groupName }}
+                    </span>
+                {% endif %}
 
-            {# Badge de Score #}
-            {% if score is not null %}
-                <div class="absolute top-2 right-2 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-lg shadow-sm border border-stone-100 flex flex-col items-center min-w-[40px]">
-                    <span class="text-[10px] font-bold text-saffron-600 leading-none">{{ score }}%</span>
-                    <span class="text-[8px] text-stone-400 uppercase font-bold tracking-tighter">Match</span>
-                </div>
-            {% endif %}
-
-            <div class="absolute bottom-0 left-0 right-0 h-1" style="background-color: {{ color }}"></div>
-        </div>
-
-        {# ── Zone 2 : Contenu (Trigger SÉLECTION uniquement si model présent) ── #}
-        {# On utilise un label pour que cliquer sur le texte déclenche la checkbox #}
-        <{{ model ? 'label' : 'div' }} 
-            {% if model %}for="spice_{{ spiceId }}"{% endif %}
-            class="flex flex-col flex-1 p-3 gap-1.5 {{ model ? 'cursor-pointer hover:bg-stone-50/50 transition-colors' : '' }}"
-            @click.stop>
-            
-            <div class="flex items-start justify-between gap-2">
-                <h3 class="font-bold text-stone-900 {{ compact ? 'text-xs' : 'text-sm' }} leading-snug line-clamp-2 group-hover:text-saffron-700 transition-colors duration-200">
-                    {{ spiceName }}
-                </h3>
-                
+                {# Checkmark top-right : checkbox sr-only + visuel peer #}
                 {% if model %}
-                    <div class="shrink-0 pt-0.5">
-                        <input type="checkbox" 
+                    <span class="absolute top-2.5 right-2.5 z-10 inline-flex">
+                        <input type="checkbox"
                                id="spice_{{ spiceId }}"
-                               data-model="{{ model }}" 
+                               data-model="{{ model }}"
                                value="{{ spiceId }}"
                                {% if isSelection %}checked{% endif %}
-                               @click.stop
-                               class="size-4 rounded border-stone-300 text-saffron-600 focus:ring-saffron-500/20 transition-all cursor-pointer">
+                               class="sr-only peer"
+                               @click.stop>
+                        <span class="flex size-6 items-center justify-center rounded-lg
+                                     bg-white/90 backdrop-blur-sm border border-stone-200 shadow-sm
+                                     peer-checked:bg-saffron-600 peer-checked:border-saffron-600
+                                     transition-all duration-200 cursor-pointer"
+                              @click.stop="$el.previousElementSibling.click()">
+                            <i class="fa-solid fa-check text-[10px] text-white opacity-0
+                                      peer-checked:opacity-100 transition-opacity"></i>
+                        </span>
+                    </span>
+                {% endif %}
+
+            {% else %}
+                {# Catalog style: overlay quick view #}
+                {% if showQuickView %}
+                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                         style="background: linear-gradient(to top, {{ color }}CC 0%, transparent 60%)">
+                        <span class="bg-white/95 text-stone-800 text-[10px] font-bold px-3 py-2 rounded-full shadow-lg translate-y-2 group-hover:translate-y-0 transition-all duration-300 uppercase tracking-wider">
+                            <i class="fa-solid fa-magnifying-glass mr-1"></i>Aperçu
+                        </span>
                     </div>
                 {% endif %}
-            </div>
 
-            {% if groupName and not effectiveMonochrome %}
-                <span class="inline-flex items-center gap-1 self-start text-[9px] font-bold px-2 py-0.5 rounded-full leading-none uppercase tracking-wide"
-                      style="background-color: {{ color }}15; color: {{ color }}; border: 1px solid {{ color }}30">
-                    {{ groupName }}
-                </span>
-            {% elseif groupName %}
-                <span class="inline-flex items-center gap-1 self-start text-[9px] font-bold px-2 py-0.5 rounded-full leading-none uppercase tracking-wide bg-stone-100 text-stone-500 border border-stone-200">
-                    ???
-                </span>
-            {% endif %}
-
-            {% if score is not null %}
-                <div class="w-full mt-auto pt-2">
-                    <div class="h-1 w-full bg-stone-100 rounded-full overflow-hidden">
-                        <div class="h-full bg-saffron-500 transition-all duration-1000" style="width: {{ score }}%"></div>
+                {# Score badge (catalog style) #}
+                {% if score is not null %}
+                    <div class="absolute top-2 right-2 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-lg shadow-sm border border-stone-100 flex flex-col items-center min-w-[40px]">
+                        <span class="text-[10px] font-bold text-saffron-600 leading-none">{{ score }}%</span>
+                        <span class="text-[8px] text-stone-400 uppercase font-bold tracking-tighter">Match</span>
                     </div>
-                </div>
+                {% endif %}
             {% endif %}
-        </{{ model ? 'label' : 'div' }}>
+
+            {# Barre couleur groupe (commune aux deux styles) #}
+            <div class="absolute bottom-0 left-0 right-0 h-0.5" style="background-color: {{ color }}"></div>
+
+        {% if labStyle and model %}
+            </label>
+        {% else %}
+            </div>
+        {% endif %}
+
+        {# ── Zone 2 : Contenu ── #}
+        {% if labStyle %}
+            {# Lab style: nom + type + score + lien détail #}
+            <div class="flex flex-col flex-1 p-3 gap-1">
+                <h3 class="font-bold text-stone-900 text-sm leading-snug line-clamp-2 group-hover:text-saffron-700 transition-colors duration-200">
+                    {{ spiceName }}
+                </h3>
+
+                <div class="flex flex-col gap-1.5 mt-auto">
+                    {% if typeName %}
+                        <p class="font-mono text-[9.5px] uppercase tracking-widest text-stone-400 truncate leading-none">
+                            {{ typeName }}
+                        </p>
+                    {% endif %}
+
+                    {% if score is not null %}
+                        <div class="w-full pt-0.5">
+                            <div class="flex items-center justify-between mb-0.5">
+                                <span class="text-[9px] font-mono uppercase tracking-wide text-stone-400">Compat.</span>
+                                <span class="text-[10px] font-bold text-saffron-600">{{ score }}%</span>
+                            </div>
+                            <div class="h-1 w-full bg-stone-100 rounded-full overflow-hidden">
+                                <div class="h-full bg-saffron-500 transition-all duration-1000" style="width: {{ score }}%"></div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <button type="button"
+                            class="flex items-center justify-between gap-2 pt-2 w-full
+                                   border-t border-dashed border-spice-border
+                                   text-[11px] font-semibold text-saffron-600
+                                   hover:text-saffron-700 transition-colors group/link"
+                            @click.stop="$dispatch('open-spice-modal', {
+                                url: '{{ path('quick_view_spice', {id: spiceId}) }}',
+                                fullUrl: '{{ path('view_spice', {id: spiceId}) }}'
+                            })">
+                        <span>Voir les détails</span>
+                        <i class="fa-solid fa-arrow-right text-[9px] transition-transform group-hover/link:translate-x-0.5"></i>
+                    </button>
+                </div>
+            </div>
+        {% else %}
+            {# Catalog style: label cliquable + badge groupe + score bar #}
+            <{{ model ? 'label' : 'div' }}
+                {% if model %}for="spice_{{ spiceId }}"{% endif %}
+                class="flex flex-col flex-1 p-3 gap-1.5 {{ model ? 'cursor-pointer hover:bg-stone-50/50 transition-colors' : '' }}"
+                @click.stop>
+
+                <div class="flex items-start justify-between gap-2">
+                    <h3 class="font-bold text-stone-900 text-sm leading-snug line-clamp-2 group-hover:text-saffron-700 transition-colors duration-200">
+                        {{ spiceName }}
+                    </h3>
+
+                    {% if model %}
+                        <div class="shrink-0 pt-0.5">
+                            <input type="checkbox"
+                                   id="spice_{{ spiceId }}"
+                                   data-model="{{ model }}"
+                                   value="{{ spiceId }}"
+                                   {% if isSelection %}checked{% endif %}
+                                   @click.stop
+                                   class="size-4 rounded border-stone-300 text-saffron-600 focus:ring-saffron-500/20 transition-all cursor-pointer">
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if groupName and not effectiveMonochrome %}
+                    <span class="inline-flex items-center gap-1 self-start text-[9px] font-bold px-2 py-0.5 rounded-full leading-none uppercase tracking-wide"
+                          style="background-color: {{ color }}15; color: {{ color }}; border: 1px solid {{ color }}30">
+                        {{ groupName }}
+                    </span>
+                {% elseif groupName %}
+                    <span class="inline-flex items-center gap-1 self-start text-[9px] font-bold px-2 py-0.5 rounded-full leading-none uppercase tracking-wide bg-stone-100 text-stone-500 border border-stone-200">
+                        ???
+                    </span>
+                {% endif %}
+
+                {% if score is not null %}
+                    <div class="w-full mt-auto pt-2">
+                        <div class="h-1 w-full bg-stone-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-saffron-500 transition-all duration-1000" style="width: {{ score }}%"></div>
+                        </div>
+                    </div>
+                {% endif %}
+            </{{ model ? 'label' : 'div' }}>
+        {% endif %}
+
     </article>
 {% endmacro %}

@@ -177,6 +177,13 @@ class SpicyMatch extends AbstractController
         $this->spices['selectedSpices'][] = [];
     }
 
+    #[LiveAction]
+    public function clearSelection(): void
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+        $this->spices['selectedSpices'] = [];
+    }
+
     public function canAddMoreGroups(): bool
     {
         return ! empty($this->getResults()['compatibleSpices']);

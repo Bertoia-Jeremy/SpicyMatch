@@ -1,7 +1,7 @@
 body {
   font-family: 'Inter', system-ui, sans-serif;
   background-color: var(--color-cream);
-  color: #1C1917;
+  color: var(--color-ink-deep);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -22,7 +22,7 @@ turbo-frame[aria-busy="true"] {
 }
 
 .skeleton-pulse {
-  background: linear-gradient(90deg, #f0ede8 25%, #e8e3dc 50%, #f0ede8 75%);
+  background: linear-gradient(90deg, #EDE5D0 25%, #E3D8BE 50%, #EDE5D0 75%);
   background-size: 800px 100%;
   animation: skeleton-shimmer 1.4s ease-in-out infinite;
   border-radius: 0.5rem;

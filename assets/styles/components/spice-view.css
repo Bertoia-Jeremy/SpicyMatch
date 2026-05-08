@@ -1,0 +1,336 @@
+/* ── Hero blob animation ── */
+@keyframes blobMorph {
+  0%, 100% { border-radius: 60% 40% 55% 45% / 50% 55% 45% 50%; }
+  50%      { border-radius: 45% 55% 45% 55% / 55% 45% 55% 45%; }
+}
+
+.hero-img-blob {
+  width: 100%;
+  height: 100%;
+  border-radius: 60% 40% 55% 45% / 50% 55% 45% 50%;
+  overflow: hidden;
+  animation: blobMorph 18s ease-in-out infinite;
+  background: radial-gradient(ellipse at 30% 28%, var(--color-saffron-400), var(--color-saffron-700));
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, .20), 0 30px 80px rgba(194, 65, 12, .22);
+}
+
+.hero-img-blob img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Floating handwriting tags (CSS only, Lora italic) */
+.hero-tag {
+  position: absolute;
+  z-index: 3;
+  background: white;
+  border: 0.5px solid var(--color-spice-border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 17px;
+  color: var(--color-saffron-700);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .06), 0 2px 6px rgba(194, 65, 12, .04);
+  pointer-events: none;
+}
+
+.hero-tag-1 {
+  top: 8%;
+  left: -20px;
+  transform: rotate(-6deg);
+}
+
+.hero-tag-2 {
+  bottom: 14%;
+  right: -24px;
+  transform: rotate(4deg);
+}
+
+@media (max-width: 1024px) {
+  .hero-tag { display: none; }
+}
+
+/* ── Saveurs bowl ── */
+.bowl {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  max-width: 460px;
+  width: 100%;
+  justify-self: center;
+}
+
+.bowl-rim {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #fdf8ef 0%, #f5ede0 60%, #ede0cc 95%);
+  border: 0.5px solid var(--color-spice-border);
+  box-shadow:
+    inset 0 0 60px rgba(194, 65, 12, .08),
+    inset 0 4px 14px rgba(0, 0, 0, .06),
+    0 8px 24px rgba(0, 0, 0, .07);
+}
+
+.bowl-rim::before {
+  content: "";
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  border: 1px dashed rgba(194, 65, 12, .2);
+  opacity: .6;
+}
+
+.pile {
+  position: absolute;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: default;
+  box-shadow:
+    inset 0 -8px 14px rgba(0, 0, 0, .25),
+    inset 0 4px 10px rgba(255, 255, 255, .15),
+    0 4px 14px rgba(0, 0, 0, .15);
+  transition: transform .25s;
+}
+
+.pile:hover { transform: scale(1.06); }
+
+/* ── En Cuisine — Marmites ── */
+.marmites {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+@media (max-width: 900px) {
+  .marmites { grid-template-columns: 1fr; }
+}
+
+.marmite {
+  position: relative;
+  background: var(--color-parchment);
+  border: 0.5px solid var(--color-copper-border);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+  transition: transform .25s, box-shadow .25s, border-color .2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.marmite:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--color-spice-border);
+}
+
+.marmite-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.marmite-glyph {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: linear-gradient(160deg, var(--color-turmeric-400), var(--color-saffron-600));
+  display: grid;
+  place-items: center;
+  color: white;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3), 0 4px 14px rgba(194, 65, 12, .25);
+  flex: none;
+}
+
+.marmite-step {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 40px;
+  color: var(--color-saffron-600);
+  line-height: 1;
+  transform: rotate(-4deg);
+  opacity: .35;
+}
+
+.marmite-when {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--color-saffron-600);
+  margin-bottom: 8px;
+}
+
+.marmite-when::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-saffron-500);
+  flex: none;
+}
+
+.marmite-foot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: ui-monospace, monospace;
+  font-size: 10.5px;
+  color: #a8a29e;
+  background: var(--color-cream);
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 0.5px solid var(--color-spice-border);
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+/* ── Le Carnet ── */
+.carnet-layout {
+  background: linear-gradient(180deg, var(--color-parchment) 0%, var(--color-parchment-deep) 100%);
+  border: 0.5px solid var(--color-copper-border);
+  border-radius: 24px;
+  padding: 36px 40px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 40px;
+  align-items: flex-start;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .06);
+}
+
+@media (max-width: 900px) {
+  .carnet-layout {
+    grid-template-columns: 1fr;
+    padding: 28px 24px;
+    gap: 28px;
+  }
+}
+
+.carnet-tip {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-top: 18px;
+  padding: 16px 18px;
+  background: var(--color-parchment);
+  border: 0.5px dashed var(--color-copper-border-lg);
+  border-radius: 14px;
+}
+
+.carnet-tip-ic {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: var(--color-saffron-100);
+  color: var(--color-saffron-700);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+/* Vertus list */
+.vertus-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vertu {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: var(--color-parchment);
+  border: 0.5px solid var(--color-copper-border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  transition: transform .2s, border-color .2s;
+}
+
+.vertu:hover {
+  transform: translateX(2px);
+  border-color: var(--color-saffron-400);
+}
+
+.vertu-ic {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  flex: none;
+  background: linear-gradient(160deg, var(--color-turmeric-100), var(--color-saffron-100));
+  display: grid;
+  place-items: center;
+  color: var(--color-saffron-700);
+}
+
+/* ── Le Fil des Épices ── */
+.fil-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .fil-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 560px) {
+  .fil-grid { grid-template-columns: 1fr; }
+}
+
+.fil-card {
+  display: block;
+  background: var(--color-parchment);
+  text-decoration: none;
+  color: inherit;
+  border: 0.5px solid var(--color-copper-border);
+  border-radius: 18px;
+  padding: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .06);
+  transition: transform .25s, box-shadow .25s, border-color .25s;
+}
+
+.fil-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--color-saffron-200);
+}
+
+.fc-img {
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  position: relative;
+}
+
+.fc-img img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Scroll reveal ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity .7s ease, transform .7s cubic-bezier(.2, .8, .2, 1);
+}
+
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+}

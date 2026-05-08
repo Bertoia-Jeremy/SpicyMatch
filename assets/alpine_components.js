@@ -37,26 +37,53 @@ export default function registerAlpineComponents(Alpine) {
         chevronClass() { return this.open ? '' : '-rotate-180'; },
     }));
 
-    /* Navbar mobile drawer — toggles `inert` on <main> and focuses first link. */
-    Alpine.data('mobileMenu', () => ({
+    /* Navbar — overlay (desktop) + sheet (mobile). */
+    Alpine.data('navMenu', () => ({
         open: false,
+        mobileOpen: false,
+        _keyHandler: null,
+
         init() {
-            this.$watch('open', (val) => {
+            this.$watch('open', (v) => {
+                document.body.style.overflow = v ? 'hidden' : '';
                 const main = document.getElementById('main-content');
-                if (main) main.inert = val;
-                if (val) {
+                if (main) main.inert = v;
+                if (v) {
                     this.$nextTick(() => {
-                        const first = this.$el.querySelector('.drawer-body a, .drawer-body button');
+                        const first = this.$el.querySelector('#nav-overlay a, #nav-overlay button');
                         if (first) first.focus();
                     });
                 }
             });
+            this.$watch('mobileOpen', (v) => {
+                document.body.style.overflow = v ? 'hidden' : '';
+                if (v) {
+                    this.$nextTick(() => {
+                        const first = this.$el.querySelector('#nav-sheet input, #nav-sheet a, #nav-sheet button');
+                        if (first) first.focus();
+                    });
+                }
+            });
+            this._keyHandler = (e) => {
+                if (e.key === 'Escape') { this.open = false; this.mobileOpen = false; }
+            };
+            window.addEventListener('keydown', this._keyHandler);
         },
-        toggle() { this.open = !this.open; },
-        close() { this.open = false; },
-        barTopClass() { return this.open ? 'rotate-45 translate-y-1.75' : ''; },
-        barMiddleClass() { return this.open ? 'opacity-0 scale-x-0' : ''; },
-        barBottomClass() { return this.open ? '-rotate-45 -translate-y-1.75' : ''; },
+
+        destroy() {
+            window.removeEventListener('keydown', this._keyHandler);
+        },
+
+        toggle()       { this.open = !this.open; },
+        close()        { this.open = false; },
+        mobileToggle() { this.mobileOpen = !this.mobileOpen; },
+        mobileClose()  { this.mobileOpen = false; },
+
+        toqueClass()        { return this.open ? 'is-open' : ''; },
+        toqueLabel()        { return this.open ? 'Refermer' : 'Ouvrir'; },
+        toqueColor()        { return this.open ? 'color: var(--color-paprika-700)' : 'color: var(--color-ink-deep)'; },
+        mobileToqueClass()  { return this.mobileOpen ? 'is-open' : ''; },
+        mobileToqueColor()  { return this.mobileOpen ? 'color: var(--color-paprika-700)' : 'color: var(--color-ink-deep)'; },
     }));
 
     Alpine.data('dropdown', () => ({
@@ -446,10 +473,18 @@ export default function registerAlpineComponents(Alpine) {
         nextOpenId: null,
         spiceIds: spiceIdsCsv ? spiceIdsCsv.split(',').map(s => Number(s)) : [],
         totalSpices: 0,
+        _prepHandler: null,
+        _cookingHandler: null,
         init() {
             this.totalSpices = this.spiceIds.length;
-            window.addEventListener('preparation-updated', (e) => this.onPrep(e));
-            window.addEventListener('cooking-confirmed', (e) => this.onCooking(e));
+            this._prepHandler = (e) => this.onPrep(e);
+            this._cookingHandler = (e) => this.onCooking(e);
+            window.addEventListener('preparation-updated', this._prepHandler);
+            window.addEventListener('cooking-confirmed', this._cookingHandler);
+        },
+        destroy() {
+            window.removeEventListener('preparation-updated', this._prepHandler);
+            window.removeEventListener('cooking-confirmed', this._cookingHandler);
         },
         onPrep(e) {
             const id = Number(e.detail.spiceId);
@@ -501,12 +536,17 @@ export default function registerAlpineComponents(Alpine) {
     Alpine.data('cookingAccordion', (spiceId = 0, initiallyOpen = false) => ({
         spiceId: Number(spiceId),
         open: initiallyOpen,
+        _cookingHandler: null,
         toggle() { this.open = !this.open; },
         close() { this.open = false; },
         init() {
-            window.addEventListener('cooking-confirmed', (e) => {
+            this._cookingHandler = (e) => {
                 if (Number(e.detail.spiceId) === this.spiceId && e.detail.selected) this.open = false;
-            });
+            };
+            window.addEventListener('cooking-confirmed', this._cookingHandler);
+        },
+        destroy() {
+            window.removeEventListener('cooking-confirmed', this._cookingHandler);
         },
         onNextOpen(nextOpenId) {
             if (Number(nextOpenId) === this.spiceId) {

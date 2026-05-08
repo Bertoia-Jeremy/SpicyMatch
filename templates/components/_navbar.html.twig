@@ -1,504 +1,642 @@
-{% import 'macros/buttons.html.twig' as buttons %}
+{# ─── SVG Macros ──────────────────────────────────────────────────────────── #}
 
-<nav x-data="mobileMenu"
-     class="sticky top-0 z-50 bg-cream/80 backdrop-blur-md border-b border-saffron-700/10">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-20">
+{% macro waxSeal(sizeClass, uid) %}
+    {% set sizeClass = sizeClass|default('size-12') %}
+    {% set uid = uid|default('a') %}
+    <svg class="{{ sizeClass }}" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+            <radialGradient id="wax-{{ uid }}" cx="38%" cy="35%" r="65%">
+                <stop offset="0%" stop-color="#D14A38"/>
+                <stop offset="55%" stop-color="#9C2E22"/>
+                <stop offset="100%" stop-color="#5C1A12"/>
+            </radialGradient>
+            <radialGradient id="wax-gloss-{{ uid }}" cx="30%" cy="25%" r="55%">
+                <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
+                <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+            </radialGradient>
+        </defs>
+        {# Seal body #}
+        <path d="M32 2.5 C 41 3 47 6 52 12 C 58 17 61.5 24 61 33 C 60.5 42 56 49 50 54 C 44 59 36 61.5 28 60.5 C 19 59.5 12 55 7 49 C 2.5 43 1 35 3 26 C 5 17 11 10 19 5.5 C 23 3.2 27.5 2.2 32 2.5 Z"
+              fill="url(#wax-{{ uid }})"/>
+        {# Inner dotted ring #}
+        <circle cx="32" cy="32" r="25" stroke="rgba(255,255,255,0.35)" stroke-width="0.7" stroke-dasharray="1.6 1.8"/>
+        {# 8-branch star: 4 cardinal + 4 diagonal #}
+        <g fill="rgba(255,255,255,0.5)">
+            <rect x="30.5" y="5.5" width="3" height="9" rx="1.5"/>
+            <rect x="30.5" y="49.5" width="3" height="9" rx="1.5"/>
+            <rect x="49.5" y="30.5" width="9" height="3" rx="1.5"/>
+            <rect x="5.5" y="30.5" width="9" height="3" rx="1.5"/>
+            <rect x="30.5" y="7" width="3" height="7" rx="1.5" transform="rotate(45 32 32)"/>
+            <rect x="30.5" y="7" width="3" height="7" rx="1.5" transform="rotate(135 32 32)"/>
+            <rect x="30.5" y="7" width="3" height="7" rx="1.5" transform="rotate(225 32 32)"/>
+            <rect x="30.5" y="7" width="3" height="7" rx="1.5" transform="rotate(315 32 32)"/>
+        </g>
+        {# Center pip #}
+        <circle cx="32" cy="32" r="2.5" fill="rgba(255,255,255,0.55)"/>
+        {# Gloss highlight #}
+        <ellipse cx="22" cy="18" rx="10" ry="5" fill="url(#wax-gloss-{{ uid }})"/>
+    </svg>
+{% endmacro %}
 
-            {# ── Logo ── #}
-            <div class="shrink-0">
-                <a href="{{ path('home') }}"
-                   class="flex items-center gap-2 font-display text-xl font-bold text-stone-900 tracking-tight hover:text-saffron-700 transition-colors">
-                    <i class="fa-solid fa-fire text-saffron-600"></i>
-                    Spicy<span class="italic text-saffron-700">Match</span>
-                </a>
+{% macro toqueIcon(sizeClass) %}
+    {% set sizeClass = sizeClass|default('w-6 h-6') %}
+    <svg class="{{ sizeClass }}" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M8 18 Q 4 12 8 8 Q 10 4 14 6 Q 16 3 18 6 Q 22 4 24 8 Q 28 12 24 18 Z"
+              fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M8 18 L 8 24 Q 16 26 24 24 L 24 18"
+              fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <line x1="11" y1="18" x2="11" y2="9" stroke="currentColor" stroke-width="1" stroke-opacity="0.5"/>
+        <line x1="16" y1="18" x2="16" y2="8" stroke="currentColor" stroke-width="1" stroke-opacity="0.5"/>
+        <line x1="21" y1="18" x2="21" y2="9" stroke="currentColor" stroke-width="1" stroke-opacity="0.5"/>
+    </svg>
+{% endmacro %}
+
+{# ─── Date française (sans ext-intl) ──────────────────────────────────────── #}
+{% set _months = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'] %}
+{% set _days   = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'] %}
+{% set _dateStr = _days["now"|date("w")] ~ " " ~ "now"|date("j") ~ " " ~ _months["now"|date("n") - 1] %}
+
+{# XP gauge — calculé une seule fois, réutilisé par le chip desktop et la grade card mobile #}
+{% if is_granted('ROLE_USER') and app.user.progression %}
+    {% set _lvl      = app.user.progression.level %}
+    {% set _grade    = _lvl < 20 ? "Commis" : (_lvl < 50 ? "Chef de Partie" : (_lvl < 80 ? "Saucier" : "Chef Exécutif")) %}
+    {% set _xp       = app.user.progression.xp %}
+    {% set _minXp    = ((_lvl - 1) ** 1.3 * 100)|round %}
+    {% set _maxXp    = (_lvl ** 1.3 * 100)|round %}
+    {% set _rawPct   = _maxXp > _minXp ? (_xp - _minXp) / (_maxXp - _minXp) * 100 : 0 %}
+    {% set _gaugePct = min(100, max(0, _rawPct)) %}
+    {% set _streak   = app.user.progression.currentReadingStreak %}
+{% endif %}
+
+<div x-data="navMenu">
+
+{# ════════════════════════════════════════════════════════════════════
+   BARRE PRINCIPALE (sticky h-20 z-50)
+   ════════════════════════════════════════════════════════════════════ #}
+<nav class="nav-bar h-20 sticky top-0 z-50" aria-label="Navigation principale">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-3">
+
+        {# ── LEFT : Toque ──────────────────────────────────────────────── #}
+
+        {# Desktop (≥ lg) : toque + label #}
+        <button type="button"
+                @click="toggle()"
+                :class="toqueClass()"
+                :style="toqueColor()"
+                :aria-expanded="open"
+                aria-controls="nav-overlay"
+                aria-label="Menu principal"
+                class="toque-btn hidden lg:inline-flex shrink-0">
+            {{ _self.toqueIcon('w-[26px] h-[26px]') }}
+            <div class="flex flex-col leading-none select-none">
+                <span x-text="toqueLabel()"
+                      class="font-mono text-[9px] tracking-[0.3em] uppercase"
+                      style="color: var(--color-copper)"></span>
+                <span class="font-display italic text-[17px] mt-0.5"
+                      style="color: var(--color-ink-deep)">Le Menu du Jour</span>
             </div>
+        </button>
 
-            {# ── Nav centrale (desktop) ── #}
-            <div class="hidden md:flex items-center gap-8">
-                <a href="{{ path('home') }}"
-                   class="relative text-sm font-medium text-stone-700 hover:text-saffron-700 transition-colors pb-0.5
-                          after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full
-                          after:bg-saffron-600 after:scale-x-0 after:origin-left
-                          hover:after:scale-x-100 after:transition-transform after:duration-200">
-                    Accueil
-                </a>
+        {# Mobile (< lg) : toque compact #}
+        <button type="button"
+                @click="mobileToggle()"
+                :class="mobileToqueClass()"
+                :style="mobileToqueColor()"
+                :aria-expanded="mobileOpen"
+                aria-controls="nav-sheet"
+                aria-label="Menu principal"
+                class="toque-btn lg:hidden shrink-0">
+            {{ _self.toqueIcon('w-[22px] h-[22px]') }}
+            <span class="font-display italic text-[15px]"
+                  style="color: var(--color-ink-deep)">Le Menu du Jour</span>
+        </button>
 
-                <a href="{{ path('index_spicy_match') }}"
-                   class="relative text-sm font-medium text-stone-700 hover:text-saffron-700 transition-colors pb-0.5
-                          after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full
-                          after:bg-saffron-600 after:scale-x-0 after:origin-left
-                          hover:after:scale-x-100 after:transition-transform after:duration-200">
-                    Créer un mélange
-                </a>
-
-                {# Dropdown L'Académie #}
-                <div x-data="dropdown" @keydown.escape="dropdownOpen = false" class="relative">
-                    <button @click="dropdownOpen = !dropdownOpen"
-                            :aria-expanded="dropdownOpen"
-                            aria-haspopup="true"
-                            class="flex items-center gap-1 text-sm font-medium text-stone-700 hover:text-saffron-700 transition-colors">
-                        L'Académie
-                        <svg class="w-3.5 h-3.5 transition-transform duration-200"
-                             :class="chevronClass()"
-                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </button>
-
-                    <div x-show="dropdownOpen" x-cloak
-                         x-transition:enter="transition ease-out duration-150"
-                         x-transition:enter-start="opacity-0 translate-y-1"
-                         x-transition:enter-end="opacity-100 translate-y-0"
-                         x-transition:leave="transition ease-in duration-100"
-                         x-transition:leave-start="opacity-100 translate-y-0"
-                         x-transition:leave-end="opacity-0 translate-y-1"
-                         @click.outside="dropdownOpen = false"
-                         class="absolute left-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-spice-border z-50 overflow-hidden">
-                        <a href="{{ path('education_index', { mode: 'qcm' }) }}"
-                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                            <i class="fa-solid fa-utensils text-saffron-500 w-4 text-center text-xs"></i>
-                            Le Choix du Chef
-                        </a>
-                        <a href="{{ path('education_play_live', { mode: 'survival' }) }}"
-                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                            <i class="fa-solid fa-pepper-hot text-saffron-500 w-4 text-center text-xs"></i>
-                            Défi de Scoville
-                        </a>
-                        <a href="{{ path('education_play_live', { mode: 'guess_who' }) }}"
-                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                            <i class="fa-solid fa-wine-glass text-saffron-500 w-4 text-center text-xs"></i>
-                            Palais Fin
-                        </a>
-                        <a href="{{ path('education_play_live', { mode: 'intrus' }) }}"
-                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                            <i class="fa-solid fa-ban text-saffron-500 w-4 text-center text-xs"></i>
-                            Hors Saison
-                        </a>
-                        <a href="{{ path('education_play_live', { mode: 'hangman' }) }}"
-                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                            <i class="fa-solid fa-temperature-three-quarters text-saffron-500 w-4 text-center text-xs"></i>
-                            Cuisson en Cours
-                        </a>
-                        <a href="{{ path('education_play_live', { mode: 'chrono' }) }}"
-                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                            <i class="fa-solid fa-fire-flame-curved text-saffron-500 w-4 text-center text-xs"></i>
-                            À Feu Vif
-                        </a>
-                        <div class="border-t border-spice-border"></div>
-                        <a href="{{ path('education_index') }}"
-                           class="flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-saffron-700 hover:bg-spice-surface transition-colors">
-                            <i class="fa-solid fa-graduation-cap text-saffron-500 w-4 text-center text-xs"></i>
-                            Toute l'Académie
-                        </a>
-                    </div>
+        {# ── CENTER : Wax Seal + Wordmark ──────────────────────────────── #}
+        <a href="{{ path('home') }}"
+           class="flex items-center gap-3 group transition-transform duration-300 hover:scale-[1.02] mx-auto lg:mx-0">
+            {{ _self.waxSeal('size-9 lg:size-12', 'nav') }}
+            <div class="hidden lg:block leading-none">
+                <div class="font-display text-[11px] font-medium tracking-[0.18em] uppercase"
+                     style="color: rgba(74,50,37,0.72)">MAISON · EST. 2024</div>
+                <div class="font-display text-[26px] font-medium leading-none"
+                     style="color: var(--color-ink-deep)">
+                    Spicy <em class="not-italic italic" style="color: var(--color-paprika-700)">Match</em>
                 </div>
-
-                {# Dropdown Épices #}
-                <div x-data="dropdown" @keydown.escape="dropdownOpen = false" class="relative">
-                    <button @click="dropdownOpen = !dropdownOpen"
-                            :aria-expanded="dropdownOpen"
-                            aria-haspopup="true"
-                            class="flex items-center gap-1 text-sm font-medium text-stone-700 hover:text-saffron-700 transition-colors">
-                        Épices
-                        <svg class="w-3.5 h-3.5 transition-transform duration-200"
-                             :class="chevronClass()"
-                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </button>
-
-                    <div x-show="dropdownOpen" x-cloak
-                         x-transition:enter="transition ease-out duration-150"
-                         x-transition:enter-start="opacity-0 translate-y-1"
-                         x-transition:enter-end="opacity-100 translate-y-0"
-                         x-transition:leave="transition ease-in duration-100"
-                         x-transition:leave-start="opacity-100 translate-y-0"
-                         x-transition:leave-end="opacity-0 translate-y-1"
-                         @click.outside="dropdownOpen = false"
-                         class="absolute left-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-spice-border z-50 overflow-hidden">
-                        <a href="{{ path('index_aromatic_compound') }}"
-                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                            <i class="fa-solid fa-atom text-saffron-500 w-4 text-center text-xs"></i>
-                            Par composé aromatique
-                        </a>
-                        <a href="{{ path('index_aromatic_groups') }}"
-                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                            <i class="fa-solid fa-layer-group text-saffron-500 w-4 text-center text-xs"></i>
-                            Par groupe aromatique
-                        </a>
-                        <a href="{{ path('index_spicy_type') }}"
-                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                            <i class="fa-solid fa-tags text-saffron-500 w-4 text-center text-xs"></i>
-                            Par type d'épice
-                        </a>
-                        <a href="{{ path('index_alchemy_flavors') }}"
-                           class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                            <i class="fa-solid fa-flask-vial text-saffron-500 w-4 text-center text-xs"></i>
-                            Par saveur
-                        </a>
-                        <div class="border-t border-spice-border"></div>
-                        <a href="{{ path('index_spices') }}"
-                           class="flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-saffron-700 hover:bg-spice-surface transition-colors">
-                            <i class="fa-solid fa-grip text-saffron-500 w-4 text-center text-xs"></i>
-                            Toutes les épices
-                        </a>
-                    </div>
-                </div>
-
-                <a href="{{ path('new_contact') }}"
-                   class="relative text-sm font-medium text-stone-700 hover:text-saffron-700 transition-colors pb-0.5
-                          after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full
-                          after:bg-saffron-600 after:scale-x-0 after:origin-left
-                          hover:after:scale-x-100 after:transition-transform after:duration-200">
-                    Contact
-                </a>
             </div>
+        </a>
 
-            {# ── Actions droite (desktop) ── #}
-            <div class="hidden md:flex items-center gap-3">
-                <div class="relative">
-                    {{ component('Search') }}
+        {# ── RIGHT : Cluster utilitaires ───────────────────────────────── #}
+        <div class="flex items-center gap-2 shrink-0">
+
+            {# Search component (desktop lg+) #}
+            <div class="hidden lg:block">{{ component('Search') }}</div>
+
+            {# Search icon → ouvre le sheet mobile (< lg) #}
+            <button type="button"
+                    @click="mobileToggle()"
+                    aria-label="Rechercher"
+                    class="lg:hidden size-11 rounded-full flex items-center justify-center transition-colors"
+                    style="border: 1px solid rgba(184,134,74,0.4); background: rgba(255,250,235,0.6);">
+                <i class="fa-solid fa-magnifying-glass text-sm" style="color: var(--color-ink-deep)"></i>
+            </button>
+
+            {# Mortar → Le Lab #}
+            <a href="{{ path('index_spicy_match') }}"
+               class="mortar-btn size-11 rounded-full flex items-center justify-center"
+               aria-label="Créer un mélange"
+               title="Le Lab — Créer un mélange">
+                <i class="fa-solid fa-mortar-pestle text-sm" style="color: var(--color-ink-deep)"></i>
+            </a>
+
+            {# Grade chip / avatar / login ───────────────────────────── #}
+            {% if is_granted('ROLE_USER') and app.user.progression %}
+
+                {# Mobile : avatar seul #}
+                <div class="lg:hidden size-11 rounded-full flex items-center justify-center border overflow-hidden"
+                     style="border-color: rgba(184,134,74,0.4); background: rgba(255,250,235,0.6);">
+                    {% include 'components/_avatar.html.twig' with {
+                        sizeClass: 'w-8 h-8 text-base',
+                        equippedBadge: app.user.progression.equippedBadge
+                    } %}
                 </div>
 
-                {% if is_granted("ROLE_USER") %}
-                    {% set navLevel = app.user.progression ? app.user.progression.level : null %}
-                    {% set navStreak = app.user.progression ? app.user.progression.currentReadingStreak : 0 %}
-                    <div x-data="dropdown" @keydown.escape="dropdownOpen = false" class="relative">
-                        <button @click="dropdownOpen = !dropdownOpen"
-                                class="flex items-center gap-2 bg-spice-surface border border-spice-border text-stone-700
-                                       hover:border-saffron-600/40 hover:text-saffron-700 rounded-full px-3 py-1.5
-                                       text-sm font-medium transition-all">
-                            {% include 'components/_avatar.html.twig' with { sizeClass: 'w-7 h-7 text-sm', equippedBadge: app.user.progression ? app.user.progression.equippedBadge : null } %}
-                            {{ app.user.username|capitalize }}
-                            {% if navLevel %}
-                                <span class="px-1.5 py-0.5 text-xs font-bold bg-turmeric-400 text-stone-900 rounded-full leading-none">
-                                    {{ navLevel }}
-                                </span>
-                            {% endif %}
-                            {% if navStreak > 0 %}
-                                <span class="flex items-center gap-0.5 text-xs font-bold leading-none
-                                             {{ navStreak >= 7 ? 'text-paprika-700' : 'text-saffron-600' }}"
-                                      title="Streak de lecture : {{ navStreak }} jour{{ navStreak > 1 ? 's' : '' }} consécutif{{ navStreak > 1 ? 's' : '' }}"
-                                      aria-label="Streak de lecture : {{ navStreak }} jour{{ navStreak > 1 ? 's' : '' }} consécutif{{ navStreak > 1 ? 's' : '' }}"
-                                      role="img">
-                                    <span aria-hidden="true">🔥</span>{{ navStreak }}j
-                                </span>
-                            {% endif %}
-                            <svg class="w-3 h-3 text-stone-400 transition-transform duration-200"
-                                 :class="chevronClass()"
-                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </button>
-
-                        <div x-show="dropdownOpen" x-cloak
-                             x-transition:enter="transition ease-out duration-150"
-                             x-transition:enter-start="opacity-0 translate-y-1"
-                             x-transition:enter-end="opacity-100 translate-y-0"
-                             x-transition:leave="transition ease-in duration-100"
-                             x-transition:leave-start="opacity-100 translate-y-0"
-                             x-transition:leave-end="opacity-0 translate-y-1"
-                             @click.outside="dropdownOpen = false"
-                             class="absolute right-0 mt-3 w-48 bg-white rounded-xl shadow-lg border border-spice-border z-50 overflow-hidden">
-                            <a href="{{ path('profile_user') }}"
-                               class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                                <i class="fa-regular fa-user text-saffron-500 w-4 text-center text-xs"></i>Profil
-                            </a>
-                            <a href="{{ path('configuration_user') }}"
-                               class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                                <i class="fa-solid fa-sliders text-saffron-500 w-4 text-center text-xs"></i>Configuration
-                            </a>
-                            <a href="{{ path('history_user') }}"
-                               class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                                <i class="fa-solid fa-clock-rotate-left text-saffron-500 w-4 text-center text-xs"></i>Historique
-                            </a>
-                            <a href="{{ path('security_user') }}"
-                               class="flex items-center gap-2.5 px-4 py-3 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                                <i class="fa-solid fa-shield-halved text-saffron-500 w-4 text-center text-xs"></i>Sécurité
-                            </a>
-                            <div class="border-t border-spice-border"></div>
-                            <a href="{{ path('app_logout') }}"
-                               class="flex items-center gap-2.5 px-4 py-3 text-sm text-paprika-700 hover:bg-red-50 transition-colors">
-                                <i class="fa-solid fa-right-from-bracket w-4 text-center text-xs"></i>Déconnexion
-                            </a>
+                {# Desktop : grade chip complet #}
+                <div class="hidden lg:flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-full border"
+                     style="border-color: rgba(184,134,74,0.4); background: rgba(255,250,235,0.6);">
+                    {{ _self.waxSeal('size-8', 'chip') }}
+                    <div class="flex flex-col leading-none min-w-0">
+                        <span class="font-display text-[15px] font-medium truncate max-w-[100px]"
+                              style="color: var(--color-ink-deep)">{{ app.user.username }}</span>
+                        <span class="font-display italic text-[11px]"
+                              style="color: var(--color-paprika-700)">{{ _grade }}</span>
+                        <div class="rounded-full mt-1 overflow-hidden" style="width: 80px; height: 2px; background: rgba(184,134,74,0.2);">
+                            <div class="gauge-bar h-full rounded-full" style="width: {{ _gaugePct }}%"></div>
                         </div>
                     </div>
+                </div>
+
+            {% elseif is_granted('ROLE_USER') %}
+                <a href="{{ path('profile_user') }}"
+                   class="hidden lg:inline-flex items-center px-4 py-2 rounded-full border text-sm font-medium transition-colors"
+                   style="border-color: rgba(184,134,74,0.4); color: var(--color-ink-deep); background: rgba(255,250,235,0.6);">
+                    {{ app.user.username }}
+                </a>
+
+            {% else %}
+                <a href="{{ path('app_login') }}"
+                   class="hidden lg:inline-flex items-center px-4 py-2 rounded-full border text-sm font-medium transition-colors hover:border-copper"
+                   style="border-color: rgba(184,134,74,0.4); color: var(--color-ink-deep);">
+                    Connexion
+                </a>
+                <a href="{{ path('index_register') }}"
+                   class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold transition-colors hover:opacity-90"
+                   style="background: var(--color-paprika-700); color: white;">
+                    S'inscrire
+                </a>
+            {% endif %}
+
+        </div>
+    </div>
+</nav>
+
+{# ════════════════════════════════════════════════════════════════════
+   DESKTOP OVERLAY (fixed top-20, z-49 — hidden on mobile via CSS)
+   ════════════════════════════════════════════════════════════════════ #}
+<div id="nav-overlay"
+     x-show="open"
+     x-cloak
+     x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="opacity-0 -translate-y-2"
+     x-transition:enter-end="opacity-100 translate-y-0"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="opacity-100 translate-y-0"
+     x-transition:leave-end="opacity-0 -translate-y-2"
+     class="nav-overlay hidden lg:block"
+     role="navigation"
+     aria-label="Menu principal overlay">
+
+    <div class="max-w-7xl mx-auto px-8 lg:px-16 py-12">
+
+        {# Carnet du Chef — date #}
+        <p class="font-mono text-[10px] tracking-[0.4em] uppercase text-center mb-4"
+           style="color: rgba(74,50,37,0.55)">✦ Carnet du Chef · {{ _dateStr }} ✦</p>
+
+        <h2 class="font-display text-center mb-10 leading-[1.05]"
+            style="font-size: clamp(2rem, 4vw, 3rem); color: var(--color-ink-deep)">
+            Que souhaitez-vous <em class="not-italic italic" style="color: var(--color-paprika-700)">cuisiner</em> aujourd'hui&nbsp;?
+        </h2>
+
+        {# Hero Search #}
+        <div class="max-w-xl mx-auto mb-12">
+            <form action="{{ path('search_results') }}" method="GET"
+                  class="flex items-center gap-3 px-6 py-4 rounded-full"
+                  style="background: rgba(255,250,235,0.7); border: 1px solid rgba(184,134,74,0.45); box-shadow: 0 8px 24px -8px rgba(74,50,37,0.15)">
+                <i class="fa-solid fa-magnifying-glass shrink-0" style="color: rgba(74,50,37,0.45)"></i>
+                <input name="q"
+                       placeholder="Rechercher une épice, un composé…"
+                       class="flex-1 bg-transparent border-0 outline-none font-display italic text-[18px]"
+                       style="color: var(--color-ink-deep)"
+                       autocomplete="off">
+                <kbd class="font-mono text-[11px] px-1.5 py-0.5 rounded border opacity-40"
+                     style="border-color: rgba(74,50,37,0.3)">↵</kbd>
+            </form>
+        </div>
+
+        {# 3 Pôles ─────────────────────────────────────────────────── #}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 max-w-5xl mx-auto">
+
+            {# ── I · Exploration ── #}
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
+                          style="color: var(--color-copper)">I · Exploration</span>
+                    <div class="flex-1 h-px"
+                         style="background: linear-gradient(90deg, rgba(184,134,74,0.55), transparent)"></div>
+                </div>
+                <p class="font-display italic text-[14px] mb-5"
+                   style="color: var(--color-copper)">Découvrir les épices du monde</p>
+                <ul class="space-y-4">
+                    <li>
+                        <a href="{{ path('index_spices') }}" @click="close()"
+                           class="pole-item items-baseline justify-between group/item">
+                            <div>
+                                <div class="pole-name font-display text-[24px] font-medium"
+                                     style="color: var(--color-ink-deep)">Le Catalogue</div>
+                                <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
+                                     style="color: rgba(74,50,37,0.55)">Toutes les épices</div>
+                            </div>
+                            <span class="pole-arrow font-display text-[18px] ml-3"
+                                  style="color: rgba(184,134,74,0.7)">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ path('index_spicy_match') }}" @click="close()"
+                           class="pole-item items-baseline justify-between group/item">
+                            <div>
+                                <div class="pole-name font-display text-[24px] font-medium"
+                                     style="color: var(--color-ink-deep)">L'Alchimie des Saveurs</div>
+                                <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
+                                     style="color: rgba(74,50,37,0.55)">Composer un mélange</div>
+                            </div>
+                            <span class="pole-arrow font-display text-[18px] ml-3"
+                                  style="color: rgba(184,134,74,0.7)">→</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            {# ── II · Apprentissage ── #}
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
+                          style="color: var(--color-copper)">II · Apprentissage</span>
+                    <div class="flex-1 h-px"
+                         style="background: linear-gradient(90deg, rgba(184,134,74,0.55), transparent)"></div>
+                </div>
+                <p class="font-display italic text-[14px] mb-5"
+                   style="color: var(--color-copper)">Affûter son palais</p>
+                <ul class="space-y-4">
+                    <li>
+                        <a href="{{ path('education_index') }}" @click="close()"
+                           class="pole-item items-baseline justify-between">
+                            <div>
+                                <div class="pole-name font-display text-[24px] font-medium"
+                                     style="color: var(--color-ink-deep)">L'Académie</div>
+                                <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
+                                     style="color: rgba(74,50,37,0.55)">6 modes de jeu</div>
+                            </div>
+                            <span class="pole-arrow font-display text-[18px] ml-3"
+                                  style="color: rgba(184,134,74,0.7)">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ path('education_play_live', {'mode': 'survival'}) }}" @click="close()"
+                           class="pole-item items-baseline justify-between">
+                            <div>
+                                <div class="pole-name font-display text-[24px] font-medium"
+                                     style="color: var(--color-ink-deep)">Défi de Scoville</div>
+                                <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
+                                     style="color: rgba(74,50,37,0.55)">Mode survie</div>
+                            </div>
+                            <span class="pole-arrow font-display text-[18px] ml-3"
+                                  style="color: rgba(184,134,74,0.7)">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ path('education_play_live', {'mode': 'intrus'}) }}" @click="close()"
+                           class="pole-item items-baseline justify-between">
+                            <div>
+                                <div class="pole-name font-display text-[24px] font-medium"
+                                     style="color: var(--color-ink-deep)">Hors Saison</div>
+                                <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
+                                     style="color: rgba(74,50,37,0.55)">Trouver l'intrus</div>
+                            </div>
+                            <span class="pole-arrow font-display text-[18px] ml-3"
+                                  style="color: rgba(184,134,74,0.7)">→</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            {# ── III · Atelier ── #}
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
+                          style="color: var(--color-copper)">III · Atelier</span>
+                    <div class="flex-1 h-px"
+                         style="background: linear-gradient(90deg, rgba(184,134,74,0.55), transparent)"></div>
+                </div>
+                {% if is_granted('ROLE_USER') %}
+                    <p class="font-display italic text-[14px] mb-5"
+                       style="color: var(--color-copper)">Ton espace de chef</p>
+                    <ul class="space-y-4">
+                        <li>
+                            <a href="{{ path('profile_user') }}" @click="close()"
+                               class="pole-item items-baseline justify-between">
+                                <div>
+                                    <div class="pole-name font-display text-[24px] font-medium"
+                                         style="color: var(--color-ink-deep)">Mon Profil de Chef</div>
+                                    <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
+                                         style="color: rgba(74,50,37,0.55)">Achievements & progression</div>
+                                </div>
+                                <span class="pole-arrow font-display text-[18px] ml-3"
+                                      style="color: rgba(184,134,74,0.7)">→</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ path('history_user') }}" @click="close()"
+                               class="pole-item items-baseline justify-between">
+                                <div>
+                                    <div class="pole-name font-display text-[24px] font-medium"
+                                         style="color: var(--color-ink-deep)">Mes Mélanges</div>
+                                    <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
+                                         style="color: rgba(74,50,37,0.55)">Historique & favoris</div>
+                                </div>
+                                <span class="pole-arrow font-display text-[18px] ml-3"
+                                      style="color: rgba(184,134,74,0.7)">→</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ path('configuration_user') }}" @click="close()"
+                               class="pole-item items-baseline justify-between">
+                                <div>
+                                    <div class="pole-name font-display text-[24px] font-medium"
+                                         style="color: var(--color-ink-deep)">Configuration</div>
+                                    <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
+                                         style="color: rgba(74,50,37,0.55)">Paramètres du compte</div>
+                                </div>
+                                <span class="pole-arrow font-display text-[18px] ml-3"
+                                      style="color: rgba(184,134,74,0.7)">→</span>
+                            </a>
+                        </li>
+                    </ul>
                 {% else %}
-                    {{ buttons.button('Connexion', {
-                        href: path('app_login'),
-                        variant: 'outline',
-                        size: 'sm'
-                    }) }}
-                    {{ buttons.button('Commencer', {
-                        href: path('index_register'),
-                        variant: 'primary',
-                        size: 'sm',
-                        icon: 'fa-solid fa-user-plus text-xs'
-                    }) }}
+                    <p class="font-display italic text-[14px] mb-5"
+                       style="color: var(--color-copper)">Rejoins la brigade</p>
+                    <a href="{{ path('index_register') }}" @click="close()"
+                       class="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
+                       style="background: var(--color-paprika-700); color: white;">
+                        Créer un compte
+                        <span class="pole-arrow">→</span>
+                    </a>
                 {% endif %}
             </div>
 
-            {# ── Burger mobile ── #}
-            <button @click="open = !open"
-                    class="md:hidden relative w-10 h-10 flex flex-col items-center justify-center gap-1.25 rounded-xl
-                           text-stone-700 hover:bg-spice-surface hover:text-saffron-700
-                           focus:outline-none transition-colors"
-                    :aria-expanded="open" aria-label="Menu">
-                <span class="block w-5 h-0.5 bg-current rounded-full transition-all duration-300 origin-center"
-                      :class="barTopClass()"></span>
-                <span class="block w-5 h-0.5 bg-current rounded-full transition-all duration-300"
-                      :class="barMiddleClass()"></span>
-                <span class="block w-5 h-0.5 bg-current rounded-full transition-all duration-300 origin-center"
-                      :class="barBottomClass()"></span>
-            </button>
-        </div>
-    </div>
+        </div>{# fin grid #}
 
-    {# ── Drawer mobile ── #}
-
-    {# Overlay #}
-    <div x-show="open" x-cloak
-         @click="open = false"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-40 bg-stone-900/40 backdrop-blur-sm md:hidden">
-    </div>
-
-    {# Panneau latéral #}
-    <div x-show="open" x-cloak
-         x-transition:enter="transition ease-out duration-250"
-         x-transition:enter-start="opacity-0 translate-x-full"
-         x-transition:enter-end="opacity-100 translate-x-0"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100 translate-x-0"
-         x-transition:leave-end="opacity-0 translate-x-full"
-         class="fixed top-0 right-0 bottom-0 z-50 w-80 max-w-[calc(100vw-3rem)]
-                bg-cream flex flex-col shadow-2xl md:hidden"
-         @keydown.escape.window="open = false">
-
-        {# Header du drawer #}
-        <div class="flex items-center justify-between px-6 py-5 border-b border-stone-200/60">
-            <a href="{{ path('home') }}" @click="open = false"
-               class="flex items-center gap-2 font-display text-lg font-bold text-stone-900 no-underline">
-                <div class="w-7 h-7 bg-paprika-900 flex items-center justify-center rounded-md">
-                    <i class="fa-solid fa-mortar-pestle text-cream text-[11px]"></i>
-                </div>
-                Spicy<span class="text-saffron-600 italic">Match</span>
-            </a>
-            <button @click="open = false"
-                    class="w-8 h-8 flex items-center justify-center rounded-lg text-stone-500
-                           hover:bg-stone-100 hover:text-stone-800 transition-colors"
-                    aria-label="Fermer le menu">
-                <i class="fa-solid fa-xmark text-sm"></i>
-            </button>
+        {# Footer Marché du Jour ─────────────────────────────────── #}
+        <div class="mt-12 pt-8 flex items-center justify-between"
+             style="border-top: 1px solid rgba(184,134,74,0.35)">
+            <p class="font-mono text-[10px] tracking-[0.3em] uppercase"
+               style="color: rgba(74,50,37,0.55)">✦ Marché du jour ✦</p>
+            <div class="flex items-center gap-6 font-mono text-[11px]"
+                 style="color: rgba(74,50,37,0.55)">
+                <a href="{{ path('new_contact') }}" @click="close()"
+                   class="spice-underline hover:text-paprika-700 transition-colors">Aide</a>
+                {% if is_granted('ROLE_USER') %}
+                    <a href="{{ path('app_logout') }}"
+                       class="spice-underline hover:text-paprika-700 transition-colors">Se déconnecter</a>
+                {% else %}
+                    <a href="{{ path('app_login') }}" @click="close()"
+                       class="spice-underline hover:text-paprika-700 transition-colors">Connexion</a>
+                {% endif %}
+            </div>
         </div>
 
-        {# Corps scrollable #}
-        <div class="drawer-body flex-1 overflow-y-auto py-4">
+    </div>
+</div>
 
-            {# Navigation principale #}
-            <div class="px-3 mb-2">
-                <p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">Navigation</p>
-                <a href="{{ path('home') }}" @click="open = false"
-                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-stone-700
-                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                    <span class="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-house text-stone-500 text-xs"></i>
-                    </span>
-                    Accueil
-                </a>
-                <a href="{{ path('index_spicy_match') }}" @click="open = false"
-                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-stone-700
-                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                    <span class="w-8 h-8 rounded-lg bg-saffron-100 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-fire text-saffron-600 text-xs"></i>
-                    </span>
-                    Le Lab — Créer un mélange
-                </a>
-                <a href="{{ path('index_spices') }}" @click="open = false"
-                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-stone-700
-                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                    <span class="w-8 h-8 rounded-lg bg-spice-surface flex items-center justify-center shrink-0 border border-spice-border">
-                        <i class="fa-solid fa-pepper-hot text-saffron-600 text-xs"></i>
-                    </span>
-                    Toutes les épices
-                </a>
-                <a href="{{ path('new_contact') }}" @click="open = false"
-                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-stone-700
-                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                    <span class="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center shrink-0">
-                        <i class="fa-regular fa-envelope text-stone-500 text-xs"></i>
-                    </span>
-                    Contact
-                </a>
-            </div>
+{# ════════════════════════════════════════════════════════════════════
+   MOBILE BACKDROP (z-48 — visible sous le sheet)
+   ════════════════════════════════════════════════════════════════════ #}
+<div x-show="mobileOpen"
+     x-cloak
+     x-transition:enter="transition ease-out duration-200"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-150"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     @click="mobileClose()"
+     class="nav-backdrop lg:hidden"
+     aria-hidden="true"></div>
 
-            <div class="mx-6 border-t border-stone-200/60 my-2"></div>
+{# ════════════════════════════════════════════════════════════════════
+   MOBILE SHEET (slide from bottom, z-49)
+   ════════════════════════════════════════════════════════════════════ #}
+<div id="nav-sheet"
+     x-show="mobileOpen"
+     x-cloak
+     x-transition:enter="transition duration-[380ms] ease-[cubic-bezier(.2,.7,.2,1)]"
+     x-transition:enter-start="translate-y-full"
+     x-transition:enter-end="translate-y-0"
+     x-transition:leave="transition duration-[250ms] ease-in"
+     x-transition:leave-start="translate-y-0"
+     x-transition:leave-end="translate-y-full"
+     class="nav-sheet lg:hidden"
+     role="navigation"
+     aria-label="Menu principal mobile">
 
-            {# Section Épices #}
-            <div class="px-3 mb-2">
-                <p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">Explorer les épices</p>
-                <a href="{{ path('index_aromatic_compound') }}" @click="open = false"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
-                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                    <i class="fa-solid fa-atom text-saffron-400 w-4 text-center text-xs shrink-0"></i>
-                    Par composé aromatique
-                </a>
-                <a href="{{ path('index_aromatic_groups') }}" @click="open = false"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
-                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                    <i class="fa-solid fa-layer-group text-saffron-400 w-4 text-center text-xs shrink-0"></i>
-                    Par groupe aromatique
-                </a>
-                <a href="{{ path('index_spicy_type') }}" @click="open = false"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
-                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                    <i class="fa-solid fa-tags text-saffron-400 w-4 text-center text-xs shrink-0"></i>
-                    Par type d'épice
-                </a>
-                <a href="{{ path('index_alchemy_flavors') }}" @click="open = false"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
-                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                    <i class="fa-solid fa-flask-vial text-saffron-400 w-4 text-center text-xs shrink-0"></i>
-                    Par saveur
-                </a>
-            </div>
+    <div class="p-6 pb-safe">
 
-            <div class="mx-6 border-t border-stone-200/60 my-2"></div>
+        {# Grab handle #}
+        <div class="sheet-grab mb-6"></div>
 
-            {# Section L'Académie #}
-            <div class="px-3 mb-2">
-                <p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">L'Académie</p>
-                <a href="{{ path('education_index', { mode: 'qcm' }) }}" @click="open = false"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
-                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                    <i class="fa-solid fa-utensils text-saffron-400 w-4 text-center text-xs shrink-0"></i>
-                    Le Choix du Chef
-                </a>
-                <a href="{{ path('education_play_live', { mode: 'survival' }) }}" @click="open = false"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
-                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                    <i class="fa-solid fa-pepper-hot text-saffron-400 w-4 text-center text-xs shrink-0"></i>
-                    Défi de Scoville
-                </a>
-                <a href="{{ path('education_play_live', { mode: 'guess_who' }) }}" @click="open = false"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
-                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                    <i class="fa-solid fa-wine-glass text-saffron-400 w-4 text-center text-xs shrink-0"></i>
-                    Palais Fin
-                </a>
-                <a href="{{ path('education_play_live', { mode: 'intrus' }) }}" @click="open = false"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
-                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                    <i class="fa-solid fa-ban text-saffron-400 w-4 text-center text-xs shrink-0"></i>
-                    Hors Saison
-                </a>
-                <a href="{{ path('education_play_live', { mode: 'hangman' }) }}" @click="open = false"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
-                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                    <i class="fa-solid fa-temperature-three-quarters text-saffron-400 w-4 text-center text-xs shrink-0"></i>
-                    Cuisson en Cours
-                </a>
-                <a href="{{ path('education_play_live', { mode: 'chrono' }) }}" @click="open = false"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
-                          hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                    <i class="fa-solid fa-fire-flame-curved text-saffron-400 w-4 text-center text-xs shrink-0"></i>
-                    À Feu Vif
-                </a>
-                <a href="{{ path('education_index') }}" @click="open = false"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-saffron-700
-                          hover:bg-spice-surface transition-colors">
-                    <i class="fa-solid fa-graduation-cap text-saffron-500 w-4 text-center text-xs shrink-0"></i>
-                    Toute l'Académie
-                </a>
-            </div>
+        {# Hero search #}
+        <form action="{{ path('search_results') }}" method="GET"
+              class="flex items-center gap-3 px-5 py-3.5 rounded-full mb-6"
+              style="background: rgba(255,250,235,0.7); border: 1px solid rgba(184,134,74,0.45)">
+            <i class="fa-solid fa-magnifying-glass shrink-0" style="color: rgba(74,50,37,0.45)"></i>
+            <input name="q"
+                   placeholder="Rechercher…"
+                   class="flex-1 bg-transparent border-0 outline-none font-display italic text-[17px]"
+                   style="color: var(--color-ink-deep)"
+                   autocomplete="off">
+        </form>
 
-            <div class="mx-6 border-t border-stone-200/60 my-2"></div>
-
-            {# Section utilisateur #}
-            {% if is_granted("ROLE_USER") %}
-                {% set navLevel = app.user.progression ? app.user.progression.level : null %}
-                {% set navStreak = app.user.progression ? app.user.progression.currentReadingStreak : 0 %}
-                <div class="px-3">
-                    {# Identity strip #}
-                    <div class="flex items-center gap-3 px-3 py-3 mb-1 bg-spice-surface rounded-xl border border-spice-border">
-                        {% include 'components/_avatar.html.twig' with {sizeClass: 'w-9 h-9 text-base shrink-0', equippedBadge: app.user.progression ? app.user.progression.equippedBadge : null } %}
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-semibold text-stone-800 truncate">{{ app.user.username|capitalize }}</p>
-                            <p class="text-xs text-stone-500 flex items-center gap-2">
-                                {% if navLevel %}Niveau {{ navLevel }}{% endif %}
-                                {% if navStreak > 0 %}
-                                    <span class="{{ navStreak >= 7 ? 'text-paprika-600' : 'text-saffron-600' }} font-semibold"
-                                          aria-label="Streak de lecture : {{ navStreak }} jour{{ navStreak > 1 ? 's' : '' }} consécutif{{ navStreak > 1 ? 's' : '' }}"
-                                          role="img">
-                                        <span aria-hidden="true">🔥</span> {{ navStreak }}j
-                                    </span>
-                                {% endif %}
-                            </p>
-                        </div>
-                        {% if navLevel %}
-                            <span class="px-2 py-0.5 text-xs font-bold bg-turmeric-400 text-stone-900 rounded-full shrink-0">
-                                {{ navLevel }}
-                            </span>
-                        {% endif %}
+        {# Grade card si connecté #}
+        {% if is_granted('ROLE_USER') and app.user.progression %}
+            <div class="flex items-center gap-3 p-4 rounded-2xl mb-6"
+                 style="border: 1px solid rgba(184,134,74,0.3); background: rgba(255,250,235,0.5)">
+                {{ _self.waxSeal('size-10', 'sheet') }}
+                <div class="flex-1 min-w-0">
+                    <div class="font-display text-[17px] font-medium"
+                         style="color: var(--color-ink-deep)">{{ app.user.username }}</div>
+                    <div class="font-display italic text-[12px]"
+                         style="color: var(--color-paprika-700)">{{ _grade }}</div>
+                    <div class="rounded-full mt-1.5 overflow-hidden w-full" style="height: 2px; background: rgba(184,134,74,0.2);">
+                        <div class="gauge-bar h-full" style="width: {{ _gaugePct }}%"></div>
                     </div>
-
-                    <a href="{{ path('profile_user') }}" @click="open = false"
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
-                              hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                        <i class="fa-regular fa-user text-stone-400 w-4 text-center text-xs shrink-0"></i>
-                        Mon profil
-                    </a>
-                    <a href="{{ path('history_user') }}" @click="open = false"
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
-                              hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                        <i class="fa-solid fa-clock-rotate-left text-stone-400 w-4 text-center text-xs shrink-0"></i>
-                        Historique
-                    </a>
-                    <a href="{{ path('configuration_user') }}" @click="open = false"
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
-                              hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                        <i class="fa-solid fa-sliders text-stone-400 w-4 text-center text-xs shrink-0"></i>
-                        Configuration
-                    </a>
-                    <a href="{{ path('security_user') }}" @click="open = false"
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-stone-600
-                              hover:bg-spice-surface hover:text-saffron-700 transition-colors">
-                        <i class="fa-solid fa-shield-halved text-stone-400 w-4 text-center text-xs shrink-0"></i>
-                        Sécurité
-                    </a>
-                    <a href="{{ path('app_logout') }}" @click="open = false"
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-paprika-700
-                              hover:bg-red-50 transition-colors mt-1">
-                        <i class="fa-solid fa-right-from-bracket text-paprika-500 w-4 text-center text-xs shrink-0"></i>
-                        Déconnexion
-                    </a>
                 </div>
+                {% if _streak > 0 %}
+                    <div class="flex flex-col items-center shrink-0">
+                        <i class="fa-solid fa-fire" style="color: var(--color-saffron-600)"></i>
+                        <span class="font-mono text-[10px] mt-0.5"
+                              style="color: var(--color-copper)">{{ _streak }}j</span>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {# 3 Pôles empilés ──────────────────────────────────────── #}
+        <div class="space-y-6">
+
+            {# Pôle I — Exploration #}
+            <div>
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
+                          style="color: var(--color-copper)">I · Exploration</span>
+                    <div class="flex-1 h-px"
+                         style="background: linear-gradient(90deg, rgba(184,134,74,0.5), transparent)"></div>
+                </div>
+                <ul class="space-y-3">
+                    <li>
+                        <a href="{{ path('index_spices') }}" @click="mobileClose()"
+                           class="pole-item items-baseline justify-between">
+                            <div class="pole-name font-display text-[20px] font-medium"
+                                 style="color: var(--color-ink-deep)">Le Catalogue</div>
+                            <span class="pole-arrow font-display text-[14px] ml-3"
+                                  style="color: rgba(184,134,74,0.7)">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ path('index_spicy_match') }}" @click="mobileClose()"
+                           class="pole-item items-baseline justify-between">
+                            <div class="pole-name font-display text-[20px] font-medium"
+                                 style="color: var(--color-ink-deep)">L'Alchimie des Saveurs</div>
+                            <span class="pole-arrow font-display text-[14px] ml-3"
+                                  style="color: rgba(184,134,74,0.7)">→</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            {# Pôle II — Apprentissage #}
+            <div>
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
+                          style="color: var(--color-copper)">II · Apprentissage</span>
+                    <div class="flex-1 h-px"
+                         style="background: linear-gradient(90deg, rgba(184,134,74,0.5), transparent)"></div>
+                </div>
+                <ul class="space-y-3">
+                    <li>
+                        <a href="{{ path('education_index') }}" @click="mobileClose()"
+                           class="pole-item items-baseline justify-between">
+                            <div class="pole-name font-display text-[20px] font-medium"
+                                 style="color: var(--color-ink-deep)">L'Académie</div>
+                            <span class="pole-arrow font-display text-[14px] ml-3"
+                                  style="color: rgba(184,134,74,0.7)">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ path('education_play_live', {'mode': 'survival'}) }}" @click="mobileClose()"
+                           class="pole-item items-baseline justify-between">
+                            <div class="pole-name font-display text-[20px] font-medium"
+                                 style="color: var(--color-ink-deep)">Défi de Scoville</div>
+                            <span class="pole-arrow font-display text-[14px] ml-3"
+                                  style="color: rgba(184,134,74,0.7)">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ path('education_play_live', {'mode': 'intrus'}) }}" @click="mobileClose()"
+                           class="pole-item items-baseline justify-between">
+                            <div class="pole-name font-display text-[20px] font-medium"
+                                 style="color: var(--color-ink-deep)">Hors Saison</div>
+                            <span class="pole-arrow font-display text-[14px] ml-3"
+                                  style="color: rgba(184,134,74,0.7)">→</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            {# Pôle III — Atelier #}
+            <div>
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
+                          style="color: var(--color-copper)">III · Atelier</span>
+                    <div class="flex-1 h-px"
+                         style="background: linear-gradient(90deg, rgba(184,134,74,0.5), transparent)"></div>
+                </div>
+                {% if is_granted('ROLE_USER') %}
+                    <ul class="space-y-3">
+                        <li>
+                            <a href="{{ path('profile_user') }}" @click="mobileClose()"
+                               class="pole-item items-baseline justify-between">
+                                <div class="pole-name font-display text-[20px] font-medium"
+                                     style="color: var(--color-ink-deep)">Mon Profil de Chef</div>
+                                <span class="pole-arrow font-display text-[14px] ml-3"
+                                      style="color: rgba(184,134,74,0.7)">→</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ path('history_user') }}" @click="mobileClose()"
+                               class="pole-item items-baseline justify-between">
+                                <div class="pole-name font-display text-[20px] font-medium"
+                                     style="color: var(--color-ink-deep)">Mes Mélanges</div>
+                                <span class="pole-arrow font-display text-[14px] ml-3"
+                                      style="color: rgba(184,134,74,0.7)">→</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ path('configuration_user') }}" @click="mobileClose()"
+                               class="pole-item items-baseline justify-between">
+                                <div class="pole-name font-display text-[20px] font-medium"
+                                     style="color: var(--color-ink-deep)">Configuration</div>
+                                <span class="pole-arrow font-display text-[14px] ml-3"
+                                      style="color: rgba(184,134,74,0.7)">→</span>
+                            </a>
+                        </li>
+                    </ul>
+                {% else %}
+                    <a href="{{ path('index_register') }}" @click="mobileClose()"
+                       class="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
+                       style="background: var(--color-paprika-700); color: white;">
+                        Créer un compte →
+                    </a>
+                {% endif %}
+            </div>
+
+        </div>
+
+        {# Footer sheet #}
+        <div class="mt-8 pt-6 flex items-center justify-between"
+             style="border-top: 1px solid rgba(184,134,74,0.3)">
+            <a href="{{ path('new_contact') }}" @click="mobileClose()"
+               class="font-mono text-[11px] transition-colors hover:text-paprika-700"
+               style="color: rgba(74,50,37,0.55)">Aide</a>
+            {% if is_granted('ROLE_USER') %}
+                <a href="{{ path('app_logout') }}"
+                   class="font-mono text-[11px] transition-colors hover:text-paprika-700"
+                   style="color: rgba(74,50,37,0.55)">Se déconnecter</a>
+            {% else %}
+                <a href="{{ path('app_login') }}" @click="mobileClose()"
+                   class="font-mono text-[11px] transition-colors hover:text-paprika-700"
+                   style="color: rgba(74,50,37,0.55)">Connexion</a>
             {% endif %}
         </div>
 
-        {# Footer du drawer — CTAs ou profil #}
-        {% if not is_granted("ROLE_USER") %}
-            <div class="px-5 py-6 border-t border-stone-200/60 space-y-3 bg-cream">
-                {{ buttons.button('Commencer gratuitement', {
-                    href: path('index_register'),
-                    variant: 'primary',
-                    class: 'w-full justify-center py-4',
-                    icon: 'fa-solid fa-user-plus text-xs',
-                    attr: {'@click': 'open = false'}
-                }) }}
-                {{ buttons.button('Connexion', {
-                    href: path('app_login'),
-                    variant: 'outline',
-                    class: 'w-full justify-center py-3.5',
-                    attr: {'@click': 'open = false'}
-                }) }}
-            </div>
-        {% endif %}
     </div>
-</nav>
+</div>
+
+</div>{# end x-data="navMenu" #}

@@ -90,7 +90,8 @@ class SpicesRepository extends ServiceEntityRepository
                 'ag.id AS agId',
                 'ag.color',
                 'ag.name AS groupName',
-                'st.id AS stId'
+                'st.id AS stId',
+                'st.name AS typeName'
             )
             ->leftJoin('s.aromaticGroups', 'ag')
             ->leftJoin('s.spicyType', 'st')
@@ -106,6 +107,11 @@ class SpicesRepository extends ServiceEntityRepository
      */
     public function search(string $word): array
     {
+        $word = mb_substr(trim($word), 0, 100);
+        if ($word === '') {
+            return [];
+        }
+
         $sql = 'SELECT s.id, s.name, IF(1, "spice", "") as `type`
                 FROM spices s
                 WHERE s.name LIKE ?
@@ -195,10 +201,11 @@ class SpicesRepository extends ServiceEntityRepository
         // Step 2: Load with compound relations eagerly to avoid N+1 in CompatibilityScoreService.
         // AlchemyFlavors are NOT loaded — they are excluded from scoring.
         return $this->createQueryBuilder('s')
-            ->addSelect('mainAc', 'secAc', 'ag')
+            ->addSelect('mainAc', 'secAc', 'ag', 'st')
             ->leftJoin('s.aromaticsCompounds', 'mainAc')
             ->leftJoin('s.secondary_aromatics_compounds', 'secAc')
             ->leftJoin('s.aromaticGroups', 'ag')
+            ->leftJoin('s.spicyType', 'st')
             ->where('s.id IN (:ids)')
             ->setParameter('ids', $candidateIds)
             ->getQuery()
@@ -390,5 +397,25 @@ class SpicesRepository extends ServiceEntityRepository
 
         return $stmt->executeQuery()
             ->fetchAllAssociative();
+    }
+
+    /**
+     * @return list<Spices>
+     */
+    public function findRelated(Spices $spice, int $limit = 4): array
+    {
+        $group = $spice->getAromaticGroups();
+        if ($group === null) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('s')
+            ->where('s.aromaticGroups = :group')
+            ->andWhere('s.id != :id')
+            ->setParameter('group', $group)
+            ->setParameter('id', $spice->getId())
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
     }
 }

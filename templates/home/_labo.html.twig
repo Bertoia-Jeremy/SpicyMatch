@@ -1,0 +1,202 @@
+{# ═══════════════════════════════════════════════════════
+   Chapitre III — Le Labo Culinaire
+   3 fiches vintage + mur de citations épinglées
+   ═══════════════════════════════════════════════════════ #}
+
+<section id="labo" class="home-section" style="background: var(--color-cream)">
+
+    {# Section header #}
+    <div class="section-head">
+        <div>
+            <div class="section-label">Chapitre III · Le Labo Culinaire</div>
+            <h2 class="font-display font-medium leading-none tracking-[-0.015em] m-0"
+                style="font-size: clamp(40px, 5vw, 80px)">
+                L'art du <em class="not-italic italic" style="color: var(--color-turmeric-700)">geste.</em>
+            </h2>
+        </div>
+        <p class="section-blurb">
+            Comprendre, c'est bien. Faire, c'est mieux.
+            Trois techniques fondamentales pour libérer
+            tout ce que vos épices ont à offrir.
+        </p>
+    </div>
+
+    <div class="labo-grid">
+
+        {# ── Fiche I : Torréfaction ── #}
+        <article class="recipe-card">
+            <div class="flex justify-between items-start mb-5 relative z-[1]">
+                <div class="recipe-num">Fiche n°&nbsp;I</div>
+                <div class="recipe-meta">Technique<br>Chaleur sèche</div>
+            </div>
+            <h3 class="recipe-title">Torré<span class="ital">faction.</span></h3>
+            <div class="recipe-sub">à sec, à la poêle de fonte</div>
+
+            <div class="recipe-diagram">
+                <svg viewBox="0 0 240 160" width="100%" height="100%" aria-hidden="true">
+                    <ellipse cx="120" cy="120" rx="80" ry="14" fill="none" stroke="#1A1512" stroke-width="1.5"/>
+                    <path d="M 40 120 L 50 135 Q 120 145 190 135 L 200 120" fill="none" stroke="#1A1512" stroke-width="1.5"/>
+                    <line x1="200" y1="125" x2="232" y2="118" stroke="#1A1512" stroke-width="1.5"/>
+                    <circle cx="95" cy="118" r="3" fill="#D97706"/>
+                    <circle cx="115" cy="120" r="3" fill="#D97706"/>
+                    <circle cx="135" cy="118" r="3" fill="#991B1B"/>
+                    <circle cx="150" cy="120" r="3" fill="#D97706"/>
+                    <circle cx="105" cy="115" r="2.5" fill="#7c3a04"/>
+                    <circle cx="125" cy="115" r="2.5" fill="#7c3a04"/>
+                    <path d="M 90 95 Q 95 85 92 75" fill="none" stroke="#D97706" stroke-width="1" opacity=".6"/>
+                    <path d="M 120 95 Q 125 85 118 70" fill="none" stroke="#D97706" stroke-width="1" opacity=".6"/>
+                    <path d="M 150 95 Q 145 85 148 75" fill="none" stroke="#D97706" stroke-width="1" opacity=".6"/>
+                    <circle cx="92" cy="60" r="2" fill="#D97706" opacity=".7"/>
+                    <circle cx="120" cy="50" r="2" fill="#D97706" opacity=".7"/>
+                    <circle cx="148" cy="58" r="2" fill="#D97706" opacity=".7"/>
+                    <circle cx="105" cy="40" r="1.5" fill="#D97706" opacity=".5"/>
+                    <circle cx="135" cy="35" r="1.5" fill="#D97706" opacity=".5"/>
+                    <text x="120" y="22" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#1A1512" letter-spacing="2">180°C · 90s</text>
+                </svg>
+            </div>
+
+            <div class="recipe-benefit">
+                <strong>Réaction de Maillard.</strong>
+                La chaleur sèche brise les parois cellulaires
+                et libère les huiles essentielles emprisonnées.
+                Le résultat : un parfum profond, presque noisetté.
+            </div>
+
+            <div class="recipe-foot">
+                <span>Cumin · Coriandre · Fenouil</span>
+                <a href="{{ path('index_spices') }}" class="hover:opacity-70 transition-opacity">→ Lire</a>
+            </div>
+        </article>
+
+        {# ── Fiche II : Infusion ── #}
+        <article class="recipe-card">
+            <div class="flex justify-between items-start mb-5 relative z-[1]">
+                <div class="recipe-num">Fiche n°&nbsp;II</div>
+                <div class="recipe-meta">Technique<br>Chaleur humide</div>
+            </div>
+            <h3 class="recipe-title">Infu<span class="ital">sion.</span></h3>
+            <div class="recipe-sub">à chaud, dans un corps gras</div>
+
+            <div class="recipe-diagram">
+                <svg viewBox="0 0 240 160" width="100%" height="100%" aria-hidden="true">
+                    <rect x="80" y="40" width="80" height="100" rx="6" fill="none" stroke="#1A1512" stroke-width="1.5"/>
+                    <rect x="86" y="30" width="68" height="14" rx="2" fill="#1A1512"/>
+                    <rect x="83" y="65" width="74" height="72" rx="3" fill="#D97706" opacity=".25"/>
+                    <path d="M 83 75 Q 95 70 107 75 Q 120 80 132 75 Q 144 70 157 75 L 157 137 L 83 137 Z" fill="#D97706" opacity=".5"/>
+                    <circle cx="100" cy="95" r="2.5" fill="#991B1B"/>
+                    <circle cx="120" cy="105" r="2.5" fill="#7c3a04"/>
+                    <circle cx="140" cy="92" r="2.5" fill="#991B1B"/>
+                    <circle cx="110" cy="118" r="2.5" fill="#7c3a04"/>
+                    <circle cx="135" cy="125" r="2.5" fill="#991B1B"/>
+                    <path d="M 30 80 Q 50 80 70 80" fill="none" stroke="#4D7C0F" stroke-width="1" stroke-dasharray="2 3"/>
+                    <path d="M 65 76 L 70 80 L 65 84" fill="none" stroke="#4D7C0F" stroke-width="1"/>
+                    <text x="30" y="70" font-family="JetBrains Mono,monospace" font-size="8" fill="#4D7C0F" letter-spacing="1.5">DIFFUSION</text>
+                    <text x="120" y="22" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#1A1512" letter-spacing="2">60°C · 12 min</text>
+                </svg>
+            </div>
+
+            <div class="recipe-benefit">
+                <strong>Diffusion lipidique.</strong>
+                Les arômes liposolubles migrent dans l'huile
+                chaude — un transport idéal pour les notes
+                boisées et résineuses qui craignent la flamme.
+            </div>
+
+            <div class="recipe-foot">
+                <span>Romarin · Laurier · Piment</span>
+                <a href="{{ path('index_spices') }}" class="hover:opacity-70 transition-opacity">→ Lire</a>
+            </div>
+        </article>
+
+        {# ── Fiche III : Pilonage ── #}
+        <article class="recipe-card">
+            <div class="flex justify-between items-start mb-5 relative z-[1]">
+                <div class="recipe-num">Fiche n°&nbsp;III</div>
+                <div class="recipe-meta">Technique<br>Mécanique</div>
+            </div>
+            <h3 class="recipe-title">Pi<span class="ital">lonage.</span></h3>
+            <div class="recipe-sub">au mortier de marbre</div>
+
+            <div class="recipe-diagram">
+                <svg viewBox="0 0 240 160" width="100%" height="100%" aria-hidden="true">
+                    <path d="M 60 80 Q 60 140 120 142 Q 180 140 180 80 Z" fill="none" stroke="#1A1512" stroke-width="1.5"/>
+                    <path d="M 60 80 Q 120 95 180 80" fill="none" stroke="#1A1512" stroke-width="1.5"/>
+                    <ellipse cx="120" cy="80" rx="60" ry="8" fill="#1A1512" opacity=".1"/>
+                    <line x1="140" y1="20" x2="125" y2="85" stroke="#6E4128" stroke-width="6" stroke-linecap="round"/>
+                    <circle cx="125" cy="90" r="8" fill="#6E4128"/>
+                    <circle cx="100" cy="105" r="3" fill="#D97706"/>
+                    <circle cx="110" cy="115" r="2" fill="#991B1B"/>
+                    <circle cx="135" cy="110" r="3" fill="#7c3a04"/>
+                    <circle cx="145" cy="118" r="2" fill="#D97706"/>
+                    <circle cx="120" cy="120" r="2.5" fill="#991B1B"/>
+                    <circle cx="92" cy="80" r="1.2" fill="#D97706" opacity=".5"/>
+                    <circle cx="155" cy="75" r="1" fill="#D97706" opacity=".5"/>
+                    <circle cx="170" cy="92" r="1" fill="#991B1B" opacity=".4"/>
+                    <text x="120" y="155" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#1A1512" letter-spacing="2">CRESCENDO</text>
+                </svg>
+            </div>
+
+            <div class="recipe-benefit">
+                <strong>Rupture cellulaire.</strong>
+                La pression mécanique éclate les vésicules
+                d'huiles essentielles plus délicatement que
+                le moulin — pas de chaleur, pas d'oxydation.
+            </div>
+
+            <div class="recipe-foot">
+                <span>Poivre · Cardamome · Basilic</span>
+                <a href="{{ path('index_spices') }}" class="hover:opacity-70 transition-opacity">→ Lire</a>
+            </div>
+        </article>
+
+    </div>
+
+    {# ── Mur de citations ── #}
+    <div class="quotes-wrap">
+        <div class="quotes-head">
+            <h3>Conseils d'experts, épinglés au mur de la cuisine.</h3>
+            {# Boutons décoratifs — pas de JS pour l'instant #}
+            <div class="flex gap-[10px]" aria-hidden="true">
+                <button type="button"
+                        class="w-[42px] h-[42px] rounded-full flex items-center justify-center cursor-default"
+                        style="background: rgba(245,233,200,.1); border: 1px solid rgba(245,233,200,.3); color: #F5E9C8">
+                    ‹
+                </button>
+                <button type="button"
+                        class="w-[42px] h-[42px] rounded-full flex items-center justify-center cursor-default"
+                        style="background: rgba(245,233,200,.1); border: 1px solid rgba(245,233,200,.3); color: #F5E9C8">
+                    ›
+                </button>
+            </div>
+        </div>
+
+        <div class="quotes-board">
+
+            <div class="pin-note">
+                <div class="pin-quote">Une épice n'a jamais un seul rôle. Elle ouvre une porte. Charge à vous de regarder ce qu'il y a derrière.</div>
+                <div class="pin-author">
+                    <span class="who">Élise Marchand</span>
+                    <span>Cheffe · Lyon</span>
+                </div>
+            </div>
+
+            <div class="pin-note">
+                <div class="pin-quote">Avant d'ajouter du piment, ajoutez de l'attention. La langue se souvient des deux.</div>
+                <div class="pin-author">
+                    <span class="who">Tomás Reverte</span>
+                    <span>Étoilé · Barcelone</span>
+                </div>
+            </div>
+
+            <div class="pin-note">
+                <div class="pin-quote">La torréfaction n'est pas une étape. C'est une conversation entre la graine et la chaleur.</div>
+                <div class="pin-author">
+                    <span class="who">Amal Benkirane</span>
+                    <span>Maître épicier · Fès</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</section>

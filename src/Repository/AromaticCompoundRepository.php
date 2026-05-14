@@ -39,4 +39,12 @@ class AromaticCompoundRepository extends ServiceEntityRepository
                 ->flush();
         }
     }
+
+    public function countTotal(): int
+    {
+        return (int) $this->createQueryBuilder('a')
+            ->select('COUNT(a.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

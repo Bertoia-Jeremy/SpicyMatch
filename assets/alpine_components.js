@@ -84,6 +84,7 @@ export default function registerAlpineComponents(Alpine) {
         toqueColor()        { return this.open ? 'color: var(--color-paprika-700)' : 'color: var(--color-ink-deep)'; },
         mobileToqueClass()  { return this.mobileOpen ? 'is-open' : ''; },
         mobileToqueColor()  { return this.mobileOpen ? 'color: var(--color-paprika-700)' : 'color: var(--color-ink-deep)'; },
+        mobileToqueLabel()  { return this.mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'; },
     }));
 
     Alpine.data('dropdown', () => ({
@@ -876,4 +877,54 @@ export default function registerAlpineComponents(Alpine) {
             this.showTransition = false;
         },
     }));
+
+    /* ─── Homepage — Toile des Arômes (système solaire moléculaire) ──── */
+    Alpine.data('toile', () => {
+        const makeMol = (id, x, y, accent, grad, delay, name, formula, badge, descr, shared) => ({
+            id, x, y, accent, grad, delay, name, formula, badge, descr, shared,
+            molStyle: `--mol-x:${x}px; --mol-y:${y}px; --mol-accent:${accent}; --mol-delay:${delay}; background:${grad}`,
+        });
+
+        const molecules = [
+            makeMol('m1', -100, -120, '#D97706',
+                'radial-gradient(circle at 35% 30%,#E8B547,#8a5a0c)', '0s',
+                'Linalol', 'C₁₀H₁₈O', 'Terpène · Floral',
+                "Note florale fraîche aux accents d'agrumes. Présent dans plus de 200 plantes aromatiques — c'est la signature parfumée de la lavande, mais aussi le secret de bien d'autres.",
+                ['Coriandre', 'Basilic', 'Cardamome', 'Thym', '+ 14']),
+            makeMol('m2', 112, -108, '#991B1B',
+                'radial-gradient(circle at 35% 30%,#C04020,#5a0e0e)', '1.2s',
+                'Pipérine', 'C₁₇H₁₉NO₃', 'Alcaloïde · Piquant',
+                "Le composé qui donne au poivre noir son mordant caractéristique. Active les récepteurs TRPV1 — les mêmes que la capsaïcine, mais avec une douceur boisée.",
+                ['Poivre noir', 'Poivre long', 'Cubèbe', '+ 6']),
+            makeMol('m3', -180, 0, '#4D7C0F',
+                'radial-gradient(circle at 35% 30%,#7AA31C,#2f4a08)', '2.4s',
+                'α-Terpinéol', 'C₁₀H₁₈O', 'Terpène · Floral-Pin',
+                "Arôme à la fois floral et résineux, comme du lilas frotté contre un pin. Apprécié en parfumerie autant qu'en cuisine méditerranéenne.",
+                ['Cardamome', 'Marjolaine', 'Niaouli', '+ 9']),
+            makeMol('m4', 188, -8, '#B87333',
+                'radial-gradient(circle at 35% 30%,#B86A20,#5c2c08)', '0.7s',
+                'Eugénol', 'C₁₀H₁₂O₂', 'Phénol · Boisé-Clou',
+                "Le cœur du clou de girofle. Anesthésique léger, parfum dense — une signature impossible à oublier qui se loge dans la mémoire olfactive.",
+                ['Clou de girofle', 'Cannelle', 'Muscade', 'Basilic', '+ 8']),
+            makeMol('m5', -110, 160, '#D97706',
+                'radial-gradient(circle at 35% 30%,#D97706,#7c3a04)', '3s',
+                '1,8-Cinéole', 'C₁₀H₁₈O', 'Oxyde · Frais-Camphré',
+                "Cette fraîcheur qu'on appelle parfois eucalyptée. Ouvre les voies respiratoires et la palette aromatique d'un plat avec la même franchise.",
+                ['Cardamome', 'Romarin', 'Laurier', 'Sauge', '+ 11']),
+            makeMol('m6', 130, 150, '#7c3a04',
+                'radial-gradient(circle at 35% 30%,#6E4128,#2a160a)', '1.8s',
+                'Géraniol', 'C₁₀H₁₈O', 'Terpène · Rose-Citrus',
+                "L'âme parfumée du géranium et de la rose. En cuisine, un fil ténu entre la peau d'agrume et le pétale — à manier avec révérence.",
+                ['Coriandre', 'Citronnelle', 'Carotte', '+ 7']),
+        ];
+
+        return {
+            activeId: 'm1',
+            molecules,
+            get active() { return this.molecules.find(m => m.id === this.activeId); },
+            setActive(id) { this.activeId = id; },
+            isActive(id) { return this.activeId === id; },
+            cardStyle() { return `border-color: ${this.active.accent}`; },
+        };
+    });
 }

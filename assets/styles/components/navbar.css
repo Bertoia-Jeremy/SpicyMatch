@@ -1,3 +1,5 @@
+@layer components {
+
 /* ── Barre principale ─────────────────────────────────────────────── */
 .nav-bar {
   background: var(--color-parchment);
@@ -68,14 +70,16 @@
 /* ── Mobile sheet ─────────────────────────────────────────────────── */
 .nav-sheet {
   position: fixed;
-  inset-x: 0;
-  bottom: 0;
+  left: 0;
+  right: 0;
+  top: var(--nav-height);
+  height: 50dvh;
   z-index: 49;
-  max-height: 90dvh;
   overflow-y: auto;
   background: linear-gradient(180deg, #f4ecd2, #ebdbb0);
-  border-radius: 20px 20px 0 0;
+  border-radius: 0 0 20px 20px;
   overscroll-behavior: contain;
+  box-shadow: 0 8px 24px -4px rgba(74, 50, 37, 0.18);
 }
 
 /* ── Mobile backdrop ──────────────────────────────────────────────── */
@@ -91,15 +95,6 @@
 .gauge-bar {
   height: 2px;
   background: linear-gradient(to right, var(--color-paprika-700), var(--color-saffron-600), #f4c04c);
-}
-
-/* ── Seal glow animation ──────────────────────────────────────────── */
-@keyframes seal-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(176, 57, 43, 0); }
-  50%       { box-shadow: 0 0 0 4px rgba(176, 57, 43, 0.22); }
-}
-.seal-pulse {
-  animation: seal-glow 2.6s ease-in-out infinite;
 }
 
 /* ── Poles navigation items ───────────────────────────────────────── */
@@ -131,4 +126,17 @@
 /* ── pb-safe helper (iOS home bar) ───────────────────────────────── */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 1.5rem);
+}
+
+} /* end @layer components */
+
+/* ── Seal glow animation (hors @layer pour compatibilité max) ─────── */
+@keyframes seal-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(176, 57, 43, 0); }
+  50%       { box-shadow: 0 0 0 4px rgba(176, 57, 43, 0.22); }
+}
+@layer components {
+.seal-pulse {
+  animation: seal-glow 2.6s ease-in-out infinite;
+}
 }

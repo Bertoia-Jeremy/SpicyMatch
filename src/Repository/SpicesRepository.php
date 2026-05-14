@@ -418,4 +418,12 @@ class SpicesRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function countTotal(): int
+    {
+        return (int) $this->createQueryBuilder('s')
+            ->select('COUNT(s.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

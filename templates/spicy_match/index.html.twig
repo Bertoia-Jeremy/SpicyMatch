@@ -30,17 +30,6 @@
                 L'algorithme révèle les associations qui chantent ensemble.
             </p>
 
-            {# XP pill #}
-            {% if is_granted('ROLE_USER') and app.user.progression %}
-                <div class="inline-flex items-center gap-2 bg-turmeric-300/30 border border-turmeric-400/40
-                            text-turmeric-700 text-[13px] font-semibold px-4 py-2 rounded-full mb-7">
-                    <i class="fa-solid fa-star text-turmeric-500 text-xs"></i>
-                    +50 XP par mélange sauvegardé — Niveau {{ app.user.progression.level }} actuel
-                </div>
-            {% else %}
-                <div class="mb-7"></div>
-            {% endif %}
-
             {# Stepper #}
             <div class="flex items-center justify-center max-w-xs mx-auto gap-0">
                 <div class="flex items-center gap-2.5">

@@ -22,7 +22,10 @@ class AromaticGroups
     #[ORM\Column(name: 'name', type: 'string', length: 255)]
     private ?string $name = null;
 
-    #[Assert\Regex(pattern: '/^#[0-9A-Fa-f]{6}$/', message: 'La couleur doit être un code hexadécimal valide (#RRGGBB).')]
+    #[Assert\Regex(
+        pattern: '/^#[0-9A-Fa-f]{6}$/',
+        message: 'La couleur doit être un code hexadécimal valide (#RRGGBB).'
+    )]
     #[ORM\Column(name: 'color', type: 'string', length: 255)]
     private ?string $color = null;
 

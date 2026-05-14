@@ -1,0 +1,124 @@
+{# ═══════════════════════════════════════════════════════
+   Chapitre II — La Toile des Arômes
+   Système solaire moléculaire interactif (Alpine.js)
+   ═══════════════════════════════════════════════════════ #}
+
+<section id="toile" class="home-section" x-data="toile()"
+         style="background: linear-gradient(180deg, var(--color-cream) 0%, var(--color-cream-dark) 100%)">
+
+    {# Section header #}
+    <div class="section-head">
+        <div>
+            <div class="section-label">Chapitre II · La Toile des Arômes</div>
+            <h2 class="font-display font-medium leading-none tracking-[-0.015em] m-0"
+                style="font-size: clamp(40px, 5vw, 80px)">
+                Le système solaire <em class="not-italic italic" style="color: var(--color-turmeric-700)">aromatique.</em>
+            </h2>
+        </div>
+        <p class="section-blurb">
+            Chaque épice est un soleil. Autour, gravitent ses composés.
+            Cliquez une molécule pour découvrir toutes les épices
+            qui partagent cette signature invisible.
+        </p>
+    </div>
+
+    <div class="solar-wrap">
+
+        {# ── Canvas système solaire ── #}
+        <div class="solar" id="solar">
+            <div class="solar-grid" aria-hidden="true"></div>
+
+            <div class="solar-hud" aria-hidden="true">
+                <span><span class="hud-dot"></span>Système actif · CARDAMOME</span>
+                <span>6 composés · 14 liens identifiés</span>
+            </div>
+
+            {# Lignes SVG connecteurs (statiques, centre du canvas 600×680) #}
+            <svg class="absolute inset-0 w-full h-full pointer-events-none z-[1]"
+                 viewBox="0 0 600 680" preserveAspectRatio="none" aria-hidden="true">
+                <line x1="300" y1="340" x2="412" y2="232" stroke="#2A1810" stroke-width="1" stroke-dasharray="2 4" opacity=".18"/>
+                <line x1="300" y1="340" x2="200" y2="220" stroke="#2A1810" stroke-width="1" stroke-dasharray="2 4" opacity=".18"/>
+                <line x1="300" y1="340" x2="120" y2="340" stroke="#2A1810" stroke-width="1" stroke-dasharray="2 4" opacity=".18"/>
+                <line x1="300" y1="340" x2="190" y2="500" stroke="#2A1810" stroke-width="1" stroke-dasharray="2 4" opacity=".18"/>
+                <line x1="300" y1="340" x2="430" y2="490" stroke="#2A1810" stroke-width="1" stroke-dasharray="2 4" opacity=".18"/>
+                <line x1="300" y1="340" x2="488" y2="332" stroke="#2A1810" stroke-width="1" stroke-dasharray="2 4" opacity=".18"/>
+            </svg>
+
+            {# Orbites #}
+            <div class="orbit o1" aria-hidden="true"></div>
+            <div class="orbit o2" aria-hidden="true"></div>
+            <div class="orbit o3" aria-hidden="true"></div>
+
+            {# Soleil central — Cardamome #}
+            <div class="sun" aria-hidden="true">
+                <div class="sun-label">
+                    Cardamome
+                    <span class="sub">Elettaria · IN</span>
+                </div>
+            </div>
+
+            {# Molécules orbitantes — Alpine x-for #}
+            <template x-for="m in molecules" :key="m.id">
+                <div class="molecule"
+                     :style="m.molStyle"
+                     :class="isActive(m.id) ? 'mol-active' : ''"
+                     @click="setActive(m.id)"
+                     role="button"
+                     tabindex="0"
+                     :aria-label="m.name + ' — cliquer pour voir les détails'"
+                     :aria-pressed="isActive(m.id)"
+                     @keydown.enter.prevent="setActive(m.id)"
+                     @keydown.space.prevent="setActive(m.id)">
+                    <div class="mol-name" x-text="m.name"></div>
+                    <div class="mol-formula" x-text="m.formula" aria-hidden="true"></div>
+                </div>
+            </template>
+
+        </div>
+
+        {# ── Sidebar droite ── #}
+        <div class="solar-side">
+            <h3 class="font-display font-medium leading-[1.05] mb-[18px] tracking-[-0.01em] solar-side-title">
+                Une molécule, <em class="not-italic italic" style="color: var(--color-paprika-800)">mille épices.</em>
+            </h3>
+            <p class="mb-8 text-[15px] leading-[1.7] max-w-[440px]" style="color: rgba(42,24,16,.70)">
+                Le Linalol n'est pas qu'un nom. C'est le fil invisible
+                qui relie la lavande à la coriandre, le basilic à la cardamome.
+                Tirez le fil — toute une famille apparaît.
+            </p>
+
+            {# Carte composé actif #}
+            <div class="compound-card" :style="cardStyle()">
+                <div class="flex items-center justify-between gap-4 mb-3">
+                    <div class="cname" x-text="active.name"></div>
+                    <div class="badge" x-text="active.badge"></div>
+                </div>
+                <div class="descr" x-text="active.descr"></div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-[10px] tracking-[.22em] uppercase mr-1" style="color: rgba(42,24,16,.60); font-family: var(--font-mono)">Aussi dans</span>
+                    <template x-for="s in active.shared" :key="s">
+                        <span class="compound-chip" x-text="s"></span>
+                    </template>
+                </div>
+            </div>
+
+            {# Légende #}
+            <div class="solar-legend">
+                <div class="leg-item">
+                    <span class="leg-sw" style="background: var(--color-turmeric-600)"></span>Terpénique
+                </div>
+                <div class="leg-item">
+                    <span class="leg-sw" style="background: var(--color-paprika-800)"></span>Pipéracée
+                </div>
+                <div class="leg-item">
+                    <span class="leg-sw" style="background: var(--color-sauge)"></span>Phénolique
+                </div>
+                <div class="leg-item">
+                    <span class="leg-sw" style="background: var(--color-copper)"></span>Boisé
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</section>

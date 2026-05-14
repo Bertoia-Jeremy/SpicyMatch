@@ -15,6 +15,7 @@
 @import "./components/lab.css";
 @import "./components/spice-view.css";
 @import "./components/navbar.css";
+@import "./components/home.css";
 
 /* Sources pour le scan Tailwind v4 */
 @source "../../templates/**/*.html.twig";

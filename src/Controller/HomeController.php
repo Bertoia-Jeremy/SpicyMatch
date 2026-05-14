@@ -6,6 +6,9 @@ namespace App\Controller;
 
 use App\Entity\Users;
 use App\Repository\AchievementProgressRepository;
+use App\Repository\AromaticCompoundRepository;
+use App\Repository\SpicesRepository;
+use App\Repository\UsersRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -14,6 +17,9 @@ class HomeController extends AbstractController
 {
     public function __construct(
         private readonly AchievementProgressRepository $achievementProgressRepository,
+        private readonly SpicesRepository $spicesRepository,
+        private readonly AromaticCompoundRepository $aromaticCompoundRepository,
+        private readonly UsersRepository $usersRepository,
     ) {
     }
 
@@ -41,6 +47,9 @@ class HomeController extends AbstractController
 
         return $this->render('home/index.html.twig', [
             'nextAchievementProgress' => $nextAchievementProgress,
+            'spicesCount' => $this->spicesRepository->countTotal(),
+            'compoundsCount' => $this->aromaticCompoundRepository->countTotal(),
+            'usersCount' => $this->usersRepository->countActive(),
         ]);
     }
 }

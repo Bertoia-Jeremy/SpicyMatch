@@ -139,17 +139,6 @@
                 </span>
             </div>
 
-            {# Empty state (aucune épice sélectionnée) #}
-            {% if selectedCount == 0 %}
-                <div class="w-full text-center py-10 mb-4">
-                    <div class="inline-flex flex-col items-center gap-3 text-stone-400">
-                        <i class="fa-solid fa-hand-pointer text-4xl text-saffron-400/50"></i>
-                        <p class="text-sm font-medium text-stone-500">Sélectionnez vos épices ci-dessous pour commencer</p>
-                        <i class="fa-solid fa-chevron-down text-xs animate-bounce text-saffron-500/50"></i>
-                    </div>
-                </div>
-            {% endif %}
-
             {# ── Grille épices plate ── #}
             <form data-model="spices">
                 {% if compatibleSpices is not empty %}

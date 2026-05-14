@@ -107,8 +107,9 @@
                 aria-label="Menu principal"
                 class="toque-btn lg:hidden shrink-0">
             {{ _self.toqueIcon('w-[22px] h-[22px]') }}
-            <span class="font-display italic text-[15px]"
-                  style="color: var(--color-ink-deep)">Le Menu du Jour</span>
+            <span x-text="mobileToqueLabel()"
+                  class="font-display italic text-[15px]"
+                  style="color: var(--color-ink-deep)"></span>
         </button>
 
         {# ── CENTER : Wax Seal + Wordmark ──────────────────────────────── #}
@@ -131,15 +132,6 @@
             {# Search component (desktop lg+) #}
             <div class="hidden lg:block">{{ component('Search') }}</div>
 
-            {# Search icon → ouvre le sheet mobile (< lg) #}
-            <button type="button"
-                    @click="mobileToggle()"
-                    aria-label="Rechercher"
-                    class="lg:hidden size-11 rounded-full flex items-center justify-center transition-colors"
-                    style="border: 1px solid rgba(184,134,74,0.4); background: rgba(255,250,235,0.6);">
-                <i class="fa-solid fa-magnifying-glass text-sm" style="color: var(--color-ink-deep)"></i>
-            </button>
-
             {# Mortar → Le Lab #}
             <a href="{{ path('index_spicy_match') }}"
                class="mortar-btn size-11 rounded-full flex items-center justify-center"
@@ -150,15 +142,6 @@
 
             {# Grade chip / avatar / login ───────────────────────────── #}
             {% if is_granted('ROLE_USER') and app.user.progression %}
-
-                {# Mobile : avatar seul #}
-                <div class="lg:hidden size-11 rounded-full flex items-center justify-center border overflow-hidden"
-                     style="border-color: rgba(184,134,74,0.4); background: rgba(255,250,235,0.6);">
-                    {% include 'components/_avatar.html.twig' with {
-                        sizeClass: 'w-8 h-8 text-base',
-                        equippedBadge: app.user.progression.equippedBadge
-                    } %}
-                </div>
 
                 {# Desktop : grade chip complet #}
                 <div class="hidden lg:flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-full border"
@@ -447,20 +430,17 @@
 <div id="nav-sheet"
      x-show="mobileOpen"
      x-cloak
-     x-transition:enter="transition duration-[380ms] ease-[cubic-bezier(.2,.7,.2,1)]"
-     x-transition:enter-start="translate-y-full"
+     x-transition:enter="transition duration-[320ms] ease-[cubic-bezier(.2,.7,.2,1)]"
+     x-transition:enter-start="-translate-y-full"
      x-transition:enter-end="translate-y-0"
-     x-transition:leave="transition duration-[250ms] ease-in"
+     x-transition:leave="transition duration-[220ms] ease-in"
      x-transition:leave-start="translate-y-0"
-     x-transition:leave-end="translate-y-full"
+     x-transition:leave-end="-translate-y-full"
      class="nav-sheet lg:hidden"
      role="navigation"
      aria-label="Menu principal mobile">
 
-    <div class="p-6 pb-safe">
-
-        {# Grab handle #}
-        <div class="sheet-grab mb-6"></div>
+    <div class="p-6">
 
         {# Hero search #}
         <form action="{{ path('search_results') }}" method="GET"

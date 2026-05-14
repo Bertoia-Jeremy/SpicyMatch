@@ -67,6 +67,16 @@
   --shadow-card:             0 1px 2px rgba(0, 0, 0, .06), 0 2px 6px rgba(0, 0, 0, .04);
   --shadow-card-hover:       0 8px 24px rgba(194, 65, 12, .10);
 
+  /* Mono — JetBrains Mono pour labels/métadonnées (homepage + navbar) */
+  --font-mono:               'JetBrains Mono', ui-monospace, monospace;
+
+  /* Curcuma profond — ambre-deep du design */
+  --color-turmeric-700:      #A85A05;
+
+  /* Sauge — hero corner dot, titres labo */
+  --color-sauge:             #4D7C0F;
+  --color-sauge-deep:        #365A0B;
+
   /* Typographie manuscrite (substitut Lora italic pour Caveat) */
   --font-hand: var(--font-display);
 

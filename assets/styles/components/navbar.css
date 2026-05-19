@@ -60,11 +60,13 @@
   top: var(--nav-height);
   left: 0;
   right: 0;
-  bottom: 0;
+  height: calc(50dvh - var(--nav-height));
   z-index: 49;
   background: linear-gradient(180deg, #f4ecd2, #ebdbb0);
+  border-radius: 0 0 20px 20px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  box-shadow: 0 8px 24px -4px rgba(74, 50, 37, 0.18);
 }
 
 /* ── Mobile sheet ─────────────────────────────────────────────────── */

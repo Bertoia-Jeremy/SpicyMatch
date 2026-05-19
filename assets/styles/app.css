@@ -17,6 +17,9 @@
 @import "./components/navbar.css";
 @import "./components/home.css";
 
+/* L'Étamine — finalisation du mélange */
+@import "./components/etamine.css";
+
 /* Sources pour le scan Tailwind v4 */
 @source "../../templates/**/*.html.twig";
 @source "../../assets/**/*.js";

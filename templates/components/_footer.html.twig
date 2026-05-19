@@ -7,8 +7,6 @@
         <div class="flex items-center gap-4 mb-14">
             <div class="flex-1 h-px"
                  style="background: linear-gradient(90deg, transparent, rgba(184,134,74,0.35))"></div>
-            <span class="font-mono text-[9px] tracking-[0.4em] uppercase"
-                  style="color: rgba(184,134,74,0.65)">✦ MAISON · EST. 2024 ✦</span>
             <div class="flex-1 h-px"
                  style="background: linear-gradient(270deg, transparent, rgba(184,134,74,0.35))"></div>
         </div>
@@ -19,14 +17,39 @@
             {# Col 1 : Marque #}
             <div class="space-y-6">
                 <a href="{{ path('home') }}" class="group flex items-center gap-3 no-underline">
-                    <div class="size-11 rounded-full flex items-center justify-center shrink-0 transition-transform group-hover:scale-105"
-                         style="background: radial-gradient(circle at 38% 35%, #D14A38, #9C2E22, #5C1A12);
-                                box-shadow: 0 2px 12px rgba(176,57,43,0.3)">
-                        <i class="fa-solid fa-mortar-pestle text-[15px]" style="color: var(--color-parchment)"></i>
-                    </div>
+                    <svg class="size-11 shrink-0 transition-transform group-hover:scale-105" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <circle cx="200" cy="200" r="150" fill="none" stroke="#C46E1F" stroke-width="2.4" stroke-dasharray="2 9" stroke-linecap="round" opacity="0.85"/>
+                        <circle cx="200" cy="200" r="150" fill="none" stroke="#C46E1F" stroke-width="6"
+                                stroke-dasharray="518.36 9999" stroke-linecap="round"
+                                transform="rotate(-90 200 200)"/>
+                        <g stroke="#0A0907" stroke-width="4" fill="none">
+                            <line x1="200" y1="150" x2="243" y2="175"/>
+                            <line x1="243" y1="175" x2="243" y2="225"/>
+                            <line x1="243" y1="225" x2="200" y2="250"/>
+                            <line x1="200" y1="250" x2="157" y2="225"/>
+                            <line x1="157" y1="225" x2="157" y2="175"/>
+                            <line x1="157" y1="175" x2="200" y2="150"/>
+                        </g>
+                        <g stroke="#C46E1F" stroke-width="6" fill="none" stroke-linecap="round">
+                            <path d="M 200 150 Q 210 100 200 50"/>
+                            <path d="M 243 225 Q 295 245 330 275"/>
+                            <path d="M 157 225 Q 105 245 70 275"/>
+                        </g>
+                        <g fill="#C46E1F">
+                            <circle cx="200" cy="50" r="11"/>
+                            <circle cx="330" cy="275" r="11"/>
+                            <circle cx="70" cy="275" r="11"/>
+                        </g>
+                        <g fill="#0A0907">
+                            <circle cx="243" cy="175" r="5"/>
+                            <circle cx="200" cy="250" r="5"/>
+                            <circle cx="157" cy="175" r="5"/>
+                            <circle cx="200" cy="150" r="6"/>
+                            <circle cx="243" cy="225" r="6"/>
+                            <circle cx="157" cy="225" r="6"/>
+                        </g>
+                    </svg>
                     <div class="leading-none">
-                        <div class="font-mono text-[9px] tracking-[0.2em] uppercase"
-                             style="color: rgba(184,134,74,0.7)">MAISON</div>
                         <div class="font-display text-[22px] font-medium leading-none"
                              style="color: var(--color-ink-deep)">
                             Spicy <em class="not-italic italic" style="color: #B91C1C">Match</em>

@@ -12,107 +12,263 @@
 
 
   <div id="hangman-game-area" class="flex flex-col lg:flex-row gap-8 items-center">
-    {# Sonde de cuisson — thermomètre avec zones textuées #}
+    {# Four Pendu — picto 08 L'Herbier Solaire #}
     <div class="flex-shrink-0">
-      {% if this.errorsCount >= 6 %}
-        {% set zoneLabel = 'CRAMÉ !' %}{% set zoneColor = '#7c2d12' %}{% set bulbColor = '#3f1505' %}
-      {% elseif this.errorsCount >= 5 %}
-        {% set zoneLabel = 'Brûlant !' %}{% set zoneColor = '#dc2626' %}{% set bulbColor = '#dc2626' %}
-      {% elseif this.errorsCount >= 4 %}
-        {% set zoneLabel = 'Trop cuit' %}{% set zoneColor = '#ea580c' %}{% set bulbColor = '#ea580c' %}
-      {% elseif this.errorsCount >= 3 %}
-        {% set zoneLabel = 'Bien cuit' %}{% set zoneColor = '#d97706' %}{% set bulbColor = '#d97706' %}
-      {% elseif this.errorsCount >= 2 %}
-        {% set zoneLabel = 'À point' %}{% set zoneColor = '#16a34a' %}{% set bulbColor = '#16a34a' %}
-      {% elseif this.errorsCount >= 1 %}
-        {% set zoneLabel = 'Tiède' %}{% set zoneColor = '#0ea5e9' %}{% set bulbColor = '#0ea5e9' %}
+      {# ── Variables d'état ──────────────────────────────────────────── #}
+      {% set e = this.errorsCount %}
+      {% set m = this.maxErrors %}
+      {% set igo = e >= m %}
+
+      {# Couleur accent : safran normal → brûlé au game-over #}
+      {% set ac = igo ? '#A33D1F' : '#C46E1F' %}
+      {# Couleur contour four #}
+      {% set os = igo ? '#A33D1F' : '#0A0907' %}
+
+      {# Label de statut #}
+      {% if igo %}
+        {% set stLbl = 'BRÛLÉ' %}{% set stClr = '#A33D1F' %}
+      {% elseif e >= 3 %}
+        {% set stLbl = 'EN CUISSON' %}{% set stClr = '#C46E1F' %}
       {% else %}
-        {% set zoneLabel = 'Cru' %}{% set zoneColor = '#94a3b8' %}{% set bulbColor = '#94a3b8' %}
+        {% set stLbl = 'EN CUISSON' %}{% set stClr = '#0A0907' %}
       {% endif %}
 
-      <svg viewBox="0 0 200 250" class="w-40 h-48" aria-hidden="true">
+      {# Thermomètre : tube y=200 (bas) → y=50 (haut), hauteur totale 150 #}
+      {% set fh = igo ? 150 : ((e / m * 150)|round) %}
+      {% set fy = 200 - fh %}
 
-        {# ── FOUR ─────────────────────────────────────────────────── #}
+      {# Label température #}
+      {% if e == 0 %}{% set tmp = '60°' %}
+      {% elseif e == 1 %}{% set tmp = '110°' %}
+      {% elseif e == 2 %}{% set tmp = '160°' %}
+      {% elseif e == 3 %}{% set tmp = '200°' %}
+      {% elseif e == 4 %}{% set tmp = '240°' %}
+      {% elseif e == 5 %}{% set tmp = '280°' %}
+      {% else %}{% set tmp = '340°' %}{% endif %}
 
-        {# Pieds #}
-        <rect x="32" y="230" width="16" height="14" rx="3" fill="#a8a29e"/>
-        <rect x="152" y="230" width="16" height="14" rx="3" fill="#a8a29e"/>
+      {# Aiguille molette : 0° → 150° sur 6 pas (r=8), valeurs précalculées #}
+      {% if e == 0 %}{% set dx = '0' %}{% set dy = '-8.0' %}
+      {% elseif e == 1 %}{% set dx = '3.4' %}{% set dy = '-7.3' %}
+      {% elseif e == 2 %}{% set dx = '6.1' %}{% set dy = '-5.1' %}
+      {% elseif e == 3 %}{% set dx = '7.7' %}{% set dy = '-2.1' %}
+      {% elseif e == 4 %}{% set dx = '7.9' %}{% set dy = '1.4' %}
+      {% elseif e == 5 %}{% set dx = '6.6' %}{% set dy = '4.6' %}
+      {% else %}{% set dx = '4.0' %}{% set dy = '6.9' %}{% endif %}
 
-        {# Corps + bandeau #}
-        <rect x="10" y="20" width="180" height="214" rx="10" fill="#e7e5e4" stroke="#a8a29e" stroke-width="2"/>
-        <rect x="10" y="20" width="180" height="44" rx="10" fill="#d6d3d1"/>
-        <line x1="10" y1="64" x2="190" y2="64" stroke="#a8a29e" stroke-width="1.5"/>
+      {# Résistance : couleur + opacité progressive #}
+      {% if e == 0 %}{% set heC = '#0A0907' %}{% set heO = '0.45' %}
+      {% elseif e == 1 %}{% set heC = '#C46E1F' %}{% set heO = '0.50' %}
+      {% elseif e == 2 %}{% set heC = '#C46E1F' %}{% set heO = '0.60' %}
+      {% elseif e == 3 %}{% set heC = '#C46E1F' %}{% set heO = '0.70' %}
+      {% elseif e == 4 %}{% set heC = '#C46E1F' %}{% set heO = '0.85' %}
+      {% elseif e == 5 %}{% set heC = '#C46E1F' %}{% set heO = '0.95' %}
+      {% else %}{% set heC = '#A33D1F' %}{% set heO = '1.0' %}{% endif %}
 
-        {# Molettes #}
-        <circle cx="45" cy="42" r="9" fill="#f5f5f4" stroke="#78716c" stroke-width="1.5"/>
-        <circle cx="100" cy="42" r="9" fill="#f5f5f4" stroke="#78716c" stroke-width="1.5"/>
-        <circle cx="155" cy="42" r="9" fill="#f5f5f4" stroke="#78716c" stroke-width="1.5"/>
+      {# Flammes : baseY croît avec les erreurs (apparaissent à ≥ 2) #}
+      {% if e == 2 %}{% set fBy = 106 %}{% set fMy = 104 %}{% set fPy = 102.8 %}
+      {% elseif e == 3 %}{% set fBy = 110 %}{% set fMy = 106 %}{% set fPy = 105.6 %}
+      {% elseif e == 4 %}{% set fBy = 118 %}{% set fMy = 112 %}{% set fPy = 103.5 %}
+      {% elseif e == 5 %}{% set fBy = 126 %}{% set fMy = 116 %}{% set fPy = 100.5 %}
+      {% else %}{% set fBy = 134 %}{% set fMy = 118 %}{% set fPy = 98.4 %}{% endif %}
 
-        {# Porte + grande vitre #}
-        <rect x="20" y="72" width="160" height="152" rx="8" fill="#d6d3d1" stroke="#a8a29e" stroke-width="1.5"/>
-        <rect x="30" y="82" width="140" height="108" rx="5" fill="#1c1917" stroke="#78716c" stroke-width="1.5"/>
+      {# Volutes de chaleur latérales : 0 → 4 paires #}
+      {% if e <= 1 %}{% set wc = 0 %}
+      {% elseif e == 2 %}{% set wc = 1 %}
+      {% elseif e == 3 %}{% set wc = 2 %}
+      {% elseif not igo %}{% set wc = 3 %}
+      {% else %}{% set wc = 4 %}{% endif %}
 
-        {# Fumée (≥ 5 erreurs) #}
-        {% if this.errorsCount >= 5 %}
-          <path d="M 65 20 Q 60 10 65 2" stroke="#78716c" stroke-width="2" fill="none" opacity="0.5" stroke-linecap="round"/>
-          <path d="M 100 20 Q 104 10 100 2" stroke="#78716c" stroke-width="2" fill="none" opacity="0.4" stroke-linecap="round"/>
-          <path d="M 135 20 Q 140 10 135 2" stroke="#78716c" stroke-width="2" fill="none" opacity="0.5" stroke-linecap="round"/>
+      {# Nourriture + plateau #}
+      {% set foodC = igo ? '#A33D1F' : '#C46E1F' %}
+
+      {# Hexagones de score (5 total) #}
+      {% set hexN = e < 5 ? e : 5 %}
+      {% set hexC = igo ? '#A33D1F' : '#C46E1F' %}
+
+      {# Texte bas de page #}
+      {% if igo %}
+        {% set footTxt = '— LE PLAT EST PERDU —' %}{% set footC = '#A33D1F' %}
+      {% else %}
+        {% set footTxt = 'ÉTAT ' ~ e ~ ' / ' ~ m %}{% set footC = '#75706A' %}
+      {% endif %}
+
+      <svg viewBox="0 0 220 290" class="w-40 h-52" aria-hidden="true">
+
+        {# ── 1. Bandeau texte haut ────────────────────────────────────── #}
+        <g font-family="JetBrains Mono, monospace">
+          <text x="14" y="20" font-size="6.5" letter-spacing="0.18em" fill="{{ stClr }}" font-weight="500">{{ stLbl }}</text>
+          <text x="206" y="20" font-size="6.5" letter-spacing="0.18em" fill="#75706A" text-anchor="end">{{ e }} / {{ m }} ERREURS</text>
+          <line x1="14" y1="26" x2="206" y2="26" stroke="{{ igo ? '#A33D1F' : '#75706A' }}" stroke-width="0.4" opacity="0.6"/>
+        </g>
+
+        {# ── 2. Thermomètre ──────────────────────────────────────────── #}
+        <g stroke="{{ os }}" stroke-width="0.8" fill="#F4ECDA" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M 10 50 Q 10 46 14 46 Q 18 46 18 50 L 18 196
+                   Q 26 204 26 214
+                   Q 26 224 14 224
+                   Q 2 224 2 214
+                   Q 2 204 10 196
+                   Z"/>
+        </g>
+        <g>
+          <rect x="11" y="51" width="6" height="51" fill="#F4ECDA"/>
+          <rect x="11" y="101" width="6" height="-36" fill="#C46E1F" opacity="0.15"/>
+          <rect x="11" y="65" width="6" height="135" fill="#A33D1F" opacity="0.18"/>
+        </g>
+        <rect x="11.5" y="{{ fy }}" width="5" height="{{ fh }}" fill="{{ ac }}"/>
+        <circle cx="14" cy="214" r="9" fill="{{ ac }}"/>
+        <g stroke="{{ os }}" stroke-width="0.6">
+          <line x1="18" y1="200" x2="22" y2="200"/>
+          <line x1="18" y1="162.5" x2="22" y2="162.5"/>
+          <line x1="18" y1="125" x2="22" y2="125"/>
+          <line x1="18" y1="87.5" x2="22" y2="87.5"/>
+          <line x1="18" y1="50" x2="22" y2="50"/>
+        </g>
+        <text x="14" y="44" font-family="JetBrains Mono, monospace" font-size="7" font-weight="500" text-anchor="middle" fill="{{ igo ? '#A33D1F' : '#0A0907' }}">{{ tmp }}</text>
+
+        {# ── 3. Volutes de chaleur latérales ─────────────────────────── #}
+        {% if wc > 0 %}
+          <path d="M 33 100 Q 28 112 33 124 Q 38 136 33 148" stroke="{{ ac }}" stroke-width="0.8" fill="none" stroke-dasharray="2 2.5" opacity="0.65"/>
+          <path d="M 197 100 Q 202 112 197 124 Q 192 136 197 148" stroke="{{ ac }}" stroke-width="0.8" fill="none" stroke-dasharray="2 2.5" opacity="0.65"/>
+        {% endif %}
+        {% if wc > 1 %}
+          <path d="M 25 120 Q 20 132 25 144 Q 30 156 25 168" stroke="{{ ac }}" stroke-width="0.8" fill="none" stroke-dasharray="2 2.5" opacity="0.55"/>
+          <path d="M 205 120 Q 210 132 205 144 Q 200 156 205 168" stroke="{{ ac }}" stroke-width="0.8" fill="none" stroke-dasharray="2 2.5" opacity="0.55"/>
+        {% endif %}
+        {% if wc > 2 %}
+          <path d="M 17 140 Q 12 152 17 164 Q 22 176 17 188" stroke="{{ ac }}" stroke-width="0.8" fill="none" stroke-dasharray="2 2.5" opacity="0.45"/>
+          <path d="M 213 140 Q 218 152 213 164 Q 208 176 213 188" stroke="{{ ac }}" stroke-width="0.8" fill="none" stroke-dasharray="2 2.5" opacity="0.45"/>
+        {% endif %}
+        {% if wc > 3 %}
+          <path d="M 9 160 Q 4 172 9 184 Q 14 196 9 208" stroke="{{ ac }}" stroke-width="0.8" fill="none" stroke-dasharray="2 2.5" opacity="0.35"/>
+          <path d="M 221 160 Q 226 172 221 184 Q 216 196 221 208" stroke="{{ ac }}" stroke-width="0.8" fill="none" stroke-dasharray="2 2.5" opacity="0.35"/>
         {% endif %}
 
-        {# ── PLAT (couleur progressive, dans la vitre) ─────────────── #}
-        {% if this.errorsCount >= 6 %}{% set dishFill = '#0c0a09' %}
-        {% elseif this.errorsCount >= 5 %}{% set dishFill = '#3f1505' %}
-        {% elseif this.errorsCount >= 4 %}{% set dishFill = '#7c2d12' %}
-        {% elseif this.errorsCount >= 3 %}{% set dishFill = '#92400e' %}
-        {% elseif this.errorsCount >= 2 %}{% set dishFill = '#d97706' %}
-        {% elseif this.errorsCount >= 1 %}{% set dishFill = '#fbbf24' %}
-        {% else %}{% set dishFill = '#fef9c7' %}{% endif %}
-
-        <circle cx="80" cy="136" r="30" fill="{{ dishFill }}"/>
-        {% if this.errorsCount >= 3 %}
-          <circle cx="68" cy="128" r="5" fill="#431407" opacity="0.75"/>
-          <circle cx="89" cy="144" r="4" fill="#431407" opacity="0.75"/>
-        {% endif %}
-        {% if this.errorsCount >= 5 %}
-          <circle cx="80" cy="130" r="7" fill="#111" opacity="0.9"/>
+        {# ── Fumée au-dessus du four (game over) ──────────────────────── #}
+        {% if igo %}
+          <g stroke="#A33D1F" stroke-width="1.1" fill="none" stroke-linecap="round" opacity="0.85">
+            <path d="M 75 38 C 70 30 80 24 75 16 C 72 10 80 8 78 2"/>
+            <path d="M 115 38 C 110 28 120 22 115 12 C 112 6 120 4 118 0"/>
+            <path d="M 155 38 C 150 30 160 24 155 16 C 152 10 160 8 158 2"/>
+          </g>
         {% endif %}
 
-        {# ── SONDE — tige allant du plat au thermomètre ────────────── #}
-        <line x1="92" y1="122" x2="130" y2="122" stroke="#d6d3d1" stroke-width="2.5" stroke-linecap="round"/>
-        <circle cx="92" cy="122" r="4" fill="#a8a29e"/>
+        {# ── 4. Corps du four ─────────────────────────────────────────── #}
+        <g stroke="{{ os }}" stroke-width="1.4" fill="none" stroke-linejoin="round" stroke-linecap="round">
+          <rect x="35" y="42" width="160" height="183"/>
+          <rect x="35" y="42" width="160" height="38"/>
+          <rect x="46" y="86" width="138" height="118"/>
+          <line x1="46" y1="212" x2="184" y2="212"/>
+          <line x1="46" y1="225" x2="46" y2="234"/>
+          <line x1="184" y1="225" x2="184" y2="234"/>
+          <line x1="40" y1="234" x2="52" y2="234"/>
+          <line x1="178" y1="234" x2="190" y2="234"/>
+        </g>
 
-        {# ── THERMOMÈTRE VERTICAL (dans la vitre, côté droit) ──────── #}
+        {# Fond sombre de la chambre #}
+        <rect x="47" y="87" width="136" height="116" fill="#1a1512"/>
 
-        {# Tube extérieur #}
-        <rect x="130" y="86" width="20" height="90" rx="10" fill="#0c0a09" stroke="#4b5563" stroke-width="1.5"/>
+        {# Logo hexagone dans le bandeau #}
+        <g transform="translate(58 50) scale(0.12)" opacity="0.85">
+          <g stroke="{{ os }}" stroke-width="20" fill="none">
+            <line x1="200" y1="150" x2="243" y2="175"/>
+            <line x1="243" y1="175" x2="243" y2="225"/>
+            <line x1="243" y1="225" x2="200" y2="250"/>
+            <line x1="200" y1="250" x2="157" y2="225"/>
+            <line x1="157" y1="225" x2="157" y2="175"/>
+            <line x1="157" y1="175" x2="200" y2="150"/>
+          </g>
+        </g>
 
-        {# 6 bandes de zones (toujours visibles) — du bas au haut : cru → cramé #}
-        <rect x="132" y="160" width="16" height="14" fill="#60a5fa"/>
-        <rect x="132" y="146" width="16" height="14" fill="#16a34a"/>
-        <rect x="132" y="132" width="16" height="14" fill="#d97706"/>
-        <rect x="132" y="118" width="16" height="14" fill="#ea580c"/>
-        <rect x="132" y="104" width="16" height="14" fill="#dc2626"/>
-        <rect x="132" y="90"  width="16" height="14" fill="#3f1505"/>
+        {# Mini molette de température (bandeau haut droit) #}
+        <g transform="translate(172 61)">
+          <circle r="10" stroke="{{ os }}" stroke-width="0.9" fill="none"/>
+          <line x1="0" y1="0" x2="{{ dx }}" y2="{{ dy }}" stroke="{{ ac }}" stroke-width="1.4" stroke-linecap="round"/>
+          <circle r="1.4" fill="{{ ac }}"/>
+          {% if igo %}
+            <g stroke="#A33D1F" stroke-width="1.5" stroke-linecap="round">
+              <line x1="-5" y1="-5" x2="5" y2="5"/>
+              <line x1="5" y1="-5" x2="-5" y2="5"/>
+            </g>
+          {% endif %}
+        </g>
 
-        {# Overlay sombre masquant les zones non atteintes (se réduit avec les erreurs) #}
-        {% if this.errorsCount < 6 %}
-          {% set darkH = (6 - this.errorsCount) * 14 %}
-          <rect x="132" y="90" width="16" height="{{ darkH }}" fill="#0c0a09" opacity="0.9" rx="1"/>
+        {# Résistance chauffante (en haut de la chambre) #}
+        <g stroke="{{ heC }}" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="{{ heO }}">
+          <path d="M 56 96 L 72 96 L 76 102 L 88 96 L 100 102 L 116 96 L 132 102 L 148 96 L 164 102 L 172 96"/>
+        </g>
+
+        {# Plateau + nourriture (à partir de 2 erreurs) #}
+        {% if e >= 2 %}
+          <g stroke="{{ igo ? '#A33D1F' : '#a8a29e' }}" stroke-width="1" fill="none">
+            <line x1="55" y1="165" x2="175" y2="165"/>
+            <line x1="55" y1="165" x2="55" y2="172"/>
+            <line x1="175" y1="165" x2="175" y2="172"/>
+            <line x1="65" y1="165" x2="65" y2="161" opacity="0.55"/>
+            <line x1="82" y1="165" x2="82" y2="161" opacity="0.55"/>
+            <line x1="99" y1="165" x2="99" y2="161" opacity="0.55"/>
+            <line x1="116" y1="165" x2="116" y2="161" opacity="0.55"/>
+            <line x1="133" y1="165" x2="133" y2="161" opacity="0.55"/>
+            <line x1="150" y1="165" x2="150" y2="161" opacity="0.55"/>
+            <line x1="167" y1="165" x2="167" y2="161" opacity="0.55"/>
+          </g>
+          <g fill="{{ foodC }}">
+            <circle cx="65" cy="158" r="3"/>
+            <circle cx="78" cy="160" r="3.2"/>
+            <circle cx="92" cy="158" r="3"/>
+            <circle cx="108" cy="160" r="3.4"/>
+            <circle cx="124" cy="158" r="2.8"/>
+            <circle cx="140" cy="160" r="3.2"/>
+            <circle cx="158" cy="158" r="3"/>
+          </g>
+          <g fill="{{ foodC }}" opacity="0.85">
+            <circle cx="72" cy="155" r="1.4"/>
+            <circle cx="104" cy="155" r="1.4"/>
+            <circle cx="140" cy="155" r="1.4"/>
+          </g>
         {% endif %}
 
-        {# Bulbe coloré en bas du tube #}
-        <circle cx="140" cy="182" r="10" fill="{{ bulbColor }}" stroke="#4b5563" stroke-width="1.5"/>
+        {# Flammes (à partir de 2 erreurs) #}
+        {% if e >= 2 %}
+          <g fill="{{ ac }}" opacity="0.9">
+            <path d="M 78 {{ fBy }} Q 73 {{ fMy }}, 76 102 Q 78 {{ fPy }}, 81 102 Q 83 {{ fMy }}, 78 {{ fBy }} Z"/>
+            <path d="M 115 {{ fBy }} Q 108 {{ fMy }}, 112.2 102 Q 115 {{ fPy }}, 119.2 102 Q 122 {{ fMy }}, 115 {{ fBy }} Z"/>
+            <path d="M 152 {{ fBy }} Q 147 {{ fMy }}, 150 102 Q 152 {{ fPy }}, 155 102 Q 157 {{ fMy }}, 152 {{ fBy }} Z"/>
+          </g>
+        {% endif %}
 
-        {# ── LABEL ZONE — texte sur la porte du four ──────────────── #}
-        <text x="82" y="214"
-              font-family="sans-serif"
-              font-size="14"
-              font-weight="bold"
-              text-anchor="middle"
-              fill="{{ zoneColor }}">{{ zoneLabel }}</text>
+        {# Game over : volutes dans la chambre + fissures + voile rouge #}
+        {% if igo %}
+          <g stroke="#A33D1F" stroke-width="0.9" fill="none" stroke-linecap="round" opacity="0.55">
+            <path d="M 70 148 C 66 138 74 132 70 122"/>
+            <path d="M 115 148 C 111 136 119 128 115 116"/>
+            <path d="M 160 148 C 156 138 164 132 160 122"/>
+          </g>
+          <g stroke="#A33D1F" stroke-width="0.7" fill="none" opacity="0.65">
+            <path d="M 55 188 L 62 196 L 58 204"/>
+            <path d="M 175 90 L 168 96"/>
+          </g>
+          <rect x="46" y="86" width="138" height="118" fill="#A33D1F" opacity="0.16"/>
+          <g stroke="#A33D1F" stroke-width="0.8" fill="none" opacity="0.4">
+            <path d="M 80 92 L 88 100 L 84 108 L 92 116"/>
+            <path d="M 160 92 L 152 100 L 156 108 L 148 116"/>
+          </g>
+        {% endif %}
 
-        {# Poignée #}
-        <rect x="60" y="222" width="80" height="7" rx="3.5" fill="#a8a29e" stroke="#78716c" stroke-width="1"/>
+        {# ── 5. Hexagones de score (5 au total) ──────────────────────── #}
+        {% for i in 0..4 %}
+          {% set hx = 55 + i * 28 %}
+          {% if i < hexN %}
+            <polygon points="{{ hx }},251 {{ hx + 8 }},255.5 {{ hx + 8 }},260.5 {{ hx }},265 {{ hx - 8 }},260.5 {{ hx - 8 }},255.5"
+              fill="{{ hexC }}" stroke="{{ hexC }}" stroke-width="0"/>
+          {% else %}
+            <polygon points="{{ hx }},251 {{ hx + 8 }},255.5 {{ hx + 8 }},260.5 {{ hx }},265 {{ hx - 8 }},260.5 {{ hx - 8 }},255.5"
+              fill="none" stroke="#75706A" stroke-width="0.8"/>
+          {% endif %}
+        {% endfor %}
+
+        {# ── 6. Texte bas ────────────────────────────────────────────── #}
+        <text x="115" y="280" font-family="JetBrains Mono, monospace" font-size="7" letter-spacing="0.22em" text-anchor="middle" font-weight="500" fill="{{ footC }}">{{ footTxt }}</text>
 
       </svg>
     </div>

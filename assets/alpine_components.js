@@ -468,7 +468,151 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
-    /* ─── Cooking finalization (spicy_match/view) ─────────────────────── */
+    /* ─── Finalisation du mélange L'Étamine (spicy_match/view) ──────────── */
+    Alpine.data('finalisationMelange', (spiceIdsCsv, historyUrl, csrf) => ({
+        spiceIds: spiceIdsCsv ? spiceIdsCsv.split(',') : [],
+        spiceNames: {},
+        current: null,
+        results: {},
+        toast: { visible: false, text: '' },
+        _toastT: null,
+        _autoT: null,
+        _saveT: null,
+        _abort: null,
+
+        init() {
+            this.spiceIds.forEach((id, i) => {
+                this.spiceNames[id] = this.$el.dataset['spiceName' + i] || id;
+                this.results[id] ??= { cooking: null, preparation: null };
+            });
+            this.current = this.spiceIds[0] ?? null;
+        },
+
+        /* ——— Computed ——— */
+        get allSealed() {
+            return this.spiceIds.every(id => this.results[id] && this.results[id].cooking && this.results[id].preparation);
+        },
+        get ctaLabel() {
+            if (this.allSealed) return "Sceller l'association";
+            const done = this.spiceIds.filter(id => this.results[id] && this.results[id].cooking && this.results[id].preparation).length;
+            const total = this.spiceIds.length;
+            if (total - done === 1) return "Une dernière épice à finaliser";
+            return `${done} / ${total} épice(s) scellée(s)`;
+        },
+
+        /* ——— UI helpers (méthodes pour compatibilité CSP Alpine) ——— */
+        isCurrentSpice(spiceId) {
+            return this.current === spiceId;
+        },
+        stationClass(spiceId) {
+            if (this.done(spiceId)) return 'done';
+            if (spiceId === this.current) return 'active';
+            return '';
+        },
+        pipClass(spiceId, key) {
+            const r = this.results[spiceId] || {};
+            if (r[key]) return 'filled';
+            if (spiceId === this.current && this.expectedNext(spiceId) === key) return 'current';
+            return '';
+        },
+        expectedNext(spiceId) {
+            const r = this.results[spiceId] || {};
+            if (!r.cooking) return 'cooking';
+            if (!r.preparation) return 'preparation';
+            return null;
+        },
+        statusLabel(spiceId) {
+            const r = this.results[spiceId] || {};
+            const isDone = r.cooking && r.preparation;
+            if (isDone) return spiceId === this.current ? 'scellée ✓' : 'scellée';
+            if (spiceId === this.current) return !r.cooking ? 'choisir le temps' : 'choisir la main';
+            return (r.cooking || r.preparation) ? 'en cours' : 'à venir';
+        },
+        done(spiceId) {
+            const r = this.results[spiceId] || {};
+            return !!(r.cooking && r.preparation);
+        },
+        timingTileClass(spiceId, tipId) {
+            const r = this.results[spiceId];
+            return r && r.cooking === tipId ? 'selected' : '';
+        },
+        methodTileClass(spiceId, tipId) {
+            const r = this.results[spiceId];
+            return r && r.preparation === tipId ? 'selected' : '';
+        },
+
+        /* ——— Actions ——— */
+        toggleCooking(spiceId, tipId) {
+            const r = this.results[spiceId];
+            r.cooking = (r.cooking === tipId) ? null : tipId;
+            this.persist({ spiceId, cookingId: tipId });
+            this.maybeAdvance(spiceId);
+        },
+        togglePreparation(spiceId, tipId) {
+            const r = this.results[spiceId];
+            r.preparation = (r.preparation === tipId) ? null : tipId;
+            this.persist({ spiceId, preparationId: tipId });
+            this.maybeAdvance(spiceId);
+        },
+        goToHistory(url) {
+            if (this.allSealed) window.location.href = url;
+        },
+
+        /* ——— Auto-avance + toast ——— */
+        maybeAdvance(spiceId) {
+            clearTimeout(this._autoT);
+            const r = this.results[spiceId];
+            if (!r.cooking || !r.preparation) return;
+            const next = this.spiceIds.find(id => id !== spiceId && !this.done(id));
+            const label = this.spiceNames[spiceId] || '';
+            if (!next) {
+                this.showToast(`${label} scellée — mélange complet`);
+                return;
+            }
+            this.showToast(`${label} scellée — ${this.spiceNames[next]} →`);
+            this._autoT = setTimeout(() => {
+                this.current = next;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 700);
+        },
+        scrollToMethodStep(spiceId) {
+            setTimeout(() => {
+                const el = document.querySelector('[data-step-method-spice="' + spiceId + '"]');
+                if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 24, behavior: 'smooth' });
+            }, 250);
+        },
+        showToast(text) {
+            this.toast.text = text;
+            this.toast.visible = true;
+            clearTimeout(this._toastT);
+            this._toastT = setTimeout(() => { this.toast.visible = false; }, 1500);
+        },
+
+        /* ——— Persistance (fetch vers edit_spicy_match_history) ——— */
+        persist(params) {
+            clearTimeout(this._saveT);
+            this._saveT = setTimeout(async () => {
+                if (this._abort) this._abort.abort();
+                this._abort = new AbortController();
+                try {
+                    await fetch(historyUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-Token': csrf,
+                        },
+                        body: new URLSearchParams(params),
+                        signal: this._abort.signal,
+                    });
+                } catch (e) {
+                    if (e.name !== 'AbortError') console.error('Persist error', e);
+                }
+            }, 150);
+        },
+    }));
+
+    /* ─── Cooking finalization legacy (spicy_match/view) ─────────────────── */
     Alpine.data('cookingChecklist', (spiceIdsCsv = '') => ({
         spiceStatus: {},
         nextOpenId: null,

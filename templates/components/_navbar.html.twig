@@ -1,53 +1,57 @@
 {# ─── SVG Macros ──────────────────────────────────────────────────────────── #}
 
-{% macro waxSeal(sizeClass, uid) %}
-    {% set sizeClass = sizeClass|default('size-12') %}
-    {% set uid = uid|default('a') %}
-    <svg class="{{ sizeClass }}" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <defs>
-            <radialGradient id="wax-{{ uid }}" cx="38%" cy="35%" r="65%">
-                <stop offset="0%" stop-color="#D14A38"/>
-                <stop offset="55%" stop-color="#9C2E22"/>
-                <stop offset="100%" stop-color="#5C1A12"/>
-            </radialGradient>
-            <radialGradient id="wax-gloss-{{ uid }}" cx="30%" cy="25%" r="55%">
-                <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
-                <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-            </radialGradient>
-        </defs>
-        {# Seal body #}
-        <path d="M32 2.5 C 41 3 47 6 52 12 C 58 17 61.5 24 61 33 C 60.5 42 56 49 50 54 C 44 59 36 61.5 28 60.5 C 19 59.5 12 55 7 49 C 2.5 43 1 35 3 26 C 5 17 11 10 19 5.5 C 23 3.2 27.5 2.2 32 2.5 Z"
-              fill="url(#wax-{{ uid }})"/>
-        {# Inner dotted ring #}
-        <circle cx="32" cy="32" r="25" stroke="rgba(255,255,255,0.35)" stroke-width="0.7" stroke-dasharray="1.6 1.8"/>
-        {# 8-branch star: 4 cardinal + 4 diagonal #}
-        <g fill="rgba(255,255,255,0.5)">
-            <rect x="30.5" y="5.5" width="3" height="9" rx="1.5"/>
-            <rect x="30.5" y="49.5" width="3" height="9" rx="1.5"/>
-            <rect x="49.5" y="30.5" width="9" height="3" rx="1.5"/>
-            <rect x="5.5" y="30.5" width="9" height="3" rx="1.5"/>
-            <rect x="30.5" y="7" width="3" height="7" rx="1.5" transform="rotate(45 32 32)"/>
-            <rect x="30.5" y="7" width="3" height="7" rx="1.5" transform="rotate(135 32 32)"/>
-            <rect x="30.5" y="7" width="3" height="7" rx="1.5" transform="rotate(225 32 32)"/>
-            <rect x="30.5" y="7" width="3" height="7" rx="1.5" transform="rotate(315 32 32)"/>
+{% macro herbierLogo(sizeClass) %}
+    {% set sizeClass = sizeClass|default('size-10') %}
+    <svg class="{{ sizeClass }}" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        {# Halo pointillé de fond #}
+        <circle cx="200" cy="200" r="150" fill="none" stroke="#C46E1F" stroke-width="2.4" stroke-dasharray="2 9" stroke-linecap="round" opacity="0.85"/>
+        {# Arc fixe à 60% (565.49 = 0.6 × 2π × 150) #}
+        <circle cx="200" cy="200" r="150" fill="none" stroke="#C46E1F" stroke-width="6"
+                stroke-dasharray="518.36 9999" stroke-linecap="round"
+                transform="rotate(-90 200 200)"/>
+        {# Hexagone moléculaire #}
+        <g stroke="#0A0907" stroke-width="4" fill="none">
+            <line x1="200" y1="150" x2="243" y2="175"/>
+            <line x1="243" y1="175" x2="243" y2="225"/>
+            <line x1="243" y1="225" x2="200" y2="250"/>
+            <line x1="200" y1="250" x2="157" y2="225"/>
+            <line x1="157" y1="225" x2="157" y2="175"/>
+            <line x1="157" y1="175" x2="200" y2="150"/>
         </g>
-        {# Center pip #}
-        <circle cx="32" cy="32" r="2.5" fill="rgba(255,255,255,0.55)"/>
-        {# Gloss highlight #}
-        <ellipse cx="22" cy="18" rx="10" ry="5" fill="url(#wax-gloss-{{ uid }})"/>
+        {# Étamines — branches courbées #}
+        <g stroke="#C46E1F" stroke-width="6" fill="none" stroke-linecap="round">
+            <path d="M 200 150 Q 210 100 200 50"/>
+            <path d="M 243 225 Q 295 245 330 275"/>
+            <path d="M 157 225 Q 105 245 70 275"/>
+        </g>
+        {# Anthères — extrémités des étamines #}
+        <g fill="#C46E1F">
+            <circle cx="200" cy="50" r="11"/>
+            <circle cx="330" cy="275" r="11"/>
+            <circle cx="70" cy="275" r="11"/>
+        </g>
+        {# Sommets hexagonaux #}
+        <g fill="#0A0907">
+            <circle cx="243" cy="175" r="5"/>
+            <circle cx="200" cy="250" r="5"/>
+            <circle cx="157" cy="175" r="5"/>
+            <circle cx="200" cy="150" r="6"/>
+            <circle cx="243" cy="225" r="6"/>
+            <circle cx="157" cy="225" r="6"/>
+        </g>
     </svg>
 {% endmacro %}
 
 {% macro toqueIcon(sizeClass) %}
     {% set sizeClass = sizeClass|default('w-6 h-6') %}
-    <svg class="{{ sizeClass }}" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M8 18 Q 4 12 8 8 Q 10 4 14 6 Q 16 3 18 6 Q 22 4 24 8 Q 28 12 24 18 Z"
-              fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-        <path d="M8 18 L 8 24 Q 16 26 24 24 L 24 18"
-              fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-        <line x1="11" y1="18" x2="11" y2="9" stroke="currentColor" stroke-width="1" stroke-opacity="0.5"/>
-        <line x1="16" y1="18" x2="16" y2="8" stroke="currentColor" stroke-width="1" stroke-opacity="0.5"/>
-        <line x1="21" y1="18" x2="21" y2="9" stroke="currentColor" stroke-width="1" stroke-opacity="0.5"/>
+    <svg class="{{ sizeClass }}" viewBox="0 0 32 32" fill="none" stroke="#0A0907" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M 9 11 C 5 10, 4 4, 9 4 C 11 1.5, 14 1.5, 16 3.5 C 18 1.5, 21 1.5, 23 4 C 28 4, 27 10, 23 11"/>
+        <path d="M 9 11 L 9 22"/>
+        <path d="M 23 11 L 23 22"/>
+        <rect x="7" y="22" width="18" height="5" rx="0.6"/>
+        <path d="M 12.5 11 L 12.5 22" opacity="0.5"/>
+        <path d="M 19.5 11 L 19.5 22" opacity="0.5"/>
+        <circle cx="16" cy="24.5" r="1.1" fill="#C46E1F" stroke="none"/>
     </svg>
 {% endmacro %}
 
@@ -115,10 +119,8 @@
         {# ── CENTER : Wax Seal + Wordmark ──────────────────────────────── #}
         <a href="{{ path('home') }}"
            class="flex items-center gap-3 group transition-transform duration-300 hover:scale-[1.02] mx-auto lg:mx-0">
-            {{ _self.waxSeal('size-9 lg:size-12', 'nav') }}
+            {{ _self.herbierLogo('size-9 lg:size-12') }}
             <div class="hidden lg:block leading-none">
-                <div class="font-display text-[11px] font-medium tracking-[0.18em] uppercase"
-                     style="color: rgba(74,50,37,0.72)">MAISON · EST. 2024</div>
                 <div class="font-display text-[26px] font-medium leading-none"
                      style="color: var(--color-ink-deep)">
                     Spicy <em class="not-italic italic" style="color: var(--color-paprika-700)">Match</em>
@@ -128,9 +130,6 @@
 
         {# ── RIGHT : Cluster utilitaires ───────────────────────────────── #}
         <div class="flex items-center gap-2 shrink-0">
-
-            {# Search component (desktop lg+) #}
-            <div class="hidden lg:block">{{ component('Search') }}</div>
 
             {# Mortar → Le Lab #}
             <a href="{{ path('index_spicy_match') }}"
@@ -146,7 +145,7 @@
                 {# Desktop : grade chip complet #}
                 <div class="hidden lg:flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-full border"
                      style="border-color: rgba(184,134,74,0.4); background: rgba(255,250,235,0.6);">
-                    {{ _self.waxSeal('size-8', 'chip') }}
+                    {{ _self.herbierLogo('size-8') }}
                     <div class="flex flex-col leading-none min-w-0">
                         <span class="font-display text-[15px] font-medium truncate max-w-[100px]"
                               style="color: var(--color-ink-deep)">{{ app.user.username }}</span>
@@ -183,6 +182,21 @@
 </nav>
 
 {# ════════════════════════════════════════════════════════════════════
+   DESKTOP BACKDROP (z-48 — clique en dehors → ferme l'overlay)
+   ════════════════════════════════════════════════════════════════════ #}
+<div x-show="open"
+     x-cloak
+     x-transition:enter="transition ease-out duration-200"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-150"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     @click="close()"
+     class="nav-backdrop hidden lg:block"
+     aria-hidden="true"></div>
+
+{# ════════════════════════════════════════════════════════════════════
    DESKTOP OVERLAY (fixed top-20, z-49 — hidden on mobile via CSS)
    ════════════════════════════════════════════════════════════════════ #}
 <div id="nav-overlay"
@@ -199,30 +213,9 @@
      aria-label="Menu principal overlay">
 
     <div class="max-w-7xl mx-auto px-8 lg:px-16 py-12">
-
-        {# Carnet du Chef — date #}
-        <p class="font-mono text-[10px] tracking-[0.4em] uppercase text-center mb-4"
-           style="color: rgba(74,50,37,0.55)">✦ Carnet du Chef · {{ _dateStr }} ✦</p>
-
-        <h2 class="font-display text-center mb-10 leading-[1.05]"
-            style="font-size: clamp(2rem, 4vw, 3rem); color: var(--color-ink-deep)">
-            Que souhaitez-vous <em class="not-italic italic" style="color: var(--color-paprika-700)">cuisiner</em> aujourd'hui&nbsp;?
-        </h2>
-
         {# Hero Search #}
         <div class="max-w-xl mx-auto mb-12">
-            <form action="{{ path('search_results') }}" method="GET"
-                  class="flex items-center gap-3 px-6 py-4 rounded-full"
-                  style="background: rgba(255,250,235,0.7); border: 1px solid rgba(184,134,74,0.45); box-shadow: 0 8px 24px -8px rgba(74,50,37,0.15)">
-                <i class="fa-solid fa-magnifying-glass shrink-0" style="color: rgba(74,50,37,0.45)"></i>
-                <input name="q"
-                       placeholder="Rechercher une épice, un composé…"
-                       class="flex-1 bg-transparent border-0 outline-none font-display italic text-[18px]"
-                       style="color: var(--color-ink-deep)"
-                       autocomplete="off">
-                <kbd class="font-mono text-[11px] px-1.5 py-0.5 rounded border opacity-40"
-                     style="border-color: rgba(74,50,37,0.3)">↵</kbd>
-            </form>
+            {{ component('Search') }}
         </div>
 
         {# 3 Pôles ─────────────────────────────────────────────────── #}
@@ -387,11 +380,9 @@
 
         </div>{# fin grid #}
 
-        {# Footer Marché du Jour ─────────────────────────────────── #}
+        {# Footer Menu ─────────────────────────────────── #}
         <div class="mt-12 pt-8 flex items-center justify-between"
              style="border-top: 1px solid rgba(184,134,74,0.35)">
-            <p class="font-mono text-[10px] tracking-[0.3em] uppercase"
-               style="color: rgba(74,50,37,0.55)">✦ Marché du jour ✦</p>
             <div class="flex items-center gap-6 font-mono text-[11px]"
                  style="color: rgba(74,50,37,0.55)">
                 <a href="{{ path('new_contact') }}" @click="close()"
@@ -443,22 +434,13 @@
     <div class="p-6">
 
         {# Hero search #}
-        <form action="{{ path('search_results') }}" method="GET"
-              class="flex items-center gap-3 px-5 py-3.5 rounded-full mb-6"
-              style="background: rgba(255,250,235,0.7); border: 1px solid rgba(184,134,74,0.45)">
-            <i class="fa-solid fa-magnifying-glass shrink-0" style="color: rgba(74,50,37,0.45)"></i>
-            <input name="q"
-                   placeholder="Rechercher…"
-                   class="flex-1 bg-transparent border-0 outline-none font-display italic text-[17px]"
-                   style="color: var(--color-ink-deep)"
-                   autocomplete="off">
-        </form>
+        <div class="mb-6">{{ component('Search') }}</div>
 
         {# Grade card si connecté #}
         {% if is_granted('ROLE_USER') and app.user.progression %}
             <div class="flex items-center gap-3 p-4 rounded-2xl mb-6"
                  style="border: 1px solid rgba(184,134,74,0.3); background: rgba(255,250,235,0.5)">
-                {{ _self.waxSeal('size-10', 'sheet') }}
+                {{ _self.herbierLogo('size-10') }}
                 <div class="flex-1 min-w-0">
                     <div class="font-display text-[17px] font-medium"
                          style="color: var(--color-ink-deep)">{{ app.user.username }}</div>

@@ -389,6 +389,36 @@ export default function registerAlpineComponents(Alpine) {
         pick(value) { this.selected = value; },
     }));
 
+    /* ─── Recette finalisée (view_spicy_match_history) ───────────────── */
+    Alpine.data('recetteView', (historyId, renameUrl, favUrl, csrfToken, initialTitle, isFavorite) => ({
+        favorite: isFavorite,
+        title: initialTitle,
+
+        toggleFavorite() {
+            this.favorite = !this.favorite;
+            apiFetch(favUrl, {
+                method: 'POST',
+                headers: { 'X-CSRF-Token': csrfToken },
+            }).catch(e => console.error('toggleFavorite', e));
+        },
+
+        saveTitle(el) {
+            const text = (el.innerText || '').trim().slice(0, 120);
+            if (!text) { el.innerText = this.title; return; }
+            if (text === this.title) return;
+            this.title = text;
+            apiFetch(renameUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: text, _token: csrfToken }),
+            }).catch(e => console.error('saveTitle', e));
+        },
+
+        favClass() { return this.favorite ? 'active' : ''; },
+        favLabel()  { return this.favorite ? 'Dans vos favoris' : 'Ajouter aux favoris'; },
+
+    }));
+
     /* ─── SpicyMatchHistory: rename + favorite ────────────────────────── */
     Alpine.data('historyItem', (id, renameUrl, toggleUrl, token, initialTitle = '', initialFavorite = false, fallbackTitle = '') => ({
         id,

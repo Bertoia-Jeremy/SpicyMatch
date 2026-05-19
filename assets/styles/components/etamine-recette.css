@@ -1,0 +1,311 @@
+/* ============================================================
+   L'Étamine — Recette finalisée (à importer après Tailwind)
+   ============================================================ */
+
+.etamine-paper {
+  background-image:
+    radial-gradient(1200px 600px at 10% -10%, rgba(210,119,58,.06), transparent 60%),
+    radial-gradient(900px 700px at 110% 20%, rgba(110,122,79,.05), transparent 60%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.18  0 0 0 0 0.12  0 0 0 0 0.06  0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-attachment: fixed;
+}
+
+/* ---------- Card base ---------- */
+.card {
+  background: linear-gradient(180deg, #FBF5E9, #F5ECDB);
+  border: 1px solid rgba(58,38,18,.10);
+  border-radius: 18px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 14px 32px -22px rgba(58,38,18,.18);
+}
+
+/* ---------- Section header icon ---------- */
+.section-icon {
+  width: 36px; height: 40px;
+  display: grid; place-items: center;
+  background: linear-gradient(180deg, #FBF5E9, #EBDEC4);
+  clip-path: polygon(25% 4%, 75% 4%, 98% 50%, 75% 96%, 25% 96%, 2% 50%);
+  color: #9A4720;
+  flex: 0 0 auto;
+}
+
+/* ---------- Hero header tools ---------- */
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 9999px;
+  display: grid; place-items: center;
+  background: rgba(251,245,233,.7);
+  border: 1px solid rgba(58,38,18,.12);
+  color: #5A4A38;
+  transition: all .2s ease;
+}
+.icon-btn:hover { background: #FBF5E9; color: #9A4720; border-color: rgba(154,71,32,.4); }
+
+.fav {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px; border-radius: 9999px;
+  border: 1px solid rgba(58,38,18,.12);
+  background: rgba(251,245,233,.7);
+  color: #7A6A55;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.fav:hover         { color: #9A4720; border-color: rgba(154,71,32,.4); }
+.fav.active        { color: #9A4720; border-color: rgba(154,71,32,.5); background: #FBEFE2; }
+.fav.active svg path { fill: #D2773A; stroke: #9A4720; }
+
+[contenteditable]:focus { background-color: rgba(251,239,226,.5); border-radius: 4px; }
+
+.stat        { display: flex; align-items: baseline; gap: 8px; }
+.stat-num    { font-family: 'Cormorant Garamond', serif; font-size: 26px; line-height: 1; color: #2A1F14; }
+.stat-label  { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #7A6A55; }
+
+/* ---------- Spice prep card ---------- */
+.prep {
+  display: grid;
+  grid-template-columns: 88px 1fr 220px;
+  gap: 22px;
+  align-items: stretch;
+  padding: 20px 22px;
+}
+.prep-thumb {
+  width: 88px; height: 104px;
+  background: linear-gradient(180deg, #EBDEC4, #DCCAA6);
+  clip-path: polygon(25% 4%, 75% 4%, 98% 50%, 75% 96%, 25% 96%, 2% 50%);
+  display: grid; place-items: center;
+  position: relative;
+  overflow: hidden;
+}
+.prep-thumb .placeholder-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #7A6A55;
+  text-align: center;
+}
+.prep-thumb.stripes::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(135deg, rgba(58,38,18,.08) 0 6px, transparent 6px 12px);
+}
+
+.prep-name { font-family: 'Cormorant Garamond', serif; font-size: 22px; line-height: 1.15; color: #2A1F14; }
+.prep-form { font-family: 'Cormorant Garamond', serif; font-style: italic; color: #5A4A38; }
+
+/* ---------- Family marks ---------- */
+.family-mark {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+}
+.family-mark::before {
+  content: ''; display: inline-block;
+  width: 18px; height: 2px; border-radius: 99px;
+  background: currentColor;
+}
+.family-phenyl   { color: #C25E2C; }
+.family-terpene  { color: #9C7530; }
+.family-aldehyde { color: #4F8B6E; }
+.family-ester    { color: #7E5BA6; }
+.family-sulfur   { color: #6A6E3A; }
+
+/* ---------- Method panel (right column of prep card) ---------- */
+.method-panel {
+  border-left: 1px dashed rgba(58,38,18,.18);
+  padding-left: 22px;
+  display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+  gap: 8px;
+}
+.method-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+  color: #9A4720;
+}
+.method-tag::before {
+  content: ''; width: 14px; height: 2px;
+  background: #9A4720; border-radius: 99px;
+}
+.method-row { display: flex; align-items: center; gap: 12px; }
+.method-icon {
+  width: 48px; height: 54px;
+  background: linear-gradient(180deg, #D2773A, #9A4720);
+  clip-path: polygon(25% 4%, 75% 4%, 98% 50%, 75% 96%, 25% 96%, 2% 50%);
+  display: grid; place-items: center;
+  flex: 0 0 auto;
+}
+.method-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; line-height: 1.1; color: #2A1F14;
+  margin-bottom: 4px;
+}
+.method-hint {
+  font-family: 'Manrope', sans-serif;
+  font-size: 12px; color: #5A4A38;
+  margin-top: 2px;
+}
+.method-step {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+  color: #7A6A55;
+}
+.method-step .pip-tiny {
+  width: 6px; height: 7px;
+  background: #9A4720;
+  clip-path: polygon(25% 4%, 75% 4%, 98% 50%, 75% 96%, 25% 96%, 2% 50%);
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* ---------- Moments timeline ---------- */
+.timeline {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+.moment {
+  background: linear-gradient(180deg, #FBF5E9, #F1E4CC);
+  border: 1px dashed rgba(58,38,18,.18);
+  border-radius: 16px;
+  padding: 16px 14px 18px;
+  min-height: 220px;
+  display: flex; flex-direction: column;
+}
+.moment.filled {
+  border: 1px solid rgba(154,71,32,.28);
+  background: linear-gradient(180deg, #FBF5E9, #EDD9B3);
+  box-shadow: 0 12px 28px -18px rgba(154,71,32,.3);
+}
+.moment-step { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.moment-num {
+  width: 22px; height: 25px;
+  background: #FBF5E9; color: #9A4720;
+  clip-path: polygon(25% 4%, 75% 4%, 98% 50%, 75% 96%, 25% 96%, 2% 50%);
+  display: grid; place-items: center;
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  border: 1px solid rgba(154,71,32,.25);
+}
+.moment.filled .moment-num {
+  background: #9A4720; color: #FBF5E9; border-color: transparent;
+}
+.moment-name { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: #2A1F14; }
+
+.moment-medallion {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px;
+  border-radius: 10px;
+  background: rgba(251,245,233,.6);
+  border: 1px solid rgba(58,38,18,.08);
+}
+.moment-medallion + .moment-medallion { margin-top: 8px; }
+.medallion-thumb {
+  width: 36px; height: 42px;
+  background: linear-gradient(180deg, #EBDEC4, #DCCAA6);
+  clip-path: polygon(25% 4%, 75% 4%, 98% 50%, 75% 96%, 25% 96%, 2% 50%);
+  flex: 0 0 auto;
+  position: relative; overflow: hidden;
+  display: grid; place-items: center;
+}
+.medallion-thumb.stripes::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(135deg, rgba(58,38,18,.08) 0 4px, transparent 4px 8px);
+}
+.medallion-thumb .tiny {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px; letter-spacing: .06em; color: #7A6A55;
+}
+.medallion-text   { font-family: 'Cormorant Garamond', serif; font-size: 15px; line-height: 1.15; color: #2A1F14; }
+.medallion-method { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: #7A6A55; margin-top: 2px; }
+
+.moment-empty {
+  flex: 1; display: grid; place-items: center;
+  color: #A39078;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic; font-size: 14px;
+  text-align: center;
+}
+
+/* ---------- Note de l'Alchimiste ---------- */
+.note-slip {
+  background: linear-gradient(180deg, #FBF5E9, #F5ECDB);
+  border: 1px solid rgba(58,38,18,.10);
+  border-left: 4px solid #9A4720;
+  border-radius: 12px;
+  padding: 22px 26px;
+  display: flex; gap: 18px; align-items: flex-start;
+}
+.note-mark {
+  width: 40px; height: 46px;
+  background: linear-gradient(180deg, #3B2A1B, #2A1F14);
+  color: #FBF5E9;
+  clip-path: polygon(25% 4%, 75% 4%, 98% 50%, 75% 96%, 25% 96%, 2% 50%);
+  display: grid; place-items: center;
+  flex: 0 0 auto;
+}
+
+/* ---------- Primary CTA ---------- */
+.btn-primary {
+  background: linear-gradient(180deg, #D2773A, #9A4720);
+  color: #FBF5E9;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.18) inset,
+    0 -2px 0 rgba(0,0,0,.12) inset,
+    0 18px 40px -16px rgba(154,71,32,.55);
+  transition: transform .15s ease, filter .15s ease;
+}
+.btn-primary:hover { filter: brightness(1.04); transform: translateY(-1px); }
+
+/* ---------- Focus visible ---------- */
+.icon-btn:focus-visible,
+.fav:focus-visible,
+.btn-primary:focus-visible,
+[contenteditable]:focus-visible {
+  outline: 2px solid #9A4720;
+  outline-offset: 3px;
+}
+
+/* ============================================================
+   PRINT — A4, sans nav ni CTA
+   ============================================================ */
+@media print {
+  body { background: #fff; }
+  header, .icon-btn, .fav, .btn-primary { display: none !important; }
+  .card, .moment, .note-slip { box-shadow: none; border-color: rgba(0,0,0,.2); page-break-inside: avoid; }
+  .etamine-paper { background-image: none; }
+  section { page-break-inside: avoid; }
+}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+@media (max-width: 860px) {
+  .timeline { grid-template-columns: repeat(2, 1fr); }
+  .moment { min-height: 180px; }
+}
+
+@media (max-width: 720px) {
+  .prep {
+    grid-template-columns: 64px 1fr;
+    padding: 16px 18px; gap: 14px;
+  }
+  .prep-thumb { width: 64px; height: 74px; }
+  .prep-name  { font-size: 19px; }
+
+  .prep .method-panel {
+    grid-column: 1 / -1;
+    border-left: none;
+    border-top: 1px dashed rgba(58,38,18,.18);
+    padding-left: 0; padding-top: 14px;
+    margin-top: 4px;
+  }
+  .method-icon { width: 42px; height: 48px; }
+  .method-name { font-size: 19px; }
+
+  .timeline { grid-template-columns: 1fr; gap: 10px; }
+  .moment   { min-height: 0; padding: 14px; }
+  .moment-empty { padding: 14px 0; }
+
+  .note-slip { padding: 16px 18px; gap: 12px; }
+
+  h1.font-display { font-size: 32px !important; line-height: 1.05; }
+  .stat-num       { font-size: 22px; }
+}

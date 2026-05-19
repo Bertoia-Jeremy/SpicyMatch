@@ -1,10 +1,10 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Quiz Éducatif{% endblock %}
+{% block title %}Académie des Épices{% endblock %}
 
 {% block body %}
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-  <h1 class="text-3xl font-bold text-stone-800 mb-2">Quiz Éducatif</h1>
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <h1 class="text-3xl font-bold text-stone-800 mb-2">Académie des Épices</h1>
   <p class="text-stone-600 mb-8">Teste tes connaissances sur les épices et leurs compatibilités aromatiques.</p>
 
   {# Flash messages #}
@@ -19,45 +19,50 @@
     {% endfor %}
   {% endfor %}
 
-  {# Start a new session #}
-  <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6 mb-8">
-    <h2 class="text-xl font-semibold text-stone-800 mb-4">Nouvelle partie</h2>
-
-    <form method="post" action="{{ path('education_start') }}">
-      <input type="hidden" name="_token" value="{{ csrf_token('education_start') }}">
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        {# Game mode #}
-        <div>
-          <label class="block text-sm font-medium text-stone-700 mb-2">Mode de jeu</label>
-          {% for mode in modes %}
-            <label class="flex items-center gap-2 px-3 py-2 rounded-lg border border-stone-200 cursor-pointer hover:bg-cream mb-2 transition-colors">
-              <input type="radio" name="mode" value="{{ mode.value }}"
-                {{ loop.first ? 'checked' : '' }}
-                class="text-saffron-600 focus:ring-saffron-500">
-              <span class="text-stone-800 font-medium">{{ mode.label }}</span>
-            </label>
-          {% endfor %}
+  {# Mode selection cards #}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+    {% for mode in modes %}
+      {% set count = dailyCounts[mode.value] ?? 0 %}
+      {% set remaining = maxDailySessions - count %}
+      {% set cardUrl = path('education_briefing', { mode: mode.value, difficulty: userDifficulty }) %}
+      {% if remaining <= 0 %}
+      <a href="{{ cardUrl }}"
+         aria-disabled="true"
+         tabindex="-1"
+         class="relative block p-5 rounded-2xl border shadow-sm opacity-60 pointer-events-none bg-white border-stone-200">
+      {% else %}
+      <a href="{{ cardUrl }}"
+         class="relative block p-5 rounded-2xl border shadow-sm transition-all cursor-pointer group hover:border-saffron-300 hover:shadow-md hover:bg-cream bg-white border-stone-200">
+      {% endif %}
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600 group-hover:bg-saffron-200 transition-colors">
+            <i class="{{ mode.icon }}"></i>
+          </div>
+          <h3 class="font-semibold text-stone-800 pr-6">{{ mode.label }}</h3>
         </div>
-
-        {# Difficulty #}
-        <div>
-          <label class="block text-sm font-medium text-stone-700 mb-2">Difficulté</label>
-          {% for difficulty in difficulties %}
-            <label class="flex items-center gap-2 px-3 py-2 rounded-lg border border-stone-200 cursor-pointer hover:bg-cream mb-2 transition-colors">
-              <input type="radio" name="difficulty" value="{{ difficulty.value }}"
-                {{ loop.first ? 'checked' : '' }}
-                class="text-saffron-600 focus:ring-saffron-500">
-              <span class="text-stone-800 font-medium">{{ difficulty.label }}</span>
-            </label>
-          {% endfor %}
+        <p class="text-sm text-stone-600 leading-relaxed">{{ mode.description }}</p>
+        <div class="mt-3 flex items-center gap-2 text-xs text-stone-500 flex-wrap">
+          <span class="tag-secondary">{{ mode.xpPerCorrect }} XP/correct</span>
+          {% if mode.totalQuestions %}
+            <span class="tag-secondary">{{ mode.totalQuestions }} questions</span>
+          {% else %}
+            <span class="tag-secondary">∞ questions</span>
+          {% endif %}
+          {% if remaining <= 0 %}
+            <span class="tag-secondary bg-paprika-100 text-paprika-700 border-paprika-300 font-medium">
+                <i class="fa-solid fa-clock-rotate-left mr-1"></i>Reviens demain
+            </span>
+          {% elseif count >= reducedXpThreshold %}
+            <span class="tag-secondary bg-turmeric-100 text-turmeric-700 border-turmeric-300"
+                  title="XP réduit de 50% au-delà de {{ reducedXpThreshold }} parties/jour">
+              {{ remaining }} restantes · ×0.5 XP
+            </span>
+          {% else %}
+            <span class="tag-secondary">{{ remaining }}/{{ maxDailySessions }} aujourd'hui</span>
+          {% endif %}
         </div>
-      </div>
-
-      <button type="submit" class="btn-pill-primary">
-        <i class="fa-solid fa-play mr-2"></i>Commencer
-      </button>
-    </form>
+      </a>
+    {% endfor %}
   </div>
 
   {# Recent sessions #}
@@ -69,6 +74,9 @@
           <a href="{{ path(session.isFinished ? 'education_result' : 'education_play', { id: session.id }) }}"
              class="flex items-center justify-between px-4 py-3 rounded-lg border border-stone-200 hover:bg-cream transition-colors group">
             <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-stone-100 text-stone-500">
+                <i class="{{ session.gameMode.icon }} text-sm"></i>
+              </div>
               <span class="text-sm font-medium text-stone-800">{{ session.gameMode.label }}</span>
               <span class="tag-secondary text-xs">{{ session.difficulty.label }}</span>
             </div>
@@ -79,7 +87,7 @@
               {% else %}
                 <span class="text-turmeric-600 font-medium">En cours</span>
               {% endif %}
-              <span>{{ session.startedAt|date('d/m H:i') }}</span>
+              <span class="text-xs text-stone-400">{{ session.startedAt|date('d/m H:i') }}</span>
             </div>
           </a>
         {% endfor %}

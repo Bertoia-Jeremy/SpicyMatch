@@ -10,11 +10,6 @@ use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<AlchemyFlavors>
- *
- * @method AlchemyFlavors|null find($id, $lockMode = null, $lockVersion = null)
- * @method AlchemyFlavors|null findOneBy(array $criteria, array $orderBy = null)
- * @method AlchemyFlavors[]    findAll()
- * @method AlchemyFlavors[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class AlchemyFlavorsRepository extends ServiceEntityRepository
 {

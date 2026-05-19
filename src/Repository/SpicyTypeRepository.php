@@ -10,11 +10,6 @@ use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<SpicyType>
- *
- * @method SpicyType|null find($id, $lockMode = null, $lockVersion = null)
- * @method SpicyType|null findOneBy(array $criteria, array $orderBy = null)
- * @method SpicyType[]    findAll()
- * @method SpicyType[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class SpicyTypeRepository extends ServiceEntityRepository
 {

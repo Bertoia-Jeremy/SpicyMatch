@@ -8,30 +8,40 @@ use App\Entity\PendingGamificationNotification;
 use App\Entity\UserProgression;
 use App\Entity\Users;
 use App\Entity\UserStat;
-use App\Enum\AchievementTrigger;
 use App\Gamification\AchievementChecker;
+use App\Gamification\Evaluator\ProgressTrackableEvaluator;
+use App\Gamification\Evaluator\TriggerEvaluatorRegistry;
+use App\Gamification\GamificationManagerInterface;
 use App\Gamification\XpStrategyInterface;
 use App\Repository\AchievementProgressRepository;
 use App\Repository\AchievementRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 /**
  * Centralized Gamification Manager.
  * Handles XP calculation, achievement unlocking, and notifications.
+ *
+ * Opt-out is handled by the `isGamificationEnabled()` guard in `process()` —
+ * no Proxy / Null object layer needed (previous proxy was removed 2026-04-22).
  */
-class GamificationManager implements \App\Gamification\GamificationManagerInterface
+#[AsAlias(GamificationManagerInterface::class)]
+class GamificationManager implements GamificationManagerInterface
 {
     /**
      * @param iterable<XpStrategyInterface> $strategies
      */
     public function __construct(
-        #[TaggedIterator('gamification.xp_strategy')]
+        #[AutowireIterator('gamification.xp_strategy')]
         private readonly iterable $strategies,
         private readonly AchievementChecker $achievementChecker,
         private readonly EntityManagerInterface $em,
         private readonly AchievementRepository $achievementRepository,
         private readonly AchievementProgressRepository $achievementProgressRepository,
+        private readonly TriggerEvaluatorRegistry $evaluators,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -68,14 +78,23 @@ class GamificationManager implements \App\Gamification\GamificationManagerInterf
 
         $levelBefore = $progression->getLevel();
 
-        // Apply XP strategies
+        // Apply XP strategies — collect total standard XP gained (pre-achievement) for a single toast
+        $standardXp = 0;
         foreach ($this->strategies as $strategy) {
             if ($strategy->supports($eventType)) {
                 $xp = $strategy->calculate($progression, $context);
                 if ($xp > 0) {
                     $progression->addXp($xp);
+                    $standardXp += $xp;
                 }
             }
+        }
+
+        if ($standardXp > 0) {
+            $this->em->persist(new PendingGamificationNotification($user, 'xp_gained', [
+                'amount' => $standardXp,
+                'source' => $this->sourceLabelFor($eventType),
+            ]));
         }
 
         // Check and unlock achievements
@@ -92,6 +111,15 @@ class GamificationManager implements \App\Gamification\GamificationManagerInterf
                     ->label(),
                 'xpReward' => $achievement->getXpReward(),
             ]));
+
+            $this->logger->info('gamification.achievement_unlocked', [
+                'userId' => $user->getId(),
+                'slug' => $achievement->getSlug(),
+                'rarity' => $achievement->getRarity()
+                    ->value,
+                'xp' => $achievement->getXpReward(),
+                'eventType' => $eventType,
+            ]);
         }
 
         // Update achievement progress bars
@@ -103,11 +131,21 @@ class GamificationManager implements \App\Gamification\GamificationManagerInterf
             $this->em->persist(new PendingGamificationNotification($user, 'level_up', [
                 'level' => $levelAfter,
             ]));
+
+            $this->logger->info('gamification.level_up', [
+                'userId' => $user->getId(),
+                'from' => $levelBefore,
+                'to' => $levelAfter,
+            ]);
         }
     }
 
     /**
      * Upsert AchievementProgress for all achievements related to the current event triggers.
+     * Only evaluators that implement ProgressTrackableEvaluator (ISP) drive a progress bar —
+     * one-shot triggers (easter eggs, perfect runs) skip this pass.
+     *
+     * Batched: one SELECT per event (all achievements at once) instead of N SELECT + N INSERT.
      *
      * @param array<string, mixed> $context
      */
@@ -118,59 +156,49 @@ class GamificationManager implements \App\Gamification\GamificationManagerInterf
             return;
         }
 
-        $triggers = $this->triggersForEvent($eventType);
-
-        foreach ($triggers as $trigger) {
-            $currentValue = $this->getCurrentValue($trigger, $progression, $context);
-            if ($currentValue === null) {
+        // Collect all (evaluator, achievement, value) tuples for this event in one pass.
+        $progressTargets = [];
+        $achievementsToLoad = [];
+        foreach ($this->evaluators->forEvent($eventType) as $evaluator) {
+            if (! $evaluator instanceof ProgressTrackableEvaluator) {
                 continue;
             }
 
-            foreach ($this->achievementRepository->findByTrigger($trigger) as $achievement) {
-                if ($progression->hasAchievement($achievement)) {
-                    continue; // already unlocked, skip
-                }
+            $currentValue = $evaluator->currentValue($progression, $context);
 
-                $ap = $this->achievementProgressRepository->findOrCreateForUser($user, $achievement);
-                $ap->setProgress($currentValue);
+            foreach ($this->achievementRepository->findByTrigger($evaluator->trigger()) as $achievement) {
+                if ($progression->hasAchievement($achievement)) {
+                    continue;
+                }
+                $progressTargets[] = [$achievement, $currentValue];
+                $achievementsToLoad[] = $achievement;
+            }
+        }
+
+        if ($achievementsToLoad === []) {
+            return;
+        }
+
+        // Single batched lookup — loads all existing AchievementProgress rows at once.
+        $byAchievementId = $this->achievementProgressRepository->findOrCreateBatchForUser($user, $achievementsToLoad);
+
+        foreach ($progressTargets as [$achievement, $value]) {
+            $id = $achievement->getId();
+            if ($id !== null && isset($byAchievementId[$id])) {
+                $byAchievementId[$id]->setProgress($value);
             }
         }
     }
 
-    /**
-     * @return AchievementTrigger[]
-     */
-    private function triggersForEvent(string $eventType): array
+    private function sourceLabelFor(string $eventType): string
     {
         return match ($eventType) {
-            'match_saved' => [
-                AchievementTrigger::FIRST_MATCH,
-                AchievementTrigger::N_MATCHES,
-                AchievementTrigger::N_SPICES_USED,
-            ],
-            'spice_read' => [
-                AchievementTrigger::SPICE_READ,
-                AchievementTrigger::READING_STREAK,
-                AchievementTrigger::FIRST_DISCOVERY,
-            ],
-            'favorite_toggled' => [AchievementTrigger::N_FAVORITES],
-            'easter_egg_found' => [AchievementTrigger::EASTER_EGG_FOUND],
-            'game_completed' => [AchievementTrigger::FIRST_GAME, AchievementTrigger::N_GAMES_COMPLETED],
-            default => [],
-        };
-    }
-
-    private function getCurrentValue(AchievementTrigger $trigger, UserProgression $progression, array $context): ?int
-    {
-        return match ($trigger) {
-            AchievementTrigger::FIRST_MATCH, AchievementTrigger::N_MATCHES => $progression->getTotalMatches(),
-            AchievementTrigger::N_SPICES_USED => $progression->getUniqueSpicesUsed(),
-            AchievementTrigger::N_FAVORITES => $context['favoriteCount'] ?? null,
-            AchievementTrigger::SPICE_READ => $progression->getTotalSpicesRead(),
-            AchievementTrigger::READING_STREAK => $progression->getLongestReadingStreak(),
-            AchievementTrigger::FIRST_DISCOVERY => $progression->getDiscoveries(),
-            AchievementTrigger::FIRST_GAME, AchievementTrigger::N_GAMES_COMPLETED => $context['gamesCompleted'] ?? null,
-            AchievementTrigger::EASTER_EGG_FOUND, AchievementTrigger::ALL_TERPENES_VISITED => null,
+            'match_saved' => 'Mélange sauvegardé',
+            'spice_read' => 'Nouvelle fiche lue',
+            'easter_egg_found' => 'Easter egg trouvé',
+            'favorite_toggled' => 'Favori ajouté',
+            'game_completed' => 'Partie terminée',
+            default => '',
         };
     }
 }

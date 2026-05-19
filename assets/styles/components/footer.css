@@ -3,3 +3,12 @@
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
+
+/* Footer links — ink dimmed → copper on hover (matches navbar secondary links) */
+.footer-link {
+  color: rgba(42, 24, 16, 0.65);
+  transition: color 240ms;
+}
+.footer-link:hover {
+  color: var(--color-copper);
+}

@@ -9,6 +9,7 @@ use App\Message\FavoriteToggledEvent;
 use App\Repository\SpicyMatchHistoryRepository;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
@@ -19,6 +20,7 @@ class FavoriteGamificationHandler
         private readonly SpicyMatchHistoryRepository $historyRepository,
         private readonly \App\Gamification\GamificationManagerInterface $manager,
         private readonly EntityManagerInterface $em,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -37,6 +39,7 @@ class FavoriteGamificationHandler
             $this->em->persist($progression);
         }
 
+        // Count is DB-derived, so this handler is naturally idempotent on retry.
         $favoriteCount = $this->historyRepository->countFavoritesByUser($user);
 
         $this->manager->process($progression, 'favorite_toggled', [
@@ -44,5 +47,10 @@ class FavoriteGamificationHandler
         ]);
 
         $this->em->flush();
+
+        $this->logger->info('gamification.favorite_toggled.processed', [
+            'userId' => $user->getId(),
+            'favoriteCount' => $favoriteCount,
+        ]);
     }
 }

@@ -8,6 +8,7 @@ use App\Repository\AromaticGroupsRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AromaticGroupsRepository::class)]
 #[ORM\Table(name: 'aromatic_groups')]
@@ -21,6 +22,10 @@ class AromaticGroups
     #[ORM\Column(name: 'name', type: 'string', length: 255)]
     private ?string $name = null;
 
+    #[Assert\Regex(
+        pattern: '/^#[0-9A-Fa-f]{6}$/',
+        message: 'La couleur doit être un code hexadécimal valide (#RRGGBB).'
+    )]
     #[ORM\Column(name: 'color', type: 'string', length: 255)]
     private ?string $color = null;
 

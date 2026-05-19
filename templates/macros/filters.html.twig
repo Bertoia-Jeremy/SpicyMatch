@@ -1,35 +1,52 @@
 {# templates/macros/filters.html.twig #}
 
 {% macro filter_dropdown(label, content, options = {}) %}
-    {# Extraction des options #}
     {% set count = options.count|default(0) %}
     {% set reset_url = options.reset_url|default(null) %}
     {% set class = options.class|default('') %}
     {% set open = options.open|default(false) %}
+    {% set style = options.style|default('underline') %}
 
     <details class="group relative {{ class }}" {{ open ? 'open' : '' }}>
-        <summary class="flex items-center gap-2 border-b border-stone-300 pb-1.5 text-stone-700 transition-colors cursor-pointer hover:border-saffron-400 hover:text-stone-900 [&::-webkit-details-marker]:hidden">
-            <span class="text-sm font-medium">{{ label }}</span>
 
-            {% if count > 0 %}
-                <span class="inline-flex items-center justify-center w-4 h-4 bg-saffron-600 text-white text-[10px] font-bold rounded-full">
-                    {{ count }}
+        {% if style == 'pill' %}
+            {# ── Pill style (Lab toolbar — design Le Lab.html .filter-pill) ── #}
+            <summary class="inline-flex items-center gap-1.5 h-[34px] px-3 rounded-lg cursor-pointer select-none
+                            [&::-webkit-details-marker]:hidden transition-colors
+                            {{ count > 0
+                                ? 'border border-saffron-300 bg-saffron-50 text-saffron-700'
+                                : 'border border-stone-200 bg-stone-50 text-stone-600 hover:border-stone-300 hover:bg-white' }}">
+                <span class="text-[13px] font-medium">{{ label }}</span>
+                {% if count > 0 %}
+                    <span class="inline-flex items-center justify-center size-4 bg-saffron-600 text-white text-[9px] font-bold rounded-full leading-none">
+                        {{ count }}
+                    </span>
+                {% endif %}
+                <i class="fa-solid fa-chevron-down text-[9px] transition-transform group-open:rotate-180
+                          {{ count > 0 ? 'text-saffron-400' : 'text-stone-400' }}"></i>
+            </summary>
+        {% else %}
+            {# ── Underline style (catalogue) ── #}
+            <summary class="flex items-center gap-2 border-b border-stone-300 pb-1.5 text-stone-700 transition-colors cursor-pointer hover:border-saffron-400 hover:text-stone-900 [&::-webkit-details-marker]:hidden">
+                <span class="text-sm font-medium">{{ label }}</span>
+                {% if count > 0 %}
+                    <span class="inline-flex items-center justify-center w-4 h-4 bg-saffron-600 text-white text-[10px] font-bold rounded-full">
+                        {{ count }}
+                    </span>
+                {% endif %}
+                <span class="transition-transform group-open:-rotate-180">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-3.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path>
+                    </svg>
                 </span>
-            {% endif %}
-
-            <span class="transition-transform group-open:-rotate-180">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-3.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path>
-                </svg>
-            </span>
-        </summary>
+            </summary>
+        {% endif %}
 
         <div class="z-50 w-72 divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white shadow-xl group-open:absolute group-open:start-0 group-open:top-10 overflow-hidden">
             <div class="flex items-center justify-between px-4 py-3 bg-stone-50/50">
                 <span class="text-xs font-medium text-stone-500 uppercase tracking-wider">
                     {{ count }} Sélectionné{{ count > 1 ? 's' : '' }}
                 </span>
-
                 {% if reset_url %}
                     <a href="{{ reset_url }}" class="text-xs text-stone-400 underline transition-colors hover:text-paprika-700">
                         Réinitialiser
@@ -40,11 +57,11 @@
                     </button>
                 {% endif %}
             </div>
-
             <div class="p-4 max-h-72 overflow-y-auto custom-scrollbar">
                 {{ content|raw }}
             </div>
         </div>
+
     </details>
 {% endmacro %}
 

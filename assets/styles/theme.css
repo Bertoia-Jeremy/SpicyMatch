@@ -1,10 +1,10 @@
 @theme {
-  /* Crème — fond principal */
-  --color-cream:             #FDFCF0;
-  --color-cream-dark:        #F5F0E0;
+  /* Crème — fond principal (famille parchemin) */
+  --color-cream:             #FBF5E8;
+  --color-cream-dark:        #EFE4CA;
 
   /* Typographie d'affichage */
-  --font-display:            'Lora', Georgia, serif;
+  --font-display:            'Cormorant Garamond', 'Lora', Georgia, serif;
 
   /* Espacement de base — requis pour que h-*, w-*, etc. compilent en v4 */
   --spacing:                 0.25rem;
@@ -38,9 +38,59 @@
   --color-turmeric-500:      #F59E0B;
   --color-turmeric-600:      #D97706;
 
-  /* Surface chaude */
-  --color-spice-surface:     #FFF7ED;
-  --color-spice-border:      #FED7AA;
+  /* Surface chaude (famille cuivre/parchemin) */
+  --color-spice-surface:     #F5EDD5;
+  --color-spice-border:      #C8A06A;
+
+  /* Parchemin (navbar "La Boussole du Chef") */
+  --color-parchment:         #F1E7CE;
+  --color-parchment-deep:    #E8DBB8;
+  --color-parchment-edge:    #D9C99A;
+
+  /* Parchemin L'Étamine (finalisation du mélange) */
+  --color-parchment-50:      #FBF5E9;
+  --color-parchment-100:     #F5ECDB;
+  --color-parchment-200:     #EBDEC4;
+  --color-parchment-300:     #DCCAA6;
+
+  /* Encre L'Étamine */
+  --color-ink-900:           #2A1F14;
+  --color-ink-800:           #3B2A1B;
+  --color-ink-700:           #5A4A38;
+  --color-ink-600:           #7A6A55;
+  --color-copper:            #B8864A;
+  --color-copper-light:      #D4A574;
+  --color-ink-deep:          #2A1810;
+
+  /* Navigation */
+  --nav-height:              5rem; /* navbar h-20 = 80px */
+
+  /* Semantic text colors (ink-deep avec opacité) */
+  --color-text-muted:        rgba(42, 24, 16, 0.50);
+  --color-text-subtle:       rgba(42, 24, 16, 0.40);
+  --color-text-faint:        rgba(42, 24, 16, 0.35);
+
+  /* Copper border shades */
+  --color-copper-border:     rgba(184, 134, 74, 0.30);
+  --color-copper-border-md:  rgba(184, 134, 74, 0.35);
+  --color-copper-border-lg:  rgba(184, 134, 74, 0.50);
+
+  /* Card shadows */
+  --shadow-card:             0 1px 2px rgba(0, 0, 0, .06), 0 2px 6px rgba(0, 0, 0, .04);
+  --shadow-card-hover:       0 8px 24px rgba(194, 65, 12, .10);
+
+  /* Mono — JetBrains Mono pour labels/métadonnées (homepage + navbar) */
+  --font-mono:               'JetBrains Mono', ui-monospace, monospace;
+
+  /* Curcuma profond — ambre-deep du design */
+  --color-turmeric-700:      #A85A05;
+
+  /* Sauge — hero corner dot, titres labo */
+  --color-sauge:             #4D7C0F;
+  --color-sauge-deep:        #365A0B;
+
+  /* Typographie manuscrite (substitut Lora italic pour Caveat) */
+  --font-hand: var(--font-display);
 
   /* Animations personnalisées */
   --animate-fade-in-right:   fade-in-right 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;

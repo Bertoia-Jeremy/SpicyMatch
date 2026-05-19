@@ -1,0 +1,161 @@
+/* ── Workspace sidebar ── */
+.workspace {
+  position: sticky;
+  top: calc(var(--nav-height) + 4px);
+  align-self: start;
+  background: var(--color-cream);
+  border: 0.5px solid var(--color-spice-border);
+  border-radius: 1rem;
+  padding: 1.125rem;
+  max-height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(194, 65, 12, 0.04), 0 2px 6px rgba(194, 65, 12, 0.03);
+}
+
+.workspace-list {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 80px;
+  margin: 0 -4px;
+  padding: 0 4px;
+}
+
+.workspace-list::-webkit-scrollbar { width: 4px; }
+.workspace-list::-webkit-scrollbar-thumb {
+  background: var(--color-spice-border);
+  border-radius: 2px;
+}
+
+/* ── Workspace items ── */
+.ws-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem;
+  border-radius: 0.625rem;
+  background: white;
+  border: 0.5px solid var(--color-spice-border);
+  animation: ws-pop .25s cubic-bezier(.2, 1.4, .4, 1);
+}
+
+@keyframes ws-pop {
+  from { transform: translateY(4px) scale(.97); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+.ws-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  flex: none;
+  overflow: hidden;
+  background: #f5f5f4;
+}
+
+.ws-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ws-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 12px;
+  text-align: center;
+  color: #a8a29e;
+  border: 0.5px dashed var(--color-spice-border);
+  border-radius: 12px;
+  background: linear-gradient(180deg, transparent, var(--color-cream));
+}
+
+/* ── Group block header (in grid) ── */
+.group-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.group-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 6px;
+}
+
+.group-rule {
+  flex: 1;
+  height: 0.5px;
+  background: repeating-linear-gradient(
+    to right,
+    #d6d3d1 0 4px,
+    transparent 4px 8px
+  );
+}
+
+.group-count {
+  font-family: ui-monospace, 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #a8a29e;
+  background: var(--color-cream);
+  border: 0.5px solid var(--color-spice-border);
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+/* ── Mobile floatbar ── */
+.floatbar {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 25;
+  background: rgba(253, 252, 240, 0.94);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 0.5px solid var(--color-spice-border);
+  border-radius: 1rem;
+  box-shadow: 0 8px 30px rgba(194, 65, 12, .14), 0 30px 60px rgba(194, 65, 12, .12);
+  padding: 12px 14px;
+  display: none;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 1279px) {
+  .floatbar { display: flex; }
+}
+
+/* ── Card lab: image overlay gradient (design Le Lab.html .card-img::after) ── */
+.card-warm label.aspect-square {
+  position: relative;
+}
+
+.card-warm label.aspect-square::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.22));
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Card lab: selected state via :has() (design Le Lab.html .card.is-selected) ── */
+article.card-warm:has(input[data-model="spices.selectedSpices"]:checked) {
+  border-color: var(--color-saffron-400);
+  box-shadow:
+    0 0 0 1px var(--color-saffron-400),
+    0 2px 4px rgba(194, 65, 12, 0.08),
+    0 8px 24px rgba(194, 65, 12, 0.07);
+}
+
+article.card-warm:has(input[data-model="spices.selectedSpices"]:checked):hover {
+  border-color: var(--color-saffron-500);
+}

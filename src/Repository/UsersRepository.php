@@ -13,11 +13,6 @@ use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 
 /**
  * @extends ServiceEntityRepository<Users>
- *
- * @method Users|null find($id, $lockMode = null, $lockVersion = null)
- * @method Users|null findOneBy(array $criteria, array $orderBy = null)
- * @method Users[]    findAll()
- * @method Users[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class UsersRepository extends ServiceEntityRepository implements PasswordUpgraderInterface
 {
@@ -48,6 +43,11 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
         $this->addOrUpdate($user);
     }
 
+    /**
+     * @param array<string, mixed> $criteria
+     *
+     * @return list<Users>
+     */
     public function findNonDeletedBy(array $criteria): array
     {
         $qb = $this->createQueryBuilder('u')
@@ -63,5 +63,14 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
 
         return $qb->getQuery()
             ->getResult();
+    }
+
+    public function countActive(): int
+    {
+        return (int) $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->where('u.deleted_at IS NULL')
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

@@ -1,5 +1,9 @@
 # CLAUDE.md — Configuration système pour interactions optimisées
 
+> **🔌 MCP ifttd-mcp** : Avant de finaliser un plan d'architecture ou une décision technique, consulte le MCP `ifttd-mcp` (outil `ifttd_plan_review`) pour obtenir des retours terrain de praticiens.
+
+---
+
 > **⚠️ RÈGLE OBLIGATOIRE — MAINTIEN À JOUR**
 > Ce fichier est la **source de vérité** du projet. À chaque fin de session ou après toute décision architecturale, technique ou de design qui change l'état du projet, Claude **doit** mettre à jour ce fichier. Aucune information critique ne doit rester dans la mémoire de session uniquement.
 >
@@ -142,19 +146,22 @@ tooling:
 
 scripts:
   php:
-    - docker exec -w /var/www/html/spicymatch docker_php-8.4 composer check-cs       # vérifier le style
-    - docker exec -w /var/www/html/spicymatch docker_php-8.4 composer fix-cs         # corriger le style
-    - docker exec -w /var/www/html/spicymatch docker_php-8.4 composer rector-dry     # dry-run Rector
-    - docker exec -w /var/www/html/spicymatch docker_php-8.4 composer rector         # appliquer Rector
-    - docker exec -w /var/www/html/spicymatch docker_php-8.4 composer phpstan        # analyse statique
-    - docker exec -w /var/www/html/spicymatch docker_php-8.4 php vendor/bin/phpunit --testsuite=Unit        # tests unitaires
-    - docker exec -w /var/www/html/spicymatch docker_php-8.4 php vendor/bin/phpunit --testsuite=Integration # tests d'intégration (DB requise)
+    - docker exec -w /var/www/html/spicymatch p8.4 composer ci              # ⭐ check-cs + phpstan + test-unit (à passer avant chaque commit)
+    - docker exec -w /var/www/html/spicymatch p8.4 composer check-cs       # vérifier le style
+    - docker exec -w /var/www/html/spicymatch p8.4 composer fix-cs         # corriger le style
+    - docker exec -w /var/www/html/spicymatch p8.4 composer rector-dry     # dry-run Rector
+    - docker exec -w /var/www/html/spicymatch p8.4 composer rector         # appliquer Rector
+    - docker exec -w /var/www/html/spicymatch p8.4 composer phpstan        # analyse statique (baseline figée dans phpstan-baseline.neon)
+    - docker exec -w /var/www/html/spicymatch p8.4 composer test-unit      # phpunit Unit (sans coverage)
+    # ⭐ `composer ci` doit passer avant chaque commit. Toute nouvelle erreur PHPStan bloque CI.
+    # Pour corriger le baseline après un vrai fix : `phpstan analyze --generate-baseline=phpstan-baseline.neon`
+    - docker exec -w /var/www/html/spicymatch p8.4 php vendor/bin/phpunit --testsuite=Integration # tests d'intégration (DB requise)
   js:
     - yarn dev                # watch Tailwind CLI
     - yarn build              # build Tailwind CLI minifié
   doctrine:
-    - docker exec -w /var/www/html/spicymatch docker_php-8.4 php bin/console doctrine:schema:update --force   # apply schema changes
-    - docker exec -w /var/www/html/spicymatch docker_php-8.4 php bin/console doctrine:fixtures:load --append --group=GroupName
+    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console doctrine:schema:update --force   # apply schema changes
+    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console doctrine:fixtures:load --append --group=GroupName
 
 conventions:
   commits: Conventional Commits (feat/fix/chore/refactor + scope optionnel)
@@ -187,12 +194,14 @@ architecture:
       - PendingGamificationNotification (user, type, payload json, createdAt, deliveredAt nullable) — file Turbo Streams
       - SpiceView (user, spice, viewedDay — unique par jour)
       - UserStat (OneToOne Users — totalMatches, totalSpicesRead, easterEggsFound, totalGamesPlayed, perfectScores, visitedAromaticGroups json, lastVisitedSpices json FIFO 10, totalActions computed)
-      - GameSession (user, gameMode enum, difficulty enum, score, correctAnswers, totalQuestions=10, startedAt, finishedAt nullable, accuracy computed, isFinished computed)
+      - GameSession (user, gameMode enum, difficulty enum, score, correctAnswers, totalQuestions, startedAt, finishedAt nullable, durationSeconds, accuracy computed, isFinished computed, setDurationSeconds() pour override LC)
       - GameQuestion (session ManyToOne GameSession, questionIndex, questionData json, answerGiven, isCorrect, timeSpentMs)
     enums:
       - AchievementTrigger: FIRST_MATCH, N_MATCHES, N_SPICES_USED, FIRST_DISCOVERY, N_FAVORITES, SPICE_READ, READING_STREAK, EASTER_EGG_FOUND, ALL_TERPENES_VISITED, FIRST_GAME, N_GAMES_COMPLETED
       - AchievementRarity: COMMON/RARE/EPIC/LEGENDARY — méthode label() → Graine/Infusion/Extraction/Essence
-      - GameMode: QCM / SURVIVAL / GUESS_WHO — seul QCM actif (isEnabled()), label() + xpPerCorrect()
+      - GameMode: QCM / SURVIVAL / GUESS_WHO / INTRUS / HANGMAN / CHRONO — tous isEnabled(), label() + xpPerCorrect() + isLiveComponent() + description() + icon() + totalQuestions()
+        Labels affichés: QCM→"Le Choix du Chef", SURVIVAL→"Défi de Scoville", GUESS_WHO→"Palais Fin", INTRUS→"Hors Saison", HANGMAN→"Cuisson en Cours", CHRONO→"À Feu Vif"
+        Section navbar: "L'Académie" (dropdown desktop + section mobile)
       - GameDifficulty: EASY / MEDIUM / HARD — xpMultiplier() (1.0 / 1.5 / 2.0)
     level_formula: "level = floor((xp / 100) ** (1 / 1.3)) + 1  — niveaux infinis (cap 50 supprimé)"
     xp_sources: "match_saved +10, spice_read +5 (nouvelle vue seulement), easter_egg +75 (défaut), game_completed variable, achievement_reward variable"
@@ -230,21 +239,48 @@ architecture:
     avatar:
       - Le badge équipé (UserProgression::$equippedBadge) EST l'avatar : son icône + la couleur de sa rareté
       - Composant: templates/components/_avatar.html.twig
-        → paramètre `equippedBadge` (UserAchievement|null) prioritaire sur `slug`
+        → paramètre `equippedBadge` (UserAchievement|null) — null = cercle neutre
         → couleurs rareté : common=#f5f5f4/#78716c, rare=#dbeafe/#1d4ed8, epic=#f3e8ff/#7e22ce, legendary=#fef9c3/#a16207
-        → fallback slug : avatar_data(slug) via AvatarExtension (dead code — conservé pour la migration)
-      - Sélection avatar supprimée de configuration.html.twig — route avatar_upload_user supprimée
-      - Dead code (à supprimer dans une prochaine passe) : AvatarCatalogService, AvatarExtension, Users::$avatar
+      - Sélection avatar retirée de configuration.html.twig
+      - AvatarCatalogService + AvatarExtension + Users::$avatar supprimés (2026-04-24)
 
   education:
-    description: "Mini-jeux éducatifs sur les épices — QCM actif, Survival et Guess Who prévus"
+    description: "Mini-jeux éducatifs sur les épices — 6 modes actifs (QCM route-based + 5 Live Components)"
     services:
-      - GameSessionManager         # crée sessions, valide réponses, calcule XP, limite 5 sessions/jour
+      - GameSessionManager         # crée sessions, valide réponses, calcule XP, limite 5 sessions/jour/mode + createFinishedSession() pour LC
+      - AcademyManager             # logique de jeu centrale — compatibilité, intrus, cartes épices, normalisation, génération questions. Cache pool academy.cache (TTL 1h)
       - QcmQuestionGenerator       # implémente QuestionGeneratorInterface, mode QCM "Mélange à trou"
-      - QuestionGeneratorInterface # supports(GameMode) + generate(difficulty, excludeIds)
-    controller: EducationController  # GET /education/, POST /education/start (CSRF: education_start), GET /education/play/{id}, POST /education/answer/{id} (CSRF: education_answer), GET /education/result/{id}
-    anti_farming: "Max 5 sessions QCM/jour, XP × 0.5 après la 3e session"
-    gamification_event: GameCompletedEvent (dispatché via Messenger quand session terminée)
+      - QuestionGeneratorInterface # supports(GameMode) + generate(difficulty, excludeIds) — QCM uniquement
+    live_components:
+      - IntrusGame                 # QCM L'Intrus — 10 questions, classique (trouver l'intrus) + inversé (trouver le compatible)
+      - SurvivalGame               # Mode Survie — chaîne d'épices compatibles, game over au 1er faux, victoire si pool épuisé
+      - GuessWhoGame               # Guess Who — 8 questions, indices progressifs, scoring dégressif par indice révélé
+      - HangmanGame                # Pendu — 8 mots, SVG pendu, clavier A-Z, gestion accents via Transliterator, hint par difficulté
+      - ChronoGame                 # Mode Chrono — timer global Alpine.js (data-live-ignore), scoring vitesse + streak, anti-triche timestamp
+    event_listener:
+      - AcademyCacheInvalidator    # Doctrine postUpdate/postPersist/postRemove sur Spices → invalide academy.spice_cards + academy.intruders.{id}
+    controller: EducationController
+    routes:
+      - "GET  /education/                  → education_index"
+      - "POST /education/start             → education_start (CSRF: education_start) — QCM uniquement"
+      - "GET  /education/play/{id}         → education_play — QCM uniquement"
+      - "POST /education/answer/{id}       → education_answer (CSRF: education_answer) — QCM uniquement"
+      - "GET  /education/play-live/{mode}  → education_play_live — LC modes (vérifie limite quotidienne 5/jour/mode)"
+      - "GET  /education/result/{id}       → education_result — multi-mode (QCM détail questions, LC résumé simple)"
+    anti_farming: "Max 5 sessions/jour/mode, XP × 0.5 après la 3e session"
+    gamification_event: GameCompletedEvent (dispatché via Messenger quand session terminée — QCM et LC)
+    cache:
+      pool: academy.cache (adapter: filesystem, TTL: 3600)
+      keys:
+        - "academy.spice_cards — cartes complètes de toutes les épices (composés, flaveurs, tips, etc.)"
+        - "academy.intruders.{spiceId} — épices incompatibles (score 0) par épice"
+      bind: "config/services.yaml — App\\Service\\Education\\AcademyManager $cache: '@academy.cache'"
+    security_pattern: "Réponses correctes stockées en session HTTP (game_{token}), jamais en #[LiveProp] (sérialisé côté client)"
+    architectural_decisions:
+      - "AcademyManager = logique de jeu (questions, compatibilité, normalisation), GameSessionManager = persistance (sessions, XP, events)"
+      - "LC modes utilisent createFinishedSession() — pas de GameQuestion rows, seulement le résumé (correctCount/totalQuestions/duration)"
+      - "QCM existant inchangé — flux route-based classique cohabite avec les 5 LC modes via play_live.html.twig"
+      - "SpicesRepository::findIncompatibleWith() — SQL NOT EXISTS (4 subqueries main×main, main×sec, sec×main, sec×sec) pour trouver les épices 0-compatibilité"
 
   rgpd:
     cookie_consent:
@@ -280,6 +316,10 @@ js_interop:
     - "Pour reset dans LC: LiveAction resetFilters() appelé via data-action='live#action' data-live-action-param='resetFilters'"
     - "SpicyMatch::findAllSpices() inclut agId et stId — CompatibilityScoreService aussi"
     - "data-model='debounce(search, 150)' → INVALIDE dans cette version du LC — utiliser data-model='search' (debounce natif par défaut)"
+    - "LiveAction qui retourne RedirectResponse → fonctionne pour finish() des jeux (pattern validé par IntrusGame/SurvivalGame etc.)"
+    - "Alpine.js state dans un LC : utiliser data-live-ignore sur les conteneurs Alpine qui gèrent du state local (ex: timer Chrono)"
+    - "Double-click prevention : x-data='{ submitting: false }' + @click='if (!submitting) { submitting = true; $wire.action() }' + :disabled='submitting'"
+    - "Pour les actions qui doivent permettre plusieurs clics (ex: clavier pendu) : utiliser $wire.action().then(() => { submitting = false })"
 
 design_system:
   fichier_source: assets/styles/app.css
@@ -316,9 +356,15 @@ design_system:
     history_index:  "templates/spicy_match_history/index.html.twig — liste avec renommage inline (group + crayon hover) + toggle favori"
     history_view:   "templates/spicy_match_history/view.html.twig — recette + section éducative composés aromatiques partagés"
     history_favorites: "templates/spicy_match_history/favorites.html.twig — page dédiée aux mélanges favoris (route: favorites_spicy_match_history)"
-    education_index:    "templates/education/index.html.twig — sélection mode de jeu (QCM actif, autres 'bientôt')"
-    education_play:     "templates/education/play.html.twig — interface de jeu QCM"
-    education_result:   "templates/education/result.html.twig — bilan session"
+    education_index:    "templates/education/index.html.twig — sélection des 6 modes (cards Alpine.js, difficulté, QCM POST / LC GET)"
+    education_play:     "templates/education/play.html.twig — interface de jeu QCM (route-based)"
+    education_play_live: "templates/education/play_live.html.twig — wrapper pour les 5 Live Components (dispatch par mode.value)"
+    education_result:   "templates/education/result.html.twig — bilan session multi-mode (icône + label dynamique, Rejouer pour LC, détail questions QCM)"
+    intrus_game:        "templates/components/Education/IntrusGame.html.twig — QCM L'Intrus (question active / feedback / terminé)"
+    survival_game:      "templates/components/Education/SurvivalGame.html.twig — sélection départ / jeu / game over-victoire"
+    guess_who_game:     "templates/components/Education/GuessWhoGame.html.twig — indices progressifs / guess / feedback"
+    hangman_game:       "templates/components/Education/HangmanGame.html.twig — SVG pendu + mot masqué monospace + clavier A-Z"
+    chrono_game:        "templates/components/Education/ChronoGame.html.twig — timer Alpine.js data-live-ignore + carte épice sans nom + options"
     cookie_consent:     "templates/components/_cookie_consent.html.twig — bannière RGPD Alpine.js avec CSRF"
     gamification_notif: "templates/gamification/notification.stream.html.twig — Turbo Stream notifications XP/achievements"
 ```

@@ -1,12 +1,16 @@
 <turbo-stream action="prepend" target="gamification-toasts">
     <template>
-        <div x-data="{ show: true }"
-             x-show="show"
-             x-init="setTimeout(() => show = false, 5000)"
-             x-cloak
+        <div data-controller="auto-dismiss"
+             data-auto-dismiss-delay-value="5000"
+             data-auto-dismiss-pause-delay-value="2500"
+             data-action="mouseenter->auto-dismiss#pause mouseleave->auto-dismiss#resume"
+             role="status"
+             aria-live="polite"
              class="pointer-events-auto flex items-center gap-3 rounded-xl border p-4 shadow-lg mb-3
                     {% if type == 'level_up' %}
                         bg-turmeric-50 border-turmeric-400
+                    {% elseif type == 'xp_gained' %}
+                        bg-saffron-50 border-saffron-300
                     {% else %}
                         bg-white border-spice-border
                     {% endif %}">
@@ -18,6 +22,16 @@
                     <p class="font-bold text-saffron-700 text-sm">Niveau {{ payload.level }} atteint !</p>
                     <p class="text-xs text-stone-500">Tu montes en compétence !</p>
                 </div>
+            {% elseif type == 'xp_gained' %}
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-saffron-100">
+                    <i class="fa-solid fa-plus text-saffron-600 text-lg"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="font-bold text-saffron-700 text-sm">+{{ payload.amount }} XP</p>
+                    {% if payload.source is defined and payload.source %}
+                        <p class="text-xs text-stone-500">{{ payload.source }}</p>
+                    {% endif %}
+                </div>
             {% else %}
                 <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-saffron-50">
                     <i class="{{ payload.icon }} text-saffron-600 text-lg"></i>
@@ -28,8 +42,8 @@
                     <p class="text-xs text-saffron-600">+{{ payload.xpReward }} XP</p>
                 </div>
             {% endif %}
-            <button @click="show = false"
-                    class="shrink-0 text-stone-400 hover:text-stone-600 transition-colors"
+            <button data-action="auto-dismiss#dismiss"
+                    class="shrink-0 text-stone-400 hover:text-stone-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30 rounded"
                     aria-label="Fermer">
                 <i class="fa-solid fa-xmark text-xs"></i>
             </button>

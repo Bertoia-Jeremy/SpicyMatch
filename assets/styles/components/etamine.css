@@ -1,0 +1,231 @@
+/* ============================================================
+   L'Étamine — Stylesheet personnalisée (à importer après Tailwind)
+   Utilisée sur : spicy_match/view (Finalisation du mélange)
+   ============================================================ */
+
+/* ---------- Primitives ---------- */
+.hex { clip-path: polygon(25% 4%, 75% 4%, 98% 50%, 75% 96%, 25% 96%, 2% 50%); }
+
+.smallcaps {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  font-size: 11px;
+  color: #7A6A55;
+}
+
+.rule-dots {
+  background-image: radial-gradient(circle, rgba(58,38,18,.32) 1px, transparent 1.4px);
+  background-size: 8px 2px;
+  background-repeat: repeat-x;
+  background-position: center;
+  height: 2px;
+}
+
+/* ---------- Texture papier ---------- */
+.etamine-paper {
+  background-image:
+    radial-gradient(1200px 600px at 10% -10%, rgba(210,119,58,.06), transparent 60%),
+    radial-gradient(900px 700px at 110% 20%, rgba(110,122,79,.05), transparent 60%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.18  0 0 0 0 0.12  0 0 0 0 0.06  0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-attachment: fixed;
+}
+
+/* ---------- Stations ---------- */
+.stepper { display: flex; align-items: center; gap: 18px; }
+.stepper .station { flex: 1; }
+
+.station {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(58,38,18,.10);
+  background: linear-gradient(180deg, #FBF5E9, #F5ECDB);
+  transition: all .35s ease;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+.station:hover { border-color: rgba(58,38,18,.22); transform: translateY(-1px); }
+.station.active {
+  border-color: rgba(210,119,58,.5);
+  box-shadow: 0 0 0 1px rgba(210,119,58,.45), 0 18px 40px -22px rgba(154,71,32,.35);
+}
+.station.done {
+  background: linear-gradient(180deg, #F7E4CB, #EFD3A8);
+  border-color: rgba(154,71,32,.35);
+}
+
+.station-hex {
+  width: 48px; height: 54px;
+  display: grid; place-items: center;
+  background: linear-gradient(180deg, #FBF5E9, #EBDEC4);
+  flex: 0 0 auto;
+  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  clip-path: polygon(25% 4%, 75% 4%, 98% 50%, 75% 96%, 25% 96%, 2% 50%);
+}
+.station.active .station-hex { background: linear-gradient(180deg, #D2773A, #9A4720); color: #FBF5E9; }
+.station.done   .station-hex { background: linear-gradient(180deg, #9A4720, #6F3417); color: #FBF5E9; }
+
+.station-name { font-family: 'Cormorant Garamond', serif; font-size: 22px; line-height: 1; color: #3B2A1B; }
+.station-sub  { display: flex; gap: 6px; margin-top: 6px; }
+.pip          { width: 34px; height: 4px; border-radius: 99px; background: rgba(58,38,18,.12); transition: background .3s ease; }
+.pip.filled   { background: #9A4720; }
+.pip.current  { background: #D2773A; }
+
+.station-link {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+  color: #7A6A55;
+}
+
+.between-rule {
+  width: 48px; height: 2px;
+  background-image: radial-gradient(circle, rgba(58,38,18,.3) 1px, transparent 1.4px);
+  background-size: 8px 2px; background-repeat: repeat-x;
+}
+
+/* ---------- Step blocks ---------- */
+.step-block + .step-block {
+  margin-top: 56px;
+  padding-top: 48px;
+  border-top: 1px dashed rgba(58,38,18,.18);
+}
+
+/* ---------- Tuiles (timing + method, harmonisées) ---------- */
+.timing, .method {
+  cursor: pointer;
+  background: linear-gradient(180deg, #FBF5E9, #F1E4CC);
+  border: 1px solid rgba(58,38,18,.10);
+  border-radius: 16px;
+  padding: 22px 22px 20px;
+  text-align: center;
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+  box-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 12px 30px -20px rgba(58,38,18,.18);
+  position: relative;
+  display: flex; flex-direction: column; align-items: center;
+}
+.timing:hover, .method:hover { transform: translateY(-2px); border-color: rgba(58,38,18,.18); }
+.timing.selected, .method.selected {
+  background: linear-gradient(180deg, #F4DBB4, #E6BE85);
+  border-color: rgba(154,71,32,.55);
+  box-shadow: 0 0 0 1px rgba(210,119,58,.7), 0 18px 40px -22px rgba(154,71,32,.4);
+}
+
+.timing .hex-num-wrap,
+.method .icon-wrap {
+  width: 56px; height: 64px;
+  background: linear-gradient(180deg, #F7E9D2, #EAD3AE);
+  clip-path: polygon(25% 4%, 75% 4%, 98% 50%, 75% 96%, 25% 96%, 2% 50%);
+  display: grid; place-items: center;
+  margin: 0 auto 14px;
+  transition: background .2s ease, color .2s ease;
+}
+.timing .hex-num-wrap {
+  font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #9A4720;
+}
+.timing.selected .hex-num-wrap,
+.method.selected .icon-wrap {
+  background: linear-gradient(180deg, #D2773A, #9A4720);
+  color: #FBF5E9;
+}
+.method.selected .icon-wrap svg path { stroke: #FBF5E9; }
+
+.timing-label, .method-label {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; line-height: 1.1;
+  color: #2A1F14;
+  margin-bottom: 8px;
+}
+.timing-blurb, .method-blurb {
+  color: #5A4A38;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.timing.selected .timing-blurb,
+.method.selected .method-blurb { color: #3B2A1B; }
+.timing-blurb strong { color: #2A1F14; font-weight: 500; }
+
+/* ---------- CTA ---------- */
+.btn-seal {
+  background: linear-gradient(180deg, #D2773A, #9A4720);
+  color: #FBF5E9;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.18) inset,
+    0 -2px 0 rgba(0,0,0,.12) inset,
+    0 18px 40px -16px rgba(154,71,32,.55);
+  transition: transform .15s ease, filter .15s ease, opacity .2s ease;
+}
+.btn-seal:hover:not(:disabled) { filter: brightness(1.04); transform: translateY(-1px); }
+.btn-seal:disabled { filter: grayscale(.2) brightness(.95); opacity: .45; cursor: not-allowed; }
+
+.cta-bar {
+  background: linear-gradient(180deg, rgba(245,236,219,0) 0%, #F5ECDB 28%, #F5ECDB 100%);
+}
+
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
+  padding: 12px 18px; border-radius: 999px;
+  background: linear-gradient(180deg, #3B2A1B, #2A1F14);
+  color: #FBF5E9;
+  box-shadow: 0 30px 60px -20px rgba(0,0,0,.4);
+  font-family: 'Cormorant Garamond', serif; font-size: 18px;
+  display: flex; align-items: center; gap: 10px;
+  z-index: 40;
+}
+
+/* ---------- Animations ---------- */
+@keyframes pour {
+  0%   { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.pour-in { animation: pour .45s cubic-bezier(.2,.7,.2,1) both; }
+
+@keyframes seal {
+  0%   { transform: scale(.6);  opacity: 0; }
+  60%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+.seal-pop { animation: seal .55s cubic-bezier(.2,.7,.2,1) both; }
+
+/* ---------- Focus visible (a11y) ---------- */
+.timing:focus-visible,
+.method:focus-visible,
+.station:focus-visible,
+.btn-seal:focus-visible {
+  outline: 2px solid #9A4720;
+  outline-offset: 3px;
+}
+
+/* ============================================================
+   MOBILE — breakpoint 720 px
+   ============================================================ */
+@media (max-width: 720px) {
+  .stepper { flex-direction: column; gap: 10px; }
+  .stepper .station { width: 100%; }
+  .between-rule {
+    width: 2px; height: 22px; align-self: center;
+    background-image: radial-gradient(circle, rgba(58,38,18,.3) 1px, transparent 1.4px);
+    background-size: 2px 8px; background-repeat: repeat-y;
+  }
+  .station       { padding: 12px 14px; gap: 12px; }
+  .station-hex   { width: 40px; height: 46px; font-size: 12px; }
+  .station-name  { font-size: 19px; }
+  .pip           { width: 28px; height: 4px; }
+  .station-link  { font-size: 9px; letter-spacing: .14em; }
+
+  .tiles         { gap: 12px !important; }
+  .timing, .method                 { padding: 16px 14px 14px; border-radius: 14px; }
+  .timing .hex-num-wrap,
+  .method .icon-wrap               { width: 46px; height: 52px; margin-bottom: 10px; font-size: 12px; }
+  .timing-label, .method-label     { font-size: 18px; margin-bottom: 6px; }
+  .timing-blurb, .method-blurb     { font-size: 12px; line-height: 1.4; }
+
+  .step-block + .step-block        { margin-top: 36px; padding-top: 28px; }
+
+  .btn-seal     { padding: 14px 22px; font-size: 16px; }
+  .cta-bar      { padding-top: 28px; padding-bottom: 14px; }
+
+  .toast        { font-size: 15px; padding: 10px 14px; top: 14px; max-width: calc(100% - 28px); }
+}

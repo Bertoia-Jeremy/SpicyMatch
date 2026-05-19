@@ -13,43 +13,22 @@
             </a>
         </div>
         <div class="text-center mb-10"
-             x-data="{
-                 editing: false,
-                 title: '{{ spicyMatchHistory.title ? spicyMatchHistory.title|e('js') : '' }}',
-                 favorite: {{ spicyMatchHistory.isFavorite ? 'true' : 'false' }},
-                 fallbackTitle: '{{ ('Recette du ' ~ spicyMatchHistory.createdAt|date('d/m/Y à H:i'))|e('js') }}',
-                 async saveTitle() {
-                     const t = this.title.trim();
-                     try {
-                         const res = await fetch('{{ path('rename_spicy_match_history', {id: spicyMatchHistory.id}) }}', {
-                             method: 'POST',
-                             headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                             body: JSON.stringify({ title: t, _token: '{{ csrf_token('history_action_' ~ spicyMatchHistory.id) }}' })
-                         });
-                         if (!res.ok) { console.error('Rename failed', res.status); return; }
-                         this.editing = false;
-                     } catch (e) { console.error('Rename error', e); }
-                 },
-                 async toggleFavorite() {
-                     try {
-                         const res = await fetch('{{ path('toggle_favorite_spicy_match_history', {id: spicyMatchHistory.id}) }}', {
-                             method: 'POST',
-                             headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-Token': '{{ csrf_token('history_action_' ~ spicyMatchHistory.id) }}' }
-                         });
-                         if (!res.ok) { console.error('Toggle failed', res.status); return; }
-                         const data = await res.json();
-                         this.favorite = data.favorite;
-                         window.dispatchEvent(new CustomEvent('toast', { detail: { message: data.favorite ? 'Ajouté aux favoris' : 'Supprimé des favoris', icon: data.favorite ? 'fa-solid fa-star' : 'fa-regular fa-star' } }));
-                     } catch (e) { console.error('Toggle error', e); }
-                 }
-             }">
+             x-data="historyItem(
+                {{ spicyMatchHistory.id }},
+                '{{ path('rename_spicy_match_history', {id: spicyMatchHistory.id}) }}',
+                '{{ path('toggle_favorite_spicy_match_history', {id: spicyMatchHistory.id}) }}',
+                '{{ csrf_token('history_action_' ~ spicyMatchHistory.id) }}',
+                '{{ spicyMatchHistory.title ? spicyMatchHistory.title|e('js') : '' }}',
+                {{ spicyMatchHistory.isFavorite ? 'true' : 'false' }},
+                '{{ ('Recette du ' ~ spicyMatchHistory.createdAt|date('d/m/Y à H:i'))|e('js') }}'
+             )">
             <h1 class="text-4xl font-bold text-stone-800">
                 <i class="fa-solid fa-book-open text-saffron-700 mr-2"></i>
                 <span x-show="!editing"
-                      @dblclick="editing = true"
+                      @dblclick="startEdit"
                       class="cursor-pointer group"
                       title="Double-cliquer pour renommer">
-                    <span x-text="title || fallbackTitle"></span>
+                    <span x-text="displayTitle()"></span>
                     {% if spicyMatch.isManual %}
                         <span class="inline-flex items-center gap-1 text-[13px] font-medium text-stone-500 bg-stone-100 border border-stone-200 px-2.5 py-1 rounded-full align-middle ml-2" title="Mélange créé manuellement — compatibilité non garantie">
                             <i class="fa-solid fa-hand text-[10px]"></i>Manuel
@@ -60,21 +39,20 @@
                 <input x-show="editing" x-cloak
                        type="text"
                        x-model="title"
-                       @blur="saveTitle()"
-                       @keydown.enter="saveTitle()"
-                       @keydown.escape="editing = false"
+                       @blur="saveTitle"
+                       @keydown.enter="saveTitle"
+                       @keydown.escape="cancelEdit"
                        x-ref="titleInput"
-                       x-effect="if (editing) $nextTick(() => $refs.titleInput.focus())"
                        class="bg-transparent border-b-2 border-saffron-500 text-stone-800 text-4xl font-bold text-center outline-none w-full max-w-lg"
                        placeholder="Nom du mélange">
             </h1>
             <button type="button"
-                    @click="toggleFavorite()"
+                    @click="toggleFavorite"
                     class="mt-3 text-2xl transition-colors focus:outline-none"
-                    :class="favorite ? 'text-turmeric-500 hover:text-turmeric-400' : 'text-stone-300 hover:text-turmeric-400'"
-                    :title="favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'">
-                <i :class="favorite ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
-                <span class="text-sm font-medium" x-text="favorite ? 'Dans vos favoris' : 'Ajouter aux favoris'"></span>
+                    :class="starButtonClass()"
+                    :title="starTitle()">
+                <i :class="starIconClass()"></i>
+                <span class="text-sm font-medium" x-text="starLabel()"></span>
             </button>
         </div>
 

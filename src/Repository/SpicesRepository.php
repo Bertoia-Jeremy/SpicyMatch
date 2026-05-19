@@ -11,11 +11,6 @@ use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<Spices>
- *
- * @method Spices|null find($id, $lockMode = null, $lockVersion = null)
- * @method Spices|null findOneBy(array $criteria, array $orderBy = null)
- * @method Spices[]    findAll()
- * @method Spices[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class SpicesRepository extends ServiceEntityRepository
 {
@@ -46,6 +41,9 @@ class SpicesRepository extends ServiceEntityRepository
         }
     }
 
+    /**
+     * @return list<Spices>
+     */
     public function findAllByStringIds(string $stringIds): array
     {
         $arrayIds = explode(',', $stringIds);
@@ -92,7 +90,8 @@ class SpicesRepository extends ServiceEntityRepository
                 'ag.id AS agId',
                 'ag.color',
                 'ag.name AS groupName',
-                'st.id AS stId'
+                'st.id AS stId',
+                'st.name AS typeName'
             )
             ->leftJoin('s.aromaticGroups', 'ag')
             ->leftJoin('s.spicyType', 'st')
@@ -103,8 +102,16 @@ class SpicesRepository extends ServiceEntityRepository
         ;
     }
 
+    /**
+     * @return list<array{id: int, name: string, type: string}>
+     */
     public function search(string $word): array
     {
+        $word = mb_substr(trim($word), 0, 100);
+        if ($word === '') {
+            return [];
+        }
+
         $sql = 'SELECT s.id, s.name, IF(1, "spice", "") as `type`
                 FROM spices s
                 WHERE s.name LIKE ?
@@ -128,18 +135,9 @@ class SpicesRepository extends ServiceEntityRepository
     }
 
     /**
-     * Load candidate spices for compatibility scoring.
-     *
-     * Returns Spices that have at least one of the given shared compound IDs
-     * (main or secondary), excluding already-selected spice IDs.
-     * Compounds and AlchemyFlavors are eagerly loaded to avoid N+1 during scoring.
-     *
-     * @return Spices[]
-     */
-    /**
      * Filter spices by aromatic group, spicy type and/or name prefix.
      *
-     * @return Spices[]
+     * @return list<Spices>
      */
     public function findFiltered(?int $aromaticGroupId, ?int $spicyTypeId, ?string $search = null): array
     {
@@ -165,6 +163,18 @@ class SpicesRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * Load candidate spices for compatibility scoring.
+     *
+     * Returns Spices that have at least one of the given shared compound IDs
+     * (main or secondary), excluding already-selected spice IDs.
+     * Compounds and AlchemyFlavors are eagerly loaded to avoid N+1 during scoring.
+     *
+     * @param list<int> $sharedCompoundIds
+     * @param list<int> $excludedSpiceIds
+     *
+     * @return list<Spices>
+     */
     public function findCandidatesForScoring(array $sharedCompoundIds, array $excludedSpiceIds): array
     {
         if (empty($sharedCompoundIds)) {
@@ -191,12 +201,93 @@ class SpicesRepository extends ServiceEntityRepository
         // Step 2: Load with compound relations eagerly to avoid N+1 in CompatibilityScoreService.
         // AlchemyFlavors are NOT loaded — they are excluded from scoring.
         return $this->createQueryBuilder('s')
-            ->addSelect('mainAc', 'secAc', 'ag')
+            ->addSelect('mainAc', 'secAc', 'ag', 'st')
             ->leftJoin('s.aromaticsCompounds', 'mainAc')
             ->leftJoin('s.secondary_aromatics_compounds', 'secAc')
             ->leftJoin('s.aromaticGroups', 'ag')
+            ->leftJoin('s.spicyType', 'st')
             ->where('s.id IN (:ids)')
             ->setParameter('ids', $candidateIds)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Find spices that share ZERO aromatic compounds (main or secondary) with the given spice.
+     *
+     * Uses NOT EXISTS subqueries for efficiency — no PHP scoring needed.
+     *
+     * @param list<int> $excludeIds
+     *
+     * @return list<Spices>
+     */
+    public function findIncompatibleWith(Spices $spice, array $excludeIds = []): array
+    {
+        $sql = '
+            SELECT s.id
+            FROM spices s
+            WHERE s.id != :spiceId
+                AND s.deleted_at IS NULL
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM spices_aromatic_compound sac_base
+                    JOIN spices_aromatic_compound sac_candidate
+                        ON sac_candidate.aromatic_compound_id = sac_base.aromatic_compound_id
+                    WHERE sac_base.spices_id = :spiceId
+                        AND sac_candidate.spices_id = s.id
+                )
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM spices_aromatic_compound sac_base2
+                    JOIN secondary_spices_aromatic_compound ssac_candidate
+                        ON ssac_candidate.aromatic_compound_id = sac_base2.aromatic_compound_id
+                    WHERE sac_base2.spices_id = :spiceId
+                        AND ssac_candidate.spices_id = s.id
+                )
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM secondary_spices_aromatic_compound ssac_base
+                    JOIN spices_aromatic_compound sac_candidate2
+                        ON sac_candidate2.aromatic_compound_id = ssac_base.aromatic_compound_id
+                    WHERE ssac_base.spices_id = :spiceId
+                        AND sac_candidate2.spices_id = s.id
+                )
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM secondary_spices_aromatic_compound ssac_base2
+                    JOIN secondary_spices_aromatic_compound ssac_candidate2
+                        ON ssac_candidate2.aromatic_compound_id = ssac_base2.aromatic_compound_id
+                    WHERE ssac_base2.spices_id = :spiceId
+                        AND ssac_candidate2.spices_id = s.id
+                )
+        ';
+
+        $params = [
+            'spiceId' => $spice->getId(),
+        ];
+        $types = [
+            'spiceId' => ParameterType::INTEGER,
+        ];
+
+        if (! empty($excludeIds)) {
+            $sql .= ' AND s.id NOT IN (:excludeIds)';
+            $params['excludeIds'] = $excludeIds;
+        }
+
+        $conn = $this->getEntityManager()
+            ->getConnection();
+        $ids = $conn->executeQuery($sql, $params, $types)
+            ->fetchFirstColumn();
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('s')
+            ->addSelect('ag')
+            ->leftJoin('s.aromaticGroups', 'ag')
+            ->where('s.id IN (:ids)')
+            ->setParameter('ids', $ids)
             ->getQuery()
             ->getResult();
     }
@@ -306,5 +397,33 @@ class SpicesRepository extends ServiceEntityRepository
 
         return $stmt->executeQuery()
             ->fetchAllAssociative();
+    }
+
+    /**
+     * @return list<Spices>
+     */
+    public function findRelated(Spices $spice, int $limit = 4): array
+    {
+        $group = $spice->getAromaticGroups();
+        if ($group === null) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('s')
+            ->where('s.aromaticGroups = :group')
+            ->andWhere('s.id != :id')
+            ->setParameter('group', $group)
+            ->setParameter('id', $spice->getId())
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countTotal(): int
+    {
+        return (int) $this->createQueryBuilder('s')
+            ->select('COUNT(s.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

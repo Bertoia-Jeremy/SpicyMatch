@@ -1,0 +1,77 @@
+{% import 'components/Education/_game_header.html.twig' as game_header %}
+{% import 'components/Education/_option_card.html.twig' as option_card %}
+<div {{ attributes }}>
+  {{ game_header.header(
+      icon = 'fa-solid fa-pepper-hot',
+      title = 'Défi de Scoville',
+      subtitle = 'Enchaîne les épices compatibles sans erreur',
+      scoreLabel = '<i class="fa-solid fa-link text-xs mr-1"></i>' ~ this.chainLength,
+      quitUrl = path('education_briefing', { mode: 'survival', difficulty: this.difficulty }),
+  ) }}
+
+  {% if this.isGameOver or this.isVictory %}
+    {% if this.isVictory %}
+      {{ game_header.game_over_summary(
+          circleLabel = this.chainLength,
+          title = 'Victoire totale !',
+          paragraphHtml = 'Tu as épuisé toutes les compatibilités possibles !',
+          buttonLabel = 'Voir les résultats',
+          buttonAction = 'finish',
+          variant = 'success',
+      ) }}
+    {% else %}
+      {{ game_header.game_over_summary(
+          circleLabel = this.chainLength,
+          title = 'Game Over',
+          paragraphHtml = '<strong>' ~ this.lastPickedName ~ '</strong> n\'est pas compatible avec <strong>' ~ this.currentSpiceName ~ '</strong>.<br>Chaîne de ' ~ this.chainLength ~ ' épice' ~ (this.chainLength > 1 ? 's' : '') ~ '.',
+          buttonLabel = 'Voir les résultats',
+          buttonAction = 'finish',
+          variant = this.chainLength >= 10 ? 'success' : 'failure',
+      ) }}
+    {% endif %}
+
+  {% elseif not this.isStarted %}
+    {# Starting spice selection #}
+    <div class="text-center mb-8">
+      <p class="text-lg font-semibold text-stone-800 mb-2">Choisis ton épice de départ</p>
+      <p class="text-sm text-stone-500">Sélectionne l'épice avec laquelle tu veux commencer ta chaîne.</p>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" x-data="submitOnceGrid">
+      {% for spice in this.startingSpices %}
+        {{ option_card.option(spice, 'start', 'spice-id', 'sm', true) }}
+      {% endfor %}
+    </div>
+
+  {% else %}
+    {# Active game: current spice + options #}
+    <div class="text-center mb-8">
+      <p class="text-sm text-stone-500 mb-2">Épice courante</p>
+      <div class="inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-spice-surface border border-spice-border">
+        {% if this.currentSpiceFile %}
+          <img src="{{ asset('uploads/spices/' ~ this.currentSpiceFile) }}"
+               alt="{{ this.currentSpiceName }}"
+               class="w-12 h-12 rounded-lg object-cover">
+        {% else %}
+          <div class="w-12 h-12 rounded-lg flex items-center justify-center text-xl"
+               style="background-color: {{ this.currentSpiceColor ?? '#f5f5f4' }}20">
+            <i class="fa-solid fa-seedling" style="color: {{ this.currentSpiceColor ?? '#78716c' }}"></i>
+          </div>
+        {% endif %}
+        <div class="text-left">
+          <p class="text-xl font-bold text-stone-800">{{ this.currentSpiceName }}</p>
+          {% if this.currentSpiceGroupName %}
+            <p class="text-xs text-stone-500">{{ this.currentSpiceGroupName }}</p>
+          {% endif %}
+        </div>
+      </div>
+      <p class="text-stone-700 text-lg mt-4">Quelle épice est compatible ?</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4" x-data="submitOnceGrid">
+      {% for option in this.options %}
+        {{ option_card.option(option, 'pick', 'spice-id', 'md', false) }}
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>

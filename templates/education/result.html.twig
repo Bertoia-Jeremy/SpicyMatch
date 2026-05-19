@@ -1,13 +1,18 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Quiz — Résultats{% endblock %}
+{% block title %}{{ session.gameMode.label }} — Résultats{% endblock %}
 
 {% block body %}
 <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
   {# Score card #}
   <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-8 text-center mb-8">
-    <h1 class="text-2xl font-bold text-stone-800 mb-4">Résultats du quiz</h1>
+    <div class="flex items-center justify-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600">
+        <i class="{{ session.gameMode.icon }}"></i>
+      </div>
+      <h1 class="text-2xl font-bold text-stone-800">{{ session.gameMode.label }}</h1>
+    </div>
 
     {# Circular score display #}
     <div class="w-32 h-32 mx-auto mb-6 rounded-full border-8 flex items-center justify-center
@@ -33,25 +38,37 @@
       </div>
     </div>
 
-    {% if session.durationSeconds %}
-      <p class="text-sm text-stone-500 mb-6">
-        Temps : {{ (session.durationSeconds / 60)|round(0, 'floor') }}min {{ session.durationSeconds % 60 }}s
-      </p>
-    {% endif %}
+    <div class="flex flex-wrap justify-center gap-2 text-sm text-stone-500 mb-6">
+      <span class="tag-secondary">{{ session.difficulty.label }}</span>
+      {% if session.durationSeconds %}
+        <span class="tag-secondary">
+          <i class="fa-solid fa-clock mr-1"></i>{{ (session.durationSeconds / 60)|round(0, 'floor') }}min {{ session.durationSeconds % 60 }}s
+        </span>
+      {% endif %}
+    </div>
 
-    <div class="flex flex-col sm:flex-row gap-3 justify-center">
-      <a href="{{ path('education_index') }}" class="btn-pill-primary inline-flex items-center gap-2">
-        <i class="fa-solid fa-rotate-right"></i>
-        Nouveau quiz
+    <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 justify-center">
+      {% if session.gameMode.isLiveComponent %}
+        <a href="{{ path('education_play_live', { mode: session.gameMode.value, difficulty: session.difficulty.value }) }}"
+           class="btn-pill-primary inline-flex items-center gap-2">
+          <i class="fa-solid fa-rotate-right"></i>Rejouer
+        </a>
+      {% else %}
+        <a href="{{ path('education_briefing', { mode: session.gameMode.value, difficulty: session.difficulty.value }) }}"
+           class="btn-pill-primary inline-flex items-center gap-2">
+          <i class="fa-solid fa-rotate-right"></i>Rejouer
+        </a>
+      {% endif %}
+      <a href="{{ path('education_index') }}" class="btn-pill-outline inline-flex items-center gap-2">
+        <i class="fa-solid fa-gamepad"></i>Tous les modes
       </a>
       <a href="{{ path('dashboard_user') }}" class="btn-pill-outline inline-flex items-center gap-2">
-        <i class="fa-solid fa-house"></i>
-        Tableau de bord
+        <i class="fa-solid fa-gauge-high"></i>Tableau de bord
       </a>
     </div>
   </div>
 
-  {# Question review #}
+  {# Question review (QCM only — LC modes don't store GameQuestion rows) #}
   {% if session.questions is not empty %}
     <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6">
       <h2 class="text-lg font-semibold text-stone-800 mb-4">Détail des questions</h2>
@@ -71,9 +88,12 @@
               <p class="text-sm text-stone-800 font-medium truncate">
                 {{ qData.prompt ?? ('Question ' ~ (question.questionIndex + 1)) }}
               </p>
-              {% if not question.correct and qData.correctAnswer is defined %}
-                <p class="text-xs text-stone-500">
-                  Répondu : {{ question.answerGiven }} — Correct : {{ qData.correctAnswer }}
+              {% if qData.correctAnswer is defined %}
+                <p class="text-xs text-stone-500 mt-0.5">
+                  Ta réponse : <span class="{{ question.correct ? 'text-green-700' : 'text-red-700' }} font-medium">{{ question.answerGiven }}</span>
+                  {% if not question.correct %}
+                    — Correct : <span class="text-green-700 font-medium">{{ qData.correctAnswer }}</span>
+                  {% endif %}
                 </p>
               {% endif %}
             </div>

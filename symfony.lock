@@ -69,6 +69,18 @@
     "knplabs/knp-paginator-bundle": {
         "version": "v5.9.0"
     },
+    "nelmio/security-bundle": {
+        "version": "3.9",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "2.4",
+            "ref": "71045833e4f882ad9de8c95fe47efb99a1eec2f7"
+        },
+        "files": [
+            "config/packages/nelmio_security.yaml"
+        ]
+    },
     "phpstan/phpstan": {
         "version": "1.10",
         "recipe": {
@@ -93,6 +105,18 @@
             ".env.test",
             "phpunit.xml.dist",
             "tests/bootstrap.php"
+        ]
+    },
+    "sentry/sentry-symfony": {
+        "version": "5.10",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "5.0",
+            "ref": "12f504985eb24e3b20a9e41e0ec7e398798d18f0"
+        },
+        "files": [
+            "config/packages/sentry.yaml"
         ]
     },
     "symfony/apache-pack": {
@@ -271,6 +295,18 @@
             "config/routes.yaml"
         ]
     },
+    "symfony/scheduler": {
+        "version": "7.4",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "7.2",
+            "ref": "caea3c928ee9e1b21288fd76aef36f16ea355515"
+        },
+        "files": [
+            "src/Schedule.php"
+        ]
+    },
     "symfony/security-bundle": {
         "version": "6.4",
         "recipe": {
@@ -345,9 +381,6 @@
         "files": [
             "./config/routes/ux_live_component.yaml"
         ]
-    },
-    "symfony/ux-toggle-password": {
-        "version": "v2.13.2"
     },
     "symfony/ux-turbo": {
         "version": "v2.13.2"

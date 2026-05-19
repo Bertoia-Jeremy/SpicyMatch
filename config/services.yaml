@@ -29,6 +29,39 @@ services:
         resource: '../src/Gamification/Strategy/'
         tags: ['gamification.xp_strategy']
 
+    # Route gamification logger → `gamification` Monolog channel (structured JSON).
+    App\Service\GamificationManager:
+        arguments:
+            $logger: '@monolog.logger.gamification'
+
+    App\Service\EasterEggService:
+        arguments:
+            $logger: '@monolog.logger.gamification'
+
+    App\MessageHandler\GamificationHandler:
+        arguments:
+            $logger: '@monolog.logger.gamification'
+
+    App\MessageHandler\EasterEggGamificationHandler:
+        arguments:
+            $logger: '@monolog.logger.gamification'
+
+    App\MessageHandler\SpiceReadGamificationHandler:
+        arguments:
+            $logger: '@monolog.logger.gamification'
+
+    App\MessageHandler\FavoriteGamificationHandler:
+        arguments:
+            $logger: '@monolog.logger.gamification'
+
+    App\MessageHandler\GameGamificationHandler:
+        arguments:
+            $logger: '@monolog.logger.gamification'
+
+    # Sentry before_send hook — must be public for the Sentry bundle to wire it.
+    App\Observability\SentryScrubber:
+        public: true
+
     # Education question generators — tagged for injection into GameSessionManager
     App\Service\Education\QcmQuestionGenerator:
         tags: ['education.question_generator']
@@ -36,6 +69,14 @@ services:
     App\Service\Education\GameSessionManager:
         arguments:
             $generators: !tagged_iterator education.question_generator
+
+    App\Service\Education\AcademyManager:
+        arguments:
+            $cache: '@academy.cache'
+
+    App\EventListener\AcademyCacheInvalidator:
+        arguments:
+            $cache: '@academy.cache'
 
     App\Service\NewsletterService:
         arguments:

@@ -1,0 +1,101 @@
+{#
+  Spice option card used by IntrusGame / SurvivalGame / ChronoGame option grids.
+  Shared shape: image-or-fallback icon + name + group/color strip, selectable via
+  a Live Component action.
+
+  Arguments:
+    option        — {id, name, file?, color?, groupName?}
+    action        — live action name (e.g. 'answer', 'pick')
+    paramName     — data-live-*-param name ('spiceId' by default)
+    sizeClass     — 'md' (default) or 'sm' (smaller icon + no group line)
+    showGroupLine — bool, default true: renders groupName under the option name
+
+  Alpine state is local to this card via `submitting/selected` — keep the grid
+  wrapper's x-data for shared state off this macro's surface.
+#}
+{#
+  feedback_card — non-interactive card for post-answer reveal.
+  feedbackState: 'intrus-right' | 'intrus-wrong' | 'wrong-pick' | null (neutral/dimmed)
+#}
+{% macro feedback_card(option, feedbackState = null, sizeClass = 'md') %}
+    {% set iconBox = sizeClass == 'sm' ? 'w-10 h-10 text-lg' : 'w-12 h-12 text-xl' %}
+    {% if feedbackState == 'intrus-right' %}
+        {% set cardCls = 'border-saffron-400 bg-cream' %}
+        {% set tag = { label: 'Intrus ✓', cls: 'bg-saffron-100 text-saffron-700' } %}
+    {% elseif feedbackState == 'intrus-wrong' %}
+        {% set cardCls = 'border-green-400 bg-green-50' %}
+        {% set tag = { label: 'Intrus', cls: 'bg-green-100 text-green-700' } %}
+    {% elseif feedbackState == 'wrong-pick' %}
+        {% set cardCls = 'border-paprika-400 bg-paprika-50' %}
+        {% set tag = { label: 'Votre choix', cls: 'bg-paprika-100 text-paprika-700' } %}
+    {% else %}
+        {% set cardCls = 'border-stone-200 bg-white opacity-70' %}
+        {% set tag = null %}
+    {% endif %}
+    <div class="relative p-4 rounded-2xl border-2 {{ cardCls }}">
+        <div class="flex items-center gap-3">
+            {% if option.file %}
+                <img src="{{ asset('uploads/spices/' ~ option.file) }}"
+                     alt="{{ option.name }}"
+                     class="{{ iconBox }} rounded-xl object-cover shrink-0">
+            {% else %}
+                <div class="{{ iconBox }} rounded-xl flex items-center justify-center shrink-0"
+                     style="background-color: {{ option.color ?? '#f5f5f4' }}20">
+                    <i class="fa-solid fa-seedling" style="color: {{ option.color ?? '#78716c' }}"></i>
+                </div>
+            {% endif %}
+            <div class="min-w-0">
+                <p class="font-semibold text-stone-800 leading-tight">{{ option.name }}</p>
+                {% if option.groupName is defined and option.groupName %}
+                    <p class="text-xs text-stone-500 mt-0.5 flex items-center gap-1.5">
+                        {% if option.color is defined and option.color %}
+                            <span class="w-2 h-2 rounded-full shrink-0"
+                                  style="background-color: {{ option.color }}"></span>
+                        {% endif %}
+                        {{ option.groupName }}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+        {% if tag %}
+            <span class="absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full {{ tag.cls }}">
+                {{ tag.label }}
+            </span>
+        {% endif %}
+    </div>
+{% endmacro %}
+
+{% macro option(option, action, paramName = 'spice-id', sizeClass = 'md', showGroupLine = true) %}
+    {% set iconBox = sizeClass == 'sm' ? 'w-10 h-10 text-lg' : 'w-12 h-12 text-xl' %}
+    <button type="button"
+            data-action="live#action"
+            data-live-action-param="{{ action }}"
+            data-live-{{ paramName }}-param="{{ option.id }}"
+            data-loading="addAttribute(disabled)"
+            @click="pick({{ option.id }})"
+            :class="cardClass({{ option.id }})"
+            class="relative p-4 rounded-xl border border-stone-200 bg-white hover:bg-cream hover:border-saffron-300 transition-all text-left group disabled:opacity-75 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30">
+        <div class="flex items-center gap-3">
+            {% if option.file %}
+                <img src="{{ asset('uploads/spices/' ~ option.file) }}"
+                     alt="{{ option.name }}"
+                     class="{{ iconBox|split(' ')|slice(0, 2)|join(' ') }} rounded-lg object-cover">
+            {% else %}
+                <div class="{{ iconBox }} rounded-lg flex items-center justify-center"
+                     style="background-color: {{ option.color ?? '#f5f5f4' }}20">
+                    <i class="fa-solid fa-seedling" style="color: {{ option.color ?? '#78716c' }}"></i>
+                </div>
+            {% endif %}
+            <div>
+                <p class="font-semibold text-{{ sizeClass == 'sm' ? 'sm' : 'base' }} text-stone-800 group-hover:text-saffron-700 transition-colors">
+                    {{ option.name }}
+                </p>
+                {% if showGroupLine and option.groupName is defined and option.groupName %}
+                    <p class="text-xs text-stone-500">{{ option.groupName }}</p>
+                {% elseif option.color is defined and option.color %}
+                    <div class="w-3 h-3 rounded-full mt-1" style="background-color: {{ option.color }}"></div>
+                {% endif %}
+            </div>
+        </div>
+    </button>
+{% endmacro %}

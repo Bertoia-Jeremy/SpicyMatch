@@ -41,6 +41,14 @@ class GamificationNotificationSubscriber implements EventSubscriberInterface
             return;
         }
 
+        $request = $event->getRequest();
+
+        // Skip Turbo Frame requests — their partial HTML is swapped into an existing frame,
+        // any toast injected here would land inside the frame and be lost.
+        if ($request->headers->get('Turbo-Frame') !== null) {
+            return;
+        }
+
         $response = $event->getResponse();
 
         // Only inject into HTML responses
@@ -49,9 +57,27 @@ class GamificationNotificationSubscriber implements EventSubscriberInterface
             return;
         }
 
+        $content = $response->getContent();
+        if ($content === false) {
+            return;
+        }
+
+        // Must have a closing </body> to inject — abort silently otherwise, keep notifications pending.
+        $bodyPos = strrpos($content, '</body>');
+        if ($bodyPos === false) {
+            return;
+        }
+
         $token = $this->tokenStorage->getToken();
         $user = $token?->getUser();
         if (! $user instanceof Users) {
+            return;
+        }
+
+        // Opt-out respected end-to-end: if the user has disabled gamification
+        // we skip injection — pending notifications stay undelivered until
+        // they re-enable it (or get pruned by cleanup command).
+        if ($user->getProgression()?->isGamificationEnabled() === false) {
             return;
         }
 
@@ -71,9 +97,6 @@ class GamificationNotificationSubscriber implements EventSubscriberInterface
 
         $this->em->flush();
 
-        $content = $response->getContent();
-        if ($content !== false) {
-            $response->setContent(str_replace('</body>', $turboHtml . '</body>', $content));
-        }
+        $response->setContent(substr_replace($content, $turboHtml, $bodyPos, 0));
     }
 }

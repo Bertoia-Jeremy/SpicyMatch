@@ -3,28 +3,23 @@
 
   Usage :
     Inclure ce composant UNE FOIS dans la page qui contient la grille de cartes.
-    Les cartes émettent un event custom "open-spice-modal" avec { url: '/epices/42' }.
+    Les cartes émettent un event custom "open-spice-modal" avec { url, fullUrl }.
     Ce composant l'attrape et charge le contenu via Turbo Frame.
 
   Dépendances :
-    - Alpine.js (x-data, x-show, x-bind, @keydown.escape, x-transition)
+    - Alpine.js (quickSpiceView dans alpine_components.js)
     - @hotwired/turbo (turbo-frame)
-    - Le template view.html.twig doit contenir <turbo-frame id="spice_quick_view">
+    - Le template _quick_view.html.twig fournit la structure 2-col
 #}
 <div
-    x-data="{ modalOpen: false, selectedUrl: null, fullPageUrl: null }"
-    @open-spice-modal.window="
-        selectedUrl = $event.detail.url;
-        fullPageUrl = $event.detail.fullUrl ?? $event.detail.url;
-        modalOpen = true;
-    "
-    @keydown.escape.window="modalOpen = false">
+    x-data="quickSpiceView"
+    @open-spice-modal.window="openSpice($event)"
+    @keydown.escape.window="close">
 
-    {# ── Overlay + panneau ── #}
     <div
         x-show="modalOpen"
         x-cloak
-        class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100"
@@ -33,68 +28,62 @@
         x-transition:leave-end="opacity-0">
 
         {# Backdrop #}
-        <div class="modal-backdrop absolute inset-0" @click="modalOpen = false" aria-hidden="true"></div>
+        <div class="absolute inset-0 bg-stone-900/40 backdrop-blur-[6px]"
+             @click="close" aria-hidden="true"></div>
 
-        {# Panneau #}
+        {# Panel #}
         <div
-            class="relative bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-2xl max-h-[92vh] sm:max-h-[85vh] overflow-y-auto flex flex-col"
-            x-transition:enter="transition ease-out duration-250"
-            x-transition:enter-start="opacity-0 translate-y-8 sm:translate-y-0 sm:scale-95"
-            x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+            role="dialog"
+            aria-modal="true"
+            class="relative w-full max-w-[880px] max-h-[90vh] overflow-hidden
+                   bg-cream rounded-[18px] shadow-2xl"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 translate-y-5 scale-[0.98]"
+            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
             x-transition:leave="transition ease-in duration-150"
-            x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-            x-transition:leave-end="opacity-0 translate-y-8 sm:translate-y-0 sm:scale-95">
-
-            {# Drag handle mobile #}
-            <div class="sm:hidden flex justify-center pt-3 pb-1 shrink-0">
-                <div class="w-10 h-1 bg-stone-200 rounded-full"></div>
-            </div>
+            x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+            x-transition:leave-end="opacity-0 translate-y-3 scale-[0.98]">
 
             {# Bouton fermer #}
             <button
-                @click="modalOpen = false"
-                class="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center bg-stone-100 hover:bg-stone-200 text-stone-500 rounded-full transition-colors"
-                aria-label="Fermer">
+                @click="close"
+                aria-label="Fermer"
+                class="absolute top-4 right-4 z-20 size-8 flex items-center justify-center
+                       bg-cream/90 backdrop-blur-sm border border-stone-200 rounded-full
+                       text-stone-500 hover:text-saffron-600 hover:bg-white transition-colors shadow-sm">
                 <i class="fa-solid fa-xmark text-sm"></i>
             </button>
 
-            {# ── Turbo Frame — charge /epices/{id} ── #}
+            {# Turbo Frame — charge _quick_view.html.twig (structure 2-col) #}
             <turbo-frame
                 id="spice_quick_view"
                 x-bind:src="modalOpen ? selectedUrl : null"
                 loading="lazy"
-                class="flex-1">
+                class="block">
 
-                {# Skeleton affiché pendant le chargement (Turbo pose aria-busy="true") #}
-                <div class="p-6">
-                    <div class="flex gap-4 mb-5">
-                        <div class="skeleton-pulse w-24 h-24 rounded-2xl shrink-0"></div>
-                        <div class="flex-1 space-y-2.5">
-                            <div class="skeleton-pulse h-5 w-3/4 rounded"></div>
-                            <div class="skeleton-pulse h-3.5 w-1/3 rounded"></div>
-                            <div class="skeleton-pulse h-3 w-full rounded"></div>
-                            <div class="skeleton-pulse h-3 w-5/6 rounded"></div>
+                {# Skeleton pendant chargement Turbo #}
+                <div class="grid sm:grid-cols-[300px_1fr]">
+                    <div class="skeleton-pulse min-h-[220px] sm:min-h-[400px]"></div>
+                    <div class="p-7 space-y-4">
+                        <div class="skeleton-pulse h-3 w-28 rounded"></div>
+                        <div class="skeleton-pulse h-9 w-3/4 rounded"></div>
+                        <div class="flex gap-2 pt-1">
+                            <div class="skeleton-pulse h-6 w-20 rounded-full"></div>
+                            <div class="skeleton-pulse h-6 w-16 rounded-full"></div>
+                        </div>
+                        <div class="skeleton-pulse h-3 w-full rounded mt-2"></div>
+                        <div class="skeleton-pulse h-3 w-5/6 rounded"></div>
+                        <div class="skeleton-pulse h-3 w-4/5 rounded"></div>
+                        <div class="flex gap-2 pt-3">
+                            <div class="skeleton-pulse h-7 w-24 rounded-full"></div>
+                            <div class="skeleton-pulse h-7 w-20 rounded-full"></div>
+                            <div class="skeleton-pulse h-7 w-28 rounded-full"></div>
                         </div>
                     </div>
-                    <div class="skeleton-pulse h-3 w-full rounded mb-2"></div>
-                    <div class="skeleton-pulse h-3 w-4/5 rounded mb-6"></div>
-                    <div class="flex gap-2">
-                        <div class="skeleton-pulse h-6 w-20 rounded-full"></div>
-                        <div class="skeleton-pulse h-6 w-16 rounded-full"></div>
-                        <div class="skeleton-pulse h-6 w-24 rounded-full"></div>
-                    </div>
+                    <div class="sm:col-span-2 h-14 border-t border-stone-200 skeleton-pulse"></div>
                 </div>
             </turbo-frame>
 
-            {# ── Footer — lien page complète ── #}
-            <div class="shrink-0 border-t border-stone-100 px-6 py-4 flex items-center justify-between bg-cream/80">
-                <p class="text-xs text-stone-400">Aperçu rapide</p>
-                <a :href="fullPageUrl"
-                   class="inline-flex items-center gap-1.5 text-sm font-semibold text-saffron-700 hover:text-saffron-600 transition-colors">
-                    Voir la fiche complète
-                    <i class="fa-solid fa-arrow-right text-xs"></i>
-                </a>
-            </div>
         </div>
     </div>
 </div>

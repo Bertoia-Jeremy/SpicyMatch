@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gamification · Aide{% endblock %}
+
+{% block body %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <nav class="text-sm text-stone-500 mb-4">
+        <a href="{{ path('help_index') }}" class="hover:text-saffron-600">← Centre d'aide</a>
+    </nav>
+
+    <h1 class="text-3xl font-bold text-stone-800 mb-6">Gamification</h1>
+
+    <section class="prose prose-stone max-w-none mb-8">
+        <h2>XP et niveaux</h2>
+        <p>
+            Chaque action sur le site te rapporte de l'expérience (XP). Ton niveau est calculé à partir de ton XP total
+            avec une courbe progressive : <code>niveau = ⌊(xp / 100)<sup>1/1.3</sup>⌋ + 1</code>. Plus tu montes,
+            plus chaque niveau demande d'XP — mais il n'y a pas de plafond.
+        </p>
+
+        <h3>Comment gagner de l'XP</h3>
+        <ul>
+            <li><strong>+10 XP</strong> — sauvegarder un mélange dans le lab</li>
+            <li><strong>+5 XP</strong> — consulter une nouvelle fiche épice (une seule fois par jour par épice)</li>
+            <li><strong>+75 XP</strong> — trouver un easter egg</li>
+            <li><strong>Variable</strong> — terminer une partie de l'Académie (selon mode / difficulté)</li>
+            <li><strong>Bonus</strong> — déblocage d'un succès (+10 à +200 XP selon rareté)</li>
+        </ul>
+
+        <h2>Reading streak</h2>
+        <p>
+            Tu maintiens un <strong>reading streak</strong> tant que tu consultes au moins une nouvelle fiche épice
+            chaque jour. Une journée sautée réinitialise le compteur. Certains succès récompensent les longues séries.
+        </p>
+
+        <h2>Limites quotidiennes</h2>
+        <p>
+            Pour éviter le farming, l'Académie limite à <strong>5 parties par mode et par jour</strong>.
+            À partir de la 4<sup>e</sup> partie d'un même mode, l'XP gagné est <strong>réduit de 50 %</strong> —
+            la progression reste possible mais la course au score perd son intérêt.
+        </p>
+
+        <h2>Désactiver la gamification</h2>
+        <p>
+            Depuis <a href="{{ path('configuration_user') }}" class="text-saffron-600 hover:underline">ta configuration</a>,
+            tu peux désactiver complètement la gamification : plus de toasts, plus de bannière XP, plus de badge d'avatar.
+            Tes données restent intactes et la fonctionnalité reste réactivable à tout moment.
+        </p>
+    </section>
+</div>
+{% endblock %}

@@ -14,6 +14,14 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class AchievementRepository extends ServiceEntityRepository
 {
+    /**
+     * Per-request cache: avoids N+1 when the same trigger is fetched multiple times
+     * in one HTTP request (e.g. GamificationManager + AchievementChecker).
+     *
+     * @var array<string, Achievement[]>|null
+     */
+    private ?array $enabledByTrigger = null;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Achievement::class);
@@ -24,12 +32,40 @@ class AchievementRepository extends ServiceEntityRepository
      */
     public function findByTrigger(AchievementTrigger $trigger): array
     {
-        return $this->createQueryBuilder('a')
-            ->where('a.trigger = :trigger')
-            ->setParameter('trigger', $trigger)
+        if ($this->enabledByTrigger === null) {
+            $this->warmEnabledCache();
+        }
+
+        return $this->enabledByTrigger[$trigger->value] ?? [];
+    }
+
+    /**
+     * Prime the per-request cache with all enabled achievements, grouped by trigger.
+     * One SELECT instead of N (one per trigger).
+     */
+    private function warmEnabledCache(): void
+    {
+        $all = $this->createQueryBuilder('a')
+            ->where('a.enabled = :enabled')
+            ->setParameter('enabled', true)
             ->getQuery()
             ->getResult()
         ;
+
+        $byTrigger = [];
+        foreach ($all as $achievement) {
+            $byTrigger[$achievement->getTrigger()->value][] = $achievement;
+        }
+
+        $this->enabledByTrigger = $byTrigger;
+    }
+
+    /**
+     * Force cache invalidation (used after admin mutation via CRUD).
+     */
+    public function resetEnabledCache(): void
+    {
+        $this->enabledByTrigger = null;
     }
 
     /**

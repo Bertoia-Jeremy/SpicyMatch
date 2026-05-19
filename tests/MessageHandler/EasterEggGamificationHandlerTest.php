@@ -9,11 +9,13 @@ use App\Entity\Users;
 use App\Gamification\GamificationManagerInterface;
 use App\Message\EasterEggFoundEvent;
 use App\MessageHandler\EasterEggGamificationHandler;
+use App\Repository\ProcessedGamificationEventRepository;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 #[AllowMockObjectsWithoutExpectations]
 final class EasterEggGamificationHandlerTest extends TestCase
@@ -24,6 +26,8 @@ final class EasterEggGamificationHandlerTest extends TestCase
 
     private EntityManagerInterface&MockObject $em;
 
+    private ProcessedGamificationEventRepository&MockObject $processedEvents;
+
     private EasterEggGamificationHandler $handler;
 
     protected function setUp(): void
@@ -31,7 +35,17 @@ final class EasterEggGamificationHandlerTest extends TestCase
         $this->usersRepo = $this->createMock(UsersRepository::class);
         $this->manager = $this->createMock(GamificationManagerInterface::class);
         $this->em = $this->createMock(EntityManagerInterface::class);
-        $this->handler = new EasterEggGamificationHandler($this->usersRepo, $this->manager, $this->em);
+        $this->processedEvents = $this->createMock(ProcessedGamificationEventRepository::class);
+        $this->processedEvents->method('claim')
+            ->willReturn(true);
+
+        $this->handler = new EasterEggGamificationHandler(
+            $this->usersRepo,
+            $this->manager,
+            $this->em,
+            $this->processedEvents,
+            new NullLogger(),
+        );
     }
 
     public function testReturnsEarlyWhenUserNotFound(): void

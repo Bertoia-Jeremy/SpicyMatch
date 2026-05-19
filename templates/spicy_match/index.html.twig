@@ -5,44 +5,60 @@
 {% endblock %}
 
 {% block body %}
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div class="text-center mb-8">
-            <h1 class="font-display text-4xl md:text-5xl font-bold text-stone-900">
-                <i class="fa-solid fa-fire text-saffron-600 mr-2"></i>Le Lab
-            </h1>
-            <p class="mt-2 text-stone-500">Sélectionnez vos épices, l'algorithme trouve les associations parfaites.</p>
-        </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-4">
 
-        {% if is_granted('ROLE_USER') and app.user.progression %}
-        <div class="flex justify-center mb-6">
-            <div class="inline-flex items-center gap-2 bg-turmeric-300/20 border border-turmeric-400/30
-                        text-turmeric-700 text-xs font-semibold px-4 py-2 rounded-full">
-                <i class="fa-solid fa-star text-turmeric-500"></i>
-                +50 XP par mélange sauvegardé — Niveau {{ app.user.progression.level }} actuel
+        {# ── Hero ── #}
+        <div class="text-center pb-8">
+
+            {# Eyebrow #}
+            <div class="inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.18em] uppercase
+                        text-stone-500 px-3 py-1.5 rounded-full bg-stone-100 border border-stone-200 mb-5">
+                <span class="size-1.5 rounded-full bg-saffron-500 flex-none"></span>
+                Étape 1 — Sélection
             </div>
-        </div>
-        {% endif %}
 
-        <div class="flex items-center justify-center mb-8 text-xs font-bold uppercase tracking-widest">
-            <span class="flex items-center gap-2 text-saffron-700">
-                <span class="w-6 h-6 rounded-full bg-saffron-700 text-cream flex items-center justify-center text-[10px]">1</span>
-                Sélectionner
-            </span>
-            <span class="w-10 h-px bg-stone-300 mx-3"></span>
-            <span class="flex items-center gap-2 text-stone-400">
-                <span class="w-6 h-6 rounded-full bg-stone-200 text-stone-500 flex items-center justify-center text-[10px]">2</span>
-                Analyser
-            </span>
-            <span class="w-10 h-px bg-stone-300 mx-3"></span>
-            <span class="flex items-center gap-2 text-stone-400">
-                <span class="w-6 h-6 rounded-full bg-stone-200 text-stone-500 flex items-center justify-center text-[10px]">3</span>
-                Sauvegarder
-            </span>
-        </div>
+            {# Title #}
+            <h1 class="font-display font-normal text-[clamp(2.5rem,7vw,4.75rem)]
+                       leading-[0.96] tracking-tight text-stone-900 mb-3">
+                Le Lab,<br>
+                <span class="text-saffron-600 italic font-light">l'atelier des saveurs</span>
+            </h1>
+
+            {# Description #}
+            <p class="text-base text-stone-500 max-w-lg mx-auto leading-relaxed mb-5">
+                Choisissez vos épices comme on dispose ses ingrédients sur un plan de travail.
+                L'algorithme révèle les associations qui chantent ensemble.
+            </p>
+
+            {# Stepper #}
+            <div class="flex items-center justify-center max-w-xs mx-auto gap-0">
+                <div class="flex items-center gap-2.5">
+                    <span class="size-7 rounded-full bg-saffron-600 text-white flex items-center justify-center
+                                 text-[11px] font-bold shadow-sm shadow-saffron-600/30 flex-none">1</span>
+                    <span class="font-display text-[12px] tracking-[0.15em] uppercase font-medium text-stone-800 whitespace-nowrap">Sélectionner</span>
+                </div>
+                <div class="flex-1 h-px mx-3"
+                     style="background: repeating-linear-gradient(to right, #d6d3d1 0 4px, transparent 4px 8px)"></div>
+                <div class="flex items-center gap-2.5">
+                    <span class="size-7 rounded-full border border-stone-300 bg-stone-50 text-stone-400 flex items-center justify-center
+                                 text-[11px] font-semibold flex-none">2</span>
+                    <span class="font-display text-[12px] tracking-[0.15em] uppercase text-stone-400 whitespace-nowrap">Analyser</span>
+                </div>
+                <div class="flex-1 h-px mx-3"
+                     style="background: repeating-linear-gradient(to right, #d6d3d1 0 4px, transparent 4px 8px)"></div>
+                <div class="flex items-center gap-2.5">
+                    <span class="size-7 rounded-full border border-stone-300 bg-stone-50 text-stone-400 flex items-center justify-center
+                                 text-[11px] font-semibold flex-none">3</span>
+                    <span class="font-display text-[12px] tracking-[0.15em] uppercase text-stone-400 whitespace-nowrap">Sauvegarder</span>
+                </div>
+            </div>
+
+        </div>{# fin hero #}
 
         {# Quick View Modal — hors du LiveComponent pour éviter le reset Alpine au re-render #}
         {% include 'components/_spice_modal.html.twig' %}
 
         {{ component('SpicyMatch') }}
+
     </div>
 {% endblock %}

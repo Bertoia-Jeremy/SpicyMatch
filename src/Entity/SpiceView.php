@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: SpiceViewRepository::class)]
 #[ORM\Table(name: 'spice_view')]
 #[ORM\UniqueConstraint(name: 'spice_view_user_spice_day', columns: ['user_id', 'spice_id', 'viewed_day'])]
+#[ORM\Index(name: 'idx_sv_user_day', columns: ['user_id', 'viewed_day'])]
 class SpiceView
 {
     #[ORM\Id]

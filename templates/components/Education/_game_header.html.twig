@@ -1,0 +1,94 @@
+{#
+  Macro shared by all Live Component game templates.
+  Renders the header (icon + title + subtitle + progress + right-hand score).
+
+  Usage:
+    {% import 'components/Education/_game_header.html.twig' as game_header %}
+    {{ game_header.header(
+        icon = 'fa-solid fa-ban',
+        title = 'Hors Saison',
+        subtitle = 'Trouve l\\'intrus',
+        current = this.questionNumber,
+        total = this.totalQuestions,
+        scoreLabel = this.correctCount ~ ' correctes',
+    ) }}
+
+  Any optional arg left null simply skips its rendering.
+#}
+{% macro header(icon, title, subtitle = null, current = null, total = null, scoreLabel = null, quitUrl = null, useProgressBar = true) %}
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+            {% if quitUrl %}
+                <button type="button"
+                        x-data="confirmQuit('{{ quitUrl }}')"
+                        @click="quit()"
+                        data-turbo="false"
+                        aria-label="Quitter la partie"
+                        class="btn-pill-outline text-sm py-1.5 px-3 shrink-0">
+                    <i class="fa-solid fa-arrow-left text-xs mr-1.5" aria-hidden="true"></i>Retour
+                </button>
+            {% endif %}
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600 shrink-0">
+                <i class="{{ icon }}"></i>
+            </div>
+            <div>
+                <h2 class="text-lg font-bold text-stone-800">{{ title }}</h2>
+                {% if subtitle %}
+                    <p class="text-xs text-stone-500">{{ subtitle }}</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="flex items-center gap-3 text-sm">
+            {% if current is not null and total is not null %}
+                <span class="tag-secondary">{{ current }}/{{ total }}</span>
+            {% endif %}
+            {% if scoreLabel %}
+                <span class="font-semibold text-saffron-600">{{ scoreLabel|raw }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if useProgressBar and current is not null and total is not null and total > 0 %}
+        <div class="w-full bg-stone-200 rounded-full h-2 mb-8">
+            <div class="bg-saffron-500 h-2 rounded-full transition-all duration-300"
+                 style="width: {{ (current / total) * 100 }}%"></div>
+        </div>
+    {% endif %}
+{% endmacro %}
+
+{# Dot-based progress — 10 segments colored ok/bad/current/empty. Replaces the bar when games need per-question state. #}
+{% macro progress_dots(answers, questionNumber, totalQuestions) %}
+    <div class="flex items-center gap-1.5 mb-6" role="progressbar"
+         aria-valuenow="{{ questionNumber }}" aria-valuemax="{{ totalQuestions }}">
+        {% for i in 1..totalQuestions %}
+            {% if i <= answers|length %}
+                {% set cls = answers[i - 1].correct ? 'bg-green-400' : 'bg-paprika-400' %}
+            {% elseif i == questionNumber %}
+                {% set cls = 'bg-saffron-500 animate-pulse' %}
+            {% else %}
+                {% set cls = 'bg-stone-200' %}
+            {% endif %}
+            <div class="h-2 rounded-full flex-1 transition-all duration-300 {{ cls }}"></div>
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+{# Summary circle + button for game-over / time-up states. #}
+{% macro game_over_summary(circleLabel, title, paragraphHtml, buttonLabel, buttonAction, variant = 'success') %}
+    {% set borderClass = variant == 'failure'
+        ? 'border-paprika-400 text-paprika-700'
+        : 'border-turmeric-400 text-turmeric-700' %}
+    <div class="text-center py-12">
+        <div class="w-24 h-24 mx-auto mb-6 rounded-full border-8 flex items-center justify-center {{ borderClass }}">
+            <div class="text-2xl font-bold">{{ circleLabel }}</div>
+        </div>
+        <h3 class="text-xl font-bold text-stone-800 mb-2">{{ title }}</h3>
+        {# |raw needed: SurvivalGame passes <strong> HTML for spice name in defeat message #}
+        <p class="text-stone-600 mb-6">{{ paragraphHtml|raw }}</p>
+        <button data-action="live#action"
+                data-live-action-param="{{ buttonAction }}"
+                class="btn-pill-primary">
+            <i class="fa-solid fa-flag-checkered mr-2"></i>{{ buttonLabel }}
+        </button>
+    </div>
+{% endmacro %}

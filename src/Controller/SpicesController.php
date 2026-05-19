@@ -71,6 +71,7 @@ class SpicesController extends AbstractController
 
         return $this->render('spices/view.html.twig', [
             'spice' => $spice,
+            'relatedSpices' => $this->spicesRepository->findRelated($spice, 4),
         ]);
     }
 

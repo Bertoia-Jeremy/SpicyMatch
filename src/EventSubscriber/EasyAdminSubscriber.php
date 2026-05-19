@@ -19,6 +19,9 @@ class EasyAdminSubscriber implements EventSubscriberInterface
         ];
     }
 
+    /**
+     * @param BeforeEntityPersistedEvent<object> $event
+     */
     public function setDefaultInput(BeforeEntityPersistedEvent $event): void
     {
         $instance = $event->getEntityInstance();
@@ -33,6 +36,9 @@ class EasyAdminSubscriber implements EventSubscriberInterface
         $this->setCookingTipsStep($instance);
     }
 
+    /**
+     * @param BeforeEntityUpdatedEvent<object> $event
+     */
     public function setDefaultInput2(BeforeEntityUpdatedEvent $event): void
     {
         $instance = $event->getEntityInstance();

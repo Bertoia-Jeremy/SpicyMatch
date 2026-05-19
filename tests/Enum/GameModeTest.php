@@ -14,9 +14,9 @@ class GameModeTest extends TestCase
         self::assertTrue(GameMode::QCM->isEnabled());
     }
 
-    public function testSurvivalIsNotEnabled(): void
+    public function testSurvivalIsEnabled(): void
     {
-        self::assertFalse(GameMode::SURVIVAL->isEnabled());
+        self::assertTrue(GameMode::SURVIVAL->isEnabled());
     }
 
     public function testXpPerCorrect(): void
@@ -28,6 +28,6 @@ class GameModeTest extends TestCase
 
     public function testLabel(): void
     {
-        self::assertSame('QCM - Mélange à trou', GameMode::QCM->label());
+        self::assertSame('Le Choix du Chef', GameMode::QCM->label());
     }
 }

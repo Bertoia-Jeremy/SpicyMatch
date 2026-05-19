@@ -1,0 +1,179 @@
+{% import 'components/Education/_game_header.html.twig' as game_header %}
+{% import 'components/Education/_option_card.html.twig' as option_card %}
+
+<div {{ attributes }}
+     x-data="{
+       selectedId: null,
+       submitting: false,
+       pick(id) { if (!this.submitting) this.selectedId = id; },
+       get canValidate() { return this.selectedId !== null && !this.submitting; },
+       handleKey(e) {
+         const map = { a: 0, b: 1, c: 2, d: 3 };
+         const idx = map[e.key.toLowerCase()];
+         if (idx !== undefined) {
+           const btns = this.$el.querySelectorAll('.opt-btn');
+           if (btns[idx]) this.pick(parseInt(btns[idx].dataset.optId));
+         }
+         if (e.key === 'Enter') {
+           const btn = this.$el.querySelector('[data-live-action-param=answer]:not([disabled]),[data-live-action-param=next]');
+           if (btn) btn.click();
+         }
+       }
+     }"
+     @keydown.window="handleKey($event)">
+
+  {# HEADER — progress bar remplacée par progress_dots ci-dessous #}
+  {{ game_header.header(
+      icon = 'fa-solid fa-ban',
+      title = 'Hors Saison',
+      subtitle = this.isInverted ? 'Trouve le compatible' : 'Trouve l\'intrus',
+      current = this.questionNumber,
+      total = this.totalQuestions,
+      scoreLabel = this.correctCount ~ ' <i class="fa-solid fa-check text-xs text-green-600"></i>&nbsp;' ~ this.incorrectCount ~ ' <i class="fa-solid fa-xmark text-xs text-paprika-500"></i>',
+      quitUrl = path('education_briefing', { mode: 'intrus', difficulty: this.difficulty }),
+      useProgressBar = false,
+  ) }}
+
+  {# PROGRESS DOTS #}
+  {{ game_header.progress_dots(this.answers, this.questionNumber, this.totalQuestions) }}
+
+  {# PROMPT + FAMILY CHIP #}
+  <div class="text-center mb-6">
+    {% if this.familyName %}
+      <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-100 border border-stone-200 text-sm text-stone-700 mb-3">
+        {% if this.familyColor %}
+          <span class="w-3 h-3 rounded-full shrink-0" style="background-color: {{ this.familyColor }}"></span>
+        {% endif %}
+        {{ this.familyName }}
+      </span>
+    {% endif %}
+    {% if this.baseSpiceName %}
+      <p class="text-xs text-stone-500 uppercase tracking-widest mb-1">Épice de référence</p>
+      <p class="text-xl font-bold text-stone-800 mb-2">{{ this.baseSpiceName }}</p>
+    {% endif %}
+    <p class="text-stone-700">{{ this.prompt }}</p>
+  </div>
+
+  {% if not this.showFeedback %}
+    {# ── PHASE QUESTION ── #}
+    <div class="grid grid-cols-2 gap-3.5 mb-4">
+      {% for option in this.options %}
+        {% set letter = ['A', 'B', 'C', 'D'][loop.index0] %}
+        <button type="button"
+                class="opt-btn relative p-4 rounded-2xl border-2 text-left transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30"
+                data-opt-id="{{ option.id }}"
+                @click="pick({{ option.id }})"
+                :class="selectedId === {{ option.id }}
+                    ? 'border-saffron-400 bg-cream shadow-[0_0_0_3px_rgba(224,122,60,0.16)]'
+                    : 'border-stone-200 bg-white hover:bg-cream hover:border-saffron-300'">
+          <div class="flex items-center gap-3">
+            {% if option.file %}
+              <img src="{{ asset('uploads/spices/' ~ option.file) }}"
+                   alt="{{ option.name }}"
+                   class="w-12 h-12 rounded-xl object-cover shrink-0">
+            {% else %}
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                   style="background-color: {{ option.color ?? '#f5f5f4' }}20">
+                <i class="fa-solid fa-seedling" style="color: {{ option.color ?? '#78716c' }}"></i>
+              </div>
+            {% endif %}
+            <div class="min-w-0">
+              <p class="font-semibold text-stone-800 leading-tight">{{ option.name }}</p>
+              {% if option.groupName is defined and option.groupName %}
+                <p class="text-xs text-stone-500 mt-0.5 flex items-center gap-1.5">
+                  {% if option.color is defined and option.color %}
+                    <span class="w-2 h-2 rounded-full shrink-0" style="background-color: {{ option.color }}"></span>
+                  {% endif %}
+                  {{ option.groupName }}
+                </p>
+              {% endif %}
+            </div>
+          </div>
+          <span class="absolute top-2 right-2.5 text-xs font-bold transition-colors"
+                :class="selectedId === {{ option.id }} ? 'text-saffron-500' : 'text-stone-400'">
+            {{ letter }}
+          </span>
+        </button>
+      {% endfor %}
+    </div>
+
+    <div class="flex items-center justify-between gap-4">
+      <p class="text-xs text-stone-400 hidden sm:flex items-center gap-1.5 shrink-0">
+        <kbd class="px-1.5 py-0.5 rounded bg-stone-100 border border-stone-200 font-mono text-[11px]">A–D</kbd>
+        sélectionner ·
+        <kbd class="px-1.5 py-0.5 rounded bg-stone-100 border border-stone-200 font-mono text-[11px]">↵</kbd>
+        valider
+      </p>
+      <button type="button"
+              data-action="live#action"
+              data-live-action-param="answer"
+              :data-live-spice-id-param="selectedId"
+              :disabled="!canValidate"
+              @click="submitting = true"
+              class="btn-pill-primary ml-auto disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
+        <i class="fa-solid fa-check mr-2"></i>Valider
+      </button>
+    </div>
+
+  {% else %}
+    {# ── PHASE FEEDBACK ── #}
+    <div class="grid grid-cols-2 gap-3.5 mb-4">
+      {% for option in this.options %}
+        {% set isIntrus = option.name == this.lastCorrectAnswerName %}
+        {% set isWrongPick = option.id == this.lastSelectedId and not this.lastAnswerCorrect %}
+        {% if isIntrus and this.lastAnswerCorrect %}
+          {% set state = 'intrus-right' %}
+        {% elseif isIntrus %}
+          {% set state = 'intrus-wrong' %}
+        {% elseif isWrongPick %}
+          {% set state = 'wrong-pick' %}
+        {% else %}
+          {% set state = null %}
+        {% endif %}
+        {{ option_card.feedback_card(option, state) }}
+      {% endfor %}
+    </div>
+
+    {# XP et explication dérivés des LiveProps existants — pas de nouvelles props PHP #}
+    {% set compatibles = [] %}
+    {% for opt in this.options %}
+      {% if opt.name != this.lastCorrectAnswerName %}
+        {% set compatibles = compatibles|merge([opt.name]) %}
+      {% endif %}
+    {% endfor %}
+    {% set xp = this.lastAnswerCorrect
+        ? (this.difficulty == 'hard' ? 20 : (this.difficulty == 'medium' ? 15 : 10))
+        : 0 %}
+
+    <div class="rounded-2xl p-4 mb-4 border {{ this.lastAnswerCorrect ? 'bg-green-50 border-green-200' : 'bg-paprika-50 border-paprika-200' }}">
+      <div class="flex items-center gap-3 mb-2 flex-wrap">
+        <i class="fa-solid {{ this.lastAnswerCorrect ? 'fa-circle-check text-green-600' : 'fa-circle-xmark text-paprika-600' }} text-xl shrink-0"></i>
+        <h3 class="font-bold {{ this.lastAnswerCorrect ? 'text-green-800' : 'text-paprika-800' }}">
+          {{ this.lastAnswerCorrect ? 'Bonne réponse !' : 'Mauvaise réponse' }}
+        </h3>
+        {% if xp > 0 %}
+          <span class="tag-primary ml-auto">+{{ xp }} XP</span>
+        {% endif %}
+      </div>
+      {% if compatibles %}
+        <p class="text-sm text-stone-600 leading-relaxed">
+          {{ compatibles|join(', ') }}
+          {{ compatibles|length > 1 ? 'appartiennent' : 'appartient' }}
+          à la même famille aromatique{% if this.familyName %} : <b>{{ this.familyName }}</b>{% endif %}.
+        </p>
+      {% endif %}
+    </div>
+
+    <button data-action="live#action"
+            data-live-action-param="next"
+            class="btn-pill-primary w-full">
+      {% if this.questionNumber >= this.totalQuestions %}
+        <i class="fa-solid fa-flag-checkered mr-2"></i>Terminer
+      {% else %}
+        <i class="fa-solid fa-arrow-right mr-2"></i>Question suivante
+      {% endif %}
+    </button>
+
+  {% endif %}
+
+</div>

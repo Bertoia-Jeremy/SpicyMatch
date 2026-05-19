@@ -2,191 +2,327 @@
 {% import 'macros/buttons.html.twig' as buttons %}
 {% import 'macros/filters.html.twig' as filters %}
 
-<div class="w-full px-4" {{ attributes }}>
+<div class="w-full" {{ attributes }}>
     {% set compatibleSpices = this.results.compatibleSpices %}
     {% set selectedSpices = this.results.selectedSpices %}
     {% set filterCount = (this.filterAgId ? 1 : 0) + (this.filterStId ? 1 : 0) + (this.search ? 1 : 0) %}
 
-    {# ── Toggle Auto / Manuel ── #}
-    <div class="flex items-center justify-end mb-4">
-        <div class="inline-flex rounded-full bg-stone-100 p-0.5 border border-stone-200/60">
-            <label class="cursor-pointer">
-                <input type="radio" name="mode" value="auto" data-model="mode"
-                       {{ this.mode == 'auto' ? 'checked' : '' }} class="sr-only peer">
-                <span class="peer-checked:bg-white peer-checked:text-saffron-700 peer-checked:shadow-sm
-                             px-3 py-1 rounded-full text-xs font-medium text-stone-500 transition-all">
-                    <i class="fa-solid fa-wand-magic-sparkles mr-1 text-[10px]"></i>Auto
-                </span>
-            </label>
-            <label class="cursor-pointer">
-                <input type="radio" name="mode" value="manual" data-model="mode"
-                       {{ this.mode == 'manual' ? 'checked' : '' }} class="sr-only peer">
-                <span class="peer-checked:bg-white peer-checked:text-stone-700 peer-checked:shadow-sm
-                             px-3 py-1 rounded-full text-xs font-medium text-stone-500 transition-all">
-                    <i class="fa-solid fa-hand mr-1 text-[10px]"></i>Manuel
-                </span>
-            </label>
-        </div>
-    </div>
+    {# Pré-calculs floatbar #}
+    {% set selectedCount = 0 %}
+    {% for gName, spices in selectedSpices %}
+        {% set selectedCount = selectedCount + spices|length %}
+    {% endfor %}
 
-    {# ── Barre de filtres + recherche ── #}
-    <div class="flex flex-wrap items-end gap-4 sm:gap-6 mb-6">
-
-        {# Filtre Groupe Aromatique #}
-        {% set ag_content %}
-            <div class="flex flex-col gap-2">
-                {% for group in this.aromaticGroups %}
-                    <label class="flex items-center gap-3 cursor-pointer group/item">
-                        <input type="radio"
-                               name="filterAgId"
-                               value="{{ group.id }}"
-                               data-model="filterAgId"
-                               {{ this.filterAgId == group.id ? 'checked' : '' }}
-                               class="size-4 border-stone-300 text-saffron-600 focus:ring-saffron-600/20 cursor-pointer">
-                        <span class="text-sm font-medium text-stone-700 group-hover/item:text-saffron-700 transition-colors">
-                            {{ group.name }}
-                        </span>
-                    </label>
-                {% endfor %}
-            </div>
-        {% endset %}
-        {{ filters.filter_dropdown('Groupe Aromatique', ag_content, {
-            count: this.filterAgId ? 1 : 0,
-            reset_click: "$dispatch('live:action', {action: 'resetFilters'})"
-        }) }}
-
-        {# Filtre Type d'Épice #}
-        {% set st_content %}
-            <div class="flex flex-col gap-2">
-                {% for type in this.spicyTypes %}
-                    <label class="flex items-center gap-3 cursor-pointer group/item">
-                        <input type="radio"
-                               name="filterStId"
-                               value="{{ type.id }}"
-                               data-model="filterStId"
-                               {{ this.filterStId == type.id ? 'checked' : '' }}
-                               class="size-4 border-stone-300 text-saffron-600 focus:ring-saffron-600/20 cursor-pointer">
-                        <span class="text-sm font-medium text-stone-700 group-hover/item:text-saffron-700 transition-colors">
-                            {{ type.name }}
-                        </span>
-                    </label>
-                {% endfor %}
-            </div>
-        {% endset %}
-        {{ filters.filter_dropdown("Type d'Épice", st_content, {
-            count: this.filterStId ? 1 : 0,
-            reset_click: "$dispatch('live:action', {action: 'resetFilters'})"
-        }) }}
-
-        {# Barre de recherche #}
-        <div class="relative flex-1 min-w-45">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs pointer-events-none"></i>
-            <input
-                type="text"
-                data-model="search"
-                placeholder="Rechercher une épice…"
-                value="{{ this.search }}"
-                class="w-full pl-8 {{ this.search ? 'pr-8' : 'pr-3' }} py-2 bg-white border border-spice-border rounded-xl text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-saffron-600/30 focus:border-saffron-400 transition">
-            {% if this.search %}
-                <button type="button"
-                        data-action="live#action"
-                        data-live-action-param="clearSearch"
-                        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
-                        aria-label="Effacer la recherche">
-                    <i class="fa-solid fa-xmark text-xs"></i>
-                </button>
+    {% set firstThree = [] %}
+    {% for gName, spices in selectedSpices %}
+        {% for sp in spices %}
+            {% if firstThree|length < 3 %}
+                {% set firstThree = firstThree|merge([sp]) %}
             {% endif %}
-        </div>
+        {% endfor %}
+    {% endfor %}
 
-        {# Reset global #}
-        {% if filterCount > 0 %}
+    {# ── Layout 2 colonnes : main + sidebar ── #}
+    <div class="grid xl:grid-cols-[1fr_300px] gap-6">
+
+        {# ────────────── COLONNE PRINCIPALE ────────────── #}
+        <div class="min-w-0">
+
+            {# Barre de filtres + recherche + toggle — inline comme le design #}
+            <div class="flex flex-wrap items-center gap-2 mb-2 pb-4 border-b border-spice-border">
+
+                {# Filtre Groupe Aromatique #}
+                {% set ag_content %}
+                    <div class="flex flex-col gap-2">
+                        {% for group in this.aromaticGroups %}
+                            <label class="flex items-center gap-3 cursor-pointer group/item">
+                                <input type="radio"
+                                       name="filterAgId"
+                                       value="{{ group.id }}"
+                                       data-model="filterAgId"
+                                       {{ this.filterAgId == group.id ? 'checked' : '' }}
+                                       class="size-4 border-stone-300 text-saffron-600 focus:ring-saffron-600/20 cursor-pointer">
+                                <span class="text-sm font-medium text-stone-700 group-hover/item:text-saffron-700 transition-colors">
+                                    {{ group.name }}
+                                </span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                {% endset %}
+                <div data-tour="lab-aromatic-filter">
+                    {{ filters.filter_dropdown('Groupe Aromatique', ag_content, {
+                        count: this.filterAgId ? 1 : 0,
+                        reset_click: "$dispatch('live:action', {action: 'resetFilters'})",
+                        style: 'pill'
+                    }) }}
+                </div>
+
+                {# Filtre Type d'Épice #}
+                {% set st_content %}
+                    <div class="flex flex-col gap-2">
+                        {% for type in this.spicyTypes %}
+                            <label class="flex items-center gap-3 cursor-pointer group/item">
+                                <input type="radio"
+                                       name="filterStId"
+                                       value="{{ type.id }}"
+                                       data-model="filterStId"
+                                       {{ this.filterStId == type.id ? 'checked' : '' }}
+                                       class="size-4 border-stone-300 text-saffron-600 focus:ring-saffron-600/20 cursor-pointer">
+                                <span class="text-sm font-medium text-stone-700 group-hover/item:text-saffron-700 transition-colors">
+                                    {{ type.name }}
+                                </span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                {% endset %}
+                {{ filters.filter_dropdown("Type d'Épice", st_content, {
+                    count: this.filterStId ? 1 : 0,
+                    reset_click: "$dispatch('live:action', {action: 'resetFilters'})",
+                    style: 'pill'
+                }) }}
+
+                {# Barre de recherche #}
+                <div class="relative flex-1 min-w-44">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs pointer-events-none"></i>
+                    <input
+                        type="text"
+                        data-model="search"
+                        data-tour="lab-search"
+                        placeholder="Rechercher une épice…"
+                        value="{{ this.search }}"
+                        class="w-full pl-8 {{ this.search ? 'pr-8' : 'pr-3' }} py-2 bg-white border border-spice-border rounded-xl text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-saffron-600/30 focus:border-saffron-400 transition">
+                    {% if this.search %}
+                        <button type="button"
+                                data-action="live#action"
+                                data-live-action-param="clearSearch"
+                                class="absolute right-2 top-1/2 -translate-y-1/2 size-5 flex items-center justify-center rounded-full text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors"
+                                aria-label="Effacer la recherche">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
+                    {% endif %}
+                </div>
+
+                {# Reset global — uniquement quand un filtre dropdown est actif (la croix gère la recherche) #}
+                {% if this.filterAgId or this.filterStId %}
+                    <button type="button"
+                            data-action="live#action"
+                            data-live-action-param="resetFilters"
+                            class="pb-1.5 text-xs font-bold uppercase tracking-widest text-stone-400 hover:text-paprika-700 transition-colors whitespace-nowrap">
+                        Tout effacer
+                    </button>
+                {% endif %}
+
+                {# Toggle Auto / Manuel — inline dans la toolbar #}
+                <div class="inline-flex rounded-full bg-cream p-0.5 border border-spice-border shadow-sm ml-auto"
+                     data-tour="mode-toggle">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="mode" value="auto" data-model="mode"
+                               {{ this.mode == 'auto' ? 'checked' : '' }} class="sr-only peer">
+                        <span class="peer-checked:bg-white peer-checked:text-saffron-700 peer-checked:shadow-sm
+                                     px-3 py-1.5 rounded-full text-xs font-semibold text-stone-500 transition-all inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>Auto
+                        </span>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="mode" value="manual" data-model="mode"
+                               {{ this.mode == 'manual' ? 'checked' : '' }} class="sr-only peer">
+                        <span class="peer-checked:bg-white peer-checked:text-stone-700 peer-checked:shadow-sm
+                                     px-3 py-1.5 rounded-full text-xs font-semibold text-stone-500 transition-all inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-hand text-[10px]"></i>Manuel
+                        </span>
+                    </label>
+                </div>
+
+                {# Meta compteur #}
+                <span class="font-mono text-[11px] text-stone-400 whitespace-nowrap">
+                    {{ compatibleSpices|length }} épice{{ compatibleSpices|length != 1 ? 's' : '' }}
+                </span>
+            </div>
+
+            {# ── Grille épices plate ── #}
+            <form data-model="spices">
+                {% if compatibleSpices is not empty %}
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        {% for spice in compatibleSpices %}
+                            {{ macroCardSpicyMatch.cardSpicyMatch(spice, false, spice.score ?? null) }}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="w-full bg-spice-surface border border-spice-border text-stone-700 px-4 py-4 rounded-xl text-center text-sm">
+                        <i class="fa-solid fa-circle-info text-saffron-500 mr-1.5"></i>
+                        {% if this.search %}
+                            Aucune épice ne correspond à « {{ this.search }} ».
+                        {% else %}
+                            Aucune épice supplémentaire n'est compatible avec votre sélection.
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </form>
+
+        </div>{# fin colonne principale #}
+
+        {# ────────────── WORKSPACE SIDEBAR (xl+) ────────────── #}
+        <aside class="hidden xl:block">
+            <div class="workspace">
+
+                {# Entête #}
+                <div class="flex items-baseline justify-between pb-3 border-b border-spice-border">
+                    <h3 class="font-display text-lg font-medium text-stone-800">Mon mélange</h3>
+                    <span class="group-count">{{ selectedCount }}</span>
+                </div>
+
+                {# Liste des épices sélectionnées #}
+                <div class="workspace-list flex flex-col gap-2">
+                    {% if selectedCount == 0 %}
+                        <div class="ws-empty">
+                            <i class="fa-solid fa-mortar-pestle text-3xl text-stone-300"></i>
+                            <p class="text-sm leading-snug text-stone-400">
+                                Cliquez sur une <span class="font-display italic text-stone-500">épice</span> pour commencer votre mélange
+                            </p>
+                        </div>
+                    {% else %}
+                        {% for gName, spices in selectedSpices %}
+                            {# En-tête groupe dans sidebar #}
+                            <div class="flex items-center gap-2 px-1 pt-1">
+                                <span class="size-2 rounded-full flex-none"
+                                      style="background: {{ spices.0.color ?? '#888' }}"></span>
+                                <span class="font-mono text-[9.5px] uppercase tracking-widest text-stone-400 truncate flex-1">
+                                    {{ gName }}
+                                </span>
+                                <span class="font-mono text-[10px] text-stone-400 tabular-nums">{{ spices|length }}</span>
+                            </div>
+                            {% for spice in spices %}
+                                {% set wsImg = spice.file ? asset('uploads/spices/' ~ spice.file) : null %}
+                                <div class="ws-item">
+                                    <div class="ws-thumb">
+                                        {% if wsImg %}
+                                            <img src="{{ wsImg }}" alt="{{ spice.name }}" loading="lazy">
+                                        {% else %}
+                                            <div class="w-full h-full flex items-center justify-center text-stone-300">
+                                                <i class="fa-solid fa-seedling text-sm"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="font-display text-sm font-medium text-stone-800 truncate leading-tight">
+                                            {{ spice.name }}
+                                        </p>
+                                        <p class="text-[10px] font-mono uppercase tracking-wide text-stone-400 truncate">
+                                            {{ gName }}
+                                        </p>
+                                    </div>
+                                    {# Checkbox cachée (checked) — unchecking la retire du modèle LC #}
+                                    <input type="checkbox"
+                                           class="sr-only"
+                                           data-model="spices.selectedSpices"
+                                           value="{{ spice.id }}"
+                                           checked>
+                                    <button type="button"
+                                            @click.prevent="$el.previousElementSibling.click()"
+                                            class="size-6 rounded-md flex items-center justify-center shrink-0
+                                                   text-stone-400 hover:bg-stone-100 hover:text-saffron-600 transition-colors"
+                                            aria-label="Retirer {{ spice.name }}">
+                                        <i class="fa-solid fa-xmark text-xs"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                {# CTAs #}
+                <div class="flex flex-col gap-2 pt-1 border-t border-spice-border">
+                    {% if selectedCount > 0 %}
+                        <button type="button"
+                                data-action="live#action"
+                                data-live-action-param="clearSelection"
+                                class="inline-flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl
+                                       text-sm font-semibold border border-spice-border text-stone-500
+                                       hover:border-paprika-300 hover:text-paprika-700 hover:bg-paprika-50/50 transition-colors">
+                            <i class="fa-solid fa-trash-can text-xs"></i>Vider la sélection
+                        </button>
+                    {% endif %}
+                    <button type="button"
+                            data-action="live#action"
+                            data-live-action-param="nextStep"
+                            data-haptic="nudge"
+                            {% if selectedCount == 0 %}disabled{% endif %}
+                            class="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl
+                                   text-sm font-semibold bg-saffron-600 text-white shadow-sm
+                                   hover:bg-saffron-700 transition-colors
+                                   disabled:opacity-40 disabled:cursor-not-allowed">
+                        Composer le mélange<i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+
+                {# Tip footer #}
+                {% if selectedCount > 0 %}
+                    <p class="text-[11px] text-stone-400 leading-relaxed flex gap-1.5 pt-1">
+                        <i class="fa-solid fa-circle-info text-saffron-400 mt-0.5 shrink-0"></i>
+                        {{ selectedCount }} épice{{ selectedCount > 1 ? 's' : '' }} — mode
+                        <strong class="text-stone-500 font-semibold">{{ this.mode == 'auto' ? 'auto' : 'manuel' }}</strong>
+                    </p>
+                {% endif %}
+
+            </div>
+        </aside>
+
+    </div>{# fin grid 2 colonnes #}
+
+    {# ── FLOATBAR mobile (<xl) ── #}
+    <div class="floatbar">
+        {% if selectedCount == 0 %}
+            <div class="flex items-center gap-2 text-stone-400 text-sm flex-1">
+                <i class="fa-solid fa-hand-pointer text-saffron-400"></i>
+                Sélectionnez vos épices
+            </div>
+            <button type="button"
+                    disabled
+                    class="inline-flex items-center gap-2 h-10 px-4 rounded-xl
+                           text-sm font-semibold bg-stone-200 text-stone-400 cursor-not-allowed shrink-0">
+                Composer <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+        {% else %}
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+                {# Avatars épices #}
+                <div class="flex">
+                    {% for sp in firstThree %}
+                        {% set fbImg = sp.file ? asset('uploads/spices/' ~ sp.file) : null %}
+                        <div class="size-8 rounded-full border-2 border-white overflow-hidden bg-spice-surface {{ not loop.first ? '-ml-2' : '' }}">
+                            {% if fbImg %}
+                                <img src="{{ fbImg }}" alt="{{ sp.name }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <div class="w-full h-full grid place-items-center text-stone-300 text-xs">
+                                    <i class="fa-solid fa-seedling"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    {% if selectedCount > 3 %}
+                        <div class="size-8 rounded-full border-2 border-white -ml-2
+                                    bg-spice-surface flex items-center justify-center
+                                    font-mono text-[10px] text-stone-500 shrink-0">
+                            +{{ selectedCount - 3 }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="min-w-0">
+                    <p class="font-display text-sm font-medium text-stone-800 leading-tight">
+                        {{ selectedCount }} épice{{ selectedCount > 1 ? 's' : '' }}
+                    </p>
+                    <p class="font-mono text-[10px] uppercase tracking-wide text-stone-400">Sélectionnées</p>
+                </div>
+            </div>
             <button type="button"
                     data-action="live#action"
-                    data-live-action-param="resetFilters"
-                    class="pb-1.5 text-xs font-bold uppercase tracking-widest text-stone-400 hover:text-paprika-700 transition-colors">
-                Effacer tout
+                    data-live-action-param="nextStep"
+                    data-haptic="nudge"
+                    class="inline-flex items-center gap-2 h-10 px-4 rounded-xl
+                           text-sm font-semibold bg-saffron-600 text-white shadow-sm
+                           hover:bg-saffron-700 transition-colors shrink-0">
+                Composer <i class="fa-solid fa-arrow-right text-xs"></i>
             </button>
         {% endif %}
     </div>
 
-    {# Compteur #}
-    <p class="text-xs text-stone-400 text-right -mt-4 mb-4">
-        {{ compatibleSpices|length }} épice{{ compatibleSpices|length != 1 ? 's' : '' }} disponible{{ compatibleSpices|length != 1 ? 's' : '' }}
-    </p>
-
-    {% if selectedSpices is empty %}
-        <div class="w-full text-center py-6 mb-4">
-            <div class="inline-flex flex-col items-center gap-2 text-stone-400">
-                <i class="fa-solid fa-hand-pointer text-3xl text-saffron-400/60"></i>
-                <p class="text-sm font-medium">Sélectionnez vos épices ci-dessous pour commencer</p>
-                <i class="fa-solid fa-chevron-down text-xs animate-bounce text-saffron-500/50"></i>
-            </div>
-        </div>
-    {% endif %}
-
-    {% if selectedSpices is not empty %}
-        <form class="flex flex-wrap justify-around items-center" data-model="spices">
-            <div class="bg-white border border-stone-200 rounded-2xl w-full p-4 mb-6">
-                <h2 class="text-saffron-700 font-display font-semibold text-lg mb-3 p-2">Épices sélectionnées</h2>
-                <div class="flex justify-center items-center flex-wrap">
-                    {% for groupName, spices in selectedSpices %}
-                        <div class="flex flex-col mx-0">
-                            <div class="my-3">
-                                <h4 class="text-center {{ this.selectedAromaticGroup == groupName ? 'font-bold text-xl' : '' }}" style="color: {{ spices.0.color ?? '#888' }}" data-action="live#action" data-live-action-param="selectAromaticGroup" data-group-name="{{ groupName }}">{{ groupName }}</h4>
-                                <div class="w-full h-[5px]" style="background-color: {{ spices.0.color ?? '#888' }}; opacity: 0.5"></div>
-                            </div>
-                            <div class="flex justify-center items-center flex-wrap">
-                                {% for spice in spices %}
-                                    {{ macroCardSpicyMatch.cardSpicyMatch(spice, true) }}
-                                {% endfor %}
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-
-                <div class="mt-4 space-y-2">
-                    {{ buttons.button('Ajouter un groupe de mélange', {
-                        variant: 'outline',
-                        icon: 'fa-solid fa-plus text-xs',
-                        attr: {
-                            'class': 'w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed',
-                            'data-action': 'live#action',
-                            'data-live-action-param': 'addGroup',
-                            'data-haptic': 'light',
-                            'disabled': not this.canAddMoreGroups ? 'disabled' : null
-                        }
-                    }) }}
-                    {{ buttons.button('Étape suivante', {
-                        variant: 'primary',
-                        icon_pos: 'right',
-                        icon: 'fa-solid fa-arrow-right text-xs',
-                        attr: {
-                            'class': 'w-full justify-center',
-                            'data-action': 'live#action',
-                            'data-live-action-param': 'nextStep',
-                            'data-haptic': 'nudge'
-                        }
-                    }) }}
-                </div>
-            </div>
-        </form>
-    {% endif %}
-
-
-    <form class="flex flex-wrap justify-around items-center" data-model="spices">
-        {% if compatibleSpices is not empty %}
-            {% for spice in compatibleSpices %}
-                {{ macroCardSpicyMatch.cardSpicyMatch(spice, false, spice.score ?? null) }}
-            {% endfor %}
-        {% else %}
-            <div class="w-full bg-spice-surface border border-spice-border text-stone-700 px-4 py-3 rounded-xl text-center text-sm">
-                <i class="fa-solid fa-circle-info text-saffron-500 mr-1.5"></i>
-                {% if this.search %}
-                    Aucune épice ne correspond à « {{ this.search }} ».
-                {% else %}
-                    Aucune épice supplémentaire n'est compatible avec votre sélection.
-                {% endif %}
-            </div>
-        {% endif %}
-    </form>
 </div>

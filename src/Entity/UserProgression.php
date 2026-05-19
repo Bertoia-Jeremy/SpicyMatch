@@ -281,6 +281,14 @@ class UserProgression
         return $this;
     }
 
+    public function setTotalSpicesRead(int $count): static
+    {
+        $this->totalSpicesRead = $count;
+        $this->updatedAt = new \DateTimeImmutable();
+
+        return $this;
+    }
+
     public function getCurrentReadingStreak(): int
     {
         return $this->currentReadingStreak;

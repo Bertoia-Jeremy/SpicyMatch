@@ -29,26 +29,27 @@ class SpiceGroupFinderService
      */
     public function findTopPairs(int $limit = 20): array
     {
+        /** @var list<array<string, mixed>> $rows */
         $rows = $this->spicesRepository->findTopCompatiblePairs($limit);
 
         return array_map(fn (array $row) => [
             'score' => (int) $row['score'],
-            'shared_main' => (int) $row['shared_main'],
-            'shared_secondary' => (int) $row['shared_secondary'],
+            'shared_main' => (int) ($row['shared_main'] ?? 0),
+            'shared_secondary' => (int) ($row['shared_secondary'] ?? 0),
             'spices' => [
                 [
                     'id' => (int) $row['s1_id'],
-                    'name' => $row['s1_name'],
-                    'file' => $row['s1_file'] ?? null,
-                    'color' => $row['s1_color'] ?? null,
-                    'groupName' => $row['s1_group'] ?? null,
+                    'name' => (string) $row['s1_name'],
+                    'file' => isset($row['s1_file']) ? (string) $row['s1_file'] : null,
+                    'color' => isset($row['s1_color']) ? (string) $row['s1_color'] : null,
+                    'groupName' => isset($row['s1_group']) ? (string) $row['s1_group'] : null,
                 ],
                 [
                     'id' => (int) $row['s2_id'],
-                    'name' => $row['s2_name'],
-                    'file' => $row['s2_file'] ?? null,
-                    'color' => $row['s2_color'] ?? null,
-                    'groupName' => $row['s2_group'] ?? null,
+                    'name' => (string) $row['s2_name'],
+                    'file' => isset($row['s2_file']) ? (string) $row['s2_file'] : null,
+                    'color' => isset($row['s2_color']) ? (string) $row['s2_color'] : null,
+                    'groupName' => isset($row['s2_group']) ? (string) $row['s2_group'] : null,
                 ],
             ],
         ], $rows);
@@ -61,33 +62,34 @@ class SpiceGroupFinderService
      */
     public function findTopTriplets(int $limit = 10): array
     {
+        /** @var list<array<string, mixed>> $rows */
         $rows = $this->spicesRepository->findTopCompatibleTriplets($limit);
 
         return array_map(fn (array $row) => [
             'score' => (int) $row['score'],
-            'shared_main' => (int) $row['shared_main'],
-            'shared_secondary' => (int) $row['shared_secondary'],
+            'shared_main' => (int) ($row['shared_main'] ?? 0),
+            'shared_secondary' => (int) ($row['shared_secondary'] ?? 0),
             'spices' => [
                 [
                     'id' => (int) $row['s1_id'],
-                    'name' => $row['s1_name'],
-                    'file' => $row['s1_file'] ?? null,
-                    'color' => $row['s1_color'] ?? null,
-                    'groupName' => $row['s1_group'] ?? null,
+                    'name' => (string) $row['s1_name'],
+                    'file' => isset($row['s1_file']) ? (string) $row['s1_file'] : null,
+                    'color' => isset($row['s1_color']) ? (string) $row['s1_color'] : null,
+                    'groupName' => isset($row['s1_group']) ? (string) $row['s1_group'] : null,
                 ],
                 [
                     'id' => (int) $row['s2_id'],
-                    'name' => $row['s2_name'],
-                    'file' => $row['s2_file'] ?? null,
-                    'color' => $row['s2_color'] ?? null,
-                    'groupName' => $row['s2_group'] ?? null,
+                    'name' => (string) $row['s2_name'],
+                    'file' => isset($row['s2_file']) ? (string) $row['s2_file'] : null,
+                    'color' => isset($row['s2_color']) ? (string) $row['s2_color'] : null,
+                    'groupName' => isset($row['s2_group']) ? (string) $row['s2_group'] : null,
                 ],
                 [
                     'id' => (int) $row['s3_id'],
-                    'name' => $row['s3_name'],
-                    'file' => $row['s3_file'] ?? null,
-                    'color' => $row['s3_color'] ?? null,
-                    'groupName' => $row['s3_group'] ?? null,
+                    'name' => (string) $row['s3_name'],
+                    'file' => isset($row['s3_file']) ? (string) $row['s3_file'] : null,
+                    'color' => isset($row['s3_color']) ? (string) $row['s3_color'] : null,
+                    'groupName' => isset($row['s3_group']) ? (string) $row['s3_group'] : null,
                 ],
             ],
         ], $rows);

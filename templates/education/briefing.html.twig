@@ -1,0 +1,123 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ mode.label }} — Présentation{% endblock %}
+
+{% block body %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
+     x-data="difficultySelector('{{ difficulty.value }}')">
+
+  {# ── Header ── #}
+  <div class="text-center mb-8">
+    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-saffron-100 text-saffron-600 mb-4">
+      <i class="{{ mode.icon }} text-2xl"></i>
+    </div>
+    <h1 class="text-2xl font-bold text-stone-800 mb-1">{{ mode.label }}</h1>
+    <p class="text-stone-500 text-sm">{{ mode.description }}</p>
+    <div class="flex items-center justify-center gap-2 mt-2">
+      <span class="tag-secondary">{{ mode.xpPerCorrect }} XP / bonne réponse</span>
+      {% if mode.totalQuestions %}
+        <span class="tag-secondary">{{ mode.totalQuestions }} questions</span>
+      {% else %}
+        <span class="tag-secondary">Questions illimitées</span>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ── Choix de difficulté ── #}
+  <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6 mb-6">
+    <h2 class="text-lg font-semibold text-stone-800 mb-4">
+      <i class="fa-solid fa-gauge-high text-saffron-600 mr-2"></i>Difficulté
+    </h2>
+    <div class="grid grid-cols-3 gap-3">
+      {% for diff in difficulties %}
+        <button type="button"
+                data-diff="{{ diff.value }}"
+                @click="pick($el.dataset.diff)"
+                :class="buttonClass('{{ diff.value }}')"
+                :aria-pressed="isSelected('{{ diff.value }}')"
+                class="px-3 py-4 rounded-xl border-2 text-center transition-all cursor-pointer">
+          <div class="font-semibold text-sm mb-1">{{ diff.label }}</div>
+          <div class="text-xs opacity-60">×{{ diff.xpMultiplier }} XP</div>
+        </button>
+      {% endfor %}
+    </div>
+    <p class="mt-3 text-xs text-stone-400">
+      <i class="fa-solid fa-circle-info mr-1"></i>
+      Difficulté par défaut modifiable dans ton
+      <a href="{{ path('configuration_user') }}" class="text-saffron-600 hover:underline">profil</a>.
+    </p>
+  </div>
+
+  {# ── Consignes ── #}
+  <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6 mb-6">
+    <h2 class="text-lg font-semibold text-stone-800 mb-3">
+      <i class="fa-solid fa-scroll text-saffron-600 mr-2"></i>Règles
+    </h2>
+    <ul class="space-y-2">
+      {% for rule in rules %}
+        <li class="flex items-start gap-2 text-sm text-stone-700">
+          <i class="fa-solid fa-check text-saffron-500 mt-0.5 shrink-0"></i>
+          <span>{{ rule }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  {# ── Épice cible (QCM uniquement) ── #}
+  {% if targetSpice %}
+    {% from 'components/_macro_card_spice.html.twig' import cardSpice %}
+    <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6 mb-6">
+      <h2 class="text-lg font-semibold text-stone-800 mb-4">
+        <i class="fa-solid fa-mortar-pestle text-saffron-600 mr-2"></i>Ton ingrédient du jour
+      </h2>
+      <div class="max-w-[240px] mx-auto">
+        {{ cardSpice(targetSpice, { showQuickView: false }) }}
+      </div>
+    </div>
+  {% endif %}
+
+  {# ── Conseil de cuisson (QCM uniquement) ── #}
+  {% if cookingTip %}
+    <div class="bg-turmeric-50 border border-turmeric-200 rounded-2xl p-5 mb-6">
+      <div class="flex items-start gap-3">
+        <div class="shrink-0 w-8 h-8 rounded-lg bg-turmeric-100 flex items-center justify-center">
+          <i class="fa-solid fa-lightbulb text-turmeric-600 text-sm"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold text-turmeric-800 mb-1">{{ cookingTip.title }}</h3>
+          {% if cookingTip.cookingStep %}
+            <p class="text-xs text-turmeric-700 leading-relaxed">{{ cookingTip.cookingStep }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  {# ── CTA ── #}
+  <div class="flex gap-3 justify-center">
+    <a href="{{ path('education_index') }}" class="btn-pill-outline inline-flex items-center gap-2">
+      <i class="fa-solid fa-arrow-left"></i>Tous les modes
+    </a>
+
+    {% if mode.isLiveComponent %}
+      <a :href="'{{ path('education_play_live', { mode: mode.value }) }}' + '?difficulty=' + difficulty"
+         class="btn-pill-primary inline-flex items-center gap-2">
+        <i class="fa-solid fa-play"></i>Jouer
+      </a>
+    {% else %}
+      <form method="post" action="{{ path('education_start') }}" data-turbo="false" class="contents">
+        <input type="hidden" name="_token" value="{{ csrf_token('education_start') }}">
+        <input type="hidden" name="mode" value="{{ mode.value }}">
+        <input type="hidden" name="difficulty" value="{{ difficulty.value }}" x-bind:value="difficulty">
+        {% if targetSpice %}
+          <input type="hidden" name="targetSpiceId" value="{{ targetSpice.id }}">
+        {% endif %}
+        <button type="submit" class="btn-pill-primary inline-flex items-center gap-2">
+          <i class="fa-solid fa-fire-burner"></i>Lancer la brigade
+        </button>
+      </form>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

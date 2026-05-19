@@ -29,6 +29,9 @@ class CookieConsentService
         return ($data['version'] ?? 0) >= self::CURRENT_VERSION;
     }
 
+    /**
+     * @return array{analytics?: bool, functional?: bool, version?: int, timestamp?: int}|null
+     */
     public function getConsent(): ?array
     {
         return $this->getConsentFromCookie();
@@ -69,6 +72,9 @@ class CookieConsentService
         return self::CURRENT_VERSION;
     }
 
+    /**
+     * @return array{analytics?: bool, functional?: bool, version?: int, timestamp?: int}|null
+     */
     private function getConsentFromCookie(): ?array
     {
         $request = $this->requestStack->getCurrentRequest();

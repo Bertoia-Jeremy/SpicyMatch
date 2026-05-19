@@ -1,0 +1,33 @@
+{#
+  Rarity rendering macros — single source of truth for rarity → color mapping.
+  Backed by App\Twig\Extension\RarityExtension::rarityColors(rarity).
+
+  Usage:
+    {% import 'components/_macro_rarity.html.twig' as rarity %}
+    {{ rarity.pill(achievement.rarity) }}
+    {{ rarity.card_classes(achievement.rarity) }}
+#}
+
+{# Small pill showing the rarity label. Hex colors come from RarityExtension. #}
+{% macro pill(rarityEnum) %}
+  {% set c = rarity_colors(rarityEnum) %}
+  <span class="text-xs px-2 py-0.5 rounded-full font-medium"
+        style="background-color: {{ c.bg }}; color: {{ c.text }}">
+    {{ rarityEnum.label() }}
+  </span>
+{% endmacro %}
+
+{# Card border + background for an unlocked achievement card. #}
+{% macro card_style(rarityEnum) %}
+  {% set c = rarity_colors(rarityEnum) %}
+  style="border-color: {{ c.ring }}40; background-color: {{ c.bg }}80"
+{% endmacro %}
+
+{# Circular icon container for an achievement, sized via the `size` class arg. #}
+{% macro icon_circle(rarityEnum, size = 'w-14 h-14 text-2xl') %}
+  {% set c = rarity_colors(rarityEnum) %}
+  <div class="{{ size }} rounded-full flex items-center justify-center"
+       style="background-color: {{ c.bg }}; color: {{ c.text }}">
+    {{ caller() }}
+  </div>
+{% endmacro %}

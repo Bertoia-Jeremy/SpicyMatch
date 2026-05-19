@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}L'Académie · Aide{% endblock %}
+
+{% block body %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <nav class="text-sm text-stone-500 mb-4">
+        <a href="{{ path('help_index') }}" class="hover:text-saffron-600">← Centre d'aide</a>
+    </nav>
+
+    <h1 class="text-3xl font-bold text-stone-800 mb-6">L'Académie</h1>
+
+    <section class="prose prose-stone max-w-none mb-8">
+        <h2>Les 6 modes</h2>
+        <dl>
+            <dt><strong>Le Choix du Chef</strong> (QCM)</dt>
+            <dd>10 questions à choix multiples sur les compatibilités d'épices. Le mode le plus classique.</dd>
+
+            <dt><strong>Défi de Scoville</strong> (Survival)</dt>
+            <dd>Choisis une épice de départ et enchaîne des épices compatibles. Un faux pas = game over.
+                Victoire totale si tu épuises toutes les compatibilités.</dd>
+
+            <dt><strong>Palais Fin</strong> (Guess Who)</dt>
+            <dd>8 épices à deviner à partir d'indices progressifs. Moins d'indices révélés = plus de points.</dd>
+
+            <dt><strong>Hors Saison</strong> (Intrus)</dt>
+            <dd>10 questions : trouve l'épice incompatible (ou compatible, en mode inversé) parmi 4 choix.</dd>
+
+            <dt><strong>Cuisson en Cours</strong> (Pendu)</dt>
+            <dd>8 noms d'épices à deviner lettre par lettre. Limite d'erreurs et de temps selon la difficulté.</dd>
+
+            <dt><strong>À Feu Vif</strong> (Chrono)</dt>
+            <dd>Chronomètre global. Identifie le plus d'épices possible à partir de leur fiche (sans le nom).
+                Bonus vitesse et streak pour les bonnes réponses consécutives.</dd>
+        </dl>
+
+        <h2>Difficultés</h2>
+        <table class="w-full text-sm">
+            <thead class="text-left">
+                <tr>
+                    <th class="py-2">Difficulté</th>
+                    <th>Multiplicateur XP</th>
+                    <th>Impact</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Easy</td><td>×1.0</td><td>Plus d'indices, moins d'options, options évidentes.</td></tr>
+                <tr><td>Medium</td><td>×1.5</td><td>Indices partiels, options moyennes.</td></tr>
+                <tr><td>Hard</td><td>×2.0</td><td>Pas d'indice, pool complet, pièges visuels.</td></tr>
+            </tbody>
+        </table>
+
+        <h2>Scoring et XP</h2>
+        <p>
+            L'XP de base est <code>bonnes_réponses × xp_par_mode × multiplicateur_difficulté</code>.
+            Les modes Palais Fin et Chrono ajoutent des bonus (moins d'indices, rapidité, streak).
+        </p>
+    </section>
+</div>
+{% endblock %}

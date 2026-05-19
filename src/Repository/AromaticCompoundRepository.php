@@ -10,11 +10,6 @@ use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<AromaticCompound>
- *
- * @method AromaticCompound|null find($id, $lockMode = null, $lockVersion = null)
- * @method AromaticCompound|null findOneBy(array $criteria, array $orderBy = null)
- * @method AromaticCompound[]    findAll()
- * @method AromaticCompound[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class AromaticCompoundRepository extends ServiceEntityRepository
 {
@@ -43,5 +38,13 @@ class AromaticCompoundRepository extends ServiceEntityRepository
             $this->getEntityManager()
                 ->flush();
         }
+    }
+
+    public function countTotal(): int
+    {
+        return (int) $this->createQueryBuilder('a')
+            ->select('COUNT(a.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

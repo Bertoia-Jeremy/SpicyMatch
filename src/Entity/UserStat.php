@@ -19,21 +19,6 @@ class UserStat
     #[ORM\JoinColumn(nullable: false)]
     private ?Users $user = null;
 
-    #[ORM\Column(options: [
-        'default' => 0,
-    ])]
-    private int $totalMatches = 0;
-
-    #[ORM\Column(options: [
-        'default' => 0,
-    ])]
-    private int $uniqueSpicesUsed = 0;
-
-    #[ORM\Column(options: [
-        'default' => 0,
-    ])]
-    private int $totalSpicesRead = 0;
-
     /**
      * @var array<int> list of aromatic group IDs visited
      */
@@ -52,10 +37,26 @@ class UserStat
     private int $easterEggsFound = 0;
 
     /**
+     * @var array<string> slugs of easter eggs already found (idempotence)
+     */
+    #[ORM\Column(type: 'json', nullable: true, options: [
+        'default' => '[]',
+    ])]
+    private array $foundEggSlugs = [];
+
+    /**
      * Virtual property using PHP 8.4 Property Hooks.
+     * Source of truth is `UserProgression` for match/read counters; `UserStat` only owns
+     * easter eggs and visited-group tracking.
      */
     public int $totalActions {
-        get => $this->totalMatches + $this->totalSpicesRead + $this->easterEggsFound;
+        get {
+            $progression = $this->user?->getProgression();
+            $matches = $progression?->getTotalMatches() ?? 0;
+            $spicesRead = $progression?->getTotalSpicesRead() ?? 0;
+
+            return $matches + $spicesRead + $this->easterEggsFound;
+        }
     }
 
     /**
@@ -78,42 +79,6 @@ class UserStat
     public function setUser(?Users $user): static
     {
         $this->user = $user;
-
-        return $this;
-    }
-
-    public function getTotalMatches(): int
-    {
-        return $this->totalMatches;
-    }
-
-    public function setTotalMatches(int $totalMatches): static
-    {
-        $this->totalMatches = $totalMatches;
-
-        return $this;
-    }
-
-    public function getUniqueSpicesUsed(): int
-    {
-        return $this->uniqueSpicesUsed;
-    }
-
-    public function setUniqueSpicesUsed(int $uniqueSpicesUsed): static
-    {
-        $this->uniqueSpicesUsed = $uniqueSpicesUsed;
-
-        return $this;
-    }
-
-    public function getTotalSpicesRead(): int
-    {
-        return $this->totalSpicesRead;
-    }
-
-    public function incrementSpicesRead(): static
-    {
-        ++$this->totalSpicesRead;
 
         return $this;
     }
@@ -162,6 +127,28 @@ class UserStat
     public function incrementEasterEggsFound(): static
     {
         ++$this->easterEggsFound;
+
+        return $this;
+    }
+
+    /**
+     * @return array<string>
+     */
+    public function getFoundEggSlugs(): array
+    {
+        return $this->foundEggSlugs;
+    }
+
+    public function hasFoundEgg(string $slug): bool
+    {
+        return \in_array($slug, $this->foundEggSlugs, true);
+    }
+
+    public function recordFoundEgg(string $slug): static
+    {
+        if (! $this->hasFoundEgg($slug)) {
+            $this->foundEggSlugs[] = $slug;
+        }
 
         return $this;
     }

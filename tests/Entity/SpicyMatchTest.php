@@ -6,7 +6,6 @@ namespace App\Tests\Entity;
 
 use App\Entity\Spices;
 use App\Entity\SpicyMatch;
-use App\Entity\SpicyMatchHistory;
 use App\Entity\SpicyMatchResult;
 use App\Entity\Users;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;

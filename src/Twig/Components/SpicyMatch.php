@@ -95,19 +95,15 @@ class SpicyMatch extends AbstractController
                 ]);
                 $scored = $this->compatibilityScoreService->findCompatible($selectedEntities);
 
-                // Filter out spices from the same aromatic groups as the selection
-                $selectedGroupNames = array_keys($selectedSpicesData);
                 $compatibleSpices = array_values(array_filter(
                     $scored,
-                    fn (array $s) => ! in_array($s['groupName'], $selectedGroupNames, true)
+                    fn (array $s) => ! in_array($s['id'], $ids, true)
                 ));
             } else {
                 // Manual mode: show all spices except already selected, no scoring
-                $selectedGroupNames = array_keys($selectedSpicesData);
                 $compatibleSpices = array_values(array_filter(
                     $compatibleSpices,
-                    fn (array $s) => ! in_array($s['groupName'], $selectedGroupNames, true)
-                        && ! in_array($s['id'], $ids, true)
+                    fn (array $s) => ! in_array($s['id'], $ids, true)
                 ));
             }
         }

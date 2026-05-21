@@ -192,7 +192,7 @@ class SpicyMatchTest extends TestCase
         $component->getResults();
     }
 
-    public function testGetResultsInManualModeExcludesSelectedAndSameGroup(): void
+    public function testGetResultsInManualModeExcludesOnlySelected(): void
     {
         $this->spicesRepo->method('findSpicesForMatch')
             ->willReturn([
@@ -213,11 +213,11 @@ class SpicyMatchTest extends TestCase
 
         $results = $component->getResults();
 
-        // Excludes id=1 (selected) and id=4 (same group "Chaud")
+        // Excludes only id=1 (selected) — same-group spices remain (id=4 Gingembre)
         $ids = array_column($results['compatibleSpices'], 'id');
         self::assertNotContains(1, $ids);
-        self::assertNotContains(4, $ids);
-        self::assertCount(3, $results['compatibleSpices']);
+        self::assertContains(4, $ids);
+        self::assertCount(4, $results['compatibleSpices']);
     }
 
     public function testResetFiltersClearsAllFilters(): void
@@ -262,7 +262,7 @@ class SpicyMatchTest extends TestCase
         }
     }
 
-    public function testManualModeWithMultipleSelectionsExcludesSameGroups(): void
+    public function testManualModeWithMultipleSelectionsExcludesOnlySelected(): void
     {
         // Sélection de Cannelle (Chaud) et Cumin (Terreux)
         $this->spicesRepo->method('findSpicesForMatch')
@@ -291,18 +291,18 @@ class SpicyMatchTest extends TestCase
         $results = $component->getResults();
         $ids = array_column($results['compatibleSpices'], 'id');
 
-        // Exclut Cannelle(1), Cumin(2), Gingembre(4 = même groupe Chaud)
+        // Exclut uniquement Cannelle(1) et Cumin(2)
         self::assertNotContains(1, $ids);
         self::assertNotContains(2, $ids);
-        self::assertNotContains(4, $ids);
-        // Reste Poivre(3) et Coriandre(5)
+        // Reste Poivre(3), Gingembre(4 — même groupe que Cannelle mais autorisé) et Coriandre(5)
         self::assertContains(3, $ids);
+        self::assertContains(4, $ids);
         self::assertContains(5, $ids);
     }
 
     public function testManualModeWithAllSpicesSelectedReturnsEmpty(): void
     {
-        // Sélection depuis chaque groupe → plus rien en compatible
+        // Toutes les épices sélectionnées → plus rien en compatible
         $this->spicesRepo->method('findSpicesForMatch')
             ->willReturn([
                 [
@@ -324,6 +324,12 @@ class SpicyMatchTest extends TestCase
                     'color' => '#333',
                 ],
                 [
+                    'id' => 4,
+                    'name' => 'Gingembre',
+                    'groupName' => 'Chaud',
+                    'color' => '#FA0',
+                ],
+                [
                     'id' => 5,
                     'name' => 'Coriandre',
                     'groupName' => 'Herbacé',
@@ -334,7 +340,7 @@ class SpicyMatchTest extends TestCase
         $component = $this->makeComponent();
         $component->mode = 'manual';
         $component->spices = [
-            'selectedSpices' => ['1', '2', '3', '5'],
+            'selectedSpices' => ['1', '2', '3', '4', '5'],
             'compatibleSpices' => $this->allSpices,
         ];
 

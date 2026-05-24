@@ -159,6 +159,13 @@ scripts:
   js:
     - yarn dev                # watch Tailwind CLI
     - yarn build              # build Tailwind CLI minifié
+  moteur_oav:
+    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console app:import:odt                   # ingère les seuils olfactifs (ODT) depuis fixtures/compound_odt.yaml
+    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console app:import:flavordb              # ingère les concentrations depuis fixtures/spice_compound_concentration.yaml
+    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console app:recompute:oav --sync         # rebuild synchrone de spice_active_compound (shadow table)
+    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console app:recompute:oav               # dispatch async via Messenger
+    # Séquence complète après import de nouvelles données :
+    # 1. app:import:odt --dry-run  2. app:import:flavordb --dry-run  3. app:recompute:oav --sync
   doctrine:
     - docker exec -w /var/www/html/spicymatch p8.4 php bin/console doctrine:schema:update --force   # apply schema changes
     - docker exec -w /var/www/html/spicymatch p8.4 php bin/console doctrine:fixtures:load --append --group=GroupName
@@ -281,6 +288,53 @@ architecture:
       - "LC modes utilisent createFinishedSession() — pas de GameQuestion rows, seulement le résumé (correctCount/totalQuestions/duration)"
       - "QCM existant inchangé — flux route-based classique cohabite avec les 5 LC modes via play_live.html.twig"
       - "SpicesRepository::findIncompatibleWith() — SQL NOT EXISTS (4 subqueries main×main, main×sec, sec×main, sec×sec) pour trouver les épices 0-compatibilité"
+
+  moteur_oav:
+    description: "Moteur de compatibilité aromatique basé sur les OAV (Odor Activity Values). Remplace l'ancien CompatibilityScoreService (Jaccard pondéré) supprimé. Référence : ARCHITECTURE_MOTEUR_COMPATIBILITE.md"
+    algorithmes:
+      - "Algo 1 — Le Veto : graphe biparti booléen OAV-actif (JOIN+HAVING SQL). Candidat retenu ssi il partage ≥ 1 composé OAV-actif avec CHAQUE épice du mortier."
+      - "Algo 2 — Le Score : Tanimoto pondéré OAV. S = Σmin(OAV_c, OAV_M) / Σmax(OAV_c, OAV_M) ∈ [0,1]. Affiché × 100 (floor)."
+      - "OAV = concentration_ppm / odt_ppm. Seuls les composés OAV > 1 sont perceptibles (van Gemert, 2011)."
+    endpoint:
+      - "GET /api/match?spices=id1,id2&limit=20 → PUBLIC_ACCESS, rate limit 30 req/min sliding window par IP"
+      - "Réponse : { mortar: [int], results: [{id, name, score}], oav_mode: bool, count: int }"
+      - "oav_mode: true = données OAV disponibles. false = fallback présence (veto assoupli)."
+    entites:
+      - "SpiceActiveCompound — vue matérialisée OAV-actifs (spice_id, aromatic_compound_id, oav_value DOUBLE). PK composite. Pas de FK (bloque RENAME TABLE). Rebuild exclusif via DBAL."
+      - "AromaticCompound — composé aromatique (name). soft-delete (deleted_at)."
+      - "SpiceCompoundConcentration — concentration_ppm DECIMAL(14,4). PK composite (spice_id, aromatic_compound_id)."
+      - "CompoundOdt — seuil olfactif odt_ppm DECIMAL(14,8). PK composite (aromatic_compound_id, matrix enum: air/water/oil)."
+      - "⚠️ CHECK (oav_value > 1) non émis par Doctrine ORM 3.x — enforced par le WHERE clause du INSERT dans RecomputeOavTableHandler."
+    services:
+      - "MatchPipeline — orchestrateur (hasOavData → veto → profils → scores → tri). src/Service/Match/"
+      - "CandidateVetoRepository — SQL veto biparti JOIN+HAVING, soft-delete safe. Fallback présence si hors mode OAV."
+      - "MortarProfileBuilder — charge/cache les profils OAV du mortier (Symfony Cache pool match.mortar_profile.cache, TTL 86400s)."
+      - "OavTanimotoScorer — O(N) deux passes (candidat puis mortier-exclusif). scoreAsInt() = floor(100 × score)."
+      - "SpiceActiveCompoundRepository — hasOavDataForSpices() (SELECT 1 LIMIT 1), loadOavProfilesBatch()."
+      - "CompatibleSpiceFinder — adaptateur haut niveau : MatchPipeline + SpicesRepository::findEnrichedByIds(). Retour enrichi pour UI/éducation. Remplace CompatibilityScoreService."
+    commands:
+      - "app:import:odt — ingère compound_odt.yaml (ODT van Gemert). Guard path traversal (fixtures/ only), taille (10 Mo), YAML PARSE_EXCEPTION_ON_INVALID_TYPE, ODT ≤ 0 ignoré."
+      - "app:import:flavordb — ingère spice_compound_concentration.yaml. Mêmes guards. concentration < 0 ignorée."
+      - "app:recompute:oav [--sync] — dispatch RecomputeOavTableMessage. --sync = appel direct du handler (pas Messenger)."
+    handler:
+      - "RecomputeOavTableHandler — shadow table atomique : DROP tmp → CREATE tmp LIKE → INSERT (OAV > 1) → RENAME TABLE (atomique InnoDB) → DROP old → invalidateAll() cache profils."
+      - "⚠️ RENAME TABLE requiert que la tmp n'existe pas — double worker = race condition (acceptable MVP single-worker)."
+    listener:
+      - "SpiceConcentrationChangedListener — postPersist/postUpdate/postRemove sur SpiceCompoundConcentration ET CompoundOdt. Dedup postFlush : UN seul message dispatché par flush."
+      - "⚠️ Reset flag AVANT dispatch (reentrancy : Doctrine transport peut déclencher un nouveau postFlush)."
+    cache:
+      pool: match.mortar_profile.cache (adapter filesystem, TTL 86400s — 24h)
+      keys: "match.mortar.[id1,id2,...] — profil OAV agrégé (max par composé) du mortier"
+      invalidation: "MortarProfileBuilder::invalidateAll() après chaque rebuild spice_active_compound"
+    rate_limit:
+      - "match_api : sliding_window, 30/min par IP. when@test override : fixed_window 10000/min."
+    gotchas:
+      - "spice_active_compound sans FK → schema:update ne crée pas les FK. C'est intentionnel."
+      - "RENAME TABLE atomique InnoDB → aucune fenêtre vide visible par /api/match concurrent."
+      - "Messenger transport Doctrine + MariaDB : use_notify ignoré → polling 60s. Le rebuild OAV n'est pas instantané après un flush."
+      - "CompatibilityScoreService SUPPRIMÉ — consumers migrés : SpicyMatch (Lab), QcmQuestionGenerator, AcademyManager."
+      - "AcademyManager::findIncompatibleWith() utilise toujours SpicesRepository::findIncompatibleWith() (4 NOT EXISTS SQL legacy)."
+    data_status: "30 épices fixture, 15 composés, 105 lignes OAV (données de test). Données réelles à importer : fixtures/compound_odt.yaml (van Gemert) + fixtures/spice_compound_concentration.yaml (FlavorDB)."
 
   rgpd:
     cookie_consent:

@@ -1,0 +1,87 @@
+# Seuils olfactifs (ODT) — données fictives pour dev/staging
+# Les compound_name correspondent EXACTEMENT aux noms dans la table aromatic_compound.
+# Les valeurs sont fictives mais scientifiquement ordonnées (magnitude réaliste).
+# Remplacer par les vraies données van Gemert (2011) lors de la phase acquisition.
+#
+# Unité : ppm (mg/kg équivalent air). OAV = concentration_spice / odt_ppm.
+# ──────────────────────────────────────────────────────────────────────────────────────
+
+# ── Phénols & aldéhydes aromatiques (très bas seuils = molécules très odorantes) ────
+- compound_name: "Eugenol"
+  odt_ppm: 0.005
+  matrix: air
+  source: "fixtures_dev (à remplacer par van Gemert 2011)"
+
+- compound_name: "Cinnamaldéhyde"
+  odt_ppm: 0.010
+  matrix: air
+  source: "fixtures_dev (à remplacer par van Gemert 2011)"
+
+- compound_name: "Thymol"
+  odt_ppm: 0.002
+  matrix: air
+  source: "fixtures_dev (à remplacer par van Gemert 2011)"
+
+- compound_name: "Carvacrol"
+  odt_ppm: 0.003
+  matrix: air
+  source: "fixtures_dev (à remplacer par van Gemert 2011)"
+
+- compound_name: "Géraniol"
+  odt_ppm: 0.001
+  matrix: air
+  source: "fixtures_dev (à remplacer par van Gemert 2011)"
+
+- compound_name: "Safranal"
+  odt_ppm: 0.00005
+  matrix: air
+  source: "fixtures_dev (à remplacer par van Gemert 2011)"
+
+# ── Éthers & monoterpènes oxygénés (seuils bas à intermédiaires) ─────────────────────
+- compound_name: "Anéthol"
+  odt_ppm: 0.001
+  matrix: air
+  source: "fixtures_dev (à remplacer par van Gemert 2011)"
+
+- compound_name: "Estragole"
+  odt_ppm: 0.050
+  matrix: air
+  source: "fixtures_dev (à remplacer par van Gemert 2011)"
+
+- compound_name: "Linalol"
+  odt_ppm: 0.010
+  matrix: air
+  source: "fixtures_dev (à remplacer par van Gemert 2011)"
+
+- compound_name: "Terpinèn-4-ol"
+  odt_ppm: 0.500
+  matrix: air
+  source: "fixtures_dev (à remplacer par van Gemert 2011)"
+
+# ── Monoterpènes hydrocarbonés (seuils intermédiaires à élevés) ──────────────────────
+- compound_name: "Limonène"
+  odt_ppm: 1.000
+  matrix: air
+  source: "fixtures_dev (à remplacer par van Gemert 2011)"
+
+# ── Alcaloïdes piquants (moins volatils, seuils élevés) ──────────────────────────────
+- compound_name: "Capsaïcine"
+  odt_ppm: 0.100
+  matrix: air
+  source: "fixtures_dev (à remplacer par van Gemert 2011)"
+
+- compound_name: "Pipérine"
+  odt_ppm: 50.000
+  matrix: air
+  source: "fixtures_dev (à remplacer par van Gemert 2011)"
+
+# ── Polyphénols & cétones (faible volatilité, seuils hauts) ─────────────────────────
+- compound_name: "Curcumine"
+  odt_ppm: 100.000
+  matrix: air
+  source: "fixtures_dev (à remplacer par van Gemert 2011)"
+
+- compound_name: "Zingérone"
+  odt_ppm: 0.500
+  matrix: air
+  source: "fixtures_dev (à remplacer par van Gemert 2011)"

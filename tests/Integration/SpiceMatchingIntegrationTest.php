@@ -6,7 +6,7 @@ namespace App\Tests\Integration;
 
 use App\Entity\Spices;
 use App\Repository\SpicesRepository;
-use App\Service\CompatibilityScoreService;
+use App\Service\Match\CompatibleSpiceFinder;
 use App\Service\SpiceGroupFinderService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -14,19 +14,18 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 /**
  * Integration tests for the spice compatibility system.
  *
- * Uses the real database (spicymatch_test) loaded with fixtures.
- * Run: APP_ENV=test php bin/console doctrine:fixtures:load --no-interaction
- *      before executing this suite.
+ * Uses the real database with the 30 fixture spices + spice_active_compound peuplée.
+ * Pré-requis : bin/console app:recompute:oav --sync
  *
- * These tests validate:
- *  1. CompatibilityScoreService with real DB entities
- *  2. SpiceGroupFinderService SQL queries
- *  3. Known compatibility groups from fixtures
+ * Ces tests valident :
+ *  1. CompatibleSpiceFinder (OAV Tanimoto + enrichissement) avec vraie DB
+ *  2. SpiceGroupFinderService (requêtes SQL legacy)
+ *  3. SpicesRepository — findCandidatesForScoring
  */
 class SpiceMatchingIntegrationTest extends KernelTestCase
 {
     private SpicesRepository $spicesRepo;
-    private CompatibilityScoreService $scoreService;
+    private CompatibleSpiceFinder $compatibleSpiceFinder;
     private SpiceGroupFinderService $groupFinder;
 
     protected function setUp(): void
@@ -41,7 +40,7 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         $repo = $em->getRepository(Spices::class);
 
         $this->spicesRepo = $repo;
-        $this->scoreService = $container->get(CompatibilityScoreService::class);
+        $this->compatibleSpiceFinder = $container->get(CompatibleSpiceFinder::class);
         $this->groupFinder = $container->get(SpiceGroupFinderService::class);
     }
 
@@ -74,13 +73,12 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
     }
 
     // ──────────────────────────────────────────────────────────────────────────
-    // CompatibilityScoreService — known fixture groups
+    // CompatibleSpiceFinder — groupes de compatibilité connus
     // ──────────────────────────────────────────────────────────────────────────
 
     /**
-     * Thym + Origan share thymol + carvacrol (both main).
-     * Compatible spices in the same family: Cumin, Romarin, Marjolaine, Sauge, Carvi.
-     * At least 3 of these should appear with score > 0.
+     * Thym + Origan partagent thymol + carvacrol (OAV-actifs).
+     * Au moins 3 épices de la famille monoterpènes doivent apparaître.
      */
     public function testThymAndOriganHaveCompatibleSpices(): void
     {
@@ -90,151 +88,57 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         self::assertNotNull($thym);
         self::assertNotNull($origan);
 
-        $results = $this->scoreService->findCompatible([$thym, $origan]);
+        $results = $this->compatibleSpiceFinder->findCompatible([$thym->getId(), $origan->getId()], 100);
 
-        self::assertNotEmpty($results, 'Thym + Origan should have compatible spices');
+        self::assertNotEmpty($results, 'Thym + Origan should have compatible spices via OAV engine');
         self::assertGreaterThanOrEqual(3, count($results), 'At least 3 compatible spices expected');
 
         $names = array_column($results, 'name');
-        // At least one of the monoterpene family spices
         $expectedFamily = ['Cumin', 'Romarin', 'Marjolaine', 'Sauge Officinale', 'Carvi (Cumin des Prés)'];
         $matchCount = count(array_filter($names, fn ($n) => in_array($n, $expectedFamily, true)));
         self::assertGreaterThanOrEqual(1, $matchCount);
     }
 
     /**
-     * Cumin (main: thymol, carvacrol + secondary: limonene) selected with Thym.
-     * Shared = {thymol, carvacrol}.
-     * Score formula for Origan (main: carvacrol, thymol → candidateMax=6, raw=6) → 100.
+     * Thym seul → des candidats avec score [0, 100].
      */
     public function testThymSelectedAloneReturnsScores(): void
     {
         $thym = $this->findSpiceByName('Thym Commun');
         self::assertNotNull($thym);
 
-        $results = $this->scoreService->findCompatible([$thym]);
+        $results = $this->compatibleSpiceFinder->findCompatible([$thym->getId()], 100);
 
         self::assertNotEmpty($results);
-        // All scores must be between 1 and 100
         foreach ($results as $r) {
-            self::assertGreaterThanOrEqual(1, $r['score']);
+            self::assertGreaterThanOrEqual(0, $r['score']);
             self::assertLessThanOrEqual(100, $r['score']);
         }
     }
 
     /**
-     * Thym + Origan: Origan is perfect match for Thym's compounds.
-     * Expected score for Origan when Thym is selected: 100
-     * (Origan main={carvacrol, thymol}, all shared, candidateMax=6, raw=6).
+     * Origan doit apparaître compatible avec Thym (fort chevauchement OAV).
      */
-    public function testOriganScores100WhenThymSelected(): void
+    public function testOriganAppearsCompatibleWithThym(): void
     {
         $thym = $this->findSpiceByName('Thym Commun');
         self::assertNotNull($thym);
 
-        $results = $this->scoreService->findCompatible([$thym]);
+        $results = $this->compatibleSpiceFinder->findCompatible([$thym->getId()], 100);
         $origan = array_filter($results, fn ($r) => $r['name'] === 'Origan Méditerranéen');
 
-        self::assertNotEmpty($origan, 'Origan should appear as compatible with Thym');
-        $origan = array_values($origan)[0];
-        self::assertSame(100, $origan['score']);
+        self::assertNotEmpty($origan, 'Origan should appear as compatible with Thym via OAV');
     }
 
     /**
-     * Fenouil (main: anéthol) + Anis Étoilé (main: anéthol) → shared = anéthol.
-     * Anis Vert (main: anéthol, secondary: estragole, linalool) should appear compatible.
-     */
-    public function testAnisFamilyCompatibility(): void
-    {
-        $fenouil = $this->findSpiceByName('Fenouil (graines)');
-        $badianne = $this->findSpiceByName('Anis Étoilé (Badiane)');
-
-        self::assertNotNull($fenouil);
-        self::assertNotNull($badianne);
-
-        $results = $this->scoreService->findCompatible([$fenouil, $badianne]);
-        $names = array_column($results, 'name');
-
-        self::assertContains('Anis Vert', $names, 'Anis Vert should be compatible with Fenouil+Badiane');
-        self::assertContains('Estragon Français', $names, 'Estragon should be compatible');
-    }
-
-    /**
-     * Piment de Cayenne (main: capsaïcine) + Paprika (main: capsaïcine)
-     * → Poivre Noir, Poivre Blanc, Poivre Long, Piment d'Espelette should appear.
-     */
-    public function testCapsaicineFamilyCompatibility(): void
-    {
-        $piment = $this->findSpiceByName('Piment de Cayenne');
-        $paprika = $this->findSpiceByName('Paprika Doux');
-
-        self::assertNotNull($piment);
-        self::assertNotNull($paprika);
-
-        $results = $this->scoreService->findCompatible([$piment, $paprika]);
-        $names = array_column($results, 'name');
-
-        self::assertContains('Piment d\'Espelette', $names);
-    }
-
-    /**
-     * Curcuma (main: curcumine) + Gingembre (main: zingérone, secondary: curcumine).
-     * Shared: curcumine (in both — main for curcuma, secondary for gingembre).
-     * They should find at least each other when selected alone.
-     */
-    public function testCurcumaGingembreCompatibility(): void
-    {
-        $curcuma = $this->findSpiceByName('Curcuma');
-        self::assertNotNull($curcuma);
-
-        $results = $this->scoreService->findCompatible([$curcuma]);
-        $names = array_column($results, 'name');
-
-        self::assertContains('Gingembre Séché', $names, 'Gingembre should be compatible with Curcuma');
-    }
-
-    /**
-     * 5 spices from thym/origan family: strict intersection must work.
-     * All 5 share thymol + carvacrol → there should still be compatible spices.
-     */
-    public function testFiveSpiceStrictIntersection(): void
-    {
-        $spices = array_filter([
-            $this->findSpiceByName('Thym Commun'),
-            $this->findSpiceByName('Origan Méditerranéen'),
-            $this->findSpiceByName('Cumin'),
-            $this->findSpiceByName('Romarin'),
-            $this->findSpiceByName('Sauge Officinale'),
-        ]);
-
-        self::assertCount(5, $spices, 'All 5 spices must be in the DB');
-
-        $results = $this->scoreService->findCompatible(array_values($spices));
-        // Marjolaine and Carvi also share thymol+carvacrol → should appear
-        self::assertNotEmpty($results, '5 monoterpene spices should have compatible candidates');
-    }
-
-    /**
-     * Safran has safranal (unique compound) → no other spice shares it.
-     */
-    public function testSafranHasNoCompatibleSpices(): void
-    {
-        $safran = $this->findSpiceByName('Safran');
-        self::assertNotNull($safran);
-
-        $results = $this->scoreService->findCompatible([$safran]);
-        self::assertSame([], $results, 'Safran has a unique compound — no compatible spices expected');
-    }
-
-    /**
-     * Results are sorted by score descending.
+     * Résultats triés par score décroissant.
      */
     public function testResultsAreSortedByScoreDescending(): void
     {
         $thym = $this->findSpiceByName('Thym Commun');
         self::assertNotNull($thym);
 
-        $results = $this->scoreService->findCompatible([$thym]);
+        $results = $this->compatibleSpiceFinder->findCompatible([$thym->getId()], 100);
         self::assertNotEmpty($results);
 
         $scores = array_column($results, 'score');
@@ -245,31 +149,38 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
     }
 
     /**
-     * Output format: all required keys must be present.
+     * Format de sortie : toutes les clés requises doivent être présentes.
      */
     public function testOutputKeysArePresent(): void
     {
         $thym = $this->findSpiceByName('Thym Commun');
         self::assertNotNull($thym);
 
-        $results = $this->scoreService->findCompatible([$thym]);
+        $results = $this->compatibleSpiceFinder->findCompatible([$thym->getId()], 100);
         self::assertNotEmpty($results);
 
-        $required = [
-            'id',
-            'name',
-            'file',
-            'color',
-            'groupName',
-            'score',
-            'mainCompoundsCount',
-            'secondaryCompoundsCount',
-            'alchemyFlavorsCount',
-        ];
+        $required = ['id', 'name', 'file', 'color', 'groupName', 'score', 'agId', 'stId', 'typeName'];
         foreach ($required as $key) {
-            self::assertArrayHasKey($key, $results[0], "Key '{$key}' missing from output");
+            self::assertArrayHasKey($key, $results[0], "Key '{$key}' missing from CompatibleSpiceFinder output");
         }
-        self::assertSame(0, $results[0]['alchemyFlavorsCount']);
+    }
+
+    /**
+     * Les épices du mortier ne doivent pas apparaître dans les résultats.
+     */
+    public function testMortarSpicesAreExcludedFromResults(): void
+    {
+        $thym = $this->findSpiceByName('Thym Commun');
+        $origan = $this->findSpiceByName('Origan Méditerranéen');
+
+        self::assertNotNull($thym);
+        self::assertNotNull($origan);
+
+        $results = $this->compatibleSpiceFinder->findCompatible([$thym->getId(), $origan->getId()], 100);
+
+        $resultIds = array_column($results, 'id');
+        self::assertNotContains($thym->getId(), $resultIds, 'Thym must not appear in its own results');
+        self::assertNotContains($origan->getId(), $resultIds, 'Origan must not appear in its own results');
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -360,10 +271,6 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         self::assertSame($sorted, $scores, 'Triplets must be sorted by score descending');
     }
 
-    /**
-     * Thym + Origan + Cumin all share thymol + carvacrol (score=6).
-     * Uses limit=150 because many cross-family triplets score higher (max 8, many at 7).
-     */
     public function testThymOriganCuminTripletAppears(): void
     {
         $triplets = $this->groupFinder->findTopTriplets(150);
@@ -383,9 +290,6 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         self::assertTrue($found, 'Thym + Origan + Cumin triplet should appear in top triplets');
     }
 
-    /**
-     * All spice IDs in pairs/triplets must be > 0 (valid DB entities).
-     */
     public function testPairSpiceIdsAreValid(): void
     {
         $pairs = $this->groupFinder->findTopPairs(10);

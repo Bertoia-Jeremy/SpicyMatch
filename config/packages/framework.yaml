@@ -34,9 +34,20 @@ framework:
             policy: 'token_bucket'
             limit: 30
             rate: { interval: '1 minute', amount: 30 }
+        # Endpoint de matching OAV — endpoint public, calcul SQL lourd → sliding window strict.
+        match_api:
+            policy: sliding_window
+            limit: 30
+            interval: '1 minute'
 
 when@test:
     framework:
         test: true
         session:
             storage_factory_id: session.storage.factory.mock_file
+        rate_limiter:
+            # En test : limite très haute pour que les tests Controller ne heurtent pas la sliding window
+            match_api:
+                policy: fixed_window
+                limit: 10000
+                interval: '1 minute'

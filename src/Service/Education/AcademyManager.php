@@ -10,7 +10,8 @@ use App\Entity\Users;
 use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use App\Repository\SpicesRepository;
-use App\Service\CompatibilityScoreService;
+use App\Service\Match\CompatibleSpiceFinder;
+use App\ValueObject\Match\MortarIds;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
@@ -18,7 +19,7 @@ class AcademyManager
 {
     public function __construct(
         private readonly SpicesRepository $spicesRepository,
-        private readonly CompatibilityScoreService $compatibilityScoreService,
+        private readonly CompatibleSpiceFinder $compatibleSpiceFinder,
         private readonly CacheInterface $cache,
     ) {
     }
@@ -52,11 +53,17 @@ class AcademyManager
     // ──────────────────────────────────────────────
 
     /**
-     * @return array<array{id: int, name: string, file: ?string, color: ?string, groupName: ?string, score: int, mainCompoundsCount: int, secondaryCompoundsCount: int}>
+     * @return list<array{id: int, name: string, file: ?string, agId: ?int, color: ?string, groupName: ?string, stId: ?int, typeName: ?string, score: int}>
      */
     public function findCompatibleSpices(Spices $spice): array
     {
-        return $this->compatibilityScoreService->findCompatible([$spice]);
+        $id = $spice->getId();
+
+        if ($id === null) {
+            return [];
+        }
+
+        return $this->compatibleSpiceFinder->findCompatible(new MortarIds([$id]), 100);
     }
 
     /**
@@ -804,7 +811,8 @@ class AcademyManager
         $allStrictIntruders = $this->cache->get($cacheKey, function (ItemInterface $item) use ($baseSpice): array {
             $item->expiresAfter(3600);
 
-            $compatibles = $this->compatibilityScoreService->findCompatible([$baseSpice]);
+            $id = $baseSpice->getId();
+            $compatibles = $id !== null ? $this->compatibleSpiceFinder->findCompatible(new MortarIds([$id]), 100) : [];
 
             // Keep only scores 1–15 : barely compatible = hard to distinguish
             $lowScored = array_filter($compatibles, fn (array $c) => $c['score'] >= 1 && $c['score'] <= 15);

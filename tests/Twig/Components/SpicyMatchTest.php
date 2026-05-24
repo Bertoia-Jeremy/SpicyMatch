@@ -7,8 +7,9 @@ namespace App\Tests\Twig\Components;
 use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
-use App\Service\CompatibilityScoreService;
+use App\Service\Match\CompatibleSpiceFinder;
 use App\Twig\Components\SpicyMatch;
+use App\ValueObject\Match\MortarIds;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -17,7 +18,7 @@ use PHPUnit\Framework\TestCase;
 class SpicyMatchTest extends TestCase
 {
     private SpicesRepository&MockObject $spicesRepo;
-    private CompatibilityScoreService&MockObject $compatibilityService;
+    private CompatibleSpiceFinder&MockObject $compatibleSpiceFinder;
     private AromaticGroupsRepository&MockObject $aromaticGroupsRepo;
     private SpicyTypeRepository&MockObject $spicyTypeRepo;
 
@@ -29,7 +30,7 @@ class SpicyMatchTest extends TestCase
     protected function setUp(): void
     {
         $this->spicesRepo = $this->createMock(SpicesRepository::class);
-        $this->compatibilityService = $this->createMock(CompatibilityScoreService::class);
+        $this->compatibleSpiceFinder = $this->createMock(CompatibleSpiceFinder::class);
         $this->aromaticGroupsRepo = $this->createMock(AromaticGroupsRepository::class);
         $this->spicyTypeRepo = $this->createMock(SpicyTypeRepository::class);
 
@@ -84,7 +85,7 @@ class SpicyMatchTest extends TestCase
     {
         return new SpicyMatch(
             $this->spicesRepo,
-            $this->compatibilityService,
+            $this->compatibleSpiceFinder,
             $this->aromaticGroupsRepo,
             $this->spicyTypeRepo,
         );
@@ -106,7 +107,7 @@ class SpicyMatchTest extends TestCase
         self::assertCount(5, $results['compatibleSpices']);
     }
 
-    public function testGetResultsInAutoModeCallsCompatibilityService(): void
+    public function testGetResultsInAutoModeCallsCompatibleSpiceFinder(): void
     {
         $this->spicesRepo->expects(self::once())
             ->method('findSpicesForMatch')
@@ -147,12 +148,9 @@ class SpicyMatchTest extends TestCase
             ],
         ];
 
-        $this->spicesRepo->expects(self::once())
-            ->method('findBy')
-            ->willReturn([]);
-
-        $this->compatibilityService->expects(self::once())
+        $this->compatibleSpiceFinder->expects(self::once())
             ->method('findCompatible')
+            ->with(new MortarIds([1]), 100)
             ->willReturn($scored);
 
         $component = $this->makeComponent();
@@ -167,7 +165,7 @@ class SpicyMatchTest extends TestCase
         self::assertCount(3, $results['compatibleSpices']);
     }
 
-    public function testGetResultsInManualModeDoesNotCallCompatibilityService(): void
+    public function testGetResultsInManualModeDoesNotCallCompatibleSpiceFinder(): void
     {
         $this->spicesRepo->method('findSpicesForMatch')
             ->willReturn([
@@ -179,7 +177,7 @@ class SpicyMatchTest extends TestCase
                 ],
             ]);
 
-        $this->compatibilityService->expects(self::never())
+        $this->compatibleSpiceFinder->expects(self::never())
             ->method('findCompatible');
 
         $component = $this->makeComponent();

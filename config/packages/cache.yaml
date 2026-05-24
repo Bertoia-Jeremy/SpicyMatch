@@ -19,3 +19,10 @@ framework:
             academy.cache:
                 adapter: cache.adapter.filesystem
                 default_lifetime: 3600
+
+            # Cache des profils OAV agrégés du mortier (moteur de compatibilité).
+            # Clé = "match.mortar.{id1},{id2},…". TTL 24h.
+            # Invalidé par RecomputeOavTableHandler après chaque rebuild OAV.
+            match.mortar_profile.cache:
+                adapter: cache.adapter.filesystem
+                default_lifetime: 86400

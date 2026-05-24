@@ -9,7 +9,8 @@ use App\Factory\SpicyMatchFactory;
 use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
-use App\Service\CompatibilityScoreService;
+use App\Service\Match\CompatibleSpiceFinder;
+use App\ValueObject\Match\MortarIds;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -45,7 +46,7 @@ class SpicyMatch extends AbstractController
 
     public function __construct(
         private readonly SpicesRepository $spicesRepository,
-        private readonly CompatibilityScoreService $compatibilityScoreService,
+        private readonly CompatibleSpiceFinder $compatibleSpiceFinder,
         private readonly AromaticGroupsRepository $aromaticGroupsRepository,
         private readonly SpicyTypeRepository $spicyTypeRepository,
     ) {
@@ -89,11 +90,7 @@ class SpicyMatch extends AbstractController
             }
 
             if ($this->mode === 'auto') {
-                // Load entities for scoring
-                $selectedEntities = $this->spicesRepository->findBy([
-                    'id' => $ids,
-                ]);
-                $scored = $this->compatibilityScoreService->findCompatible($selectedEntities);
+                $scored = $this->compatibleSpiceFinder->findCompatible(new MortarIds($ids), 100);
 
                 $compatibleSpices = array_values(array_filter(
                     $scored,

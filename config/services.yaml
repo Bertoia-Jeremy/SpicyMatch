@@ -81,3 +81,8 @@ services:
     App\Service\NewsletterService:
         arguments:
             $appSecret: '%kernel.secret%'
+
+    # Moteur de compatibilité aromatique — cache des profils mortier OAV
+    App\Service\Match\MortarProfileBuilder:
+        arguments:
+            $matchMortarProfileCache: '@match.mortar_profile.cache'

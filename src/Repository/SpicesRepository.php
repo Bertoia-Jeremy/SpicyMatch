@@ -103,6 +103,42 @@ class SpicesRepository extends ServiceEntityRepository
     }
 
     /**
+     * Enrichissement batch pour le moteur OAV : charge les données d'affichage
+     * d'un ensemble d'IDs en une seule requête (pas de N+1 sur relations).
+     *
+     * Utilisé par CompatibleSpiceFinder après un appel à MatchPipeline::run().
+     *
+     * @param list<int> $ids
+     *
+     * @return list<array{id: int, name: string, file: ?string, agId: ?int, color: ?string, groupName: ?string, stId: ?int, typeName: ?string}>
+     */
+    public function findEnrichedByIds(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('s')
+            ->select(
+                's.id',
+                's.name',
+                's.file',
+                'ag.id AS agId',
+                'ag.color',
+                'ag.name AS groupName',
+                'st.id AS stId',
+                'st.name AS typeName'
+            )
+            ->leftJoin('s.aromaticGroups', 'ag')
+            ->leftJoin('s.spicyType', 'st')
+            ->where('s.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getArrayResult()
+        ;
+    }
+
+    /**
      * @return list<array{id: int, name: string, type: string}>
      */
     public function search(string $word): array
@@ -198,7 +234,7 @@ class SpicesRepository extends ServiceEntityRepository
             return [];
         }
 
-        // Step 2: Load with compound relations eagerly to avoid N+1 in CompatibilityScoreService.
+        // Step 2: Load with compound relations eagerly to avoid N+1.
         // AlchemyFlavors are NOT loaded — they are excluded from scoring.
         return $this->createQueryBuilder('s')
             ->addSelect('mainAc', 'secAc', 'ag', 'st')
@@ -417,6 +453,32 @@ class SpicesRepository extends ServiceEntityRepository
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * Retourne un mapping id → name pour une liste d'IDs.
+     * Requête DQL scalaire (pas d'hydratation entité) — utilisée par MatchController
+     * pour éviter de charger les entités complètes juste pour récupérer les noms.
+     *
+     * @param int[] $ids
+     *
+     * @return array<int, string> spice_id => name
+     */
+    public function findNamesById(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('s')
+            ->select('s.id', 's.name')
+            ->where('s.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getArrayResult();
+
+        /** @var array<int, string> */
+        return array_column($rows, 'name', 'id');
     }
 
     public function countTotal(): int

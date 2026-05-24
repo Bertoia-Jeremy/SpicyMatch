@@ -7,6 +7,7 @@ namespace App\DataFixtures;
 use App\Entity\AlchemyFlavors;
 use App\Entity\AromaticCompound;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 
@@ -16,7 +17,7 @@ use Doctrine\Persistence\ObjectManager;
  * AlchemyFlavors are culinary descriptors grouping compounds by perceived taste/smell.
  * They are NOT used in compatibility scoring but enrich the data model for future use.
  */
-class AlchemyFlavorsFixtures extends Fixture implements DependentFixtureInterface
+class AlchemyFlavorsFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     /**
      * @var array<string, array{name: string, description: string, compounds: string[]}>
@@ -110,5 +111,10 @@ class AlchemyFlavorsFixtures extends Fixture implements DependentFixtureInterfac
     public function getDependencies(): array
     {
         return [AromaticCompoundFixtures::class];
+    }
+
+    public static function getGroups(): array
+    {
+        return ['spice_content'];
     }
 }

@@ -21,6 +21,21 @@ class AromaticCompound
     #[ORM\Column(name: 'name', type: 'string', length: 255)]
     private ?string $name = null;
 
+    /**
+     * Numéro CAS — identifiant universel cross-sources (PubChem, van Gemert, FlavorDB, Flavornet).
+     * Format : XXXXXXX-YY-Z (ex: "97-53-0" pour l'eugénol).
+     * Nullable : non renseigné tant que la validation PubChem n'est pas effectuée.
+     */
+    #[ORM\Column(name: 'cas_number', type: 'string', length: 50, nullable: true)]
+    private ?string $casNumber = null;
+
+    /**
+     * Formule brute (ex: "C10H12O2").
+     * Source : PubChem — validé via NIST WebBook.
+     */
+    #[ORM\Column(name: 'formula', type: 'string', length: 30, nullable: true)]
+    private ?string $formula = null;
+
     #[ORM\Column(name: 'description', type: 'text', nullable: true)]
     private ?string $description = null;
 
@@ -77,6 +92,30 @@ class AromaticCompound
     public function setName(string $name): self
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getCasNumber(): ?string
+    {
+        return $this->casNumber;
+    }
+
+    public function setCasNumber(?string $casNumber): self
+    {
+        $this->casNumber = $casNumber;
+
+        return $this;
+    }
+
+    public function getFormula(): ?string
+    {
+        return $this->formula;
+    }
+
+    public function setFormula(?string $formula): self
+    {
+        $this->formula = $formula;
 
         return $this;
     }

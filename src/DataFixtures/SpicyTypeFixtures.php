@@ -6,9 +6,10 @@ namespace App\DataFixtures;
 
 use App\Entity\SpicyType;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 
-class SpicyTypeFixtures extends Fixture
+class SpicyTypeFixtures extends Fixture implements FixtureGroupInterface
 {
     /**
      * @var array<string, array{name: string, description: string}>
@@ -56,5 +57,10 @@ class SpicyTypeFixtures extends Fixture
         }
 
         $manager->flush();
+    }
+
+    public static function getGroups(): array
+    {
+        return ['spice_content'];
     }
 }

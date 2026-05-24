@@ -6,6 +6,7 @@ namespace App\DataFixtures;
 
 use App\Entity\AromaticGroups;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 
 /**
@@ -14,7 +15,7 @@ use Doctrine\Persistence\ObjectManager;
  * Groups reflect the biochemical family of a spice's dominant compounds,
  * which shapes its aromatic profile and culinary compatibility.
  */
-class AromaticGroupsFixtures extends Fixture
+class AromaticGroupsFixtures extends Fixture implements FixtureGroupInterface
 {
     /**
      * @var array<string, array{name: string, color: string, description: string, cooking: string}>
@@ -76,5 +77,10 @@ class AromaticGroupsFixtures extends Fixture
         }
 
         $manager->flush();
+    }
+
+    public static function getGroups(): array
+    {
+        return ['spice_content'];
     }
 }

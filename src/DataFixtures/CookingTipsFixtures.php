@@ -7,6 +7,7 @@ namespace App\DataFixtures;
 use App\Entity\CookingTips;
 use App\Entity\Spices;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 
@@ -22,7 +23,7 @@ use Doctrine\Persistence\ObjectManager;
  *
  * Run: php bin/console doctrine:fixtures:load --append --group=CookingTipsFixtures
  */
-class CookingTipsFixtures extends Fixture implements DependentFixtureInterface
+class CookingTipsFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     /**
      * @var array<string, list<array{step: int, cooking_step: string, title: string, advantages: string, text: string}>>
@@ -749,5 +750,10 @@ class CookingTipsFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies(): array
     {
         return [SpicesFixtures::class];
+    }
+
+    public static function getGroups(): array
+    {
+        return ['spice_content'];
     }
 }

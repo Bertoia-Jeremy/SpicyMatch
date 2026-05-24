@@ -48,3 +48,6 @@ TODO.txt
 TODO_MAX.txt
 .serena/*
 design/
+
+# CSV exports (snapshots datés — générés par app:export:spices-csv)
+data/exports/

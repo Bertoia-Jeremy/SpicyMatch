@@ -8,6 +8,7 @@ use App\Entity\PreparationMethods;
 use App\Entity\PreparationTips;
 use App\Entity\Spices;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 
@@ -15,7 +16,7 @@ use Doctrine\Persistence\ObjectManager;
  * 2 preparation tips per spice (60 total).
  * Run: php bin/console doctrine:fixtures:load --append --group=PreparationTipsFixtures.
  */
-class PreparationTipsFixtures extends Fixture implements DependentFixtureInterface
+class PreparationTipsFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     /**
      * @var array<string, list<array{method: string, title: string, advantages: string, text: string}>>
@@ -471,5 +472,10 @@ class PreparationTipsFixtures extends Fixture implements DependentFixtureInterfa
     public function getDependencies(): array
     {
         return [SpicesFixtures::class, PreparationMethodsFixtures::class];
+    }
+
+    public static function getGroups(): array
+    {
+        return ['spice_content'];
     }
 }

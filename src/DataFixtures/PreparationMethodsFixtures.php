@@ -6,9 +6,10 @@ namespace App\DataFixtures;
 
 use App\Entity\PreparationMethods;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 
-class PreparationMethodsFixtures extends Fixture
+class PreparationMethodsFixtures extends Fixture implements FixtureGroupInterface
 {
     private const METHODS = [
         'method_entiere' => [
@@ -74,5 +75,10 @@ class PreparationMethodsFixtures extends Fixture
         }
 
         $manager->flush();
+    }
+
+    public static function getGroups(): array
+    {
+        return ['spice_content'];
     }
 }

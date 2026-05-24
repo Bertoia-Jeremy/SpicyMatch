@@ -86,3 +86,8 @@ services:
     App\Service\Match\MortarProfileBuilder:
         arguments:
             $matchMortarProfileCache: '@match.mortar_profile.cache'
+
+    # Export CSV — nécessite le répertoire racine du projet
+    App\Command\ExportSpicesCsvCommand:
+        arguments:
+            $projectDir: '%kernel.project_dir%'

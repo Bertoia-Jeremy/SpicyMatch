@@ -7,6 +7,7 @@ namespace App\Controller\Api;
 use App\Exception\Match\InvalidMortarException;
 use App\Repository\SpicesRepository;
 use App\Service\Match\MatchPipeline;
+use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -22,6 +23,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * Paramètres :
  *   ?spices=id1,id2,…  (1 à 10 IDs d'épices, virgule-séparés)
  *   ?limit=20           (optionnel, défaut 20, max 100)
+ *   ?matrix=air         (optionnel, défaut "air" ; valeurs : air|water|oil)
  *
  * Réponse 200 :
  * {
@@ -104,6 +106,19 @@ final class MatchController extends AbstractController
 
         $limit = max(1, min(100, $request->query->getInt('limit', 20)));
 
+        // Résolution du contexte culinaire (matrice ODT)
+        // Étape 1 : le contexte est parsé et validé mais pas encore propagé au pipeline
+        //           (la shadow table est mono-matrice en Étape 1 — propagation en Étape 2).
+        $matrixRaw = $request->query->getString('matrix', 'air');
+
+        try {
+            $culinaryContext = CulinaryContext::fromRequest($matrixRaw);
+        } catch (\ValueError) {
+            return $this->json([
+                'error' => 'Matrice invalide. Valeurs acceptées : air, water, oil.',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
         // Vérification que les épices du mortier existent et ne sont pas soft-deletées
         $mortarSpices = array_filter(
             $this->spicesRepository->findBy([
@@ -143,6 +158,7 @@ final class MatchController extends AbstractController
             'mortar' => $mortar->toArray(),
             'results' => $results,
             'oav_mode' => $oavMode,
+            'matrix' => $culinaryContext->matrix->value,
             'count' => count($results),
         ]);
     }

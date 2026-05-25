@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
-use App\Entity\UserProgression;
 use App\Message\MatchSavedEvent;
 use App\Repository\ProcessedGamificationEventRepository;
 use App\Repository\SpicyMatchHistoryRepository;
@@ -36,7 +35,15 @@ class GamificationHandler
         }
 
         $spicyMatch = $history->getSpicyMatch();
-        $user = $spicyMatch?->getUser();
+        if ($spicyMatch === null) {
+            $this->logger->warning('gamification.match_saved.spicy_match_missing', [
+                'historyId' => $event->spicyMatchHistoryId,
+            ]);
+
+            return;
+        }
+
+        $user = $spicyMatch->getUser();
         if ($user === null) {
             return;
         }
@@ -51,13 +58,7 @@ class GamificationHandler
             return;
         }
 
-        $progression = $user->getProgression();
-        if ($progression === null) {
-            $progression = new UserProgression();
-            $progression->setUser($user);
-            $user->setProgression($progression);
-            $this->em->persist($progression);
-        }
+        $progression = $this->manager->getOrCreateProgression($user);
 
         if ($progression->isGamificationEnabled()) {
             // Recount from DB (keeps totals in sync even if ledger gets pruned).

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
-use App\Entity\UserProgression;
 use App\Message\SpiceReadEvent;
 use App\Repository\ProcessedGamificationEventRepository;
 use App\Repository\SpicesRepository;
@@ -47,13 +46,7 @@ class SpiceReadGamificationHandler
             return;
         }
 
-        $progression = $user->getProgression();
-        if ($progression === null) {
-            $progression = new UserProgression();
-            $progression->setUser($user);
-            $user->setProgression($progression);
-            $this->em->persist($progression);
-        }
+        $progression = $this->manager->getOrCreateProgression($user);
 
         if ($progression->isGamificationEnabled()) {
             // Idempotent counters: recompute from DB, no raw incrementSpicesRead().

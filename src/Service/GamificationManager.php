@@ -45,6 +45,19 @@ class GamificationManager implements GamificationManagerInterface
     ) {
     }
 
+    public function getOrCreateProgression(Users $user): UserProgression
+    {
+        $progression = $user->getProgression();
+        if ($progression === null) {
+            $progression = new UserProgression();
+            $progression->setUser($user);
+            $user->setProgression($progression);
+            $this->em->persist($progression);
+        }
+
+        return $progression;
+    }
+
     public function getOrCreateStats(Users $user): UserStat
     {
         $stats = $user->getStats();

@@ -69,11 +69,11 @@ final class SpiceReadGamificationHandlerTest extends TestCase
         $stats = new UserStat();
         $progression = new UserProgression();
         $user = $this->createMock(Users::class);
-        $user->method('getProgression')
-            ->willReturn($progression);
         $user->method('getStats')
             ->willReturn($stats);
         $progression->setUser($user);
+        $this->manager->method('getOrCreateProgression')
+            ->willReturn($progression);
 
         $this->usersRepo->method('find')
             ->willReturn($user);
@@ -94,11 +94,11 @@ final class SpiceReadGamificationHandlerTest extends TestCase
         $stats = new UserStat();
         $progression = new UserProgression();
         $user = $this->createMock(Users::class);
-        $user->method('getProgression')
-            ->willReturn($progression);
         $user->method('getStats')
             ->willReturn($stats);
         $progression->setUser($user);
+        $this->manager->method('getOrCreateProgression')
+            ->willReturn($progression);
 
         $this->usersRepo->method('find')
             ->willReturn($user);
@@ -122,11 +122,11 @@ final class SpiceReadGamificationHandlerTest extends TestCase
         $stats = new UserStat();
         $progression = new UserProgression();
         $user = $this->createMock(Users::class);
-        $user->method('getProgression')
-            ->willReturn($progression);
         $user->method('getStats')
             ->willReturn($stats);
         $progression->setUser($user);
+        $this->manager->method('getOrCreateProgression')
+            ->willReturn($progression);
 
         $this->usersRepo->method('find')
             ->willReturn($user);
@@ -147,11 +147,11 @@ final class SpiceReadGamificationHandlerTest extends TestCase
         $stats = new UserStat();
         $progression = new UserProgression();
         $user = $this->createMock(Users::class);
-        $user->method('getProgression')
-            ->willReturn($progression);
         $user->method('getStats')
             ->willReturn($stats);
         $progression->setUser($user);
+        $this->manager->method('getOrCreateProgression')
+            ->willReturn($progression);
 
         $this->usersRepo->method('find')
             ->willReturn($user);
@@ -174,11 +174,6 @@ final class SpiceReadGamificationHandlerTest extends TestCase
     public function testInvokeCreatesProgressionWhenNull(): void
     {
         $user = $this->createMock(Users::class);
-        $user->method('getProgression')
-            ->willReturn(null);
-        $user->method('getStats')
-            ->willReturn(new UserStat());
-
         $this->usersRepo->method('find')
             ->willReturn($user);
         $this->spiceViewRepo->method('countDistinctSpicesByUser')
@@ -188,8 +183,11 @@ final class SpiceReadGamificationHandlerTest extends TestCase
         $this->manager->method('getOrCreateStats')
             ->willReturn(new UserStat());
 
-        $user->expects(self::once())->method('setProgression');
-        $this->em->expects(self::atLeastOnce())->method('persist');
+        // Progression creation is now delegated to the manager.
+        $this->manager->expects(self::once())
+            ->method('getOrCreateProgression')
+            ->with($user)
+            ->willReturn(new UserProgression());
 
         ($this->handler)(new SpiceReadEvent(1, 42, true));
     }
@@ -199,9 +197,9 @@ final class SpiceReadGamificationHandlerTest extends TestCase
         $progression = new UserProgression();
         $progression->disableGamification();
         $user = $this->createMock(Users::class);
-        $user->method('getProgression')
-            ->willReturn($progression);
         $progression->setUser($user);
+        $this->manager->method('getOrCreateProgression')
+            ->willReturn($progression);
 
         $this->usersRepo->method('find')
             ->willReturn($user);
@@ -218,11 +216,11 @@ final class SpiceReadGamificationHandlerTest extends TestCase
         $stats = new UserStat();
         $progression = new UserProgression();
         $user = $this->createMock(Users::class);
-        $user->method('getProgression')
-            ->willReturn($progression);
         $user->method('getStats')
             ->willReturn($stats);
         $progression->setUser($user);
+        $this->manager->method('getOrCreateProgression')
+            ->willReturn($progression);
 
         $group = $this->createMock(AromaticGroups::class);
         $group->method('getId')

@@ -59,9 +59,9 @@ final class FavoriteGamificationHandlerTest extends TestCase
     public function testDelegatesWithFavoriteCountContext(): void
     {
         $progression = new UserProgression();
-        $user = $this->createConfiguredMock(Users::class, [
-            'getProgression' => $progression,
-        ]);
+        $user = $this->createMock(Users::class);
+        $this->manager->method('getOrCreateProgression')
+            ->willReturn($progression);
 
         $this->usersRepo->method('find')
             ->willReturn($user);
@@ -83,9 +83,9 @@ final class FavoriteGamificationHandlerTest extends TestCase
     public function testHandlesZeroFavoritesGracefully(): void
     {
         $progression = new UserProgression();
-        $user = $this->createConfiguredMock(Users::class, [
-            'getProgression' => $progression,
-        ]);
+        $user = $this->createMock(Users::class);
+        $this->manager->method('getOrCreateProgression')
+            ->willReturn($progression);
 
         $this->usersRepo->method('find')
             ->willReturn($user);

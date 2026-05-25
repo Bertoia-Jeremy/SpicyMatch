@@ -8,6 +8,7 @@ use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
 use App\Service\Match\CompatibleSpiceFinder;
+use App\Service\SpicyMatchService;
 use App\Twig\Components\SpicyMatch;
 use App\ValueObject\Match\MortarIds;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -21,6 +22,7 @@ class SpicyMatchTest extends TestCase
     private CompatibleSpiceFinder&MockObject $compatibleSpiceFinder;
     private AromaticGroupsRepository&MockObject $aromaticGroupsRepo;
     private SpicyTypeRepository&MockObject $spicyTypeRepo;
+    private SpicyMatchService&MockObject $spicyMatchService;
 
     /**
      * @var list<array<string, mixed>>
@@ -33,6 +35,7 @@ class SpicyMatchTest extends TestCase
         $this->compatibleSpiceFinder = $this->createMock(CompatibleSpiceFinder::class);
         $this->aromaticGroupsRepo = $this->createMock(AromaticGroupsRepository::class);
         $this->spicyTypeRepo = $this->createMock(SpicyTypeRepository::class);
+        $this->spicyMatchService = $this->createMock(SpicyMatchService::class);
 
         $this->allSpices = [
             [
@@ -88,6 +91,7 @@ class SpicyMatchTest extends TestCase
             $this->compatibleSpiceFinder,
             $this->aromaticGroupsRepo,
             $this->spicyTypeRepo,
+            $this->spicyMatchService,
         );
     }
 

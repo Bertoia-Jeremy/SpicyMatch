@@ -199,7 +199,7 @@ class GameSessionManager
         }
 
         if ($overrideScore !== null) {
-            $todayCount = $this->sessionRepository->countTodayByUser($user, $mode);
+            // Reuse $todayCount from the limit check above (session not yet flushed — count is stable).
             $xpEarned = $todayCount > self::REDUCED_XP_THRESHOLD
                 ? (int) round($overrideScore * 0.5)
                 : $overrideScore;

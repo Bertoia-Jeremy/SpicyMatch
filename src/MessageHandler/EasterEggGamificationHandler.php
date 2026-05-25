@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
-use App\Entity\UserProgression;
 use App\Message\EasterEggFoundEvent;
 use App\Repository\ProcessedGamificationEventRepository;
 use App\Repository\UsersRepository;
@@ -41,13 +40,7 @@ class EasterEggGamificationHandler
             return;
         }
 
-        $progression = $user->getProgression();
-        if ($progression === null) {
-            $progression = new UserProgression();
-            $progression->setUser($user);
-            $user->setProgression($progression);
-            $this->em->persist($progression);
-        }
+        $progression = $this->manager->getOrCreateProgression($user);
 
         $this->manager->process($progression, 'easter_egg_found', [
             'easterEggSlug' => $event->easterEggSlug,

@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Twig\Components;
 
 use App\Entity\Spices;
-use App\Factory\SpicyMatchFactory;
 use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
 use App\Service\Match\CompatibleSpiceFinder;
+use App\Service\SpicyMatchService;
 use App\ValueObject\Match\MortarIds;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
@@ -49,6 +48,7 @@ class SpicyMatch extends AbstractController
         private readonly CompatibleSpiceFinder $compatibleSpiceFinder,
         private readonly AromaticGroupsRepository $aromaticGroupsRepository,
         private readonly SpicyTypeRepository $spicyTypeRepository,
+        private readonly SpicyMatchService $spicyMatchService,
     ) {
         $this->spices = [
             'selectedSpices' => [],
@@ -183,50 +183,22 @@ class SpicyMatch extends AbstractController
     }
 
     #[LiveAction]
-    public function nextStep(
-        EntityManagerInterface $entityManager,
-        SpicyMatchFactory $spicyMatchFactory,
-    ): \Symfony\Component\HttpFoundation\RedirectResponse {
+    public function nextStep(): \Symfony\Component\HttpFoundation\RedirectResponse
+    {
         $isManual = $this->mode === 'manual';
 
         $user = $this->getUser();
         \assert($user instanceof \App\Entity\Users || $user === null);
 
-        $spicyMatch = $spicyMatchFactory->create();
-        $spicyMatch->setUser($user);
-        $spicyMatch->setIsManual($isManual);
-
-        // Extraction des IDs depuis la structure SpicyMatch (tableau plat d'IDs)
         $selectedIds = array_map('intval', $this->spices['selectedSpices']);
+        $compatibleSpices = $isManual ? [] : $this->getResults()['compatibleSpices'];
 
-        // Batch load — 1 SELECT IN au lieu de N find() individuels
-        foreach ($this->spicesRepository->findBy([
-            'id' => $selectedIds,
-        ]) as $spice) {
-            $spicyMatch->addSpice($spice);
-        }
-
-        // En mode auto, on sauvegarde les résultats scorés pour référence
-        // En mode manuel, pas de score de compatibilité → on skip les results
-        if (! $isManual) {
-            $results = $this->getResults();
-            $compatibleIds = array_column($results['compatibleSpices'], 'id');
-            $scoreBySpiceId = array_column($results['compatibleSpices'], 'score', 'id');
-
-            // Batch load — 1 SELECT IN au lieu de N find() individuels
-            $compatibleEntities = $compatibleIds !== [] ? $this->spicesRepository->findBy([
-                'id' => $compatibleIds,
-            ]) : [];
-            foreach ($compatibleEntities as $spice) {
-                $result = new \App\Entity\SpicyMatchResult();
-                $result->setSpice($spice);
-                $result->setScore((int) ($scoreBySpiceId[$spice->getId()] ?? 0));
-                $spicyMatch->addResult($result);
-            }
-        }
-
-        $entityManager->persist($spicyMatch);
-        $entityManager->flush();
+        $spicyMatch = $this->spicyMatchService->createFromSelection(
+            $user,
+            $selectedIds,
+            $isManual,
+            $compatibleSpices,
+        );
 
         return $this->redirectToRoute('view_spicy_match', [
             'id' => $spicyMatch->getId(),

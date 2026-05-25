@@ -63,14 +63,15 @@ final class EasterEggGamificationHandlerTest extends TestCase
 
     public function testCreatesProgressionWhenNull(): void
     {
-        $user = $this->createConfiguredMock(Users::class, [
-            'getProgression' => null,
-        ]);
+        $user = $this->createMock(Users::class);
         $this->usersRepo->method('find')
             ->willReturn($user);
 
-        $user->expects(self::once())->method('setProgression');
-        $this->em->expects(self::once())->method('persist')->with(self::isInstanceOf(UserProgression::class));
+        // Progression creation is now delegated to the manager.
+        $this->manager->expects(self::once())
+            ->method('getOrCreateProgression')
+            ->with($user)
+            ->willReturn(new UserProgression());
 
         $this->manager->expects(self::once())->method('process');
         $this->em->expects(self::once())->method('flush');
@@ -81,11 +82,11 @@ final class EasterEggGamificationHandlerTest extends TestCase
     public function testDelegatesWithCorrectContext(): void
     {
         $progression = new UserProgression();
-        $user = $this->createConfiguredMock(Users::class, [
-            'getProgression' => $progression,
-        ]);
+        $user = $this->createMock(Users::class);
         $this->usersRepo->method('find')
             ->willReturn($user);
+        $this->manager->method('getOrCreateProgression')
+            ->willReturn($progression);
 
         $this->manager->expects(self::once())
             ->method('process')
@@ -100,11 +101,11 @@ final class EasterEggGamificationHandlerTest extends TestCase
     public function testDefaultXpAmountIs75(): void
     {
         $progression = new UserProgression();
-        $user = $this->createConfiguredMock(Users::class, [
-            'getProgression' => $progression,
-        ]);
+        $user = $this->createMock(Users::class);
         $this->usersRepo->method('find')
             ->willReturn($user);
+        $this->manager->method('getOrCreateProgression')
+            ->willReturn($progression);
 
         $this->manager->expects(self::once())
             ->method('process')

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Service\Match;
 
+use App\Enum\OdtMatrix;
 use App\Repository\SpiceActiveCompoundRepository;
 use App\Service\Match\MortarProfileBuilder;
 use App\ValueObject\Match\MortarIds;
@@ -176,5 +177,158 @@ final class MortarProfileBuilderTest extends TestCase
         $keyB = $cacheKey;
 
         self::assertSame($keyA, $keyB, 'Ordre des IDs ne doit pas affecter la clé de cache');
+    }
+
+    // ── Cache key inclut la matrice ────────────────────────────────────────────
+
+    public function testCacheKeyIncludesMatrix(): void
+    {
+        $capturedKeys = [];
+
+        $item = $this->createStub(CacheItemInterface::class);
+        $item->method('isHit')
+            ->willReturn(false);
+        $item->method('set')
+            ->willReturn($item);
+        $item->method('expiresAfter')
+            ->willReturn($item);
+
+        $pool = $this->createMock(CacheItemPoolInterface::class);
+        $pool->method('getItem')
+            ->willReturnCallback(function (string $key) use (&$capturedKeys, $item): CacheItemInterface {
+                $capturedKeys[] = $key;
+
+                return $item;
+            });
+        $pool->method('save')
+            ->willReturn(true);
+
+        $repo = $this->createStub(SpiceActiveCompoundRepository::class);
+        $repo->method('loadOavProfilesBatch')
+            ->willReturn([]);
+
+        $builder = new MortarProfileBuilder($repo, $pool);
+        $mortar = new MortarIds([1, 2]);
+
+        $builder->build($mortar, OdtMatrix::AIR);
+        $builder->build($mortar, OdtMatrix::WATER);
+        $builder->build($mortar, OdtMatrix::OIL);
+
+        // Toutes les clés doivent être différentes
+        self::assertCount(3, array_unique($capturedKeys), '3 matrices → 3 clés de cache distinctes');
+        // Chaque clé doit contenir le nom de la matrice
+        self::assertStringContainsString('air', $capturedKeys[0]);
+        self::assertStringContainsString('water', $capturedKeys[1]);
+        self::assertStringContainsString('oil', $capturedKeys[2]);
+    }
+
+    // ── TTL par matrice ────────────────────────────────────────────────────────
+
+    public function testAirMatrixUses24hTtl(): void
+    {
+        $capturedTtl = null;
+
+        $item = $this->createStub(CacheItemInterface::class);
+        $item->method('isHit')
+            ->willReturn(false);
+        $item->method('set')
+            ->willReturn($item);
+        $item->method('expiresAfter')
+            ->willReturnCallback(function (int $ttl) use (&$capturedTtl, $item): CacheItemInterface {
+                $capturedTtl = $ttl;
+
+                return $item;
+            });
+
+        $pool = $this->createStub(CacheItemPoolInterface::class);
+        $pool->method('getItem')
+            ->willReturn($item);
+        $pool->method('save')
+            ->willReturn(true);
+
+        $repo = $this->createStub(SpiceActiveCompoundRepository::class);
+        $repo->method('loadOavProfilesBatch')
+            ->willReturn([
+                1 => [
+                    10 => 5.0,
+                ],
+            ]);
+
+        $builder = new MortarProfileBuilder($repo, $pool);
+        $builder->build(new MortarIds([1]), OdtMatrix::AIR);
+
+        self::assertSame(86400, $capturedTtl, 'air → TTL 24h = 86400s');
+    }
+
+    public function testWaterMatrixUsesShortTtl(): void
+    {
+        $capturedTtl = null;
+
+        $item = $this->createStub(CacheItemInterface::class);
+        $item->method('isHit')
+            ->willReturn(false);
+        $item->method('set')
+            ->willReturn($item);
+        $item->method('expiresAfter')
+            ->willReturnCallback(function (int $ttl) use (&$capturedTtl, $item): CacheItemInterface {
+                $capturedTtl = $ttl;
+
+                return $item;
+            });
+
+        $pool = $this->createStub(CacheItemPoolInterface::class);
+        $pool->method('getItem')
+            ->willReturn($item);
+        $pool->method('save')
+            ->willReturn(true);
+
+        $repo = $this->createStub(SpiceActiveCompoundRepository::class);
+        $repo->method('loadOavProfilesBatch')
+            ->willReturn([
+                1 => [
+                    10 => 3.0,
+                ],
+            ]);
+
+        $builder = new MortarProfileBuilder($repo, $pool);
+        $builder->build(new MortarIds([1]), OdtMatrix::WATER);
+
+        self::assertSame(3600, $capturedTtl, 'water → TTL 1h = 3600s (données moins matures)');
+    }
+
+    public function testOilMatrixUsesShortTtl(): void
+    {
+        $capturedTtl = null;
+
+        $item = $this->createStub(CacheItemInterface::class);
+        $item->method('isHit')
+            ->willReturn(false);
+        $item->method('set')
+            ->willReturn($item);
+        $item->method('expiresAfter')
+            ->willReturnCallback(function (int $ttl) use (&$capturedTtl, $item): CacheItemInterface {
+                $capturedTtl = $ttl;
+
+                return $item;
+            });
+
+        $pool = $this->createStub(CacheItemPoolInterface::class);
+        $pool->method('getItem')
+            ->willReturn($item);
+        $pool->method('save')
+            ->willReturn(true);
+
+        $repo = $this->createStub(SpiceActiveCompoundRepository::class);
+        $repo->method('loadOavProfilesBatch')
+            ->willReturn([
+                1 => [
+                    10 => 2.5,
+                ],
+            ]);
+
+        $builder = new MortarProfileBuilder($repo, $pool);
+        $builder->build(new MortarIds([1]), OdtMatrix::OIL);
+
+        self::assertSame(3600, $capturedTtl, 'oil → TTL 1h = 3600s');
     }
 }

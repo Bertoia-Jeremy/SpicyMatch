@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\Service\Match;
 
+use App\Enum\OdtMatrix;
 use App\Repository\CandidateVetoRepository;
 use App\Repository\SpiceActiveCompoundRepository;
 use App\Service\Match\MatchPipeline;
 use App\Service\Match\MortarProfileBuilder;
 use App\Service\Match\OavTanimotoScorer;
+use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -302,6 +304,84 @@ final class MatchPipelineTest extends TestCase
         self::assertSame(10, $results[0]['id']);
         $candidate99 = array_values(array_filter($results, fn ($r) => $r['id'] === 99))[0] ?? null;
         self::assertNull($candidate99, 'Candidat sans profil OAV doit être ignoré, pas scorer 0');
+    }
+
+    // ── Propagation de CulinaryContext (matrice) ───────────────────────────────
+
+    public function testRunPassesMatrixToMortarProfileBuilder(): void
+    {
+        $builder = $this->createMock(MortarProfileBuilder::class);
+        $builder->expects(self::once())
+            ->method('build')
+            ->with(self::anything(), OdtMatrix::WATER)
+            ->willReturn(null); // mode dégradé — pas besoin de veto/scorer
+
+        $veto = $this->createStub(CandidateVetoRepository::class);
+        $veto->method('findSurvivorsWithPresence')
+            ->willReturn([]);
+
+        $pipeline = $this->makePipeline($builder, $veto);
+        $pipeline->run(new MortarIds([1]), limit: 20, ctx: new CulinaryContext(OdtMatrix::WATER));
+    }
+
+    public function testRunDefaultContextUsesAirMatrix(): void
+    {
+        $builder = $this->createMock(MortarProfileBuilder::class);
+        $builder->expects(self::once())
+            ->method('build')
+            ->with(self::anything(), OdtMatrix::AIR)
+            ->willReturn(null);
+
+        $veto = $this->createStub(CandidateVetoRepository::class);
+        $veto->method('findSurvivorsWithPresence')
+            ->willReturn([]);
+
+        $pipeline = $this->makePipeline($builder, $veto);
+        $pipeline->run(new MortarIds([1])); // no context → default CulinaryContext (air)
+    }
+
+    public function testRunPassesMatrixToVetoRepository(): void
+    {
+        $mortarProfile = [
+            1 => 5.0,
+        ];
+
+        $builder = $this->createStub(MortarProfileBuilder::class);
+        $builder->method('build')
+            ->willReturn($mortarProfile);
+
+        $veto = $this->createMock(CandidateVetoRepository::class);
+        $veto->expects(self::once())
+            ->method('findSurvivors')
+            ->with(self::anything(), OdtMatrix::OIL)
+            ->willReturn([]);
+
+        $pipeline = $this->makePipeline($builder, $veto);
+        $pipeline->run(new MortarIds([1]), limit: 20, ctx: new CulinaryContext(OdtMatrix::OIL));
+    }
+
+    public function testRunPassesMatrixToSpiceActiveCompoundRepository(): void
+    {
+        $mortarProfile = [
+            1 => 5.0,
+        ];
+
+        $builder = $this->createStub(MortarProfileBuilder::class);
+        $builder->method('build')
+            ->willReturn($mortarProfile);
+
+        $veto = $this->createStub(CandidateVetoRepository::class);
+        $veto->method('findSurvivors')
+            ->willReturn([10]);
+
+        $repo = $this->createMock(SpiceActiveCompoundRepository::class);
+        $repo->expects(self::once())
+            ->method('loadOavProfilesBatch')
+            ->with([10], OdtMatrix::WATER)
+            ->willReturn([]);
+
+        $pipeline = $this->makePipeline($builder, $veto, $repo);
+        $pipeline->run(new MortarIds([1]), limit: 20, ctx: new CulinaryContext(OdtMatrix::WATER));
     }
 
     // ── Flag oav_mode ──────────────────────────────────────────────────────────

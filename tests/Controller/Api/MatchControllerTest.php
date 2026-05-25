@@ -244,4 +244,71 @@ final class MatchControllerTest extends WebTestCase
         $resultIds = array_column($data['results'], 'id');
         self::assertContains(27, $resultIds, 'Marjolaine doit être compatible avec Thym + Origan');
     }
+
+    // ── Paramètre matrix ───────────────────────────────────────────────────────
+
+    public function testInvalidMatrixReturns400(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/api/match?spices=15&matrix=steam');
+
+        self::assertResponseStatusCodeSame(400);
+        $data = json_decode((string) $client->getResponse()->getContent(), true);
+        self::assertArrayHasKey('error', $data);
+        self::assertStringContainsString('Matrice invalide', $data['error']);
+    }
+
+    public function testResponseIncludesMatrixKey(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/api/match?spices=15&matrix=air');
+
+        self::assertResponseIsSuccessful();
+        $data = json_decode((string) $client->getResponse()->getContent(), true);
+
+        self::assertArrayHasKey('matrix', $data);
+        self::assertSame('air', $data['matrix']);
+    }
+
+    public function testDefaultMatrixIsAirWhenOmitted(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/api/match?spices=15');
+
+        self::assertResponseIsSuccessful();
+        $data = json_decode((string) $client->getResponse()->getContent(), true);
+
+        self::assertArrayHasKey('matrix', $data);
+        self::assertSame('air', $data['matrix']);
+    }
+
+    public function testWaterMatrixIsAccepted(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/api/match?spices=15&matrix=water');
+
+        self::assertResponseIsSuccessful();
+        $data = json_decode((string) $client->getResponse()->getContent(), true);
+
+        self::assertSame('water', $data['matrix']);
+    }
+
+    public function testOilMatrixIsAccepted(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/api/match?spices=15&matrix=oil');
+
+        self::assertResponseIsSuccessful();
+        $data = json_decode((string) $client->getResponse()->getContent(), true);
+
+        self::assertSame('oil', $data['matrix']);
+    }
+
+    public function testEmptyMatrixReturns400(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/api/match?spices=15&matrix=');
+
+        self::assertResponseStatusCodeSame(400);
+    }
 }

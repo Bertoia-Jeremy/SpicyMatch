@@ -136,8 +136,8 @@ final class MatchController extends AbstractController
             ], Response::HTTP_NOT_FOUND);
         }
 
-        // Exécution du pipeline
-        $pipelineResults = $this->matchPipeline->run($mortar, $limit);
+        // Exécution du pipeline avec le contexte culinaire (matrice ODT)
+        $pipelineResults = $this->matchPipeline->run($mortar, $limit, $culinaryContext);
 
         // Enrichissement avec les noms d'épices — DQL scalaire (pas d'hydratation entité)
         $candidateIds = array_column($pipelineResults, 'id');

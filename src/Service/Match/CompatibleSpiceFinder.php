@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\Match;
 
 use App\Repository\SpicesRepository;
+use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 
 /**
@@ -20,6 +21,8 @@ use App\ValueObject\Match\MortarIds;
  * sans les champs dépréciés mainCompoundsCount/secondaryCompoundsCount/alchemyFlavorsCount
  * (non affichés dans les templates, calculés par l'ancienne formule Jaccard).
  *
+ * Rétrocompatibilité : `findCompatible($mortar, $limit)` sans contexte → défaut air.
+ *
  * @see ARCHITECTURE_MOTEUR_COMPATIBILITE.md §3 + §4.1
  */
 class CompatibleSpiceFinder
@@ -33,13 +36,17 @@ class CompatibleSpiceFinder
     /**
      * Trouve les épices compatibles avec le mortier, triées par score OAV Tanimoto décroissant.
      *
-     * @param int $limit Nombre maximum de résultats (défaut 100)
+     * @param int             $limit Nombre maximum de résultats (défaut 100)
+     * @param CulinaryContext $ctx   Contexte culinaire — matrice ODT (défaut: air)
      *
      * @return list<array{id: int, name: string, file: ?string, agId: ?int, color: ?string, groupName: ?string, stId: ?int, typeName: ?string, score: int}>
      */
-    public function findCompatible(MortarIds $mortar, int $limit = 100): array
-    {
-        $pipelineResults = $this->matchPipeline->run($mortar, $limit);
+    public function findCompatible(
+        MortarIds $mortar,
+        int $limit = 100,
+        CulinaryContext $ctx = new CulinaryContext(),
+    ): array {
+        $pipelineResults = $this->matchPipeline->run($mortar, $limit, $ctx);
 
         if ($pipelineResults === []) {
             return [];

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\SpiceActiveCompound;
+use App\Enum\OdtMatrix;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\Persistence\ManagerRegistry;
@@ -14,6 +15,9 @@ use Doctrine\Persistence\ManagerRegistry;
  *
  * Les lectures se font via DBAL pour éviter l'overhead de l'hydratation Doctrine
  * (la table est lue en masse, pas épice par épice).
+ *
+ * Toutes les méthodes acceptent un paramètre `$matrix` (défaut: AIR) pour
+ * filtrer sur la bonne matrice ODT. Rétrocompatible : appels sans matrix = AIR.
  */
 class SpiceActiveCompoundRepository extends ServiceEntityRepository
 {
@@ -29,7 +33,7 @@ class SpiceActiveCompoundRepository extends ServiceEntityRepository
      *
      * @return array<int, array<int, float>> spice_id => [compound_id => oav_value]
      */
-    public function loadOavProfilesBatch(array $spiceIds): array
+    public function loadOavProfilesBatch(array $spiceIds, OdtMatrix $matrix = OdtMatrix::AIR): array
     {
         if ($spiceIds === []) {
             return [];
@@ -40,9 +44,11 @@ class SpiceActiveCompoundRepository extends ServiceEntityRepository
             ->fetchAllAssociative(
                 'SELECT spice_id, aromatic_compound_id, oav_value
                  FROM spice_active_compound
-                 WHERE spice_id IN (:ids)',
+                 WHERE spice_id IN (:ids)
+                   AND matrix = :matrix',
                 [
                     'ids' => $spiceIds,
+                    'matrix' => $matrix->value,
                 ],
                 [
                     'ids' => ArrayParameterType::INTEGER,
@@ -58,12 +64,12 @@ class SpiceActiveCompoundRepository extends ServiceEntityRepository
     }
 
     /**
-     * Vérifie si au moins une épice du mortier a des données OAV disponibles.
+     * Vérifie si au moins une épice du mortier a des données OAV disponibles pour cette matrice.
      * Utilisé par MatchPipeline pour choisir entre mode OAV et mode fallback présence.
      *
      * @param int[] $spiceIds
      */
-    public function hasOavDataForSpices(array $spiceIds): bool
+    public function hasOavDataForSpices(array $spiceIds, OdtMatrix $matrix = OdtMatrix::AIR): bool
     {
         if ($spiceIds === []) {
             return false;
@@ -73,9 +79,10 @@ class SpiceActiveCompoundRepository extends ServiceEntityRepository
         return $this->getEntityManager()
             ->getConnection()
             ->fetchOne(
-                'SELECT 1 FROM spice_active_compound WHERE spice_id IN (:ids) LIMIT 1',
+                'SELECT 1 FROM spice_active_compound WHERE spice_id IN (:ids) AND matrix = :matrix LIMIT 1',
                 [
                     'ids' => $spiceIds,
+                    'matrix' => $matrix->value,
                 ],
                 [
                     'ids' => ArrayParameterType::INTEGER,

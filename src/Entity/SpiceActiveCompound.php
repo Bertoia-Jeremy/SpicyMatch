@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\OdtMatrix;
 use App\Repository\SpiceActiveCompoundRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Vue matérialisée des composés OAV-actifs (OAV > 1) par épice.
+ * Vue matérialisée des composés OAV-actifs (OAV > 1) par épice et par matrice.
  *
  * ⚠️  Cette table est gérée exclusivement via DBAL brut (shadow table atomique).
  *     Ne jamais persister des instances de cette entité via l'EntityManager.
@@ -22,19 +23,22 @@ use Doctrine\ORM\Mapping as ORM;
  * de rebuild (WHERE clause), pas par un CHECK DB.
  *
  * Rebuild déclenché via RecomputeOavTableMessage (Symfony Messenger).
- * Stratégie : shadow table (CREATE + INSERT + RENAME TABLE atomique + DROP).
+ * Stratégie : shadow table (CREATE + INSERT × 3 matrices + RENAME TABLE atomique + DROP).
+ * Les 3 INSERT sont wrappés dans une transaction InnoDB ; DDL hors transaction (commit implicite MariaDB).
  *
  * Indexes :
- *   - PK (spice_id, aromatic_compound_id) : lookup direct par épice
- *   - idx_compound_spice (aromatic_compound_id, spice_id) : self-join du veto biparti
- *   - idx_spice_cover (spice_id, aromatic_compound_id, oav_value) : index couvrant pour loadOavProfilesBatch (index-only scan)
+ *   - PK (spice_id, aromatic_compound_id, matrix) : unicité par triplet
+ *   - idx_spice_matrix (spice_id, matrix) : filtre rapide par épice+matrice
+ *   - idx_compound_spice (aromatic_compound_id, spice_id, matrix) : self-join du veto biparti
+ *   - idx_spice_cover (spice_id, matrix, aromatic_compound_id, oav_value) : index couvrant pour loadOavProfilesBatch
  *
  * @see ARCHITECTURE_MOTEUR_COMPATIBILITE.md §5.3
  */
 #[ORM\Entity(repositoryClass: SpiceActiveCompoundRepository::class)]
 #[ORM\Table(name: 'spice_active_compound')]
-#[ORM\Index(columns: ['aromatic_compound_id', 'spice_id'], name: 'idx_compound_spice')]
-#[ORM\Index(columns: ['spice_id', 'aromatic_compound_id', 'oav_value'], name: 'idx_spice_cover')]
+#[ORM\Index(columns: ['spice_id', 'matrix'], name: 'idx_spice_matrix')]
+#[ORM\Index(columns: ['aromatic_compound_id', 'spice_id', 'matrix'], name: 'idx_compound_spice')]
+#[ORM\Index(columns: ['spice_id', 'matrix', 'aromatic_compound_id', 'oav_value'], name: 'idx_spice_cover')]
 class SpiceActiveCompound
 {
     /**
@@ -52,6 +56,17 @@ class SpiceActiveCompound
     private int $aromaticCompoundId;
 
     /**
+     * Matrice ODT : air | water | oil.
+     * Troisième composante de la PK — un même composé a des OAV différents selon le milieu.
+     * DEFAULT 'air' : migration sûre des lignes existantes lors du schema:update.
+     */
+    #[ORM\Id]
+    #[ORM\Column(name: 'matrix', type: 'string', length: 5, enumType: OdtMatrix::class, options: [
+        'default' => 'air',
+    ])]
+    private OdtMatrix $matrix;
+
+    /**
      * Valeur OAV = concentration_ppm / odt_ppm. Toujours > 1 (enforced par rebuild SQL).
      *
      * Type DOUBLE (float Doctrine) :
@@ -62,11 +77,16 @@ class SpiceActiveCompound
     #[ORM\Column(name: 'oav_value', type: 'float')]
     private float $oavValue;
 
-    public function __construct(int $spiceId, int $aromaticCompoundId, float $oavValue)
-    {
+    public function __construct(
+        int $spiceId,
+        int $aromaticCompoundId,
+        float $oavValue,
+        OdtMatrix $matrix = OdtMatrix::AIR,
+    ) {
         $this->spiceId = $spiceId;
         $this->aromaticCompoundId = $aromaticCompoundId;
         $this->oavValue = $oavValue;
+        $this->matrix = $matrix;
     }
 
     public function getSpiceId(): int
@@ -77,6 +97,11 @@ class SpiceActiveCompound
     public function getAromaticCompoundId(): int
     {
         return $this->aromaticCompoundId;
+    }
+
+    public function getMatrix(): OdtMatrix
+    {
+        return $this->matrix;
     }
 
     public function getOavValue(): float

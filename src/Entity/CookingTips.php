@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\OdtMatrix;
 use App\Repository\CookingTipsRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -41,6 +42,13 @@ class CookingTips
 
     #[ORM\Column(length: 255)]
     private ?string $advantages = null;
+
+    /**
+     * Matrice culinaire pour laquelle ce conseil s'applique.
+     * null = s'applique à toutes les matrices (rétrocompatible : données existantes = null).
+     */
+    #[ORM\Column(name: 'applicable_matrix', type: 'string', length: 5, nullable: true, enumType: OdtMatrix::class)]
+    private ?OdtMatrix $applicableMatrix = null;
 
     public function getId(): ?int
     {
@@ -151,6 +159,18 @@ class CookingTips
     public function setAdvantages(string $advantages): static
     {
         $this->advantages = $advantages;
+
+        return $this;
+    }
+
+    public function getApplicableMatrix(): ?OdtMatrix
+    {
+        return $this->applicableMatrix;
+    }
+
+    public function setApplicableMatrix(?OdtMatrix $applicableMatrix): static
+    {
+        $this->applicableMatrix = $applicableMatrix;
 
         return $this;
     }

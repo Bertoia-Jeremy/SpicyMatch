@@ -4,17 +4,23 @@ declare(strict_types=1);
 
 namespace App\Service\Match;
 
+use App\Enum\OdtMatrix;
 use App\Repository\SpiceActiveCompoundRepository;
 use App\ValueObject\Match\MortarIds;
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
- * Construit le profil OAV agrégé du mortier (Π_M*).
+ * Construit le profil OAV agrégé du mortier (Π_M*) pour une matrice donnée.
  *
  * Pour chaque molécule i : OAV_i^M = max_{s ∈ M} OAV_i^s
  * Le max est préféré à la moyenne : la note dominante du mortier détermine sa signature.
  *
- * Résultat mis en cache 24h. Clé = "match.mortar.{id1},{id2},…" (IDs triés).
+ * Clé de cache : "match.mortar.{matrix}.{id1},{id2},…" (IDs triés).
+ * TTL par matrice :
+ *   - air   : 86400s (24h) — données matures, stables
+ *   - water : 3600s  (1h)  — données en cours de collecte, plus susceptibles d'évoluer
+ *   - oil   : 3600s  (1h)  — idem
+ *
  * Invalidé par SpiceConcentrationChangedListener sur toute modification de
  * SpiceCompoundConcentration ou CompoundOdt.
  *
@@ -22,7 +28,9 @@ use Psr\Cache\CacheItemPoolInterface;
  */
 class MortarProfileBuilder
 {
-    private const CACHE_TTL = 86400; // 24h
+    private const CACHE_TTL_AIR = 86400; // 24h — données air matures
+
+    private const CACHE_TTL_SHORT = 3600; // 1h — water/oil encore en cours de collecte
 
     public function __construct(
         private readonly SpiceActiveCompoundRepository $spiceActiveCompoundRepository,
@@ -31,19 +39,18 @@ class MortarProfileBuilder
     }
 
     /**
-     * Construit ou récupère depuis le cache le profil OAV agrégé du mortier.
+     * Construit ou récupère depuis le cache le profil OAV agrégé du mortier pour la matrice donnée.
      *
-     * Retourne null si aucune donnée OAV n'est disponible pour ce mortier.
+     * Retourne null si aucune donnée OAV n'est disponible pour ce mortier+matrice.
      * Le pipeline interprète null comme "mode dégradé" (fallback présence-only).
      * Un profil null n'est pas mis en cache : la table peut être peuplée dès le prochain
-     * rebuild (app:recompute:oav), l'invalidation se ferait alors correctement via
-     * invalidateAll(), mais il vaut mieux ne pas verrouiller 24h une réponse "pas de données".
+     * rebuild, et on ne veut pas verrouiller 24h une réponse "pas de données".
      *
      * @return array<int, float>|null compound_id => OAV max agrégé, ou null si pas de données
      */
-    public function build(MortarIds $mortar): ?array
+    public function build(MortarIds $mortar, OdtMatrix $matrix = OdtMatrix::AIR): ?array
     {
-        $cacheKey = 'match.mortar.' . implode(',', $mortar->sorted());
+        $cacheKey = $this->buildCacheKey($mortar, $matrix);
         $cacheItem = $this->matchMortarProfileCache->getItem($cacheKey);
 
         if ($cacheItem->isHit()) {
@@ -53,7 +60,7 @@ class MortarProfileBuilder
             return $cached;
         }
 
-        $profile = $this->computeProfile($mortar->toArray());
+        $profile = $this->computeProfile($mortar->toArray(), $matrix);
 
         // Ne pas mettre en cache un profil vide : les données peuvent être peuplées
         // juste après un import + recompute:oav sans passer par invalidateAll().
@@ -62,22 +69,24 @@ class MortarProfileBuilder
         }
 
         $cacheItem->set($profile);
-        $cacheItem->expiresAfter(self::CACHE_TTL);
+        $cacheItem->expiresAfter($this->getCacheTtl($matrix));
         $this->matchMortarProfileCache->save($cacheItem);
 
         return $profile;
     }
 
     /**
-     * Invalide le cache pour un mortier donné (appelé lors d'un changement de données OAV).
+     * Invalide le cache pour un mortier donné sur toutes les matrices.
      */
     public function invalidate(MortarIds $mortar): void
     {
-        $this->matchMortarProfileCache->deleteItem('match.mortar.' . implode(',', $mortar->sorted()));
+        foreach (OdtMatrix::cases() as $matrix) {
+            $this->matchMortarProfileCache->deleteItem($this->buildCacheKey($mortar, $matrix));
+        }
     }
 
     /**
-     * Invalide tout le cache de profils mortier.
+     * Invalide tout le cache de profils mortier (toutes matrices, tous mortiers).
      * Appelé lors d'un rebuild global de spice_active_compound.
      */
     public function invalidateAll(): void
@@ -85,14 +94,24 @@ class MortarProfileBuilder
         $this->matchMortarProfileCache->clear();
     }
 
+    private function buildCacheKey(MortarIds $mortar, OdtMatrix $matrix): string
+    {
+        return 'match.mortar.' . $matrix->value . '.' . implode(',', $mortar->sorted());
+    }
+
+    private function getCacheTtl(OdtMatrix $matrix): int
+    {
+        return $matrix === OdtMatrix::AIR ? self::CACHE_TTL_AIR : self::CACHE_TTL_SHORT;
+    }
+
     /**
      * @param list<int> $sortedIds
      *
      * @return array<int, float> compound_id => OAV max du mortier
      */
-    private function computeProfile(array $sortedIds): array
+    private function computeProfile(array $sortedIds, OdtMatrix $matrix): array
     {
-        $profiles = $this->spiceActiveCompoundRepository->loadOavProfilesBatch($sortedIds);
+        $profiles = $this->spiceActiveCompoundRepository->loadOavProfilesBatch($sortedIds, $matrix);
 
         $mortarProfile = [];
         foreach ($profiles as $compoundOavs) {

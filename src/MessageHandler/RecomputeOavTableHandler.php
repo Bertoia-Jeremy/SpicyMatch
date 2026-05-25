@@ -13,20 +13,32 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 /**
- * Rebuild atomique de spice_active_compound (vue matérialisée OAV).
+ * Rebuild atomique de spice_active_compound (vue matérialisée OAV) — toutes matrices.
  *
  * Formule : OAV = concentration_ppm / odt_ppm
  * Seuls les composés avec OAV > 1 sont insérés (filtre dans le WHERE).
- * La matrice ODT (air/water/oil) est portée par le message — défaut : air.
+ * Les 3 matrices (air, water, oil) sont calculées en une seule passe.
  *
  * Stratégie shadow table (zéro downtime) :
- *   1. DROP TABLE IF EXISTS spice_active_compound_tmp
- *   2. CREATE TABLE spice_active_compound_tmp LIKE spice_active_compound
- *   3. INSERT INTO spice_active_compound_tmp ... (calcul OAV, filtre matrice)
- *   4. RENAME TABLE spice_active_compound → _old, spice_active_compound_tmp → spice_active_compound (atomique InnoDB)
- *   5. DROP TABLE spice_active_compound_old
+ *   DDL (hors transaction — commit implicite MariaDB) :
+ *     1. DROP TABLE IF EXISTS spice_active_compound_tmp
+ *     2. DROP TABLE IF EXISTS spice_active_compound_old
+ *     3. CREATE TABLE spice_active_compound_tmp LIKE spice_active_compound
  *
- * RENAME TABLE est atomique sur InnoDB → aucune fenêtre où la table est vide.
+ *   DML (transaction InnoDB — 3 INSERT atomiques) :
+ *     4. BEGIN TRANSACTION
+ *     5. INSERT INTO tmp (air) — calcul OAV, filtre OAV > 1
+ *     6. INSERT INTO tmp (water)
+ *     7. INSERT INTO tmp (oil)
+ *     8. COMMIT
+ *        → Si erreur : ROLLBACK + DROP tmp (prod table intacte)
+ *
+ *   DDL atomique :
+ *     9. RENAME TABLE spice_active_compound → _old, spice_active_compound_tmp → spice_active_compound
+ *    10. DROP TABLE spice_active_compound_old
+ *
+ * Invariant : la table de production n'est jamais touchée si un INSERT échoue.
+ * RENAME TABLE est atomique InnoDB → aucune fenêtre où la table est vide.
  * Les requêtes /api/match concurrentes voient soit l'ancienne, soit la nouvelle table.
  *
  * Après rebuild, invalide le cache des profils mortier (MortarProfileBuilder).
@@ -47,21 +59,18 @@ final class RecomputeOavTableHandler
     {
         // Sanitize reason pour éviter les log injections (CRLF)
         $reason = preg_replace('/[\r\n]/', ' ', $message->reason) ?? 'manual';
-        $matrix = $message->matrix;
 
-        $this->logger->info('[OAV] Début du rebuild spice_active_compound', [
+        $this->logger->info('[OAV] Début du rebuild spice_active_compound (toutes matrices)', [
             'reason' => $reason,
-            'matrix' => $matrix->value,
         ]);
 
         $start = microtime(true);
 
         try {
-            $this->doRebuild($reason, $matrix);
+            $this->doRebuild($reason);
         } catch (\Doctrine\DBAL\Exception $e) {
             $this->logger->error('[OAV] Rebuild échoué — exception DBAL', [
                 'reason' => $reason,
-                'matrix' => $matrix->value,
                 'exception' => $e->getMessage(),
             ]);
 
@@ -71,62 +80,85 @@ final class RecomputeOavTableHandler
         $elapsed = round((microtime(true) - $start) * 1000);
         $this->logger->info('[OAV] Rebuild terminé', [
             'elapsed_ms' => $elapsed,
-            'matrix' => $matrix->value,
         ]);
     }
 
-    private function doRebuild(string $reason, OdtMatrix $matrix): void
+    private function doRebuild(string $reason): void
     {
-        // ── Étape 1 : nettoyer toute table orpheline d'un run précédent ────────
+        // ── Phase DDL — hors transaction (commit implicite MariaDB) ──────────────
         // spice_active_compound_old peut rester si un run précédent a crashé entre
-        // l'étape 4 (RENAME) et l'étape 5 (DROP) — sans ce DROP, l'étape 4 lève
-        // ERROR 1050 "Table already exists" et bloque le handler indéfiniment.
+        // l'étape RENAME et l'étape DROP — sans ce DROP, le RENAME lèverait
+        // ERROR 1050 "Table already exists" et bloquerait le handler indéfiniment.
         $this->connection->executeStatement('DROP TABLE IF EXISTS spice_active_compound_tmp');
         $this->connection->executeStatement('DROP TABLE IF EXISTS spice_active_compound_old');
 
-        // ── Étape 2 : créer la table shadow (copie structure + index) ───────────
+        // Copie structure + index (dont la nouvelle PK avec colonne matrix)
         $this->connection->executeStatement('CREATE TABLE spice_active_compound_tmp LIKE spice_active_compound');
 
-        // ── Étape 3 : remplir la table shadow (calcul OAV = C / ODT, matrice paramétrée) ──
-        // NULLIF(odt.odt_ppm, 0) + odt.odt_ppm > 0 : garde contre division par zéro.
-        // MariaDB retourne NULL (pas d'exception) sur division par zéro → perte silencieuse de données.
-        $inserted = $this->connection->executeStatement(
-            <<<SQL
-            INSERT INTO spice_active_compound_tmp (spice_id, aromatic_compound_id, oav_value)
-            SELECT
-                scc.spice_id,
-                scc.aromatic_compound_id,
-                scc.concentration_ppm / NULLIF(odt.odt_ppm, 0) AS oav
-            FROM spice_compound_concentration scc
-            JOIN compound_odt odt
-                ON odt.aromatic_compound_id = scc.aromatic_compound_id
-                AND odt.matrix = :matrix
-                AND odt.odt_ppm > 0
-            WHERE scc.concentration_ppm / NULLIF(odt.odt_ppm, 0) > 1
-            SQL
-            ,
-            [
-                'matrix' => $matrix->value,
-            ],
-        );
+        // ── Phase DML — transaction InnoDB unique sur les 3 INSERT ───────────────
+        // Si un INSERT échoue, rollBack() + DROP tmp → prod inchangée.
+        // Les DDL restent hors transaction (RENAME/DROP TABLE plus bas).
+        $this->connection->beginTransaction();
+        try {
+            foreach (OdtMatrix::cases() as $matrix) {
+                $inserted = $this->connection->executeStatement(
+                    <<<SQL
+                    INSERT INTO spice_active_compound_tmp (spice_id, aromatic_compound_id, matrix, oav_value)
+                    SELECT
+                        scc.spice_id,
+                        scc.aromatic_compound_id,
+                        :matrix,
+                        scc.concentration_ppm / NULLIF(odt.odt_ppm, 0) AS oav
+                    FROM spice_compound_concentration scc
+                    JOIN compound_odt odt
+                        ON odt.aromatic_compound_id = scc.aromatic_compound_id
+                        AND odt.matrix = :matrix
+                        AND odt.odt_ppm > 0
+                    WHERE scc.concentration_ppm / NULLIF(odt.odt_ppm, 0) > 1
+                    SQL
+                    ,
+                    [
+                        'matrix' => $matrix->value,
+                    ],
+                );
 
-        $this->logger->info('[OAV] Shadow table peuplée', [
-            'rows_inserted' => $inserted,
-            'matrix' => $matrix->value,
-            'reason' => $reason,
-        ]);
+                $this->logger->info('[OAV] Shadow table — matrice peuplée', [
+                    'matrix' => $matrix->value,
+                    'rows_inserted' => $inserted,
+                    'reason' => $reason,
+                ]);
+            }
 
-        // ── Étape 4 : swap atomique (RENAME est atomique sur InnoDB) ─────────────
-        // Les requêtes /api/match concurrentes voient soit l'ancienne, soit la nouvelle table.
+            $this->connection->commit();
+        } catch (\Throwable $e) {
+            $this->connection->rollBack();
+
+            // Nettoyage préventif : la tmp contient des données partielles.
+            // Hors transaction (DDL) → executeStatement direct, pas de throw sur failure.
+            try {
+                $this->connection->executeStatement('DROP TABLE IF EXISTS spice_active_compound_tmp');
+            } catch (\Throwable) {
+                // Orpheline tolérée : le prochain run fera DROP IF EXISTS au début.
+            }
+
+            $this->logger->error('[OAV] Rebuild annulé — rollback effectué', [
+                'reason' => $reason,
+                'exception' => $e->getMessage(),
+            ]);
+
+            throw $e; // Messenger retentera selon sa politique de retry
+        }
+
+        // ── Phase DDL atomique — swap production ─────────────────────────────────
+        // RENAME TABLE est atomique InnoDB → aucune fenêtre où la table est vide.
         $this->connection->executeStatement(
             'RENAME TABLE spice_active_compound TO spice_active_compound_old,
                           spice_active_compound_tmp TO spice_active_compound'
         );
 
-        // ── Étape 5 : supprimer l'ancienne table ─────────────────────────────────
         $this->connection->executeStatement('DROP TABLE spice_active_compound_old');
 
-        // ── Invalide le cache des profils mortier (les scores sont périmés) ──────
+        // ── Invalide le cache des profils mortier (scores périmés sur toutes matrices) ──
         $this->mortarProfileBuilder->invalidateAll();
     }
 }

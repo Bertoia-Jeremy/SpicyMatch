@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Enum\OdtMatrix;
 use App\ValueObject\Match\MortarIds;
 use Doctrine\DBAL\Connection;
 
@@ -14,7 +15,7 @@ use Doctrine\DBAL\Connection;
  * perceptible avec chacune des épices du mortier.
  *
  * Deux modes :
- *  - OAV (données disponibles) : se base sur spice_active_compound (OAV > 1)
+ *  - OAV (données disponibles) : se base sur spice_active_compound (OAV > 1, filtré par matrice)
  *  - Présence (fallback) : se base sur spices_aromatic_compound + secondary_spices_aromatic_compound
  *
  * Implémentation en JOIN + HAVING (plus performant que correlated EXISTS sur MariaDB 10.4).
@@ -32,11 +33,11 @@ class CandidateVetoRepository
      * Retourne les IDs des épices candidates ayant passé le veto OAV.
      *
      * Condition : ∀ s_i ∈ mortier : |Π_c* ∩ Π_{s_i}*| ≥ 1
-     * (au moins un composé OAV-actif partagé avec chaque épice du mortier)
+     * (au moins un composé OAV-actif partagé avec chaque épice du mortier, dans la matrice donnée)
      *
      * @return list<int> IDs des candidats survivants
      */
-    public function findSurvivors(MortarIds $mortar): array
+    public function findSurvivors(MortarIds $mortar, OdtMatrix $matrix = OdtMatrix::AIR): array
     {
         $mortarSize = $mortar->count();
         $mortarArr = $mortar->toArray();
@@ -44,29 +45,46 @@ class CandidateVetoRepository
 
         /**
          * Logique JOIN + HAVING :
-         *   - sc : composés OAV-actifs du candidat c
-         *   - sm : composés OAV-actifs du mortier, filtrés par ceux qui matchent sc
+         *   - sc : composés OAV-actifs du candidat c, dans la matrice demandée
+         *   - sm : composés OAV-actifs du mortier, dans la même matrice, matchant sc
          *
          * COUNT(DISTINCT sm.spice_id) = mortarSize signifie que c partage un pont
-         * aromatique perceptible avec CHACUNE des épices du mortier.
+         * aromatique perceptible avec CHACUNE des épices du mortier (dans cette matrice).
+         *
+         * Paramètres positionnels (pas de mix named/positional dans DBAL) :
+         *   1. matrix.value  → sc.matrix = ?
+         *   2..N. mortarArr  → sm.spice_id IN (...)
+         *   N+1. matrix.value → sm.matrix = ?
+         *   N+2..2N. mortarArr → NOT IN (...)
+         *   2N+1. mortarSize  → HAVING = ?
          */
         $sql = <<<SQL
             SELECT c.id
             FROM spices c
             JOIN spice_active_compound sc
                 ON sc.spice_id = c.id
+                AND sc.matrix = ?
             JOIN spice_active_compound sm
                 ON  sm.aromatic_compound_id = sc.aromatic_compound_id
                 AND sm.spice_id IN ({$placeholders})
+                AND sm.matrix = ?
             WHERE c.id NOT IN ({$placeholders})
               AND c.deleted_at IS NULL
             GROUP BY c.id
             HAVING COUNT(DISTINCT sm.spice_id) = ?
             SQL;
 
-        // mortarArr apparaît deux fois : IN (filtre mortier sur sm) + NOT IN (exclure le mortier)
         /** @var list<array{id: string}> $rows */
-        $rows = $this->connection->fetchAllAssociative($sql, [...$mortarArr, ...$mortarArr, $mortarSize]);
+        $rows = $this->connection->fetchAllAssociative(
+            $sql,
+            [
+                $matrix->value, // sc.matrix = ?
+                ...$mortarArr,  // sm.spice_id IN (...)
+                $matrix->value, // sm.matrix = ?
+                ...$mortarArr,  // NOT IN (...)
+                $mortarSize,    // HAVING COUNT = ?
+            ],
+        );
 
         return array_map(static fn (array $row) => (int) $row['id'], $rows);
     }
@@ -76,6 +94,7 @@ class CandidateVetoRepository
      *
      * Utilise les deux tables de composés existantes (primaires + secondaires)
      * traitées à plat (sans pondération) pour le veto booléen.
+     * Indépendant de la matrice ODT (données de présence non matricielles).
      *
      * @return list<int>
      */

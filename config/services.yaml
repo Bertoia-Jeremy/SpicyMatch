@@ -87,6 +87,11 @@ services:
         arguments:
             $matchMortarProfileCache: '@match.mortar_profile.cache'
 
+    # Cache pairs/triplets de compatibilité (O(N²)/O(N³) SQL → TTL 1h)
+    App\Service\SpiceGroupFinderService:
+        arguments:
+            $cache: '@spice.compatibility.cache'
+
     # Export CSV — nécessite le répertoire racine du projet
     App\Command\ExportSpicesCsvCommand:
         arguments:

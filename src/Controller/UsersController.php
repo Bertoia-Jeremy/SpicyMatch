@@ -197,10 +197,8 @@ class UsersController extends AbstractController
         /** @var Users $user */
         $user = $this->getUser();
 
-        $histories = $this->historyRepository->findByUser($user);
-
         $stats = [
-            'totalBlends' => count($histories),
+            'totalBlends' => $this->historyRepository->countByUser($user),
             'distinctSpices' => $this->historyRepository->countDistinctSpicesByUser($user),
             'favorites' => $this->historyRepository->countFavoritesByUser($user),
             'spicesViewed' => $this->spiceViewRepository->countDistinctSpicesByUser($user),
@@ -209,7 +207,7 @@ class UsersController extends AbstractController
         return $this->render('users/profile.html.twig', [
             'progression' => $user->getProgression(),
             'userStats' => $user->getStats(),
-            'latestHistories' => array_slice($histories, 0, 3),
+            'latestHistories' => $this->historyRepository->findByUserWithLimit($user, 3),
             'stats' => $stats,
         ]);
     }

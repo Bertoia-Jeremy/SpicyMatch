@@ -199,26 +199,29 @@ class SpicyMatch extends AbstractController
         // Extraction des IDs depuis la structure SpicyMatch (tableau plat d'IDs)
         $selectedIds = array_map('intval', $this->spices['selectedSpices']);
 
-        foreach ($selectedIds as $spiceId) {
-            /** @var Spices|null $spice */
-            $spice = $this->spicesRepository->find($spiceId);
-            if ($spice) {
-                $spicyMatch->addSpice($spice);
-            }
+        // Batch load — 1 SELECT IN au lieu de N find() individuels
+        foreach ($this->spicesRepository->findBy([
+            'id' => $selectedIds,
+        ]) as $spice) {
+            $spicyMatch->addSpice($spice);
         }
 
         // En mode auto, on sauvegarde les résultats scorés pour référence
         // En mode manuel, pas de score de compatibilité → on skip les results
         if (! $isManual) {
             $results = $this->getResults();
-            foreach ($results['compatibleSpices'] as $compatibleData) {
-                $spice = $this->spicesRepository->find($compatibleData['id']);
-                if ($spice) {
-                    $result = new \App\Entity\SpicyMatchResult();
-                    $result->setSpice($spice);
-                    $result->setScore((int) $compatibleData['score']);
-                    $spicyMatch->addResult($result);
-                }
+            $compatibleIds = array_column($results['compatibleSpices'], 'id');
+            $scoreBySpiceId = array_column($results['compatibleSpices'], 'score', 'id');
+
+            // Batch load — 1 SELECT IN au lieu de N find() individuels
+            $compatibleEntities = $compatibleIds !== [] ? $this->spicesRepository->findBy([
+                'id' => $compatibleIds,
+            ]) : [];
+            foreach ($compatibleEntities as $spice) {
+                $result = new \App\Entity\SpicyMatchResult();
+                $result->setSpice($spice);
+                $result->setScore((int) ($scoreBySpiceId[$spice->getId()] ?? 0));
+                $spicyMatch->addResult($result);
             }
         }
 

@@ -41,9 +41,9 @@ class SpicesController extends AbstractController
         $stId = filter_var($request->query->get('spicy_type'), FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE) ?: null;
         $search = trim((string) $request->query->get('search', '')) ?: null;
 
-        $query = ($agId !== null || $stId !== null || $search !== null)
-            ? $this->spicesRepository->findFiltered($agId, $stId, $search)
-            : $this->spicesRepository->findAll();
+        // findFiltered(null, null, null) retourne toutes les épices avec eager-load des relations.
+        // Remplace findAll() qui déclenchait du N+1 en Twig sur aromaticGroups / spicyType.
+        $query = $this->spicesRepository->findFiltered($agId, $stId, $search);
 
         $limit = $request->query->getInt('limit', 12);
 

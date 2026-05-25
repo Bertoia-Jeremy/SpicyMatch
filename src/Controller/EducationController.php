@@ -39,11 +39,11 @@ class EducationController extends AbstractController
 
         $modes = array_filter(GameMode::cases(), fn (GameMode $m) => $m->isEnabled());
 
-        // Build per-mode daily session counters so the user sees the remaining
-        // games and the ×0.5 XP threshold before clicking a card.
+        // Single grouped query instead of one query per enabled mode.
+        $grouped = $this->sessionRepository->countTodayByUserGrouped($user);
         $dailyCounts = [];
         foreach ($modes as $mode) {
-            $dailyCounts[$mode->value] = $this->sessionRepository->countTodayByUser($user, $mode);
+            $dailyCounts[$mode->value] = $grouped[$mode->value] ?? 0;
         }
 
         return $this->render('education/index.html.twig', [

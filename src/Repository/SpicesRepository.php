@@ -172,12 +172,17 @@ class SpicesRepository extends ServiceEntityRepository
 
     /**
      * Filter spices by aromatic group, spicy type and/or name prefix.
+     * Eager-loads aromaticGroups and spicyType to prevent N+1 in templates.
+     * Passing all nulls returns all non-deleted spices (replaces findAll() on the catalog page).
      *
      * @return list<Spices>
      */
     public function findFiltered(?int $aromaticGroupId, ?int $spicyTypeId, ?string $search = null): array
     {
         $qb = $this->createQueryBuilder('s')
+            ->addSelect('ag', 'st')
+            ->leftJoin('s.aromaticGroups', 'ag')
+            ->leftJoin('s.spicyType', 'st')
             ->orderBy('s.name', 'ASC');
 
         if ($aromaticGroupId !== null) {

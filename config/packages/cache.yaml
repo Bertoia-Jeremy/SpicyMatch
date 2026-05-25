@@ -26,3 +26,10 @@ framework:
             match.mortar_profile.cache:
                 adapter: cache.adapter.filesystem
                 default_lifetime: 86400
+
+            # Cache des top-pairs / top-triplets (SpiceGroupFinderService).
+            # O(N²)/O(N³) SQL self-joins — résultat stable entre deux modifications d'épices.
+            # TTL 1h — invalidation TTL uniquement (pas d'invalidation event-driven pour MVP).
+            spice.compatibility.cache:
+                adapter: cache.adapter.filesystem
+                default_lifetime: 3600

@@ -29,6 +29,25 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
     }
 
     /**
+     * Fetch at most $limit histories for $user — avoids loading the full collection
+     * when only a preview is needed (e.g., profile page).
+     *
+     * @return SpicyMatchHistory[]
+     */
+    public function findByUserWithLimit(Users $user, int $limit): array
+    {
+        return $this->createQueryBuilder('smh')
+            ->join('smh.spicyMatch', 'sm')
+            ->where('sm.user = :user')
+            ->andWhere('smh.deletedAt IS NULL')
+            ->setParameter('user', $user)
+            ->orderBy('smh.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * @return \Doctrine\ORM\Query<null, mixed>
      */
     public function findByUserQuery(Users $user): \Doctrine\ORM\Query

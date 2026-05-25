@@ -44,6 +44,7 @@ class AcademyCacheInvalidator
         }
 
         $this->cache->delete('academy.spice_cards');
+        $this->cache->delete('academy.all_spices');
 
         if ($entity->getId() !== null) {
             $this->cache->delete('academy.intruders.' . $entity->getId());

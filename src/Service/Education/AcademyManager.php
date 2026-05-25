@@ -25,6 +25,9 @@ class AcademyManager
     }
 
     /**
+     * Memoization intra-requête (évite un double fetch dans la même requête HTTP).
+     * La mise en cache inter-requêtes est gérée par le pool Symfony Cache (academy.all_spices).
+     *
      * @var list<Spices>|null
      */
     private ?array $allSpicesCache = null;
@@ -34,7 +37,14 @@ class AcademyManager
      */
     private function getAllSpices(): array
     {
-        return $this->allSpicesCache ??= $this->spicesRepository->findAll();
+        return $this->allSpicesCache ??= $this->cache->get(
+            'academy.all_spices',
+            function (ItemInterface $item): array {
+                $item->expiresAfter(3600);
+
+                return $this->spicesRepository->findAll();
+            },
+        );
     }
 
     private ?\Transliterator $transliterator = null;
@@ -195,10 +205,8 @@ class AcademyManager
     {
         $guessedFlipped = array_flip($guessedLetters);
         $mask = '';
-        $len = mb_strlen($name);
 
-        for ($i = 0; $i < $len; ++$i) {
-            $char = mb_substr($name, $i, 1);
+        foreach (mb_str_split($name) as $char) {
             $normalized = $this->normalizeChar($char);
 
             if ($char === ' ' || $char === '-' || $char === '\'') {
@@ -219,11 +227,8 @@ class AcademyManager
     public function letterInWord(string $letter, string $word): bool
     {
         $normalizedLetter = $this->normalizeChar($letter);
-        $len = mb_strlen($word);
 
-        for ($i = 0; $i < $len; ++$i) {
-            $char = mb_substr($word, $i, 1);
-
+        foreach (mb_str_split($word) as $char) {
             if ($this->normalizeChar($char) === $normalizedLetter) {
                 return true;
             }
@@ -261,7 +266,8 @@ class AcademyManager
         }
 
         $allSpices = $this->getAllSpices();
-        $candidates = array_filter($allSpices, fn (Spices $s) => ! in_array($s->getId(), $excludeBaseIds, true));
+        $excludeBaseFlipped = array_flip($excludeBaseIds);
+        $candidates = array_filter($allSpices, fn (Spices $s) => ! isset($excludeBaseFlipped[$s->getId()]));
 
         if (count($candidates) < 5) {
             return null;
@@ -275,12 +281,15 @@ class AcademyManager
                 ? $this->findStrictIntruders($baseSpice, $excludeBaseIds)
                 : $this->findIntruders($baseSpice, $excludeBaseIds);
 
-            if ($inverted) {
+            // Use a local copy so the original $inverted is never mutated across iterations.
+            $effectiveInverted = $inverted;
+
+            if ($effectiveInverted) {
                 // Need ≥1 compatible + ≥3 intruders
                 if (count($compatibles) < 1 || count($intruders) < 3) {
-                    // Fallback to classic mode
+                    // Fallback to classic mode for this candidate
                     if (count($compatibles) >= 3 && count($intruders) >= 1) {
-                        $inverted = false;
+                        $effectiveInverted = false;
                     } else {
                         continue;
                     }
@@ -292,7 +301,7 @@ class AcademyManager
                 }
             }
 
-            return $this->buildIntrusQuestion($baseSpice, $compatibles, $intruders, $difficulty, $inverted);
+            return $this->buildIntrusQuestion($baseSpice, $compatibles, $intruders, $difficulty, $effectiveInverted);
         }
 
         return null;
@@ -353,14 +362,10 @@ class AcademyManager
             // Pick 3 spices from this group as the "non-intruders"
             $members = array_slice($groupSpices, 0, 3);
 
-            // Pick 1 intruder from any other group
+            // Pick 1 intruder from any other group (reuse $excludeFlipped defined above)
             $outsiders = [];
             foreach ($allSpices as $spice) {
-                if ($spice->getAromaticGroups()?->getId() !== $groupId && ! in_array(
-                    $spice->getId(),
-                    $excludeBaseIds,
-                    true
-                )) {
+                if ($spice->getAromaticGroups()?->getId() !== $groupId && ! isset($excludeFlipped[$spice->getId()])) {
                     $outsiders[] = $spice;
                 }
             }
@@ -415,8 +420,8 @@ class AcademyManager
         $compatibles = $this->findCompatibleSpices($current);
 
         // Exclude already used spices
-        $compatibles = array_filter($compatibles, fn (array $c) => ! in_array($c['id'], $usedIds, true));
-        $compatibles = array_values($compatibles);
+        $usedFlipped = array_flip($usedIds);
+        $compatibles = array_values(array_filter($compatibles, fn (array $c) => ! isset($usedFlipped[$c['id']])));
 
         if (empty($compatibles)) {
             return []; // Pool exhaustion → victory
@@ -589,10 +594,6 @@ class AcademyManager
             ++$count;
         }
 
-        if (! empty($spiceCard['description'])) {
-            ++$count;
-        }
-
         return $count;
     }
 
@@ -653,7 +654,8 @@ class AcademyManager
     public function pickHangmanSpice(GameDifficulty $difficulty, array $excludeIds = []): ?Spices
     {
         $allSpices = $this->getAllSpices();
-        $candidates = array_filter($allSpices, fn (Spices $s) => ! in_array($s->getId(), $excludeIds, true));
+        $excludeFlipped = array_flip($excludeIds);
+        $candidates = array_filter($allSpices, fn (Spices $s) => ! isset($excludeFlipped[$s->getId()]));
 
         if (empty($candidates)) {
             return null;
@@ -683,9 +685,10 @@ class AcademyManager
     {
         $cards = $this->getAllSpiceCards();
         $allNames = array_column($cards, 'name');
+        $excludeNamesFlipped = array_flip($excludeNames);
         $available = array_filter(
             $allNames,
-            fn (string $n) => $n !== $correctName && ! in_array($n, $excludeNames, true),
+            fn (string $n) => $n !== $correctName && ! isset($excludeNamesFlipped[$n]),
         );
         $available = array_values($available);
         shuffle($available);
@@ -715,7 +718,8 @@ class AcademyManager
         $excludeIds = $user->getStats()?->getLastVisitedSpices() ?? [];
         $allSpices = $this->getAllSpices();
 
-        $candidates = array_filter($allSpices, fn (Spices $s) => ! in_array($s->getId(), $excludeIds, true));
+        $excludeFlipped = array_flip($excludeIds);
+        $candidates = array_filter($allSpices, fn (Spices $s) => ! isset($excludeFlipped[$s->getId()]));
 
         // For Hangman EASY, prefer shorter names
         if ($mode === GameMode::HANGMAN && $difficulty === GameDifficulty::EASY) {

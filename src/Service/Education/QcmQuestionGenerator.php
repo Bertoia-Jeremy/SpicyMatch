@@ -27,9 +27,10 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
     {
         // Pick a random base spice (excluding already-used ones)
         $allSpices = $this->spicesRepository->findAllSpices();
+        $excludeFlipped = array_flip($excludeSpiceIds);
         $candidates = array_values(array_filter(
             $allSpices,
-            fn (array $s) => ! in_array((int) $s['id'], $excludeSpiceIds, true)
+            fn (array $s) => ! isset($excludeFlipped[(int) $s['id']]),
         ));
 
         if (count($candidates) < 5) {
@@ -148,9 +149,11 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
 
         // Fallback: if not enough distractors, fill from bottom pool
         if (count($distractors) < 3) {
+            $distractorIds = array_flip(array_column($distractors, 'id'));
             foreach ($allScored as $s) {
-                if ($s['id'] !== $correct['id'] && ! in_array($s['id'], array_column($distractors, 'id'), true)) {
+                if ($s['id'] !== $correct['id'] && ! isset($distractorIds[$s['id']])) {
                     $distractors[] = $s;
+                    $distractorIds[$s['id']] = true;
                 }
                 if (count($distractors) >= 3) {
                     break;

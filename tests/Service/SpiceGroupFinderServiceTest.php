@@ -9,6 +9,7 @@ use App\Service\SpiceGroupFinderService;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 /**
  * Unit tests for SpiceGroupFinderService.
@@ -25,7 +26,8 @@ class SpiceGroupFinderServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->repository = $this->createMock(SpicesRepository::class);
-        $this->service = new SpiceGroupFinderService($this->repository);
+        // ArrayAdapter = cache mémoire vide à chaque test — évite de mocker CacheInterface.
+        $this->service = new SpiceGroupFinderService($this->repository, new ArrayAdapter());
     }
 
     // ──────────────────────────────────────────────────────────────────────────

@@ -87,7 +87,7 @@ class AromaticCompoundFixtures extends Fixture implements FixtureGroupInterface
             'informations' => 'Arôme de rose très puissant, seuil de perception très bas. Présent naturellement dans les roses, géraniums et citronnelles.',
         ],
         'limonene' => [
-            'name' => 'Limonène',
+            'name' => 'D-Limonène',
             'cas_number' => '5989-27-5',
             'formula' => 'C10H16',
             'description' => 'Monoterpène aux notes citronnées et fraîches, présent en quantités variables dans de nombreuses épices (poivre, cardamome, cumin).',

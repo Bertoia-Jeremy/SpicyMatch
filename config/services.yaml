@@ -91,3 +91,8 @@ services:
     App\Command\ExportSpicesCsvCommand:
         arguments:
             $projectDir: '%kernel.project_dir%'
+
+    # Validation CAS/formules via PubChem — nécessite le répertoire racine du projet
+    App\Command\ValidateCompoundsCommand:
+        arguments:
+            $projectDir: '%kernel.project_dir%'

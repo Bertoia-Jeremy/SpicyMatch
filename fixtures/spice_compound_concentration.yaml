@@ -95,7 +95,7 @@
   source: "fixtures_dev — OAV=60K"
 
 - spice_name: "Anis Étoilé (Badiane)"
-  compound_name: "Limonène"
+  compound_name: "D-Limonène"
   concentration_ppm: 1000
   source: "fixtures_dev — OAV=1000"
 
@@ -110,7 +110,7 @@
   source: "fixtures_dev — OAV=40K"
 
 - spice_name: "Anis Vert"
-  compound_name: "Limonène"
+  compound_name: "D-Limonène"
   concentration_ppm: 500
   source: "fixtures_dev — OAV=500"
 
@@ -125,7 +125,7 @@
   source: "fixtures_dev — OAV=100K"
 
 - spice_name: "Fenouil (graines)"
-  compound_name: "Limonène"
+  compound_name: "D-Limonène"
   concentration_ppm: 2000
   source: "fixtures_dev — OAV=2000"
 
@@ -150,7 +150,7 @@
   source: "fixtures_dev — OAV=50"
 
 - spice_name: "Carvi (Cumin des Prés)"
-  compound_name: "Limonène"
+  compound_name: "D-Limonène"
   concentration_ppm: 30000
   source: "fixtures_dev — OAV=30K (dominant)"
 
@@ -184,7 +184,7 @@
   source: "fixtures_dev — OAV=2M"
 
 - spice_name: "Coriandre (graines)"
-  compound_name: "Limonène"
+  compound_name: "D-Limonène"
   concentration_ppm: 1000
   source: "fixtures_dev — OAV=1000"
 
@@ -199,7 +199,7 @@
   source: "fixtures_dev — OAV=6000"
 
 - spice_name: "Cardamome Verte"
-  compound_name: "Limonène"
+  compound_name: "D-Limonène"
   concentration_ppm: 2000
   source: "fixtures_dev — OAV=2000"
 
@@ -224,7 +224,7 @@
   source: "fixtures_dev — OAV=400K"
 
 - spice_name: "Basilic Grand Vert"
-  compound_name: "Limonène"
+  compound_name: "D-Limonène"
   concentration_ppm: 1000
   source: "fixtures_dev — OAV=1000"
 
@@ -333,7 +333,7 @@
   source: "fixtures_dev — OAV=250K"
 
 - spice_name: "Romarin"
-  compound_name: "Limonène"
+  compound_name: "D-Limonène"
   concentration_ppm: 1500
   source: "fixtures_dev — OAV=1500"
 
@@ -347,7 +347,7 @@
   source: "fixtures_dev — OAV=1000 (dominant)"
 
 - spice_name: "Poivre Noir"
-  compound_name: "Limonène"
+  compound_name: "D-Limonène"
   concentration_ppm: 3000
   source: "fixtures_dev — OAV=3000"
 
@@ -362,7 +362,7 @@
   source: "fixtures_dev — OAV=900"
 
 - spice_name: "Poivre Blanc"
-  compound_name: "Limonène"
+  compound_name: "D-Limonène"
   concentration_ppm: 2000
   source: "fixtures_dev — OAV=2000"
 
@@ -382,12 +382,12 @@
   source: "fixtures_dev — OAV=100K"
 
 - spice_name: "Poivre Long"
-  compound_name: "Limonène"
+  compound_name: "D-Limonène"
   concentration_ppm: 1000
   source: "fixtures_dev — OAV=1000"
 
 - spice_name: "Poivre de Sichuan"
-  compound_name: "Limonène"
+  compound_name: "D-Limonène"
   concentration_ppm: 10000
   source: "fixtures_dev — OAV=10K (dominant)"
 
@@ -447,7 +447,7 @@
   source: "fixtures_dev — OAV=6000"
 
 - spice_name: "Cumin"
-  compound_name: "Limonène"
+  compound_name: "D-Limonène"
   concentration_ppm: 2000
   source: "fixtures_dev — OAV=2000"
 
@@ -476,7 +476,7 @@
   source: "fixtures_dev — OAV=40K"
 
 - spice_name: "Piment de Cayenne"
-  compound_name: "Limonène"
+  compound_name: "D-Limonène"
   concentration_ppm: 1000
   source: "fixtures_dev — OAV=1000"
 
@@ -486,7 +486,7 @@
   source: "fixtures_dev — OAV=100K"
 
 - spice_name: "Piment d'Espelette"
-  compound_name: "Limonène"
+  compound_name: "D-Limonène"
   concentration_ppm: 1000
   source: "fixtures_dev — OAV=1000"
 
@@ -506,7 +506,7 @@
   source: "fixtures_dev — OAV=300K"
 
 - spice_name: "Paprika Doux"
-  compound_name: "Limonène"
+  compound_name: "D-Limonène"
   concentration_ppm: 1000
   source: "fixtures_dev — OAV=1000"
 
@@ -525,7 +525,7 @@
   source: "fixtures_dev — OAV=4000"
 
 - spice_name: "Gingembre Séché"
-  compound_name: "Limonène"
+  compound_name: "D-Limonène"
   concentration_ppm: 1000
   source: "fixtures_dev — OAV=1000"
 
@@ -564,6 +564,6 @@
   source: "fixtures_dev — OAV=100K"
 
 - spice_name: "Safran"
-  compound_name: "Limonène"
+  compound_name: "D-Limonène"
   concentration_ppm: 200
   source: "fixtures_dev — OAV=200"

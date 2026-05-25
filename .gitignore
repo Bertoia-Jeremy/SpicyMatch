@@ -51,3 +51,6 @@ design/
 
 # CSV exports (snapshots datés — générés par app:export:spices-csv)
 data/exports/
+
+# Sauvegardes SQL (générées automatiquement — non versionnées)
+data/backups/

@@ -59,7 +59,7 @@
   source: "fixtures_dev (à remplacer par van Gemert 2011)"
 
 # ── Monoterpènes hydrocarbonés (seuils intermédiaires à élevés) ──────────────────────
-- compound_name: "Limonène"
+- compound_name: "D-Limonène"
   odt_ppm: 1.000
   matrix: air
   source: "fixtures_dev (à remplacer par van Gemert 2011)"

@@ -1,0 +1,159 @@
+# Rapport validation CAS/Formules — SpicyMatch
+# Source de validation : PubChem REST API (NCBI)
+date: 2026-05-25_115705
+total: 15
+validated: 15
+warnings: 0
+errors: 0
+corrections_applied: 0
+compounds:
+  - id: 1
+    name: "Eugenol"
+    cas: "97-53-0"
+    status: validated
+    stored_formula: "C10H12O2"
+    pubchem_formula: "C10H12O2"
+    formula_match: true
+    pubchem_iupac: "2-methoxy-4-prop-2-enylphenol"
+    name_in_synonyms: true
+    name_similarity_pct: 28
+  - id: 2
+    name: "Cinnamaldéhyde"
+    cas: "104-55-2"
+    status: validated
+    stored_formula: "C9H8O"
+    pubchem_formula: "C9H8O"
+    formula_match: true
+    pubchem_iupac: "(E)-3-phenylprop-2-enal"
+    name_in_synonyms: true
+    name_similarity_pct: 22
+  - id: 3
+    name: "Anéthol"
+    cas: "104-46-1"
+    status: validated
+    stored_formula: "C10H12O"
+    pubchem_formula: "C10H12O"
+    formula_match: true
+    pubchem_iupac: "1-methoxy-4-[(E)-prop-1-enyl]benzene"
+    name_in_synonyms: true
+    name_similarity_pct: 23
+  - id: 4
+    name: "Estragole"
+    cas: "140-67-0"
+    status: validated
+    stored_formula: "C10H12O"
+    pubchem_formula: "C10H12O"
+    formula_match: true
+    pubchem_iupac: "1-methoxy-4-prop-2-enylbenzene"
+    name_in_synonyms: true
+    name_similarity_pct: 31
+  - id: 5
+    name: "Linalol"
+    cas: "78-70-6"
+    status: validated
+    stored_formula: "C10H18O"
+    pubchem_formula: "C10H18O"
+    formula_match: true
+    pubchem_iupac: "3,7-dimethylocta-1,6-dien-3-ol"
+    name_in_synonyms: true
+    name_similarity_pct: 22
+  - id: 6
+    name: "Terpinèn-4-ol"
+    cas: "562-74-3"
+    status: validated
+    stored_formula: "C10H18O"
+    pubchem_formula: "C10H18O"
+    formula_match: true
+    pubchem_iupac: "4-methyl-1-propan-2-ylcyclohex-3-en-1-ol"
+    name_in_synonyms: true
+    name_similarity_pct: 30
+  - id: 7
+    name: "Géraniol"
+    cas: "106-24-1"
+    status: validated
+    stored_formula: "C10H18O"
+    pubchem_formula: "C10H18O"
+    formula_match: true
+    pubchem_iupac: "(2E)-3,7-dimethylocta-2,6-dien-1-ol"
+    name_in_synonyms: true
+    name_similarity_pct: 23
+  - id: 8
+    name: "D-Limonène"
+    cas: "5989-27-5"
+    status: validated
+    stored_formula: "C10H16"
+    pubchem_formula: "C10H16"
+    formula_match: true
+    pubchem_iupac: "(4R)-1-methyl-4-prop-1-en-2-ylcyclohexene"
+    name_in_synonyms: true
+    name_similarity_pct: 27
+  - id: 9
+    name: "Capsaïcine"
+    cas: "404-86-4"
+    status: validated
+    stored_formula: "C18H27NO3"
+    pubchem_formula: "C18H27NO3"
+    formula_match: true
+    pubchem_iupac: "(E)-N-[(4-hydroxy-3-methoxyphenyl)methyl]-8-methylnon-6-enamide"
+    name_in_synonyms: true
+    name_similarity_pct: 8
+  - id: 10
+    name: "Pipérine"
+    cas: "94-62-2"
+    status: validated
+    stored_formula: "C17H19NO3"
+    pubchem_formula: "C17H19NO3"
+    formula_match: true
+    pubchem_iupac: "(2E,4E)-5-(1,3-benzodioxol-5-yl)-1-piperidin-1-ylpenta-2,4-dien-1-one"
+    name_in_synonyms: true
+    name_similarity_pct: 21
+  - id: 11
+    name: "Thymol"
+    cas: "89-83-8"
+    status: validated
+    stored_formula: "C10H14O"
+    pubchem_formula: "C10H14O"
+    formula_match: true
+    pubchem_iupac: "5-methyl-2-propan-2-ylphenol"
+    name_in_synonyms: true
+    name_similarity_pct: 29
+  - id: 12
+    name: "Carvacrol"
+    cas: "499-75-2"
+    status: validated
+    stored_formula: "C10H14O"
+    pubchem_formula: "C10H14O"
+    formula_match: true
+    pubchem_iupac: "2-methyl-5-propan-2-ylphenol"
+    name_in_synonyms: true
+    name_similarity_pct: 16
+  - id: 13
+    name: "Curcumine"
+    cas: "458-37-7"
+    status: validated
+    stored_formula: "C21H20O6"
+    pubchem_formula: "C21H20O6"
+    formula_match: true
+    pubchem_iupac: "(1E,6E)-1,7-bis(4-hydroxy-3-methoxyphenyl)hepta-1,6-diene-3,5-dione"
+    name_in_synonyms: true
+    name_similarity_pct: 13
+  - id: 14
+    name: "Zingérone"
+    cas: "122-48-5"
+    status: validated
+    stored_formula: "C11H14O3"
+    pubchem_formula: "C11H14O3"
+    formula_match: true
+    pubchem_iupac: "4-(4-hydroxy-3-methoxyphenyl)butan-2-one"
+    name_in_synonyms: true
+    name_similarity_pct: 16
+  - id: 15
+    name: "Safranal"
+    cas: "116-26-7"
+    status: validated
+    stored_formula: "C10H14O"
+    pubchem_formula: "C10H14O"
+    formula_match: true
+    pubchem_iupac: "2,6,6-trimethylcyclohexa-1,3-diene-1-carbaldehyde"
+    name_in_synonyms: true
+    name_similarity_pct: 14

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\OdtMatrix;
 use App\Repository\SpicyMatchRepository;
+use App\ValueObject\Match\CulinaryContext;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -58,6 +60,30 @@ class SpicyMatch
         'default' => false,
     ])]
     private bool $isManual = false;
+
+    /**
+     * Contexte culinaire au moment de la composition.
+     * Permet de restituer le ranking exact lors de l'affichage historique.
+     */
+    #[ORM\Column(name: 'matrix', type: 'string', length: 5, enumType: OdtMatrix::class, options: [
+        'default' => 'air',
+    ])]
+    private OdtMatrix $matrix = OdtMatrix::AIR;
+
+    #[ORM\Column(name: 'fat_ratio', type: 'float', options: [
+        'default' => 0.0,
+    ])]
+    private float $fatRatio = 0.0;
+
+    #[ORM\Column(name: 'cooking_time_min', type: 'integer', options: [
+        'default' => 0,
+    ])]
+    private int $cookingTimeMin = 0;
+
+    #[ORM\Column(name: 'temperature_celsius', type: 'integer', options: [
+        'default' => 20,
+    ])]
+    private int $temperatureCelsius = 20;
 
     public function __construct()
     {
@@ -200,6 +226,87 @@ class SpicyMatch
     public function setIsManual(bool $isManual): static
     {
         $this->isManual = $isManual;
+
+        return $this;
+    }
+
+    public function getMatrix(): OdtMatrix
+    {
+        return $this->matrix;
+    }
+
+    public function setMatrix(OdtMatrix $matrix): static
+    {
+        $this->matrix = $matrix;
+
+        return $this;
+    }
+
+    public function getFatRatio(): float
+    {
+        return $this->fatRatio;
+    }
+
+    public function setFatRatio(float $fatRatio): static
+    {
+        $this->fatRatio = $fatRatio;
+
+        return $this;
+    }
+
+    public function getWaterRatio(): float
+    {
+        // Dérivée de fatRatio : invariant fatRatio + waterRatio = 1.
+        return max(0.0, min(1.0, 1.0 - $this->fatRatio));
+    }
+
+    public function getCookingTimeMin(): int
+    {
+        return $this->cookingTimeMin;
+    }
+
+    public function setCookingTimeMin(int $cookingTimeMin): static
+    {
+        $this->cookingTimeMin = $cookingTimeMin;
+
+        return $this;
+    }
+
+    public function getTemperatureCelsius(): int
+    {
+        return $this->temperatureCelsius;
+    }
+
+    public function setTemperatureCelsius(int $temperatureCelsius): static
+    {
+        $this->temperatureCelsius = $temperatureCelsius;
+
+        return $this;
+    }
+
+    /**
+     * Reconstruit le contexte culinaire complet depuis les colonnes persistées.
+     */
+    public function getCulinaryContext(): CulinaryContext
+    {
+        return new CulinaryContext(
+            $this->matrix,
+            $this->fatRatio,
+            $this->getWaterRatio(),
+            $this->cookingTimeMin,
+            $this->temperatureCelsius,
+        );
+    }
+
+    /**
+     * Persiste le contexte culinaire dans les colonnes dédiées.
+     */
+    public function setCulinaryContext(CulinaryContext $context): static
+    {
+        $this->matrix = $context->matrix;
+        $this->fatRatio = $context->fatRatio;
+        $this->cookingTimeMin = $context->cookingTimeMin;
+        $this->temperatureCelsius = $context->temperatureCelsius;
 
         return $this;
     }

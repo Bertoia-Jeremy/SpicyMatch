@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace App\Twig\Components;
 
-use App\Entity\Spices;
+use App\Enum\OdtMatrix;
 use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
 use App\Service\Match\CompatibleSpiceFinder;
 use App\Service\SpicyMatchService;
+use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
+use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
@@ -21,6 +23,48 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
 class SpicyMatch extends AbstractController
 {
     use DefaultActionTrait;
+
+    /**
+     * Bornes de sécurité — toute valeur reçue du client est clampée avant
+     * d'être passée au CulinaryContext (qui rejetterait les valeurs aberrantes
+     * via une InvalidArgumentException).
+     */
+    private const float FAT_RATIO_MIN = 0.0;
+
+    private const float FAT_RATIO_MAX = 1.0;
+
+    private const int COOKING_TIME_MIN = 0;
+
+    private const int COOKING_TIME_MAX = 1440; // 24 h
+
+    private const int TEMPERATURE_MIN = -50;
+
+    private const int TEMPERATURE_MAX = 500;
+
+    /**
+     * Presets prédéfinis exposés via setCookingPreset() — un seul clic suffit pour
+     * basculer entre les trois grands modes culinaires sans toucher aux sliders.
+     */
+    private const array PRESETS = [
+        'dry' => [
+            'matrix' => 'air',
+            'fat' => 0.0,
+            'time' => 0,
+            'temp' => 20,
+        ],
+        'broth' => [
+            'matrix' => 'water',
+            'fat' => 0.0,
+            'time' => 20,
+            'temp' => 80,
+        ],
+        'saute' => [
+            'matrix' => 'oil',
+            'fat' => 1.0,
+            'time' => 10,
+            'temp' => 140,
+        ],
+    ];
 
     /**
      * @var array{selectedSpices: list<int|string>, compatibleSpices: list<array<string, mixed>>}
@@ -42,6 +86,20 @@ class SpicyMatch extends AbstractController
 
     #[LiveProp(writable: true)]
     public string $mode = 'auto';
+
+    // ── Contexte culinaire (Étape 3E-2) ─────────────────────────────────────────
+
+    #[LiveProp(writable: true)]
+    public string $matrix = 'air';
+
+    #[LiveProp(writable: true)]
+    public float $fatRatio = 0.0;
+
+    #[LiveProp(writable: true)]
+    public int $cookingTimeMin = 0;
+
+    #[LiveProp(writable: true)]
+    public int $temperatureCelsius = 20;
 
     public function __construct(
         private readonly SpicesRepository $spicesRepository,
@@ -83,24 +141,26 @@ class SpicyMatch extends AbstractController
         if (! empty($this->spices['selectedSpices'])) {
             $ids = array_map('intval', $this->spices['selectedSpices']);
 
-            // Flat arrays for display (grouped by aromatic group)
             $selectedFlat = $this->spicesRepository->findSpicesForMatch(implode(',', $ids));
             foreach ($selectedFlat as $spice) {
                 $selectedSpicesData[$spice['groupName']][] = $spice;
             }
 
             if ($this->mode === 'auto') {
-                $scored = $this->compatibleSpiceFinder->findCompatible(new MortarIds($ids), 100);
+                $scored = $this->compatibleSpiceFinder->findCompatible(
+                    new MortarIds($ids),
+                    100,
+                    $this->buildCulinaryContext(),
+                );
 
                 $compatibleSpices = array_values(array_filter(
                     $scored,
-                    fn (array $s) => ! in_array($s['id'], $ids, true)
+                    fn (array $s) => ! in_array($s['id'], $ids, true),
                 ));
             } else {
-                // Manual mode: show all spices except already selected, no scoring
                 $compatibleSpices = array_values(array_filter(
                     $compatibleSpices,
-                    fn (array $s) => ! in_array($s['id'], $ids, true)
+                    fn (array $s) => ! in_array($s['id'], $ids, true),
                 ));
             }
         }
@@ -118,7 +178,7 @@ class SpicyMatch extends AbstractController
             $agId = (int) $this->filterAgId;
             $compatibleSpices = array_values(array_filter(
                 $compatibleSpices,
-                fn (array $s) => ($s['agId'] ?? null) === $agId
+                fn (array $s) => ($s['agId'] ?? null) === $agId,
             ));
         }
 
@@ -126,7 +186,7 @@ class SpicyMatch extends AbstractController
             $stId = (int) $this->filterStId;
             $compatibleSpices = array_values(array_filter(
                 $compatibleSpices,
-                fn (array $s) => ($s['stId'] ?? null) === $stId
+                fn (array $s) => ($s['stId'] ?? null) === $stId,
             ));
         }
 
@@ -134,7 +194,7 @@ class SpicyMatch extends AbstractController
             $needle = mb_strtolower($this->search);
             $compatibleSpices = array_values(array_filter(
                 $compatibleSpices,
-                fn (array $s) => str_starts_with(mb_strtolower($s['name']), $needle)
+                fn (array $s) => str_starts_with(mb_strtolower($s['name']), $needle),
             ));
         }
 
@@ -142,6 +202,66 @@ class SpicyMatch extends AbstractController
             'selectedSpices' => $selectedSpicesData,
             'compatibleSpices' => $compatibleSpices,
         ];
+    }
+
+    /**
+     * Construit un CulinaryContext valide depuis les LiveProps (sanitization défensive).
+     *
+     * Les LiveProps sont writable côté client : on coerce/clamp avant d'instancier
+     * pour garantir qu'aucune valeur hors-bornes ne lève d'InvalidArgumentException.
+     */
+    public function buildCulinaryContext(): CulinaryContext
+    {
+        $matrix = OdtMatrix::tryFrom(strtolower(trim($this->matrix))) ?? OdtMatrix::AIR;
+        $fat = max(self::FAT_RATIO_MIN, min(self::FAT_RATIO_MAX, $this->fatRatio));
+        $water = max(0.0, 1.0 - $fat);
+        $time = max(self::COOKING_TIME_MIN, min(self::COOKING_TIME_MAX, $this->cookingTimeMin));
+        $temp = max(self::TEMPERATURE_MIN, min(self::TEMPERATURE_MAX, $this->temperatureCelsius));
+
+        try {
+            return new CulinaryContext($matrix, $fat, $water, $time, $temp);
+        } catch (\InvalidArgumentException) {
+            // Garde-fou — ne devrait pas se produire après clamp ci-dessus.
+            return new CulinaryContext();
+        }
+    }
+
+    /**
+     * Vrai si l'utilisateur a quitté le contexte par défaut (air, sec, 20 °C).
+     */
+    public function hasCustomCulinaryContext(): bool
+    {
+        return $this->matrix !== 'air'
+            || $this->fatRatio !== 0.0
+            || $this->cookingTimeMin !== 0
+            || $this->temperatureCelsius !== 20;
+    }
+
+    /**
+     * Libellé court du mode culinaire courant pour l'affichage UI.
+     */
+    public function getCulinaryLabel(): string
+    {
+        if ($this->cookingTimeMin > 0 && $this->fatRatio > 0.0) {
+            return match (true) {
+                $this->fatRatio >= 0.75 => 'Sauté',
+                default => 'Émulsion chaude',
+            };
+        }
+
+        if ($this->cookingTimeMin > 0) {
+            return match ($this->matrix) {
+                'oil' => 'Confit',
+                'water' => 'Bouillon',
+                default => 'Cuisson sèche',
+            };
+        }
+
+        return match ($this->matrix) {
+            'water' => 'Eau',
+            'oil' => 'Huile',
+            default => 'À sec',
+        };
     }
 
     #[LiveAction]
@@ -156,6 +276,36 @@ class SpicyMatch extends AbstractController
     public function clearSearch(): void
     {
         $this->search = '';
+    }
+
+    /**
+     * Bascule rapide entre les 3 modes culinaires types.
+     * Whitelist stricte → toute valeur inconnue est ignorée.
+     */
+    #[LiveAction]
+    public function setCookingPreset(#[LiveArg] string $preset): void
+    {
+        $config = self::PRESETS[$preset] ?? null;
+        if ($config === null) {
+            return;
+        }
+
+        $this->matrix = $config['matrix'];
+        $this->fatRatio = $config['fat'];
+        $this->cookingTimeMin = $config['time'];
+        $this->temperatureCelsius = $config['temp'];
+    }
+
+    /**
+     * Restaure le contexte culinaire par défaut (mode "À sec").
+     */
+    #[LiveAction]
+    public function resetCulinaryContext(): void
+    {
+        $this->matrix = 'air';
+        $this->fatRatio = 0.0;
+        $this->cookingTimeMin = 0;
+        $this->temperatureCelsius = 20;
     }
 
     #[LiveAction]
@@ -198,6 +348,7 @@ class SpicyMatch extends AbstractController
             $selectedIds,
             $isManual,
             $compatibleSpices,
+            $this->buildCulinaryContext(),
         );
 
         return $this->redirectToRoute('view_spicy_match', [

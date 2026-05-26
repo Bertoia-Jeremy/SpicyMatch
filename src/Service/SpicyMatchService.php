@@ -9,6 +9,7 @@ use App\Entity\SpicyMatchResult;
 use App\Entity\Users;
 use App\Factory\SpicyMatchFactory;
 use App\Repository\SpicesRepository;
+use App\ValueObject\Match\CulinaryContext;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -33,18 +34,24 @@ class SpicyMatchService
      * CompatibleSpiceFinder::findCompatible() — each entry must contain 'id' and 'score'.
      * In manual mode, pass an empty array (no results are stored).
      *
+     * Le contexte culinaire ($ctx) est persisté avec l'entité pour permettre la
+     * restitution exacte du ranking lors de la consultation historique (Étape 3E-2).
+     *
      * @param list<int>                          $selectedIds      Flat list of selected spice IDs
      * @param list<array{id: int, score: mixed}> $compatibleSpices Scored compatible spices (auto mode only)
+     * @param CulinaryContext                    $ctx              Contexte culinaire — défaut neutre
      */
     public function createFromSelection(
         ?Users $user,
         array $selectedIds,
         bool $isManual,
         array $compatibleSpices = [],
+        CulinaryContext $ctx = new CulinaryContext(),
     ): SpicyMatch {
         $spicyMatch = $this->factory->create();
         $spicyMatch->setUser($user);
         $spicyMatch->setIsManual($isManual);
+        $spicyMatch->setCulinaryContext($ctx);
 
         // Batch load selected spices — 1 SELECT IN
         foreach ($this->spicesRepository->findBy([

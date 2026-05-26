@@ -7,9 +7,11 @@ namespace App\Tests\Service;
 use App\Entity\Spices;
 use App\Entity\SpicyMatch;
 use App\Entity\Users;
+use App\Enum\OdtMatrix;
 use App\Factory\SpicyMatchFactory;
 use App\Repository\SpicesRepository;
 use App\Service\SpicyMatchService;
+use App\ValueObject\Match\CulinaryContext;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -253,5 +255,75 @@ class SpicyMatchServiceTest extends TestCase
             ->toArray();
         self::assertCount(1, $results);
         self::assertSame(82, $results[0]->getScore());
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Étape 3E-2 : persistance du contexte culinaire
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public function testDefaultCulinaryContextPersistedOnMatch(): void
+    {
+        $match = new SpicyMatch();
+        $this->factory->method('create')
+            ->willReturn($match);
+        $this->spicesRepo->method('findBy')
+            ->willReturn([]);
+
+        $this->service->createFromSelection(null, [], false, []);
+
+        // Pas de ctx fourni → defaults (air, fat=0, time=0, temp=20)
+        self::assertSame(OdtMatrix::AIR, $match->getMatrix());
+        self::assertSame(0.0, $match->getFatRatio());
+        self::assertSame(0, $match->getCookingTimeMin());
+        self::assertSame(20, $match->getTemperatureCelsius());
+    }
+
+    public function testCustomCulinaryContextPersistedOnMatch(): void
+    {
+        $match = new SpicyMatch();
+        $this->factory->method('create')
+            ->willReturn($match);
+        $this->spicesRepo->method('findBy')
+            ->willReturn([]);
+
+        $ctx = new CulinaryContext(
+            OdtMatrix::WATER,
+            fatRatio: 0.25,
+            waterRatio: 0.75,
+            cookingTimeMin: 20,
+            temperatureCelsius: 80,
+        );
+
+        $this->service->createFromSelection(null, [], false, [], $ctx);
+
+        self::assertSame(OdtMatrix::WATER, $match->getMatrix());
+        self::assertSame(0.25, $match->getFatRatio());
+        self::assertSame(20, $match->getCookingTimeMin());
+        self::assertSame(80, $match->getTemperatureCelsius());
+    }
+
+    public function testCulinaryContextRoundtripsThroughGetCulinaryContext(): void
+    {
+        $match = new SpicyMatch();
+        $this->factory->method('create')
+            ->willReturn($match);
+        $this->spicesRepo->method('findBy')
+            ->willReturn([]);
+
+        $ctx = new CulinaryContext(
+            OdtMatrix::OIL,
+            fatRatio: 1.0,
+            waterRatio: 0.0,
+            cookingTimeMin: 15,
+            temperatureCelsius: 140
+        );
+
+        $this->service->createFromSelection(null, [], false, [], $ctx);
+        $recovered = $match->getCulinaryContext();
+
+        self::assertSame($ctx->matrix, $recovered->matrix);
+        self::assertSame($ctx->fatRatio, $recovered->fatRatio);
+        self::assertSame($ctx->cookingTimeMin, $recovered->cookingTimeMin);
+        self::assertSame($ctx->temperatureCelsius, $recovered->temperatureCelsius);
     }
 }

@@ -57,6 +57,132 @@
                     }) }}
                 </div>
 
+                {# ── Sélecteur de cuisson (Étape 3E-2) ─────────────────────── #}
+                {% set cooking_content %}
+                    <div class="flex flex-col gap-4" x-data="{ advanced: {{ this.hasCustomCulinaryContext and (this.fatRatio > 0 or this.cookingTimeMin > 0) ? 'true' : 'false' }} }">
+                        {# Question d'amorce #}
+                        <p class="text-xs text-stone-500 leading-snug">
+                            Comment allez-vous cuisiner ce mélange ? Les scores s'ajustent à la matrice
+                            choisie (Nernst&nbsp;+&nbsp;décroissance thermique).
+                        </p>
+
+                        {# Trois grands modes culinaires #}
+                        <div class="grid grid-cols-3 gap-2">
+                            <button type="button"
+                                    data-action="live#action"
+                                    data-live-action-param="setCookingPreset"
+                                    data-live-preset-param="dry"
+                                    class="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-center transition
+                                           {{ this.matrix == 'air' and this.cookingTimeMin == 0 and this.fatRatio == 0
+                                                ? 'border-saffron-400 bg-saffron-50 text-saffron-700 shadow-sm'
+                                                : 'border-stone-200 bg-white text-stone-600 hover:border-saffron-200 hover:bg-saffron-50/40' }}">
+                                <i class="fa-solid fa-wind text-base"></i>
+                                <span class="text-[12px] font-semibold">À sec</span>
+                                <span class="text-[9px] text-stone-400 uppercase tracking-wider">Air</span>
+                            </button>
+
+                            <button type="button"
+                                    data-action="live#action"
+                                    data-live-action-param="setCookingPreset"
+                                    data-live-preset-param="broth"
+                                    class="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-center transition
+                                           {{ this.matrix == 'water' and this.fatRatio == 0 and this.cookingTimeMin > 0
+                                                ? 'border-saffron-400 bg-saffron-50 text-saffron-700 shadow-sm'
+                                                : 'border-stone-200 bg-white text-stone-600 hover:border-saffron-200 hover:bg-saffron-50/40' }}">
+                                <i class="fa-solid fa-glass-water text-base"></i>
+                                <span class="text-[12px] font-semibold">Bouillon</span>
+                                <span class="text-[9px] text-stone-400 uppercase tracking-wider">Eau</span>
+                            </button>
+
+                            <button type="button"
+                                    data-action="live#action"
+                                    data-live-action-param="setCookingPreset"
+                                    data-live-preset-param="saute"
+                                    class="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-center transition
+                                           {{ this.matrix == 'oil' and this.fatRatio >= 1
+                                                ? 'border-saffron-400 bg-saffron-50 text-saffron-700 shadow-sm'
+                                                : 'border-stone-200 bg-white text-stone-600 hover:border-saffron-200 hover:bg-saffron-50/40' }}">
+                                <i class="fa-solid fa-fire-flame-curved text-base"></i>
+                                <span class="text-[12px] font-semibold">Sauté</span>
+                                <span class="text-[9px] text-stone-400 uppercase tracking-wider">Huile</span>
+                            </button>
+                        </div>
+
+                        {# Avancé : sliders fine-tuning #}
+                        <button type="button"
+                                @click="advanced = !advanced"
+                                class="flex items-center justify-between text-[11px] font-mono uppercase tracking-widest
+                                       text-stone-400 hover:text-saffron-600 transition-colors">
+                            <span>Avancé</span>
+                            <i class="fa-solid fa-chevron-down text-[9px] transition-transform" :class="{ 'rotate-180': advanced }"></i>
+                        </button>
+
+                        <div x-show="advanced" x-cloak class="flex flex-col gap-3">
+                            {# Matrice ODT (override manuel) #}
+                            <div>
+                                <div class="flex items-baseline justify-between mb-1.5">
+                                    <label class="text-[11px] font-mono uppercase tracking-widest text-stone-500">Matrice ODT</label>
+                                    <span class="text-[11px] text-stone-400">{{ this.matrix }}</span>
+                                </div>
+                                <div class="inline-flex w-full rounded-full bg-stone-50 p-0.5 border border-stone-200">
+                                    {% for m in ['air', 'water', 'oil'] %}
+                                        <label class="cursor-pointer flex-1">
+                                            <input type="radio" name="matrix" value="{{ m }}" data-model="matrix"
+                                                   {{ this.matrix == m ? 'checked' : '' }} class="sr-only peer">
+                                            <span class="peer-checked:bg-white peer-checked:text-saffron-700 peer-checked:shadow-sm
+                                                         block px-2 py-1 rounded-full text-[11px] font-semibold text-center text-stone-500 transition-all">
+                                                {{ m }}
+                                            </span>
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            {# Fraction grasse #}
+                            <div>
+                                <div class="flex items-baseline justify-between mb-1">
+                                    <label for="fatRatio" class="text-[11px] font-mono uppercase tracking-widest text-stone-500">Fraction grasse</label>
+                                    <span class="text-[11px] text-stone-700 font-semibold tabular-nums">{{ (this.fatRatio * 100)|round }}&nbsp;%</span>
+                                </div>
+                                <input id="fatRatio" type="range" min="0" max="1" step="0.05"
+                                       value="{{ this.fatRatio }}"
+                                       data-model="fatRatio"
+                                       class="w-full accent-saffron-600">
+                            </div>
+
+                            {# Cuisson #}
+                            <div>
+                                <div class="flex items-baseline justify-between mb-1">
+                                    <label for="cookingTimeMin" class="text-[11px] font-mono uppercase tracking-widest text-stone-500">Temps de cuisson</label>
+                                    <span class="text-[11px] text-stone-700 font-semibold tabular-nums">{{ this.cookingTimeMin }}&nbsp;min</span>
+                                </div>
+                                <input id="cookingTimeMin" type="range" min="0" max="120" step="5"
+                                       value="{{ this.cookingTimeMin }}"
+                                       data-model="cookingTimeMin"
+                                       class="w-full accent-saffron-600">
+                            </div>
+
+                            {# Température #}
+                            <div>
+                                <div class="flex items-baseline justify-between mb-1">
+                                    <label for="temperatureCelsius" class="text-[11px] font-mono uppercase tracking-widest text-stone-500">Température</label>
+                                    <span class="text-[11px] text-stone-700 font-semibold tabular-nums">{{ this.temperatureCelsius }}&nbsp;°C</span>
+                                </div>
+                                <input id="temperatureCelsius" type="range" min="20" max="220" step="5"
+                                       value="{{ this.temperatureCelsius }}"
+                                       data-model="temperatureCelsius"
+                                       class="w-full accent-saffron-600">
+                            </div>
+                        </div>
+                    </div>
+                {% endset %}
+
+                {{ filters.filter_dropdown('Cuisson — ' ~ this.culinaryLabel, cooking_content, {
+                    count: this.hasCustomCulinaryContext ? 1 : 0,
+                    reset_click: "$dispatch('live:action', {action: 'resetCulinaryContext'})",
+                    style: 'pill'
+                }) }}
+
                 {# Filtre Type d'Épice #}
                 {% set st_content %}
                     <div class="flex flex-col gap-2">
@@ -262,6 +388,28 @@
                         {{ selectedCount }} épice{{ selectedCount > 1 ? 's' : '' }} — mode
                         <strong class="text-stone-500 font-semibold">{{ this.mode == 'auto' ? 'auto' : 'manuel' }}</strong>
                     </p>
+                {% endif %}
+
+                {# Indicateur contexte culinaire — visible dès qu'on quitte les defaults #}
+                {% if this.hasCustomCulinaryContext %}
+                    <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-saffron-50 border border-saffron-200 text-[11px]">
+                        <i class="fa-solid fa-fire text-saffron-500 shrink-0"></i>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-saffron-800 truncate">{{ this.culinaryLabel }}</p>
+                            <p class="text-saffron-600 tabular-nums">
+                                {{ this.matrix }}
+                                {%- if this.fatRatio > 0 %} · {{ (this.fatRatio * 100)|round }} % gras{% endif -%}
+                                {%- if this.cookingTimeMin > 0 %} · {{ this.cookingTimeMin }} min @ {{ this.temperatureCelsius }} °C{% endif -%}
+                            </p>
+                        </div>
+                        <button type="button"
+                                data-action="live#action"
+                                data-live-action-param="resetCulinaryContext"
+                                aria-label="Réinitialiser le contexte culinaire"
+                                class="shrink-0 size-5 rounded-md flex items-center justify-center text-saffron-500 hover:bg-saffron-100 hover:text-saffron-700 transition-colors">
+                            <i class="fa-solid fa-xmark text-[10px]"></i>
+                        </button>
+                    </div>
                 {% endif %}
 
             </div>

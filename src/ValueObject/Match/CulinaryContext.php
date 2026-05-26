@@ -67,4 +67,69 @@ final readonly class CulinaryContext
     {
         return new self(OdtMatrix::from(strtolower(trim($raw))));
     }
+
+    /**
+     * Vrai si le contexte introduit une physique non triviale (au-delà du défaut neutre).
+     * Synonyme côté domaine de OavPartitionCalculator::needsCorrection().
+     */
+    public function isCustom(): bool
+    {
+        return $this->matrix !== OdtMatrix::AIR
+            || $this->fatRatio !== 0.0
+            || $this->cookingTimeMin !== 0
+            || $this->temperatureCelsius !== 20;
+    }
+
+    /**
+     * Libellé humain du contexte culinaire (FR), pour l'affichage UI.
+     *
+     * Sémantique :
+     *  - Cuisson + gras prédominant → "Sauté" ou "Émulsion chaude"
+     *  - Cuisson sans gras           → "Bouillon" / "Confit" / "Cuisson sèche"
+     *  - Pas de cuisson              → libellé de la matrice ("À sec" / "Eau" / "Huile")
+     */
+    public function getLabel(): string
+    {
+        if ($this->cookingTimeMin > 0 && $this->fatRatio > 0.0) {
+            return $this->fatRatio >= 0.75 ? 'Sauté' : 'Émulsion chaude';
+        }
+
+        if ($this->cookingTimeMin > 0) {
+            return match ($this->matrix) {
+                OdtMatrix::OIL => 'Confit',
+                OdtMatrix::WATER => 'Bouillon',
+                OdtMatrix::AIR => 'Cuisson sèche',
+            };
+        }
+
+        return match ($this->matrix) {
+            OdtMatrix::WATER => 'Eau',
+            OdtMatrix::OIL => 'Huile',
+            OdtMatrix::AIR => 'À sec',
+        };
+    }
+
+    /**
+     * Icône FontAwesome représentative du contexte courant.
+     */
+    public function getIcon(): string
+    {
+        if ($this->cookingTimeMin > 0 && $this->fatRatio > 0.0) {
+            return 'fa-fire-flame-curved';
+        }
+
+        if ($this->cookingTimeMin > 0) {
+            return match ($this->matrix) {
+                OdtMatrix::WATER => 'fa-glass-water',
+                OdtMatrix::OIL => 'fa-droplet',
+                OdtMatrix::AIR => 'fa-sun',
+            };
+        }
+
+        return match ($this->matrix) {
+            OdtMatrix::WATER => 'fa-glass-water',
+            OdtMatrix::OIL => 'fa-droplet',
+            OdtMatrix::AIR => 'fa-wind',
+        };
+    }
 }

@@ -203,4 +203,111 @@ final class CulinaryContextTest extends TestCase
         self::assertSame(0, $ctx->cookingTimeMin);
         self::assertSame(20, $ctx->temperatureCelsius);
     }
+
+    // ── isCustom() ────────────────────────────────────────────────────────────
+
+    public function testIsCustomReturnsFalseForDefault(): void
+    {
+        self::assertFalse((new CulinaryContext())->isCustom());
+    }
+
+    public function testIsCustomReturnsTrueForNonAirMatrix(): void
+    {
+        self::assertTrue((new CulinaryContext(OdtMatrix::WATER))->isCustom());
+    }
+
+    public function testIsCustomReturnsTrueWithFat(): void
+    {
+        self::assertTrue((new CulinaryContext(fatRatio: 0.2, waterRatio: 0.8))->isCustom());
+    }
+
+    public function testIsCustomReturnsTrueWithCooking(): void
+    {
+        self::assertTrue((new CulinaryContext(cookingTimeMin: 10))->isCustom());
+    }
+
+    public function testIsCustomReturnsTrueWithTemperatureChange(): void
+    {
+        self::assertTrue((new CulinaryContext(temperatureCelsius: 100))->isCustom());
+    }
+
+    // ── getLabel() ────────────────────────────────────────────────────────────
+
+    public function testGetLabelForDefault(): void
+    {
+        self::assertSame('À sec', (new CulinaryContext())->getLabel());
+    }
+
+    public function testGetLabelForWaterMatrix(): void
+    {
+        self::assertSame('Eau', (new CulinaryContext(OdtMatrix::WATER))->getLabel());
+    }
+
+    public function testGetLabelForOilMatrix(): void
+    {
+        self::assertSame('Huile', (new CulinaryContext(OdtMatrix::OIL))->getLabel());
+    }
+
+    public function testGetLabelForBouillonCooking(): void
+    {
+        $ctx = new CulinaryContext(OdtMatrix::WATER, cookingTimeMin: 20, temperatureCelsius: 80);
+        self::assertSame('Bouillon', $ctx->getLabel());
+    }
+
+    public function testGetLabelForSaute(): void
+    {
+        // fat ≥ 0.75 + cooking > 0 → Sauté
+        $ctx = new CulinaryContext(
+            OdtMatrix::OIL,
+            fatRatio: 1.0,
+            waterRatio: 0.0,
+            cookingTimeMin: 10,
+            temperatureCelsius: 140
+        );
+        self::assertSame('Sauté', $ctx->getLabel());
+    }
+
+    public function testGetLabelForEmulsion(): void
+    {
+        // fat ∈ ]0, 0.75[ + cooking > 0 → Émulsion chaude
+        $ctx = new CulinaryContext(
+            OdtMatrix::WATER,
+            fatRatio: 0.5,
+            waterRatio: 0.5,
+            cookingTimeMin: 15,
+            temperatureCelsius: 70
+        );
+        self::assertSame('Émulsion chaude', $ctx->getLabel());
+    }
+
+    public function testGetLabelForConfit(): void
+    {
+        $ctx = new CulinaryContext(
+            OdtMatrix::OIL,
+            fatRatio: 0.0,
+            waterRatio: 1.0,
+            cookingTimeMin: 60,
+            temperatureCelsius: 85
+        );
+        self::assertSame('Confit', $ctx->getLabel());
+    }
+
+    // ── getIcon() ────────────────────────────────────────────────────────────
+
+    public function testGetIconForDefault(): void
+    {
+        self::assertSame('fa-wind', (new CulinaryContext())->getIcon());
+    }
+
+    public function testGetIconForCookingWithFat(): void
+    {
+        $ctx = new CulinaryContext(
+            OdtMatrix::OIL,
+            fatRatio: 1.0,
+            waterRatio: 0.0,
+            cookingTimeMin: 10,
+            temperatureCelsius: 140
+        );
+        self::assertSame('fa-fire-flame-curved', $ctx->getIcon());
+    }
 }

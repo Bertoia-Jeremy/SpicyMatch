@@ -227,41 +227,23 @@ class SpicyMatch extends AbstractController
     }
 
     /**
-     * Vrai si l'utilisateur a quitté le contexte par défaut (air, sec, 20 °C).
+     * Vrai si l'utilisateur a quitté le contexte par défaut.
+     * Délégué au VO — source de vérité unique partagée avec l'entité.
      */
     public function hasCustomCulinaryContext(): bool
     {
-        return $this->matrix !== 'air'
-            || $this->fatRatio !== 0.0
-            || $this->cookingTimeMin !== 0
-            || $this->temperatureCelsius !== 20;
+        return $this->buildCulinaryContext()
+            ->isCustom();
     }
 
     /**
      * Libellé court du mode culinaire courant pour l'affichage UI.
+     * Délégué au VO.
      */
     public function getCulinaryLabel(): string
     {
-        if ($this->cookingTimeMin > 0 && $this->fatRatio > 0.0) {
-            return match (true) {
-                $this->fatRatio >= 0.75 => 'Sauté',
-                default => 'Émulsion chaude',
-            };
-        }
-
-        if ($this->cookingTimeMin > 0) {
-            return match ($this->matrix) {
-                'oil' => 'Confit',
-                'water' => 'Bouillon',
-                default => 'Cuisson sèche',
-            };
-        }
-
-        return match ($this->matrix) {
-            'water' => 'Eau',
-            'oil' => 'Huile',
-            default => 'À sec',
-        };
+        return $this->buildCulinaryContext()
+            ->getLabel();
     }
 
     #[LiveAction]

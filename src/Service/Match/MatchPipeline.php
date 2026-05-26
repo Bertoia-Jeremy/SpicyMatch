@@ -28,7 +28,7 @@ use App\ValueObject\Match\MortarIds;
  *
  * @see ARCHITECTURE_MOTEUR_COMPATIBILITE.md §4
  */
-final class MatchPipeline
+class MatchPipeline
 {
     public function __construct(
         private readonly MortarProfileBuilder $mortarProfileBuilder,

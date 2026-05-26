@@ -1,0 +1,120 @@
+# Propriétés physico-chimiques des composés aromatiques
+#
+# Champs :
+#   - compound_name : doit matcher EXACTEMENT le name dans aromatic_compound
+#   - log_p         : XLogP3 PubChem (coefficient de partage octanol/eau, log10)
+#   - boiling_point_celsius : point d'ébullition à 1 atm (NIST WebBook)
+#   - vapor_pressure_pa     : tension de vapeur à 25 °C (EPA / NIST, en Pa)
+#   - source        : référence bibliographique
+#
+# Usage côté moteur :
+#   - log_p → Nernst partitioning entre phase aqueuse / phase grasse (K_ow = 10^logP)
+#   - boiling_point → AromaKinetics (HEAD < 150, HEART 150-250, BASE > 250)
+#                   → décroissance temporelle dans OavPartitionCalculator
+#   - vapor_pressure → précision future de la cinétique de volatilisation (Étape 3+)
+#
+# Sources principales :
+#   - PubChem (https://pubchem.ncbi.nlm.nih.gov) — XLogP3 calculé
+#   - NIST WebBook (https://webbook.nist.gov) — propriétés thermo expérimentales
+#   - EPA EPI Suite — vapor pressure estimées quand expérimentale absente
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ── Phénylpropanoïdes ────────────────────────────────────────────────────────
+
+- compound_name: "Eugenol"
+  log_p: 2.27
+  boiling_point_celsius: 254
+  vapor_pressure_pa: 0.030
+  source: "PubChem CID 3314 (XLogP3) / NIST WebBook"
+
+- compound_name: "Cinnamaldéhyde"
+  log_p: 1.90
+  boiling_point_celsius: 248
+  vapor_pressure_pa: 4.7
+  source: "PubChem CID 637511 / NIST WebBook"
+
+- compound_name: "Anéthol"
+  log_p: 3.39
+  boiling_point_celsius: 234
+  vapor_pressure_pa: 5.3
+  source: "PubChem CID 637563 / NIST WebBook (trans-anéthol)"
+
+- compound_name: "Estragole"
+  log_p: 3.13
+  boiling_point_celsius: 215
+  vapor_pressure_pa: 7.5
+  source: "PubChem CID 8815 / EPA EPI Suite"
+
+# ── Monoterpènes & dérivés ───────────────────────────────────────────────────
+
+- compound_name: "D-Limonène"
+  log_p: 4.57
+  boiling_point_celsius: 176
+  vapor_pressure_pa: 198.0
+  source: "PubChem CID 440917 / NIST WebBook"
+
+- compound_name: "Linalol"
+  log_p: 2.97
+  boiling_point_celsius: 198
+  vapor_pressure_pa: 21.3
+  source: "PubChem CID 6549 / NIST WebBook"
+
+- compound_name: "Géraniol"
+  log_p: 3.56
+  boiling_point_celsius: 230
+  vapor_pressure_pa: 4.0
+  source: "PubChem CID 637566 / NIST WebBook"
+
+- compound_name: "Terpinèn-4-ol"
+  log_p: 2.99
+  boiling_point_celsius: 209
+  vapor_pressure_pa: 12.0
+  source: "PubChem CID 11230 / EPA EPI Suite (vp estimée)"
+
+# ── Phénols volatils ─────────────────────────────────────────────────────────
+
+- compound_name: "Carvacrol"
+  log_p: 3.49
+  boiling_point_celsius: 237
+  vapor_pressure_pa: 0.041
+  source: "PubChem CID 10364 / NIST WebBook"
+
+- compound_name: "Thymol"
+  log_p: 3.30
+  boiling_point_celsius: 232
+  vapor_pressure_pa: 0.04
+  source: "PubChem CID 6989 / NIST WebBook"
+
+# ── Cétones aromatiques ──────────────────────────────────────────────────────
+
+- compound_name: "Zingérone"
+  log_p: 0.90
+  boiling_point_celsius: 187
+  vapor_pressure_pa: 0.03
+  source: "PubChem CID 31211 / EPA EPI Suite (bp estimée, décomp. avant)"
+
+- compound_name: "Safranal"
+  log_p: 2.05
+  boiling_point_celsius: 213
+  vapor_pressure_pa: 17.0
+  source: "PubChem CID 61041 / EPA EPI Suite (vp estimée)"
+
+# ── Composés de très faible volatilité (BASE) ────────────────────────────────
+
+- compound_name: "Pipérine"
+  log_p: 2.78
+  boiling_point_celsius: 498
+  vapor_pressure_pa: 0.001
+  source: "PubChem CID 638024 / NIST WebBook (décomp. avant bp)"
+
+- compound_name: "Capsaïcine"
+  log_p: 3.04
+  boiling_point_celsius: 410
+  vapor_pressure_pa: 0.0001
+  source: "PubChem CID 1548943 / EPA EPI Suite (bp estimée, décomp.)"
+
+- compound_name: "Curcumine"
+  log_p: 3.20
+  boiling_point_celsius: 593
+  vapor_pressure_pa: 0.00001
+  source: "PubChem CID 969516 / EPA EPI Suite (décomp. avant bp)"

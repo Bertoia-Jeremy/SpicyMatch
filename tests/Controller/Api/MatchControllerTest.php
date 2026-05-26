@@ -311,4 +311,109 @@ final class MatchControllerTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(400);
     }
+
+    // ── Étape 3E-1 — Contexte culinaire étendu via API ────────────────────────
+
+    public function testDefaultCulinaryContextFieldsInResponse(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/api/match?spices=15');
+
+        self::assertResponseIsSuccessful();
+        $data = json_decode((string) $client->getResponse()->getContent(), true);
+
+        self::assertSame(0.0, $data['fat_ratio']);
+        self::assertSame(1.0, $data['water_ratio']);
+        self::assertSame(0, $data['cooking_time_min']);
+        self::assertSame(20, $data['temperature_celsius']);
+    }
+
+    public function testFatRatioParamIsAccepted(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/api/match?spices=15&matrix=water&fat=0.3');
+
+        self::assertResponseIsSuccessful();
+        $data = json_decode((string) $client->getResponse()->getContent(), true);
+
+        self::assertEqualsWithDelta(0.3, $data['fat_ratio'], 0.001);
+        self::assertEqualsWithDelta(0.7, $data['water_ratio'], 0.001, 'water auto-déduit de 1-fat');
+    }
+
+    public function testFatAndWaterBothExplicit(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/api/match?spices=15&matrix=oil&fat=0.75&water=0.25');
+
+        self::assertResponseIsSuccessful();
+        $data = json_decode((string) $client->getResponse()->getContent(), true);
+
+        self::assertEqualsWithDelta(0.75, $data['fat_ratio'], 0.001);
+        self::assertEqualsWithDelta(0.25, $data['water_ratio'], 0.001);
+    }
+
+    public function testCookingTimeAndTemperatureAreAccepted(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/api/match?spices=15&matrix=water&cooking_time=30&temperature=100');
+
+        self::assertResponseIsSuccessful();
+        $data = json_decode((string) $client->getResponse()->getContent(), true);
+
+        self::assertSame(30, $data['cooking_time_min']);
+        self::assertSame(100, $data['temperature_celsius']);
+    }
+
+    public function testInvalidRatiosReturns400(): void
+    {
+        // fat=0.3 + water=0.3 → somme ≠ 1 → InvalidArgumentException
+        $client = static::createClient();
+        $client->request('GET', '/api/match?spices=15&fat=0.3&water=0.3');
+
+        self::assertResponseStatusCodeSame(400);
+        $data = json_decode((string) $client->getResponse()->getContent(), true);
+        self::assertStringContainsString('culinaires invalides', $data['error']);
+    }
+
+    public function testNegativeCookingTimeReturns400(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/api/match?spices=15&cooking_time=-5');
+
+        self::assertResponseStatusCodeSame(400);
+    }
+
+    public function testFatRatioAboveOneReturns400(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/api/match?spices=15&fat=1.5');
+
+        self::assertResponseStatusCodeSame(400);
+    }
+
+    public function testExtendedContextChangesMatchScoring(): void
+    {
+        // Sanity end-to-end : un mortier identique doit produire des scores différents
+        // selon que le contexte est neutre (matrix=water seul) ou physique (fat=0.5).
+        // Cas réel : Thym + Origan en bouillon vs vinaigrette → ranking peut bouger.
+        $client = static::createClient();
+
+        $client->request('GET', '/api/match?spices=15,16&matrix=water');
+        self::assertResponseIsSuccessful();
+        $baseline = json_decode((string) $client->getResponse()->getContent(), true);
+
+        $client->request('GET', '/api/match?spices=15,16&matrix=water&fat=0.5&water=0.5');
+        self::assertResponseIsSuccessful();
+        $emulsion = json_decode((string) $client->getResponse()->getContent(), true);
+
+        self::assertSame($baseline['count'], $emulsion['count'], 'Même nombre de candidats');
+        // Au moins UN candidat doit avoir un score différent → la correction physique s'applique
+        $baselineScores = array_column($baseline['results'], 'score', 'id');
+        $emulsionScores = array_column($emulsion['results'], 'score', 'id');
+        self::assertNotSame(
+            $baselineScores,
+            $emulsionScores,
+            'Le contexte étendu doit modifier au moins un score (Nernst appliqué)',
+        );
+    }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Api;
 
+use App\Enum\OdtMatrix;
 use App\Exception\Match\InvalidMortarException;
 use App\Repository\SpicesRepository;
 use App\Service\Match\MatchPipeline;
@@ -21,18 +22,24 @@ use Symfony\Component\Routing\Attribute\Route;
  * Endpoint GET /api/match — Moteur de compatibilité aromatique.
  *
  * Paramètres :
- *   ?spices=id1,id2,…  (1 à 10 IDs d'épices, virgule-séparés)
- *   ?limit=20           (optionnel, défaut 20, max 100)
- *   ?matrix=air         (optionnel, défaut "air" ; valeurs : air|water|oil)
+ *   ?spices=id1,id2,…   (1 à 10 IDs d'épices, virgule-séparés)
+ *   ?limit=20            (optionnel, défaut 20, max 100)
+ *   ?matrix=air          (optionnel, défaut "air" ; valeurs : air|water|oil)
+ *   ?fat=0.5             (optionnel, fraction grasse ∈ [0, 1] ; défaut 0)
+ *   ?water=0.5           (optionnel, fraction aqueuse ∈ [0, 1] ; défaut 1-fat)
+ *   ?cooking_time=30     (optionnel, minutes ≥ 0 ; défaut 0)
+ *   ?temperature=100     (optionnel, °C ; défaut 20)
  *
  * Réponse 200 :
  * {
  *   "mortar": [1, 2],
- *   "results": [
- *     { "id": 14, "name": "Marjolaine", "score": 87 },
- *     ...
- *   ],
+ *   "results": [{ "id": 14, "name": "Marjolaine", "score": 87 }, …],
  *   "oav_mode": true,
+ *   "matrix": "air",
+ *   "fat_ratio": 0.0,
+ *   "water_ratio": 1.0,
+ *   "cooking_time_min": 0,
+ *   "temperature_celsius": 20,
  *   "count": 1
  * }
  *
@@ -106,16 +113,35 @@ final class MatchController extends AbstractController
 
         $limit = max(1, min(100, $request->query->getInt('limit', 20)));
 
-        // Résolution du contexte culinaire (matrice ODT)
-        // Étape 1 : le contexte est parsé et validé mais pas encore propagé au pipeline
-        //           (la shadow table est mono-matrice en Étape 1 — propagation en Étape 2).
+        // Contexte culinaire — matrice ODT + ratios biphasiques + cuisson.
+        // Étape 3E-1 : exposition complète des champs CulinaryContext via l'API.
+        // fat (optionnel) : 0..1 ; water auto-déduit (1-fat) si non fourni ;
+        // cooking_time (min ≥ 0) ; temperature (°C entier).
         $matrixRaw = $request->query->getString('matrix', 'air');
 
         try {
-            $culinaryContext = CulinaryContext::fromRequest($matrixRaw);
+            $matrix = OdtMatrix::from(strtolower(trim($matrixRaw)));
         } catch (\ValueError) {
             return $this->json([
                 'error' => 'Matrice invalide. Valeurs acceptées : air, water, oil.',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $hasFat = $request->query->has('fat');
+        $hasWater = $request->query->has('water');
+        $fatRatio = $hasFat ? (float) $request->query->get('fat') : 0.0;
+        $waterRatio = $hasWater
+            ? (float) $request->query->get('water')
+            : ($hasFat ? max(0.0, 1.0 - $fatRatio) : 1.0);
+
+        $cookingTime = $request->query->getInt('cooking_time', 0);
+        $temperature = $request->query->getInt('temperature', 20);
+
+        try {
+            $culinaryContext = new CulinaryContext($matrix, $fatRatio, $waterRatio, $cookingTime, $temperature);
+        } catch (\InvalidArgumentException $e) {
+            return $this->json([
+                'error' => 'Paramètres culinaires invalides : ' . $e->getMessage(),
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -159,6 +185,10 @@ final class MatchController extends AbstractController
             'results' => $results,
             'oav_mode' => $oavMode,
             'matrix' => $culinaryContext->matrix->value,
+            'fat_ratio' => $culinaryContext->fatRatio,
+            'water_ratio' => $culinaryContext->waterRatio,
+            'cooking_time_min' => $culinaryContext->cookingTimeMin,
+            'temperature_celsius' => $culinaryContext->temperatureCelsius,
             'count' => count($results),
         ]);
     }

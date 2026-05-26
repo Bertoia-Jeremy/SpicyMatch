@@ -5,26 +5,26 @@ declare(strict_types=1);
 namespace App\Service\Match;
 
 use App\Repository\CandidateVetoRepository;
+use App\Repository\CompoundPhysicalRepository;
 use App\Repository\SpiceActiveCompoundRepository;
 use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 
 /**
- * Orchestrateur des 6 étapes du pipeline de compatibilité aromatique.
+ * Orchestrateur des étapes du pipeline de compatibilité aromatique.
  *
  * Étapes :
  *  1. Validation (faite en amont par le contrôleur via MortarIds)
  *  2. Construction du profil OAV agrégé du mortier (MortarProfileBuilder, filtré par matrice)
  *  3. Veto SQL biparti → liste des candidats survivants (filtré par matrice)
  *  4. Hydratation OAV des survivants (1 SELECT IN, filtré par matrice)
- *  5. Scoring Tanimoto OAV × N' candidats
- *  6. Tri descendant + slicing limit
+ *  5. Correction physico-chimique (Étape 3C — partition Nernst + décroissance temporelle)
+ *     Appliquée UNIQUEMENT si le contexte introduit une physique non triviale (fat > 0 ou cuisson > 0).
+ *     Sinon : skipped → comportement identique aux Étapes 1-2 (rétrocompat des 566 tests).
+ *  6. Scoring Tanimoto OAV sur profils corrigés
+ *  7. Tri descendant + slicing limit
  *
- * Mode dégradé : si aucune donnée OAV n'est disponible pour la matrice demandée
- * (table spice_active_compound vide ou pas de lignes pour cette matrice),
- * le pipeline bascule sur le veto présence-uniquement et retourne les candidats avec score 0.
- *
- * Rétrocompatibilité : `run($mortar, $limit)` sans contexte → défaut CulinaryContext (matrix=air).
+ * Mode dégradé : si aucune donnée OAV pour la matrice → veto présence + score 0.
  *
  * @see ARCHITECTURE_MOTEUR_COMPATIBILITE.md §4
  */
@@ -35,6 +35,8 @@ final class MatchPipeline
         private readonly CandidateVetoRepository $candidateVetoRepository,
         private readonly SpiceActiveCompoundRepository $spiceActiveCompoundRepository,
         private readonly OavTanimotoScorer $scorer,
+        private readonly CompoundPhysicalRepository $compoundPhysicalRepository,
+        private readonly OavPartitionCalculator $partitionCalculator,
     ) {
     }
 
@@ -42,7 +44,7 @@ final class MatchPipeline
      * Exécute le pipeline complet et retourne les candidats classés par score.
      *
      * @param int             $limit Nombre maximum de résultats (≥ 1, ≤ 100)
-     * @param CulinaryContext $ctx   Contexte culinaire — matrice ODT (défaut: air)
+     * @param CulinaryContext $ctx   Contexte culinaire — matrice + ratios + cuisson
      *
      * @return list<array{id: int, score: int, oav_mode: bool}>
      */
@@ -50,14 +52,9 @@ final class MatchPipeline
     {
         $matrix = $ctx->matrix;
 
-        // Étape 2 — Profil OAV du mortier (cache par matrice, TTL variable).
-        // build() retourne null si aucune donnée OAV disponible pour cette matrice → mode dégradé.
-        // Une seule requête au lieu de hasOavDataForSpices() + build() séparés,
-        // ce qui élimine la fenêtre TOCTOU entre les deux (RENAME TABLE atomique entre-deux).
         $mortarProfile = $this->mortarProfileBuilder->build($mortar, $matrix);
         $oavMode = $mortarProfile !== null;
 
-        // Étape 3 — Veto
         $survivorIds = $oavMode
             ? $this->candidateVetoRepository->findSurvivors($mortar, $matrix)
             : $this->candidateVetoRepository->findSurvivorsWithPresence($mortar);
@@ -66,7 +63,6 @@ final class MatchPipeline
             return [];
         }
 
-        // Mode dégradé : pas de données OAV pour cette matrice → score 0 pour tous les survivants
         if (! $oavMode) {
             return array_slice(
                 array_map(static fn (int $id) => [
@@ -75,22 +71,29 @@ final class MatchPipeline
                     'oav_mode' => false,
                 ], $survivorIds),
                 0,
-                $limit
+                $limit,
             );
         }
 
-        // Étape 4 — Hydratation OAV des survivants (1 SELECT IN, matrice paramétrée)
         $profiles = $this->spiceActiveCompoundRepository->loadOavProfilesBatch($survivorIds, $matrix);
 
-        // Étape 5 — Scoring Tanimoto OAV
-        // Filtre les candidats sans profil : race condition entre veto (étape 3) et hydratation
-        // (étape 4) si un rebuild OAV atomique se produit entre les deux.
-        // Un score 0 avec oav_mode:true serait sémantiquement trompeur.
+        // Étape 5 — Correction physico-chimique (Étape 3C)
+        // Skipped si le contexte est neutre (fatRatio=0 ET cookingTimeMin=0) →
+        // factor=1 partout → shadow OAV déjà correcte → économie de requête + CPU.
+        if ($this->partitionCalculator->needsCorrection($ctx)) {
+            $factors = $this->buildCorrectionFactors(array_keys($mortarProfile), $profiles, $ctx);
+            $mortarProfile = $this->applyFactors($mortarProfile, $factors);
+            foreach ($profiles as $spiceId => $profile) {
+                $profiles[$spiceId] = $this->applyFactors($profile, $factors);
+            }
+        }
+
+        // Étape 6 — Scoring Tanimoto
         $results = [];
         foreach ($survivorIds as $spiceId) {
             $candidateOav = $profiles[$spiceId] ?? null;
             if ($candidateOav === null) {
-                continue; // profil disparu lors d'un rebuild concurrent — skip
+                continue;
             }
 
             $scoreInt = $this->scorer->scoreAsInt($candidateOav, $mortarProfile);
@@ -101,9 +104,57 @@ final class MatchPipeline
             ];
         }
 
-        // Étape 6 — Tri descendant + slicing
         usort($results, static fn (array $a, array $b) => $b['score'] <=> $a['score']);
 
         return array_slice($results, 0, $limit);
+    }
+
+    /**
+     * Construit la map compoundId → facteur correctif en un seul fetch des CompoundPhysical.
+     *
+     * @param int[]                         $mortarCompoundIds
+     * @param array<int, array<int, float>> $candidateProfiles
+     *
+     * @return array<int, float>
+     */
+    private function buildCorrectionFactors(
+        array $mortarCompoundIds,
+        array $candidateProfiles,
+        CulinaryContext $ctx,
+    ): array {
+        $allCompoundIds = $mortarCompoundIds;
+        foreach ($candidateProfiles as $profile) {
+            foreach (array_keys($profile) as $compoundId) {
+                $allCompoundIds[] = $compoundId;
+            }
+        }
+        $uniqueIds = array_values(array_unique($allCompoundIds));
+
+        $physicalMap = $this->compoundPhysicalRepository->loadByCompoundIds($uniqueIds);
+
+        $factors = [];
+        foreach ($uniqueIds as $compoundId) {
+            $physical = $physicalMap[$compoundId] ?? null;
+            $factors[$compoundId] = $this->partitionCalculator->correctionFactor($physical, $ctx);
+        }
+
+        return $factors;
+    }
+
+    /**
+     * @param array<int, float> $profile
+     * @param array<int, float> $factors
+     *
+     * @return array<int, float>
+     */
+    private function applyFactors(array $profile, array $factors): array
+    {
+        $corrected = [];
+        foreach ($profile as $compoundId => $oav) {
+            $factor = $factors[$compoundId] ?? 1.0;
+            $corrected[$compoundId] = $oav * $factor;
+        }
+
+        return $corrected;
     }
 }

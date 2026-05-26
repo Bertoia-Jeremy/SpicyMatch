@@ -309,6 +309,63 @@ final class OavPartitionCalculatorTest extends TestCase
         self::assertEqualsWithDelta(462.0, $oav, 10.0);
     }
 
+    // ── needsCorrection() ─────────────────────────────────────────────────────
+
+    public function testNeedsCorrectionFalseForDefaultContext(): void
+    {
+        self::assertFalse($this->calc->needsCorrection(new CulinaryContext()));
+    }
+
+    public function testNeedsCorrectionFalseForPureWaterNoCooking(): void
+    {
+        $ctx = new CulinaryContext(OdtMatrix::WATER, fatRatio: 0.0, waterRatio: 1.0);
+        self::assertFalse($this->calc->needsCorrection($ctx));
+    }
+
+    public function testNeedsCorrectionTrueWhenFatRatioPositive(): void
+    {
+        $ctx = new CulinaryContext(OdtMatrix::WATER, fatRatio: 0.3, waterRatio: 0.7);
+        self::assertTrue($this->calc->needsCorrection($ctx));
+    }
+
+    public function testNeedsCorrectionTrueWhenCookingTimePositive(): void
+    {
+        $ctx = new CulinaryContext(OdtMatrix::WATER, cookingTimeMin: 10);
+        self::assertTrue($this->calc->needsCorrection($ctx));
+    }
+
+    // ── correctionFactor() ────────────────────────────────────────────────────
+
+    public function testCorrectionFactorIsOneWhenPhysicalIsNull(): void
+    {
+        self::assertSame(1.0, $this->calc->correctionFactor(null, new CulinaryContext()));
+    }
+
+    public function testCorrectionFactorIsOneInNeutralContext(): void
+    {
+        $physical = $this->makePhysical(logP: 4.0, bp: 200);
+        self::assertSame(1.0, $this->calc->correctionFactor($physical, new CulinaryContext()));
+    }
+
+    public function testCorrectionFactorAppliesPartitionForMixedPhases(): void
+    {
+        // K_ow=100, mix 50/50, matrix=WATER → factor = 1/50.5 ≈ 0.0198
+        $physical = $this->makePhysical(logP: 2.0);
+        $ctx = new CulinaryContext(OdtMatrix::WATER, fatRatio: 0.5, waterRatio: 0.5);
+
+        self::assertEqualsWithDelta(0.01980, $this->calc->correctionFactor($physical, $ctx), 0.001);
+    }
+
+    public function testCorrectionFactorIsProductOfPartitionAndDecay(): void
+    {
+        // mix pure water, no cooking (factor partition=1), cooking 30 min at bp=100 (factor decay=exp(-3))
+        $physical = $this->makePhysical(logP: 0.0, bp: 100);
+        $ctxCooking = new CulinaryContext(OdtMatrix::WATER, cookingTimeMin: 30, temperatureCelsius: 100);
+
+        // Pure water mix → partition = 1/(1×0+1) = 1, decay = exp(-0.1×30) ≈ 0.0498
+        self::assertEqualsWithDelta(0.04979, $this->calc->correctionFactor($physical, $ctxCooking), 0.001);
+    }
+
     public function testRealCaseBaseNoteSurvivesCookingBetterThanHead(): void
     {
         // Comparaison directe : eugénol (BASE, bp=254) vs limonène (HEAD, bp=176)

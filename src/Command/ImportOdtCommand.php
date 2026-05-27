@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Enum\DataConfidence;
 use App\Enum\OdtMatrix;
 use App\Repository\AromaticCompoundRepository;
 use App\Repository\CompoundOdtRepository;
+use App\Service\Math\GeometricMean;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -121,33 +123,22 @@ final class ImportOdtCommand extends Command
             }
 
             $compoundName = isset($entry['compound_name']) ? (string) $entry['compound_name'] : null;
-            $odtPpmRaw = $entry['odt_ppm'] ?? null;
             $source = isset($entry['source']) ? (string) $entry['source'] : 'inconnu';
             $matrixStr = isset($entry['matrix']) ? (string) $entry['matrix'] : $defaultMatrixStr;
             $matrix = OdtMatrix::tryFrom($matrixStr) ?? $defaultMatrix;
+            $confidence = $this->resolveConfidence($entry);
 
-            if ($compoundName === null || $odtPpmRaw === null) {
-                $io->warning(sprintf('Entrée ignorée (champs manquants) : %s', json_encode($entry)));
+            if ($compoundName === null) {
+                $io->warning(sprintf('Entrée ignorée (compound_name manquant) : %s', json_encode($entry)));
                 ++$skipped;
                 continue;
             }
 
-            // Guard non-numérique : (float)"N/A" = 0.0 mais le message serait trompeur
-            if (! is_numeric($odtPpmRaw)) {
-                $io->warning(sprintf(
-                    'ODT non numérique pour "%s" : %s — ignoré.',
-                    $compoundName,
-                    json_encode($odtPpmRaw)
-                ));
-                ++$skipped;
-                continue;
-            }
-
-            $odtPpm = (float) $odtPpmRaw;
-
-            // Guard ODT invalide : une valeur ≤ 0 causerait une division par zéro dans le rebuild OAV
-            if ($odtPpm <= 0.0) {
-                $io->warning(sprintf('ODT invalide (≤ 0) pour "%s" — ignoré.', $compoundName));
+            // Levier 3 — ODT : soit valeur ponctuelle (odt_ppm), soit plage
+            // (odt_min + odt_max) agrégée par moyenne géométrique (correcte pour
+            // données log-normales comme les seuils olfactifs van Gemert).
+            $odtPpm = $this->resolveOdtPpm($entry, $compoundName, $io);
+            if ($odtPpm === null) {
                 ++$skipped;
                 continue;
             }
@@ -175,12 +166,30 @@ final class ImportOdtCommand extends Command
             if ($existing !== null) {
                 $existing->setOdtPpm((string) $odtPpm);
                 $existing->setReferenceSource($source);
-                $io->text(sprintf('  UPDATE %s (%s) = %.8f ppm', $compoundName, $matrix->value, $odtPpm));
+                $existing->setConfidence($confidence);
+                $io->text(
+                    sprintf(
+                        '  UPDATE %s (%s) = %.8f ppm [%s]',
+                        $compoundName,
+                        $matrix->value,
+                        $odtPpm,
+                        $confidence->tier()
+                    )
+                );
                 ++$updated;
             } else {
                 $odt = new \App\Entity\CompoundOdt($compound, $matrix, (string) $odtPpm, $source);
+                $odt->setConfidence($confidence);
                 $this->em->persist($odt);
-                $io->text(sprintf('  INSERT %s (%s) = %.8f ppm', $compoundName, $matrix->value, $odtPpm));
+                $io->text(
+                    sprintf(
+                        '  INSERT %s (%s) = %.8f ppm [%s]',
+                        $compoundName,
+                        $matrix->value,
+                        $odtPpm,
+                        $confidence->tier()
+                    )
+                );
                 ++$inserted;
             }
 
@@ -205,5 +214,60 @@ final class ImportOdtCommand extends Command
         ));
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * Résout l'ODT en ppm depuis une entrée : valeur ponctuelle `odt_ppm`
+     * OU plage `odt_min`/`odt_max` agrégée par moyenne géométrique (Levier 3).
+     *
+     * @param array<string, mixed> $entry
+     *
+     * @return float|null null si donnée absente/invalide (l'appelant skip)
+     */
+    private function resolveOdtPpm(array $entry, string $compoundName, SymfonyStyle $io): ?float
+    {
+        $hasRange = isset($entry['odt_min'], $entry['odt_max']);
+
+        if ($hasRange) {
+            $min = $entry['odt_min'];
+            $max = $entry['odt_max'];
+            if (! is_numeric($min) || ! is_numeric($max) || (float) $min <= 0.0 || (float) $max <= 0.0) {
+                $io->warning(sprintf('Plage ODT invalide pour "%s" — ignoré.', $compoundName));
+
+                return null;
+            }
+
+            return GeometricMean::ofRange((float) $min, (float) $max);
+        }
+
+        $raw = $entry['odt_ppm'] ?? null;
+        if ($raw === null || ! is_numeric($raw)) {
+            $io->warning(sprintf('ODT manquant ou non numérique pour "%s" — ignoré.', $compoundName));
+
+            return null;
+        }
+
+        $odt = (float) $raw;
+        if ($odt <= 0.0) {
+            $io->warning(sprintf('ODT invalide (≤ 0) pour "%s" — ignoré.', $compoundName));
+
+            return null;
+        }
+
+        return $odt;
+    }
+
+    /**
+     * Niveau de confiance depuis l'entrée YAML (défaut PLACEHOLDER si absent/invalide).
+     *
+     * @param array<string, mixed> $entry
+     */
+    private function resolveConfidence(array $entry): DataConfidence
+    {
+        $raw = isset($entry['confidence']) ? (string) $entry['confidence'] : null;
+
+        return $raw !== null ? (DataConfidence::tryFrom(
+            $raw
+        ) ?? DataConfidence::PLACEHOLDER) : DataConfidence::PLACEHOLDER;
     }
 }

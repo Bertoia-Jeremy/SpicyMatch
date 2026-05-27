@@ -11,6 +11,10 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AromaticCompoundRepository::class)]
 #[ORM\Table(name: 'aromatic_compound')]
+// Levier 1 — le CAS est l'identité universelle : unicité garantie en base.
+// MySQL/MariaDB autorise plusieurs NULL dans un index UNIQUE → les composés
+// pas encore renseignés ne bloquent pas (mais deux mêmes CAS = erreur).
+#[ORM\UniqueConstraint(name: 'uniq_aromatic_compound_cas', columns: ['cas_number'])]
 class AromaticCompound
 {
     #[ORM\Id]

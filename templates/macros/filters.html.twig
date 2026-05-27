@@ -42,7 +42,9 @@
             </summary>
         {% endif %}
 
-        <div class="z-50 w-72 divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white shadow-xl group-open:absolute group-open:start-0 group-open:top-10 overflow-hidden">
+        {# UX-5 : sur mobile (< sm) on prend toute la largeur dispo moins gouttière 24px ;
+                  sur ≥ sm on garde la largeur fixe w-72 (288px) du design. #}
+        <div class="z-50 w-[calc(100vw-1.5rem)] sm:w-72 divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white shadow-xl group-open:absolute group-open:start-0 group-open:top-10 overflow-hidden">
             <div class="flex items-center justify-between px-4 py-3 bg-stone-50/50">
                 <span class="text-xs font-medium text-stone-500 uppercase tracking-wider">
                     {{ count }} Sélectionné{{ count > 1 ? 's' : '' }}

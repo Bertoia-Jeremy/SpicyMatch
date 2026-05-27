@@ -133,25 +133,16 @@ final readonly class MatrixComparator
     }
 
     /**
-     * Clé déterministe pour le cache. Ne contient PAS la matrice (la fonction couvre
-     * les 3) mais inclut les autres champs du contexte qui influencent le scoring.
+     * Clé déterministe pour le cache. Délègue le hash du contexte au VO
+     * (Refactor #1 — source unique de signature partagée avec CookingTimelineBuilder).
      */
     private function cacheKey(string $kind, MortarIds $mortar, CulinaryContext $baseCtx, int $limit): string
     {
-        // Hash compact (PSR-6 limite la longueur des clés à 64 chars + caractères restreints).
-        $ctxSig = sprintf(
-            '%s|%.3f|%d|%d',
-            $baseCtx->matrix->value,
-            $baseCtx->fatRatio,
-            $baseCtx->cookingTimeMin,
-            $baseCtx->temperatureCelsius,
-        );
-
         return sprintf(
             'match.insights.%s.%s.%s.l%d',
             $kind,
             substr(hash('xxh3', implode(',', $mortar->sorted())), 0, 16),
-            substr(hash('xxh3', $ctxSig), 0, 16),
+            $baseCtx->signatureHash(),
             $limit,
         );
     }

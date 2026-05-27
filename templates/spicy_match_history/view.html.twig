@@ -204,11 +204,14 @@
               <span class="prep-name {{ prepApplicable ? '' : 'line-through' }}">{{ prep.spice.name }}</span>
               <span class="prep-form">— {{ prep.title }}</span>
               {% if not prepApplicable %}
-                <span class="smallcaps px-2 py-0.5 rounded-full"
-                      style="background:#F5ECDB; color:#9A4720; border:1px solid rgba(154,71,32,0.25);"
-                      title="Cette préparation est répertoriée pour la matrice {{ prepMatrix.label }} — choisissez « {{ prepMatrix.label }} » au Lab pour l'activer.">
-                  <i class="fa-solid fa-triangle-exclamation text-[9px] mr-1"></i>
-                  hors matrice
+                {# UX-4 : tooltip explicatif + contraste plus visible (turmeric-50/saffron-900). #}
+                <span class="smallcaps px-2 py-0.5 rounded-full inline-flex items-center gap-1 cursor-help"
+                      style="background:#FEF3C7; color:#78350F; border:1px solid #FCD34D;"
+                      role="note"
+                      aria-label="Préparation hors matrice : {{ prepMatrix.label }}"
+                      title="Cette préparation est répertoriée pour la matrice « {{ prepMatrix.label }} ». Pour l'activer, composez un nouveau mélange au Lab en choisissant le mode {{ prepMatrix.label }}.">
+                  <i class="fa-solid fa-triangle-exclamation text-[9px]" aria-hidden="true"></i>
+                  hors matrice · {{ prepMatrix.label }}
                 </span>
               {% endif %}
             </div>
@@ -318,9 +321,9 @@
 
       <div class="grid md:grid-cols-3 gap-4">
         {% set kineticsConfig = {
-          head:  {label: 'Tête',  blurb: 'Notes volatiles · à ajouter en fin de cuisson', accent: '#D2773A'},
-          heart: {label: 'Cœur',  blurb: 'Notes structurantes · ajout à mi-cuisson',       accent: '#9A4720'},
-          base:  {label: 'Fond',  blurb: 'Notes lourdes · résistent à la cuisson longue',  accent: '#5A4A38'}
+          head:  {label: 'Tête',  icon: '💨', blurb: 'Notes volatiles · à ajouter en fin de cuisson',    accent: '#D2773A'},
+          heart: {label: 'Cœur',  icon: '❤️', blurb: 'Notes structurantes · ajout à mi-cuisson',         accent: '#9A4720'},
+          base:  {label: 'Fond',  icon: '🪨', blurb: 'Notes lourdes · résistent à la cuisson longue',     accent: '#5A4A38'}
         } %}
         {% for kineticsKey in ['head', 'heart', 'base'] %}
           {% set bucket = cookingTimeline[kineticsKey] %}
@@ -328,7 +331,9 @@
           <div class="rounded-2xl border px-5 py-4"
                style="border-color: rgba(122,106,85,0.25); background:#FBF5E9;">
             <div class="flex items-baseline justify-between mb-2">
-              <span class="font-display text-base" style="color: {{ cfg.accent }};">{{ cfg.label }}</span>
+              <span class="font-display text-base" style="color: {{ cfg.accent }};">
+                <span aria-hidden="true">{{ cfg.icon }}</span> {{ cfg.label }}
+              </span>
               <span class="smallcaps tabular-nums" style="color:#7A6A55;">{{ bucket|length }} composé{{ bucket|length > 1 ? 's' }}</span>
             </div>
             <p class="text-[11px] mb-3" style="color:#7A6A55;">{{ cfg.blurb }}</p>
@@ -409,7 +414,8 @@
                   <td class="px-3 py-2.5 text-center tabular-nums"
                       style="color: {{ score == 0 ? '#9A877B' : (isCurrent ? '#9A4720' : '#2A1F14') }};
                              font-weight: {{ isBest ? '600' : '400' }};
-                             background: {{ isCurrent ? 'rgba(210,119,58,0.06)' : 'transparent' }};">
+                             background: {{ isCurrent ? 'rgba(210,119,58,0.06)' : 'transparent' }};"
+                      title="{{ score == 0 ? 'Hors du top 5 dans cette matrice' : 'Score Tanimoto OAV (échelle 0–100)' }}">
                     {{ score == 0 ? '—' : score }}
                   </td>
                 {% endfor %}

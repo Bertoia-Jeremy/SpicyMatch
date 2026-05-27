@@ -66,17 +66,20 @@
                             choisie (Nernst&nbsp;+&nbsp;décroissance thermique).
                         </p>
 
-                        {# Trois grands modes culinaires #}
-                        <div class="grid grid-cols-3 gap-2">
+                        {# Trois grands modes culinaires (UX-6 ARIA labels + UX-2 contraste +800) #}
+                        <div class="grid grid-cols-3 gap-2" role="group" aria-label="Sélection du contexte culinaire">
                             <button type="button"
                                     data-action="live#action"
                                     data-live-action-param="setCookingPreset"
                                     data-live-preset-param="dry"
+                                    aria-label="Preset cuisson : À sec — assaisonnement cru, sans cuisson"
+                                    aria-pressed="{{ this.matrix == 'air' and this.cookingTimeMin == 0 and this.fatRatio == 0 ? 'true' : 'false' }}"
                                     class="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-center transition
+                                           focus-visible:ring-2 focus-visible:ring-saffron-600 focus-visible:outline-none
                                            {{ this.matrix == 'air' and this.cookingTimeMin == 0 and this.fatRatio == 0
-                                                ? 'border-saffron-400 bg-saffron-50 text-saffron-700 shadow-sm'
+                                                ? 'border-saffron-500 bg-saffron-100 text-saffron-800 shadow-sm'
                                                 : 'border-stone-200 bg-white text-stone-600 hover:border-saffron-200 hover:bg-saffron-50/40' }}">
-                                <i class="fa-solid fa-wind text-base"></i>
+                                <i class="fa-solid fa-wind text-base" aria-hidden="true"></i>
                                 <span class="text-[12px] font-semibold">À sec</span>
                                 <span class="text-[9px] text-stone-400 uppercase tracking-wider">Air</span>
                             </button>
@@ -85,11 +88,14 @@
                                     data-action="live#action"
                                     data-live-action-param="setCookingPreset"
                                     data-live-preset-param="broth"
+                                    aria-label="Preset cuisson : Bouillon — eau, 20 minutes à 80 degrés"
+                                    aria-pressed="{{ this.matrix == 'water' and this.fatRatio == 0 and this.cookingTimeMin > 0 ? 'true' : 'false' }}"
                                     class="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-center transition
+                                           focus-visible:ring-2 focus-visible:ring-saffron-600 focus-visible:outline-none
                                            {{ this.matrix == 'water' and this.fatRatio == 0 and this.cookingTimeMin > 0
-                                                ? 'border-saffron-400 bg-saffron-50 text-saffron-700 shadow-sm'
+                                                ? 'border-saffron-500 bg-saffron-100 text-saffron-800 shadow-sm'
                                                 : 'border-stone-200 bg-white text-stone-600 hover:border-saffron-200 hover:bg-saffron-50/40' }}">
-                                <i class="fa-solid fa-glass-water text-base"></i>
+                                <i class="fa-solid fa-glass-water text-base" aria-hidden="true"></i>
                                 <span class="text-[12px] font-semibold">Bouillon</span>
                                 <span class="text-[9px] text-stone-400 uppercase tracking-wider">Eau</span>
                             </button>
@@ -98,11 +104,14 @@
                                     data-action="live#action"
                                     data-live-action-param="setCookingPreset"
                                     data-live-preset-param="saute"
+                                    aria-label="Preset cuisson : Sauté — huile pure, 10 minutes à 140 degrés"
+                                    aria-pressed="{{ this.matrix == 'oil' and this.fatRatio >= 1 ? 'true' : 'false' }}"
                                     class="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-center transition
+                                           focus-visible:ring-2 focus-visible:ring-saffron-600 focus-visible:outline-none
                                            {{ this.matrix == 'oil' and this.fatRatio >= 1
-                                                ? 'border-saffron-400 bg-saffron-50 text-saffron-700 shadow-sm'
+                                                ? 'border-saffron-500 bg-saffron-100 text-saffron-800 shadow-sm'
                                                 : 'border-stone-200 bg-white text-stone-600 hover:border-saffron-200 hover:bg-saffron-50/40' }}">
-                                <i class="fa-solid fa-fire-flame-curved text-base"></i>
+                                <i class="fa-solid fa-fire-flame-curved text-base" aria-hidden="true"></i>
                                 <span class="text-[12px] font-semibold">Sauté</span>
                                 <span class="text-[9px] text-stone-400 uppercase tracking-wider">Huile</span>
                             </button>
@@ -177,11 +186,14 @@
                     </div>
                 {% endset %}
 
-                {{ filters.filter_dropdown('Cuisson — ' ~ this.culinaryLabel, cooking_content, {
-                    count: this.hasCustomCulinaryContext ? 1 : 0,
-                    reset_click: "$dispatch('live:action', {action: 'resetCulinaryContext'})",
-                    style: 'pill'
-                }) }}
+                {# UX-1 : libellé explicite "Mode : X" pour rendre l'action et l'état visibles. #}
+                <div title="Le mode culinaire influence le scoring (Nernst + décroissance thermique)">
+                    {{ filters.filter_dropdown('Mode : ' ~ this.culinaryLabel, cooking_content, {
+                        count: this.hasCustomCulinaryContext ? 1 : 0,
+                        reset_click: "$dispatch('live:action', {action: 'resetCulinaryContext'})",
+                        style: 'pill'
+                    }) }}
+                </div>
 
                 {# Filtre Type d'Épice #}
                 {% set st_content %}
@@ -265,10 +277,12 @@
                 </span>
             </div>
 
-            {# ── Grille épices plate ── #}
-            <form data-model="spices">
+            {# ── Grille épices plate.
+                 UX-3 feedback debounce : data-loading="addClass(opacity-60)" donne un signal
+                 visuel immédiat (50–100 ms) pendant que le serveur recalcule les scores. ── #}
+            <form data-model="spices" data-loading="addClass(opacity-60)">
                 {% if compatibleSpices is not empty %}
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 transition-opacity duration-150">
                         {% for spice in compatibleSpices %}
                             {{ macroCardSpicyMatch.cardSpicyMatch(spice, false, spice.score ?? null) }}
                         {% endfor %}
@@ -390,13 +404,14 @@
                     </p>
                 {% endif %}
 
-                {# Indicateur contexte culinaire — visible dès qu'on quitte les defaults #}
+                {# Indicateur contexte culinaire — visible dès qu'on quitte les defaults.
+                   UX-2 contraste WCAG : bg-saffron-100 + text-saffron-800/900 (ratio ≥ 4.5:1). #}
                 {% if this.hasCustomCulinaryContext %}
-                    <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-saffron-50 border border-saffron-200 text-[11px]">
-                        <i class="fa-solid fa-fire text-saffron-500 shrink-0"></i>
+                    <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-saffron-100 border border-saffron-300 text-[11px]">
+                        <i class="fa-solid fa-fire text-saffron-700 shrink-0" aria-hidden="true"></i>
                         <div class="flex-1 min-w-0">
-                            <p class="font-semibold text-saffron-800 truncate">{{ this.culinaryLabel }}</p>
-                            <p class="text-saffron-600 tabular-nums">
+                            <p class="font-semibold text-saffron-900 truncate">{{ this.culinaryLabel }}</p>
+                            <p class="text-saffron-800 tabular-nums">
                                 {{ this.matrix }}
                                 {%- if this.fatRatio > 0 %} · {{ (this.fatRatio * 100)|round }} % gras{% endif -%}
                                 {%- if this.cookingTimeMin > 0 %} · {{ this.cookingTimeMin }} min @ {{ this.temperatureCelsius }} °C{% endif -%}
@@ -406,8 +421,8 @@
                                 data-action="live#action"
                                 data-live-action-param="resetCulinaryContext"
                                 aria-label="Réinitialiser le contexte culinaire"
-                                class="shrink-0 size-5 rounded-md flex items-center justify-center text-saffron-500 hover:bg-saffron-100 hover:text-saffron-700 transition-colors">
-                            <i class="fa-solid fa-xmark text-[10px]"></i>
+                                class="shrink-0 size-5 rounded-md flex items-center justify-center text-saffron-700 hover:bg-saffron-200 hover:text-saffron-900 transition-colors focus-visible:ring-2 focus-visible:ring-saffron-600 focus-visible:outline-none">
+                            <i class="fa-solid fa-xmark text-[10px]" aria-hidden="true"></i>
                         </button>
                     </div>
                 {% endif %}

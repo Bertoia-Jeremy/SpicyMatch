@@ -129,7 +129,8 @@ final class MatchController extends AbstractController
 
         // SEC-1 : validation explicite numérique + plage AVANT cast (sécurité).
         // (float)"1e308" → INF en PHP — silencieux, échapperait au CulinaryContext.
-        // is_finite() ferme cette porte.
+        // Bornes : constantes publiques sur CulinaryContext = source de vérité unique
+        // (Refactor #2). API + LiveComponent + VO partagent les mêmes valeurs.
         $hasFat = $request->query->has('fat');
         $hasWater = $request->query->has('water');
 
@@ -142,7 +143,7 @@ final class MatchController extends AbstractController
                 ], Response::HTTP_BAD_REQUEST);
             }
             $fatRatio = (float) $fatRaw;
-            if ($fatRatio < 0.0 || $fatRatio > 1.0) {
+            if ($fatRatio < CulinaryContext::FAT_RATIO_MIN || $fatRatio > CulinaryContext::FAT_RATIO_MAX) {
                 return $this->json([
                     'error' => 'Paramètre "fat" hors plage (∈ [0, 1] attendu).',
                 ], Response::HTTP_BAD_REQUEST);
@@ -158,14 +159,13 @@ final class MatchController extends AbstractController
                 ], Response::HTTP_BAD_REQUEST);
             }
             $waterRatio = (float) $waterRaw;
-            if ($waterRatio < 0.0 || $waterRatio > 1.0) {
+            if ($waterRatio < CulinaryContext::FAT_RATIO_MIN || $waterRatio > CulinaryContext::FAT_RATIO_MAX) {
                 return $this->json([
                     'error' => 'Paramètre "water" hors plage (∈ [0, 1] attendu).',
                 ], Response::HTTP_BAD_REQUEST);
             }
         }
 
-        // cooking_time + temperature : bornes raisonnables (24 h / -50..500 °C).
         $cookingTimeRaw = $request->query->get('cooking_time', '0');
         if (! is_numeric($cookingTimeRaw)) {
             return $this->json([
@@ -173,9 +173,12 @@ final class MatchController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
         $cookingTime = (int) $cookingTimeRaw;
-        if ($cookingTime < 0 || $cookingTime > 1440) {
+        if ($cookingTime < CulinaryContext::COOKING_TIME_MIN || $cookingTime > CulinaryContext::COOKING_TIME_MAX) {
             return $this->json([
-                'error' => 'Paramètre "cooking_time" hors plage (∈ [0, 1440] min attendu).',
+                'error' => \sprintf(
+                    'Paramètre "cooking_time" hors plage (∈ [0, %d] min attendu).',
+                    CulinaryContext::COOKING_TIME_MAX,
+                ),
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -186,9 +189,13 @@ final class MatchController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
         $temperature = (int) $temperatureRaw;
-        if ($temperature < -50 || $temperature > 500) {
+        if ($temperature < CulinaryContext::TEMPERATURE_MIN || $temperature > CulinaryContext::TEMPERATURE_MAX) {
             return $this->json([
-                'error' => 'Paramètre "temperature" hors plage (∈ [-50, 500] °C attendu).',
+                'error' => \sprintf(
+                    'Paramètre "temperature" hors plage (∈ [%d, %d] °C attendu).',
+                    CulinaryContext::TEMPERATURE_MIN,
+                    CulinaryContext::TEMPERATURE_MAX,
+                ),
             ], Response::HTTP_BAD_REQUEST);
         }
 

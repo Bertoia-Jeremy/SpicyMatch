@@ -22,6 +22,22 @@ use App\Enum\OdtMatrix;
  */
 final readonly class CulinaryContext
 {
+    /**
+     * Bornes publiques — source de vérité unique pour les validations API + UI.
+     * (Refactor #2) — référencées par MatchController, LiveComponent SpicyMatch, etc.
+     */
+    public const float FAT_RATIO_MIN = 0.0;
+
+    public const float FAT_RATIO_MAX = 1.0;
+
+    public const int COOKING_TIME_MIN = 0;
+
+    public const int COOKING_TIME_MAX = 1440; // 24 h
+
+    public const int TEMPERATURE_MIN = -50;
+
+    public const int TEMPERATURE_MAX = 500;
+
     private const float RATIO_SUM_TOLERANCE = 0.001;
 
     public function __construct(
@@ -31,11 +47,11 @@ final readonly class CulinaryContext
         public int $cookingTimeMin = 0,
         public int $temperatureCelsius = 20,
     ) {
-        if ($fatRatio < 0.0 || $fatRatio > 1.0) {
+        if ($fatRatio < self::FAT_RATIO_MIN || $fatRatio > self::FAT_RATIO_MAX) {
             throw new \InvalidArgumentException(\sprintf('fatRatio doit être ∈ [0, 1], reçu %f', $fatRatio));
         }
 
-        if ($waterRatio < 0.0 || $waterRatio > 1.0) {
+        if ($waterRatio < self::FAT_RATIO_MIN || $waterRatio > self::FAT_RATIO_MAX) {
             throw new \InvalidArgumentException(\sprintf('waterRatio doit être ∈ [0, 1], reçu %f', $waterRatio));
         }
 
@@ -47,9 +63,46 @@ final readonly class CulinaryContext
             ));
         }
 
-        if ($cookingTimeMin < 0) {
-            throw new \InvalidArgumentException(\sprintf('cookingTimeMin doit être ≥ 0, reçu %d', $cookingTimeMin));
+        if ($cookingTimeMin < self::COOKING_TIME_MIN || $cookingTimeMin > self::COOKING_TIME_MAX) {
+            throw new \InvalidArgumentException(\sprintf(
+                'cookingTimeMin doit être ∈ [0, %d], reçu %d',
+                self::COOKING_TIME_MAX,
+                $cookingTimeMin
+            ), );
         }
+
+        if ($temperatureCelsius < self::TEMPERATURE_MIN || $temperatureCelsius > self::TEMPERATURE_MAX) {
+            throw new \InvalidArgumentException(\sprintf(
+                'temperatureCelsius doit être ∈ [%d, %d], reçu %d',
+                self::TEMPERATURE_MIN,
+                self::TEMPERATURE_MAX,
+                $temperatureCelsius,
+            ), );
+        }
+    }
+
+    /**
+     * Signature compacte du contexte pour clé de cache (refactor #1).
+     * Déterministe : même contexte → même hash. Inclut tous les champs qui
+     * influencent le scoring (excluant la matrice quand l'appelant la fait varier).
+     */
+    public function signature(): string
+    {
+        return \sprintf(
+            '%s|%.3f|%d|%d',
+            $this->matrix->value,
+            $this->fatRatio,
+            $this->cookingTimeMin,
+            $this->temperatureCelsius,
+        );
+    }
+
+    /**
+     * Hash court (16 chars) pour clé de cache PSR-6 (longueur restreinte).
+     */
+    public function signatureHash(): string
+    {
+        return substr(hash('xxh3', $this->signature()), 0, 16);
     }
 
     /**

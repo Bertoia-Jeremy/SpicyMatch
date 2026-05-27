@@ -122,18 +122,11 @@ final readonly class CookingTimelineBuilder
     {
         sort($compoundIds);
 
-        $ctxSig = sprintf(
-            '%s|%.3f|%d|%d',
-            $ctx->matrix->value,
-            $ctx->fatRatio,
-            $ctx->cookingTimeMin,
-            $ctx->temperatureCelsius,
-        );
-
+        // Signature du contexte déléguée au VO (Refactor #1).
         return sprintf(
             'match.insights.timeline.%s.%s',
             substr(hash('xxh3', implode(',', $compoundIds)), 0, 16),
-            substr(hash('xxh3', $ctxSig), 0, 16),
+            $ctx->signatureHash(),
         );
     }
 }

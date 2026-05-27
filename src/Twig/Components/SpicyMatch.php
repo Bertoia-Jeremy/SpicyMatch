@@ -25,23 +25,6 @@ class SpicyMatch extends AbstractController
     use DefaultActionTrait;
 
     /**
-     * Bornes de sécurité — toute valeur reçue du client est clampée avant
-     * d'être passée au CulinaryContext (qui rejetterait les valeurs aberrantes
-     * via une InvalidArgumentException).
-     */
-    private const float FAT_RATIO_MIN = 0.0;
-
-    private const float FAT_RATIO_MAX = 1.0;
-
-    private const int COOKING_TIME_MIN = 0;
-
-    private const int COOKING_TIME_MAX = 1440; // 24 h
-
-    private const int TEMPERATURE_MIN = -50;
-
-    private const int TEMPERATURE_MAX = 500;
-
-    /**
      * Presets prédéfinis exposés via setCookingPreset() — un seul clic suffit pour
      * basculer entre les trois grands modes culinaires sans toucher aux sliders.
      */
@@ -212,11 +195,12 @@ class SpicyMatch extends AbstractController
      */
     public function buildCulinaryContext(): CulinaryContext
     {
+        // Bornes source de vérité = constantes publiques de CulinaryContext (Refactor #2).
         $matrix = OdtMatrix::tryFrom(strtolower(trim($this->matrix))) ?? OdtMatrix::AIR;
-        $fat = max(self::FAT_RATIO_MIN, min(self::FAT_RATIO_MAX, $this->fatRatio));
+        $fat = max(CulinaryContext::FAT_RATIO_MIN, min(CulinaryContext::FAT_RATIO_MAX, $this->fatRatio));
         $water = max(0.0, 1.0 - $fat);
-        $time = max(self::COOKING_TIME_MIN, min(self::COOKING_TIME_MAX, $this->cookingTimeMin));
-        $temp = max(self::TEMPERATURE_MIN, min(self::TEMPERATURE_MAX, $this->temperatureCelsius));
+        $time = max(CulinaryContext::COOKING_TIME_MIN, min(CulinaryContext::COOKING_TIME_MAX, $this->cookingTimeMin));
+        $temp = max(CulinaryContext::TEMPERATURE_MIN, min(CulinaryContext::TEMPERATURE_MAX, $this->temperatureCelsius));
 
         try {
             return new CulinaryContext($matrix, $fat, $water, $time, $temp);

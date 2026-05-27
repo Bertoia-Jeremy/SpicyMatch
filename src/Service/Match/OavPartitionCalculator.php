@@ -32,11 +32,25 @@ final readonly class OavPartitionCalculator
 {
     /**
      * Constante de perte au point d'ébullition (fraction/min). 0.1 = 10 %/min.
+     *
+     * Calibration : empirique, alignée sur la rétention observée pour des
+     * monoterpènes (limonène, linalol) bouillis 30 min ≈ 5 % rétention,
+     * ce qui correspond à exp(-0.1 × 30) ≈ 0.05.
+     *
+     * Domaine de validité : matrice aqueuse ou huileuse, cuisson conventionnelle
+     * à pression atmosphérique. Non applicable au four sec à haute température
+     * (convection 200+°C, mécanisme différent).
+     *
+     * À reconfigurer si le modèle est étendu (cf. ARCHITECTURE §3.7 limitations).
      */
     private const float K_AT_BOILING = 0.1;
 
     /**
-     * Température sous laquelle la volatilisation est négligée.
+     * Température sous laquelle la volatilisation est négligée (°C).
+     *
+     * Justification : sous 50 °C la cinétique d'évaporation devient négligeable
+     * pour les arômes culinaires (point de rosée typique, cf. Henry & vapor pressure).
+     * Au-dessus, modèle linéaire d'évaporation jusqu'au point d'ébullition.
      */
     private const int T_INERT_CELSIUS = 50;
 

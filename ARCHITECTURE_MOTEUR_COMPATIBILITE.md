@@ -104,6 +104,57 @@ WHERE c.id NOT IN (:mortar_ids)
 
 ---
 
+## 2.bis Extensions multi-matricielles & physico-chimiques (Étape 3)
+
+Le pipeline a été étendu pour intégrer le contexte culinaire :
+
+### 2bis.1 Matrices ODT multiples (Étape 1+2)
+
+L'enum `OdtMatrix` (`AIR | WATER | OIL`) sélectionne la valeur ODT appropriée
+pour chaque composé. La shadow table `spice_active_compound` matérialise
+les OAV par triplet `(spice_id, compound_id, matrix)` — rebuild atomique
+en 3 passes INSERT dans une transaction InnoDB unique, suivie d'un RENAME TABLE.
+
+### 2bis.2 Partition de Nernst (Étape 3A+3B+3C)
+
+Pour un contexte culinaire `(fatRatio, waterRatio)`, la concentration efficace
+dans la phase ciblée suit l'équilibre Nernst :
+
+$$C_{water} = \frac{C_{total}}{K_{ow} \cdot \varphi_{oil} + \varphi_{water}}, \quad C_{oil} = K_{ow} \cdot C_{water}$$
+
+où $K_{ow} = 10^{\log P}$ est le coefficient de partage octanol/eau du composé
+(persisté dans `compound_physical`).
+
+### 2bis.3 Décroissance temporelle
+
+Pour une cuisson $(T_{°C}, t_{min})$, modèle de premier ordre simplifié :
+
+$$k(T) = K_{boiling} \cdot \frac{T - T_{inert}}{bp - T_{inert}} \quad \text{(saturé à 1 si } T \geq bp\text{)}, \quad C(t) = C_0 \cdot e^{-k(T) \cdot t}$$
+
+Avec $K_{boiling} = 0.1 / \text{min}$ et $T_{inert} = 50\,°C$ (calibration empirique).
+
+### 2bis.4 Cinétique aromatique (AromaKinetics)
+
+Classification HEAD/HEART/BASE dérivée du point d'ébullition :
+- HEAD : $bp < 150\,°C$ — notes volatiles, à ajouter en fin de cuisson
+- HEART : $150 \leq bp \leq 250\,°C$ — notes structurantes
+- BASE : $bp > 250\,°C$ — notes lourdes, résistent à la cuisson longue
+
+### 2bis.5 Limitations actuelles & assumptions
+
+- **Correction Nernst scalaire** : appliquée indépendamment par composé. Ne tient
+  pas compte des interactions cross-compounds (compétition, micelles, encapsulation).
+- **Modèle de décroissance empirique** : linéaire entre $T_{inert}$ et $bp$, saturé
+  au-delà. Approximation Arrhenius simplifiée. Constantes (`K_AT_BOILING`, `T_INERT`)
+  calibrées sur des observations qualitatives — à valider expérimentalement.
+- **Single-tenant** : la shadow table `spice_active_compound` est globale ; le
+  rebuild ne tient pas compte de multi-utilisateurs / multi-bibliothèques.
+- **Domaine de validité** : matrices aqueuses/huileuses, cuisson conventionnelle
+  à pression atmosphérique. Non applicable au four sec haute température (>200 °C
+  convection), à la lyophilisation, ou aux extraits supercritiques.
+
+---
+
 ## 3. Algorithme 2 — Le Score (Tanimoto pondéré OAV)
 
 ### 3.1 Principe
@@ -175,18 +226,34 @@ final class OavTanimotoScorer
 ### 4.1 Endpoint
 
 ```
-GET /api/match?spices=id_1,id_2,…,id_k&limit=20
+GET /api/match?spices=id_1,id_2,…,id_k
+              &limit=20
+              &matrix=air|water|oil                   (défaut: air)
+              &fat=0.0..1.0                           (défaut: 0)
+              &water=0.0..1.0                         (défaut: 1-fat)
+              &cooking_time=0..1440                   (minutes, défaut: 0)
+              &temperature=-50..500                   (°C, défaut: 20)
 
 Réponse 200 OK :
 {
   "mortar": [1, 2],
   "results": [
-    { "id": 14, "name": "Marjolaine", "score": 87, "shared_compounds": ["thymol", "carvacrol"] },
-    { "id": 22, "name": "Cumin",      "score": 76, "shared_compounds": ["limonene"] },
+    { "id": 14, "name": "Marjolaine", "score": 87 },
+    { "id": 22, "name": "Cumin",      "score": 76 },
     ...
-  ]
+  ],
+  "oav_mode": true,
+  "matrix": "air",
+  "fat_ratio": 0.0,
+  "water_ratio": 1.0,
+  "cooking_time_min": 0,
+  "temperature_celsius": 20,
+  "count": 2
 }
 ```
+
+Tous les paramètres culinaires sont validés explicitement (is_numeric + is_finite + bornes
+via `CulinaryContext::FAT_RATIO_MIN/MAX` etc.) — toute valeur invalide retourne 400.
 
 ### 4.2 Diagramme de séquence
 
@@ -219,24 +286,34 @@ Client            MatchController     MortarProfileBuilder    CandidateVetoRepos
   │◀────────────────────│                       │                        │                        │
 ```
 
-### 4.3 Détail des 6 étapes
+### 4.3 Détail des 7 étapes
 
 | # | Étape | Composant | Complexité | Budget latence |
 |---|---|---|---|---|
-| 1 | Validation des IDs ($k \in [1, 10]$) | `MatchController` + DTO + Validator | $\mathcal{O}(k)$ | < 1 ms |
-| 2 | Construction profil OAV agrégé $\Pi_M^*$ | `MortarProfileBuilder` + Symfony Cache | Cache hit : $\mathcal{O}(1)$ ; miss : $\mathcal{O}(k \cdot \|C^*\|)$ | 0–10 ms |
-| 3 | Veto SQL biparti | `CandidateVetoRepository::findSurvivors()` | $\mathcal{O}(N \cdot k \cdot \log N)$ | < 5 ms |
-| 4 | Hydratation OAV des survivants (1 SELECT IN) | `SpiceActiveCompoundRepository::loadOavProfilesBatch()` | $\mathcal{O}(N' \cdot \|C^*\|)$ | 5–15 ms |
-| 5 | Scoring Tanimoto OAV × N' | `OavTanimotoScorer::score()` | $\mathcal{O}(N' \cdot \|C^*\|)$ | < 20 ms |
-| 6 | Tri descendant + slicing `limit` | PHP natif `usort` | $\mathcal{O}(N' \log N')$ | < 1 ms |
+| 1 | Validation des IDs ($k \in [1, 10]$) + ctx culinaire | `MatchController` + `MortarIds` + `CulinaryContext` | $\mathcal{O}(k)$ | < 1 ms |
+| 2 | Construction profil OAV agrégé $\Pi_M^*$ par matrice | `MortarProfileBuilder` + Symfony Cache (cache par matrice) | Cache hit : $\mathcal{O}(1)$ ; miss : $\mathcal{O}(k \cdot \|C^*\|)$ | 0–10 ms |
+| 3 | Veto SQL biparti par matrice | `CandidateVetoRepository::findSurvivors($mortar, $matrix)` | $\mathcal{O}(N \cdot k \cdot \log N)$ | < 5 ms |
+| 4 | Hydratation OAV des survivants (1 SELECT IN filtré matrice) | `SpiceActiveCompoundRepository::loadOavProfilesBatch()` | $\mathcal{O}(N' \cdot \|C^*\|)$ | 5–15 ms |
+| **5** | **Correction physico-chimique (Nernst × decay)** — skip si ctx neutre | `OavPartitionCalculator` + `CompoundPhysicalRepository::loadByCompoundIds()` | $\mathcal{O}(\|C^*\|)$ batch + $\mathcal{O}(N' \cdot \|C^*\|)$ applique | 0–10 ms |
+| 6 | Scoring Tanimoto OAV × N' (sur profils corrigés) | `OavTanimotoScorer::score()` | $\mathcal{O}(N' \cdot \|C^*\|)$ | < 20 ms |
+| 7 | Tri descendant + slicing `limit` | PHP natif `usort` | $\mathcal{O}(N' \log N')$ | < 1 ms |
 
-**Latence cumulée cible** : **p50 < 50 ms, p99 < 100 ms** pour $N = 100$, $k \leq 5$.
+**Latence cumulée cible** : **p50 < 50 ms, p99 < 100 ms** pour $N = 100$, $k \leq 5$, ctx neutre.
+Avec ctx étendu (correction Nernst+decay activée) : ajouter ~5–10 ms (1 batch query CompoundPhysical + N applications scalaires).
 
 ### 4.4 Stratégie de cache
 
-- **Cache niveau 1** : profil OAV agrégé $\Pi_M^*$. Clé = hash trié des IDs du mortier. TTL 24h. Pool `match.mortar_profile.cache` (Redis prod, filesystem dev).
-- **Cache niveau 2** : réponse JSON complète indexée sur `(mortar_ids, limit)`. TTL 1h. À activer après stabilisation.
-- **Invalidation** : événement Doctrine `postUpdate` / `postPersist` / `postRemove` sur `Spices` ou `SpiceCompoundConcentration` ou `CompoundOdt` → purge.
+Trois pools cache distincts :
+
+| Pool | Clé | TTL | Invalidation |
+|---|---|---|---|
+| `match.mortar_profile.cache` | `match.mortar.{matrix}.{sorted_ids}` | air 24h / water+oil 1h / vide 5min (sentinel) | event-driven via `SpiceConcentrationChangedListener` sur `SpiceCompoundConcentration` ou `CompoundOdt` |
+| `match.insights.cache` | `match.insights.compare.{mortar_hash}.{ctx_hash}.l{limit}` <br> `match.insights.timeline.{compound_ids_hash}.{ctx_hash}` | 1h | TTL only (dépend indirectement de `match.mortar_profile.cache` via la pipeline) |
+| `spice.compatibility.cache` | top-pairs / top-triplets précalculés | 1h | TTL only |
+
+- **Cache niveau 1** : `MortarProfileBuilder` matérialise $\Pi_M^*$ par matrice + sentinel `[]` pour court-circuiter les "absence de données".
+- **Cache niveau 2** (Étape 3E-3) : `MatrixComparator` (3× pipeline en parallèle conceptuel) et `CookingTimelineBuilder` (classification cinétique + rétention). Clés via `CulinaryContext::signatureHash()` (source unique).
+- **Cache niveau 3** (future) : réponse JSON complète à activer si charge le justifie.
 
 ### 4.5 Asynchronisme
 

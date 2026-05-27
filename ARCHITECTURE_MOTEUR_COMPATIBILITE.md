@@ -155,7 +155,16 @@ Classification HEAD/HEART/BASE dérivée du point d'ébullition :
 
 ---
 
-## 3. Algorithme 2 — Le Score (Tanimoto pondéré OAV)
+## 3. Algorithme 2 — Le Score (Tanimoto pondéré OAV, log-compressé)
+
+> **Note compression perceptuelle** : les OAV bruts s'étalent sur ~6 ordres de
+> grandeur (1 → 10⁸). En Tanimoto linéaire, le composé le plus actif écrase
+> numériquement les autres → la majorité des candidats compatibles (passant le
+> veto) scorent 0 %. La perception olfactive étant logarithmique (Weber-Fechner /
+> Stevens), le poids utilisé est `w_i = OAV_i > 1 ? ln(OAV_i) : 0`. Le clamp à 0
+> sous OAV=1 reflète le seuil de détection (van Gemert) et gère les OAV < 1 issus
+> de la correction Nernst (Étape 3C). Le choix de la base est neutre (se simplifie
+> dans le ratio Σmin/Σmax).
 
 ### 3.1 Principe
 

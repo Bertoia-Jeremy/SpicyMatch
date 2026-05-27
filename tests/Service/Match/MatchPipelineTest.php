@@ -95,14 +95,14 @@ final class MatchPipelineTest extends TestCase
 
         self::assertCount(2, $results);
 
-        // Candidat 10 : min(90,100)+min(40,50) / max(90,100)+max(40,50) = 130/150 ≈ 0.866 → 86
+        // Candidat 10 (log) : (ln90+ln40)/(ln100+ln50) = 8.18869/8.51719 ≈ 0.9614 → 96
         self::assertSame(10, $results[0]['id']);
-        self::assertSame(86, $results[0]['score']);
+        self::assertSame(96, $results[0]['score']);
         self::assertTrue($results[0]['oav_mode']);
 
-        // Candidat 11 : min(10,100)+min(0,50) / max(10,100)+max(0,50) = 10/150 ≈ 0.066 → 6
+        // Candidat 11 (log) : ln10/(ln100+ln50) = 2.30259/8.51719 ≈ 0.2703 → 27
         self::assertSame(11, $results[1]['id']);
-        self::assertSame(6, $results[1]['score']);
+        self::assertSame(27, $results[1]['score']);
     }
 
     public function testOavModeResultsSortedDescending(): void

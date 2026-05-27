@@ -80,9 +80,10 @@ final class OavTanimotoScorerTest extends TestCase
             3 => 8.0,
         ];
 
-        // min(10,10) + min(5,0) + min(0,8) = 10
-        // max(10,10) + max(5,0) + max(0,8) = 10 + 5 + 8 = 23
-        $expected = 10.0 / 23.0;
+        // Poids log : w1=ln10=2.302585, w2=ln5=1.609438, w3=ln8=2.079442
+        // minSum = min(ln10,ln10) = 2.302585
+        // maxSum = ln10 + ln5 (candidat seul) + ln8 (mortier seul) = 5.991465
+        $expected = log(10) / (log(10) + log(5) + log(8));
 
         self::assertEqualsWithDelta($expected, $this->scorer->score($candidate, $mortar), 1e-9);
         // Symétrie : score(a, b) == score(b, a)
@@ -98,21 +99,20 @@ final class OavTanimotoScorerTest extends TestCase
             1 => 8.0,
         ];
 
-        // min(4,8) / max(4,8) = 4/8 = 0.5
-        self::assertEqualsWithDelta(0.5, $this->scorer->score($candidate, $mortar), 1e-9);
+        // Poids log : ln(4)/ln(8) = 2ln2/3ln2 = 2/3 ≈ 0.6667
+        self::assertEqualsWithDelta(log(4) / log(8), $this->scorer->score($candidate, $mortar), 1e-9);
     }
 
     public function testScoreAsIntFloor(): void
     {
-        // score = 0.876 → floor(100 * 0.876) = 87
         $candidate = [
             1 => 8.76,
         ];
         $mortar = [
             1 => 10.0,
         ];
-        // min=8.76, max=10.0 → 0.876
-        self::assertSame(87, $this->scorer->scoreAsInt($candidate, $mortar));
+        // Poids log : ln(8.76)/ln(10) = 2.170196/2.302585 ≈ 0.94250 → floor(94.25) = 94
+        self::assertSame(94, $this->scorer->scoreAsInt($candidate, $mortar));
     }
 
     // ── Monotonie ─────────────────────────────────────────────────────────────────
@@ -151,10 +151,9 @@ final class OavTanimotoScorerTest extends TestCase
 
     public function testScoreFromPipelineSpecCandidate10(): void
     {
-        // Référence : commentaire MatchPipelineTest::testOavModeUsesOavVetoAndScores
-        // min(90,100)+min(40,50) / max(90,100)+max(40,50) = 130/150 ≈ 0.8666 → floor = 86
-        // (round donnerait 87 — vérifie que floor est utilisé, pas round)
-        self::assertSame(86, $this->scorer->scoreAsInt([
+        // Poids log : (ln90+ln40)/(ln100+ln50) = (4.499810+3.688879)/(4.605170+3.912023)
+        //           = 8.188689/8.517193 ≈ 0.96143 → floor = 96
+        self::assertSame(96, $this->scorer->scoreAsInt([
             1 => 90.0,
             2 => 40.0,
         ], [
@@ -165,9 +164,10 @@ final class OavTanimotoScorerTest extends TestCase
 
     public function testScoreFromPipelineSpecCandidate11(): void
     {
-        // Référence : candidat avec un seul composé en commun
-        // min(10,100) + 0 / max(10,100) + max(0,50) = 10/150 ≈ 0.0666 → floor = 6
-        self::assertSame(6, $this->scorer->scoreAsInt([
+        // Candidat avec un seul composé en commun.
+        // Poids log : ln10 / (ln100 + ln50) = 2.302585/8.517193 ≈ 0.27035 → floor = 27
+        // (vs 6 en linéaire : la compression log redonne du poids aux composés mineurs)
+        self::assertSame(27, $this->scorer->scoreAsInt([
             1 => 10.0,
         ], [
             1 => 100.0,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\DataConfidence;
 use App\Enum\OdtMatrix;
 use App\Repository\CompoundOdtRepository;
 use Doctrine\ORM\Mapping as ORM;
@@ -47,6 +48,15 @@ class CompoundOdt
      */
     #[ORM\Column(name: 'reference_source', type: 'string', length: 255)]
     private string $referenceSource;
+
+    /**
+     * Niveau de confiance de la valeur (Levier 2). Défaut PLACEHOLDER : les données
+     * actuelles sont fictives ; passe à LITERATURE/MEASURED lors de l'import réel.
+     */
+    #[ORM\Column(name: 'confidence', type: 'string', length: 20, enumType: DataConfidence::class, options: [
+        'default' => 'placeholder',
+    ])]
+    private DataConfidence $confidence = DataConfidence::PLACEHOLDER;
 
     #[ORM\Column(name: 'imported_at', type: 'datetime_immutable')]
     private \DateTimeImmutable $importedAt;
@@ -101,5 +111,17 @@ class CompoundOdt
     public function getImportedAt(): \DateTimeImmutable
     {
         return $this->importedAt;
+    }
+
+    public function getConfidence(): DataConfidence
+    {
+        return $this->confidence;
+    }
+
+    public function setConfidence(DataConfidence $confidence): self
+    {
+        $this->confidence = $confidence;
+
+        return $this;
     }
 }

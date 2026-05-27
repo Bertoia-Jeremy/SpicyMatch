@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\DataConfidence;
 use App\Repository\SpiceCompoundConcentrationRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -48,6 +49,14 @@ class SpiceCompoundConcentration
      */
     #[ORM\Column(name: 'source', type: 'string', length: 255)]
     private string $source;
+
+    /**
+     * Niveau de confiance de la concentration (Levier 2). Défaut PLACEHOLDER.
+     */
+    #[ORM\Column(name: 'confidence', type: 'string', length: 20, enumType: DataConfidence::class, options: [
+        'default' => 'placeholder',
+    ])]
+    private DataConfidence $confidence = DataConfidence::PLACEHOLDER;
 
     #[ORM\Column(name: 'imported_at', type: 'datetime_immutable')]
     private \DateTimeImmutable $importedAt;
@@ -102,5 +111,17 @@ class SpiceCompoundConcentration
     public function getImportedAt(): \DateTimeImmutable
     {
         return $this->importedAt;
+    }
+
+    public function getConfidence(): DataConfidence
+    {
+        return $this->confidence;
+    }
+
+    public function setConfidence(DataConfidence $confidence): self
+    {
+        $this->confidence = $confidence;
+
+        return $this;
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Enum\AromaKinetics;
+use App\Enum\DataConfidence;
 use App\Repository\CompoundPhysicalRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -53,6 +54,20 @@ class CompoundPhysical
      */
     #[ORM\Column(name: 'vapor_pressure_pa', type: 'float', nullable: true)]
     private ?float $vaporPressurePa = null;
+
+    /**
+     * Source documentaire (ex: "PubChem CID 3314 / NIST WebBook"). Levier 2.
+     */
+    #[ORM\Column(name: 'source', type: 'string', length: 255, nullable: true)]
+    private ?string $source = null;
+
+    /**
+     * Niveau de confiance des propriétés (Levier 2). Défaut PLACEHOLDER.
+     */
+    #[ORM\Column(name: 'confidence', type: 'string', length: 20, enumType: DataConfidence::class, options: [
+        'default' => 'placeholder',
+    ])]
+    private DataConfidence $confidence = DataConfidence::PLACEHOLDER;
 
     #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
@@ -112,6 +127,32 @@ class CompoundPhysical
     public function setVaporPressurePa(?float $vaporPressurePa): self
     {
         $this->vaporPressurePa = $vaporPressurePa;
+        $this->updatedAt = new \DateTimeImmutable();
+
+        return $this;
+    }
+
+    public function getSource(): ?string
+    {
+        return $this->source;
+    }
+
+    public function setSource(?string $source): self
+    {
+        $this->source = $source;
+        $this->updatedAt = new \DateTimeImmutable();
+
+        return $this;
+    }
+
+    public function getConfidence(): DataConfidence
+    {
+        return $this->confidence;
+    }
+
+    public function setConfidence(DataConfidence $confidence): self
+    {
+        $this->confidence = $confidence;
         $this->updatedAt = new \DateTimeImmutable();
 
         return $this;

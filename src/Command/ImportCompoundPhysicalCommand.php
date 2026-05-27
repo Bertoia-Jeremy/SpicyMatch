@@ -118,6 +118,7 @@ final class ImportCompoundPhysicalCommand extends Command
             $logP = $this->parseFloat($entry['log_p'] ?? null);
             $boilingPoint = $this->parseInt($entry['boiling_point_celsius'] ?? null);
             $vaporPressure = $this->parseFloat($entry['vapor_pressure_pa'] ?? null);
+            $source = isset($entry['source']) ? (string) $entry['source'] : null;
 
             if ($logP === null && $boilingPoint === null && $vaporPressure === null) {
                 $io->warning(\sprintf('Aucune donnée exploitable pour "%s" — ignoré.', $compoundName));
@@ -133,6 +134,7 @@ final class ImportCompoundPhysicalCommand extends Command
                 $existing->setLogP($logP);
                 $existing->setBoilingPointCelsius($boilingPoint);
                 $existing->setVaporPressurePa($vaporPressure);
+                $existing->setSource($source);
                 $io->text(
                     \sprintf(
                         '  UPDATE %s : logP=%s, bp=%s, vp=%s',
@@ -148,6 +150,7 @@ final class ImportCompoundPhysicalCommand extends Command
                 $physical->setLogP($logP);
                 $physical->setBoilingPointCelsius($boilingPoint);
                 $physical->setVaporPressurePa($vaporPressure);
+                $physical->setSource($source);
                 $this->em->persist($physical);
                 $io->text(
                     \sprintf(

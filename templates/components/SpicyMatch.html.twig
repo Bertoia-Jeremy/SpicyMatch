@@ -146,7 +146,7 @@
                                 </div>
                                 <input id="fatRatio" type="range" min="0" max="1" step="0.05"
                                        value="{{ this.fatRatio }}"
-                                       data-model="fatRatio"
+                                       data-model="debounce(400)|fatRatio"
                                        class="w-full accent-saffron-600">
                             </div>
 
@@ -158,7 +158,7 @@
                                 </div>
                                 <input id="cookingTimeMin" type="range" min="0" max="120" step="5"
                                        value="{{ this.cookingTimeMin }}"
-                                       data-model="cookingTimeMin"
+                                       data-model="debounce(400)|cookingTimeMin"
                                        class="w-full accent-saffron-600">
                             </div>
 
@@ -170,7 +170,7 @@
                                 </div>
                                 <input id="temperatureCelsius" type="range" min="20" max="220" step="5"
                                        value="{{ this.temperatureCelsius }}"
-                                       data-model="temperatureCelsius"
+                                       data-model="debounce(400)|temperatureCelsius"
                                        class="w-full accent-saffron-600">
                             </div>
                         </div>
@@ -212,7 +212,7 @@
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs pointer-events-none"></i>
                     <input
                         type="text"
-                        data-model="search"
+                        data-model="debounce(300)|search"
                         data-tour="lab-search"
                         placeholder="Rechercher une épice…"
                         value="{{ this.search }}"

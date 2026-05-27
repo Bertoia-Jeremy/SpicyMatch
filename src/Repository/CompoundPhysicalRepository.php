@@ -32,8 +32,11 @@ class CompoundPhysicalRepository extends ServiceEntityRepository
             return [];
         }
 
+        // JOIN explicite plus rapide qu'IDENTITY() — utilise l'index FK aromatic_compound_id
+        // directement plutôt que de traverser la table compound_physical (PERF-3).
         $rows = $this->createQueryBuilder('cp')
-            ->where('IDENTITY(cp.compound) IN (:ids)')
+            ->join('cp.compound', 'c')
+            ->where('c.id IN (:ids)')
             ->setParameter('ids', $compoundIds)
             ->getQuery()
             ->getResult();

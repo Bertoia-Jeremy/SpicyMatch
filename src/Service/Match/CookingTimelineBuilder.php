@@ -8,19 +8,21 @@ use App\Entity\AromaticCompound;
 use App\Enum\AromaKinetics;
 use App\Repository\CompoundPhysicalRepository;
 use App\ValueObject\Match\CulinaryContext;
+use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * Classe les composés aromatiques d'un mortier selon leur cinétique d'évaporation
  * (HEAD / HEART / BASE) et calcule leur rétention sous le contexte culinaire donné.
  *
- * Permet d'afficher au chef la "fenêtre de cuisson" : quels arômes survivent à
- * la cuisson, quels arômes s'évaporent rapidement → ordre d'ajout recommandé.
+ * Cache "match.insights.cache" (TTL 1h) sur (compoundIds_hash, ctx_hash) pour éviter
+ * le batch fetch CompoundPhysical + N calculs Nernst+decay sur chaque consultation.
  */
 final readonly class CookingTimelineBuilder
 {
     public function __construct(
         private CompoundPhysicalRepository $compoundPhysicalRepository,
         private OavPartitionCalculator $partitionCalculator,
+        private CacheItemPoolInterface $cache,
     ) {
     }
 
@@ -28,9 +30,9 @@ final readonly class CookingTimelineBuilder
      * @param iterable<AromaticCompound> $compounds Composés du mortier (déjà chargés)
      *
      * @return array{
-     *   head: list<array{id: int, name: string, retention: ?float, kinetics: 'head'}>,
-     *   heart: list<array{id: int, name: string, retention: ?float, kinetics: 'heart'}>,
-     *   base: list<array{id: int, name: string, retention: ?float, kinetics: 'base'}>,
+     *   head: list<array{id: int, name: string, retention: ?float, kinetics: ?string}>,
+     *   heart: list<array{id: int, name: string, retention: ?float, kinetics: ?string}>,
+     *   base: list<array{id: int, name: string, retention: ?float, kinetics: ?string}>,
      *   unknown: list<array{id: int, name: string, retention: null, kinetics: null}>,
      * }
      */
@@ -47,6 +49,17 @@ final readonly class CookingTimelineBuilder
 
         if ($indexed === []) {
             return $this->emptyBuckets();
+        }
+
+        $cacheKey = $this->cacheKey(array_keys($indexed), $ctx);
+        $item = $this->cache->getItem($cacheKey);
+
+        if ($item->isHit()) {
+            $cached = $item->get();
+            if (is_array($cached)) {
+                /** @var array{head: list<array<string, mixed>>, heart: list<array<string, mixed>>, base: list<array<string, mixed>>, unknown: list<array<string, mixed>>} $cached */
+                return $cached;
+            }
         }
 
         $physicals = $this->compoundPhysicalRepository->loadByCompoundIds(array_keys($indexed));
@@ -75,13 +88,16 @@ final readonly class CookingTimelineBuilder
             $buckets[$key][] = $entry;
         }
 
-        // Tri intra-bucket : rétention décroissante (plus solide d'abord)
         foreach (['head', 'heart', 'base', 'unknown'] as $key) {
             usort(
                 $buckets[$key],
                 static fn (array $a, array $b) => ($b['retention'] ?? -1.0) <=> ($a['retention'] ?? -1.0),
             );
         }
+
+        $item->set($buckets)
+            ->expiresAfter(3600);
+        $this->cache->save($item);
 
         return $buckets;
     }
@@ -97,5 +113,27 @@ final readonly class CookingTimelineBuilder
             'base' => [],
             'unknown' => [],
         ];
+    }
+
+    /**
+     * @param int[] $compoundIds
+     */
+    private function cacheKey(array $compoundIds, CulinaryContext $ctx): string
+    {
+        sort($compoundIds);
+
+        $ctxSig = sprintf(
+            '%s|%.3f|%d|%d',
+            $ctx->matrix->value,
+            $ctx->fatRatio,
+            $ctx->cookingTimeMin,
+            $ctx->temperatureCelsius,
+        );
+
+        return sprintf(
+            'match.insights.timeline.%s.%s',
+            substr(hash('xxh3', implode(',', $compoundIds)), 0, 16),
+            substr(hash('xxh3', $ctxSig), 0, 16),
+        );
     }
 }

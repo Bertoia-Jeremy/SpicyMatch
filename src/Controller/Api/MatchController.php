@@ -127,15 +127,70 @@ final class MatchController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
+        // SEC-1 : validation explicite numérique + plage AVANT cast (sécurité).
+        // (float)"1e308" → INF en PHP — silencieux, échapperait au CulinaryContext.
+        // is_finite() ferme cette porte.
         $hasFat = $request->query->has('fat');
         $hasWater = $request->query->has('water');
-        $fatRatio = $hasFat ? (float) $request->query->get('fat') : 0.0;
-        $waterRatio = $hasWater
-            ? (float) $request->query->get('water')
-            : ($hasFat ? max(0.0, 1.0 - $fatRatio) : 1.0);
 
-        $cookingTime = $request->query->getInt('cooking_time', 0);
-        $temperature = $request->query->getInt('temperature', 20);
+        $fatRatio = 0.0;
+        if ($hasFat) {
+            $fatRaw = $request->query->get('fat', '');
+            if (! is_numeric($fatRaw) || ! is_finite((float) $fatRaw)) {
+                return $this->json([
+                    'error' => 'Paramètre "fat" invalide (numérique fini ∈ [0, 1] attendu).',
+                ], Response::HTTP_BAD_REQUEST);
+            }
+            $fatRatio = (float) $fatRaw;
+            if ($fatRatio < 0.0 || $fatRatio > 1.0) {
+                return $this->json([
+                    'error' => 'Paramètre "fat" hors plage (∈ [0, 1] attendu).',
+                ], Response::HTTP_BAD_REQUEST);
+            }
+        }
+
+        $waterRatio = 1.0 - $fatRatio;
+        if ($hasWater) {
+            $waterRaw = $request->query->get('water', '');
+            if (! is_numeric($waterRaw) || ! is_finite((float) $waterRaw)) {
+                return $this->json([
+                    'error' => 'Paramètre "water" invalide (numérique fini ∈ [0, 1] attendu).',
+                ], Response::HTTP_BAD_REQUEST);
+            }
+            $waterRatio = (float) $waterRaw;
+            if ($waterRatio < 0.0 || $waterRatio > 1.0) {
+                return $this->json([
+                    'error' => 'Paramètre "water" hors plage (∈ [0, 1] attendu).',
+                ], Response::HTTP_BAD_REQUEST);
+            }
+        }
+
+        // cooking_time + temperature : bornes raisonnables (24 h / -50..500 °C).
+        $cookingTimeRaw = $request->query->get('cooking_time', '0');
+        if (! is_numeric($cookingTimeRaw)) {
+            return $this->json([
+                'error' => 'Paramètre "cooking_time" invalide (entier ≥ 0 attendu).',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+        $cookingTime = (int) $cookingTimeRaw;
+        if ($cookingTime < 0 || $cookingTime > 1440) {
+            return $this->json([
+                'error' => 'Paramètre "cooking_time" hors plage (∈ [0, 1440] min attendu).',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $temperatureRaw = $request->query->get('temperature', '20');
+        if (! is_numeric($temperatureRaw)) {
+            return $this->json([
+                'error' => 'Paramètre "temperature" invalide (entier ∈ [-50, 500] attendu).',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+        $temperature = (int) $temperatureRaw;
+        if ($temperature < -50 || $temperature > 500) {
+            return $this->json([
+                'error' => 'Paramètre "temperature" hors plage (∈ [-50, 500] °C attendu).',
+            ], Response::HTTP_BAD_REQUEST);
+        }
 
         try {
             $culinaryContext = new CulinaryContext($matrix, $fatRatio, $waterRatio, $cookingTime, $temperature);

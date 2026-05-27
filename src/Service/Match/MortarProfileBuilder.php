@@ -32,6 +32,12 @@ class MortarProfileBuilder
 
     private const CACHE_TTL_SHORT = 3600; // 1h — water/oil encore en cours de collecte
 
+    /**
+     * TTL court pour le sentinel "OAV vide" : évite de retaper la DB à chaque hit
+     * tout en laissant l'import suivant être visible dans un délai raisonnable.
+     */
+    private const CACHE_TTL_EMPTY = 300; // 5 min
+
     public function __construct(
         private readonly SpiceActiveCompoundRepository $spiceActiveCompoundRepository,
         private readonly CacheItemPoolInterface $matchMortarProfileCache,
@@ -54,17 +60,24 @@ class MortarProfileBuilder
         $cacheItem = $this->matchMortarProfileCache->getItem($cacheKey);
 
         if ($cacheItem->isHit()) {
-            /** @var array<int, float> $cached */
+            /** @var array<int, float>|array{} $cached */
             $cached = $cacheItem->get();
 
-            return $cached;
+            // PERF-7 : sentinel "OAV vide" — tableau vide caché = pas de données pour
+            // cette matrice. Permet de court-circuiter loadOavProfilesBatch sur le path
+            // chaud sans bloquer 24h en cas d'import à venir (TTL court).
+            return $cached === [] ? null : $cached;
         }
 
         $profile = $this->computeProfile($mortar->toArray(), $matrix);
 
-        // Ne pas mettre en cache un profil vide : les données peuvent être peuplées
-        // juste après un import + recompute:oav sans passer par invalidateAll().
         if ($profile === []) {
+            // Cache court de l'état vide : le prochain build pour ce mortier+matrice
+            // n'ira pas en DB pendant 5 min, mais un rebuild OAV invalidera le pool entier.
+            $cacheItem->set([]);
+            $cacheItem->expiresAfter(self::CACHE_TTL_EMPTY);
+            $this->matchMortarProfileCache->save($cacheItem);
+
             return null;
         }
 

@@ -80,12 +80,15 @@ class MatchPipeline
         // Étape 5 — Correction physico-chimique (Étape 3C)
         // Skipped si le contexte est neutre (fatRatio=0 ET cookingTimeMin=0) →
         // factor=1 partout → shadow OAV déjà correcte → économie de requête + CPU.
+        // PERF : application in-place (par référence) — évite la recopie de chaque
+        //        profil (3000 floats × N candidats potentiellement).
         if ($this->partitionCalculator->needsCorrection($ctx)) {
             $factors = $this->buildCorrectionFactors(array_keys($mortarProfile), $profiles, $ctx);
-            $mortarProfile = $this->applyFactors($mortarProfile, $factors);
-            foreach ($profiles as $spiceId => $profile) {
-                $profiles[$spiceId] = $this->applyFactors($profile, $factors);
+            $this->applyFactorsInPlace($mortarProfile, $factors);
+            foreach ($profiles as $spiceId => &$profile) {
+                $this->applyFactorsInPlace($profile, $factors);
             }
+            unset($profile);
         }
 
         // Étape 6 — Scoring Tanimoto
@@ -142,19 +145,19 @@ class MatchPipeline
     }
 
     /**
+     * Applique les facteurs correctifs in-place — passe le tableau par référence
+     * pour éviter la recopie complète à chaque appel (PERF-2).
+     *
      * @param array<int, float> $profile
      * @param array<int, float> $factors
-     *
-     * @return array<int, float>
      */
-    private function applyFactors(array $profile, array $factors): array
+    private function applyFactorsInPlace(array &$profile, array $factors): void
     {
-        $corrected = [];
         foreach ($profile as $compoundId => $oav) {
             $factor = $factors[$compoundId] ?? 1.0;
-            $corrected[$compoundId] = $oav * $factor;
+            if ($factor !== 1.0) {
+                $profile[$compoundId] = $oav * $factor;
+            }
         }
-
-        return $corrected;
     }
 }

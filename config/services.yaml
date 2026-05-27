@@ -92,6 +92,15 @@ services:
         arguments:
             $cache: '@spice.compatibility.cache'
 
+    # Cache des insights physico-chimiques affichés sur la page recette (Étape 3E-3)
+    App\Service\Match\MatrixComparator:
+        arguments:
+            $cache: '@match.insights.cache'
+
+    App\Service\Match\CookingTimelineBuilder:
+        arguments:
+            $cache: '@match.insights.cache'
+
     # Export CSV — nécessite le répertoire racine du projet
     App\Command\ExportSpicesCsvCommand:
         arguments:

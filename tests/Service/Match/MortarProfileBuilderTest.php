@@ -111,7 +111,7 @@ final class MortarProfileBuilderTest extends TestCase
     public function testBuildEmptyOavDataReturnsNull(): void
     {
         // Pas de données OAV → build() retourne null (signale au pipeline : mode dégradé).
-        // Un tableau vide [] ne serait pas mis en cache (on ne veut pas verrouiller 24h "pas de données").
+        // L'état "vide" est désormais caché avec un TTL court (5 min) pour PERF-7.
         $repo = $this->createStub(SpiceActiveCompoundRepository::class);
         $repo->method('loadOavProfilesBatch')
             ->willReturn([]);
@@ -120,6 +120,20 @@ final class MortarProfileBuilderTest extends TestCase
         $profile = $builder->build(new MortarIds([1, 2]));
 
         self::assertNull($profile);
+    }
+
+    public function testEmptyOavStateIsCachedAndShortCircuitsSubsequentBuilds(): void
+    {
+        // PERF-7 : le 2e build ne doit PAS retoucher la DB si le sentinel vide est en cache.
+        $repo = $this->createMock(SpiceActiveCompoundRepository::class);
+        $repo->expects(self::once())
+            ->method('loadOavProfilesBatch')
+            ->willReturn([]);
+
+        $builder = new MortarProfileBuilder($repo, new \Symfony\Component\Cache\Adapter\ArrayAdapter());
+
+        self::assertNull($builder->build(new MortarIds([1])));
+        self::assertNull($builder->build(new MortarIds([1])));
     }
 
     // ── Comportement du cache ──────────────────────────────────────────────────────

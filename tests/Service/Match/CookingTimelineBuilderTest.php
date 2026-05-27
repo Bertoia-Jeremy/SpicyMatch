@@ -13,6 +13,7 @@ use App\Service\Match\OavPartitionCalculator;
 use App\ValueObject\Match\CulinaryContext;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 #[AllowMockObjectsWithoutExpectations]
 final class CookingTimelineBuilderTest extends TestCase
@@ -22,6 +23,7 @@ final class CookingTimelineBuilderTest extends TestCase
         return new CookingTimelineBuilder(
             $repo ?? $this->createStub(CompoundPhysicalRepository::class),
             new OavPartitionCalculator(),
+            new ArrayAdapter(),
         );
     }
 
@@ -197,6 +199,43 @@ final class CookingTimelineBuilderTest extends TestCase
         // Rétention décroissante : C > B > A (bp plus haut = moins de perte)
         $names = array_column($buckets['head'], 'name');
         self::assertSame(['C_bp148', 'B_bp140', 'A_bp100'], $names);
+    }
+
+    // ── Cache (PERF-5) ─────────────────────────────────────────────────────────
+
+    public function testBuildCachesResultsAcrossCalls(): void
+    {
+        $c = $this->makeCompound(1, 'X');
+        $repo = $this->createMock(CompoundPhysicalRepository::class);
+        $repo->expects(self::once()) // 1 seul fetch malgré 2 appels build()
+            ->method('loadByCompoundIds')
+            ->willReturn([
+                1 => $this->makePhysical($c, logP: 0.0, bp: 100),
+            ]);
+
+        $builder = $this->makeBuilder($repo);
+        $ctx = new CulinaryContext();
+
+        $first = $builder->build([$c], $ctx);
+        $second = $builder->build([$c], $ctx);
+
+        self::assertSame($first, $second);
+    }
+
+    public function testBuildCacheKeyDiffersBetweenContexts(): void
+    {
+        $c = $this->makeCompound(1, 'X');
+        $repo = $this->createMock(CompoundPhysicalRepository::class);
+        $repo->expects(self::exactly(2)) // 2 fetches : ctx différent
+            ->method('loadByCompoundIds')
+            ->willReturn([
+                1 => $this->makePhysical($c, logP: 0.0, bp: 100),
+            ]);
+
+        $builder = $this->makeBuilder($repo);
+
+        $builder->build([$c], new CulinaryContext());
+        $builder->build([$c], new CulinaryContext(cookingTimeMin: 10, temperatureCelsius: 100));
     }
 
     public function testCompoundsWithoutIdAreSilentlyIgnored(): void

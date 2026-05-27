@@ -8,6 +8,7 @@ use App\Enum\OdtMatrix;
 use App\Repository\SpicesRepository;
 use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
+use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * Compare le classement d'un mortier dans les 3 matrices ODT (air/water/oil)
@@ -16,15 +17,18 @@ use App\ValueObject\Match\MortarIds;
  * Usage : afficher au chef qu'un mortier "moyen en bouillon" peut être "excellent
  * à sec" — éducation au caractère contextuel des arômes.
  *
- * Performance : 3 appels à MatchPipeline::run() ; la shadow table est filtrée
- * par matrice et le cache MortarProfileBuilder est par matrice → un mortier
- * récemment visité bénéficie du cache (1h–24h selon matrice).
+ * Performance :
+ *  - Cache "match.insights.cache" (TTL 1h) sur (mortarIds, ctx_hash) pour éviter
+ *    les 3× MatchPipeline à chaque consultation de la page recette.
+ *  - Sous le capot, MortarProfileBuilder reste mono-matrice par cache (24h/1h),
+ *    le hit ici évite l'overhead de Tanimoto + enrichissement noms.
  */
 final readonly class MatrixComparator
 {
     public function __construct(
         private MatchPipeline $matchPipeline,
         private SpicesRepository $spicesRepository,
+        private CacheItemPoolInterface $cache,
     ) {
     }
 
@@ -35,8 +39,18 @@ final readonly class MatrixComparator
      */
     public function compare(MortarIds $mortar, CulinaryContext $baseCtx, int $limit = 5): array
     {
-        $rankings = [];
+        $cacheKey = $this->cacheKey('compare', $mortar, $baseCtx, $limit);
+        $item = $this->cache->getItem($cacheKey);
 
+        if ($item->isHit()) {
+            $cached = $item->get();
+            if (is_array($cached)) {
+                /** @var array<string, list<array{id: int, name: string, score: int}>> $cached */
+                return $cached;
+            }
+        }
+
+        $rankings = [];
         foreach (OdtMatrix::cases() as $matrix) {
             $ctx = new CulinaryContext(
                 $matrix,
@@ -48,6 +62,10 @@ final readonly class MatrixComparator
 
             $rankings[$matrix->value] = $this->rankFor($mortar, $ctx, $limit);
         }
+
+        $item->set($rankings)
+            ->expiresAfter(3600);
+        $this->cache->save($item);
 
         return $rankings;
     }
@@ -84,7 +102,6 @@ final readonly class MatrixComparator
 
         $grid = array_values($byId);
 
-        // Tri : score max (toutes matrices confondues) décroissant
         usort($grid, static fn (array $a, array $b) => max($b['scores']) <=> max($a['scores']));
 
         return $grid;
@@ -113,5 +130,29 @@ final readonly class MatrixComparator
         }
 
         return $list;
+    }
+
+    /**
+     * Clé déterministe pour le cache. Ne contient PAS la matrice (la fonction couvre
+     * les 3) mais inclut les autres champs du contexte qui influencent le scoring.
+     */
+    private function cacheKey(string $kind, MortarIds $mortar, CulinaryContext $baseCtx, int $limit): string
+    {
+        // Hash compact (PSR-6 limite la longueur des clés à 64 chars + caractères restreints).
+        $ctxSig = sprintf(
+            '%s|%.3f|%d|%d',
+            $baseCtx->matrix->value,
+            $baseCtx->fatRatio,
+            $baseCtx->cookingTimeMin,
+            $baseCtx->temperatureCelsius,
+        );
+
+        return sprintf(
+            'match.insights.%s.%s.%s.l%d',
+            $kind,
+            substr(hash('xxh3', implode(',', $mortar->sorted())), 0, 16),
+            substr(hash('xxh3', $ctxSig), 0, 16),
+            $limit,
+        );
     }
 }

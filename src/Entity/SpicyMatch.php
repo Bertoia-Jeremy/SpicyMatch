@@ -75,6 +75,16 @@ class SpicyMatch
     ])]
     private float $fatRatio = 0.0;
 
+    /**
+     * waterRatio persisté explicitement (et non dérivé) pour garantir l'invariant
+     * fat + water ≈ 1 à long terme, indépendamment d'une éventuelle migration ou
+     * d'un patch qui casserait la dérivation.
+     */
+    #[ORM\Column(name: 'water_ratio', type: 'float', options: [
+        'default' => 1.0,
+    ])]
+    private float $waterRatio = 1.0;
+
     #[ORM\Column(name: 'cooking_time_min', type: 'integer', options: [
         'default' => 0,
     ])]
@@ -250,14 +260,22 @@ class SpicyMatch
     public function setFatRatio(float $fatRatio): static
     {
         $this->fatRatio = $fatRatio;
+        // Maintient l'invariant fat + water ≈ 1 même si setFatRatio est appelé seul.
+        $this->waterRatio = max(0.0, min(1.0, 1.0 - $fatRatio));
 
         return $this;
     }
 
     public function getWaterRatio(): float
     {
-        // Dérivée de fatRatio : invariant fatRatio + waterRatio = 1.
-        return max(0.0, min(1.0, 1.0 - $this->fatRatio));
+        return $this->waterRatio;
+    }
+
+    public function setWaterRatio(float $waterRatio): static
+    {
+        $this->waterRatio = $waterRatio;
+
+        return $this;
     }
 
     public function getCookingTimeMin(): int
@@ -305,6 +323,7 @@ class SpicyMatch
     {
         $this->matrix = $context->matrix;
         $this->fatRatio = $context->fatRatio;
+        $this->waterRatio = $context->waterRatio;
         $this->cookingTimeMin = $context->cookingTimeMin;
         $this->temperatureCelsius = $context->temperatureCelsius;
 

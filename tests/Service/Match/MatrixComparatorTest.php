@@ -12,6 +12,7 @@ use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 #[AllowMockObjectsWithoutExpectations]
 final class MatrixComparatorTest extends TestCase
@@ -20,9 +21,11 @@ final class MatrixComparatorTest extends TestCase
         ?MatchPipeline $pipeline = null,
         ?SpicesRepository $spices = null,
     ): MatrixComparator {
+        // ArrayAdapter = cache en mémoire isolé par test (pas de pollution inter-tests).
         return new MatrixComparator(
             $pipeline ?? $this->createStub(MatchPipeline::class),
             $spices ?? $this->createStub(SpicesRepository::class),
+            new ArrayAdapter(),
         );
     }
 
@@ -191,5 +194,69 @@ final class MatrixComparatorTest extends TestCase
             ]);
 
         self::assertSame([], $grid);
+    }
+
+    // ── Cache (PERF-4) ─────────────────────────────────────────────────────────
+
+    public function testCompareCachesResultsAcrossCalls(): void
+    {
+        // Le pipeline doit être appelé 3× la 1re fois, 0× la 2e (hit cache)
+        $pipeline = $this->createMock(MatchPipeline::class);
+        $pipeline->expects(self::exactly(3))
+            ->method('run')
+            ->willReturn([]);
+
+        $comparator = $this->makeComparator($pipeline);
+        $mortar = new MortarIds([1, 2]);
+        $ctx = new CulinaryContext();
+
+        $first = $comparator->compare($mortar, $ctx);
+        $second = $comparator->compare($mortar, $ctx);
+
+        self::assertSame($first, $second, 'Le résultat caché doit être identique au calcul');
+    }
+
+    public function testCompareCacheKeyDiffersBetweenContexts(): void
+    {
+        // Mortier identique mais ctx différents → 2× 3 appels (pas de hit croisé)
+        $pipeline = $this->createMock(MatchPipeline::class);
+        $pipeline->expects(self::exactly(6))
+            ->method('run')
+            ->willReturn([]);
+
+        $comparator = $this->makeComparator($pipeline);
+        $mortar = new MortarIds([1]);
+
+        $comparator->compare($mortar, new CulinaryContext());
+        $comparator->compare($mortar, new CulinaryContext(fatRatio: 0.5, waterRatio: 0.5));
+    }
+
+    public function testCompareCacheKeyDiffersBetweenMortars(): void
+    {
+        $pipeline = $this->createMock(MatchPipeline::class);
+        $pipeline->expects(self::exactly(6))
+            ->method('run')
+            ->willReturn([]);
+
+        $comparator = $this->makeComparator($pipeline);
+        $ctx = new CulinaryContext();
+
+        $comparator->compare(new MortarIds([1, 2]), $ctx);
+        $comparator->compare(new MortarIds([3, 4]), $ctx);
+    }
+
+    public function testCompareCacheKeyIsOrderIndependentForMortar(): void
+    {
+        // [1, 2] et [2, 1] doivent partager le même cache (sorted())
+        $pipeline = $this->createMock(MatchPipeline::class);
+        $pipeline->expects(self::exactly(3))
+            ->method('run')
+            ->willReturn([]);
+
+        $comparator = $this->makeComparator($pipeline);
+        $ctx = new CulinaryContext();
+
+        $comparator->compare(new MortarIds([1, 2]), $ctx);
+        $comparator->compare(new MortarIds([2, 1]), $ctx);
     }
 }

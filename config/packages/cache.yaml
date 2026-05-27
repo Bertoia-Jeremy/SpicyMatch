@@ -33,3 +33,13 @@ framework:
             spice.compatibility.cache:
                 adapter: cache.adapter.filesystem
                 default_lifetime: 3600
+
+            # Cache des insights physico-chimiques sur la page recette (Étape 3E-3) :
+            #   - MatrixComparator : 3× MatchPipeline (rankings par matrice)
+            #   - CookingTimelineBuilder : classification cinétique + rétention
+            # Clé = "match.insights.{type}.{mortarIds_hash}.{ctx_hash}". TTL 1h.
+            # Invalidé via TTL (pas event-driven — un rebuild OAV invalide indirectement
+            # via le cache niveau mortar_profile sur lequel s'appuie le pipeline).
+            match.insights.cache:
+                adapter: cache.adapter.filesystem
+                default_lifetime: 3600

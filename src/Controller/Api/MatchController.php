@@ -7,6 +7,7 @@ namespace App\Controller\Api;
 use App\Enum\OdtMatrix;
 use App\Exception\Match\InvalidMortarException;
 use App\Repository\SpicesRepository;
+use App\Service\Match\MatchConfidenceAssessor;
 use App\Service\Match\MatchPipeline;
 use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
@@ -54,6 +55,7 @@ final class MatchController extends AbstractController
     public function __construct(
         private readonly MatchPipeline $matchPipeline,
         private readonly SpicesRepository $spicesRepository,
+        private readonly MatchConfidenceAssessor $confidenceAssessor,
         #[Autowire(service: 'limiter.match_api')]
         private readonly RateLimiterFactory $matchApiLimiter,
     ) {
@@ -242,6 +244,9 @@ final class MatchController extends AbstractController
 
         $oavMode = $pipelineResults !== [] && $pipelineResults[0]['oav_mode'];
 
+        // Levier 4 — confiance des données alimentant ce calcul (maillon le plus faible).
+        $confidence = $this->confidenceAssessor->assess($mortar, $culinaryContext->matrix);
+
         return $this->json([
             'mortar' => $mortar->toArray(),
             'results' => $results,
@@ -251,6 +256,8 @@ final class MatchController extends AbstractController
             'water_ratio' => $culinaryContext->waterRatio,
             'cooking_time_min' => $culinaryContext->cookingTimeMin,
             'temperature_celsius' => $culinaryContext->temperatureCelsius,
+            'confidence' => $confidence->value,
+            'confidence_tier' => $confidence->tier(),
             'count' => count($results),
         ]);
     }

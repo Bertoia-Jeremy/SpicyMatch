@@ -395,6 +395,26 @@
                     </button>
                 </div>
 
+                {# Badge qualité des données (Levier 4) — honnêteté sur la fiabilité du score.
+                   Affiché dès qu'une sélection existe ; alerte visuelle si non production-grade. #}
+                {% set dataConfidence = this.dataConfidence %}
+                {% if dataConfidence is not null %}
+                    {% set isProd = dataConfidence.isProductionGrade %}
+                    <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] border
+                                {{ isProd ? 'bg-emerald-50 border-emerald-200' : 'bg-stone-100 border-stone-300' }}">
+                        <i class="fa-solid {{ isProd ? 'fa-circle-check text-emerald-600' : 'fa-flask-vial text-stone-500' }} shrink-0"
+                           aria-hidden="true"></i>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold {{ isProd ? 'text-emerald-800' : 'text-stone-700' }}">
+                                Données : {{ dataConfidence.label }} <span class="font-mono opacity-70">[{{ dataConfidence.tier }}]</span>
+                            </p>
+                            {% if not isProd %}
+                                <p class="text-stone-500">Scores indicatifs — données en cours de validation.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+
                 {# Tip footer #}
                 {% if selectedCount > 0 %}
                     <p class="text-[11px] text-stone-400 leading-relaxed flex gap-1.5 pt-1">

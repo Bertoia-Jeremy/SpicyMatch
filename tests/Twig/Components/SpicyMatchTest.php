@@ -9,6 +9,7 @@ use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
 use App\Service\Match\CompatibleSpiceFinder;
+use App\Service\Match\MatchConfidenceAssessor;
 use App\Service\SpicyMatchService;
 use App\Twig\Components\SpicyMatch;
 use App\ValueObject\Match\CulinaryContext;
@@ -25,6 +26,7 @@ class SpicyMatchTest extends TestCase
     private AromaticGroupsRepository&MockObject $aromaticGroupsRepo;
     private SpicyTypeRepository&MockObject $spicyTypeRepo;
     private SpicyMatchService&MockObject $spicyMatchService;
+    private MatchConfidenceAssessor&MockObject $confidenceAssessor;
 
     /**
      * @var list<array<string, mixed>>
@@ -38,6 +40,7 @@ class SpicyMatchTest extends TestCase
         $this->aromaticGroupsRepo = $this->createMock(AromaticGroupsRepository::class);
         $this->spicyTypeRepo = $this->createMock(SpicyTypeRepository::class);
         $this->spicyMatchService = $this->createMock(SpicyMatchService::class);
+        $this->confidenceAssessor = $this->createMock(MatchConfidenceAssessor::class);
 
         $this->allSpices = [
             [
@@ -94,6 +97,7 @@ class SpicyMatchTest extends TestCase
             $this->aromaticGroupsRepo,
             $this->spicyTypeRepo,
             $this->spicyMatchService,
+            $this->confidenceAssessor,
         );
     }
 
@@ -102,6 +106,33 @@ class SpicyMatchTest extends TestCase
         $component = $this->makeComponent();
 
         self::assertSame('auto', $component->mode);
+    }
+
+    // ── Levier 4 : confiance des données ─────────────────────────────────────
+
+    public function testDataConfidenceNullWhenNoSelection(): void
+    {
+        $this->confidenceAssessor->expects(self::never())
+            ->method('assess');
+
+        $component = $this->makeComponent();
+
+        self::assertNull($component->getDataConfidence());
+    }
+
+    public function testDataConfidenceAssessedWhenSelectionExists(): void
+    {
+        $this->confidenceAssessor->expects(self::once())
+            ->method('assess')
+            ->willReturn(\App\Enum\DataConfidence::PLACEHOLDER);
+
+        $component = $this->makeComponent();
+        $component->spices = [
+            'selectedSpices' => ['1', '2'],
+            'compatibleSpices' => $this->allSpices,
+        ];
+
+        self::assertSame(\App\Enum\DataConfidence::PLACEHOLDER, $component->getDataConfidence());
     }
 
     public function testGetResultsWithNoSelectionReturnsAllSpices(): void

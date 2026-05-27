@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Twig\Components;
 
+use App\Enum\DataConfidence;
 use App\Enum\OdtMatrix;
 use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
 use App\Service\Match\CompatibleSpiceFinder;
+use App\Service\Match\MatchConfidenceAssessor;
 use App\Service\SpicyMatchService;
 use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
@@ -90,6 +92,7 @@ class SpicyMatch extends AbstractController
         private readonly AromaticGroupsRepository $aromaticGroupsRepository,
         private readonly SpicyTypeRepository $spicyTypeRepository,
         private readonly SpicyMatchService $spicyMatchService,
+        private readonly MatchConfidenceAssessor $confidenceAssessor,
     ) {
         $this->spices = [
             'selectedSpices' => [],
@@ -208,6 +211,25 @@ class SpicyMatch extends AbstractController
             // Garde-fou — ne devrait pas se produire après clamp ci-dessus.
             return new CulinaryContext();
         }
+    }
+
+    /**
+     * Confiance des données alimentant le scoring courant (Levier 4).
+     * Null tant qu'aucune épice n'est sélectionnée (rien à évaluer).
+     */
+    public function getDataConfidence(): ?DataConfidence
+    {
+        $selected = $this->spices['selectedSpices'];
+        if ($selected === []) {
+            return null;
+        }
+
+        $ids = array_values(array_filter(array_map('intval', $selected), static fn (int $id) => $id > 0));
+        if ($ids === []) {
+            return null;
+        }
+
+        return $this->confidenceAssessor->assess(new MortarIds($ids), $this->buildCulinaryContext()->matrix);
     }
 
     /**

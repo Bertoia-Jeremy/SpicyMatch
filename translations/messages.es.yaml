@@ -1,0 +1,886 @@
+# Catálogo ES.
+common:
+    actions:
+        submit: Enviar
+        save: Guardar
+        cancel: Cancelar
+
+form:
+    contact:
+        email: Correo
+        name: Nombre
+        subject: Asunto
+        message: Mensaje
+    register:
+        username: Usuario
+        mail: 'Correo (opcional, pero útil para recuperar tu contraseña)'
+        password: Contraseña
+    mail:
+        placeholder: Introduce un correo
+
+flash:
+    csrf_invalid: Token CSRF no válido.
+    token_invalid: Token no válido.
+    email_invalid: Dirección de correo no válida.
+    newsletter_confirmed: ¡Suscripción al boletín confirmada!
+    account_created: ¡Tu cuenta se ha creado correctamente!
+    welcome_back: '¡Bienvenido de nuevo, %username%!'
+    welcome: '¡Bienvenido, %username%!'
+    difficulty_invalid: Dificultad no válida.
+    difficulty_updated: Dificultad actualizada.
+    posture_updated: Postura actualizada.
+    preference_saved: Preferencia guardada.
+    daily_limit_reached: 'Límite diario alcanzado (5 sesiones de %mode% por día).'
+
+ui:
+    meta:
+        description: SpicyMatch — Crea mezclas de especias perfectas mediante el análisis molecular de los compuestos aromáticos.
+        default_title: SpicyMatch — La Alquimia Culinaria
+    common:
+        recipe_label: Receta
+        recipe_of: 'Receta del %date%'
+        blend_of: 'Mezcla del %date%'
+        member_since: 'Miembro desde el %date%'
+        unlocked_on: 'Desbloqueado el %date%'
+        skip_to_content: Saltar al contenido principal
+        home: Inicio
+        academy: La Academia
+        configuration: Configuración
+        logout: Cerrar sesión
+        login: Iniciar sesión
+        register: Registrarse
+        my_profile: Mi Perfil de Chef
+        my_blends: Mis Mezclas
+        contact: Contacto
+        back_home: Volver al inicio
+    navbar:
+        menu: El Menú
+        create_blend: Crear una mezcla
+        lab_title: El Lab — Crear una mezcla
+        section_exploration: I · Exploración
+        exploration_subtitle: Descubre las especias del mundo
+        catalog_title: El Catálogo
+        catalog_sub: Todas las especias
+        alchemy_title: La Alquimia de los Sabores
+        alchemy_sub: Componer una mezcla
+        section_learning: II · Aprendizaje
+        learning_subtitle: Afina tu paladar
+        academy_sub: 6 modos de juego
+        scoville_title: Desafío Scoville
+        scoville_sub: Modo supervivencia
+        intrus_title: Fuera de Temporada
+        intrus_sub: Encontrar el intruso
+        section_atelier: III · Taller
+        atelier_subtitle: Tu espacio de chef
+        profile_sub: Logros y progreso
+        blends_sub: Historial y favoritos
+        config_sub: Ajustes de la cuenta
+        join_subtitle: Únete a la brigada
+        create_account: Crear una cuenta
+        help: Ayuda
+        main_nav: Navegación principal
+        main_menu: Menú principal
+    home:
+        title: SpicyMatch — La Odisea de los Aromas
+    toile:
+        chapter: Capítulo II · La Red de los Aromas
+        title_html: 'El sistema solar <em class="not-italic italic" style="color: var(--color-turmeric-700)">aromático.</em>'
+        blurb: Cada especia es un sol. A su alrededor orbitan sus compuestos. Haz clic en una molécula para descubrir todas las especias que comparten esta firma invisible.
+        hud_active: Sistema activo · CARDAMOMO
+        hud_stats: 6 compuestos · 14 enlaces identificados
+        sun_sub: Elettaria · IN
+        side_title_html: 'Una molécula, <em class="not-italic italic" style="color: var(--color-paprika-800)">mil especias.</em>'
+        side_blurb: El Linalol no es solo un nombre. Es el hilo invisible que une la lavanda con el cilantro, la albahaca con el cardamomo. Tira del hilo — aparece toda una familia.
+        also_in: También en
+        legend_terpenic: Terpénico
+        legend_piperaceae: Piperáceas
+        legend_phenolic: Fenólico
+        legend_woody: Amaderado
+        mol_aria_suffix: haz clic para ver los detalles
+        m1_name: Linalol
+        m1_badge: Terpeno · Floral
+        m1_descr: Una nota floral fresca con matices cítricos. Presente en más de 200 plantas aromáticas — es la firma perfumada de la lavanda, pero también el secreto de muchas otras.
+        m2_name: Piperina
+        m2_badge: Alcaloide · Picante
+        m2_descr: El compuesto que da a la pimienta negra su mordiente característico. Activa los receptores TRPV1 — los mismos que la capsaicina, pero con una suavidad amaderada.
+        m3_name: α-Terpineol
+        m3_badge: Terpeno · Floral-Pino
+        m3_descr: Un aroma a la vez floral y resinoso, como lila frotada contra un pino. Apreciado tanto en perfumería como en la cocina mediterránea.
+        m4_name: Eugenol
+        m4_badge: Fenol · Amaderado-Clavo
+        m4_descr: El corazón del clavo de olor. Anestésico suave, aroma denso — una firma imposible de olvidar que se aloja en la memoria olfativa.
+        m5_name: 1,8-Cineol
+        m5_badge: Óxido · Fresco-Alcanfor
+        m5_descr: Esa frescura que a veces se llama eucaliptada. Abre las vías respiratorias y la paleta aromática de un plato con la misma franqueza.
+        m6_name: Geraniol
+        m6_badge: Terpeno · Rosa-Cítrico
+        m6_descr: El alma perfumada del geranio y de la rosa. En la cocina, un hilo tenue entre la piel de cítrico y el pétalo — a manejar con reverencia.
+    search:
+        placeholder: Buscar...
+        clear: Borrar la búsqueda
+        spice: Especia
+        compound: Compuesto
+        see_all_results: Ver todos los resultados
+        no_result_for: 'Ningún resultado para «%query%»'
+        full_search_page: Página de búsqueda completa
+        page_title: Búsqueda
+        title: Búsqueda
+        full_placeholder: Especia, compuesto aromático...
+        submit: Buscar
+        results_count: '%count% resultado(s) para'
+        spices: Especias
+        compounds: Compuestos aromáticos
+        no_result: Ningún resultado
+        no_result_text: 'Ninguna especia ni compuesto aromático coincide con «%query%».'
+        try_another: Prueba con otro término o revisa la ortografía.
+        prompt: Escribe un término para explorar especias y compuestos aromáticos.
+    pagination:
+        previous: Anterior
+        next: Siguiente
+        per_page_label: Especias por página
+        per_page: '%count% por página'
+    newsletter:
+        unsub_title: Baja — SpicyMatch
+        unsub_confirmed: Baja confirmada
+        unsub_text_html: 'La dirección <strong class="text-stone-800">%email%</strong> se ha eliminado de nuestra lista de correo. Ya no recibirás nuestros boletines.'
+        unsub_changed_mind: ¿Has cambiado de opinión? Puedes volver a suscribirte en cualquier momento desde tu perfil.
+    game:
+        quit: Salir de la partida
+        back: Volver
+        see_results: Ver resultados
+        finish: Terminar
+        next_question: Siguiente pregunta
+        correct_answer: ¡Respuesta correcta!
+        wrong_answer: Respuesta incorrecta
+        intrus_tag: Intruso ✓
+        intrus_tag_plain: Intruso
+        your_choice: Tu elección
+        chrono_subtitle: Identifica las especias lo más rápido posible
+        time_up: ¡Se acabó el tiempo!
+        time_up_summary: '%correct%/%answered% correctas<br>%score% puntos en total.'
+        time_remaining: Tiempo restante
+        correct_points: '¡Correcto! +%points% pts'
+        it_was: 'Era %name%'
+        which_spice: ¿Qué especia es esta?
+        family: 'Familia:'
+        type: 'Tipo:'
+        flavors: 'Sabores:'
+        main_compounds: 'Compuestos principales:'
+        secondary_compounds: 'Compuestos secundarios:'
+        tip: 'Consejo:'
+        prepare_next: Prepara tu próxima respuesta…
+        survival_subtitle: Encadena especias compatibles sin fallar
+        total_victory: ¡Victoria total!
+        victory_text: ¡Has agotado todas las compatibilidades posibles!
+        game_over: Fin del juego
+        defeat_text: '<strong>%a%</strong> no es compatible con <strong>%b%</strong>.<br>Cadena: %n%.'
+        choose_start: Elige tu especia de inicio
+        choose_start_text: Selecciona la especia con la que quieres comenzar tu cadena.
+        current_spice: Especia actual
+        which_compatible: ¿Qué especia es compatible?
+        guesswho_subtitle: Adivina la especia con las pistas
+        it_was_indeed: 'Era %name%'
+        points_earned: '+%points% puntos'
+        correct_was: 'La respuesta correcta era %name%'
+        clues_revealed: 'Pistas reveladas: %count%/%total%'
+        reveal_clue: Revelar una pista
+        revealing: Revelando…
+        all_clues_revealed: Todas las pistas reveladas
+        clue_locked: Pista bloqueada
+        start_typing: Empieza a escribir el nombre…
+        hangman_subtitle: Adivina el nombre de la especia letra a letra
+        errors: 'Errores:'
+        found: ¡Encontrado!
+        lost: Perdido...
+        next_word: Siguiente palabra
+        intrus_find_compatible: Encuentra la compatible
+        intrus_find_intruder: Encuentra el intruso
+        reference_spice: Especia de referencia
+        kbd_select: seleccionar
+        kbd_validate: validar
+        validate: Validar
+        same_family_one: 'pertenece a la misma familia aromática'
+        same_family_many: 'pertenecen a la misma familia aromática'
+    edu:
+        prompt:
+            qcm_best_match: '¿Qué especia combina mejor con %spice%?'
+            intrus_group: '¿Qué especia no pertenece al grupo «%group%»?'
+            intrus_compatible: '¿Qué especia es compatible con %spice%?'
+            intrus_classic: '¿Qué especia es la intrusa respecto a %spice%?'
+            guesswho_clues_used: '%count% pista usada|%count% pistas usadas'
+            hangman_default: Adivina la especia
+            hangman_family: 'Familia: %value%'
+            hangman_type: 'Tipo: %value%'
+        clue:
+            flavors: Sabores
+            group: Familia aromática
+            type: Tipo
+            cooking_tip: Consejo de cocción
+            main_compounds: Compuestos principales
+            description: Descripción
+        rule:
+            qcm_0: Encuentra la especia más compatible entre 4 opciones.
+            qcm_1: Cada respuesta correcta te da XP.
+            qcm_2: 7 preguntas en total — sin vuelta atrás.
+            survival_0: Encadena especias compatibles a partir de la especia inicial.
+            survival_1: Un solo error y la partida termina.
+            survival_2: Cuanto más avanzas, más XP ganas.
+            guess_who_0: Las pistas aparecen una a una para identificar la especia misteriosa.
+            guess_who_1: Cuantas menos pistas uses, más puntos ganas.
+            guess_who_2: 7 especias por adivinar en total.
+            intrus_0: Entre 4 especias, encuentra la que no tiene nada en común con las demás.
+            intrus_1: '¡Algunas preguntas están invertidas: encuentra la compatible!'
+            intrus_2: 7 preguntas — cuidado con las trampas visuales.
+            hangman_0: Adivina el nombre de la especia letra por letra.
+            hangman_1: Los acentos se ignoran — escribe la letra base.
+            hangman_2: Demasiados errores y el ahorcado se completa.
+            chrono_0: Identifica cada especia lo más rápido posible.
+            chrono_1: Ves la foto y las características, pero no el nombre.
+            chrono_2: El tiempo corre — cada segundo cuenta.
+        academy_title: Academia de las Especias
+        academy_intro: Pon a prueba tus conocimientos sobre las especias y sus compatibilidades aromáticas.
+        xp_per_correct: '%xp% XP/correcta'
+        questions: '%count% preguntas'
+        unlimited_questions: ∞ preguntas
+        come_back_tomorrow: Vuelve mañana
+        reduced_xp_tooltip: 'XP reducido un 50%% más allá de %threshold% partidas/día'
+        remaining_xp: '%count% restantes · ×0.5 XP'
+        remaining_today: '%remaining%/%max% hoy'
+        recent_games: Partidas recientes
+        correct_count: '%correct%/%total% correctas'
+        in_progress: En curso
+        presentation: Presentación
+        xp_per_answer: '%xp% XP / respuesta correcta'
+        unlimited: Preguntas ilimitadas
+        difficulty: Dificultad
+        default_difficulty_html: 'La dificultad por defecto se puede cambiar en tu <a href="%url%" class="text-saffron-600 hover:underline">perfil</a>.'
+        rules: Reglas
+        ingredient_of_day: Tu ingrediente del día
+        all_modes: Todos los modos
+        play: Jugar
+        launch_brigade: Lanzar la brigada
+        question: 'Pregunta %num%'
+        pts: '%score% pts'
+        correct_answer: ¡Respuesta correcta!
+        wrong_answer: Respuesta incorrecta
+        next_question: Siguiente pregunta
+        submit: Validar
+        precision: precisión
+        good_answers: Respuestas correctas
+        errors: Errores
+        xp_earned: XP ganados
+        replay: Volver a jugar
+        dashboard: Panel
+        question_details: Detalle de las preguntas
+        your_answer: 'Tu respuesta:'
+        correct_label: Correcto
+        quiz_result: Quiz — Resultado
+        is_correct_answer: es la respuesta correcta.
+        you_answered: Has respondido
+        correct_was: La respuesta correcta era
+    onboarding:
+        transition_spices: ¡Bien hecho! ¿Listo para crear tu primera mezcla?
+        s1_search_title: Busca una especia
+        s1_search_text: 'Escribe un nombre para encontrar tu especia. Comino, pimentón, cúrcuma… está todo. Haz clic en "Siguiente" cuando quieras continuar.'
+        s1_cards_title: Descubre las fichas
+        s1_cards_text: Haz clic en la imagen de una especia para ver su vista rápida.
+        s1_modal_title: ¡Aquí está la ficha!
+        s1_modal_text: Sabores, compuestos aromáticos, combinaciones deliciosas… está todo. Cierra la ficha para continuar.
+        s1_cta_title: ¿Listo para crear?
+        s1_cta_text: Cuando te guste una especia, ¡ven a crear una mezcla en el Lab!
+        transition_lab: '¡Genial! Última parada: la Academia de las especias.'
+        s2_mode_title: ¿Auto o Manual?
+        s2_mode_text: 'Auto: el algoritmo encuentra las mejores combinaciones por ti. Manual: eliges libremente.'
+        s2_filter_title: El secreto de las combinaciones
+        s2_filter_text: Las especias del mismo grupo aromático combinan de forma natural. Filtra para explorar una familia.
+        s2_play_title: ¡Te toca!
+        s2_play_text: Haz clic en una especia para añadirla. El algoritmo muestra al instante las mejores combinaciones.
+        s3_games_title: 6 minijuegos te esperan
+        s3_games_text: ¡Elige un modo, una dificultad y demuestra lo que sabes sobre las especias!
+        s3_xp_title: Gana XP
+        s3_xp_text: Cada respuesta correcta da XP. ¡Sube de nivel y desbloquea logros exclusivos!
+        skip_intro: Saltar la introducción
+        welcome_title: ¡Bienvenido a SpicyMatch!
+        welcome_text_html: 'Te mostraremos <strong class="text-stone-700">3 áreas clave</strong> del sitio en unos segundos. Es rápido, lo prometo.'
+        lets_go: ¡Vamos!
+        already_know: Ya lo conozco, saltar →
+        skip: Saltar
+        next_step_aria: Siguiente paso del tutorial
+        later: Más tarde
+        go: ¡Vamos! →
+    tabs:
+        profile: Perfil
+        favorites: Favoritos
+        achievements: Logros
+        configuration: Configuración
+        history: Historial
+        security: Seguridad
+    recipe:
+        folio: 'Folio · %id% · Cuaderno del Laboratorio'
+        rename_aria: Renombrar la receta
+        rename: Renombrar
+        add_favorite: Añadir a favoritos
+        in_favorites: En tus favoritos
+        spices: 'especia|especias'
+        moments: 'momento|momentos'
+        methods: 'método|métodos'
+        shared_compound: compuesto común
+        moment_card: Carta del momento
+        dry_profile: Perfil olfativo seco — sin cocción.
+        fat: '% graso'
+        aqueous: '% acuoso'
+        prep_title: Preparación de las especias
+        prep_sub: 'La mano del chef · %count% especia(s)'
+        out_of_matrix_aria: 'Preparación fuera de matriz: %label%'
+        out_of_matrix_title: 'Esta preparación está registrada para la matriz %label%. Para activarla, compón una nueva mezcla en el Lab eligiendo el modo %label%.'
+        out_of_matrix: 'fuera de matriz · %label%'
+        method: Método
+        moments_title: Momentos de inserción
+        moments_sub: El dominio del tiempo · 5 ventanas aromáticas
+        earlier: Antes
+        later: Después
+        moment_before: Antes
+        moment_start: Inicio
+        moment_middle: Medio
+        moment_end: Fin
+        moment_after: Después
+        moment_free: — libre —
+        kinetics_title: Cinética aromática
+        kinetics_sub: Cabeza · Corazón · Fondo
+        kinetics_retention: ' · retención a %temp% °C / %time% min'
+        kinetics_head_blurb: Notas volátiles · añadir al final de la cocción
+        kinetics_heart_blurb: Notas estructurantes · añadir a media cocción
+        kinetics_base_blurb: Notas pesadas · resisten la cocción larga
+        compounds: 'compuesto|compuestos'
+        no_compound_cat: — ningún compuesto en esta categoría —
+        retention_title: Fracción preservada tras el escenario culinario (Nernst × decaimiento térmico)
+        no_physchem: '%count% compuesto(s) sin datos físico-químicos (%names%).'
+        matrix_title: Comparativa matricial
+        matrix_sub: ¿Y si cocináramos de otra forma?&nbsp;Top 5 candidatos por matriz ODT
+        col_spice: Especia
+        current_matrix: Matriz de la mezcla
+        out_of_top5: Fuera del top 5 en esta matriz
+        tanimoto_title: Puntuación Tanimoto OAV (escala 0–100)
+        tanimoto_note: Puntuaciones Tanimoto OAV ∈ [0–100] · corregidas por partición Nernst y decaimiento térmico para la matriz evaluada.
+        alchemist_note: La Nota del Alquimista
+        note_shared: '«Estas especias comparten %count% compuesto(s) aromático(s) en común — su afinidad se basa en una firma aromática compartida.»'
+        note_manual: '«Mezcla compuesta libremente — la complementariedad de estas especias se expresa sin cálculo de afinidad.»'
+        note_contrast: '«Estas especias no tienen ningún compuesto aromático principal en común — su asociación se basa en la complementariedad y el contraste.»'
+    lab:
+        finalize_title: Finalización de la mezcla — SpicyMatch
+        back_to_lab: Volver al Lab
+        finalize: Finalización de la mezcla
+        blend_takes_shape_html: 'La mezcla <em class="italic" style="color: #C25E2C;">toma forma</em>.'
+        status_upcoming: pendiente
+        step_time: Paso I · El momento
+        step_time_q_html: '¿En qué momento entrará en escena <em class="italic" style="color: #C25E2C;">%name%</em>?'
+        step_hand: Paso II · La mano
+        step_hand_q_html: '¿Con qué mano despertar <em class="italic" style="color: #C25E2C;">%name%</em>?'
+        page_title: El Lab — SpicyMatch
+        step1_eyebrow: Paso 1 — Selección
+        hero_title_html: 'El Lab,<br><span class="text-saffron-600 italic font-light">el taller de los sabores</span>'
+        hero_desc: Elige tus especias como quien dispone los ingredientes en una encimera. El algoritmo revela las combinaciones que cantan juntas.
+        step_select: Seleccionar
+        step_analyze: Analizar
+        step_save: Guardar
+        cooking_question_html: '¿Cómo vas a cocinar esta mezcla? Las puntuaciones se ajustan a la matriz elegida (Nernst&nbsp;+&nbsp;decaimiento térmico).'
+        culinary_context_aria: Selección del contexto culinario
+        preset_dry_aria: 'Preset de cocción: En seco — condimento crudo, sin cocción'
+        preset_dry: En seco
+        preset_air: Aire
+        preset_broth_aria: 'Preset de cocción: Caldo — agua, 20 minutos a 80 grados'
+        preset_broth: Caldo
+        preset_water: Agua
+        preset_saute_aria: 'Preset de cocción: Salteado — aceite puro, 10 minutos a 140 grados'
+        preset_saute: Salteado
+        preset_oil: Aceite
+        advanced: Avanzado
+        odt_matrix: Matriz ODT
+        fat_ratio: Fracción grasa
+        cooking_time: Tiempo de cocción
+        temperature: Temperatura
+        mode_tooltip: El modo culinario influye en la puntuación (Nernst + decaimiento térmico)
+        mode_prefix: 'Modo: %label%'
+        search_spice: Buscar una especia…
+        clear_search: Borrar la búsqueda
+        clear_all: Borrar todo
+        auto: Auto
+        manual: Manual
+        spices_count: '%count% especia(s)'
+        no_match: 'Ninguna especia coincide con «%query%».'
+        no_more_compatible: Ninguna especia adicional es compatible con tu selección.
+        my_blend: Mi mezcla
+        empty_html: 'Haz clic en una <span class="font-display italic text-stone-500">especia</span> para empezar tu mezcla'
+        remove: 'Quitar %name%'
+        clear_selection: Vaciar la selección
+        compose: Componer la mezcla
+        data: 'Datos: %label%'
+        scores_indicative: Puntuaciones indicativas — datos en proceso de validación.
+        reset_culinary_aria: Restablecer el contexto culinario
+        select_spices: Selecciona tus especias
+        compose_short: Componer
+        selected: Seleccionadas
+        tip_mode_html: '%count% especia(s) — modo <strong class="text-stone-500 font-semibold">%mode%</strong>'
+    filters:
+        aromatic_group: Grupo Aromático
+        spice_type: Tipo de Especia
+        search: Buscar…
+        clear_all: Borrar todo
+        group: 'Grupo:'
+        type: 'Tipo:'
+    modal:
+        close: Cerrar
+        dominant_flavors: Sabores dominantes
+        aromatic_compounds: Compuestos aromáticos
+        quick_preview: Vista rápida
+        view_full: Ver la ficha completa
+    config:
+        email_address: Dirección de correo
+        current_mail: 'Correo usado actualmente:'
+        none: Ninguno
+        add_mail: Añadir un correo
+        change_mail: Cambiar el correo
+        discovery_path: Recorrido de descubrimiento
+        replay_intro: Volver a ver la introducción
+        replay_intro_text: Reinicia la guía de inicio para redescubrir las funciones principales.
+        replay: Reiniciar
+        game_posture: Postura de juego
+        posture_intro: Tu postura determina la dificultad por defecto de los juegos y modifica algunos elementos visuales.
+        commis: Commis
+        cuisinier: Cocinero
+        chef_partie: Jefe de Partida
+        posture_hard_html: '<strong>Jefe de Partida:</strong> colores de los grupos aromáticos ocultos, cronómetro reducido en el Ahorcado, intrusos más sutiles.'
+        posture_medium_html: '<strong>Cocinero:</strong> dificultad intermedia, comportamiento estándar.'
+        posture_easy_html: '<strong>Commis:</strong> ayudas visuales completas, más tiempo, pistas adicionales.'
+        gamification_privacy: Gamificación y Privacidad
+        progression_system: Sistema de progresión (XP, niveles, logros)
+        gamification_on: Activado — tus acciones dan XP y desbloquean logros.
+        gamification_off: Desactivado — no se recopila ningún dato de progresión.
+        disable: Desactivar
+        enable: Activar
+        change_mail_form: 'Formulario de cambio de correo:'
+        back: Volver
+    profile:
+        dashboard_title: Panel
+        unlocked_achievements: Logros desbloqueados
+        equipped_badge: Logro equipado
+        level_xp: 'Nivel %level% — %xp% XP'
+        no_recent_blend: Ninguna mezcla reciente.
+        no_progress: Ningún progreso por ahora
+        no_progress_hint: ¡Crea tu primera mezcla para desbloquear tu progresión y ganar XP!
+    achievements:
+        unlocked_count: '%count% / %total% logros desbloqueados'
+        xp_from_achievements: '+%xp% XP ganados con los logros'
+        global_progress: Progreso global
+        not_started: Aún no empezado
+        to_discover: Por descubrir…
+        equipped_badge: Insignia equipada
+        equip: Equipar
+        progress: Progreso
+        none_yet: Ningún logro por ahora
+        none_yet_text: ¡Crea tu primera mezcla para desbloquear logros y ganar XP!
+        create_first: Crear mi primera mezcla
+    history:
+        title: Historial de mezclas
+        see_all: Ver todo
+        manual: Manual
+        manual_tooltip: Mezcla creada manualmente — compatibilidad no garantizada
+        none_yet: Todavía no tienes ninguna mezcla guardada.
+        create_first: Crear mi primera mezcla
+        my_favorites: Mis favoritos
+        remove_favorite: Quitar de favoritos
+        no_favorites: Todavía no tienes ninguna mezcla favorita.
+        see_my_blends: Ver mis mezclas
+        subtitle: Encuentra todas tus recetas guardadas.
+        see_favorites: Ver mis favoritos
+        rename_hint: Haz doble clic para renombrar
+        rename: Renombrar
+        fav:
+            title: Mis mezclas favoritas
+            subtitle: Las recetas que marcaste como favoritas.
+            empty: Ninguna mezcla favorita por ahora.
+            empty_hint: Haz clic en la estrella de una mezcla para añadirla a tus favoritos.
+            see_history: Ver mi historial
+    error:
+        title: Se produjo un error
+        code: 'Código de error:'
+        persist: Si el problema persiste, contacta con el administrador.
+        home: Inicio
+    security:
+        password: Contraseña
+        password_text: La modificación de la contraseña aún no está disponible.
+        auth: Autenticación
+        auth_text: Ninguna opción de doble autenticación configurada por el momento.
+    catalog:
+        no_description: No hay descripción disponible.
+        preview: Vista previa
+        match_label: Match
+        compat: Compat.
+        see_details: Ver detalles
+        flavors_heading_html: 'Los <em class="italic not-italic" style="color: %color%">sabores</em>'
+        primary_compounds_heading_html: 'Compuestos <em class="italic" style="color: %color%">primarios</em>'
+        in_kitchen_heading_html: 'Cuando la especia <em class="italic" style="color: %color%">se integra</em> en tu plato'
+        notebook_heading_html: 'Unas <em class="italic" style="color: %color%">notas</em> al pasar'
+        tame_heading_html: 'Cómo <em class="italic" style="color: %color%">domarla</em>'
+        load_more_spices: Cargar más especias
+        view_slider: Carrusel
+        view_grid: Cuadrícula
+        scientific_note: Nota científica
+        view_spices: Ver las especias
+        spice_fallback: Especia
+        spices_title: Nuestras especias
+        spices_page_title: SpicyMatch — Catálogo de especias
+        spices_count: '%count% especia(s) en nuestro catálogo'
+        create_blend: Crear una mezcla
+        none_found: No se encontró ninguna especia
+        none_found_text: Ninguna especia coincide con tus filtros. Intenta modificar o restablecer tus criterios.
+        view_all_spices: Ver todas las especias
+        breadcrumb_spices: Especias
+        type: Tipo
+        profile: Perfil
+        flavors: sabores
+        flavors_intro: Los compuestos aromáticos que definen el carácter de esta especia.
+        primary_compounds: primarios
+        primary_compounds_intro: Las moléculas que dan su identidad olfativa a esta especia.
+        secondary_compounds: Compuestos secundarios
+        in_kitchen: En la cocina
+        in_kitchen_title: deslizarla
+        moments: '%count% momento(s)'
+        marmite_before: Antes del fuego
+        marmite_during: Durante el fuego
+        marmite_after: Después del fuego
+        marmite_last: En el último momento
+        marmite_marinade: En adobo
+        marmite_default: A elección
+        step: Etapa
+        notebook: El cuaderno
+        notebook_title: notas al pasar
+        tame: domesticarla
+        good_to_know: Para saber
+        its_assets: Sus virtudes
+        note_of: 'Nota de %flavors%'
+        spice_thread: El Hilo de las Especias
+        spice_thread_text: Cada especia abre la puerta a otra.
+        compounds_title: Compuestos aromáticos
+        compounds_page_title: SpicyMatch — Compuestos aromáticos
+        compounds_tag: Ciencia
+        compounds_intro: Las moléculas que definen los aromas y los perfiles gustativos de cada especia.
+        learn_more: Saber más
+        no_compound: Ningún compuesto registrado por el momento.
+        back_to_compounds: Volver a los compuestos
+        compound_badge: Compuesto Aromático
+        description: Descripción
+        no_description_detailed: No hay descripción detallada disponible.
+        linked_spices: Especias vinculadas
+        no_linked_spices: Ninguna especia vinculada por el momento.
+        groups_page_title: SpicyMatch — Grupos aromáticos
+        groups_tag: Catálogo
+        groups_title: Grupos aromáticos
+        groups_intro: Las grandes familias de aromas que agrupan las especias por afinidad gustativa.
+        groups_soon: El catálogo de los grupos aromáticos llega pronto.
+        flavors_page_title: SpicyMatch — Sabores de alquimia
+        flavors_tag: Alquimia
+        flavors_title: Sabores de alquimia
+        flavors_page_intro: Los perfiles gustativos complejos que surgen del encuentro de las especias.
+        explore_flavor: Explorar el sabor
+        no_flavor: Ningún sabor registrado por el momento.
+        back_to_flavors: Volver a los sabores
+        flavor_badge: Sabor de Alquimia
+        taste_profile: Perfil gustativo
+        no_profile_detailed: No hay perfil detallado disponible.
+        culinary_pairings: Combinaciones culinarias
+        associated_compounds: Compuestos asociados
+        no_linked_compound: Ningún compuesto vinculado.
+        types_page_title: SpicyMatch — Tipos de especias
+        types_tag: Botánica
+        types_title: Tipos de especias
+        types_intro: Clasificación de las especias según su origen vegetal y su naturaleza biológica.
+        no_type: Ningún tipo registrado por el momento.
+        back_to_types: Volver a los tipos
+        type_badge: Tipo de Especia
+        definition: Definición
+        no_definition_detailed: No hay definición detallada disponible.
+        general_usage: Uso general
+        botanical_note: Nota botánica
+        spices_of_type: Especias de este tipo
+        methods_page_title: SpicyMatch — Métodos de preparación
+        methods_tag: Guía
+        methods_title: Métodos de preparación
+        methods_intro: Técnicas y consejos para extraer lo mejor de tus especias
+        view_details: Ver los detalles
+        no_method: Ningún método disponible por el momento.
+        method_badge: Método
+        usage_tips: Consejos de uso
+    help:
+        back_to_help: ← Centro de ayuda
+        gamification_page_title: Gamificación · Ayuda
+        gamification_h1: Gamificación
+        gamification_body_html: |
+            <h2>XP y niveles</h2>
+            <p>Cada acción en el sitio te da experiencia (XP). Tu nivel se calcula a partir de tu XP total con una curva progresiva: <code>nivel = ⌊(xp / 100)<sup>1/1.3</sup>⌋ + 1</code>. Cuanto más subes, más XP requiere cada nivel — pero no hay tope.</p>
+            <h3>Cómo ganar XP</h3>
+            <ul>
+                <li><strong>+10 XP</strong> — guardar una mezcla en el lab</li>
+                <li><strong>+5 XP</strong> — consultar una nueva ficha de especia (una vez al día por especia)</li>
+                <li><strong>+75 XP</strong> — encontrar un easter egg</li>
+                <li><strong>Variable</strong> — terminar una partida de la Academia (según modo / dificultad)</li>
+                <li><strong>Bonus</strong> — desbloquear un logro (+10 a +200 XP según rareza)</li>
+            </ul>
+            <h2>Reading streak</h2>
+            <p>Mantienes un <strong>reading streak</strong> mientras consultes al menos una nueva ficha de especia cada día. Un día saltado reinicia el contador. Algunos logros recompensan las rachas largas.</p>
+            <h2>Límites diarios</h2>
+            <p>Para evitar el farmeo, la Academia limita a <strong>5 partidas por modo y por día</strong>. A partir de la 4.<sup>a</sup> partida de un mismo modo, el XP ganado se <strong>reduce un 50 %</strong> — el progreso sigue siendo posible pero la carrera por la puntuación pierde sentido.</p>
+        gamification_disable_h2: Desactivar la gamificación
+        gamification_disable_html: 'Desde <a href="%url%" class="text-saffron-600 hover:underline">tu configuración</a>, puedes desactivar por completo la gamificación: sin toasts, sin banner de XP, sin insignia de avatar. Tus datos quedan intactos y la función se puede reactivar en cualquier momento.'
+        academy_page_title: La Academia · Ayuda
+        academy_body_html: |
+            <h2>Los 6 modos</h2>
+            <dl>
+                <dt><strong>La Elección del Chef</strong> (Quiz)</dt>
+                <dd>10 preguntas de opción múltiple sobre compatibilidades de especias. El modo más clásico.</dd>
+                <dt><strong>Desafío Scoville</strong> (Survival)</dt>
+                <dd>Elige una especia de inicio y encadena especias compatibles. Un paso en falso = game over. Victoria total si agotas todas las compatibilidades.</dd>
+                <dt><strong>Paladar Fino</strong> (Guess Who)</dt>
+                <dd>8 especias por adivinar a partir de pistas progresivas. Menos pistas reveladas = más puntos.</dd>
+                <dt><strong>Fuera de Temporada</strong> (Intruso)</dt>
+                <dd>10 preguntas: encuentra la especia incompatible (o compatible, en modo invertido) entre 4 opciones.</dd>
+                <dt><strong>Cocinando</strong> (Ahorcado)</dt>
+                <dd>8 nombres de especias por adivinar letra a letra. Límite de errores y de tiempo según la dificultad.</dd>
+                <dt><strong>A Fuego Vivo</strong> (Chrono)</dt>
+                <dd>Cronómetro global. Identifica el mayor número de especias posible a partir de su ficha (sin el nombre). Bonus de velocidad y racha por respuestas correctas consecutivas.</dd>
+            </dl>
+            <h2>Dificultades</h2>
+            <table class="w-full text-sm">
+                <thead class="text-left"><tr><th class="py-2">Dificultad</th><th>Multiplicador XP</th><th>Impacto</th></tr></thead>
+                <tbody>
+                    <tr><td>Easy</td><td>×1.0</td><td>Más pistas, menos opciones, opciones evidentes.</td></tr>
+                    <tr><td>Medium</td><td>×1.5</td><td>Pistas parciales, opciones medias.</td></tr>
+                    <tr><td>Hard</td><td>×2.0</td><td>Sin pista, pool completo, trampas visuales.</td></tr>
+                </tbody>
+            </table>
+            <h2>Puntuación y XP</h2>
+            <p>El XP base es <code>respuestas_correctas × xp_por_modo × multiplicador_dificultad</code>. Los modos Paladar Fino y Chrono añaden bonus (menos pistas, rapidez, racha).</p>
+        eggs_page_title: Easter Eggs · Ayuda
+        eggs_intro_html: 'Algunas acciones inusuales en el sitio activan <strong>easter eggs</strong> — descubrimientos ocultos que te dan 75 XP y a veces desbloquean un logro dedicado.'
+        eggs_body_html: |
+            <h2>Lo que hay que saber (sin spoilers)</h2>
+            <ul>
+                <li><strong>Cantidad</strong>: 8 easter eggs en total, repartidos por la interfaz. Algunos son rápidos de encontrar, otros requieren paciencia o una combinación de acciones.</li>
+                <li><strong>Unicidad</strong>: cada easter egg se activa una sola vez por cuenta. Imposible farmear los +75 XP repitiendo la misma acción.</li>
+                <li><strong>Sin spoilers</strong>: no listamos los easter eggs — esa es la gracia. Puedes ver cuáles has encontrado en tu perfil tras desbloquearlos.</li>
+            </ul>
+            <h2>Algunas pistas</h2>
+            <ul>
+                <li>Explora los rincones inusuales del sitio (errores, páginas secundarias, ajustes).</li>
+                <li>Quédate mucho tiempo en ciertas páginas — el tiempo pasado a veces cuenta.</li>
+                <li>Observa las interacciones repetitivas — varios clics en el mismo sitio pueden esconder un trigger.</li>
+                <li>Algunos easter eggs requieren una secuencia precisa de especias visitadas.</li>
+                <li>Una receta legendaria de 4 ingredientes está escondida en algún sitio…</li>
+            </ul>
+        eggs_outro: Los easter eggs son un guiño, no un examen — tómalos como una búsqueda del tesoro, no como una checklist.
+        page_title: Ayuda · SpicyMatch
+        title: Centro de ayuda
+        intro: Todo lo que necesitas saber sobre el funcionamiento del sitio.
+        gamification: Gamificación
+        gamification_desc: XP, niveles, rachas, límites diarios.
+        academy_desc: 6 modos de juego, reglas, dificultad, puntuación.
+        easter_eggs: Easter Eggs
+        easter_eggs_desc: Los hallazgos ocultos, sin spoilers.
+    cookie:
+        title: Respetamos tu privacidad
+        text: SpicyMatch usa cookies para mejorar tu experiencia. Puedes elegir cuáles aceptar.
+        essential: Cookies esenciales
+        always_on: (siempre activas)
+        functional: Cookies funcionales
+        analytics: Cookies analíticas
+        accept_all: Aceptar todas
+        confirm: Confirmar selección
+        reject_all: Rechazar todas
+    register:
+        page_title: Creación de cuenta
+        title: Crear una cuenta
+        subtitle: Gratis, sin correo obligatorio.
+        username: Usuario
+        mail: 'Correo (opcional — para recuperar tu contraseña)'
+        password: Contraseña
+        toggle_visibility: Alternar visibilidad
+        submit: Crear mi cuenta
+        already_account: '¿Ya tienes cuenta?'
+        sign_in: Iniciar sesión
+    contact_success:
+        page_title: SpicyMatch — Mensaje enviado
+        title: ¡Gracias por tu mensaje!
+        text: Lo hemos recibido y haremos lo posible por responderte pronto.
+        good_day: ¡Que tengas un buen día!
+        good_evening: ¡Que tengas una buena noche!
+    auth:
+        login_title: Iniciar sesión
+        login_cta: Iniciar sesión
+        no_account: '¿Sin cuenta? Crea una (¡ni siquiera necesitas correo!)'
+        username: Usuario
+        password: Contraseña
+        bad_credentials: Credenciales incorrectas.
+        spices_alt: Especias
+    contact:
+        tag: Contacto
+        title: Contáctanos
+        intro: ¿Una pregunta sobre nuestras especias, un comentario sobre la app o una idea de combinación aromática? Te leemos.
+        quick_reply: Respuesta rápida
+        quick_reply_text: Respondemos en 48 h hábiles.
+        suggestions: Sugerencias bienvenidas
+        suggestions_text: Tus comentarios mejoran SpicyMatch.
+        send: Enviar mensaje
+        page_title: SpicyMatch — Contáctanos
+    banner:
+        level: 'Nivel %level%'
+        xp_to_next: 'faltan %xp% XP → niv. %level%'
+        days: día
+        days_plural: días
+        create: Crear
+        play: Jugar
+    labo:
+        chapter: Capítulo III · El Laboratorio Culinario
+        title_html: 'El arte del <em class="not-italic italic" style="color: var(--color-turmeric-700)">gesto.</em>'
+        blurb: Comprender está bien. Hacer está mejor. Tres técnicas fundamentales para liberar todo lo que tus especias pueden ofrecer.
+        fiche1: Ficha n.°&nbsp;I
+        fiche2: Ficha n.°&nbsp;II
+        fiche3: Ficha n.°&nbsp;III
+        technique: Técnica
+        dry_heat: Calor seco
+        wet_heat: Calor húmedo
+        mechanical: Mecánica
+        roast_title_html: 'Tosta<span class="ital">do.</span>'
+        roast_sub: en seco, en sartén de hierro
+        roast_benefit_html: '<strong>Reacción de Maillard.</strong> El calor seco rompe las paredes celulares y libera los aceites esenciales atrapados. El resultado: un aroma profundo, casi a frutos secos.'
+        roast_spices: Comino · Cilantro · Hinojo
+        infusion_title_html: 'Infu<span class="ital">sión.</span>'
+        infusion_sub: en caliente, en un cuerpo graso
+        infusion_benefit_html: '<strong>Difusión lipídica.</strong> Los aromas liposolubles migran al aceite caliente — un transporte ideal para las notas amaderadas y resinosas que temen la llama.'
+        infusion_spices: Romero · Laurel · Guindilla
+        pound_title_html: 'Maja<span class="ital">do.</span>'
+        pound_sub: en mortero de mármol
+        pound_benefit_html: '<strong>Ruptura celular.</strong> La presión mecánica revienta las vesículas de aceites esenciales más delicadamente que el molinillo — sin calor, sin oxidación.'
+        pound_spices: Pimienta · Cardamomo · Albahaca
+        read: → Leer
+        quotes_head: Consejos de expertos, fijados en la pared de la cocina.
+        quote1: Una especia nunca tiene un solo papel. Abre una puerta. Te toca a ti mirar lo que hay detrás.
+        quote1_role: Chef · Lyon
+        quote2: Antes de añadir guindilla, añade atención. La lengua recuerda ambas.
+        quote2_role: Con estrella · Barcelona
+        quote3: El tostado no es un paso. Es una conversación entre la semilla y el calor.
+        quote3_role: Maestro especiero · Fez
+    theatre:
+        chapter: Capítulo IV · La Academia
+        title_html: 'El teatro de los <em class="not-italic italic" style="color: var(--color-turmeric-700)">sentidos.</em>'
+        blurb: Seis minijuegos. Las especias como terreno de juego. Cada partida revela un ángulo nuevo — el intruso, la supervivencia, el ahorcado, la velocidad.
+        play_scoville: Jugar al Desafío Scoville
+        play_choice: Jugar a La Elección del Chef
+        play_overcooked: Jugar a Demasiado Hecho
+        act1: Acto I
+        act2: Acto II
+        act3: Acto III
+        scoville_title_html: 'Desafío <span class="ital">Scoville.</span>'
+        scoville_tag: juego de supervivencia al picante
+        scoville_footer: Partidas ilimitadas
+        choice_title_html: 'La Elección <span class="ital">del Chef.</span>'
+        choice_tag: encontrar el intruso en la cocina
+        choice_footer: 10 preguntas
+        overcooked_title_html: '<span class="ital">¡Demasiado Hecho!</span>'
+        overcooked_tag: el ahorcado de las especias olvidadas
+        overcooked_footer: 8 palabras por adivinar
+        cta_sub: 6 modos disponibles · XP · Logros · Clasificaciones
+        cta: Unirse a la Academia
+    hero:
+        season: Temporada · Primavera 26 · Capítulo&nbsp;I
+        blends_est: Mezclas · Est. MMXXVI
+        meta: N.°&nbsp;001 — El despertar de los sentidos
+        title_html: |
+            La <em class="not-italic italic" style="color: var(--color-paprika-800)">Alquimia</em> de las Especias.<br>
+            Despierta al <span class="relative inline-block" style="color: var(--color-turmeric-700)">Chef<span class="absolute left-0 right-0 bottom-[6px] h-[14px] pointer-events-none" style="background: radial-gradient(ellipse at center, rgba(217,119,6,.28) 0%, transparent 70%); z-index: -1;" aria-hidden="true"></span></span><br>
+            que duerme en ti.
+        blurb: Explora los vínculos invisibles entre las moléculas y el sabor. Aprende, mezcla y domina el arte de los sabores a través de una experiencia científica y lúdica.
+        cta_blend: Lanzar una mezcla
+        cta_explore: Explorar las especias
+        cta_start: Comenzar la exploración
+        figures_label: Cifras clave
+        figures_eyebrow: Nuestra cocina, en tres cifras
+        figure_spices: especias de todo el mundo
+        figure_aromas: aromas conectados uno a uno
+        figure_chefs: aprendices de chef contigo
+    grade:
+        commis: Commis
+        chef_partie: Jefe de Partida
+        saucier: Salsero
+        chef_executif: Chef Ejecutivo
+    footer:
+        tagline: La alquimia aromática al servicio de tus recetas. Descubre combinaciones invisibles y realza tus creaciones culinarias.
+        navigation: Navegación
+        catalog: Catálogo de especias
+        lab_blends: El Lab — Mezclas
+        help_contact: Ayuda y Contacto
+        academy_flavors: La Academia de los sabores
+        aromatic_compounds: Compuestos aromáticos
+        flavor_groups: Grupos de sabores
+        classification: Clasificación
+        atelier: El Taller
+        join_text: Únete a nuestra brigada de apasionados y explora la alquimia de los sabores.
+        join_cta: Unirse a la brigada
+        copyright_tagline: El Arte de la Alquimia Culinaria
+        legal: Aviso legal
+        privacy: Privacidad
+        scroll_top: Volver arriba
+
+gamification:
+    notif:
+        level_up_title: '¡Nivel %level% alcanzado!'
+        level_up_subtitle: ¡Estás subiendo de nivel!
+        achievement_unlocked: 'Logro desbloqueado — %rarity%'
+    source:
+        match_saved: Mezcla guardada
+        spice_read: Nueva ficha leída
+        easter_egg_found: Easter egg encontrado
+        favorite_toggled: Favorito añadido
+        game_completed: Partida terminada
+
+enum:
+    game_mode:
+        qcm:
+            label: La Elección del Chef
+            desc: 'Encuentra la especia más compatible entre 4 opciones.'
+        survival:
+            label: Desafío Scoville
+            desc: 'Encadena especias compatibles sin fallar.'
+        guess_who:
+            label: Paladar Fino
+            desc: 'Adivina la especia a partir de pistas progresivas.'
+        intrus:
+            label: Fuera de Temporada
+            desc: 'Encuentra el intruso entre las especias compatibles.'
+        hangman:
+            label: Cocinando
+            desc: 'Adivina el nombre de la especia letra a letra.'
+        chrono:
+            label: A Fuego Vivo
+            desc: 'Identifica las especias lo más rápido posible.'
+    difficulty:
+        easy: Fácil
+        medium: Medio
+        hard: Difícil
+    rarity:
+        common: Semilla
+        rare: Infusión
+        epic: Extracción
+        legendary: Esencia
+    kinetics:
+        head: Cabeza
+        heart: Corazón
+        base: Fondo
+    confidence:
+        measured: Medido
+        literature: Literatura
+        estimated: Estimado
+        placeholder: Provisional
+    matrix:
+        air: Aire
+        water: Agua
+        oil: Aceite

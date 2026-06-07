@@ -1,15 +1,16 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Finalisation du mélange — SpicyMatch{% endblock %}
+{% block title %}{{ 'ui.lab.finalize_title'|trans }}{% endblock %}
 
 {% block body %}
+{% set loc = app.request.locale %}
 <div
   x-data="finalisationMelange(
     '{{ spices|map(s => s.id)|join(',') }}',
     '{{ path('edit_spicy_match_history', {id: spicyMatchHistory.id}) }}',
     '{{ csrf_token('history_edit_' ~ spicyMatchHistory.id) }}'
   )"
-  {% for spice in spices %}data-spice-name{{ loop.index0 }}="{{ spice.name }}" {% endfor %}
+  {% for spice in spices %}data-spice-name{{ loop.index0 }}="{{ spice.getLocalizedName(loc) }}" {% endfor %}
   class="min-h-screen etamine-paper"
   style="background-color: #F5ECDB;"
 >
@@ -23,9 +24,9 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      Retour au Lab
+      {{ 'ui.lab.back_to_lab'|trans }}
     </a>
-    <span class="smallcaps">Finalisation du mélange</span>
+    <span class="smallcaps">{{ 'ui.lab.finalize'|trans }}</span>
   </header>
 
   {# ===== HERO ===== #}
@@ -37,7 +38,7 @@
       </svg>
     </span>
     <h1 class="font-display leading-[1.05]" style="font-size: clamp(32px, 5vw, 52px); color: #2A1F14;">
-      Le mélange <em class="italic" style="color: #C25E2C;">prend forme</em>.
+      {{ 'ui.lab.blend_takes_shape_html'|trans|raw }}
     </h1>
   </section>
 
@@ -54,13 +55,13 @@
         >
           <div class="station-hex">{{ '%02d'|format(loop.index) }}</div>
           <div class="flex-1 text-left">
-            <div class="station-name">{{ spice.name }}</div>
+            <div class="station-name">{{ spice.getLocalizedName(loc) }}</div>
             <div class="station-sub">
               <span class="pip" :class="pipClass('{{ spice.id }}', 'cooking')"></span>
               <span class="pip" :class="pipClass('{{ spice.id }}', 'preparation')"></span>
             </div>
           </div>
-          <div class="station-link" x-text="statusLabel('{{ spice.id }}')">à venir</div>
+          <div class="station-link" x-text="statusLabel('{{ spice.id }}')">{{ 'ui.lab.status_upcoming'|trans }}</div>
         </button>
         {% if not loop.last %}<div class="between-rule"></div>{% endif %}
       {% endfor %}
@@ -82,10 +83,9 @@
 
         {# ÉTAPE I — LE TEMPS (moment d'insertion) #}
         <section class="step-block">
-          <div class="smallcaps mb-2">Étape I · Le temps</div>
+          <div class="smallcaps mb-2">{{ 'ui.lab.step_time'|trans }}</div>
           <h2 class="font-display leading-tight" style="font-size: clamp(22px, 4vw, 34px); color: #2A1F14;">
-            À quel moment <em class="italic" style="color: #C25E2C;">{{ spice.name }}</em>
-            entrera-t-elle en scène&nbsp;?
+            {{ 'ui.lab.step_time_q_html'|trans({'%name%': spice.getLocalizedName(loc)|e})|raw }}
           </h2>
           <div class="rule-dots my-6"></div>
 
@@ -98,9 +98,9 @@
                 @click="toggleCooking('{{ spice.id }}', {{ cookingTip.id }})"
               >
                 <div class="hex-num-wrap">{{ '%02d'|format(loop.index) }}</div>
-                <div class="timing-label">{{ cookingTip.cookingStep }}</div>
-                {% if cookingTip.advantages %}
-                  <div class="timing-blurb">{{ cookingTip.advantages }}</div>
+                <div class="timing-label">{{ cookingTip.getLocalizedCookingStep(loc) }}</div>
+                {% if cookingTip.getLocalizedAdvantages(loc) %}
+                  <div class="timing-blurb">{{ cookingTip.getLocalizedAdvantages(loc) }}</div>
                 {% endif %}
               </button>
             {% endfor %}
@@ -109,9 +109,9 @@
 
         {# ÉTAPE II — LA MAIN (méthode de préparation) #}
         <section class="step-block" data-step-method-spice="{{ spice.id }}">
-          <div class="smallcaps mb-2">Étape II · La main</div>
+          <div class="smallcaps mb-2">{{ 'ui.lab.step_hand'|trans }}</div>
           <h2 class="font-display leading-tight" style="font-size: clamp(22px, 4vw, 34px); color: #2A1F14;">
-            Par quelle main éveiller <em class="italic" style="color: #C25E2C;">{{ spice.name }}</em>&nbsp;?
+            {{ 'ui.lab.step_hand_q_html'|trans({'%name%': spice.getLocalizedName(loc)|e})|raw }}
           </h2>
           <div class="rule-dots my-6"></div>
 
@@ -126,9 +126,9 @@
                 <div class="icon-wrap">
                   {{ include('components/_etamine_icons.html.twig', { name: prepTip.title }) }}
                 </div>
-                <div class="method-label">{{ prepTip.title }}</div>
-                {% if prepTip.advantages %}
-                  <div class="method-blurb">{{ prepTip.advantages }}</div>
+                <div class="method-label">{{ prepTip.getLocalizedTitle(loc) }}</div>
+                {% if prepTip.getLocalizedAdvantages(loc) %}
+                  <div class="method-blurb">{{ prepTip.getLocalizedAdvantages(loc) }}</div>
                 {% endif %}
               </button>
             {% endfor %}

@@ -8,11 +8,11 @@
         <div class="mt-6">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-semibold text-stone-800 flex items-center gap-2">
-                    <i class="fa-solid fa-clock-rotate-left text-saffron-600 text-base"></i>Historique des mélanges
+                    <i class="fa-solid fa-clock-rotate-left text-saffron-600 text-base"></i>{{ 'ui.history.title'|trans }}
                 </h2>
                 <a href="{{ path('index_spicy_match_history') }}"
                    class="text-sm text-saffron-700 hover:text-saffron-600 hover:underline transition-colors font-medium">
-                    Tout voir
+                    {{ 'ui.history.see_all'|trans }}
                 </a>
             </div>
 
@@ -25,23 +25,23 @@
                             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                 <div class="flex-1">
                                     <h3 class="text-lg font-semibold text-stone-800 mb-2">
-                                        {{ history.title ?: 'Recette du ' ~ history.createdAt|date('d/m/Y à H:i') }}
+                                        {{ history.title ?: 'ui.common.recipe_of'|trans({'%date%': history.createdAt|format_datetime('medium', 'short')}) }}
                                     </h3>
                                     <div class="flex flex-wrap gap-2 items-center">
                                         {% for spice in history.spicyMatch.spices %}
                                             <span class="inline-flex items-center gap-1.5 bg-spice-surface border border-spice-border text-stone-700 text-xs font-medium px-2.5 py-1 rounded-full">
-                                                {{ spice.name }}
+                                                {{ spice.getLocalizedName(app.request.locale) }}
                                             </span>
                                         {% endfor %}
                                         {% if history.spicyMatch.isManual %}
-                                            <span class="inline-flex items-center gap-1 text-[11px] font-medium text-stone-500 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full" title="Mélange créé manuellement — compatibilité non garantie">
-                                                <i class="fa-solid fa-hand text-[9px]"></i>Manuel
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-medium text-stone-500 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full" title="{{ 'ui.history.manual_tooltip'|trans }}">
+                                                <i class="fa-solid fa-hand text-[9px]"></i>{{ 'ui.history.manual'|trans }}
                                             </span>
                                         {% endif %}
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-4 shrink-0">
-                                    <span class="text-sm text-stone-400">{{ history.createdAt|date('d/m/Y') }}</span>
+                                    <span class="text-sm text-stone-400">{{ history.createdAt|format_date('medium') }}</span>
                                     <i class="fa-solid fa-chevron-right text-stone-300 text-sm"></i>
                                 </div>
                             </div>
@@ -58,8 +58,8 @@
             {% else %}
                 <div class="card-warm p-10 text-center">
                     <i class="fa-solid fa-flask text-stone-300 text-5xl mb-4 block"></i>
-                    <p class="text-stone-500 text-lg mb-6">Vous n'avez pas encore de mélange sauvegardé.</p>
-                    {{ buttons.button('Créer mon premier mélange', {
+                    <p class="text-stone-500 text-lg mb-6">{{ 'ui.history.none_yet'|trans }}</p>
+                    {{ buttons.button('ui.history.create_first'|trans, {
                         href: path('index_spicy_match'),
                         variant: 'primary',
                         icon: 'fa-solid fa-fire'

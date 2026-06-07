@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Entity\Translation\TranslatableInterface;
 use App\Repository\AromaticCompoundRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -15,7 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 // MySQL/MariaDB autorise plusieurs NULL dans un index UNIQUE → les composés
 // pas encore renseignés ne bloquent pas (mais deux mêmes CAS = erreur).
 #[ORM\UniqueConstraint(name: 'uniq_aromatic_compound_cas', columns: ['cas_number'])]
-class AromaticCompound
+class AromaticCompound implements TranslatableInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -76,16 +77,88 @@ class AromaticCompound
     #[ORM\ManyToMany(targetEntity: Spices::class, mappedBy: 'secondary_aromatics_compounds')]
     private Collection $secondary_spices;
 
+    /**
+     * @var Collection<int, AromaticCompoundTranslation>
+     */
+    #[ORM\OneToMany(mappedBy: 'aromaticCompound', targetEntity: AromaticCompoundTranslation::class, cascade: [
+        'persist',
+        'remove',
+    ], orphanRemoval: true)]
+    private Collection $translations;
+
     public function __construct()
     {
         $this->spices = new ArrayCollection();
         $this->alchemyFlavors = new ArrayCollection();
         $this->secondary_spices = new ArrayCollection();
+        $this->translations = new ArrayCollection();
     }
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    /**
+     * @return Collection<int, AromaticCompoundTranslation>
+     */
+    public function getTranslations(): Collection
+    {
+        return $this->translations;
+    }
+
+    public function addTranslation(AromaticCompoundTranslation $translation): self
+    {
+        if (! $this->translations->contains($translation)) {
+            $this->translations->add($translation);
+            $translation->setAromaticCompound($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTranslation(AromaticCompoundTranslation $translation): self
+    {
+        if ($this->translations->removeElement($translation) && $translation->getAromaticCompound() === $this) {
+            $translation->setAromaticCompound(null);
+        }
+
+        return $this;
+    }
+
+    public function getTranslation(string $locale): ?AromaticCompoundTranslation
+    {
+        if ($locale === 'fr') {
+            return null;
+        }
+
+        foreach ($this->translations as $t) {
+            if ($t->getLocale() === $locale) {
+                return $t;
+            }
+        }
+
+        return null;
+    }
+
+    public function getLocalizedName(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getName() ?? $this->name;
+    }
+
+    public function getLocalizedDescription(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getDescription() ?? $this->description;
+    }
+
+    public function getLocalizedCooking(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getCooking() ?? $this->cooking;
+    }
+
+    public function getLocalizedInformations(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getInformations() ?? $this->informations;
     }
 
     public function getName(): ?string

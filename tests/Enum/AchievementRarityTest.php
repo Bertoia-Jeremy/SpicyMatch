@@ -11,22 +11,22 @@ final class AchievementRarityTest extends TestCase
 {
     public function testCommonLabel(): void
     {
-        self::assertSame('Graine', AchievementRarity::COMMON->label());
+        self::assertSame('enum.rarity.common', AchievementRarity::COMMON->label());
     }
 
     public function testRareLabel(): void
     {
-        self::assertSame('Infusion', AchievementRarity::RARE->label());
+        self::assertSame('enum.rarity.rare', AchievementRarity::RARE->label());
     }
 
     public function testEpicLabel(): void
     {
-        self::assertSame('Extraction', AchievementRarity::EPIC->label());
+        self::assertSame('enum.rarity.epic', AchievementRarity::EPIC->label());
     }
 
     public function testLegendaryLabel(): void
     {
-        self::assertSame('Essence', AchievementRarity::LEGENDARY->label());
+        self::assertSame('enum.rarity.legendary', AchievementRarity::LEGENDARY->label());
     }
 
     public function testDbValuesUnchanged(): void

@@ -12,7 +12,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/contact')]
+#[Route('/{_locale}/contact', defaults: [
+    '_locale' => 'fr',
+])]
 class ContactController extends AbstractController
 {
     public function __construct(

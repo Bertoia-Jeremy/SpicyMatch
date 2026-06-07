@@ -60,7 +60,8 @@
         {% endif %}
 
         {% if label %}
-            <span class="truncate">{{ label }}</span>
+            {# nowrap, pas truncate : le bouton grandit pour les libellés EN/ES plus longs #}
+            <span class="whitespace-nowrap">{{ label }}</span>
         {% endif %}
 
         {% if icon and icon_pos == 'right' %}

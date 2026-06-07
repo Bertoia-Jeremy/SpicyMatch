@@ -14,30 +14,30 @@
         path: '/epices',
         nextState: 'lab',
         nextUrl: path('index_spicy_match'),
-        transitionTitle: 'Bien joué ! Prêt à créer ton premier mélange ?',
+        transitionTitle: 'ui.onboarding.transition_spices'|trans,
         steps: [
             {
                 target: 'input[name="search"]',
-                title: 'Cherche une épice',
-                text: 'Tape un nom pour trouver ton épice. Cumin, paprika, curcuma… tout y est. Clique "Suivant" quand tu veux continuer.',
+                title: 'ui.onboarding.s1_search_title'|trans,
+                text: 'ui.onboarding.s1_search_text'|trans,
                 position: 'bottom',
                 noClickAdvance: true
             },
             {
                 target: '.card-warm',
-                title: 'Découvre les fiches',
-                text: 'Clique sur l\'image d\'une épice pour voir son aperçu rapide.',
+                title: 'ui.onboarding.s1_cards_title'|trans,
+                text: 'ui.onboarding.s1_cards_text'|trans,
                 position: 'bottom',
                 followModal: {
-                    title: 'Voilà la fiche !',
-                    text: 'Saveurs, composés aromatiques, accords gourmands… tout est là. Ferme la fiche pour continuer.',
+                    title: 'ui.onboarding.s1_modal_title'|trans,
+                    text: 'ui.onboarding.s1_modal_text'|trans,
                     position: 'top'
                 }
             },
             {
                 target: '[data-tour="cta-lab"]',
-                title: 'Prêt à créer ?',
-                text: 'Quand une épice te plaît, viens créer un mélange dans le Lab !',
+                title: 'ui.onboarding.s1_cta_title'|trans,
+                text: 'ui.onboarding.s1_cta_text'|trans,
                 position: 'bottom'
             }
         ]
@@ -46,26 +46,26 @@
         path: '/spicymatch',
         nextState: 'academy',
         nextUrl: path('education_index'),
-        transitionTitle: 'Super ! Dernier arrêt : l\'Académie des épices.',
+        transitionTitle: 'ui.onboarding.transition_lab'|trans,
         steps: [
             {
                 target: '[data-tour="mode-toggle"]',
-                title: 'Auto ou Manuel ?',
-                text: 'Auto : l\'algo trouve les meilleurs accords pour toi. Manuel : tu choisis librement.',
+                title: 'ui.onboarding.s2_mode_title'|trans,
+                text: 'ui.onboarding.s2_mode_text'|trans,
                 position: 'bottom',
                 noClickAdvance: true
             },
             {
                 target: '[data-tour="lab-aromatic-filter"]',
-                title: 'Le secret des accords',
-                text: 'Les épices du même groupe aromatique se marient naturellement. Filtre pour explorer une famille.',
+                title: 'ui.onboarding.s2_filter_title'|trans,
+                text: 'ui.onboarding.s2_filter_text'|trans,
                 position: 'bottom',
                 noClickAdvance: true
             },
             {
                 target: '.card-warm',
-                title: 'À toi de jouer !',
-                text: 'Clique sur une épice pour l\'ajouter. L\'algo affiche instantanément les meilleurs accords.',
+                title: 'ui.onboarding.s2_play_title'|trans,
+                text: 'ui.onboarding.s2_play_text'|trans,
                 position: 'top',
                 noClickAdvance: true
             }
@@ -79,14 +79,14 @@
         steps: [
             {
                 target: '[data-tour="game-grid"]',
-                title: '6 mini-jeux t\'attendent',
-                text: 'Choisis un mode, une difficulté, et prouve ce que tu sais sur les épices !',
+                title: 'ui.onboarding.s3_games_title'|trans,
+                text: 'ui.onboarding.s3_games_text'|trans,
                 position: 'bottom'
             },
             {
                 target: '.tag-secondary',
-                title: 'Gagne de l\'XP',
-                text: 'Chaque bonne réponse rapporte de l\'XP. Monte en niveau et débloque des succès exclusifs !',
+                title: 'ui.onboarding.s3_xp_title'|trans,
+                text: 'ui.onboarding.s3_xp_text'|trans,
                 position: 'left'
             }
         ]
@@ -115,7 +115,7 @@
         <button @click="skip"
                 class="absolute top-4 right-4 w-7 h-7 flex items-center justify-center rounded-full
                        text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors z-10"
-                aria-label="Passer l'introduction">
+                aria-label="{{ 'ui.onboarding.skip_intro'|trans }}">
             <i class="fa-solid fa-xmark text-xs"></i>
         </button>
 
@@ -125,11 +125,10 @@
                     <i class="fa-solid fa-hand-sparkles text-4xl text-saffron-600"></i>
                 </div>
                 <h2 id="onboarding-welcome-title" class="text-xl font-bold text-stone-800 mb-3 leading-tight">
-                    Bienvenue sur SpicyMatch !
+                    {{ 'ui.onboarding.welcome_title'|trans }}
                 </h2>
                 <p class="text-stone-500 text-sm leading-relaxed">
-                    On va te faire découvrir <strong class="text-stone-700">3 espaces clés</strong> du site en quelques secondes.
-                    Promis, c'est rapide.
+                    {{ 'ui.onboarding.welcome_text_html'|trans|raw }}
                 </p>
             </div>
             <a href="{{ path('index_spices') }}"
@@ -138,11 +137,11 @@
                       text-white text-sm font-bold rounded-xl hover:bg-paprika-900
                       transition-colors shadow-sm shadow-paprika-900/20 mb-3">
                 <i class="fa-solid fa-arrow-right"></i>
-                C'est parti !
+                {{ 'ui.onboarding.lets_go'|trans }}
             </a>
             <button @click="skip"
                     class="w-full text-center text-xs text-stone-500 hover:text-stone-600 py-1 transition-colors">
-                Je connais déjà, passer →
+                {{ 'ui.onboarding.already_know'|trans }}
             </button>
         </div>
     </div>
@@ -190,9 +189,9 @@
                 </template>
             </div>
             <div class="flex gap-2">
-                <button @click="skip" class="text-xs text-stone-500 hover:text-stone-600 transition-colors">Passer</button>
+                <button @click="skip" class="text-xs text-stone-500 hover:text-stone-600 transition-colors">{{ 'ui.onboarding.skip'|trans }}</button>
                 <button @click="next"
-                        aria-label="Étape suivante du tutoriel"
+                        aria-label="{{ 'ui.onboarding.next_step_aria'|trans }}"
                         class="text-xs font-semibold text-white bg-paprika-800 hover:bg-paprika-900 px-3 py-1.5 rounded-full transition-colors">
                     <span x-text="nextLabel()"></span>
                 </button>
@@ -210,11 +209,11 @@
          class="fixed bottom-8 left-1/2 -translate-x-1/2 z-60 bg-white rounded-xl shadow-2xl border border-saffron-200/60 px-6 py-4 max-w-sm">
         <p class="text-sm font-semibold text-stone-800 mb-2" x-text="transitionTitle"></p>
         <div class="flex gap-2 justify-end">
-            <button @click="skipTransition" class="text-xs text-stone-500 hover:text-stone-600">Plus tard</button>
+            <button @click="skipTransition" class="text-xs text-stone-500 hover:text-stone-600">{{ 'ui.onboarding.later'|trans }}</button>
             <a :href="transitionUrl"
                @click="acceptTransition"
                class="text-xs font-semibold text-white bg-paprika-800 hover:bg-paprika-900 px-3 py-1.5 rounded-full transition-colors">
-                Allons-y →
+                {{ 'ui.onboarding.go'|trans }}
             </a>
         </div>
     </div>

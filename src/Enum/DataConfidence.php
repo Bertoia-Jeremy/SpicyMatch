@@ -38,14 +38,12 @@ enum DataConfidence: string
         };
     }
 
+    /**
+     * Clé de traduction (domaine messages) — traduire à l'affichage via |trans.
+     */
     public function label(): string
     {
-        return match ($this) {
-            self::MEASURED => 'Mesuré',
-            self::LITERATURE => 'Littérature',
-            self::ESTIMATED => 'Estimé',
-            self::PLACEHOLDER => 'Provisoire',
-        };
+        return 'enum.confidence.' . $this->value;
     }
 
     /**

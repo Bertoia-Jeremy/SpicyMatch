@@ -10,12 +10,11 @@ enum OdtMatrix: string
     case WATER = 'water';
     case OIL = 'oil';
 
+    /**
+     * Clé de traduction (domaine messages) — traduire à l'affichage via |trans.
+     */
     public function label(): string
     {
-        return match ($this) {
-            OdtMatrix::AIR => 'Air',
-            OdtMatrix::WATER => 'Eau',
-            OdtMatrix::OIL => 'Huile',
-        };
+        return 'enum.matrix.' . $this->value;
     }
 }

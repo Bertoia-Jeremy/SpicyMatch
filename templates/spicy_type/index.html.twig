@@ -1,15 +1,15 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}SpicyMatch — Types d'épices{% endblock %}
+{% block title %}{{ 'ui.catalog.types_page_title'|trans }}{% endblock %}
 
 {% block body %}
 {% import 'macros/buttons.html.twig' as buttons %}
 
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="text-center mb-12">
-        <span class="tag-primary mb-4 inline-block">Botanique</span>
-        <h1 class="text-4xl font-bold text-stone-900 mb-3">Types d'épices</h1>
-        <p class="text-stone-500 text-lg max-w-2xl mx-auto">Classification des épices selon leur origine végétale et leur nature biologique.</p>
+        <span class="tag-primary mb-4 inline-block">{{ 'ui.catalog.types_tag'|trans }}</span>
+        <h1 class="text-4xl font-bold text-stone-900 mb-3">{{ 'ui.catalog.types_title'|trans }}</h1>
+        <p class="text-stone-500 text-lg max-w-2xl mx-auto">{{ 'ui.catalog.types_intro'|trans }}</p>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -22,10 +22,10 @@
                 {% if type.description %}
                     <p class="text-stone-500 text-sm line-clamp-3 mb-6 flex-1">{{ type.description }}</p>
                 {% else %}
-                    <p class="text-stone-400 text-sm italic mb-6 flex-1">Aucune description disponible.</p>
+                    <p class="text-stone-400 text-sm italic mb-6 flex-1">{{ 'ui.catalog.no_description'|trans }}</p>
                 {% endif %}
-                
-                {{ buttons.button('Voir les épices', {
+
+                {{ buttons.button('ui.catalog.view_spices'|trans, {
                     href: path('view_spicy_type', {id: type.id}),
                     variant: 'outline',
                     size: 'sm',
@@ -35,7 +35,7 @@
             </article>
         {% else %}
             <div class="col-span-full text-center py-12">
-                <p class="text-stone-400">Aucun type répertorié pour le moment.</p>
+                <p class="text-stone-400">{{ 'ui.catalog.no_type'|trans }}</p>
             </div>
         {% endfor %}
     </div>

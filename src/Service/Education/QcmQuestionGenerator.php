@@ -9,12 +9,14 @@ use App\Enum\GameMode;
 use App\Repository\SpicesRepository;
 use App\Service\Match\CompatibleSpiceFinder;
 use App\ValueObject\Match\MortarIds;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class QcmQuestionGenerator implements QuestionGeneratorInterface
 {
     public function __construct(
         private readonly SpicesRepository $spicesRepository,
         private readonly CompatibleSpiceFinder $compatibleSpiceFinder,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -82,7 +84,9 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
 
             return [
                 'type' => 'qcm',
-                'prompt' => sprintf('Quelle épice se marie le mieux avec %s ?', (string) $baseData['name']),
+                'prompt' => $this->translator->trans('ui.edu.prompt.qcm_best_match', [
+                    '%spice%' => (string) $baseData['name'],
+                ]),
                 'baseSpice' => [
                     'id' => (int) $baseData['id'],
                     'name' => (string) $baseData['name'],

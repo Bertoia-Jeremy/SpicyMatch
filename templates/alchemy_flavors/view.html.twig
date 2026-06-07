@@ -9,7 +9,7 @@
     <nav class="mb-8">
         <a href="{{ path('index_alchemy_flavors') }}" class="text-stone-500 hover:text-saffron-700 text-sm flex items-center gap-2 transition-colors">
             <i class="fa-solid fa-arrow-left text-xs"></i>
-            Retour aux saveurs
+            {{ 'ui.catalog.back_to_flavors'|trans }}
         </a>
     </nav>
 
@@ -17,24 +17,24 @@
         <div class="lg:col-span-2 space-y-8">
             <header>
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-turmeric-100 text-turmeric-700 text-xs font-bold uppercase tracking-wider mb-4">
-                    <i class="fa-solid fa-flask-vial"></i> Saveur d'Alchimie
+                    <i class="fa-solid fa-flask-vial"></i> {{ 'ui.catalog.flavor_badge'|trans }}
                 </div>
                 <h1 class="text-5xl font-display font-bold text-stone-900">{{ alchemyFlavor.name }}</h1>
             </header>
 
             <section class="card-warm p-8">
                 <h2 class="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-info text-turmeric-500"></i> Profil gustatif
+                    <i class="fa-solid fa-circle-info text-turmeric-500"></i> {{ 'ui.catalog.taste_profile'|trans }}
                 </h2>
                 <div class="text-stone-600 leading-relaxed space-y-4">
-                    {{ alchemyFlavor.description|default('Aucun profil détaillé disponible.')|nl2br }}
+                    {{ alchemyFlavor.description|default('ui.catalog.no_profile_detailed'|trans)|nl2br }}
                 </div>
             </section>
 
             {% if alchemyFlavor.cooking %}
                 <section class="card-warm p-8">
                     <h2 class="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-mortar-pestle text-turmeric-500"></i> Accords culinaires
+                        <i class="fa-solid fa-mortar-pestle text-turmeric-500"></i> {{ 'ui.catalog.culinary_pairings'|trans }}
                     </h2>
                     <div class="text-stone-600 leading-relaxed">
                         {{ alchemyFlavor.cooking|nl2br }}
@@ -45,7 +45,7 @@
             {% if alchemyFlavor.informations %}
                 <section class="card-warm p-8">
                     <h2 class="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-flask text-turmeric-500"></i> Note scientifique
+                        <i class="fa-solid fa-flask text-turmeric-500"></i> {{ 'ui.catalog.scientific_note'|trans }}
                     </h2>
                     <div class="text-stone-600 leading-relaxed">
                         {{ alchemyFlavor.informations|nl2br }}
@@ -57,7 +57,7 @@
         <div class="space-y-8">
             <section>
                 <h3 class="text-xl font-bold text-stone-900 mb-6 flex items-center gap-2">
-                    <i class="fa-solid fa-atom text-saffron-600"></i> Composés associés
+                    <i class="fa-solid fa-atom text-saffron-600"></i> {{ 'ui.catalog.associated_compounds'|trans }}
                 </h3>
                 
                 {% if alchemyFlavor.aromaticsCompounds is not empty %}
@@ -65,13 +65,13 @@
                         {% for compound in alchemyFlavor.aromaticsCompounds %}
                             <a href="{{ path('view_aromatic_compound', {id: compound.id}) }}" 
                                class="flex items-center justify-between p-4 bg-white border border-stone-200 rounded-xl hover:border-saffron-400 hover:shadow-md transition-all group">
-                                <span class="font-semibold text-stone-700 group-hover:text-saffron-700">{{ compound.name }}</span>
+                                <span class="font-semibold text-stone-700 group-hover:text-saffron-700">{{ compound.getLocalizedName(app.request.locale) }}</span>
                                 <i class="fa-solid fa-chevron-right text-stone-300 text-xs group-hover:text-saffron-500 transition-colors"></i>
                             </a>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <p class="text-stone-400 italic">Aucun composé lié.</p>
+                    <p class="text-stone-400 italic">{{ 'ui.catalog.no_linked_compound'|trans }}</p>
                 {% endif %}
             </section>
         </div>

@@ -1,0 +1,886 @@
+# English catalog.
+common:
+    actions:
+        submit: Submit
+        save: Save
+        cancel: Cancel
+
+form:
+    contact:
+        email: Email
+        name: Name
+        subject: Subject
+        message: Message
+    register:
+        username: Username
+        mail: 'Email (optional, but handy to recover your password)'
+        password: Password
+    mail:
+        placeholder: Enter an email
+
+flash:
+    csrf_invalid: Invalid CSRF token.
+    token_invalid: Invalid token.
+    email_invalid: Invalid email address.
+    newsletter_confirmed: Newsletter subscription confirmed!
+    account_created: Your account was created successfully!
+    welcome_back: 'Welcome back, %username%!'
+    welcome: 'Welcome, %username%!'
+    difficulty_invalid: Invalid difficulty.
+    difficulty_updated: Difficulty updated.
+    posture_updated: Posture updated.
+    preference_saved: Preference saved.
+    daily_limit_reached: 'Daily limit reached (5 %mode% sessions per day).'
+
+ui:
+    meta:
+        description: SpicyMatch — Create perfect spice blends through molecular analysis of aromatic compounds.
+        default_title: SpicyMatch — Culinary Alchemy
+    common:
+        recipe_label: Recipe
+        recipe_of: 'Recipe from %date%'
+        blend_of: 'Blend from %date%'
+        member_since: 'Member since %date%'
+        unlocked_on: 'Unlocked on %date%'
+        skip_to_content: Skip to main content
+        home: Home
+        academy: The Academy
+        configuration: Settings
+        logout: Log out
+        login: Log in
+        register: Sign up
+        my_profile: My Chef Profile
+        my_blends: My Blends
+        contact: Contact
+        back_home: Back to home
+    navbar:
+        menu: The Menu
+        create_blend: Create a blend
+        lab_title: The Lab — Create a blend
+        section_exploration: I · Exploration
+        exploration_subtitle: Discover the world's spices
+        catalog_title: The Catalog
+        catalog_sub: All spices
+        alchemy_title: The Alchemy of Flavors
+        alchemy_sub: Compose a blend
+        section_learning: II · Learning
+        learning_subtitle: Sharpen your palate
+        academy_sub: 6 game modes
+        scoville_title: Scoville Challenge
+        scoville_sub: Survival mode
+        intrus_title: Out of Season
+        intrus_sub: Find the odd one out
+        section_atelier: III · Workshop
+        atelier_subtitle: Your chef's space
+        profile_sub: Achievements & progress
+        blends_sub: History & favorites
+        config_sub: Account settings
+        join_subtitle: Join the brigade
+        create_account: Create an account
+        help: Help
+        main_nav: Main navigation
+        main_menu: Main menu
+    home:
+        title: SpicyMatch — The Odyssey of Aromas
+    toile:
+        chapter: Chapter II · The Web of Aromas
+        title_html: 'The <em class="not-italic italic" style="color: var(--color-turmeric-700)">aromatic.</em> solar system'
+        blurb: Each spice is a sun. Around it orbit its compounds. Click a molecule to discover all the spices that share this invisible signature.
+        hud_active: Active system · CARDAMOM
+        hud_stats: 6 compounds · 14 links identified
+        sun_sub: Elettaria · IN
+        side_title_html: 'One molecule, <em class="not-italic italic" style="color: var(--color-paprika-800)">a thousand spices.</em>'
+        side_blurb: Linalool is not just a name. It's the invisible thread linking lavender to coriander, basil to cardamom. Pull the thread — a whole family appears.
+        also_in: Also in
+        legend_terpenic: Terpenic
+        legend_piperaceae: Piperaceae
+        legend_phenolic: Phenolic
+        legend_woody: Woody
+        mol_aria_suffix: click to see details
+        m1_name: Linalool
+        m1_badge: Terpene · Floral
+        m1_descr: A fresh floral note with citrus accents. Found in over 200 aromatic plants — it's the signature scent of lavender, but also the secret of many others.
+        m2_name: Piperine
+        m2_badge: Alkaloid · Pungent
+        m2_descr: The compound that gives black pepper its characteristic bite. It activates the TRPV1 receptors — the same as capsaicin, but with a woody softness.
+        m3_name: α-Terpineol
+        m3_badge: Terpene · Floral-Pine
+        m3_descr: An aroma both floral and resinous, like lilac rubbed against a pine. Prized in perfumery as much as in Mediterranean cooking.
+        m4_name: Eugenol
+        m4_badge: Phenol · Woody-Clove
+        m4_descr: The heart of clove. A mild anesthetic, dense scent — an unforgettable signature that lodges in olfactory memory.
+        m5_name: 1,8-Cineole
+        m5_badge: Oxide · Fresh-Camphor
+        m5_descr: That freshness sometimes called eucalyptus-like. It opens the airways and a dish's aromatic palette with the same frankness.
+        m6_name: Geraniol
+        m6_badge: Terpene · Rose-Citrus
+        m6_descr: The fragrant soul of geranium and rose. In cooking, a thin thread between citrus peel and petal — to be handled with reverence.
+    search:
+        placeholder: Search...
+        clear: Clear search
+        spice: Spice
+        compound: Compound
+        see_all_results: See all results
+        no_result_for: 'No result for "%query%"'
+        full_search_page: Full search page
+        page_title: Search
+        title: Search
+        full_placeholder: Spice, aromatic compound...
+        submit: Search
+        results_count: '%count% result(s) for'
+        spices: Spices
+        compounds: Aromatic compounds
+        no_result: No result
+        no_result_text: 'No spice or aromatic compound matches "%query%".'
+        try_another: Try another term or check the spelling.
+        prompt: Enter a term to explore spices and aromatic compounds.
+    pagination:
+        previous: Previous
+        next: Next
+        per_page_label: Spices per page
+        per_page: '%count% per page'
+    newsletter:
+        unsub_title: Unsubscribe — SpicyMatch
+        unsub_confirmed: Unsubscription confirmed
+        unsub_text_html: 'The address <strong class="text-stone-800">%email%</strong> has been removed from our mailing list. You will no longer receive our newsletters.'
+        unsub_changed_mind: Changed your mind? You can resubscribe at any time from your profile.
+    game:
+        quit: Quit the game
+        back: Back
+        see_results: See results
+        finish: Finish
+        next_question: Next question
+        correct_answer: Correct answer!
+        wrong_answer: Wrong answer
+        intrus_tag: Intruder ✓
+        intrus_tag_plain: Intruder
+        your_choice: Your choice
+        chrono_subtitle: Identify the spices as fast as possible
+        time_up: Time's up!
+        time_up_summary: '%correct%/%answered% correct<br>%score% points total.'
+        time_remaining: Time remaining
+        correct_points: 'Correct! +%points% pts'
+        it_was: 'It was %name%'
+        which_spice: Which spice is this?
+        family: 'Family:'
+        type: 'Type:'
+        flavors: 'Flavors:'
+        main_compounds: 'Main compounds:'
+        secondary_compounds: 'Secondary compounds:'
+        tip: 'Tip:'
+        prepare_next: Get ready for your next answer…
+        survival_subtitle: Chain compatible spices without a mistake
+        total_victory: Total victory!
+        victory_text: You exhausted all possible compatibilities!
+        game_over: Game Over
+        defeat_text: '<strong>%a%</strong> is not compatible with <strong>%b%</strong>.<br>Chain: %n%.'
+        choose_start: Choose your starting spice
+        choose_start_text: Select the spice you want to start your chain with.
+        current_spice: Current spice
+        which_compatible: Which spice is compatible?
+        guesswho_subtitle: Guess the spice from the clues
+        it_was_indeed: 'It was indeed %name%'
+        points_earned: '+%points% points'
+        correct_was: 'The correct answer was %name%'
+        clues_revealed: 'Clues revealed: %count%/%total%'
+        reveal_clue: Reveal a clue
+        revealing: Revealing…
+        all_clues_revealed: All clues revealed
+        clue_locked: Clue locked
+        start_typing: Start typing the name…
+        hangman_subtitle: Guess the spice name letter by letter
+        errors: 'Mistakes:'
+        found: Found!
+        lost: Lost...
+        next_word: Next word
+        intrus_find_compatible: Find the compatible one
+        intrus_find_intruder: Find the intruder
+        reference_spice: Reference spice
+        kbd_select: select
+        kbd_validate: validate
+        validate: Submit
+        same_family_one: 'belongs to the same aromatic family'
+        same_family_many: 'belong to the same aromatic family'
+    edu:
+        prompt:
+            qcm_best_match: 'Which spice pairs best with %spice%?'
+            intrus_group: 'Which spice does not belong to the « %group% » group?'
+            intrus_compatible: 'Which spice is compatible with %spice%?'
+            intrus_classic: 'Which spice is the odd one out compared to %spice%?'
+            guesswho_clues_used: '%count% clue used|%count% clues used'
+            hangman_default: Guess the spice
+            hangman_family: 'Family: %value%'
+            hangman_type: 'Type: %value%'
+        clue:
+            flavors: Flavors
+            group: Aromatic family
+            type: Type
+            cooking_tip: Cooking tip
+            main_compounds: Main compounds
+            description: Description
+        rule:
+            qcm_0: Find the most compatible spice among 4 options.
+            qcm_1: Each correct answer earns you XP.
+            qcm_2: 7 questions in total — no going back.
+            survival_0: Chain compatible spices starting from the initial spice.
+            survival_1: A single mistake and the game is over.
+            survival_2: The further you go, the more XP you earn.
+            guess_who_0: Clues appear one by one to identify the mystery spice.
+            guess_who_1: The fewer clues you use, the more points you earn.
+            guess_who_2: 7 spices to guess in total.
+            intrus_0: Among 4 spices, find the one that has nothing in common with the others.
+            intrus_1: 'Some questions are inverted: find the compatible one!'
+            intrus_2: 7 questions — watch out for visual traps.
+            hangman_0: Guess the spice name letter by letter.
+            hangman_1: Accents are ignored — type the base letter.
+            hangman_2: Too many mistakes and the hangman is complete.
+            chrono_0: Identify each spice as fast as possible.
+            chrono_1: You see the photo and characteristics, but not the name.
+            chrono_2: Time is ticking — every second counts.
+        academy_title: Spice Academy
+        academy_intro: Test your knowledge of spices and their aromatic compatibilities.
+        xp_per_correct: '%xp% XP/correct'
+        questions: '%count% questions'
+        unlimited_questions: ∞ questions
+        come_back_tomorrow: Come back tomorrow
+        reduced_xp_tooltip: 'XP reduced by 50%% beyond %threshold% games/day'
+        remaining_xp: '%count% left · ×0.5 XP'
+        remaining_today: '%remaining%/%max% today'
+        recent_games: Recent games
+        correct_count: '%correct%/%total% correct'
+        in_progress: In progress
+        presentation: Presentation
+        xp_per_answer: '%xp% XP / correct answer'
+        unlimited: Unlimited questions
+        difficulty: Difficulty
+        default_difficulty_html: 'Default difficulty can be changed in your <a href="%url%" class="text-saffron-600 hover:underline">profile</a>.'
+        rules: Rules
+        ingredient_of_day: Your ingredient of the day
+        all_modes: All modes
+        play: Play
+        launch_brigade: Start the brigade
+        question: 'Question %num%'
+        pts: '%score% pts'
+        correct_answer: Correct answer!
+        wrong_answer: Wrong answer
+        next_question: Next question
+        submit: Submit
+        precision: accuracy
+        good_answers: Correct answers
+        errors: Mistakes
+        xp_earned: XP earned
+        replay: Play again
+        dashboard: Dashboard
+        question_details: Question details
+        your_answer: 'Your answer:'
+        correct_label: Correct
+        quiz_result: Quiz — Result
+        is_correct_answer: is the correct answer.
+        you_answered: You answered
+        correct_was: The correct answer was
+    onboarding:
+        transition_spices: Well done! Ready to create your first blend?
+        s1_search_title: Search for a spice
+        s1_search_text: 'Type a name to find your spice. Cumin, paprika, turmeric… it''s all there. Click "Next" when you want to continue.'
+        s1_cards_title: Discover the cards
+        s1_cards_text: Click a spice image to see its quick preview.
+        s1_modal_title: Here's the card!
+        s1_modal_text: Flavors, aromatic compounds, tasty pairings… it's all there. Close the card to continue.
+        s1_cta_title: Ready to create?
+        s1_cta_text: When you like a spice, come create a blend in the Lab!
+        transition_lab: 'Great! Last stop: the Spice Academy.'
+        s2_mode_title: Auto or Manual?
+        s2_mode_text: 'Auto: the algorithm finds the best pairings for you. Manual: you choose freely.'
+        s2_filter_title: The secret of pairings
+        s2_filter_text: Spices from the same aromatic group pair naturally. Filter to explore a family.
+        s2_play_title: Your turn!
+        s2_play_text: Click a spice to add it. The algorithm instantly shows the best pairings.
+        s3_games_title: 6 mini-games await you
+        s3_games_text: Pick a mode, a difficulty, and prove what you know about spices!
+        s3_xp_title: Earn XP
+        s3_xp_text: Every correct answer earns XP. Level up and unlock exclusive achievements!
+        skip_intro: Skip the introduction
+        welcome_title: Welcome to SpicyMatch!
+        welcome_text_html: 'We''ll show you <strong class="text-stone-700">3 key areas</strong> of the site in a few seconds. It''s quick, promise.'
+        lets_go: Let's go!
+        already_know: I already know, skip →
+        skip: Skip
+        next_step_aria: Next tutorial step
+        later: Later
+        go: Let's go →
+    tabs:
+        profile: Profile
+        favorites: Favorites
+        achievements: Achievements
+        configuration: Settings
+        history: History
+        security: Security
+    recipe:
+        folio: 'Folio · %id% · Laboratory Notebook'
+        rename_aria: Rename the recipe
+        rename: Rename
+        add_favorite: Add to favorites
+        in_favorites: In your favorites
+        spices: 'spice|spices'
+        moments: 'moment|moments'
+        methods: 'method|methods'
+        shared_compound: shared compound
+        moment_card: Moment card
+        dry_profile: Dry olfactory profile — no cooking.
+        fat: '% fat'
+        aqueous: '% aqueous'
+        prep_title: Spice preparation
+        prep_sub: 'The chef''s hand · %count% spice(s)'
+        out_of_matrix_aria: 'Out-of-matrix preparation: %label%'
+        out_of_matrix_title: 'This preparation is listed for the %label% matrix. To enable it, compose a new blend in the Lab by choosing the %label% mode.'
+        out_of_matrix: 'out of matrix · %label%'
+        method: Method
+        moments_title: Insertion moments
+        moments_sub: Mastering timing · 5 aromatic windows
+        earlier: Earlier
+        later: Later
+        moment_before: Before
+        moment_start: Start
+        moment_middle: Middle
+        moment_end: End
+        moment_after: After
+        moment_free: — free —
+        kinetics_title: Aromatic kinetics
+        kinetics_sub: Top · Heart · Base
+        kinetics_retention: ' · retention at %temp% °C / %time% min'
+        kinetics_head_blurb: Volatile notes · add at the end of cooking
+        kinetics_heart_blurb: Structuring notes · add mid-cooking
+        kinetics_base_blurb: Heavy notes · withstand long cooking
+        compounds: 'compound|compounds'
+        no_compound_cat: — no compound in this category —
+        retention_title: Fraction preserved after the cooking scenario (Nernst × thermal decay)
+        no_physchem: '%count% compound(s) without physico-chemical data (%names%).'
+        matrix_title: Matrix comparison
+        matrix_sub: What if we cooked differently?&nbsp;Top 5 candidates per ODT matrix
+        col_spice: Spice
+        current_matrix: Blend matrix
+        out_of_top5: Outside the top 5 in this matrix
+        tanimoto_title: Tanimoto OAV score (0–100 scale)
+        tanimoto_note: Tanimoto OAV scores ∈ [0–100] · corrected by Nernst partition and thermal decay for the evaluated matrix.
+        alchemist_note: The Alchemist's Note
+        note_shared: '"These spices share %count% aromatic compound(s) in common — their affinity rests on a shared aromatic signature."'
+        note_manual: '"A freely composed blend — the complementarity of these spices expresses itself without affinity calculation."'
+        note_contrast: '"These spices have no main aromatic compound in common — their pairing rests on complementarity and contrast."'
+    lab:
+        finalize_title: Finalizing the blend — SpicyMatch
+        back_to_lab: Back to the Lab
+        finalize: Finalizing the blend
+        blend_takes_shape_html: 'The blend <em class="italic" style="color: #C25E2C;">takes shape</em>.'
+        status_upcoming: upcoming
+        step_time: Step I · The timing
+        step_time_q_html: 'When will <em class="italic" style="color: #C25E2C;">%name%</em> make its entrance?'
+        step_hand: Step II · The hand
+        step_hand_q_html: 'With which hand to awaken <em class="italic" style="color: #C25E2C;">%name%</em>?'
+        page_title: The Lab — SpicyMatch
+        step1_eyebrow: Step 1 — Selection
+        hero_title_html: 'The Lab,<br><span class="text-saffron-600 italic font-light">the flavor workshop</span>'
+        hero_desc: Pick your spices the way you'd lay out ingredients on a worktop. The algorithm reveals the pairings that sing together.
+        step_select: Select
+        step_analyze: Analyze
+        step_save: Save
+        cooking_question_html: 'How will you cook this blend? Scores adjust to the chosen matrix (Nernst&nbsp;+&nbsp;thermal decay).'
+        culinary_context_aria: Culinary context selection
+        preset_dry_aria: 'Cooking preset: Dry — raw seasoning, no cooking'
+        preset_dry: Dry
+        preset_air: Air
+        preset_broth_aria: 'Cooking preset: Broth — water, 20 minutes at 80 degrees'
+        preset_broth: Broth
+        preset_water: Water
+        preset_saute_aria: 'Cooking preset: Sauté — pure oil, 10 minutes at 140 degrees'
+        preset_saute: Sauté
+        preset_oil: Oil
+        advanced: Advanced
+        odt_matrix: ODT matrix
+        fat_ratio: Fat ratio
+        cooking_time: Cooking time
+        temperature: Temperature
+        mode_tooltip: The cooking mode influences scoring (Nernst + thermal decay)
+        mode_prefix: 'Mode: %label%'
+        search_spice: Search for a spice…
+        clear_search: Clear search
+        clear_all: Clear all
+        auto: Auto
+        manual: Manual
+        spices_count: '%count% spice(s)'
+        no_match: 'No spice matches "%query%".'
+        no_more_compatible: No additional spice is compatible with your selection.
+        my_blend: My blend
+        empty_html: 'Click a <span class="font-display italic text-stone-500">spice</span> to start your blend'
+        remove: 'Remove %name%'
+        clear_selection: Clear selection
+        compose: Compose the blend
+        data: 'Data: %label%'
+        scores_indicative: Indicative scores — data being validated.
+        reset_culinary_aria: Reset culinary context
+        select_spices: Select your spices
+        compose_short: Compose
+        selected: Selected
+        tip_mode_html: '%count% spice(s) — <strong class="text-stone-500 font-semibold">%mode%</strong> mode'
+    filters:
+        aromatic_group: Aromatic Group
+        spice_type: Spice Type
+        search: Search…
+        clear_all: Clear all
+        group: 'Group:'
+        type: 'Type:'
+    modal:
+        close: Close
+        dominant_flavors: Dominant flavors
+        aromatic_compounds: Aromatic compounds
+        quick_preview: Quick preview
+        view_full: View full page
+    config:
+        email_address: Email address
+        current_mail: 'Email currently used:'
+        none: None
+        add_mail: Add an email
+        change_mail: Change email
+        discovery_path: Discovery tour
+        replay_intro: Replay the introduction
+        replay_intro_text: Restart the getting-started guide to rediscover the main features.
+        replay: Replay
+        game_posture: Game posture
+        posture_intro: Your posture sets the default game difficulty and changes some visual elements.
+        commis: Commis
+        cuisinier: Cook
+        chef_partie: Chef de Partie
+        posture_hard_html: '<strong>Chef de Partie:</strong> aromatic group colors hidden, shorter timer in Hangman, subtler intruders.'
+        posture_medium_html: '<strong>Cook:</strong> intermediate difficulty, standard behavior.'
+        posture_easy_html: '<strong>Commis:</strong> full visual aids, more time, extra hints.'
+        gamification_privacy: Gamification & Privacy
+        progression_system: Progression system (XP, levels, achievements)
+        gamification_on: Enabled — your actions earn XP and unlock achievements.
+        gamification_off: Disabled — no progression data is collected.
+        disable: Disable
+        enable: Enable
+        change_mail_form: 'Email change form:'
+        back: Back
+    profile:
+        dashboard_title: Dashboard
+        unlocked_achievements: Unlocked achievements
+        equipped_badge: Equipped achievement
+        level_xp: 'Level %level% — %xp% XP'
+        no_recent_blend: No recent blend.
+        no_progress: No progress yet
+        no_progress_hint: Create your first blend to unlock your progression and earn XP!
+    achievements:
+        unlocked_count: '%count% / %total% achievements unlocked'
+        xp_from_achievements: '+%xp% XP earned through achievements'
+        global_progress: Overall progress
+        not_started: Not started yet
+        to_discover: To discover…
+        equipped_badge: Equipped badge
+        equip: Equip
+        progress: Progress
+        none_yet: No achievement yet
+        none_yet_text: Create your first blend to unlock achievements and earn XP!
+        create_first: Create my first blend
+    history:
+        title: Blend history
+        see_all: See all
+        manual: Manual
+        manual_tooltip: Manually created blend — compatibility not guaranteed
+        none_yet: You don't have any saved blend yet.
+        create_first: Create my first blend
+        my_favorites: My favorites
+        remove_favorite: Remove from favorites
+        no_favorites: You don't have any favorite blend yet.
+        see_my_blends: See my blends
+        subtitle: Find all your saved recipes.
+        see_favorites: See my favorites
+        rename_hint: Double-click to rename
+        rename: Rename
+        fav:
+            title: My favorite blends
+            subtitle: The recipes you marked as favorites.
+            empty: No favorite blend yet.
+            empty_hint: Click the star on a blend to add it to your favorites.
+            see_history: See my history
+    error:
+        title: An error occurred
+        code: 'Error code:'
+        persist: If the problem persists, please contact the administrator.
+        home: Home
+    security:
+        password: Password
+        password_text: Changing the password is not available yet.
+        auth: Authentication
+        auth_text: No two-factor authentication option configured yet.
+    catalog:
+        no_description: No description available.
+        preview: Preview
+        match_label: Match
+        compat: Compat.
+        see_details: View details
+        flavors_heading_html: 'The <em class="italic not-italic" style="color: %color%">flavors</em>'
+        primary_compounds_heading_html: 'Primary <em class="italic" style="color: %color%">compounds</em>'
+        in_kitchen_heading_html: 'When the spice <em class="italic" style="color: %color%">slips into</em> your dish'
+        notebook_heading_html: 'A few <em class="italic" style="color: %color%">notes</em> in passing'
+        tame_heading_html: 'How to <em class="italic" style="color: %color%">tame it</em>'
+        load_more_spices: Load more spices
+        view_slider: Slider
+        view_grid: Grid
+        scientific_note: Scientific note
+        view_spices: View spices
+        spice_fallback: Spice
+        spices_title: Our spices
+        spices_page_title: SpicyMatch — Spice catalog
+        spices_count: '%count% spice(s) in our catalog'
+        create_blend: Create a blend
+        none_found: No spice found
+        none_found_text: No spice matches your filters. Try adjusting or resetting your criteria.
+        view_all_spices: View all spices
+        breadcrumb_spices: Spices
+        type: Type
+        profile: Profile
+        flavors: flavors
+        flavors_intro: The aromatic compounds that define this spice's character.
+        primary_compounds: primary
+        primary_compounds_intro: The molecules that give this spice its olfactory identity.
+        secondary_compounds: Secondary compounds
+        in_kitchen: In the kitchen
+        in_kitchen_title: slip it
+        moments: '%count% moment(s)'
+        marmite_before: Before the heat
+        marmite_during: During the heat
+        marmite_after: After the heat
+        marmite_last: At the last moment
+        marmite_marinade: In a marinade
+        marmite_default: Any time
+        step: Step
+        notebook: The notebook
+        notebook_title: notes in passing
+        tame: tame it
+        good_to_know: Good to know
+        its_assets: Its strengths
+        note_of: 'Note of %flavors%'
+        spice_thread: The Spice Thread
+        spice_thread_text: Every spice opens the door to another.
+        compounds_title: Aromatic compounds
+        compounds_page_title: SpicyMatch — Aromatic compounds
+        compounds_tag: Science
+        compounds_intro: The molecules that define the aromas and taste profiles of each spice.
+        learn_more: Learn more
+        no_compound: No compound listed yet.
+        back_to_compounds: Back to compounds
+        compound_badge: Aromatic Compound
+        description: Description
+        no_description_detailed: No detailed description available.
+        linked_spices: Linked spices
+        no_linked_spices: No linked spice yet.
+        groups_page_title: SpicyMatch — Aromatic groups
+        groups_tag: Catalog
+        groups_title: Aromatic groups
+        groups_intro: The great aroma families that group spices by taste affinity.
+        groups_soon: The aromatic groups catalog is coming soon.
+        flavors_page_title: SpicyMatch — Flavor alchemy
+        flavors_tag: Alchemy
+        flavors_title: Flavor alchemy
+        flavors_page_intro: The complex taste profiles that emerge from the meeting of spices.
+        explore_flavor: Explore the flavor
+        no_flavor: No flavor listed yet.
+        back_to_flavors: Back to flavors
+        flavor_badge: Flavor Alchemy
+        taste_profile: Taste profile
+        no_profile_detailed: No detailed profile available.
+        culinary_pairings: Culinary pairings
+        associated_compounds: Associated compounds
+        no_linked_compound: No linked compound.
+        types_page_title: SpicyMatch — Spice types
+        types_tag: Botany
+        types_title: Spice types
+        types_intro: Classification of spices by their plant origin and biological nature.
+        no_type: No type listed yet.
+        back_to_types: Back to types
+        type_badge: Spice Type
+        definition: Definition
+        no_definition_detailed: No detailed definition available.
+        general_usage: General usage
+        botanical_note: Botanical note
+        spices_of_type: Spices of this type
+        methods_page_title: SpicyMatch — Preparation methods
+        methods_tag: Guide
+        methods_title: Preparation methods
+        methods_intro: Techniques and tips to get the best from your spices
+        view_details: View details
+        no_method: No method available yet.
+        method_badge: Method
+        usage_tips: Usage tips
+    help:
+        back_to_help: ← Help center
+        gamification_page_title: Gamification · Help
+        gamification_h1: Gamification
+        gamification_body_html: |
+            <h2>XP and levels</h2>
+            <p>Every action on the site earns you experience (XP). Your level is computed from your total XP with a progressive curve: <code>level = ⌊(xp / 100)<sup>1/1.3</sup>⌋ + 1</code>. The higher you climb, the more XP each level requires — but there's no cap.</p>
+            <h3>How to earn XP</h3>
+            <ul>
+                <li><strong>+10 XP</strong> — save a blend in the lab</li>
+                <li><strong>+5 XP</strong> — view a new spice card (once per day per spice)</li>
+                <li><strong>+75 XP</strong> — find an easter egg</li>
+                <li><strong>Variable</strong> — finish an Academy game (depending on mode / difficulty)</li>
+                <li><strong>Bonus</strong> — unlocking an achievement (+10 to +200 XP by rarity)</li>
+            </ul>
+            <h2>Reading streak</h2>
+            <p>You keep a <strong>reading streak</strong> as long as you view at least one new spice card each day. A missed day resets the counter. Some achievements reward long streaks.</p>
+            <h2>Daily limits</h2>
+            <p>To prevent farming, the Academy limits you to <strong>5 games per mode per day</strong>. From the 4<sup>th</sup> game of the same mode, earned XP is <strong>reduced by 50%</strong> — progress is still possible but score-chasing loses its point.</p>
+        gamification_disable_h2: Disable gamification
+        gamification_disable_html: 'From <a href="%url%" class="text-saffron-600 hover:underline">your settings</a>, you can fully disable gamification: no more toasts, no XP banner, no avatar badge. Your data stays intact and the feature can be re-enabled at any time.'
+        academy_page_title: The Academy · Help
+        academy_body_html: |
+            <h2>The 6 modes</h2>
+            <dl>
+                <dt><strong>The Chef's Choice</strong> (Quiz)</dt>
+                <dd>10 multiple-choice questions on spice compatibilities. The most classic mode.</dd>
+                <dt><strong>Scoville Challenge</strong> (Survival)</dt>
+                <dd>Pick a starting spice and chain compatible spices. One slip = game over. Total victory if you exhaust all compatibilities.</dd>
+                <dt><strong>Fine Palate</strong> (Guess Who)</dt>
+                <dd>8 spices to guess from progressive clues. Fewer clues revealed = more points.</dd>
+                <dt><strong>Out of Season</strong> (Intruder)</dt>
+                <dd>10 questions: find the incompatible spice (or compatible, in inverted mode) among 4 choices.</dd>
+                <dt><strong>Now Cooking</strong> (Hangman)</dt>
+                <dd>8 spice names to guess letter by letter. Error and time limits depend on difficulty.</dd>
+                <dt><strong>On High Heat</strong> (Chrono)</dt>
+                <dd>Global timer. Identify as many spices as possible from their card (without the name). Speed and streak bonuses for consecutive correct answers.</dd>
+            </dl>
+            <h2>Difficulties</h2>
+            <table class="w-full text-sm">
+                <thead class="text-left"><tr><th class="py-2">Difficulty</th><th>XP multiplier</th><th>Impact</th></tr></thead>
+                <tbody>
+                    <tr><td>Easy</td><td>×1.0</td><td>More clues, fewer options, obvious options.</td></tr>
+                    <tr><td>Medium</td><td>×1.5</td><td>Partial clues, medium options.</td></tr>
+                    <tr><td>Hard</td><td>×2.0</td><td>No clue, full pool, visual traps.</td></tr>
+                </tbody>
+            </table>
+            <h2>Scoring and XP</h2>
+            <p>Base XP is <code>correct_answers × xp_per_mode × difficulty_multiplier</code>. The Fine Palate and Chrono modes add bonuses (fewer clues, speed, streak).</p>
+        eggs_page_title: Easter Eggs · Help
+        eggs_intro_html: 'Some unusual actions on the site trigger <strong>easter eggs</strong> — hidden discoveries that earn you 75 XP and sometimes unlock a dedicated achievement.'
+        eggs_body_html: |
+            <h2>What to know (no spoilers)</h2>
+            <ul>
+                <li><strong>Count</strong>: 8 easter eggs in total, scattered across the interface. Some are quick to find, others require patience or a combination of actions.</li>
+                <li><strong>Uniqueness</strong>: each easter egg triggers only once per account. No way to farm the +75 XP by repeating the same action.</li>
+                <li><strong>No spoilers</strong>: we don't list the easter eggs — that's the fun of it. You can see which ones you've found in your profile after unlocking them.</li>
+            </ul>
+            <h2>A few hints</h2>
+            <ul>
+                <li>Explore unusual corners of the site (errors, secondary pages, settings).</li>
+                <li>Stay a long time on certain pages — time spent sometimes counts.</li>
+                <li>Watch repetitive interactions — several clicks in the same spot may hide a trigger.</li>
+                <li>Some easter eggs require a precise sequence of visited spices.</li>
+                <li>A legendary 4-ingredient recipe is hidden somewhere…</li>
+            </ul>
+        eggs_outro: Easter eggs are a wink, not an exam — treat them as a treasure hunt, not a checklist.
+        page_title: Help · SpicyMatch
+        title: Help center
+        intro: Everything you need to know about how the site works.
+        gamification: Gamification
+        gamification_desc: XP, levels, streaks, daily limits.
+        academy_desc: 6 game modes, rules, difficulty, scoring.
+        easter_eggs: Easter Eggs
+        easter_eggs_desc: The hidden finds, no spoilers.
+    cookie:
+        title: We respect your privacy
+        text: SpicyMatch uses cookies to improve your experience. You can choose which ones to accept.
+        essential: Essential cookies
+        always_on: (always on)
+        functional: Functional cookies
+        analytics: Analytics cookies
+        accept_all: Accept all
+        confirm: Confirm selection
+        reject_all: Reject all
+    register:
+        page_title: Account creation
+        title: Create an account
+        subtitle: Free, no email required.
+        username: Username
+        mail: 'Email (optional — to recover your password)'
+        password: Password
+        toggle_visibility: Toggle visibility
+        submit: Create my account
+        already_account: 'Already have an account?'
+        sign_in: Log in
+    contact_success:
+        page_title: SpicyMatch — Message sent
+        title: Thank you for your message!
+        text: We received it and will do our best to reply quickly.
+        good_day: Have a good day!
+        good_evening: Have a good evening!
+    auth:
+        login_title: Log in
+        login_cta: Log in
+        no_account: 'No account? Create one (no email needed!)'
+        username: Username
+        password: Password
+        bad_credentials: Invalid credentials.
+        spices_alt: Spices
+    contact:
+        tag: Contact
+        title: Contact us
+        intro: A question about our spices, feedback on the app, or an aromatic pairing idea? We're listening.
+        quick_reply: Quick reply
+        quick_reply_text: We reply within 48 business hours.
+        suggestions: Suggestions welcome
+        suggestions_text: Your feedback improves SpicyMatch.
+        send: Send message
+        page_title: SpicyMatch — Contact us
+    banner:
+        level: 'Level %level%'
+        xp_to_next: '%xp% XP left → lvl %level%'
+        days: day
+        days_plural: days
+        create: Create
+        play: Play
+    labo:
+        chapter: Chapter III · The Culinary Lab
+        title_html: 'The art of the <em class="not-italic italic" style="color: var(--color-turmeric-700)">gesture.</em>'
+        blurb: Understanding is good. Doing is better. Three fundamental techniques to unlock everything your spices have to offer.
+        fiche1: Card No.&nbsp;I
+        fiche2: Card No.&nbsp;II
+        fiche3: Card No.&nbsp;III
+        technique: Technique
+        dry_heat: Dry heat
+        wet_heat: Moist heat
+        mechanical: Mechanical
+        roast_title_html: 'Roast<span class="ital">ing.</span>'
+        roast_sub: dry, in a cast-iron pan
+        roast_benefit_html: '<strong>Maillard reaction.</strong> Dry heat breaks down cell walls and releases the trapped essential oils. The result: a deep, almost nutty aroma.'
+        roast_spices: Cumin · Coriander · Fennel
+        infusion_title_html: 'Infu<span class="ital">sion.</span>'
+        infusion_sub: hot, in a fatty medium
+        infusion_benefit_html: '<strong>Lipid diffusion.</strong> Fat-soluble aromas migrate into the hot oil — an ideal transport for woody and resinous notes that fear the flame.'
+        infusion_spices: Rosemary · Bay leaf · Chili
+        pound_title_html: 'Pound<span class="ital">ing.</span>'
+        pound_sub: with a marble mortar
+        pound_benefit_html: '<strong>Cell rupture.</strong> Mechanical pressure bursts the essential-oil vesicles more delicately than the grinder — no heat, no oxidation.'
+        pound_spices: Pepper · Cardamom · Basil
+        read: → Read
+        quotes_head: Expert tips, pinned to the kitchen wall.
+        quote1: A spice never has just one role. It opens a door. It's up to you to look at what lies behind it.
+        quote1_role: Chef · Lyon
+        quote2: Before adding chili, add attention. The tongue remembers both.
+        quote2_role: Michelin-starred · Barcelona
+        quote3: Roasting is not a step. It's a conversation between the seed and the heat.
+        quote3_role: Master spice merchant · Fès
+    theatre:
+        chapter: Chapter IV · The Academy
+        title_html: 'The theater of <em class="not-italic italic" style="color: var(--color-turmeric-700)">the senses.</em>'
+        blurb: Six mini-games. Spices as a playground. Each round reveals a new angle — the odd one out, survival, hangman, speed.
+        play_scoville: Play the Scoville Challenge
+        play_choice: Play the Chef's Choice
+        play_overcooked: Play Overcooked
+        act1: Act I
+        act2: Act II
+        act3: Act III
+        scoville_title_html: 'Scoville <span class="ital">Challenge.</span>'
+        scoville_tag: chili survival game
+        scoville_footer: Unlimited games
+        choice_title_html: "The Chef's <span class=\"ital\">Choice.</span>"
+        choice_tag: spot the odd one out
+        choice_footer: 10 questions
+        overcooked_title_html: '<span class="ital">Overcooked!</span>'
+        overcooked_tag: hangman of forgotten spices
+        overcooked_footer: 8 words to guess
+        cta_sub: 6 modes available · XP · Achievements · Leaderboards
+        cta: Join the Academy
+    hero:
+        season: Season · Spring 26 · Chapter&nbsp;I
+        blends_est: Blends · Est. MMXXVI
+        meta: N°&nbsp;001 — The awakening of the senses
+        title_html: |
+            The <em class="not-italic italic" style="color: var(--color-paprika-800)">Alchemy</em> of Spices.<br>
+            Awaken the <span class="relative inline-block" style="color: var(--color-turmeric-700)">Chef<span class="absolute left-0 right-0 bottom-[6px] h-[14px] pointer-events-none" style="background: radial-gradient(ellipse at center, rgba(217,119,6,.28) 0%, transparent 70%); z-index: -1;" aria-hidden="true"></span></span><br>
+            who sleeps within you.
+        blurb: Explore the invisible links between molecules and taste. Learn, blend, and master the art of flavors through a scientific &amp; playful experience.
+        cta_blend: Start a blend
+        cta_explore: Explore the spices
+        cta_start: Begin the exploration
+        figures_label: Key figures
+        figures_eyebrow: Our kitchen, in three numbers
+        figure_spices: spices from around the world
+        figure_aromas: aromas linked one by one
+        figure_chefs: apprentice chefs with you
+    grade:
+        commis: Commis
+        chef_partie: Chef de Partie
+        saucier: Saucier
+        chef_executif: Executive Chef
+    footer:
+        tagline: Aromatic alchemy at the service of your recipes. Discover invisible pairings and elevate your culinary creations.
+        navigation: Navigation
+        catalog: Spice catalog
+        lab_blends: The Lab — Blends
+        help_contact: Help & Contact
+        academy_flavors: The Academy of flavors
+        aromatic_compounds: Aromatic compounds
+        flavor_groups: Flavor groups
+        classification: Classification
+        atelier: The Workshop
+        join_text: Join our brigade of enthusiasts and explore the alchemy of flavors.
+        join_cta: Join the brigade
+        copyright_tagline: The Art of Culinary Alchemy
+        legal: Legal notice
+        privacy: Privacy
+        scroll_top: Back to top
+
+gamification:
+    notif:
+        level_up_title: 'Level %level% reached!'
+        level_up_subtitle: You're leveling up!
+        achievement_unlocked: 'Achievement unlocked — %rarity%'
+    source:
+        match_saved: Blend saved
+        spice_read: New spice read
+        easter_egg_found: Easter egg found
+        favorite_toggled: Favorite added
+        game_completed: Game completed
+
+enum:
+    game_mode:
+        qcm:
+            label: The Chef's Choice
+            desc: 'Find the most compatible spice among 4 options.'
+        survival:
+            label: Scoville Challenge
+            desc: 'Chain compatible spices without a mistake.'
+        guess_who:
+            label: Fine Palate
+            desc: 'Guess the spice from progressive clues.'
+        intrus:
+            label: Out of Season
+            desc: 'Find the odd one out among compatible spices.'
+        hangman:
+            label: Now Cooking
+            desc: 'Guess the spice name letter by letter.'
+        chrono:
+            label: On High Heat
+            desc: 'Identify the spices as fast as possible.'
+    difficulty:
+        easy: Easy
+        medium: Medium
+        hard: Hard
+    rarity:
+        common: Seed
+        rare: Infusion
+        epic: Extraction
+        legendary: Essence
+    kinetics:
+        head: Top
+        heart: Heart
+        base: Base
+    confidence:
+        measured: Measured
+        literature: Literature
+        estimated: Estimated
+        placeholder: Provisional
+    matrix:
+        air: Air
+        water: Water
+        oil: Oil

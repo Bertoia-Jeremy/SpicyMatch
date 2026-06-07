@@ -231,7 +231,7 @@ final class MatchController extends AbstractController
 
         // Enrichissement avec les noms d'épices — DQL scalaire (pas d'hydratation entité)
         $candidateIds = array_column($pipelineResults, 'id');
-        $nameMap = $this->spicesRepository->findNamesById($candidateIds);
+        $nameMap = $this->spicesRepository->findNamesById($candidateIds, $request->getLocale());
 
         $results = array_map(
             static fn (array $row) => [

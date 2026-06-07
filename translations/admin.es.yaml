@@ -1,0 +1,122 @@
+# Back-office EasyAdmin (dominio 'admin').
+admin:
+    dashboard:
+        menu: Panel
+    menu:
+        section_content: Contenido
+        section_preparation: Preparación
+        section_gamification: Gamificación
+        section_users: Usuarios
+        spices: Especias
+        aromatic_groups: Grupos aromáticos
+        aromatic_compounds: Compuestos aromáticos
+        alchemy_flavors: Alquimia de sabores
+        spicy_types: Tipos de especias
+        cooking_tips: Consejos de cocción
+        preparation_tips: Consejos de preparación
+        preparation_methods: Métodos de preparación
+        achievements: Logros
+        game_sessions: Sesiones de juego
+        users: Usuarios
+        contact: Contacto
+        site: Sitio SpicyMatch
+    entity:
+        achievement_singular: Logro
+        achievement_plural: Logros
+        game_session_singular: Sesión de juego
+        game_session_plural: Sesiones de juego
+    field:
+        name: Nombre
+        translations: Traducciones (EN / ES)
+        description: Descripción
+        spices: Especias
+        color: Color
+        cas_number: Número CAS
+        formula: Fórmula química
+        cooking_advice: Consejo de cocina
+        benefits: Beneficios
+        extra_informations: Información adicional
+        created_at: Creado el
+        updated_at: Modificado el
+        image: Imagen
+        aromatic_group: Grupo aromático
+        spicy_type: Tipo de especia
+        main_compounds: Compuestos aromáticos principales
+        secondary_compounds: Compuestos aromáticos secundarios
+        icon: Icono
+        trigger: Disparador
+        trigger_value: Valor umbral
+        xp_reward: Recompensa XP
+        rarity: Rareza
+        easter_egg_slug: Slug del easter egg
+        cooking_step: Paso de cocción
+        title: Título
+        text: Texto
+        advantages: Ventajas
+        tools: Herramientas
+        informations: Información
+        advice: Consejos
+        user: Usuario
+        game_mode: Modo de juego
+        score: Puntuación
+        correct_answers: Respuestas correctas
+        started_at: Iniciado el
+        email: Correo
+        subject: Asunto
+        message: Mensaje
+        roles: Roles
+        preparation_methods: Métodos de preparación
+        preparation_method: Método de preparación
+        aromatic_compounds: Compuestos aromáticos
+        alchemy_flavors: Alquimia de sabores
+        spice: Especia
+        difficulty: Dificultad
+        total_questions: Total de preguntas
+        xp_gained: XP ganado
+        started_short: Inicio
+        finished_short: Fin
+        tools_needed: Herramientas necesarias
+        advice_single: Consejo
+        extra_short: Información adicional
+    dash:
+        title: Panel SpicyMatch
+        users: Usuarios
+        new_this_week: '+%count% esta semana'
+        active_30d: Activos (30d)
+        avg_level: 'Nivel medio: %level%'
+        blends: Mezclas
+        spices_per_blend: '~%count% especias/mezcla'
+        quiz_played: Quizzes jugados
+        avg_accuracy: 'Precisión media: %pct%%'
+        achievements_unlocked: Logros desbloqueados
+        rate: 'Tasa: %pct%%'
+        level_distribution: Distribución de niveles
+        most_viewed_spices: Especias más consultadas
+        blend_activity: Actividad de mezclas (últimos 30 días)
+        most_used_spices: Especias más usadas en mezclas
+        col_spice: Especia
+        col_uses: Usos
+        popular_groups: Grupos aromáticos populares
+        col_group: Grupo
+        col_views: Consultas
+    stats:
+        page_title: Stats Gamificación · Admin
+        title: Stats Gamificación
+        intro: Indicadores de negocio y anomalías detectadas en los últimos 30 días.
+        unlock_rate_title: Tasa de desbloqueo por logro
+        no_data: Aún no hay datos.
+        xp_per_day_title: XP acumulado / día (30d)
+        sessions_per_mode_title: Sesiones por modo (30d)
+        anomalies_title: Anomalías detectadas
+        anomalies_sub: (> 10 sesiones / día)
+        no_anomaly: Ninguna anomalía detectada.
+        col_user: Usuario
+        col_reason: Razón
+        col_sessions: Sesiones
+        col_total_xp: XP total
+    chart:
+        none: Ninguno
+        players: Jugadores
+        views: Vistas
+        matches_per_day: Mezclas / día
+        level_bucket: 'Niv. %from%-%to%'

@@ -14,17 +14,17 @@
 
         <div class="text-center mb-10">
             <h1 class="text-4xl font-bold text-stone-800">
-                <i class="fa-solid fa-star text-turmeric-500 mr-2"></i>Mes mélanges favoris
+                <i class="fa-solid fa-star text-turmeric-500 mr-2"></i>{{ 'ui.history.fav.title'|trans }}
             </h1>
-            <p class="mt-2 text-stone-500">Les recettes que vous avez marquées comme favorites.</p>
+            <p class="mt-2 text-stone-500">{{ 'ui.history.fav.subtitle'|trans }}</p>
         </div>
 
         {% if spicymatch_histories is empty %}
             <div class="text-center py-16">
                 <i class="fa-regular fa-star text-stone-300 text-5xl mb-4 block"></i>
-                <p class="text-stone-500 text-lg mb-2">Aucun mélange favori pour l'instant.</p>
-                <p class="text-stone-400 text-sm mb-6">Cliquez sur l'étoile d'un mélange pour l'ajouter à vos favoris.</p>
-                {{ buttons.button('Voir mon historique', {
+                <p class="text-stone-500 text-lg mb-2">{{ 'ui.history.fav.empty'|trans }}</p>
+                <p class="text-stone-400 text-sm mb-6">{{ 'ui.history.fav.empty_hint'|trans }}</p>
+                {{ buttons.button('ui.history.fav.see_history'|trans, {
                     href: path('index_spicy_match_history'),
                     variant: 'outline',
                     icon: 'fa-solid fa-clock-rotate-left'
@@ -41,7 +41,7 @@
                             '{{ csrf_token('history_action_' ~ history.id) }}',
                             '{{ history.title ? history.title|e('js') : '' }}',
                             {{ history.isFavorite ? 'true' : 'false' }},
-                            '{{ ('Recette du ' ~ history.createdAt|date('d/m/Y à H:i'))|e('js') }}'
+                            '{{ ('ui.common.recipe_of'|trans({'%date%': history.createdAt|format_datetime('medium', 'short')}))|e('js') }}'
                          )">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                             <div class="flex-1 min-w-0">
@@ -71,7 +71,7 @@
                                 <div class="flex flex-wrap gap-1.5 items-center">
                                     {% for spice in history.spicyMatch.spices %}
                                         <span class="inline-flex items-center gap-1.5 bg-spice-surface border border-spice-border text-stone-700 text-xs font-medium px-2.5 py-1 rounded-full">
-                                            {{ spice.name }}
+                                            {{ spice.getLocalizedName(app.request.locale) }}
                                         </span>
                                     {% endfor %}
                                     {% if history.spicyMatch.isManual %}
@@ -90,7 +90,7 @@
                                         title="Retirer des favoris">
                                     <i class="fa-solid fa-star"></i>
                                 </button>
-                                <span class="text-sm text-stone-400">{{ history.createdAt|date('d/m/Y') }}</span>
+                                <span class="text-sm text-stone-400">{{ history.createdAt|format_date('medium') }}</span>
                                 <a href="{{ path('view_spicy_match_history', {'id': history.id}) }}"
                                    class="text-stone-300 hover:text-saffron-600 transition-colors"
                                    @click.stop>

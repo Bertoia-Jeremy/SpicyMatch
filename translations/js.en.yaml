@@ -1,0 +1,35 @@
+# UI labels exposed to JavaScript (domain 'js'), injected into #js-i18n via base.html.twig.
+nav:
+    open: Open
+    close: Close
+    menu_open: Open menu
+    menu_close: Close menu
+password:
+    show: Show
+    hide: Hide
+game:
+    quit_confirm: Quit the game? Your progress will be lost.
+favorites:
+    added: Added to favorites
+    removed: Removed from favorites
+    in: In your favorites
+    add: Add to favorites
+    remove: Remove from favorites
+melange:
+    seal_assoc: Seal the pairing
+    last_spice: One last spice to finalize
+    sealed_count: '%done% / %total% spice(s) sealed'
+    status_sealed_current: sealed ✓
+    status_sealed: sealed
+    status_choose_time: choose the timing
+    status_choose_hand: choose the method
+    status_ongoing: in progress
+    status_upcoming: upcoming
+    toast_complete: '%spice% sealed — blend complete'
+    toast_next: '%spice% sealed — %next% →'
+cooking:
+    cta_final: View my final recipe
+    cta_incomplete: Finalize the preparation of each spice
+tour:
+    done: Done!
+    next: Next →

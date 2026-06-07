@@ -21,13 +21,13 @@
     {% set iconBox = sizeClass == 'sm' ? 'w-10 h-10 text-lg' : 'w-12 h-12 text-xl' %}
     {% if feedbackState == 'intrus-right' %}
         {% set cardCls = 'border-saffron-400 bg-cream' %}
-        {% set tag = { label: 'Intrus ✓', cls: 'bg-saffron-100 text-saffron-700' } %}
+        {% set tag = { label: 'ui.game.intrus_tag'|trans, cls: 'bg-saffron-100 text-saffron-700' } %}
     {% elseif feedbackState == 'intrus-wrong' %}
         {% set cardCls = 'border-green-400 bg-green-50' %}
-        {% set tag = { label: 'Intrus', cls: 'bg-green-100 text-green-700' } %}
+        {% set tag = { label: 'ui.game.intrus_tag_plain'|trans, cls: 'bg-green-100 text-green-700' } %}
     {% elseif feedbackState == 'wrong-pick' %}
         {% set cardCls = 'border-paprika-400 bg-paprika-50' %}
-        {% set tag = { label: 'Votre choix', cls: 'bg-paprika-100 text-paprika-700' } %}
+        {% set tag = { label: 'ui.game.your_choice'|trans, cls: 'bg-paprika-100 text-paprika-700' } %}
     {% else %}
         {% set cardCls = 'border-stone-200 bg-white opacity-70' %}
         {% set tag = null %}

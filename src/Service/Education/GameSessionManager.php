@@ -40,9 +40,8 @@ class GameSessionManager
         $todayCount = $this->sessionRepository->countTodayByUser($user, $mode);
         if ($todayCount >= self::MAX_DAILY_SESSIONS) {
             throw new \RuntimeException(sprintf(
-                'Limite quotidienne atteinte (%d sessions %s par jour).',
+                'Limite quotidienne atteinte (%d sessions par jour).',
                 self::MAX_DAILY_SESSIONS,
-                $mode->label(),
             ));
         }
 
@@ -172,9 +171,8 @@ class GameSessionManager
         $todayCount = $this->sessionRepository->countTodayByUser($user, $mode);
         if ($todayCount >= self::MAX_DAILY_SESSIONS) {
             throw new \RuntimeException(sprintf(
-                'Limite quotidienne atteinte (%d sessions %s par jour).',
+                'Limite quotidienne atteinte (%d sessions par jour).',
                 self::MAX_DAILY_SESSIONS,
-                $mode->label(),
             ));
         }
 

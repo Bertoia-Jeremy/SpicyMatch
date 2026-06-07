@@ -1,10 +1,10 @@
 {% set tabs = [
-    { route: 'profile_user',       label: 'Profil' },
-    { route: 'favorites_user',     label: 'Favoris', icon: 'fa-solid fa-star text-xs mr-1' },
-    { route: 'achievements_user',  label: 'Succès', icon: 'fa-solid fa-trophy text-xs mr-1' },
-    { route: 'configuration_user', label: 'Configuration' },
-    { route: 'history_user',       label: 'Historique' },
-    { route: 'security_user',      label: 'Sécurité' },
+    { route: 'profile_user',       label: 'ui.tabs.profile'|trans },
+    { route: 'favorites_user',     label: 'ui.tabs.favorites'|trans, icon: 'fa-solid fa-star text-xs mr-1' },
+    { route: 'achievements_user',  label: 'ui.tabs.achievements'|trans, icon: 'fa-solid fa-trophy text-xs mr-1' },
+    { route: 'configuration_user', label: 'ui.tabs.configuration'|trans },
+    { route: 'history_user',       label: 'ui.tabs.history'|trans },
+    { route: 'security_user',      label: 'ui.tabs.security'|trans },
 ] %}
 <div class="flex flex-wrap border-b border-spice-border mt-6">
     {% for tab in tabs %}

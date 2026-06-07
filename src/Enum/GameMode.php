@@ -13,16 +13,12 @@ enum GameMode: string
     case HANGMAN = 'hangman';
     case CHRONO = 'chrono';
 
+    /**
+     * Clé de traduction (domaine messages) — traduire à l'affichage via |trans.
+     */
     public function label(): string
     {
-        return match ($this) {
-            self::QCM => 'Le Choix du Chef',
-            self::SURVIVAL => 'Défi de Scoville',
-            self::GUESS_WHO => 'Palais Fin',
-            self::INTRUS => 'Hors Saison',
-            self::HANGMAN => 'Cuisson en Cours',
-            self::CHRONO => 'À Feu Vif',
-        };
+        return 'enum.game_mode.' . $this->value . '.label';
     }
 
     public function xpPerCorrect(): int
@@ -47,16 +43,12 @@ enum GameMode: string
         return $this !== self::QCM;
     }
 
+    /**
+     * Clé de traduction (domaine messages) — traduire à l'affichage via |trans.
+     */
     public function description(): string
     {
-        return match ($this) {
-            self::QCM => 'Trouve l\'épice la plus compatible parmi 4 choix.',
-            self::SURVIVAL => 'Enchaîne les épices compatibles sans erreur.',
-            self::GUESS_WHO => 'Devine l\'épice à partir d\'indices progressifs.',
-            self::INTRUS => 'Trouve l\'intrus parmi les épices compatibles.',
-            self::HANGMAN => 'Devine le nom de l\'épice lettre par lettre.',
-            self::CHRONO => 'Identifie les épices le plus vite possible.',
-        };
+        return 'enum.game_mode.' . $this->value . '.desc';
     }
 
     public function icon(): string

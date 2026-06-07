@@ -37,9 +37,12 @@ final readonly class MatrixComparator
      *
      * @return array<string, list<array{id: int, name: string, score: int}>>
      */
-    public function compare(MortarIds $mortar, CulinaryContext $baseCtx, int $limit = 5): array
+    public function compare(MortarIds $mortar, CulinaryContext $baseCtx, int $limit = 5, ?string $locale = null): array
     {
-        $cacheKey = $this->cacheKey('compare', $mortar, $baseCtx, $limit);
+        // La locale n'affecte QUE l'enrichissement final des noms (le moteur OAV
+        // reste agnostique) — mais elle DOIT entrer dans la clé de cache, sinon
+        // un hit servirait des noms dans la mauvaise langue.
+        $cacheKey = $this->cacheKey('compare', $mortar, $baseCtx, $limit, $locale);
         $item = $this->cache->getItem($cacheKey);
 
         if ($item->isHit()) {
@@ -60,7 +63,7 @@ final readonly class MatrixComparator
                 $baseCtx->temperatureCelsius,
             );
 
-            $rankings[$matrix->value] = $this->rankFor($mortar, $ctx, $limit);
+            $rankings[$matrix->value] = $this->rankFor($mortar, $ctx, $limit, $locale);
         }
 
         $item->set($rankings)
@@ -110,7 +113,7 @@ final readonly class MatrixComparator
     /**
      * @return list<array{id: int, name: string, score: int}>
      */
-    private function rankFor(MortarIds $mortar, CulinaryContext $ctx, int $limit): array
+    private function rankFor(MortarIds $mortar, CulinaryContext $ctx, int $limit, ?string $locale = null): array
     {
         $pipeline = $this->matchPipeline->run($mortar, $limit, $ctx);
         if ($pipeline === []) {
@@ -118,7 +121,7 @@ final readonly class MatrixComparator
         }
 
         $ids = array_column($pipeline, 'id');
-        $names = $this->spicesRepository->findNamesById($ids);
+        $names = $this->spicesRepository->findNamesById($ids, $locale);
 
         $list = [];
         foreach ($pipeline as $row) {
@@ -136,14 +139,20 @@ final readonly class MatrixComparator
      * Clé déterministe pour le cache. Délègue le hash du contexte au VO
      * (Refactor #1 — source unique de signature partagée avec CookingTimelineBuilder).
      */
-    private function cacheKey(string $kind, MortarIds $mortar, CulinaryContext $baseCtx, int $limit): string
-    {
+    private function cacheKey(
+        string $kind,
+        MortarIds $mortar,
+        CulinaryContext $baseCtx,
+        int $limit,
+        ?string $locale = null,
+    ): string {
         return sprintf(
-            'match.insights.%s.%s.%s.l%d',
+            'match.insights.%s.%s.%s.l%d.%s',
             $kind,
             substr(hash('xxh3', implode(',', $mortar->sorted())), 0, 16),
             $baseCtx->signatureHash(),
             $limit,
+            $locale ?? 'fr',
         );
     }
 }

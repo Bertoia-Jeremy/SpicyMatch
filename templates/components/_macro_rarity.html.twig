@@ -13,7 +13,7 @@
   {% set c = rarity_colors(rarityEnum) %}
   <span class="text-xs px-2 py-0.5 rounded-full font-medium"
         style="background-color: {{ c.bg }}; color: {{ c.text }}">
-    {{ rarityEnum.label() }}
+    {{ rarityEnum.label()|trans }}
   </span>
 {% endmacro %}
 

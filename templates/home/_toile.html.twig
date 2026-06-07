@@ -3,22 +3,31 @@
    Système solaire moléculaire interactif (Alpine.js)
    ═══════════════════════════════════════════════════════ #}
 
+{# Données des molécules : géométrie/couleurs inline, contenu (name/badge/descr) traduit.
+   Les listes `shared` (noms d'épices) restent FR — deviendront DB-driven (Batch I). #}
+{% set _molecules = [
+    { id: 'm1', x: -100, y: -120, accent: '#D97706', grad: 'radial-gradient(circle at 35% 30%,#E8B547,#8a5a0c)', delay: '0s', formula: 'C₁₀H₁₈O', name: 'ui.toile.m1_name'|trans, badge: 'ui.toile.m1_badge'|trans, descr: 'ui.toile.m1_descr'|trans, shared: ['Coriandre', 'Basilic', 'Cardamome', 'Thym', '+ 14'] },
+    { id: 'm2', x: 112, y: -108, accent: '#991B1B', grad: 'radial-gradient(circle at 35% 30%,#C04020,#5a0e0e)', delay: '1.2s', formula: 'C₁₇H₁₉NO₃', name: 'ui.toile.m2_name'|trans, badge: 'ui.toile.m2_badge'|trans, descr: 'ui.toile.m2_descr'|trans, shared: ['Poivre noir', 'Poivre long', 'Cubèbe', '+ 6'] },
+    { id: 'm3', x: -180, y: 0, accent: '#4D7C0F', grad: 'radial-gradient(circle at 35% 30%,#7AA31C,#2f4a08)', delay: '2.4s', formula: 'C₁₀H₁₈O', name: 'ui.toile.m3_name'|trans, badge: 'ui.toile.m3_badge'|trans, descr: 'ui.toile.m3_descr'|trans, shared: ['Cardamome', 'Marjolaine', 'Niaouli', '+ 9'] },
+    { id: 'm4', x: 188, y: -8, accent: '#B87333', grad: 'radial-gradient(circle at 35% 30%,#B86A20,#5c2c08)', delay: '0.7s', formula: 'C₁₀H₁₂O₂', name: 'ui.toile.m4_name'|trans, badge: 'ui.toile.m4_badge'|trans, descr: 'ui.toile.m4_descr'|trans, shared: ['Clou de girofle', 'Cannelle', 'Muscade', 'Basilic', '+ 8'] },
+    { id: 'm5', x: -110, y: 160, accent: '#D97706', grad: 'radial-gradient(circle at 35% 30%,#D97706,#7c3a04)', delay: '3s', formula: 'C₁₀H₁₈O', name: 'ui.toile.m5_name'|trans, badge: 'ui.toile.m5_badge'|trans, descr: 'ui.toile.m5_descr'|trans, shared: ['Cardamome', 'Romarin', 'Laurier', 'Sauge', '+ 11'] },
+    { id: 'm6', x: 130, y: 150, accent: '#7c3a04', grad: 'radial-gradient(circle at 35% 30%,#6E4128,#2a160a)', delay: '1.8s', formula: 'C₁₀H₁₈O', name: 'ui.toile.m6_name'|trans, badge: 'ui.toile.m6_badge'|trans, descr: 'ui.toile.m6_descr'|trans, shared: ['Coriandre', 'Citronnelle', 'Carotte', '+ 7'] }
+] %}
 <section id="toile" class="home-section" x-data="toile()"
+         data-molecules="{{ _molecules|json_encode|e('html_attr') }}"
          style="background: linear-gradient(180deg, var(--color-cream) 0%, var(--color-cream-dark) 100%)">
 
     {# Section header #}
     <div class="section-head">
         <div>
-            <div class="section-label">Chapitre II · La Toile des Arômes</div>
+            <div class="section-label">{{ 'ui.toile.chapter'|trans }}</div>
             <h2 class="font-display font-medium leading-none tracking-[-0.015em] m-0"
                 style="font-size: clamp(40px, 5vw, 80px)">
-                Le système solaire <em class="not-italic italic" style="color: var(--color-turmeric-700)">aromatique.</em>
+                {{ 'ui.toile.title_html'|trans|raw }}
             </h2>
         </div>
         <p class="section-blurb">
-            Chaque épice est un soleil. Autour, gravitent ses composés.
-            Cliquez une molécule pour découvrir toutes les épices
-            qui partagent cette signature invisible.
+            {{ 'ui.toile.blurb'|trans }}
         </p>
     </div>
 
@@ -29,8 +38,8 @@
             <div class="solar-grid" aria-hidden="true"></div>
 
             <div class="solar-hud" aria-hidden="true">
-                <span><span class="hud-dot"></span>Système actif · CARDAMOME</span>
-                <span>6 composés · 14 liens identifiés</span>
+                <span><span class="hud-dot"></span>{{ 'ui.toile.hud_active'|trans }}</span>
+                <span>{{ 'ui.toile.hud_stats'|trans }}</span>
             </div>
 
             {# Lignes SVG connecteurs (statiques, centre du canvas 600×680) #}
@@ -53,7 +62,7 @@
             <div class="sun" aria-hidden="true">
                 <div class="sun-label">
                     Cardamome
-                    <span class="sub">Elettaria · IN</span>
+                    <span class="sub">{{ 'ui.toile.sun_sub'|trans }}</span>
                 </div>
             </div>
 
@@ -65,7 +74,7 @@
                      @click="setActive(m.id)"
                      role="button"
                      tabindex="0"
-                     :aria-label="m.name + ' — cliquer pour voir les détails'"
+                     :aria-label="m.name + ' — {{ 'ui.toile.mol_aria_suffix'|trans|e('js') }}'"
                      :aria-pressed="isActive(m.id)"
                      @keydown.enter.prevent="setActive(m.id)"
                      @keydown.space.prevent="setActive(m.id)">
@@ -79,12 +88,10 @@
         {# ── Sidebar droite ── #}
         <div class="solar-side">
             <h3 class="font-display font-medium leading-[1.05] mb-[18px] tracking-[-0.01em] solar-side-title">
-                Une molécule, <em class="not-italic italic" style="color: var(--color-paprika-800)">mille épices.</em>
+                {{ 'ui.toile.side_title_html'|trans|raw }}
             </h3>
             <p class="mb-8 text-[15px] leading-[1.7] max-w-[440px]" style="color: rgba(42,24,16,.70)">
-                Le Linalol n'est pas qu'un nom. C'est le fil invisible
-                qui relie la lavande à la coriandre, le basilic à la cardamome.
-                Tirez le fil — toute une famille apparaît.
+                {{ 'ui.toile.side_blurb'|trans }}
             </p>
 
             {# Carte composé actif #}
@@ -95,7 +102,7 @@
                 </div>
                 <div class="descr" x-text="active.descr"></div>
                 <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-[10px] tracking-[.22em] uppercase mr-1" style="color: rgba(42,24,16,.60); font-family: var(--font-mono)">Aussi dans</span>
+                    <span class="text-[10px] tracking-[.22em] uppercase mr-1" style="color: rgba(42,24,16,.60); font-family: var(--font-mono)">{{ 'ui.toile.also_in'|trans }}</span>
                     <template x-for="s in active.shared" :key="s">
                         <span class="compound-chip" x-text="s"></span>
                     </template>
@@ -105,16 +112,16 @@
             {# Légende #}
             <div class="solar-legend">
                 <div class="leg-item">
-                    <span class="leg-sw" style="background: var(--color-turmeric-600)"></span>Terpénique
+                    <span class="leg-sw" style="background: var(--color-turmeric-600)"></span>{{ 'ui.toile.legend_terpenic'|trans }}
                 </div>
                 <div class="leg-item">
-                    <span class="leg-sw" style="background: var(--color-paprika-800)"></span>Pipéracée
+                    <span class="leg-sw" style="background: var(--color-paprika-800)"></span>{{ 'ui.toile.legend_piperaceae'|trans }}
                 </div>
                 <div class="leg-item">
-                    <span class="leg-sw" style="background: var(--color-sauge)"></span>Phénolique
+                    <span class="leg-sw" style="background: var(--color-sauge)"></span>{{ 'ui.toile.legend_phenolic'|trans }}
                 </div>
                 <div class="leg-item">
-                    <span class="leg-sw" style="background: var(--color-copper)"></span>Boisé
+                    <span class="leg-sw" style="background: var(--color-copper)"></span>{{ 'ui.toile.legend_woody'|trans }}
                 </div>
             </div>
         </div>

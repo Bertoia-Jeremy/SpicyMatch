@@ -1,17 +1,17 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Stats Gamification · Admin{% endblock %}
+{% block title %}{{ 'admin.stats.page_title'|trans({}, 'admin') }}{% endblock %}
 
 {% block body %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <h1 class="text-3xl font-bold text-stone-800 mb-2">Stats Gamification</h1>
-    <p class="text-stone-600 mb-8">Indicateurs métier et anomalies détectées sur les 30 derniers jours.</p>
+    <h1 class="text-3xl font-bold text-stone-800 mb-2">{{ 'admin.stats.title'|trans({}, 'admin') }}</h1>
+    <p class="text-stone-600 mb-8">{{ 'admin.stats.intro'|trans({}, 'admin') }}</p>
 
     {# Widget 1 — Unlock rate par achievement #}
     <section class="mb-10">
-        <h2 class="text-xl font-semibold text-stone-800 mb-4">Taux de débloquage par succès</h2>
+        <h2 class="text-xl font-semibold text-stone-800 mb-4">{{ 'admin.stats.unlock_rate_title'|trans({}, 'admin') }}</h2>
         {% if unlockRates is empty %}
-            <p class="text-stone-500 italic">Pas encore de données.</p>
+            <p class="text-stone-500 italic">{{ 'admin.stats.no_data'|trans({}, 'admin') }}</p>
         {% else %}
             <div class="bg-white rounded-2xl border border-stone-200 p-6">
                 <canvas id="chartUnlockRates" height="120"></canvas>
@@ -21,7 +21,7 @@
 
     {# Widget 2 — XP / jour #}
     <section class="mb-10">
-        <h2 class="text-xl font-semibold text-stone-800 mb-4">XP cumulé / jour (30j)</h2>
+        <h2 class="text-xl font-semibold text-stone-800 mb-4">{{ 'admin.stats.xp_per_day_title'|trans({}, 'admin') }}</h2>
         <div class="bg-white rounded-2xl border border-stone-200 p-6">
             <canvas id="chartXpPerDay" height="100"></canvas>
         </div>
@@ -29,7 +29,7 @@
 
     {# Widget 3 — Sessions par mode #}
     <section class="mb-10">
-        <h2 class="text-xl font-semibold text-stone-800 mb-4">Sessions par mode (30j)</h2>
+        <h2 class="text-xl font-semibold text-stone-800 mb-4">{{ 'admin.stats.sessions_per_mode_title'|trans({}, 'admin') }}</h2>
         <div class="bg-white rounded-2xl border border-stone-200 p-6">
             <canvas id="chartSessionsPerMode" height="100"></canvas>
         </div>
@@ -38,20 +38,20 @@
     {# Widget 4 — Anomalies #}
     <section class="mb-10">
         <h2 class="text-xl font-semibold text-stone-800 mb-4">
-            Anomalies détectées
-            <span class="text-sm text-stone-500 font-normal">(> 10 sessions / jour)</span>
+            {{ 'admin.stats.anomalies_title'|trans({}, 'admin') }}
+            <span class="text-sm text-stone-500 font-normal">{{ 'admin.stats.anomalies_sub'|trans({}, 'admin') }}</span>
         </h2>
         {% if anomalies is empty %}
-            <p class="text-stone-500 italic">Aucune anomalie détectée.</p>
+            <p class="text-stone-500 italic">{{ 'admin.stats.no_anomaly'|trans({}, 'admin') }}</p>
         {% else %}
             <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden">
                 <table class="w-full text-sm">
                     <thead class="bg-cream border-b border-stone-200 text-left">
                         <tr>
-                            <th class="px-4 py-2">Utilisateur</th>
-                            <th class="px-4 py-2">Raison</th>
-                            <th class="px-4 py-2">Sessions</th>
-                            <th class="px-4 py-2">XP total</th>
+                            <th class="px-4 py-2">{{ 'admin.stats.col_user'|trans({}, 'admin') }}</th>
+                            <th class="px-4 py-2">{{ 'admin.stats.col_reason'|trans({}, 'admin') }}</th>
+                            <th class="px-4 py-2">{{ 'admin.stats.col_sessions'|trans({}, 'admin') }}</th>
+                            <th class="px-4 py-2">{{ 'admin.stats.col_total_xp'|trans({}, 'admin') }}</th>
                         </tr>
                     </thead>
                     <tbody>

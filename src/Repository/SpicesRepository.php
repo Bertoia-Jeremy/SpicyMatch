@@ -107,64 +107,124 @@ class SpicesRepository extends ServiceEntityRepository
      * d'un ensemble d'IDs en une seule requête (pas de N+1 sur relations).
      *
      * Utilisé par CompatibleSpiceFinder après un appel à MatchPipeline::run().
+     * Nom épice + groupe localisés (COALESCE FR) si $locale ≠ fr ; le type n'est pas traduisible.
      *
-     * @param list<int> $ids
+     * @param list<int>   $ids
+     * @param string|null $locale null ou 'fr' → noms canoniques directs
      *
      * @return list<array{id: int, name: string, file: ?string, agId: ?int, color: ?string, groupName: ?string, stId: ?int, typeName: ?string}>
      */
-    public function findEnrichedByIds(array $ids): array
+    public function findEnrichedByIds(array $ids, ?string $locale = null): array
     {
         if ($ids === []) {
             return [];
         }
 
+        if ($locale === null || $locale === 'fr') {
+            return $this->createQueryBuilder('s')
+                ->select(
+                    's.id',
+                    's.name',
+                    's.file',
+                    'ag.id AS agId',
+                    'ag.color',
+                    'ag.name AS groupName',
+                    'st.id AS stId',
+                    'st.name AS typeName'
+                )
+                ->leftJoin('s.aromaticGroups', 'ag')
+                ->leftJoin('s.spicyType', 'st')
+                ->where('s.id IN (:ids)')
+                ->setParameter('ids', $ids)
+                ->getQuery()
+                ->getArrayResult()
+            ;
+        }
+
         return $this->createQueryBuilder('s')
             ->select(
                 's.id',
-                's.name',
+                'COALESCE(str.name, s.name) AS name',
                 's.file',
                 'ag.id AS agId',
                 'ag.color',
-                'ag.name AS groupName',
+                'COALESCE(agt.name, ag.name) AS groupName',
                 'st.id AS stId',
                 'st.name AS typeName'
             )
             ->leftJoin('s.aromaticGroups', 'ag')
             ->leftJoin('s.spicyType', 'st')
+            ->leftJoin('s.translations', 'str', 'WITH', 'str.locale = :loc')
+            ->leftJoin('ag.translations', 'agt', 'WITH', 'agt.locale = :loc')
             ->where('s.id IN (:ids)')
             ->setParameter('ids', $ids)
+            ->setParameter('loc', $locale)
             ->getQuery()
             ->getArrayResult()
         ;
     }
 
     /**
+     * Recherche multilingue : matche nom FR ET traduit, renvoie le nom localisé.
+     * En FR (ou null) → requête simple sans JOIN.
+     *
      * @return list<array{id: int, name: string, type: string}>
      */
-    public function search(string $word): array
+    public function search(string $word, ?string $locale = null): array
     {
         $word = mb_substr(trim($word), 0, 100);
         if ($word === '') {
             return [];
         }
 
-        $sql = 'SELECT s.id, s.name, IF(1, "spice", "") as `type`
+        $like = '%' . $word . '%';
+        $conn = $this->getEntityManager()
+            ->getConnection();
+
+        if ($locale === null || $locale === 'fr') {
+            $sql = 'SELECT s.id, s.name, IF(1, "spice", "") as `type`
+                    FROM spices s
+                    WHERE s.name LIKE ?
+                        AND deleted_at IS NULL
+                    UNION
+                    SELECT ac.id, ac.name, IF(1, "aromatic_compound", "") as `type`
+                    FROM aromatic_compound ac
+                    WHERE ac.name LIKE ?
+                        AND deleted_at IS NULL
+                    ORDER BY `name`
+                    LIMIT 10';
+
+            $stmt = $conn->prepare($sql);
+            $stmt->bindValue(1, $like);
+            $stmt->bindValue(2, $like);
+
+            return $stmt->executeQuery()
+                ->fetchAllAssociative();
+        }
+
+        $sql = 'SELECT s.id, COALESCE(st.name, s.name) AS name, IF(1, "spice", "") as `type`
                 FROM spices s
-                WHERE s.name LIKE ?
-                    AND deleted_at IS NULL
+                LEFT JOIN spice_translation st
+                    ON st.spice_id = s.id AND st.locale = ?
+                WHERE (s.name LIKE ? OR st.name LIKE ?)
+                    AND s.deleted_at IS NULL
                 UNION
-                SELECT ac.id, ac.name, IF(1, "aromatic_compound", "") as `type`
+                SELECT ac.id, COALESCE(act.name, ac.name) AS name, IF(1, "aromatic_compound", "") as `type`
                 FROM aromatic_compound ac
-                WHERE ac.name LIKE ?
-                    AND deleted_at IS NULL
+                LEFT JOIN aromatic_compound_translation act
+                    ON act.aromatic_compound_id = ac.id AND act.locale = ?
+                WHERE (ac.name LIKE ? OR act.name LIKE ?)
+                    AND ac.deleted_at IS NULL
                 ORDER BY `name`
                 LIMIT 10';
 
-        $stmt = $this->getEntityManager()
-            ->getConnection()
-            ->prepare($sql);
-        $stmt->bindValue(1, '%' . $word . '%');
-        $stmt->bindValue(2, '%' . $word . '%');
+        $stmt = $conn->prepare($sql);
+        $stmt->bindValue(1, $locale);
+        $stmt->bindValue(2, $like);
+        $stmt->bindValue(3, $like);
+        $stmt->bindValue(4, $locale);
+        $stmt->bindValue(5, $like);
+        $stmt->bindValue(6, $like);
 
         return $stmt->executeQuery()
             ->fetchAllAssociative();
@@ -461,24 +521,43 @@ class SpicesRepository extends ServiceEntityRepository
     }
 
     /**
-     * Retourne un mapping id → name pour une liste d'IDs.
-     * Requête DQL scalaire (pas d'hydratation entité) — utilisée par MatchController
-     * pour éviter de charger les entités complètes juste pour récupérer les noms.
+     * Retourne un mapping id → name (localisé) pour une liste d'IDs.
      *
-     * @param int[] $ids
+     * Hydratation BATCH (i18n) : un seul LEFT JOIN filtré par locale + COALESCE
+     * vers le FR canonique. Zéro N+1 — c'est le SEUL point i18n du hot-path du
+     * moteur OAV (le pipeline lui-même reste agnostique de la langue). Requête
+     * DQL scalaire (pas d'hydratation entité).
+     *
+     * @param int[]       $ids
+     * @param string|null $locale locale cible ; null ou 'fr' → noms canoniques directs
      *
      * @return array<int, string> spice_id => name
      */
-    public function findNamesById(array $ids): array
+    public function findNamesById(array $ids, ?string $locale = null): array
     {
         if ($ids === []) {
             return [];
         }
 
+        // FR (défaut) : pas de JOIN, le nom canonique vit sur l'entité.
+        if ($locale === null || $locale === 'fr') {
+            $rows = $this->createQueryBuilder('s')
+                ->select('s.id', 's.name')
+                ->where('s.id IN (:ids)')
+                ->setParameter('ids', $ids)
+                ->getQuery()
+                ->getArrayResult();
+
+            /** @var array<int, string> */
+            return array_column($rows, 'name', 'id');
+        }
+
         $rows = $this->createQueryBuilder('s')
-            ->select('s.id', 's.name')
+            ->select('s.id AS id', 'COALESCE(t.name, s.name) AS name')
+            ->leftJoin('s.translations', 't', 'WITH', 't.locale = :loc')
             ->where('s.id IN (:ids)')
             ->setParameter('ids', $ids)
+            ->setParameter('loc', $locale)
             ->getQuery()
             ->getArrayResult();
 

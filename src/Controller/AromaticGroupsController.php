@@ -8,7 +8,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/epices')]
+#[Route('/{_locale}/epices', defaults: [
+    '_locale' => 'fr',
+])]
 class AromaticGroupsController extends AbstractController
 {
     #[Route('/groupes_aromatiques', name: 'index_aromatic_groups')]

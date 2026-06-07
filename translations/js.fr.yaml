@@ -1,0 +1,35 @@
+# Libellés exposés au JavaScript (domaine 'js'), injectés dans #js-i18n via base.html.twig.
+nav:
+    open: Ouvrir
+    close: Refermer
+    menu_open: Ouvrir le menu
+    menu_close: Fermer le menu
+password:
+    show: Afficher
+    hide: Masquer
+game:
+    quit_confirm: Quitter la partie ? Ta progression sera perdue.
+favorites:
+    added: Ajouté aux favoris
+    removed: Supprimé des favoris
+    in: Dans vos favoris
+    add: Ajouter aux favoris
+    remove: Retirer des favoris
+melange:
+    seal_assoc: Sceller l'association
+    last_spice: Une dernière épice à finaliser
+    sealed_count: '%done% / %total% épice(s) scellée(s)'
+    status_sealed_current: scellée ✓
+    status_sealed: scellée
+    status_choose_time: choisir le temps
+    status_choose_hand: choisir la main
+    status_ongoing: en cours
+    status_upcoming: à venir
+    toast_complete: '%spice% scellée — mélange complet'
+    toast_next: '%spice% scellée — %next% →'
+cooking:
+    cta_final: Voir ma recette finale
+    cta_incomplete: Finalise la préparation de chaque épice
+tour:
+    done: Terminé !
+    next: Suivant →

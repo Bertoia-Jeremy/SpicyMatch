@@ -36,12 +36,11 @@ enum AromaKinetics: string
         };
     }
 
+    /**
+     * Clé de traduction (domaine messages) — traduire à l'affichage via |trans.
+     */
     public function label(): string
     {
-        return match ($this) {
-            self::HEAD => 'Tête',
-            self::HEART => 'Cœur',
-            self::BASE => 'Fond',
-        };
+        return 'enum.kinetics.' . $this->value;
     }
 }

@@ -9,16 +9,14 @@
     {# Section header #}
     <div class="section-head">
         <div>
-            <div class="section-label">Chapitre IV · L'Académie</div>
+            <div class="section-label">{{ 'ui.theatre.chapter'|trans }}</div>
             <h2 class="font-display font-medium leading-none tracking-[-0.015em] m-0"
                 style="font-size: clamp(40px, 5vw, 80px)">
-                Le théâtre des <em class="not-italic italic" style="color: var(--color-turmeric-700)">sens.</em>
+                {{ 'ui.theatre.title_html'|trans|raw }}
             </h2>
         </div>
         <p class="section-blurb">
-            Six mini-jeux. Des épices comme terrain de jeu.
-            Chaque partie révèle un angle nouveau — l'intrus,
-            la survie, le pendu, la vitesse.
+            {{ 'ui.theatre.blurb'|trans }}
         </p>
     </div>
 
@@ -28,57 +26,57 @@
         {# ── Affiche I : Défi de Scoville (Survie) ── #}
         <a href="{{ path('education_index') }}" class="poster p1"
            style="background: radial-gradient(ellipse at 50% 0%, #C04020 0%, #7a1a1a 60%, #3a0a0a 100%)"
-           aria-label="Jouer au Défi de Scoville">
+           aria-label="{{ 'ui.theatre.play_scoville'|trans }}">
             <div class="poster-top">
-                <div class="poster-num">Acte I</div>
+                <div class="poster-num">{{ 'ui.theatre.act1'|trans }}</div>
                 <div class="poster-ornament" aria-hidden="true">✦</div>
             </div>
             <div class="poster-mid">
-                <h4>Défi de <span class="ital">Scoville.</span></h4>
+                <h4>{{ 'ui.theatre.scoville_title_html'|trans|raw }}</h4>
                 <div class="poster-dash" aria-hidden="true"></div>
-                <div class="poster-tag">jeu de survie au piment</div>
+                <div class="poster-tag">{{ 'ui.theatre.scoville_tag'|trans }}</div>
             </div>
             <div class="poster-bot">
                 <span>SURVIVAL</span>
-                <span class="right">Parties illimitées</span>
+                <span class="right">{{ 'ui.theatre.scoville_footer'|trans }}</span>
             </div>
         </a>
 
         {# ── Affiche II : Le Choix du Chef (L'Intrus) ── #}
         <a href="{{ path('education_index') }}" class="poster p2"
            style="background: radial-gradient(ellipse at 50% 0%, #4D7C0F 0%, #2d4a08 60%, #1a2a04 100%)"
-           aria-label="Jouer au Choix du Chef">
+           aria-label="{{ 'ui.theatre.play_choice'|trans }}">
             <div class="poster-top">
-                <div class="poster-num">Acte II</div>
+                <div class="poster-num">{{ 'ui.theatre.act2'|trans }}</div>
                 <div class="poster-ornament" aria-hidden="true">✦</div>
             </div>
             <div class="poster-mid">
-                <h4>Le Choix <span class="ital">du Chef.</span></h4>
+                <h4>{{ 'ui.theatre.choice_title_html'|trans|raw }}</h4>
                 <div class="poster-dash" aria-hidden="true"></div>
-                <div class="poster-tag">trouver l'intrus en cuisine</div>
+                <div class="poster-tag">{{ 'ui.theatre.choice_tag'|trans }}</div>
             </div>
             <div class="poster-bot">
                 <span>INTRUS</span>
-                <span class="right">10 questions</span>
+                <span class="right">{{ 'ui.theatre.choice_footer'|trans }}</span>
             </div>
         </a>
 
         {# ── Affiche III : Trop Cuit! (Pendu) ── #}
         <a href="{{ path('education_index') }}" class="poster p3"
            style="background: radial-gradient(ellipse at 50% 0%, #D97706 0%, #7c3a04 60%, #3a1c02 100%)"
-           aria-label="Jouer à Trop Cuit">
+           aria-label="{{ 'ui.theatre.play_overcooked'|trans }}">
             <div class="poster-top">
-                <div class="poster-num">Acte III</div>
+                <div class="poster-num">{{ 'ui.theatre.act3'|trans }}</div>
                 <div class="poster-ornament" aria-hidden="true">✦</div>
             </div>
             <div class="poster-mid">
-                <h4>Trop <span class="ital">Cuit!</span></h4>
+                <h4>{{ 'ui.theatre.overcooked_title_html'|trans|raw }}</h4>
                 <div class="poster-dash" aria-hidden="true"></div>
-                <div class="poster-tag">le pendu des épices oubliées</div>
+                <div class="poster-tag">{{ 'ui.theatre.overcooked_tag'|trans }}</div>
             </div>
             <div class="poster-bot">
                 <span>HANGMAN</span>
-                <span class="right">8 mots à deviner</span>
+                <span class="right">{{ 'ui.theatre.overcooked_footer'|trans }}</span>
             </div>
         </a>
 
@@ -87,10 +85,10 @@
     {# CTA Académie #}
     <div class="theatre-cta">
         <p class="theatre-cta-sub">
-            6 modes disponibles · XP · Achievements · Classements
+            {{ 'ui.theatre.cta_sub'|trans }}
         </p>
         <a href="{{ path('education_index') }}" class="btn-pill-primary text-base px-8 py-4">
-            Rejoindre l'Académie
+            {{ 'ui.theatre.cta'|trans }}
             <span aria-hidden="true" class="ml-2">→</span>
         </a>
     </div>

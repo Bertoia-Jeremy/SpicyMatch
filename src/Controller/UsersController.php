@@ -22,8 +22,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
-#[Route('/users')]
+#[Route('/{_locale}/users', defaults: [
+    '_locale' => 'fr',
+])]
 #[IsGranted('ROLE_USER')]
 class UsersController extends AbstractController
 {
@@ -34,6 +37,7 @@ class UsersController extends AbstractController
         private readonly SpicyMatchHistoryRepository $historyRepository,
         private readonly SpiceViewRepository $spiceViewRepository,
         private readonly AchievementProgressRepository $achievementProgressRepository,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -253,7 +257,7 @@ class UsersController extends AbstractController
     public function toggleGamification(Request $request, EntityManagerInterface $em): Response
     {
         if (! $this->isCsrfTokenValid('toggle_gamification', $request->request->get('_token'))) {
-            $this->addFlash('error', 'Token invalide.');
+            $this->addFlash('error', $this->translator->trans('flash.token_invalid'));
 
             return $this->redirectToRoute('configuration_user');
         }
@@ -283,7 +287,7 @@ class UsersController extends AbstractController
     public function updateDifficulty(Request $request, EntityManagerInterface $em): Response
     {
         if (! $this->isCsrfTokenValid('update_difficulty', $request->request->get('_token'))) {
-            $this->addFlash('error', 'Token invalide.');
+            $this->addFlash('error', $this->translator->trans('flash.token_invalid'));
 
             return $this->redirectToRoute('configuration_user');
         }
@@ -291,7 +295,7 @@ class UsersController extends AbstractController
         $difficulty = GameDifficulty::tryFrom($request->request->getString('difficulty'));
 
         if ($difficulty === null) {
-            $this->addFlash('error', 'Difficulté invalide.');
+            $this->addFlash('error', $this->translator->trans('flash.difficulty_invalid'));
 
             return $this->redirectToRoute('configuration_user');
         }
@@ -301,7 +305,7 @@ class UsersController extends AbstractController
         $user->setPreferredDifficulty($difficulty);
         $em->flush();
 
-        $this->addFlash('success', 'Posture mise à jour.');
+        $this->addFlash('success', $this->translator->trans('flash.posture_updated'));
 
         return $this->redirectToRoute('configuration_user');
     }
@@ -314,7 +318,7 @@ class UsersController extends AbstractController
         $progression = $user->getProgression();
 
         if (! $this->isCsrfTokenValid('equip_badge_' . $ua->getId(), $request->request->get('_token'))) {
-            $this->addFlash('error', 'Token invalide.');
+            $this->addFlash('error', $this->translator->trans('flash.token_invalid'));
 
             return $this->redirectToRoute('achievements_user');
         }

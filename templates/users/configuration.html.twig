@@ -7,17 +7,17 @@
         {# Mail #}
         <div class="mt-6">
             <h2 class="text-xl font-semibold text-stone-800 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-envelope text-saffron-600 text-base"></i>Adresse mail
+                <i class="fa-solid fa-envelope text-saffron-600 text-base"></i>{{ 'ui.config.email_address'|trans }}
             </h2>
             <turbo-frame id="userMail_frame_id" class="block">
                 <div class="card-warm p-5">
                     <p class="text-stone-700 text-sm">
-                        Mail actuellement utilisé :
+                        {{ 'ui.config.current_mail'|trans }}
                         {% if user.mail is null %}
-                            Aucun (<a href="{{ path('mail_user') }}" class="text-saffron-700 hover:text-saffron-600 underline">Ajouter un mail</a>)
+                            {{ 'ui.config.none'|trans }} (<a href="{{ path('mail_user') }}" class="text-saffron-700 hover:text-saffron-600 underline">{{ 'ui.config.add_mail'|trans }}</a>)
                         {% else %}
                             <span class="font-medium">{{ user.mail }}</span>
-                            (<a href="{{ path('mail_user') }}" class="text-saffron-700 hover:text-saffron-600 underline">Changer le mail</a>)
+                            (<a href="{{ path('mail_user') }}" class="text-saffron-700 hover:text-saffron-600 underline">{{ 'ui.config.change_mail'|trans }}</a>)
                         {% endif %}
                     </p>
                 </div>
@@ -27,14 +27,14 @@
         {# Réactiver l'onboarding #}
         <div class="mt-6">
             <h2 class="text-xl font-semibold text-stone-800 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-compass text-saffron-600 text-base"></i>Parcours de découverte
+                <i class="fa-solid fa-compass text-saffron-600 text-base"></i>{{ 'ui.config.discovery_path'|trans }}
             </h2>
             <div class="card-warm p-5">
                 <div class="flex items-start justify-between gap-4">
                     <div>
-                        <p class="text-sm font-medium text-stone-800">Revoir l'introduction</p>
+                        <p class="text-sm font-medium text-stone-800">{{ 'ui.config.replay_intro'|trans }}</p>
                         <p class="text-xs text-stone-500 mt-1">
-                            Relance le guide de démarrage pour redécouvrir les fonctionnalités principales.
+                            {{ 'ui.config.replay_intro_text'|trans }}
                         </p>
                     </div>
                     <button type="button"
@@ -45,7 +45,7 @@
                             "
                             class="shrink-0 text-sm px-4 py-1.5 rounded-full border border-saffron-400
                                    text-saffron-700 hover:bg-saffron-50 transition-colors">
-                        <i class="fa-solid fa-rotate-left mr-1.5"></i>Relancer
+                        <i class="fa-solid fa-rotate-left mr-1.5"></i>{{ 'ui.config.replay'|trans }}
                     </button>
                 </div>
             </div>
@@ -54,18 +54,18 @@
         {# Difficulté / Posture #}
         <div class="mt-6">
             <h2 class="text-xl font-semibold text-stone-800 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-gauge-high text-saffron-600 text-base"></i>Posture de jeu
+                <i class="fa-solid fa-gauge-high text-saffron-600 text-base"></i>{{ 'ui.config.game_posture'|trans }}
             </h2>
             <div class="card-warm p-5">
                 <p class="text-sm text-stone-600 mb-3">
-                    Ta posture détermine la difficulté par défaut des jeux et modifie certains éléments visuels.
+                    {{ 'ui.config.posture_intro'|trans }}
                 </p>
                 <form action="{{ path('update_difficulty_user') }}" method="POST">
                     <input type="hidden" name="_token" value="{{ csrf_token('update_difficulty') }}">
                     {% set difficulties = [
-                        { value: 'easy', label: 'Commis', multiplier: '1' },
-                        { value: 'medium', label: 'Cuisinier', multiplier: '1.5' },
-                        { value: 'hard', label: 'Chef de Partie', multiplier: '2' }
+                        { value: 'easy', label: 'ui.config.commis'|trans, multiplier: '1' },
+                        { value: 'medium', label: 'ui.config.cuisinier'|trans, multiplier: '1.5' },
+                        { value: 'hard', label: 'ui.config.chef_partie'|trans, multiplier: '2' }
                     ] %}
                     <div class="flex flex-wrap gap-2 mb-3">
                         {% for d in difficulties %}
@@ -84,15 +84,15 @@
                     </div>
                     <div class="text-xs text-stone-500 mb-3">
                         {% if app.user.preferredDifficulty.value == 'hard' %}
-                            <strong>Chef de Partie :</strong> couleurs des groupes aromatiques masquées, chrono réduit au Pendu, intrus plus subtils.
+                            {{ 'ui.config.posture_hard_html'|trans|raw }}
                         {% elseif app.user.preferredDifficulty.value == 'medium' %}
-                            <strong>Cuisinier :</strong> difficulté intermédiaire, comportement standard.
+                            {{ 'ui.config.posture_medium_html'|trans|raw }}
                         {% else %}
-                            <strong>Commis :</strong> aides visuelles complètes, plus de temps, indices supplémentaires.
+                            {{ 'ui.config.posture_easy_html'|trans|raw }}
                         {% endif %}
                     </div>
                     <button type="submit" class="text-sm px-4 py-1.5 rounded-full border border-saffron-400 text-saffron-700 hover:bg-saffron-50 transition-colors">
-                        Enregistrer
+                        {{ 'common.actions.save'|trans }}
                     </button>
                 </form>
             </div>
@@ -102,17 +102,17 @@
         {% if app.user.progression %}
         <div class="mt-6">
             <h2 class="text-xl font-semibold text-stone-800 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-shield-halved text-saffron-600 text-base"></i>Gamification & Vie privée
+                <i class="fa-solid fa-shield-halved text-saffron-600 text-base"></i>{{ 'ui.config.gamification_privacy'|trans }}
             </h2>
             <div class="card-warm p-5">
                 <div class="flex items-start justify-between gap-4">
                     <div>
-                        <p class="text-sm font-medium text-stone-800">Système de progression (XP, niveaux, succès)</p>
+                        <p class="text-sm font-medium text-stone-800">{{ 'ui.config.progression_system'|trans }}</p>
                         <p class="text-xs text-stone-500 mt-1">
                             {% if app.user.progression.gamificationEnabled %}
-                                Activé — tes actions donnent de l'XP et débloquent des succès.
+                                {{ 'ui.config.gamification_on'|trans }}
                             {% else %}
-                                Désactivé — aucune donnée de progression n'est collectée.
+                                {{ 'ui.config.gamification_off'|trans }}
                             {% endif %}
                         </p>
                     </div>
@@ -125,7 +125,7 @@
                                        {% else %}
                                            border-saffron-400 text-saffron-700 hover:bg-saffron-50
                                        {% endif %}">
-                            {{ app.user.progression.gamificationEnabled ? 'Désactiver' : 'Activer' }}
+                            {{ app.user.progression.gamificationEnabled ? 'ui.config.disable'|trans : 'ui.config.enable'|trans }}
                         </button>
                     </form>
                 </div>

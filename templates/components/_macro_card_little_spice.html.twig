@@ -30,14 +30,15 @@
         <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-50 transition-opacity duration-1000 ease-out pointer-events-none rounded-lg" style="background-image: url({{ littleSpiceImg ?: 'https://loremflickr.com/300/180/spice' }})"></div>
         <div class="text-white flex justify-center items-end h-full p-2 relative z-10">
             {# Ajustez la taille du texte et la graisse selon vos besoins, ex: text-lg font-semibold #}
-            {% set nameLength = spice.name|length %}
+            {% set spiceName = spice is iterable ? spice.name : spice.getLocalizedName(app.request.locale) %}
+            {% set nameLength = spiceName|length %}
             {% set textSizeClass = 'text-base' %}
             {% if nameLength > 15 %}
                 {% set textSizeClass = 'text-sm' %}
             {% elseif nameLength < 8 %}
                 {% set textSizeClass = 'text-lg' %}
             {% endif %}
-            <h3 class="mb-0 {{ textSizeClass }} font-medium">{{ spice.name }}</h3>
+            <h3 class="mb-0 {{ textSizeClass }} font-medium">{{ spiceName }}</h3>
         </div>
     </div>
 </div>

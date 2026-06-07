@@ -25,8 +25,8 @@
   {# HEADER — progress bar remplacée par progress_dots ci-dessous #}
   {{ game_header.header(
       icon = 'fa-solid fa-ban',
-      title = 'Hors Saison',
-      subtitle = this.isInverted ? 'Trouve le compatible' : 'Trouve l\'intrus',
+      title = 'enum.game_mode.intrus.label'|trans,
+      subtitle = this.isInverted ? 'ui.game.intrus_find_compatible'|trans : 'ui.game.intrus_find_intruder'|trans,
       current = this.questionNumber,
       total = this.totalQuestions,
       scoreLabel = this.correctCount ~ ' <i class="fa-solid fa-check text-xs text-green-600"></i>&nbsp;' ~ this.incorrectCount ~ ' <i class="fa-solid fa-xmark text-xs text-paprika-500"></i>',
@@ -48,7 +48,7 @@
       </span>
     {% endif %}
     {% if this.baseSpiceName %}
-      <p class="text-xs text-stone-500 uppercase tracking-widest mb-1">Épice de référence</p>
+      <p class="text-xs text-stone-500 uppercase tracking-widest mb-1">{{ 'ui.game.reference_spice'|trans }}</p>
       <p class="text-xl font-bold text-stone-800 mb-2">{{ this.baseSpiceName }}</p>
     {% endif %}
     <p class="text-stone-700">{{ this.prompt }}</p>
@@ -100,9 +100,9 @@
     <div class="flex items-center justify-between gap-4">
       <p class="text-xs text-stone-400 hidden sm:flex items-center gap-1.5 shrink-0">
         <kbd class="px-1.5 py-0.5 rounded bg-stone-100 border border-stone-200 font-mono text-[11px]">A–D</kbd>
-        sélectionner ·
+        {{ 'ui.game.kbd_select'|trans }} ·
         <kbd class="px-1.5 py-0.5 rounded bg-stone-100 border border-stone-200 font-mono text-[11px]">↵</kbd>
-        valider
+        {{ 'ui.game.kbd_validate'|trans }}
       </p>
       <button type="button"
               data-action="live#action"
@@ -111,7 +111,7 @@
               :disabled="!canValidate"
               @click="submitting = true"
               class="btn-pill-primary ml-auto disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
-        <i class="fa-solid fa-check mr-2"></i>Valider
+        <i class="fa-solid fa-check mr-2"></i>{{ 'ui.game.validate'|trans }}
       </button>
     </div>
 
@@ -149,7 +149,7 @@
       <div class="flex items-center gap-3 mb-2 flex-wrap">
         <i class="fa-solid {{ this.lastAnswerCorrect ? 'fa-circle-check text-green-600' : 'fa-circle-xmark text-paprika-600' }} text-xl shrink-0"></i>
         <h3 class="font-bold {{ this.lastAnswerCorrect ? 'text-green-800' : 'text-paprika-800' }}">
-          {{ this.lastAnswerCorrect ? 'Bonne réponse !' : 'Mauvaise réponse' }}
+          {{ this.lastAnswerCorrect ? 'ui.game.correct_answer'|trans : 'ui.game.wrong_answer'|trans }}
         </h3>
         {% if xp > 0 %}
           <span class="tag-primary ml-auto">+{{ xp }} XP</span>
@@ -158,8 +158,7 @@
       {% if compatibles %}
         <p class="text-sm text-stone-600 leading-relaxed">
           {{ compatibles|join(', ') }}
-          {{ compatibles|length > 1 ? 'appartiennent' : 'appartient' }}
-          à la même famille aromatique{% if this.familyName %} : <b>{{ this.familyName }}</b>{% endif %}.
+          {{ compatibles|length > 1 ? 'ui.game.same_family_many'|trans : 'ui.game.same_family_one'|trans }}{% if this.familyName %} : <b>{{ this.familyName }}</b>{% endif %}.
         </p>
       {% endif %}
     </div>
@@ -168,9 +167,9 @@
             data-live-action-param="next"
             class="btn-pill-primary w-full">
       {% if this.questionNumber >= this.totalQuestions %}
-        <i class="fa-solid fa-flag-checkered mr-2"></i>Terminer
+        <i class="fa-solid fa-flag-checkered mr-2"></i>{{ 'ui.game.finish'|trans }}
       {% else %}
-        <i class="fa-solid fa-arrow-right mr-2"></i>Question suivante
+        <i class="fa-solid fa-arrow-right mr-2"></i>{{ 'ui.game.next_question'|trans }}
       {% endif %}
     </button>
 

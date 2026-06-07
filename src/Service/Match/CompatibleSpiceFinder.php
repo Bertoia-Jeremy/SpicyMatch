@@ -7,6 +7,7 @@ namespace App\Service\Match;
 use App\Repository\SpicesRepository;
 use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Adaptateur haut niveau — combine MatchPipeline (veto OAV + Tanimoto) avec
@@ -30,6 +31,7 @@ class CompatibleSpiceFinder
     public function __construct(
         private readonly MatchPipeline $matchPipeline,
         private readonly SpicesRepository $spicesRepository,
+        private readonly RequestStack $requestStack,
     ) {
     }
 
@@ -55,8 +57,9 @@ class CompatibleSpiceFinder
         // scoreMap : id → score (issu du pipeline)
         $scoreMap = array_column($pipelineResults, 'score', 'id');
 
-        // Enrichissement : une seule requête SQL pour les données d'affichage
-        $enriched = $this->spicesRepository->findEnrichedByIds(array_keys($scoreMap));
+        // Enrichissement : une seule requête SQL pour les données d'affichage.
+        $locale = $this->requestStack->getCurrentRequest()?->getLocale();
+        $enriched = $this->spicesRepository->findEnrichedByIds(array_keys($scoreMap), $locale);
 
         $results = [];
         foreach ($enriched as $row) {

@@ -7,18 +7,18 @@
   {% set streakPill = this.streak >= 2 ? ' <span class="tag-primary text-xs"><i class="fa-solid fa-fire mr-1"></i>' ~ this.streak ~ ' ' ~ streakBonus ~ '</span>' : '' %}
   {{ game_header.header(
       icon = 'fa-solid fa-fire-flame-curved',
-      title = 'À Feu Vif',
-      subtitle = 'Identifie les épices le plus vite possible',
-      scoreLabel = this.totalScore ~ ' pts' ~ streakPill,
+      title = 'enum.game_mode.chrono.label'|trans,
+      subtitle = 'ui.game.chrono_subtitle'|trans,
+      scoreLabel = ('ui.edu.pts'|trans({'%score%': this.totalScore})) ~ streakPill,
       quitUrl = path('education_briefing', { mode: 'chrono', difficulty: this.difficulty }),
   ) }}
 
   {% if this.isFinished %}
     {{ game_header.game_over_summary(
         circleLabel = this.totalScore,
-        title = 'Temps écoulé !',
-        paragraphHtml = this.correctCount ~ '/' ~ this.questionsAnswered ~ ' bonne' ~ (this.correctCount > 1 ? 's' : '') ~ ' réponse' ~ (this.correctCount > 1 ? 's' : '') ~ '<br>' ~ this.totalScore ~ ' points au total.',
-        buttonLabel = 'Voir les résultats',
+        title = 'ui.game.time_up'|trans,
+        paragraphHtml = 'ui.game.time_up_summary'|trans({'%correct%': this.correctCount, '%answered%': this.questionsAnswered, '%score%': this.totalScore}),
+        buttonLabel = 'ui.game.see_results'|trans,
         buttonAction = 'finish',
         variant = this.correctCount >= 5 ? 'success' : 'failure',
     ) }}
@@ -39,7 +39,7 @@
               class="hidden" aria-hidden="true"></button>
       <div class="flex items-center justify-between mb-2">
         <span class="text-sm text-stone-500">
-          <i class="fa-solid fa-clock mr-1"></i>Temps restant
+          <i class="fa-solid fa-clock mr-1"></i>{{ 'ui.game.time_remaining'|trans }}
         </span>
         <span data-game-timer-target="label"
               aria-live="polite"
@@ -65,11 +65,11 @@
       <div class="mb-6 text-center text-sm">
         {% if this.lastAnswerCorrect %}
           <span class="text-turmeric-600 font-medium">
-            <i class="fa-solid fa-check-circle mr-1"></i>Correct ! +{{ this.lastPointsEarned }} pts
+            <i class="fa-solid fa-check-circle mr-1"></i>{{ 'ui.game.correct_points'|trans({'%points%': this.lastPointsEarned}) }}
           </span>
         {% else %}
           <span class="text-paprika-600 font-medium">
-            <i class="fa-solid fa-times-circle mr-1"></i>C'était {{ this.lastCorrectName }}
+            <i class="fa-solid fa-times-circle mr-1"></i>{{ 'ui.game.it_was'|trans({'%name%': this.lastCorrectName}) }}
           </span>
         {% endif %}
       </div>
@@ -77,7 +77,7 @@
 
     {# Spice card info (without name) #}
     <div class="bg-white border border-stone-200 rounded-2xl p-6 mb-6">
-      <p class="text-xs text-stone-500 uppercase tracking-wide mb-3">Quelle est cette épice ?</p>
+      <p class="text-xs text-stone-500 uppercase tracking-wide mb-3">{{ 'ui.game.which_spice'|trans }}</p>
 
       {% if this.currentCard.file is defined and this.currentCard.file %}
         <div class="flex justify-center mb-4">
@@ -94,7 +94,7 @@
       <div class="space-y-2 text-sm">
         {% if this.currentCard.aromaticGroup is defined and this.currentCard.aromaticGroup.name is defined %}
           <div class="flex items-center gap-2">
-            <span class="text-stone-500">Famille :</span>
+            <span class="text-stone-500">{{ 'ui.game.family'|trans }}</span>
             <span class="flex items-center gap-1.5">
               {% if this.currentCard.aromaticGroup.color is defined and this.currentCard.aromaticGroup.color %}
                 <span class="w-3 h-3 rounded-full inline-block" style="background-color: {{ this.currentCard.aromaticGroup.color }}"></span>
@@ -105,12 +105,12 @@
         {% endif %}
 
         {% if this.currentCard.spicyType is defined and this.currentCard.spicyType %}
-          <div><span class="text-stone-500">Type :</span> {{ this.currentCard.spicyType }}</div>
+          <div><span class="text-stone-500">{{ 'ui.game.type'|trans }}</span> {{ this.currentCard.spicyType }}</div>
         {% endif %}
 
         {% if this.currentCard.alchemyFlavors is defined and this.currentCard.alchemyFlavors|length > 0 %}
           <div>
-            <span class="text-stone-500">Saveurs :</span>
+            <span class="text-stone-500">{{ 'ui.game.flavors'|trans }}</span>
             {% for flavor in this.currentCard.alchemyFlavors %}
               <span class="tag-secondary text-xs">{{ flavor }}</span>
             {% endfor %}
@@ -119,21 +119,21 @@
 
         {% if this.currentCard.mainCompounds is defined and this.currentCard.mainCompounds|length > 0 %}
           <div>
-            <span class="text-stone-500">Composés principaux :</span>
+            <span class="text-stone-500">{{ 'ui.game.main_compounds'|trans }}</span>
             {{ this.currentCard.mainCompounds|join(', ') }}
           </div>
         {% endif %}
 
         {% if this.currentCard.secondaryCompounds is defined and this.currentCard.secondaryCompounds|length > 0 %}
           <div>
-            <span class="text-stone-500">Composés secondaires :</span>
+            <span class="text-stone-500">{{ 'ui.game.secondary_compounds'|trans }}</span>
             {{ this.currentCard.secondaryCompounds|join(', ') }}
           </div>
         {% endif %}
 
         {% if this.currentCard.cookingTips is defined and this.currentCard.cookingTips|length > 0 %}
           <div>
-            <span class="text-stone-500">Conseil :</span>
+            <span class="text-stone-500">{{ 'ui.game.tip'|trans }}</span>
             {{ this.currentCard.cookingTips[0].title ?? this.currentCard.cookingTips[0].cookingStep ?? '' }}
           </div>
         {% endif %}
@@ -143,7 +143,7 @@
     {# Name options — answerOnce Alpine pour anti double-clic #}
     {% if this.isInCooldown %}
       <div class="mb-3 text-center text-xs text-stone-400 animate-pulse">
-        <i class="fa-solid fa-hourglass-half mr-1"></i>Prépare ta prochaine réponse…
+        <i class="fa-solid fa-hourglass-half mr-1"></i>{{ 'ui.game.prepare_next'|trans }}
       </div>
     {% endif %}
     <div class="grid grid-cols-2 gap-3" x-data="answerOnce">

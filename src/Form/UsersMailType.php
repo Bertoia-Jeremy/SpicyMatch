@@ -18,10 +18,11 @@ class UsersMailType extends AbstractType
                 'label' => false,
                 'required' => false,
                 'attr' => [
-                    'placeholder' => 'Insérez un mail',
+                    'placeholder' => 'form.mail.placeholder',
                 ],
             ])
             ->add('Valider', SubmitType::class, [
+                'label' => 'common.actions.submit',
                 'attr' => [
                     'class' => 'btn btn-outline-primary w-100',
                 ],

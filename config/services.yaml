@@ -82,6 +82,11 @@ services:
         arguments:
             $appSecret: '%kernel.secret%'
 
+    # i18n — résolution de la locale par requête (route → user → session → Accept-Language → défaut)
+    App\EventSubscriber\LocaleSubscriber:
+        arguments:
+            $defaultLocale: '%kernel.default_locale%'
+
     # Moteur de compatibilité aromatique — cache des profils mortier OAV
     App\Service\Match\MortarProfileBuilder:
         arguments:

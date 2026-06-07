@@ -28,15 +28,15 @@
                 <div>
                     <h2 class="text-xl font-bold text-stone-800">
                         <i class="fa-solid fa-trophy text-turmeric-500 mr-2"></i>
-                        {{ unlockedCount }} / {{ totalCount }} succès débloqués
+                        {{ 'ui.achievements.unlocked_count'|trans({'%count%': unlockedCount, '%total%': totalCount}) }}
                     </h2>
                     <p class="text-sm text-stone-500 mt-0.5">
-                        +{{ xpFromAchievements }} XP gagnés via les succès
+                        {{ 'ui.achievements.xp_from_achievements'|trans({'%xp%': xpFromAchievements}) }}
                     </p>
                 </div>
                 <div class="sm:w-52">
                     <div class="flex justify-between text-xs text-stone-500 mb-1">
-                        <span>Progression globale</span>
+                        <span>{{ 'ui.achievements.global_progress'|trans }}</span>
                         <span>{{ globalPct }}%</span>
                     </div>
                     <div class="w-full bg-stone-200 rounded-full h-2">
@@ -58,11 +58,11 @@
                        by the gamification manager (ProgressTrackableEvaluator::currentValue). #}
                     {% set progressCurrent = 0 %}
                     {% set progressMax = achievement.triggerValue %}
-                    {% set progressLabel = 'Pas encore commencé' %}
+                    {% set progressLabel = 'ui.achievements.not_started'|trans %}
                     {% set storedProgress = progressByAchievementId[achievement.id] ?? null %}
                     {% if not isUnlocked %}
                         {% if trigger == 'easter_egg_found' %}
-                            {% set progressLabel = 'À découvrir…' %}
+                            {% set progressLabel = 'ui.achievements.to_discover'|trans %}
                         {% elseif storedProgress %}
                             {% set progressCurrent = min(storedProgress.progress, achievement.triggerValue) %}
                             {% set progressLabel = progressCurrent ~ ' / ' ~ achievement.triggerValue %}
@@ -97,15 +97,15 @@
 
                         {# Nom + description #}
                         <div class="text-center">
-                            <div class="font-bold text-stone-800 text-sm mb-1">{{ achievement.name }}</div>
-                            <div class="text-xs text-stone-500 leading-relaxed">{{ achievement.description }}</div>
+                            <div class="font-bold text-stone-800 text-sm mb-1">{{ achievement.getLocalizedName(app.request.locale) }}</div>
+                            <div class="text-xs text-stone-500 leading-relaxed">{{ achievement.getLocalizedDescription(app.request.locale) }}</div>
                         </div>
 
                         {# Badges rarity + XP #}
                         <div class="flex items-center justify-center gap-2 flex-wrap">
                             <span class="text-xs px-2 py-0.5 rounded-full font-medium"
                                   style="background-color: {{ rarityColors.bg }}; color: {{ rarityColors.text }}">
-                                    {{ achievement.rarity.label() }}
+                                    {{ achievement.rarity.label()|trans }}
                             </span>
                             <span class="text-xs px-2 py-0.5 rounded-full bg-turmeric-300/20 text-turmeric-700 font-medium">
                                 +{{ achievement.xpReward }} XP
@@ -117,11 +117,11 @@
                             {% if isUnlocked %}
                                 <p class="text-center text-xs text-stone-400 mb-2">
                                     <i class="fa-solid fa-calendar-check mr-1"></i>
-                                    Débloqué le {{ ua.unlockedAt|date('d/m/Y') }}
+                                    {{ 'ui.common.unlocked_on'|trans({'%date%': ua.unlockedAt|format_date('medium')}) }}
                                 </p>
                                 {% if isEquipped %}
                                     <p class="text-center text-xs font-semibold text-saffron-600">
-                                        <i class="fa-solid fa-shield-halved mr-1"></i>Badge équipé
+                                        <i class="fa-solid fa-shield-halved mr-1"></i>{{ 'ui.achievements.equipped_badge'|trans }}
                                     </p>
                                 {% else %}
                                     <div class="text-center">
@@ -132,18 +132,18 @@
                                                 data-equip-token="{{ csrf_token('equip_badge_' ~ ua.id) }}"
                                                 data-equip-redirect="{{ path('achievements_user') }}"
                                                 class="text-xs px-3 py-1 rounded-full border border-saffron-400 text-saffron-700 hover:bg-saffron-50 transition-colors cursor-pointer">
-                                            <span x-show="!equipping"><i class="fa-solid fa-shield-halved mr-1"></i>Équiper</span>
+                                            <span x-show="!equipping"><i class="fa-solid fa-shield-halved mr-1"></i>{{ 'ui.achievements.equip'|trans }}</span>
                                             <span x-show="equipping" x-cloak><i class="fa-solid fa-spinner fa-spin mr-1"></i>…</span>
                                         </button>
                                     </div>
                                 {% endif %}
-                            {% elseif progressLabel == 'Pas encore commencé' %}
+                            {% elseif progressLabel == 'ui.achievements.not_started'|trans %}
                                 <p class="text-center text-xs text-stone-400 italic">
-                                    <i class="fa-solid fa-hourglass-half mr-1"></i>Pas encore commencé
+                                    <i class="fa-solid fa-hourglass-half mr-1"></i>{{ 'ui.achievements.not_started'|trans }}
                                 </p>
                             {% else %}
                                 <div class="flex justify-between text-xs text-stone-500 mb-1">
-                                    <span>Progression</span>
+                                    <span>{{ 'ui.achievements.progress'|trans }}</span>
                                     <span>{{ progressLabel }}</span>
                                 </div>
                                 <div class="w-full bg-stone-200 rounded-full h-1.5">
@@ -160,9 +160,9 @@
         {% else %}
             <div class="text-center text-stone-500 py-16">
                 <i class="fa-solid fa-trophy text-5xl text-stone-300 mb-4 block"></i>
-                <p class="text-lg font-medium text-stone-700">Aucun succès pour l'instant</p>
-                <p class="text-sm mt-1">Créez votre premier mélange pour débloquer des succès et gagner de l'XP !</p>
-                {{ buttons.button('Créer mon premier mélange', {
+                <p class="text-lg font-medium text-stone-700">{{ 'ui.achievements.none_yet'|trans }}</p>
+                <p class="text-sm mt-1">{{ 'ui.achievements.none_yet_text'|trans }}</p>
+                {{ buttons.button('ui.achievements.create_first'|trans, {
                     href: path('index_spicy_match'),
                     variant: 'primary',
                     class: 'mt-6 inline-flex',

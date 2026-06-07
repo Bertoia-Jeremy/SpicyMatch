@@ -7,36 +7,36 @@
      data-consent-version="{{ constant('App\\Service\\CookieConsentService::CURRENT_VERSION') }}"
      class="fixed bottom-0 inset-x-0 z-50 p-4 sm:p-6">
   <div class="max-w-2xl mx-auto bg-white border border-spice-border rounded-2xl shadow-lg p-6">
-    <h3 class="text-lg font-semibold text-stone-800 mb-2">Nous respectons votre vie privée</h3>
+    <h3 class="text-lg font-semibold text-stone-800 mb-2">{{ 'ui.cookie.title'|trans }}</h3>
     <p class="text-sm text-stone-600 mb-4">
-      SpicyMatch utilise des cookies pour améliorer votre expérience. Vous pouvez choisir lesquels accepter.
+      {{ 'ui.cookie.text'|trans }}
     </p>
 
     <div class="space-y-2 mb-4">
       <label class="flex items-center gap-2 text-sm">
         <input type="checkbox" checked disabled class="text-saffron-600 rounded">
-        <span class="text-stone-700">Cookies essentiels</span>
-        <span class="text-xs text-stone-400">(toujours actifs)</span>
+        <span class="text-stone-700">{{ 'ui.cookie.essential'|trans }}</span>
+        <span class="text-xs text-stone-400">{{ 'ui.cookie.always_on'|trans }}</span>
       </label>
       <label class="flex items-center gap-2 text-sm cursor-pointer">
         <input type="checkbox" x-model="functional" class="text-saffron-600 rounded focus:ring-saffron-500">
-        <span class="text-stone-700">Cookies fonctionnels</span>
+        <span class="text-stone-700">{{ 'ui.cookie.functional'|trans }}</span>
       </label>
       <label class="flex items-center gap-2 text-sm cursor-pointer">
         <input type="checkbox" x-model="analytics" class="text-saffron-600 rounded focus:ring-saffron-500">
-        <span class="text-stone-700">Cookies analytiques</span>
+        <span class="text-stone-700">{{ 'ui.cookie.analytics'|trans }}</span>
       </label>
     </div>
 
     <div class="flex flex-wrap gap-3">
       <button @click="acceptAll" class="btn-pill-primary text-sm">
-        Tout accepter
+        {{ 'ui.cookie.accept_all'|trans }}
       </button>
       <button @click="acceptChoices" class="btn-pill-outline text-sm">
-        Confirmer la sélection
+        {{ 'ui.cookie.confirm'|trans }}
       </button>
       <button @click="rejectAll" class="text-sm text-stone-500 hover:text-stone-700 underline">
-        Tout refuser
+        {{ 'ui.cookie.reject_all'|trans }}
       </button>
     </div>
   </div>

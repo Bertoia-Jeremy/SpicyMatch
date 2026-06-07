@@ -47,4 +47,44 @@ class AromaticCompoundRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    /**
+     * Hydratation batch id → name localisé (LEFT JOIN locale + COALESCE FR) pour
+     * éviter le N+1 sur les listes.
+     *
+     * @param int[]       $ids
+     * @param string|null $locale null ou 'fr' → noms canoniques directs
+     *
+     * @return array<int, string> compound_id => name
+     */
+    public function findNamesById(array $ids, ?string $locale = null): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        if ($locale === null || $locale === 'fr') {
+            $rows = $this->createQueryBuilder('a')
+                ->select('a.id', 'a.name')
+                ->where('a.id IN (:ids)')
+                ->setParameter('ids', $ids)
+                ->getQuery()
+                ->getArrayResult();
+
+            /** @var array<int, string> */
+            return array_column($rows, 'name', 'id');
+        }
+
+        $rows = $this->createQueryBuilder('a')
+            ->select('a.id AS id', 'COALESCE(t.name, a.name) AS name')
+            ->leftJoin('a.translations', 't', 'WITH', 't.locale = :loc')
+            ->where('a.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->setParameter('loc', $locale)
+            ->getQuery()
+            ->getArrayResult();
+
+        /** @var array<int, string> */
+        return array_column($rows, 'name', 'id');
+    }
 }

@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
+use Symfony\Component\Translation\IdentityTranslator;
 
 /**
  * Unit tests for GuessWhoGame::revealClue(), guess(), and next().
@@ -72,7 +73,7 @@ final class GuessWhoGameTest extends TestCase
         $requestStack = new RequestStack();
         $requestStack->push($request);
 
-        $game = new GuessWhoGame($this->academyManager, $this->sessionManager, $requestStack);
+        $game = new GuessWhoGame($this->academyManager, $this->sessionManager, $requestStack, new IdentityTranslator());
         $game->gameToken = self::TOKEN;
         $game->questionNumber = 1;
         $game->totalQuestions = 10;

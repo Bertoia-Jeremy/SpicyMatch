@@ -13,6 +13,7 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Translation\IdentityTranslator;
 
 /**
  * Unit tests for the pure/stateless methods of AcademyManager.
@@ -32,7 +33,12 @@ class AcademyManagerTest extends TestCase
     {
         $this->spicesRepo = $this->createMock(SpicesRepository::class);
         $this->finder = $this->createMock(CompatibleSpiceFinder::class);
-        $this->manager = new AcademyManager($this->spicesRepo, $this->finder, new ArrayAdapter());
+        $this->manager = new AcademyManager(
+            $this->spicesRepo,
+            $this->finder,
+            new ArrayAdapter(),
+            new IdentityTranslator()
+        );
     }
 
     // ──────────────────────────────────────────────────────────────────────────

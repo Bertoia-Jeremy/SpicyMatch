@@ -7,7 +7,7 @@
             {% set matchHistImg = vich_uploader_asset(spice, 'imageFile') %}
             <div class="card-bg rounded" style="background-image: url({{ matchHistImg ?: 'https://loremflickr.com/300/150/spice' }})"></div>
             <div class="text-color-white flex justify-center items-end h-full py-2">
-                <h3 class="mb-0">{{ spice.name }}</h3>
+                <h3 class="mb-0">{{ spice is iterable ? spice.name : spice.getLocalizedName(app.request.locale) }}</h3>
             </div>
         </div>
     </div>

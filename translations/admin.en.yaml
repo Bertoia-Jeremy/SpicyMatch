@@ -1,0 +1,122 @@
+# Back-office EasyAdmin (domain 'admin').
+admin:
+    dashboard:
+        menu: Dashboard
+    menu:
+        section_content: Content
+        section_preparation: Preparation
+        section_gamification: Gamification
+        section_users: Users
+        spices: Spices
+        aromatic_groups: Aromatic groups
+        aromatic_compounds: Aromatic compounds
+        alchemy_flavors: Flavor alchemy
+        spicy_types: Spice types
+        cooking_tips: Cooking tips
+        preparation_tips: Preparation tips
+        preparation_methods: Preparation methods
+        achievements: Achievements
+        game_sessions: Game sessions
+        users: Users
+        contact: Contact
+        site: SpicyMatch site
+    entity:
+        achievement_singular: Achievement
+        achievement_plural: Achievements
+        game_session_singular: Game session
+        game_session_plural: Game sessions
+    field:
+        name: Name
+        translations: Translations (EN / ES)
+        description: Description
+        spices: Spices
+        color: Color
+        cas_number: CAS number
+        formula: Chemical formula
+        cooking_advice: Cooking advice
+        benefits: Benefits
+        extra_informations: Additional information
+        created_at: Created at
+        updated_at: Updated at
+        image: Image
+        aromatic_group: Aromatic group
+        spicy_type: Spice type
+        main_compounds: Main aromatic compounds
+        secondary_compounds: Secondary aromatic compounds
+        icon: Icon
+        trigger: Trigger
+        trigger_value: Threshold value
+        xp_reward: XP reward
+        rarity: Rarity
+        easter_egg_slug: Easter egg slug
+        cooking_step: Cooking step
+        title: Title
+        text: Text
+        advantages: Advantages
+        tools: Tools
+        informations: Information
+        advice: Advice
+        user: User
+        game_mode: Game mode
+        score: Score
+        correct_answers: Correct answers
+        started_at: Started at
+        email: Email
+        subject: Subject
+        message: Message
+        roles: Roles
+        preparation_methods: Preparation methods
+        preparation_method: Preparation method
+        aromatic_compounds: Aromatic compounds
+        alchemy_flavors: Flavor alchemy
+        spice: Spice
+        difficulty: Difficulty
+        total_questions: Total questions
+        xp_gained: XP earned
+        started_short: Start
+        finished_short: End
+        tools_needed: Required tools
+        advice_single: Advice
+        extra_short: Extra information
+    dash:
+        title: SpicyMatch Dashboard
+        users: Users
+        new_this_week: '+%count% this week'
+        active_30d: Active (30d)
+        avg_level: 'Average level: %level%'
+        blends: Blends
+        spices_per_blend: '~%count% spices/blend'
+        quiz_played: Quizzes played
+        avg_accuracy: 'Avg. accuracy: %pct%%'
+        achievements_unlocked: Achievements unlocked
+        rate: 'Rate: %pct%%'
+        level_distribution: Level distribution
+        most_viewed_spices: Most viewed spices
+        blend_activity: Blend activity (last 30 days)
+        most_used_spices: Most used spices in blends
+        col_spice: Spice
+        col_uses: Uses
+        popular_groups: Popular aromatic groups
+        col_group: Group
+        col_views: Views
+    stats:
+        page_title: Gamification Stats · Admin
+        title: Gamification Stats
+        intro: Business metrics and anomalies detected over the last 30 days.
+        unlock_rate_title: Unlock rate per achievement
+        no_data: No data yet.
+        xp_per_day_title: Cumulative XP / day (30d)
+        sessions_per_mode_title: Sessions per mode (30d)
+        anomalies_title: Detected anomalies
+        anomalies_sub: (> 10 sessions / day)
+        no_anomaly: No anomaly detected.
+        col_user: User
+        col_reason: Reason
+        col_sessions: Sessions
+        col_total_xp: Total XP
+    chart:
+        none: None
+        players: Players
+        views: Views
+        matches_per_day: Blends / day
+        level_bucket: 'Lvl %from%-%to%'

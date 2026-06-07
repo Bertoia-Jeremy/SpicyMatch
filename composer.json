@@ -52,6 +52,7 @@
         "symfony/web-link": "7.4.*",
         "symfony/yaml": "7.4.*",
         "twig/extra-bundle": "^3.12",
+        "twig/intl-extra": "^3.26",
         "twig/twig": "^3.12",
         "vich/uploader-bundle": "^2.5"
     },

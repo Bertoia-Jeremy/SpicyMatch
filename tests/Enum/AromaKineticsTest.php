@@ -63,17 +63,17 @@ final class AromaKineticsTest extends TestCase
 
     public function testHeadLabel(): void
     {
-        self::assertSame('Tête', AromaKinetics::HEAD->label());
+        self::assertSame('enum.kinetics.head', AromaKinetics::HEAD->label());
     }
 
     public function testHeartLabel(): void
     {
-        self::assertSame('Cœur', AromaKinetics::HEART->label());
+        self::assertSame('enum.kinetics.heart', AromaKinetics::HEART->label());
     }
 
     public function testBaseLabel(): void
     {
-        self::assertSame('Fond', AromaKinetics::BASE->label());
+        self::assertSame('enum.kinetics.base', AromaKinetics::BASE->label());
     }
 
     // ── Valeurs enum sérialisables (string-backed) ────────────────────────────

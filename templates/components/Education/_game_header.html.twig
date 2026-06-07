@@ -23,9 +23,9 @@
                         x-data="confirmQuit('{{ quitUrl }}')"
                         @click="quit()"
                         data-turbo="false"
-                        aria-label="Quitter la partie"
+                        aria-label="{{ 'ui.game.quit'|trans }}"
                         class="btn-pill-outline text-sm py-1.5 px-3 shrink-0">
-                    <i class="fa-solid fa-arrow-left text-xs mr-1.5" aria-hidden="true"></i>Retour
+                    <i class="fa-solid fa-arrow-left text-xs mr-1.5" aria-hidden="true"></i>{{ 'ui.game.back'|trans }}
                 </button>
             {% endif %}
             <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600 shrink-0">

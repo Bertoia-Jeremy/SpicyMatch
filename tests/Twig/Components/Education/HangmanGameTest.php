@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
+use Symfony\Component\Translation\IdentityTranslator;
 
 /**
  * Unit tests for HangmanGame::guessLetter().
@@ -42,6 +43,7 @@ final class HangmanGameTest extends TestCase
             $this->createMock(\App\Repository\SpicesRepository::class),
             $this->createMock(\App\Service\Match\CompatibleSpiceFinder::class),
             new ArrayAdapter(),
+            new IdentityTranslator(),
         );
         $this->sessionManager = $this->createMock(GameSessionManager::class);
     }
@@ -64,7 +66,7 @@ final class HangmanGameTest extends TestCase
         $requestStack = new RequestStack();
         $requestStack->push($request);
 
-        $game = new HangmanGame($this->academyManager, $this->sessionManager, $requestStack);
+        $game = new HangmanGame($this->academyManager, $this->sessionManager, $requestStack, new IdentityTranslator());
         $game->gameToken = self::TOKEN;
         $game->questionNumber = 1;
         $game->totalQuestions = 7;

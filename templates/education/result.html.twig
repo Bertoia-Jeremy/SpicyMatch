@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ session.gameMode.label }} — Résultats{% endblock %}
+{% block title %}{{ session.gameMode.label|trans }} — Résultats{% endblock %}
 
 {% block body %}
 <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -11,7 +11,7 @@
       <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600">
         <i class="{{ session.gameMode.icon }}"></i>
       </div>
-      <h1 class="text-2xl font-bold text-stone-800">{{ session.gameMode.label }}</h1>
+      <h1 class="text-2xl font-bold text-stone-800">{{ session.gameMode.label|trans }}</h1>
     </div>
 
     {# Circular score display #}
@@ -19,27 +19,27 @@
       {{ session.accuracy >= 80 ? 'border-green-400 text-green-700' : (session.accuracy >= 50 ? 'border-turmeric-400 text-turmeric-700' : 'border-red-400 text-red-700') }}">
       <div>
         <div class="text-3xl font-bold">{{ session.accuracy|round }}%</div>
-        <div class="text-xs">précision</div>
+        <div class="text-xs">{{ 'ui.edu.precision'|trans }}</div>
       </div>
     </div>
 
     <div class="grid grid-cols-3 gap-4 mb-6">
       <div class="text-center">
         <div class="text-2xl font-bold text-stone-800">{{ session.correctAnswers }}</div>
-        <div class="text-xs text-stone-500">Bonnes réponses</div>
+        <div class="text-xs text-stone-500">{{ 'ui.edu.good_answers'|trans }}</div>
       </div>
       <div class="text-center">
         <div class="text-2xl font-bold text-stone-800">{{ session.totalQuestions - session.correctAnswers }}</div>
-        <div class="text-xs text-stone-500">Erreurs</div>
+        <div class="text-xs text-stone-500">{{ 'ui.edu.errors'|trans }}</div>
       </div>
       <div class="text-center">
         <div class="text-2xl font-bold text-saffron-600">+{{ session.score }}</div>
-        <div class="text-xs text-stone-500">XP gagnés</div>
+        <div class="text-xs text-stone-500">{{ 'ui.edu.xp_earned'|trans }}</div>
       </div>
     </div>
 
     <div class="flex flex-wrap justify-center gap-2 text-sm text-stone-500 mb-6">
-      <span class="tag-secondary">{{ session.difficulty.label }}</span>
+      <span class="tag-secondary">{{ session.difficulty.label|trans }}</span>
       {% if session.durationSeconds %}
         <span class="tag-secondary">
           <i class="fa-solid fa-clock mr-1"></i>{{ (session.durationSeconds / 60)|round(0, 'floor') }}min {{ session.durationSeconds % 60 }}s
@@ -51,19 +51,19 @@
       {% if session.gameMode.isLiveComponent %}
         <a href="{{ path('education_play_live', { mode: session.gameMode.value, difficulty: session.difficulty.value }) }}"
            class="btn-pill-primary inline-flex items-center gap-2">
-          <i class="fa-solid fa-rotate-right"></i>Rejouer
+          <i class="fa-solid fa-rotate-right"></i>{{ 'ui.edu.replay'|trans }}
         </a>
       {% else %}
         <a href="{{ path('education_briefing', { mode: session.gameMode.value, difficulty: session.difficulty.value }) }}"
            class="btn-pill-primary inline-flex items-center gap-2">
-          <i class="fa-solid fa-rotate-right"></i>Rejouer
+          <i class="fa-solid fa-rotate-right"></i>{{ 'ui.edu.replay'|trans }}
         </a>
       {% endif %}
       <a href="{{ path('education_index') }}" class="btn-pill-outline inline-flex items-center gap-2">
-        <i class="fa-solid fa-gamepad"></i>Tous les modes
+        <i class="fa-solid fa-gamepad"></i>{{ 'ui.edu.all_modes'|trans }}
       </a>
       <a href="{{ path('dashboard_user') }}" class="btn-pill-outline inline-flex items-center gap-2">
-        <i class="fa-solid fa-gauge-high"></i>Tableau de bord
+        <i class="fa-solid fa-gauge-high"></i>{{ 'ui.edu.dashboard'|trans }}
       </a>
     </div>
   </div>
@@ -71,7 +71,7 @@
   {# Question review (QCM only — LC modes don't store GameQuestion rows) #}
   {% if session.questions is not empty %}
     <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6">
-      <h2 class="text-lg font-semibold text-stone-800 mb-4">Détail des questions</h2>
+      <h2 class="text-lg font-semibold text-stone-800 mb-4">{{ 'ui.edu.question_details'|trans }}</h2>
       <div class="space-y-3">
         {% for question in session.questions %}
           {% set qData = question.questionData %}
@@ -86,13 +86,13 @@
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-sm text-stone-800 font-medium truncate">
-                {{ qData.prompt ?? ('Question ' ~ (question.questionIndex + 1)) }}
+                {{ qData.prompt ?? 'ui.edu.question'|trans({'%num%': question.questionIndex + 1}) }}
               </p>
               {% if qData.correctAnswer is defined %}
                 <p class="text-xs text-stone-500 mt-0.5">
-                  Ta réponse : <span class="{{ question.correct ? 'text-green-700' : 'text-red-700' }} font-medium">{{ question.answerGiven }}</span>
+                  {{ 'ui.edu.your_answer'|trans }} <span class="{{ question.correct ? 'text-green-700' : 'text-red-700' }} font-medium">{{ question.answerGiven }}</span>
                   {% if not question.correct %}
-                    — Correct : <span class="text-green-700 font-medium">{{ qData.correctAnswer }}</span>
+                    — {{ 'ui.edu.correct_label'|trans }} : <span class="text-green-700 font-medium">{{ qData.correctAnswer }}</span>
                   {% endif %}
                 </p>
               {% endif %}

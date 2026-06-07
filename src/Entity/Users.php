@@ -15,10 +15,10 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 #[UniqueEntity(fields: [
     'username',
-], message: 'Le pseudo existe déjà', errorPath: 'username', ignoreNull: false, repositoryMethod: 'findNonDeletedBy')]
+], message: 'user.username_taken', errorPath: 'username', ignoreNull: false, repositoryMethod: 'findNonDeletedBy')]
 #[UniqueEntity(fields: [
     'mail',
-], message: 'Cet email est déjà utilisé.', errorPath: 'mail', ignoreNull: true, repositoryMethod: 'findNonDeletedBy')]
+], message: 'user.email_taken', errorPath: 'mail', ignoreNull: true, repositoryMethod: 'findNonDeletedBy')]
 #[ORM\Entity(repositoryClass: UsersRepository::class)]
 #[ORM\Table(name: 'users')]
 class Users implements UserInterface, PasswordAuthenticatedUserInterface
@@ -79,6 +79,15 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         'default' => 'easy',
     ])]
     private GameDifficulty $preferredDifficulty = GameDifficulty::EASY;
+
+    /**
+     * Langue préférée de l'utilisateur (i18n). Source prioritaire pour le LocaleSubscriber.
+     * Valeurs supportées : fr (défaut), en, es.
+     */
+    #[ORM\Column(name: 'locale', type: 'string', length: 5, options: [
+        'default' => 'fr',
+    ])]
+    private string $locale = 'fr';
 
     public function __construct()
     {
@@ -292,6 +301,18 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPreferredDifficulty(GameDifficulty $preferredDifficulty): static
     {
         $this->preferredDifficulty = $preferredDifficulty;
+
+        return $this;
+    }
+
+    public function getLocale(): string
+    {
+        return $this->locale;
+    }
+
+    public function setLocale(string $locale): static
+    {
+        $this->locale = $locale;
 
         return $this;
     }

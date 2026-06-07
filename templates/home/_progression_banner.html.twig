@@ -19,7 +19,7 @@
                 } %}
                 <div>
                     <p class="text-sm font-bold text-stone-800 leading-tight">{{ app.user.username|capitalize }}</p>
-                    <p class="text-xs text-stone-500 leading-tight">Niveau {{ prog.level }}</p>
+                    <p class="text-xs text-stone-500 leading-tight">{{ 'ui.banner.level'|trans({'%level%': prog.level}) }}</p>
                 </div>
             </div>
 
@@ -27,7 +27,7 @@
             <div class="flex-1 min-w-0">
                 <div class="flex justify-between text-xs text-stone-500 mb-1.5">
                     <span class="font-medium text-saffron-700">{{ prog.xp }} XP</span>
-                    <span>encore {{ prog.xpToNextLevel }} XP → niv. {{ prog.level + 1 }}</span>
+                    <span>{{ 'ui.banner.xp_to_next'|trans({'%xp%': prog.xpToNextLevel, '%level%': prog.level + 1}) }}</span>
                 </div>
                 <div class="w-full bg-stone-200/70 rounded-full h-2 overflow-hidden">
                     <div class="h-full rounded-full bg-linear-to-r from-saffron-500 to-turmeric-500 transition-all duration-500"
@@ -40,7 +40,7 @@
                 {% if streak > 0 %}
                     <div class="flex items-center gap-1.5 {{ streak >= 7 ? 'text-paprika-700' : 'text-saffron-600' }} font-bold">
                         🔥
-                        <span>{{ streak }} jour{{ streak > 1 ? 's' : '' }}</span>
+                        <span>{{ streak }} {{ streak > 1 ? 'ui.banner.days_plural'|trans : 'ui.banner.days'|trans }}</span>
                     </div>
                 {% endif %}
                 {% if nextAchievementProgress %}
@@ -61,12 +61,12 @@
                 <a href="{{ path('index_spicy_match') }}"
                    class="flex items-center gap-1.5 px-4 py-2 bg-paprika-800 text-white text-xs font-bold rounded-full hover:bg-paprika-900 transition-colors shadow-sm">
                     <i class="fa-solid fa-fire text-saffron-400"></i>
-                    Créer
+                    {{ 'ui.banner.create'|trans }}
                 </a>
                 <a href="{{ path('education_index') }}"
                    class="flex items-center gap-1.5 px-4 py-2 bg-white border border-saffron-200 text-stone-700 text-xs font-bold rounded-full hover:bg-saffron-50 hover:border-saffron-400 transition-colors">
                     <i class="fa-solid fa-gamepad text-saffron-500"></i>
-                    Jouer
+                    {{ 'ui.banner.play'|trans }}
                 </a>
             </div>
 

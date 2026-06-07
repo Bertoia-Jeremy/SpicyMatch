@@ -14,6 +14,7 @@ use App\Service\Match\CompatibleSpiceFinder;
 use App\ValueObject\Match\MortarIds;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class AcademyManager
 {
@@ -21,6 +22,7 @@ class AcademyManager
         private readonly SpicesRepository $spicesRepository,
         private readonly CompatibleSpiceFinder $compatibleSpiceFinder,
         private readonly CacheInterface $cache,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -388,7 +390,9 @@ class AcademyManager
 
             return [
                 'type' => 'intrus_group',
-                'prompt' => sprintf('Quelle épice n\'appartient pas au groupe « %s » ?', $groupName),
+                'prompt' => $this->translator->trans('ui.edu.prompt.intrus_group', [
+                    '%group%' => $groupName,
+                ]),
                 'baseSpice' => [
                     'id' => 0,
                     'name' => '',
@@ -496,7 +500,7 @@ class AcademyManager
         if (! empty($flavors)) {
             $clues[] = [
                 'type' => 'flavors',
-                'label' => 'Saveurs',
+                'label' => $this->translator->trans('ui.edu.clue.flavors'),
                 'value' => implode(', ', $flavors),
             ];
         }
@@ -505,7 +509,7 @@ class AcademyManager
         if (! empty($spiceCard['aromaticGroup']['name'])) {
             $clues[] = [
                 'type' => 'group_name',
-                'label' => 'Famille aromatique',
+                'label' => $this->translator->trans('ui.edu.clue.group'),
                 'value' => $spiceCard['aromaticGroup']['name'],
             ];
         }
@@ -514,7 +518,7 @@ class AcademyManager
         if (! empty($spiceCard['spicyType'])) {
             $clues[] = [
                 'type' => 'spicy_type',
-                'label' => 'Type',
+                'label' => $this->translator->trans('ui.edu.clue.type'),
                 'value' => $spiceCard['spicyType'],
             ];
         }
@@ -526,7 +530,7 @@ class AcademyManager
             $tip = $cookingTips[0];
             $clues[] = [
                 'type' => 'cooking_tip',
-                'label' => 'Conseil de cuisson',
+                'label' => $this->translator->trans('ui.edu.clue.cooking_tip'),
                 'value' => $tip['title'] ?? $tip['cookingStep'] ?? '',
             ];
         }
@@ -537,7 +541,7 @@ class AcademyManager
         if (! empty($mainCompounds)) {
             $clues[] = [
                 'type' => 'main_compounds',
-                'label' => 'Composés principaux',
+                'label' => $this->translator->trans('ui.edu.clue.main_compounds'),
                 'value' => implode(', ', $mainCompounds),
             ];
         }
@@ -546,7 +550,7 @@ class AcademyManager
         if (! empty($spiceCard['description'])) {
             $clues[] = [
                 'type' => 'description',
-                'label' => 'Description',
+                'label' => $this->translator->trans('ui.edu.clue.description'),
                 'value' => mb_substr($spiceCard['description'], 0, 120) . '…',
             ];
         }
@@ -761,38 +765,16 @@ class AcademyManager
      */
     public function getRulesFor(GameMode $mode): array
     {
-        return match ($mode) {
-            GameMode::QCM => [
-                'Trouve l\'épice la plus compatible parmi 4 propositions.',
-                'Chaque bonne réponse te rapporte des XP.',
-                '7 questions au total — pas de retour en arrière.',
-            ],
-            GameMode::SURVIVAL => [
-                'Enchaîne les épices compatibles avec l\'épice de départ.',
-                'Une seule erreur et la partie est terminée.',
-                'Plus tu avances, plus tu gagnes d\'XP.',
-            ],
-            GameMode::GUESS_WHO => [
-                'Des indices apparaissent un par un pour identifier l\'épice mystère.',
-                'Moins tu utilises d\'indices, plus tu gagnes de points.',
-                '7 épices à deviner au total.',
-            ],
-            GameMode::INTRUS => [
-                'Parmi 4 épices, trouve celle qui n\'a rien en commun avec les autres.',
-                'Certaines questions sont inversées : trouve la compatible !',
-                '7 questions — attention aux pièges visuels.',
-            ],
-            GameMode::HANGMAN => [
-                'Devine le nom de l\'épice lettre par lettre.',
-                'Les accents sont ignorés — tape la lettre de base.',
-                'Trop d\'erreurs et le pendu est complet.',
-            ],
-            GameMode::CHRONO => [
-                'Identifie chaque épice le plus vite possible.',
-                'Tu vois la photo et les caractéristiques, mais pas le nom.',
-                'Le temps est compté — chaque seconde compte.',
-            ],
+        $keys = match ($mode) {
+            GameMode::QCM => ['ui.edu.rule.qcm_0', 'ui.edu.rule.qcm_1', 'ui.edu.rule.qcm_2'],
+            GameMode::SURVIVAL => ['ui.edu.rule.survival_0', 'ui.edu.rule.survival_1', 'ui.edu.rule.survival_2'],
+            GameMode::GUESS_WHO => ['ui.edu.rule.guess_who_0', 'ui.edu.rule.guess_who_1', 'ui.edu.rule.guess_who_2'],
+            GameMode::INTRUS => ['ui.edu.rule.intrus_0', 'ui.edu.rule.intrus_1', 'ui.edu.rule.intrus_2'],
+            GameMode::HANGMAN => ['ui.edu.rule.hangman_0', 'ui.edu.rule.hangman_1', 'ui.edu.rule.hangman_2'],
+            GameMode::CHRONO => ['ui.edu.rule.chrono_0', 'ui.edu.rule.chrono_1', 'ui.edu.rule.chrono_2'],
         };
+
+        return array_map(fn (string $key): string => $this->translator->trans($key), $keys);
     }
 
     // ──────────────────────────────────────────────
@@ -998,7 +980,9 @@ class AcademyManager
 
             return [
                 'type' => 'intrus',
-                'prompt' => sprintf('Quelle épice est compatible avec %s ?', $baseSpice->getName()),
+                'prompt' => $this->translator->trans('ui.edu.prompt.intrus_compatible', [
+                    '%spice%' => $baseSpice->getName(),
+                ]),
                 'baseSpice' => [
                     'id' => $baseSpice->getId(),
                     'name' => $baseSpice->getName(),
@@ -1052,7 +1036,9 @@ class AcademyManager
 
         return [
             'type' => 'intrus',
-            'prompt' => sprintf('Quelle épice est l\'intrus par rapport à %s ?', $baseSpice->getName()),
+            'prompt' => $this->translator->trans('ui.edu.prompt.intrus_classic', [
+                '%spice%' => $baseSpice->getName(),
+            ]),
             'baseSpice' => [
                 'id' => $baseSpice->getId(),
                 'name' => $baseSpice->getName(),

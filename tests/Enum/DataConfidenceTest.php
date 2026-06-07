@@ -50,9 +50,9 @@ final class DataConfidenceTest extends TestCase
         self::assertSame(DataConfidence::PLACEHOLDER, DataConfidence::weakest());
     }
 
-    public function testLabelsAreFrench(): void
+    public function testLabelsAreTranslationKeys(): void
     {
-        self::assertSame('Mesuré', DataConfidence::MEASURED->label());
-        self::assertSame('Provisoire', DataConfidence::PLACEHOLDER->label());
+        self::assertSame('enum.confidence.measured', DataConfidence::MEASURED->label());
+        self::assertSame('enum.confidence.placeholder', DataConfidence::PLACEHOLDER->label());
     }
 }

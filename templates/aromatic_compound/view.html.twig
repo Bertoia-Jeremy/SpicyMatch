@@ -1,8 +1,9 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ aromaticCompound.name }} — SpicyMatch{% endblock %}
+{% block title %}{{ aromaticCompound.getLocalizedName(app.request.locale) }} — SpicyMatch{% endblock %}
 
 {% block body %}
+{% set loc = app.request.locale %}
 {% import 'macros/buttons.html.twig' as buttons %}
 {% import "components/_macro_card_spice.html.twig" as macroCardSpice %}
 
@@ -13,16 +14,16 @@
     <nav class="mb-8">
         <a href="{{ path('index_aromatic_compound') }}" class="text-stone-500 hover:text-saffron-700 text-sm flex items-center gap-2 transition-colors">
             <i class="fa-solid fa-arrow-left text-xs"></i>
-            Retour aux composés
+            {{ 'ui.catalog.back_to_compounds'|trans }}
         </a>
     </nav>
 
     {# En-tête #}
     <header class="mb-10">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-saffron-100 text-saffron-700 text-xs font-bold uppercase tracking-wider mb-4">
-            <i class="fa-solid fa-atom"></i> Composé Aromatique
+            <i class="fa-solid fa-atom"></i> {{ 'ui.catalog.compound_badge'|trans }}
         </div>
-        <h1 class="text-5xl font-display font-bold text-stone-900">{{ aromaticCompound.name }}</h1>
+        <h1 class="text-5xl font-display font-bold text-stone-900">{{ aromaticCompound.getLocalizedName(loc) }}</h1>
     </header>
 
     {# Grille principale #}
@@ -30,33 +31,33 @@
         <div class="lg:col-span-2 space-y-8">
             <section class="card-warm p-8">
                 <h2 class="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-info text-saffron-500"></i> Description
+                    <i class="fa-solid fa-circle-info text-saffron-500"></i> {{ 'ui.catalog.description'|trans }}
                 </h2>
                 <div class="text-stone-600 leading-relaxed space-y-4">
-                    {{ aromaticCompound.description|default('Aucune description détaillée disponible.')|nl2br }}
+                    {{ aromaticCompound.getLocalizedDescription(loc)|default('ui.catalog.no_description_detailed'|trans)|nl2br }}
                 </div>
             </section>
 
-            {% if aromaticCompound.cooking %}
+            {% if aromaticCompound.getLocalizedCooking(loc) %}
                 <section class="card-warm p-8">
                     <h2 class="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-mortar-pestle text-saffron-500"></i> En cuisine
+                        <i class="fa-solid fa-mortar-pestle text-saffron-500"></i> {{ 'ui.catalog.in_kitchen'|trans }}
                     </h2>
                     <div class="text-stone-600 leading-relaxed">
-                        {{ aromaticCompound.cooking|nl2br }}
+                        {{ aromaticCompound.getLocalizedCooking(loc)|nl2br }}
                     </div>
                 </section>
             {% endif %}
         </div>
 
         <aside class="space-y-8">
-            {% if aromaticCompound.informations %}
+            {% if aromaticCompound.getLocalizedInformations(loc) %}
                 <section class="card-warm p-8">
                     <h2 class="text-lg font-bold text-stone-900 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-flask text-saffron-500"></i> Note scientifique
+                        <i class="fa-solid fa-flask text-saffron-500"></i> {{ 'ui.catalog.scientific_note'|trans }}
                     </h2>
                     <div class="text-sm text-stone-600 leading-relaxed">
-                        {{ aromaticCompound.informations|nl2br }}
+                        {{ aromaticCompound.getLocalizedInformations(loc)|nl2br }}
                     </div>
                 </section>
             {% endif %}
@@ -69,14 +70,14 @@
         
         <div class="flex items-center justify-between mb-8">
             <h3 class="text-2xl font-bold text-stone-900 flex items-center gap-3">
-                <i class="fa-solid fa-pepper-hot text-paprika-600"></i> Épices liées
+                <i class="fa-solid fa-pepper-hot text-paprika-600"></i> {{ 'ui.catalog.linked_spices'|trans }}
                 <span class="text-sm font-normal text-stone-400">({{ allSpices|length }})</span>
             </h3>
 
             {% if allSpices|length > 8 %}
                 <div class="flex items-center bg-stone-100 p-1 rounded-xl">
-                    <button @click="setGrid" :class="sliderToggleClass()" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Slider</button>
-                    <button @click="setList" :class="gridToggleClass()" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Grille</button>
+                    <button @click="setGrid" :class="sliderToggleClass()" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">{{ 'ui.catalog.view_slider'|trans }}</button>
+                    <button @click="setList" :class="gridToggleClass()" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">{{ 'ui.catalog.view_grid'|trans }}</button>
                 </div>
             {% endif %}
         </div>
@@ -125,7 +126,7 @@
 
                 {% if allSpices|length > 8 %}
                 <div class="flex justify-center" x-show="hasMore()">
-                    {{ buttons.button('Charger plus d\'épices', {
+                    {{ buttons.button('ui.catalog.load_more_spices'|trans, {
                         variant: 'outline',
                         icon: 'fa-solid fa-plus',
                         attr: { '@click': 'showMore' }
@@ -136,7 +137,7 @@
 
         {% else %}
             <div class="card-warm p-10 text-center">
-                <p class="text-stone-400 italic">Aucune épice liée pour le moment.</p>
+                <p class="text-stone-400 italic">{{ 'ui.catalog.no_linked_spices'|trans }}</p>
             </div>
         {% endif %}
     </section>

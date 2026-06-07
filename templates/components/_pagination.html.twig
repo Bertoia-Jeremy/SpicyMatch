@@ -7,13 +7,13 @@
                 <li>
                     <a href="{{ path(route, query|merge({(pageParameterName): previous})) }}" 
                        class="flex items-center justify-center text-stone-600 bg-white border border-stone-200 hover:bg-spice-surface hover:text-saffron-700 shadow-xs font-medium rounded-s-xl text-sm px-4 h-10 transition-colors">
-                        Précédent
+                        {{ 'ui.pagination.previous'|trans }}
                     </a>
                 </li>
             {% else %}
                 <li>
                     <span class="flex items-center justify-center text-stone-300 bg-stone-50 border border-stone-200 font-medium rounded-s-xl text-sm px-4 h-10 cursor-not-allowed">
-                        Précédent
+                        {{ 'ui.pagination.previous'|trans }}
                     </span>
                 </li>
             {% endif %}
@@ -42,13 +42,13 @@
                 <li>
                     <a href="{{ path(route, query|merge({(pageParameterName): next})) }}" 
                        class="flex items-center justify-center text-stone-600 bg-white border border-stone-200 hover:bg-spice-surface hover:text-saffron-700 shadow-xs font-medium rounded-e-xl text-sm px-4 h-10 transition-colors">
-                        Suivant
+                        {{ 'ui.pagination.next'|trans }}
                     </a>
                 </li>
             {% else %}
                 <li>
                     <span class="flex items-center justify-center text-stone-300 bg-stone-50 border border-stone-200 font-medium rounded-e-xl text-sm px-4 h-10 cursor-not-allowed">
-                        Suivant
+                        {{ 'ui.pagination.next'|trans }}
                     </span>
                 </li>
             {% endif %}
@@ -63,16 +63,16 @@
                 {% endif %}
             {% endfor %}
             
-            <label for="limit" class="sr-only">Nombre d'épices par page</label>
+            <label for="limit" class="sr-only">{{ 'ui.pagination.per_page_label'|trans }}</label>
             <select id="limit" 
                     name="limit" 
                     @change="$event.target.form.submit()"
                     class="block w-36 px-3 py-2 bg-white border border-stone-200 text-stone-700 text-sm rounded-xl focus:ring-saffron-500 focus:border-saffron-500 shadow-xs cursor-pointer transition-all">
                 {% set currentLimit = app.request.query.get('limit', 12) %}
-                <option value="12" {{ currentLimit == 12 ? 'selected' : '' }}>12 par page</option>
-                <option value="24" {{ currentLimit == 24 ? 'selected' : '' }}>24 par page</option>
-                <option value="48" {{ currentLimit == 48 ? 'selected' : '' }}>48 par page</option>
-                <option value="96" {{ currentLimit == 96 ? 'selected' : '' }}>96 par page</option>
+                <option value="12" {{ currentLimit == 12 ? 'selected' : '' }}>{{ 'ui.pagination.per_page'|trans({'%count%': 12}) }}</option>
+                <option value="24" {{ currentLimit == 24 ? 'selected' : '' }}>{{ 'ui.pagination.per_page'|trans({'%count%': 24}) }}</option>
+                <option value="48" {{ currentLimit == 48 ? 'selected' : '' }}>{{ 'ui.pagination.per_page'|trans({'%count%': 48}) }}</option>
+                <option value="96" {{ currentLimit == 96 ? 'selected' : '' }}>{{ 'ui.pagination.per_page'|trans({'%count%': 96}) }}</option>
             </select>
         </form>
     </nav>

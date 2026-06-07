@@ -3,8 +3,10 @@
 namespace App\Controller\Admin;
 
 use App\Entity\PreparationTips;
+use App\Form\Admin\Translation\PreparationTipsTranslationType;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
@@ -22,13 +24,17 @@ class PreparationTipsCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
-            TextField::new('title', 'Titre'),
-            TextareaField::new('text', 'Texte')->setMaxLength(100),
-            TextareaField::new('advantages', 'Avantages')->setMaxLength(100),
-            AssociationField::new('spice', 'Epice'),
-            AssociationField::new('preparationMethod', 'Méthode de préparation'),
-            DateTimeField::new('created_at', 'Créé le')->hideOnForm(),
-            DateTimeField::new('updated_at', 'Modifié le')->hideOnForm(),
+            TextField::new('title', 'admin.field.title'),
+            TextareaField::new('text', 'admin.field.text')->setMaxLength(100),
+            TextareaField::new('advantages', 'admin.field.advantages')->setMaxLength(100),
+            AssociationField::new('spice', 'admin.field.spice'),
+            AssociationField::new('preparationMethod', 'admin.field.preparation_method'),
+            DateTimeField::new('created_at', 'admin.field.created_at')->hideOnForm(),
+            DateTimeField::new('updated_at', 'admin.field.updated_at')->hideOnForm(),
+            CollectionField::new('translations', 'admin.field.translations')
+                ->setEntryType(PreparationTipsTranslationType::class)
+                ->setEntryIsComplex()
+                ->onlyOnForms(),
         ];
     }
 }

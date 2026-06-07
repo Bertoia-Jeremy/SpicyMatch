@@ -4,7 +4,7 @@
                placeholder-stone-400 text-sm backdrop-blur-sm
                focus:outline-none focus:ring-1 focus:ring-saffron-600/30 focus:border-saffron-600/40
                transition-colors"
-        type="text" placeholder="Rechercher..." aria-label="Rechercher"
+        type="text" placeholder="{{ 'ui.search.placeholder'|trans }}" aria-label="{{ 'ui.search.title'|trans }}"
         value="{{ this.query }}"
         data-model="query" data-action="live#update"
         @keydown.enter.prevent="window.location.href = '{{ path('search_results') }}?q=' + encodeURIComponent($el.value)"
@@ -14,7 +14,7 @@
                 data-action="live#action"
                 data-live-action-param="clearQuery"
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
-                aria-label="Effacer la recherche">
+                aria-label="{{ 'ui.search.clear'|trans }}">
             <i class="fa-solid fa-xmark text-xs"></i>
         </button>
     {% endif %}
@@ -26,26 +26,26 @@
                         <a href="{{ path('view_spice', {id: result.id}) }}"
                            class="block px-4 py-2.5 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 border-b border-stone-100 last:border-0 transition-colors">
                             {{ result.name }}
-                            <span class="text-xs text-saffron-600 ml-1">Épice</span>
+                            <span class="text-xs text-saffron-600 ml-1">{{ 'ui.search.spice'|trans }}</span>
                         </a>
                     {% else %}
                         <a href="{{ path('view_aromatic_compound', {id: result.id}) }}"
                            class="block px-4 py-2.5 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 border-b border-stone-100 last:border-0 transition-colors">
                             {{ result.name }}
-                            <span class="text-xs text-turmeric-600 ml-1">Composé</span>
+                            <span class="text-xs text-turmeric-600 ml-1">{{ 'ui.search.compound'|trans }}</span>
                         </a>
                     {% endif %}
                 {% endfor %}
                 <a href="{{ path('search_results') }}?q={{ this.query|url_encode }}"
                    class="flex items-center justify-center gap-1.5 px-4 py-2 text-xs text-stone-400 hover:text-saffron-700 hover:bg-stone-50 border-t border-stone-100 transition-colors">
-                    <i class="fa-solid fa-magnifying-glass text-[10px]"></i>Voir tous les résultats
+                    <i class="fa-solid fa-magnifying-glass text-[10px]"></i>{{ 'ui.search.see_all_results'|trans }}
                 </a>
             {% else %}
                 <div class="px-4 py-4 text-center">
-                    <p class="text-sm text-stone-400">Aucun résultat pour <span class="text-stone-600 font-medium">« {{ this.query }} »</span></p>
+                    <p class="text-sm text-stone-400">{{ 'ui.search.no_result_for'|trans({'%query%': this.query}) }}</p>
                     <a href="{{ path('search_results') }}?q={{ this.query|url_encode }}"
                        class="inline-flex items-center gap-1 mt-2 text-xs text-saffron-600 hover:underline">
-                        <i class="fa-solid fa-arrow-right text-[10px]"></i>Page de recherche complète
+                        <i class="fa-solid fa-arrow-right text-[10px]"></i>{{ 'ui.search.full_search_page'|trans }}
                     </a>
                 </div>
             {% endif %}

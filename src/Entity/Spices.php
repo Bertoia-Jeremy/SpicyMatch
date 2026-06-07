@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Entity\Translation\TranslatableInterface;
 use App\Repository\SpicesRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -17,7 +18,7 @@ use Vich\UploaderBundle\Mapping\Attribute\UploadableField;
 #[Uploadable]
 #[ORM\Entity(repositoryClass: SpicesRepository::class)]
 #[ORM\Table(name: 'spices')]
-class Spices
+class Spices implements TranslatableInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -93,12 +94,25 @@ class Spices
     #[ORM\Column(type: 'string', length: 255, unique: true)]
     private ?string $slug = null;
 
+    /**
+     * Traductions localisées (pattern Translation Table). Le FR vit sur cette
+     * entité ; cette collection ne contient que les locales non-FR renseignées.
+     *
+     * @var Collection<int, SpiceTranslation>
+     */
+    #[ORM\OneToMany(mappedBy: 'spice', targetEntity: SpiceTranslation::class, cascade: [
+        'persist',
+        'remove',
+    ], orphanRemoval: true)]
+    private Collection $translations;
+
     public function __construct()
     {
         $this->aromaticsCompounds = new ArrayCollection();
         $this->secondary_aromatics_compounds = new ArrayCollection();
         $this->cookingTips = new ArrayCollection();
         $this->preparationTips = new ArrayCollection();
+        $this->translations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -128,6 +142,82 @@ class Spices
         $this->spicyType = $spicyType;
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, SpiceTranslation>
+     */
+    public function getTranslations(): Collection
+    {
+        return $this->translations;
+    }
+
+    public function addTranslation(SpiceTranslation $translation): self
+    {
+        if (! $this->translations->contains($translation)) {
+            $this->translations->add($translation);
+            $translation->setSpice($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTranslation(SpiceTranslation $translation): self
+    {
+        if ($this->translations->removeElement($translation) && $translation->getSpice() === $this) {
+            $translation->setSpice(null);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Retourne la traduction pour une locale, ou null si absente.
+     * Pour le rendu d'UNE entité (page détail) — PAS pour les listes/hot-path
+     * (utiliser l'hydratation batch du repository pour éviter le N+1).
+     */
+    public function getTranslation(string $locale): ?SpiceTranslation
+    {
+        // FR = canonique (pas de ligne de traduction) → évite le lazy-load de la collection.
+        if ($locale === 'fr') {
+            return null;
+        }
+
+        foreach ($this->translations as $t) {
+            if ($t->getLocale() === $locale) {
+                return $t;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Nom localisé avec fallback FR (champ canonique de l'entité).
+     */
+    public function getLocalizedName(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getName() ?? $this->name;
+    }
+
+    public function getLocalizedDescription(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getDescription() ?? $this->description;
+    }
+
+    public function getLocalizedCooking(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getCooking() ?? $this->cooking;
+    }
+
+    public function getLocalizedInformations(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getInformations() ?? $this->informations;
+    }
+
+    public function getLocalizedBenefits(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getBenefits() ?? $this->benefits;
     }
 
     public function getName(): ?string

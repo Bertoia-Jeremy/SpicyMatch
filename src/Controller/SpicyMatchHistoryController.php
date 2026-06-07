@@ -26,7 +26,9 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('ROLE_USER')]
-#[Route('/spicymatch/history')]
+#[Route('/{_locale}/spicymatch/history', defaults: [
+    '_locale' => 'fr',
+])]
 class SpicyMatchHistoryController extends AbstractController
 {
     public function __construct(
@@ -65,6 +67,7 @@ class SpicyMatchHistoryController extends AbstractController
         SpicyMatchHistory $spicyMatchHistory,
         MatrixComparator $matrixComparator,
         CookingTimelineBuilder $timelineBuilder,
+        Request $request,
     ): Response {
         /** @var Users $currentUser */
         $currentUser = $this->getUser();
@@ -125,6 +128,7 @@ class SpicyMatchHistoryController extends AbstractController
                     new MortarIds($boundedIds),
                     $culinaryContext,
                     limit: 5,
+                    locale: $request->getLocale(),
                 );
                 $matrixGrid = $matrixComparator->buildGrid($matrixRankings);
             } catch (\App\Exception\Match\InvalidMortarException) {

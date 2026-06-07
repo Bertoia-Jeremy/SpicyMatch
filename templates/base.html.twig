@@ -1,12 +1,23 @@
 <!DOCTYPE html>
-<html lang="fr" class="scroll-smooth">
+<html lang="{{ app.request.locale }}" class="scroll-smooth">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="{% block meta_description %}SpicyMatch — Créez des mélanges d'épices parfaits grâce à l'analyse moléculaire des composés aromatiques.{% endblock %}">
+        <meta name="description" content="{% block meta_description %}{{ 'ui.meta.description'|trans }}{% endblock %}">
         <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+
+        {# SEO i18n : canonical + alternates hreflang (uniquement sur les routes localisées /{_locale}) #}
+        {% set _route = app.request.attributes.get('_route') %}
+        {% set _params = app.request.attributes.get('_route_params')|default({}) %}
+        {% if _route and _params._locale is defined %}
+            <link rel="canonical" href="{{ url(_route, _params) }}">
+            {% for _loc in ['fr', 'en', 'es'] %}
+                <link rel="alternate" hreflang="{{ _loc }}" href="{{ url(_route, _params|merge({'_locale': _loc})) }}">
+            {% endfor %}
+            <link rel="alternate" hreflang="x-default" href="{{ url(_route, _params|merge({'_locale': 'fr'})) }}">
+        {% endif %}
         {% block metas %}{% endblock %}
-        <title>{% block title %}SpicyMatch — L'Alchimie Culinaire{% endblock %}</title>
+        <title>{% block title %}{{ 'ui.meta.default_title'|trans }}{% endblock %}</title>
 
         {# Fonts/icônes : chargement async via preload + script swap (CSP nonce-safe) #}
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,6 +50,11 @@
             <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}">
         {% endblock %}
 
+        {# Dictionnaire i18n pour le JavaScript (lu par assets/i18n.js). JSON inerte = pas de nonce CSP requis. #}
+        {# Tout le domaine `js` exposé en un bloc (lu par assets/i18n.js). Pas de
+           liste manuelle = pas de drift ; JSON durci (HEX) = pas de breakout <script>. #}
+        <script type="application/json" id="js-i18n">{{ js_i18n_json() }}</script>
+
         {% block javascripts %}
             {{ importmap('app', { nonce: csp_nonce('script') }) }}
         {% endblock %}
@@ -49,7 +65,7 @@
         {# Skip link — accessibilité clavier / lecteurs d'écran #}
         <a href="#main-content"
            class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-200 focus:px-4 focus:py-2 focus:bg-saffron-700 focus:text-cream focus:rounded-full focus:text-sm focus:font-semibold focus:shadow-lg">
-            Aller au contenu principal
+            {{ 'ui.common.skip_to_content'|trans }}
         </a>
 
         {% include 'components/_navbar.html.twig' %}

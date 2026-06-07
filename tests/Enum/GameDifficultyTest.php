@@ -18,8 +18,8 @@ class GameDifficultyTest extends TestCase
 
     public function testLabels(): void
     {
-        self::assertSame('Facile', GameDifficulty::EASY->label());
-        self::assertSame('Moyen', GameDifficulty::MEDIUM->label());
-        self::assertSame('Difficile', GameDifficulty::HARD->label());
+        self::assertSame('enum.difficulty.easy', GameDifficulty::EASY->label());
+        self::assertSame('enum.difficulty.medium', GameDifficulty::MEDIUM->label());
+        self::assertSame('enum.difficulty.hard', GameDifficulty::HARD->label());
     }
 }

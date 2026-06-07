@@ -2,8 +2,8 @@
 <div {{ attributes }}>
   {{ game_header.header(
       icon = 'fa-solid fa-temperature-three-quarters',
-      title = 'Cuisson en Cours',
-      subtitle = 'Devine le nom de l\'épice lettre par lettre',
+      title = 'enum.game_mode.hangman.label'|trans,
+      subtitle = 'ui.game.hangman_subtitle'|trans,
       current = this.questionNumber,
       total = this.totalQuestions,
       scoreLabel = this.correctCount ~ ' <i class="fa-solid fa-check text-xs text-green-600"></i>  ' ~ this.incorrectCount ~ ' <i class="fa-solid fa-xmark text-xs text-paprika-500"></i>',
@@ -277,7 +277,7 @@
       {# Errors counter + hint #}
       <div class="flex items-center justify-between mb-4">
         <p class="text-sm text-stone-500">
-          Erreurs : <span class="{{ this.errorsCount > this.maxErrors * 0.6 ? 'text-paprika-600 font-semibold' : 'text-stone-700' }}">{{ this.errorsCount }}/{{ this.maxErrors }}</span>
+          {{ 'ui.game.errors'|trans }} <span class="{{ this.errorsCount > this.maxErrors * 0.6 ? 'text-paprika-600 font-semibold' : 'text-stone-700' }}">{{ this.errorsCount }}/{{ this.maxErrors }}</span>
         </p>
         {% if this.hint %}
           <p class="text-sm text-saffron-600"><i class="fa-solid fa-lightbulb mr-1"></i>{{ this.hint }}</p>
@@ -295,7 +295,7 @@
             {{ this.wordSolved ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">
             <i class="fa-solid {{ this.wordSolved ? 'fa-circle-check' : 'fa-circle-xmark' }} mr-2"></i>
             <span class="font-semibold">
-              {{ this.wordSolved ? 'Trouvé !' : 'Perdu...' }}
+              {{ this.wordSolved ? 'ui.game.found'|trans : 'ui.game.lost'|trans }}
             </span>
           </div>
         {% else %}
@@ -343,9 +343,9 @@
                 data-live-action-param="nextWord"
                 class="btn-pill-primary w-full">
           {% if this.questionNumber >= this.totalQuestions %}
-            <i class="fa-solid fa-flag-checkered mr-2"></i>Terminer
+            <i class="fa-solid fa-flag-checkered mr-2"></i>{{ 'ui.game.finish'|trans }}
           {% else %}
-            <i class="fa-solid fa-arrow-right mr-2"></i>Mot suivant
+            <i class="fa-solid fa-arrow-right mr-2"></i>{{ 'ui.game.next_word'|trans }}
           {% endif %}
         </button>
       {% endif %}

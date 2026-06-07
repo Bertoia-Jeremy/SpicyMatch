@@ -2,43 +2,43 @@
 
 {% block content %}
 <div class="container-fluid">
-  <h1 class="h3 mb-4">Dashboard SpicyMatch</h1>
+  <h1 class="h3 mb-4">{{ 'admin.dash.title'|trans({}, 'admin') }}</h1>
 
   {# KPI Cards #}
   <div class="row g-3 mb-4">
     <div class="col-sm-6 col-xl-3">
       <div class="card text-center">
         <div class="card-body">
-          <h6 class="card-subtitle text-muted">Utilisateurs</h6>
+          <h6 class="card-subtitle text-muted">{{ 'admin.dash.users'|trans({}, 'admin') }}</h6>
           <h2 class="card-title mt-2 mb-0">{{ userStats.totalUsers }}</h2>
-          <small class="text-success">+{{ userStats.newUsers }} cette semaine</small>
+          <small class="text-success">{{ 'admin.dash.new_this_week'|trans({'%count%': userStats.newUsers}, 'admin') }}</small>
         </div>
       </div>
     </div>
     <div class="col-sm-6 col-xl-3">
       <div class="card text-center">
         <div class="card-body">
-          <h6 class="card-subtitle text-muted">Actifs (30j)</h6>
+          <h6 class="card-subtitle text-muted">{{ 'admin.dash.active_30d'|trans({}, 'admin') }}</h6>
           <h2 class="card-title mt-2 mb-0">{{ userStats.activeUsers }}</h2>
-          <small class="text-muted">Niveau moyen : {{ userStats.avgLevel }}</small>
+          <small class="text-muted">{{ 'admin.dash.avg_level'|trans({'%level%': userStats.avgLevel}, 'admin') }}</small>
         </div>
       </div>
     </div>
     <div class="col-sm-6 col-xl-3">
       <div class="card text-center">
         <div class="card-body">
-          <h6 class="card-subtitle text-muted">Mélanges</h6>
+          <h6 class="card-subtitle text-muted">{{ 'admin.dash.blends'|trans({}, 'admin') }}</h6>
           <h2 class="card-title mt-2 mb-0">{{ matchStats.totalMatches }}</h2>
-          <small class="text-muted">~{{ matchStats.avgSpicesPerMatch }} épices/mélange</small>
+          <small class="text-muted">{{ 'admin.dash.spices_per_blend'|trans({'%count%': matchStats.avgSpicesPerMatch}, 'admin') }}</small>
         </div>
       </div>
     </div>
     <div class="col-sm-6 col-xl-3">
       <div class="card text-center">
         <div class="card-body">
-          <h6 class="card-subtitle text-muted">Quiz joués</h6>
+          <h6 class="card-subtitle text-muted">{{ 'admin.dash.quiz_played'|trans({}, 'admin') }}</h6>
           <h2 class="card-title mt-2 mb-0">{{ educationStats.totalGames }}</h2>
-          <small class="text-muted">Précision moy. : {{ educationStats.avgAccuracy }}%</small>
+          <small class="text-muted">{{ 'admin.dash.avg_accuracy'|trans({'%pct%': educationStats.avgAccuracy}, 'admin') }}</small>
         </div>
       </div>
     </div>
@@ -49,16 +49,16 @@
     <div class="col-sm-4">
       <div class="card text-center">
         <div class="card-body">
-          <h6 class="card-subtitle text-muted">Succès débloqués</h6>
+          <h6 class="card-subtitle text-muted">{{ 'admin.dash.achievements_unlocked'|trans({}, 'admin') }}</h6>
           <h2 class="card-title mt-2 mb-0">{{ gamificationStats.totalUnlocked }}</h2>
-          <small class="text-muted">Taux : {{ gamificationStats.unlockRate }}%</small>
+          <small class="text-muted">{{ 'admin.dash.rate'|trans({'%pct%': gamificationStats.unlockRate}, 'admin') }}</small>
         </div>
       </div>
     </div>
     <div class="col-sm-8">
       <div class="card">
         <div class="card-body">
-          <h6 class="card-subtitle text-muted mb-3">Distribution des niveaux</h6>
+          <h6 class="card-subtitle text-muted mb-3">{{ 'admin.dash.level_distribution'|trans({}, 'admin') }}</h6>
           {{ render_chart(levelChart) }}
         </div>
       </div>
@@ -70,7 +70,7 @@
     <div class="col-md-6">
       <div class="card">
         <div class="card-body">
-          <h6 class="card-subtitle text-muted mb-3">Épices les plus consultées</h6>
+          <h6 class="card-subtitle text-muted mb-3">{{ 'admin.dash.most_viewed_spices'|trans({}, 'admin') }}</h6>
           {{ render_chart(spiceChart) }}
         </div>
       </div>
@@ -78,7 +78,7 @@
     <div class="col-md-6">
       <div class="card">
         <div class="card-body">
-          <h6 class="card-subtitle text-muted mb-3">Activité mélanges (30 derniers jours)</h6>
+          <h6 class="card-subtitle text-muted mb-3">{{ 'admin.dash.blend_activity'|trans({}, 'admin') }}</h6>
           {{ render_chart(activityChart) }}
         </div>
       </div>
@@ -91,10 +91,10 @@
     <div class="col-md-6">
       <div class="card">
         <div class="card-body">
-          <h6 class="card-subtitle text-muted mb-3">Épices les plus utilisées en mélanges</h6>
+          <h6 class="card-subtitle text-muted mb-3">{{ 'admin.dash.most_used_spices'|trans({}, 'admin') }}</h6>
           <table class="table table-sm table-striped">
             <thead>
-              <tr><th>#</th><th>Épice</th><th>Utilisations</th></tr>
+              <tr><th>#</th><th>{{ 'admin.dash.col_spice'|trans({}, 'admin') }}</th><th>{{ 'admin.dash.col_uses'|trans({}, 'admin') }}</th></tr>
             </thead>
             <tbody>
               {% for spice in spiceStats.topInMatches %}
@@ -113,10 +113,10 @@
     <div class="col-md-6">
       <div class="card">
         <div class="card-body">
-          <h6 class="card-subtitle text-muted mb-3">Groupes aromatiques populaires</h6>
+          <h6 class="card-subtitle text-muted mb-3">{{ 'admin.dash.popular_groups'|trans({}, 'admin') }}</h6>
           <table class="table table-sm table-striped">
             <thead>
-              <tr><th>Groupe</th><th>Consultations</th></tr>
+              <tr><th>{{ 'admin.dash.col_group'|trans({}, 'admin') }}</th><th>{{ 'admin.dash.col_views'|trans({}, 'admin') }}</th></tr>
             </thead>
             <tbody>
               {% for group in spiceStats.groupPopularity %}

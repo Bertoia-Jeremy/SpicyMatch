@@ -18,7 +18,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/epices')]
+#[Route('/{_locale}/epices', defaults: [
+    '_locale' => 'fr',
+])]
 class SpicesController extends AbstractController
 {
     public function __construct(

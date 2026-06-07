@@ -189,12 +189,11 @@ final class CulinaryContextTest extends TestCase
         self::assertSame(0, $ctx->cookingTimeMin);
     }
 
-    // ── Rétrocompatibilité : signature mono-arg matrix ────────────────────────
+    // ── Defaults sur arg unique ───────────────────────────────────────────────
 
-    public function testBackwardCompatibleSingleArgConstructor(): void
+    public function testSingleArgConstructorUsesNeutralDefaults(): void
     {
-        // Les ~512 tests existants utilisent new CulinaryContext() ou (OdtMatrix::X)
-        // → doit rester valide après ajout des nouveaux paramètres
+        // matrix seule → fat=0, water=1, time=0, temp=20 (contexte neutre).
         $ctx = new CulinaryContext(OdtMatrix::WATER);
 
         self::assertSame(OdtMatrix::WATER, $ctx->matrix);

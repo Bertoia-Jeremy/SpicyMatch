@@ -91,7 +91,7 @@ final class MatchPipelineTest extends TestCase
             ->willReturn([10, 11]);
 
         $pipeline = $this->makePipeline($builder, $veto, $repo);
-        $results = $pipeline->run(new MortarIds([5]), limit: 20);
+        $results = $pipeline->run(new MortarIds([5]), limit: 20, ctx: new CulinaryContext());
 
         self::assertCount(2, $results);
 
@@ -132,7 +132,7 @@ final class MatchPipelineTest extends TestCase
             ->willReturn([20, 21, 22]);
 
         $pipeline = $this->makePipeline($builder, $veto, $repo);
-        $results = $pipeline->run(new MortarIds([1]));
+        $results = $pipeline->run(new MortarIds([1]), limit: 20, ctx: new CulinaryContext());
 
         $scores = array_column($results, 'score');
         $sorted = $scores;
@@ -174,7 +174,7 @@ final class MatchPipelineTest extends TestCase
             ->willReturn([10, 11, 12, 13, 14]);
 
         $pipeline = $this->makePipeline($builder, $veto, $repo);
-        $results = $pipeline->run(new MortarIds([1]), limit: 3);
+        $results = $pipeline->run(new MortarIds([1]), limit: 3, ctx: new CulinaryContext());
 
         self::assertCount(3, $results);
     }
@@ -203,7 +203,7 @@ final class MatchPipelineTest extends TestCase
             ->willReturn([10, 11]);
 
         $pipeline = $this->makePipeline($builder, $veto, $repo);
-        $results = $pipeline->run(new MortarIds([1]), limit: 1);
+        $results = $pipeline->run(new MortarIds([1]), limit: 1, ctx: new CulinaryContext());
 
         self::assertCount(1, $results);
         self::assertSame(10, $results[0]['id'], 'Le meilleur scorer doit être retourné avec limit:1');
@@ -229,7 +229,7 @@ final class MatchPipelineTest extends TestCase
             ->willReturn(null);
 
         $pipeline = $this->makePipeline($builder, $veto, $repo);
-        $results = $pipeline->run(new MortarIds([1]));
+        $results = $pipeline->run(new MortarIds([1]), limit: 20, ctx: new CulinaryContext());
 
         self::assertCount(2, $results);
         foreach ($results as $r) {
@@ -251,7 +251,7 @@ final class MatchPipelineTest extends TestCase
             ->willReturn(null);
 
         $pipeline = $this->makePipeline($builder, $veto, $repo);
-        $results = $pipeline->run(new MortarIds([1]), limit: 2);
+        $results = $pipeline->run(new MortarIds([1]), limit: 2, ctx: new CulinaryContext());
 
         self::assertCount(2, $results);
     }
@@ -273,7 +273,7 @@ final class MatchPipelineTest extends TestCase
             ]);
 
         $pipeline = $this->makePipeline($builder, $veto, $repo);
-        $results = $pipeline->run(new MortarIds([1]));
+        $results = $pipeline->run(new MortarIds([1]), limit: 20, ctx: new CulinaryContext());
 
         self::assertSame([], $results);
     }
@@ -291,7 +291,7 @@ final class MatchPipelineTest extends TestCase
             ->willReturn(null);
 
         $pipeline = $this->makePipeline($builder, $veto, $repo);
-        $results = $pipeline->run(new MortarIds([1]));
+        $results = $pipeline->run(new MortarIds([1]), limit: 20, ctx: new CulinaryContext());
 
         self::assertSame([], $results);
     }
@@ -322,7 +322,7 @@ final class MatchPipelineTest extends TestCase
             ->willReturn([10, 99]);
 
         $pipeline = $this->makePipeline($builder, $veto, $repo);
-        $results = $pipeline->run(new MortarIds([1]));
+        $results = $pipeline->run(new MortarIds([1]), limit: 20, ctx: new CulinaryContext());
 
         // Candidat 10 présent, candidat 99 absent (pas de profil OAV → skipped)
         self::assertCount(1, $results);
@@ -349,8 +349,9 @@ final class MatchPipelineTest extends TestCase
         $pipeline->run(new MortarIds([1]), limit: 20, ctx: new CulinaryContext(OdtMatrix::WATER));
     }
 
-    public function testRunDefaultContextUsesAirMatrix(): void
+    public function testRunWithNeutralContextUsesAirMatrix(): void
     {
+        // CulinaryContext sans argument → matrix = AIR (sémantique neutre du VO).
         $builder = $this->createMock(MortarProfileBuilder::class);
         $builder->expects(self::once())
             ->method('build')
@@ -362,7 +363,7 @@ final class MatchPipelineTest extends TestCase
             ->willReturn([]);
 
         $pipeline = $this->makePipeline($builder, $veto);
-        $pipeline->run(new MortarIds([1])); // no context → default CulinaryContext (air)
+        $pipeline->run(new MortarIds([1]), limit: 20, ctx: new CulinaryContext());
     }
 
     public function testRunPassesMatrixToVetoRepository(): void
@@ -432,7 +433,7 @@ final class MatchPipelineTest extends TestCase
             ->willReturn([10]);
 
         $pipeline = $this->makePipeline($builder, $veto, $repo);
-        $results = $pipeline->run(new MortarIds([1]));
+        $results = $pipeline->run(new MortarIds([1]), limit: 20, ctx: new CulinaryContext());
 
         self::assertTrue($results[0]['oav_mode']);
     }
@@ -466,7 +467,7 @@ final class MatchPipelineTest extends TestCase
             ->willReturn([10]);
 
         $pipeline = $this->makePipeline($builder, $veto, $repo, physicalRepo: $physicalRepo);
-        $pipeline->run(new MortarIds([1])); // default ctx
+        $pipeline->run(new MortarIds([1]), limit: 20, ctx: new CulinaryContext()); // ctx neutre
     }
 
     public function testExtendedContextTriggersCompoundPhysicalLookup(): void
@@ -498,7 +499,7 @@ final class MatchPipelineTest extends TestCase
         $ctx = new CulinaryContext(OdtMatrix::WATER, fatRatio: 0.5, waterRatio: 0.5);
 
         $pipeline = $this->makePipeline($builder, $veto, $repo, physicalRepo: $physicalRepo);
-        $pipeline->run(new MortarIds([1]), ctx: $ctx);
+        $pipeline->run(new MortarIds([1]), limit: 20, ctx: $ctx);
     }
 
     public function testCorrectionModifiesScoreForHydrophobicCompound(): void
@@ -544,7 +545,7 @@ final class MatchPipelineTest extends TestCase
         $ctx = new CulinaryContext(OdtMatrix::WATER, fatRatio: 0.5, waterRatio: 0.5);
 
         $pipeline = $this->makePipeline(builder: $builder, veto: $veto, repo: $repo, physicalRepo: $physicalRepo);
-        $results = $pipeline->run(new MortarIds([99]), ctx: $ctx);
+        $results = $pipeline->run(new MortarIds([99]), limit: 20, ctx: $ctx);
 
         // Candidat 10 (équilibré) bat candidat 11 (composé volatil seul)
         self::assertSame(10, $results[0]['id'], 'Le candidat équilibré doit l\'emporter dans une vinaigrette');
@@ -590,7 +591,7 @@ final class MatchPipelineTest extends TestCase
         $ctx = new CulinaryContext(OdtMatrix::WATER, cookingTimeMin: 60, temperatureCelsius: 100);
 
         $pipeline = $this->makePipeline(builder: $builder, veto: $veto, repo: $repo, physicalRepo: $physicalRepo);
-        $results = $pipeline->run(new MortarIds([99]), ctx: $ctx);
+        $results = $pipeline->run(new MortarIds([99]), limit: 20, ctx: $ctx);
 
         // Le candidat BASE-only survit mieux à 60 min d'ébullition
         $resultsById = array_column($results, null, 'id');
@@ -630,10 +631,10 @@ final class MatchPipelineTest extends TestCase
         $ctx = new CulinaryContext(OdtMatrix::WATER, fatRatio: 0.3, waterRatio: 0.7);
 
         $pipeline = $this->makePipeline(builder: $builder, veto: $veto, repo: $repo, physicalRepo: $physicalRepo);
-        $resultsWithCtx = $pipeline->run(new MortarIds([99]), ctx: $ctx);
+        $resultsWithCtx = $pipeline->run(new MortarIds([99]), limit: 20, ctx: $ctx);
 
         $pipelineBaseline = $this->makePipeline(builder: $builder, veto: $veto, repo: $repo);
-        $resultsBaseline = $pipelineBaseline->run(new MortarIds([99]));
+        $resultsBaseline = $pipelineBaseline->run(new MortarIds([99]), limit: 20, ctx: new CulinaryContext());
 
         self::assertSame(
             $resultsBaseline[0]['score'],

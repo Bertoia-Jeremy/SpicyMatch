@@ -83,7 +83,7 @@ final class MortarProfileBuilderTest extends TestCase
             ]);
 
         $builder = new MortarProfileBuilder($repo, $this->coldCache());
-        $profile = $builder->build(new MortarIds([1, 2]));
+        $profile = $builder->build(new MortarIds([1, 2]), OdtMatrix::AIR);
 
         self::assertSame(5.0, $profile[10], 'eugenol : max(5.0, 3.0) = 5.0');
         self::assertSame(2.0, $profile[20], 'thymol : max(2.0, 0) = 2.0');
@@ -102,7 +102,7 @@ final class MortarProfileBuilderTest extends TestCase
             ]);
 
         $builder = new MortarProfileBuilder($repo, $this->coldCache());
-        $profile = $builder->build(new MortarIds([5]));
+        $profile = $builder->build(new MortarIds([5]), OdtMatrix::AIR);
 
         self::assertSame(3.5, $profile[10]);
         self::assertSame(1.2, $profile[20]);
@@ -117,7 +117,7 @@ final class MortarProfileBuilderTest extends TestCase
             ->willReturn([]);
 
         $builder = new MortarProfileBuilder($repo, $this->coldCache());
-        $profile = $builder->build(new MortarIds([1, 2]));
+        $profile = $builder->build(new MortarIds([1, 2]), OdtMatrix::AIR);
 
         self::assertNull($profile);
     }
@@ -132,8 +132,8 @@ final class MortarProfileBuilderTest extends TestCase
 
         $builder = new MortarProfileBuilder($repo, new \Symfony\Component\Cache\Adapter\ArrayAdapter());
 
-        self::assertNull($builder->build(new MortarIds([1])));
-        self::assertNull($builder->build(new MortarIds([1])));
+        self::assertNull($builder->build(new MortarIds([1]), OdtMatrix::AIR));
+        self::assertNull($builder->build(new MortarIds([1]), OdtMatrix::AIR));
     }
 
     // ── Comportement du cache ──────────────────────────────────────────────────────
@@ -150,7 +150,7 @@ final class MortarProfileBuilderTest extends TestCase
         $repo->expects(self::never())->method('loadOavProfilesBatch');
 
         $builder = new MortarProfileBuilder($repo, $this->warmCache($cached));
-        $profile = $builder->build(new MortarIds([1, 2]));
+        $profile = $builder->build(new MortarIds([1, 2]), OdtMatrix::AIR);
 
         self::assertSame($cached, $profile);
     }
@@ -184,10 +184,10 @@ final class MortarProfileBuilderTest extends TestCase
 
         $builder = new MortarProfileBuilder($repo, $pool);
 
-        $builder->build(new MortarIds([3, 1, 2]));
+        $builder->build(new MortarIds([3, 1, 2]), OdtMatrix::AIR);
         $keyA = $cacheKey;
 
-        $builder->build(new MortarIds([1, 2, 3]));
+        $builder->build(new MortarIds([1, 2, 3]), OdtMatrix::AIR);
         $keyB = $cacheKey;
 
         self::assertSame($keyA, $keyB, 'Ordre des IDs ne doit pas affecter la clé de cache');

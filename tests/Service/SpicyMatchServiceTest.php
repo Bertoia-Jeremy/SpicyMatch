@@ -54,7 +54,7 @@ class SpicyMatchServiceTest extends TestCase
         $this->em->expects(self::once())->method('persist')->with($match);
         $this->em->expects(self::once())->method('flush');
 
-        $this->service->createFromSelection(null, [], true, []);
+        $this->service->createFromSelection(null, [], true, [], new CulinaryContext());
     }
 
     public function testReturnsThePersistableMatch(): void
@@ -65,7 +65,7 @@ class SpicyMatchServiceTest extends TestCase
         $this->spicesRepo->method('findBy')
             ->willReturn([]);
 
-        $result = $this->service->createFromSelection(null, [], true, []);
+        $result = $this->service->createFromSelection(null, [], true, [], new CulinaryContext());
 
         self::assertSame($match, $result);
     }
@@ -82,7 +82,7 @@ class SpicyMatchServiceTest extends TestCase
         $this->spicesRepo->method('findBy')
             ->willReturn([]);
 
-        $this->service->createFromSelection(null, [], false, []);
+        $this->service->createFromSelection(null, [], false, [], new CulinaryContext());
 
         self::assertNull($match->getUser());
     }
@@ -96,7 +96,7 @@ class SpicyMatchServiceTest extends TestCase
         $this->spicesRepo->method('findBy')
             ->willReturn([]);
 
-        $this->service->createFromSelection($user, [], true, []);
+        $this->service->createFromSelection($user, [], true, [], new CulinaryContext());
 
         self::assertSame($user, $match->getUser());
     }
@@ -109,7 +109,7 @@ class SpicyMatchServiceTest extends TestCase
         $this->spicesRepo->method('findBy')
             ->willReturn([]);
 
-        $this->service->createFromSelection(null, [], true, []);
+        $this->service->createFromSelection(null, [], true, [], new CulinaryContext());
 
         self::assertTrue($match->isManual());
     }
@@ -122,7 +122,7 @@ class SpicyMatchServiceTest extends TestCase
         $this->spicesRepo->method('findBy')
             ->willReturn([]);
 
-        $this->service->createFromSelection(null, [], false, []);
+        $this->service->createFromSelection(null, [], false, [], new CulinaryContext());
 
         self::assertFalse($match->isManual());
     }
@@ -144,7 +144,7 @@ class SpicyMatchServiceTest extends TestCase
             ])
             ->willReturn([]);
 
-        $this->service->createFromSelection(null, [1, 2, 3], true, []);
+        $this->service->createFromSelection(null, [1, 2, 3], true, [], new CulinaryContext());
     }
 
     public function testAddsSelectedSpicesToMatch(): void
@@ -158,7 +158,7 @@ class SpicyMatchServiceTest extends TestCase
         $this->spicesRepo->method('findBy')
             ->willReturn([$spice1, $spice2]);
 
-        $this->service->createFromSelection(null, [1, 2], true, []);
+        $this->service->createFromSelection(null, [1, 2], true, [], new CulinaryContext());
 
         self::assertCount(2, $match->getSpices());
     }
@@ -180,7 +180,7 @@ class SpicyMatchServiceTest extends TestCase
             'id' => 99,
             'score' => 80,
         ]];
-        $this->service->createFromSelection(null, [], true, $compatible);
+        $this->service->createFromSelection(null, [], true, $compatible, new CulinaryContext());
 
         self::assertCount(0, $match->getResults());
     }
@@ -210,7 +210,7 @@ class SpicyMatchServiceTest extends TestCase
             'id' => 99,
             'score' => 75,
         ]];
-        $this->service->createFromSelection(null, [], false, $compatible);
+        $this->service->createFromSelection(null, [], false, $compatible, new CulinaryContext());
 
         self::assertCount(1, $match->getResults());
     }
@@ -226,7 +226,7 @@ class SpicyMatchServiceTest extends TestCase
             ->method('findBy')
             ->willReturn([]);
 
-        $this->service->createFromSelection(null, [], false, []);
+        $this->service->createFromSelection(null, [], false, [], new CulinaryContext());
 
         self::assertCount(0, $match->getResults());
     }
@@ -249,7 +249,7 @@ class SpicyMatchServiceTest extends TestCase
             'id' => 7,
             'score' => '82',
         ]];
-        $this->service->createFromSelection(null, [], false, $compatible);
+        $this->service->createFromSelection(null, [], false, $compatible, new CulinaryContext());
 
         $results = $match->getResults()
             ->toArray();
@@ -269,7 +269,7 @@ class SpicyMatchServiceTest extends TestCase
         $this->spicesRepo->method('findBy')
             ->willReturn([]);
 
-        $this->service->createFromSelection(null, [], false, []);
+        $this->service->createFromSelection(null, [], false, [], new CulinaryContext());
 
         // Pas de ctx fourni → defaults (air, fat=0, time=0, temp=20)
         self::assertSame(OdtMatrix::AIR, $match->getMatrix());

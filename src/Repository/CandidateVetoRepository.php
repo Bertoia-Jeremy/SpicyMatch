@@ -37,7 +37,7 @@ class CandidateVetoRepository
      *
      * @return list<int> IDs des candidats survivants
      */
-    public function findSurvivors(MortarIds $mortar, OdtMatrix $matrix = OdtMatrix::AIR): array
+    public function findSurvivors(MortarIds $mortar, OdtMatrix $matrix): array
     {
         $mortarSize = $mortar->count();
         $mortarArr = $mortar->toArray();

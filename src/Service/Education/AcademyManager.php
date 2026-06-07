@@ -11,6 +11,7 @@ use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use App\Repository\SpicesRepository;
 use App\Service\Match\CompatibleSpiceFinder;
+use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -75,7 +76,7 @@ class AcademyManager
             return [];
         }
 
-        return $this->compatibleSpiceFinder->findCompatible(new MortarIds([$id]), 100);
+        return $this->compatibleSpiceFinder->findCompatible(new MortarIds([$id]), 100, new CulinaryContext());
     }
 
     /**
@@ -798,7 +799,9 @@ class AcademyManager
             $item->expiresAfter(3600);
 
             $id = $baseSpice->getId();
-            $compatibles = $id !== null ? $this->compatibleSpiceFinder->findCompatible(new MortarIds([$id]), 100) : [];
+            $compatibles = $id !== null
+                ? $this->compatibleSpiceFinder->findCompatible(new MortarIds([$id]), 100, new CulinaryContext())
+                : [];
 
             // Keep only scores 1–15 : barely compatible = hard to distinguish
             $lowScored = array_filter($compatibles, fn (array $c) => $c['score'] >= 1 && $c['score'] <= 15);

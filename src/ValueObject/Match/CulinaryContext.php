@@ -9,16 +9,15 @@ use App\Enum\OdtMatrix;
 /**
  * Contexte culinaire injecté dans le moteur de compatibilité OAV.
  *
- * Phase 1-2 (livré) : matrix uniquement — wrapper sur OdtMatrix.
- * Phase 3 (présent) : fatRatio + waterRatio + cookingTimeMin + temperatureCelsius
- *   permettent au futur OavPartitionCalculator d'appliquer Nernst + décroissance
- *   temporelle sans changer la signature publique (defaults rétrocompatibles).
+ * Champs :
+ *  - matrix : OdtMatrix (air/water/oil) — détermine quel ODT le scoring utilise
+ *  - fatRatio + waterRatio : fractions volumiques du milieu biphasique (Nernst)
+ *  - cookingTimeMin + temperatureCelsius : pour la décroissance thermique
  *
  * Invariants :
  *  - immutable (readonly)
  *  - fatRatio + waterRatio ≈ 1 (tolérance 0.001)
- *  - ratios ∈ [0, 1]
- *  - cookingTimeMin ≥ 0
+ *  - ratios ∈ [0, 1] ; cookingTimeMin ∈ [0, 1440] ; temperatureCelsius ∈ [-50, 500]
  */
 final readonly class CulinaryContext
 {

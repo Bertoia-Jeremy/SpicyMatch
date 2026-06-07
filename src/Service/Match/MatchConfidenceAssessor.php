@@ -36,7 +36,7 @@ readonly class MatchConfidenceAssessor
      *
      * Retourne PLACEHOLDER si aucune donnée (le cas le plus défavorable, honnête).
      */
-    public function assess(MortarIds $mortar, OdtMatrix $matrix = OdtMatrix::AIR): DataConfidence
+    public function assess(MortarIds $mortar, OdtMatrix $matrix): DataConfidence
     {
         $spiceIds = $mortar->toArray();
         if ($spiceIds === []) {

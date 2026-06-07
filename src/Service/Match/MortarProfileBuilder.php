@@ -54,7 +54,7 @@ class MortarProfileBuilder
      *
      * @return array<int, float>|null compound_id => OAV max agrégé, ou null si pas de données
      */
-    public function build(MortarIds $mortar, OdtMatrix $matrix = OdtMatrix::AIR): ?array
+    public function build(MortarIds $mortar, OdtMatrix $matrix): ?array
     {
         $cacheKey = $this->buildCacheKey($mortar, $matrix);
         $cacheItem = $this->matchMortarProfileCache->getItem($cacheKey);

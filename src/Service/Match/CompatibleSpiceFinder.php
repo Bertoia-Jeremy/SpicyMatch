@@ -18,12 +18,6 @@ use Symfony\Component\HttpFoundation\RequestStack;
  *   - QcmQuestionGenerator (mode QCM)
  *   - AcademyManager (Survival, Intrus)
  *
- * Format de retour compatible avec l'ancien CompatibilityScoreService,
- * sans les champs dépréciés mainCompoundsCount/secondaryCompoundsCount/alchemyFlavorsCount
- * (non affichés dans les templates, calculés par l'ancienne formule Jaccard).
- *
- * Rétrocompatibilité : `findCompatible($mortar, $limit)` sans contexte → défaut air.
- *
  * @see ARCHITECTURE_MOTEUR_COMPATIBILITE.md §3 + §4.1
  */
 class CompatibleSpiceFinder
@@ -38,16 +32,10 @@ class CompatibleSpiceFinder
     /**
      * Trouve les épices compatibles avec le mortier, triées par score OAV Tanimoto décroissant.
      *
-     * @param int             $limit Nombre maximum de résultats (défaut 100)
-     * @param CulinaryContext $ctx   Contexte culinaire — matrice ODT (défaut: air)
-     *
      * @return list<array{id: int, name: string, file: ?string, agId: ?int, color: ?string, groupName: ?string, stId: ?int, typeName: ?string, score: int}>
      */
-    public function findCompatible(
-        MortarIds $mortar,
-        int $limit = 100,
-        CulinaryContext $ctx = new CulinaryContext(),
-    ): array {
+    public function findCompatible(MortarIds $mortar, int $limit, CulinaryContext $ctx): array
+    {
         $pipelineResults = $this->matchPipeline->run($mortar, $limit, $ctx);
 
         if ($pipelineResults === []) {

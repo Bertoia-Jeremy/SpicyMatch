@@ -48,7 +48,7 @@ class CookingTips implements TranslatableInterface
 
     /**
      * Matrice culinaire pour laquelle ce conseil s'applique.
-     * null = s'applique à toutes les matrices (rétrocompatible : données existantes = null).
+     * null = s'applique à toutes les matrices.
      */
     #[ORM\Column(name: 'applicable_matrix', type: 'string', length: 5, nullable: true, enumType: OdtMatrix::class)]
     private ?OdtMatrix $applicableMatrix = null;

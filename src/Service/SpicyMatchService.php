@@ -45,8 +45,8 @@ class SpicyMatchService
         ?Users $user,
         array $selectedIds,
         bool $isManual,
-        array $compatibleSpices = [],
-        CulinaryContext $ctx = new CulinaryContext(),
+        array $compatibleSpices,
+        CulinaryContext $ctx,
     ): SpicyMatch {
         $spicyMatch = $this->factory->create();
         $spicyMatch->setUser($user);

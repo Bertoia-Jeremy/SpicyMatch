@@ -12,8 +12,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * Entrée racine non préfixée : redirige "/" vers "/{locale}/" (home) selon la
- * langue préférée du visiteur. Seul point d'entrée sans locale — pas de
- * rétro-compatibilité d'anciennes URLs (le projet n'est pas encore en ligne).
+ * langue préférée du visiteur. Seul point d'entrée sans locale.
  */
 final class RootController extends AbstractController
 {

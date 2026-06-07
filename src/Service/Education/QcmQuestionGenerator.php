@@ -8,6 +8,7 @@ use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use App\Repository\SpicesRepository;
 use App\Service\Match\CompatibleSpiceFinder;
+use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -43,7 +44,11 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
         shuffle($candidates);
 
         foreach ($candidates as $baseData) {
-            $scored = $this->compatibleSpiceFinder->findCompatible(new MortarIds([(int) $baseData['id']]), 100);
+            $scored = $this->compatibleSpiceFinder->findCompatible(
+                new MortarIds([(int) $baseData['id']]),
+                100,
+                new CulinaryContext(),
+            );
             if (count($scored) < 4) {
                 continue;
             }

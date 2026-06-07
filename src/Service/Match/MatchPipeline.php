@@ -18,9 +18,9 @@ use App\ValueObject\Match\MortarIds;
  *  2. Construction du profil OAV agrégé du mortier (MortarProfileBuilder, filtré par matrice)
  *  3. Veto SQL biparti → liste des candidats survivants (filtré par matrice)
  *  4. Hydratation OAV des survivants (1 SELECT IN, filtré par matrice)
- *  5. Correction physico-chimique (Étape 3C — partition Nernst + décroissance temporelle)
+ *  5. Correction physico-chimique (partition Nernst + décroissance temporelle)
  *     Appliquée UNIQUEMENT si le contexte introduit une physique non triviale (fat > 0 ou cuisson > 0).
- *     Sinon : skipped → comportement identique aux Étapes 1-2 (rétrocompat des 566 tests).
+ *     Sinon : skipped → factor=1 partout, shadow OAV déjà correcte.
  *  6. Scoring Tanimoto OAV sur profils corrigés
  *  7. Tri descendant + slicing limit
  *
@@ -48,7 +48,7 @@ class MatchPipeline
      *
      * @return list<array{id: int, score: int, oav_mode: bool}>
      */
-    public function run(MortarIds $mortar, int $limit = 20, CulinaryContext $ctx = new CulinaryContext()): array
+    public function run(MortarIds $mortar, int $limit, CulinaryContext $ctx): array
     {
         $matrix = $ctx->matrix;
 

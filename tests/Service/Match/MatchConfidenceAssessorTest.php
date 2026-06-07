@@ -32,33 +32,33 @@ final class MatchConfidenceAssessorTest extends TestCase
     public function testNoDataReturnsPlaceholder(): void
     {
         $assessor = $this->makeAssessor([], []);
-        self::assertSame(DataConfidence::PLACEHOLDER, $assessor->assess(new MortarIds([1])));
+        self::assertSame(DataConfidence::PLACEHOLDER, $assessor->assess(new MortarIds([1]), OdtMatrix::AIR));
     }
 
     public function testAllMeasuredReturnsMeasured(): void
     {
         $assessor = $this->makeAssessor(['measured'], ['measured']);
-        self::assertSame(DataConfidence::MEASURED, $assessor->assess(new MortarIds([1])));
+        self::assertSame(DataConfidence::MEASURED, $assessor->assess(new MortarIds([1]), OdtMatrix::AIR));
     }
 
     public function testWeakestLinkWins(): void
     {
         // concentrations mesurées mais ODT provisoire → global provisoire
         $assessor = $this->makeAssessor(['measured', 'literature'], ['placeholder']);
-        self::assertSame(DataConfidence::PLACEHOLDER, $assessor->assess(new MortarIds([1, 2])));
+        self::assertSame(DataConfidence::PLACEHOLDER, $assessor->assess(new MortarIds([1, 2]), OdtMatrix::AIR));
     }
 
     public function testWeakestAcrossConcentrations(): void
     {
         $assessor = $this->makeAssessor(['measured', 'estimated'], ['literature']);
-        self::assertSame(DataConfidence::ESTIMATED, $assessor->assess(new MortarIds([1])));
+        self::assertSame(DataConfidence::ESTIMATED, $assessor->assess(new MortarIds([1]), OdtMatrix::AIR));
     }
 
     public function testInvalidTierStringsAreIgnored(): void
     {
         // une valeur corrompue en base ne doit pas casser l'agrégat
         $assessor = $this->makeAssessor(['literature', 'garbage'], ['literature']);
-        self::assertSame(DataConfidence::LITERATURE, $assessor->assess(new MortarIds([1])));
+        self::assertSame(DataConfidence::LITERATURE, $assessor->assess(new MortarIds([1]), OdtMatrix::AIR));
     }
 
     public function testMatrixIsPassedThrough(): void

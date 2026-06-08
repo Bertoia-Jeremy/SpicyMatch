@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service\Match;
 
 use App\Repository\CandidateVetoRepository;
-use App\Repository\CompoundPhysicalRepository;
 use App\Repository\SpiceActiveCompoundRepository;
 use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
@@ -35,8 +34,8 @@ class MatchPipeline
         private readonly CandidateVetoRepository $candidateVetoRepository,
         private readonly SpiceActiveCompoundRepository $spiceActiveCompoundRepository,
         private readonly OavTanimotoScorer $scorer,
-        private readonly CompoundPhysicalRepository $compoundPhysicalRepository,
         private readonly OavPartitionCalculator $partitionCalculator,
+        private readonly CorrectionApplier $correctionApplier,
     ) {
     }
 
@@ -77,18 +76,10 @@ class MatchPipeline
 
         $profiles = $this->spiceActiveCompoundRepository->loadOavProfilesBatch($survivorIds, $matrix);
 
-        // Étape 5 — Correction physico-chimique (Étape 3C)
-        // Skipped si le contexte est neutre (fatRatio=0 ET cookingTimeMin=0) →
-        // factor=1 partout → shadow OAV déjà correcte → économie de requête + CPU.
-        // PERF : application in-place (par référence) — évite la recopie de chaque
-        //        profil (3000 floats × N candidats potentiellement).
+        // Étape 5 — Correction physico-chimique (Nernst + décroissance) déléguée
+        // au CorrectionApplier. Skippée si le contexte est neutre (factor=1 partout).
         if ($this->partitionCalculator->needsCorrection($ctx)) {
-            $factors = $this->buildCorrectionFactors(array_keys($mortarProfile), $profiles, $ctx);
-            $this->applyFactorsInPlace($mortarProfile, $factors);
-            foreach ($profiles as $spiceId => &$profile) {
-                $this->applyFactorsInPlace($profile, $factors);
-            }
-            unset($profile);
+            $this->correctionApplier->apply($mortarProfile, $profiles, $ctx);
         }
 
         // Étape 6 — Scoring Tanimoto
@@ -110,54 +101,5 @@ class MatchPipeline
         usort($results, static fn (array $a, array $b) => $b['score'] <=> $a['score']);
 
         return array_slice($results, 0, $limit);
-    }
-
-    /**
-     * Construit la map compoundId → facteur correctif en un seul fetch des CompoundPhysical.
-     *
-     * @param int[]                         $mortarCompoundIds
-     * @param array<int, array<int, float>> $candidateProfiles
-     *
-     * @return array<int, float>
-     */
-    private function buildCorrectionFactors(
-        array $mortarCompoundIds,
-        array $candidateProfiles,
-        CulinaryContext $ctx,
-    ): array {
-        $allCompoundIds = $mortarCompoundIds;
-        foreach ($candidateProfiles as $profile) {
-            foreach (array_keys($profile) as $compoundId) {
-                $allCompoundIds[] = $compoundId;
-            }
-        }
-        $uniqueIds = array_values(array_unique($allCompoundIds));
-
-        $physicalMap = $this->compoundPhysicalRepository->loadByCompoundIds($uniqueIds);
-
-        $factors = [];
-        foreach ($uniqueIds as $compoundId) {
-            $physical = $physicalMap[$compoundId] ?? null;
-            $factors[$compoundId] = $this->partitionCalculator->correctionFactor($physical, $ctx);
-        }
-
-        return $factors;
-    }
-
-    /**
-     * Applique les facteurs correctifs in-place — passe le tableau par référence
-     * pour éviter la recopie complète à chaque appel (PERF-2).
-     *
-     * @param array<int, float> $profile
-     * @param array<int, float> $factors
-     */
-    private function applyFactorsInPlace(array &$profile, array $factors): void
-    {
-        foreach ($profile as $compoundId => $oav) {
-            $factor = $factors[$compoundId] ?? 1.0;
-            if ($factor !== 1.0) {
-                $profile[$compoundId] = $oav * $factor;
-            }
-        }
     }
 }

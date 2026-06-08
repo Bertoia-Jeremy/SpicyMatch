@@ -10,6 +10,7 @@ use App\Enum\OdtMatrix;
 use App\Repository\CandidateVetoRepository;
 use App\Repository\CompoundPhysicalRepository;
 use App\Repository\SpiceActiveCompoundRepository;
+use App\Service\Match\CorrectionApplier;
 use App\Service\Match\MatchPipeline;
 use App\Service\Match\MortarProfileBuilder;
 use App\Service\Match\OavPartitionCalculator;
@@ -34,13 +35,18 @@ final class MatchPipelineTest extends TestCase
         ?CompoundPhysicalRepository $physicalRepo = null,
         ?OavPartitionCalculator $calculator = null,
     ): MatchPipeline {
+        $calculator ??= new OavPartitionCalculator();
+        $physicalRepo ??= $this->createStub(CompoundPhysicalRepository::class);
+
         return new MatchPipeline(
             $builder ?? $this->createStub(MortarProfileBuilder::class),
             $veto ?? $this->createStub(CandidateVetoRepository::class),
             $repo ?? $this->createStub(SpiceActiveCompoundRepository::class),
             $scorer ?? new OavTanimotoScorer(),
-            $physicalRepo ?? $this->createStub(CompoundPhysicalRepository::class),
-            $calculator ?? new OavPartitionCalculator(),
+            $calculator,
+            // L'applier réutilise les mocks injectés pour préserver les expects() des tests
+            // (e.g. testExtendedContextTriggersCompoundPhysicalLookup vérifie loadByCompoundIds).
+            new CorrectionApplier($physicalRepo, $calculator),
         );
     }
 

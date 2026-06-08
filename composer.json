@@ -102,10 +102,15 @@
         "rector" : "vendor/bin/rector process",
         "phpstan": "php -d memory_limit=256M vendor/bin/phpstan analyze",
         "test-unit": "vendor/bin/phpunit --testsuite=Unit --no-coverage",
+        "check-data": [
+            "php bin/console app:check:compounds",
+            "php bin/console app:check:data"
+        ],
         "ci": [
             "@check-cs",
             "@phpstan",
-            "@test-unit"
+            "@test-unit",
+            "@check-data"
         ]
     },
     "conflict": {

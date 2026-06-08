@@ -322,8 +322,9 @@ final class MatchControllerTest extends WebTestCase
         self::assertResponseIsSuccessful();
         $data = json_decode((string) $client->getResponse()->getContent(), true);
 
-        self::assertSame(0.0, $data['fat_ratio']);
-        self::assertSame(1.0, $data['water_ratio']);
+        // JSON encode 0.0 → "0" puis decode → int 0 (perte du marqueur float). assertEquals tolérant.
+        self::assertEquals(0.0, $data['fat_ratio']);
+        self::assertEquals(1.0, $data['water_ratio']);
         self::assertSame(0, $data['cooking_time_min']);
         self::assertSame(20, $data['temperature_celsius']);
     }

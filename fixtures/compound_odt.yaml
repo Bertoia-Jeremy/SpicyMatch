@@ -286,3 +286,41 @@
   odt_ppm: 5.0
   matrix: oil
   source: "fixtures_dev — polaire, faible solubilité dans huile → seuil élevé"
+
+# ── Pilote Phase A — ODT carvone & fenchone (van Gemert 2011) ─────────────────
+
+- compound_name: "S-(+)-Carvone"
+  odt_ppm: 0.05
+  matrix: air
+  source: "van Gemert (2011) — plage typique 0.01-0.25, geomean ≈ 0.05"
+  confidence: literature
+
+- compound_name: "S-(+)-Carvone"
+  odt_ppm: 0.5
+  matrix: water
+  source: "van Gemert (2011) — moyennement hydrophile"
+  confidence: literature
+
+- compound_name: "S-(+)-Carvone"
+  odt_ppm: 3.0
+  matrix: oil
+  source: "fixtures_dev — extrapolation logP=2.71"
+  confidence: estimated
+
+- compound_name: "Fenchone"
+  odt_ppm: 0.4
+  matrix: air
+  source: "van Gemert (2011)"
+  confidence: literature
+
+- compound_name: "Fenchone"
+  odt_ppm: 10.0
+  matrix: water
+  source: "van Gemert (2011) — bicyclique, faible solubilité"
+  confidence: literature
+
+- compound_name: "Fenchone"
+  odt_ppm: 25.0
+  matrix: oil
+  source: "fixtures_dev — extrapolation logP=2.13"
+  confidence: estimated

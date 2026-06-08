@@ -118,3 +118,17 @@
   boiling_point_celsius: 593
   vapor_pressure_pa: 0.00001
   source: "PubChem CID 969516 / EPA EPI Suite (décomp. avant bp)"
+
+# ── Pilote Phase A — anis/aneth/carvi (Plan acquisition) ──────────────────────
+
+- compound_name: "S-(+)-Carvone"        # CAS 2244-16-8 — signature du carvi/aneth
+  log_p: 2.71
+  boiling_point_celsius: 230
+  vapor_pressure_pa: 16.0
+  source: "PubChem CID 16724 (XLogP3) / NIST WebBook"
+
+- compound_name: "Fenchone"             # CAS 7787-20-4 — fenouil amer / aneth
+  log_p: 2.13
+  boiling_point_celsius: 193
+  vapor_pressure_pa: 53.0
+  source: "PubChem CID 14525 / NIST WebBook"

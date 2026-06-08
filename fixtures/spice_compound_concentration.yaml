@@ -567,3 +567,20 @@
   compound_name: "D-Limonène"
   concentration_ppm: 200
   source: "fixtures_dev — OAV=200"
+
+# ── Pilote Phase A — carvone (signature carvi/aneth) + fenchone (fenouil amer) ──
+
+- spice_name: "Carvi (Cumin des Prés)"
+  compound_name: "S-(+)-Carvone"
+  concentration_ppm: 25000            # HE ~5 % × carvone ~50 % de l'HE = 25 g/kg
+  source: "Lit. GC-MS Carum carvi — composé signature dominant"
+
+- spice_name: "Fenouil (graines)"
+  compound_name: "Fenchone"
+  concentration_ppm: 60000            # ~6 % — variable selon cultivar (amer vs doux)
+  source: "Lit. GC-MS Foeniculum vulgare"
+
+- spice_name: "Anis Étoilé (Badiane)"
+  compound_name: "Fenchone"
+  concentration_ppm: 2000             # minoritaire (la badiane est dominée par l'anéthol)
+  source: "Lit. GC-MS Illicium verum"

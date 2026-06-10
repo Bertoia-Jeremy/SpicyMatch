@@ -49,10 +49,6 @@ class CompoundOdt
     #[ORM\Column(name: 'reference_source', type: 'string', length: 255)]
     private string $referenceSource;
 
-    /**
-     * Niveau de confiance de la valeur (Levier 2). Défaut PLACEHOLDER : les données
-     * actuelles sont fictives ; passe à LITERATURE/MEASURED lors de l'import réel.
-     */
     #[ORM\Column(name: 'confidence', type: 'string', length: 20, enumType: DataConfidence::class, options: [
         'default' => 'placeholder',
     ])]

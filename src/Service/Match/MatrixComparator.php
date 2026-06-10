@@ -11,37 +11,24 @@ use App\ValueObject\Match\MortarIds;
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
- * Compare le classement d'un mortier dans les 3 matrices ODT (air/water/oil)
- * en conservant les autres paramètres du contexte (gras, cuisson, température).
- *
- * Usage : afficher au chef qu'un mortier "moyen en bouillon" peut être "excellent
- * à sec" — éducation au caractère contextuel des arômes.
- *
- * Performance :
- *  - Cache "match.insights.cache" (TTL 1h) sur (mortarIds, ctx_hash) pour éviter
- *    les 3× MatchPipeline à chaque consultation de la page recette.
- *  - Sous le capot, MortarProfileBuilder reste mono-matrice par cache (24h/1h),
- *    le hit ici évite l'overhead de Tanimoto + enrichissement noms.
+ * Compare le ranking d'un mortier sur les 3 matrices (air/water/oil) à ctx fixe.
+ * Cache TTL 1h sur (mortar, ctx, limit, locale) — locale dans la clé car les noms
+ * d'épices sont enrichis en sortie.
  */
 final readonly class MatrixComparator
 {
     public function __construct(
-        private MatchPipeline $matchPipeline,
+        private MatchPipelineInterface $matchPipeline,
         private SpicesRepository $spicesRepository,
         private CacheItemPoolInterface $cache,
     ) {
     }
 
     /**
-     * Pour chaque matrice, retourne les top N candidats classés.
-     *
      * @return array<string, list<array{id: int, name: string, score: int}>>
      */
     public function compare(MortarIds $mortar, CulinaryContext $baseCtx, int $limit = 5, ?string $locale = null): array
     {
-        // La locale n'affecte QUE l'enrichissement final des noms (le moteur OAV
-        // reste agnostique) — mais elle DOIT entrer dans la clé de cache, sinon
-        // un hit servirait des noms dans la mauvaise langue.
         $cacheKey = $this->cacheKey('compare', $mortar, $baseCtx, $limit, $locale);
         $item = $this->cache->getItem($cacheKey);
 
@@ -74,8 +61,7 @@ final readonly class MatrixComparator
     }
 
     /**
-     * Construit une vue "grille" : ligne = épice présente dans au moins un top N,
-     * colonnes = scores par matrice (0 si absente du top de cette matrice).
+     * Vue grille : 1 ligne par épice présente dans au moins un top, scores par matrice (0 si absente).
      *
      * @param array<string, list<array{id: int, name: string, score: int}>> $rankings
      *
@@ -135,10 +121,6 @@ final readonly class MatrixComparator
         return $list;
     }
 
-    /**
-     * Clé déterministe pour le cache. Délègue le hash du contexte au VO
-     * (Refactor #1 — source unique de signature partagée avec CookingTimelineBuilder).
-     */
     private function cacheKey(
         string $kind,
         MortarIds $mortar,

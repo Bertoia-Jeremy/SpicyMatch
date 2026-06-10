@@ -34,12 +34,16 @@ framework:
                 adapter: cache.adapter.filesystem
                 default_lifetime: 3600
 
-            # Cache des insights physico-chimiques sur la page recette (Étape 3E-3) :
-            #   - MatrixComparator : 3× MatchPipeline (rankings par matrice)
-            #   - CookingTimelineBuilder : classification cinétique + rétention
-            # Clé = "match.insights.{type}.{mortarIds_hash}.{ctx_hash}". TTL 1h.
-            # Invalidé via TTL (pas event-driven — un rebuild OAV invalide indirectement
-            # via le cache niveau mortar_profile sur lequel s'appuie le pipeline).
-            match.insights.cache:
+            # Cache MatrixComparator (page recette) : 3× MatchPipeline (rankings par
+            # matrice) avec contexte fixe. Clé = "match.insights.compare.{mortar}.{ctx}.l{limit}".
+            # TTL 1h, invalidation TTL-only (indirectement par mortar_profile via la pipeline).
+            match.matrix_comparator.cache:
+                adapter: cache.adapter.filesystem
+                default_lifetime: 3600
+
+            # Cache CookingTimelineBuilder (page recette) : classification cinétique
+            # HEAD/HEART/BASE + rétention par composé sous contexte. Concerns distincts
+            # du comparateur → pool dédié pour invalidation indépendante future.
+            match.cooking_timeline.cache:
                 adapter: cache.adapter.filesystem
                 default_lifetime: 3600

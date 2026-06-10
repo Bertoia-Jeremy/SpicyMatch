@@ -35,7 +35,7 @@ class SpicyMatchService
      * In manual mode, pass an empty array (no results are stored).
      *
      * Le contexte culinaire ($ctx) est persisté avec l'entité pour permettre la
-     * restitution exacte du ranking lors de la consultation historique (Étape 3E-2).
+     * restitution exacte du ranking lors de la consultation historique.
      *
      * @param list<int>                          $selectedIds      Flat list of selected spice IDs
      * @param list<array{id: int, score: mixed}> $compatibleSpices Scored compatible spices (auto mode only)

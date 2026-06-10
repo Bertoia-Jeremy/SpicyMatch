@@ -10,17 +10,8 @@ use App\Repository\CompoundPhysicalRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Propriétés physico-chimiques d'un composé aromatique.
- *
- * Source primaire : PubChem (XLogP3 + BoilingPoint), validée via NIST WebBook.
- *
- * Sert à :
- *  - Nernst partitioning (logP) : C_oil/C_water = K_ow = 10^logP
- *  - Cinétique aromatique (boilingPointCelsius) : HEAD/HEART/BASE
- *  - Évaporation résiduelle (vaporPressurePa) : décroissance temporelle sous cuisson
- *
- * Tous les champs sauf la relation sont nullables — les données sont importées
- * progressivement et certains composés n'ont pas de mesure publiée.
+ * Propriétés physico-chimiques (logP, bp, vp). Source : PubChem + NIST WebBook.
+ * Champs nullables — données importées progressivement.
  */
 #[ORM\Entity(repositoryClass: CompoundPhysicalRepository::class)]
 #[ORM\Table(name: 'compound_physical')]
@@ -36,34 +27,26 @@ class CompoundPhysical
     private AromaticCompound $compound;
 
     /**
-     * Coefficient de partage octanol/eau, log10(K_ow).
-     * Limonène = 4.57, eugénol = 2.27, linalol = 2.97.
-     * Plage typique [-2, 8].
+     * log10(K_ow), plage typique [-2, 8].
      */
     #[ORM\Column(name: 'log_p', type: 'float', nullable: true)]
     private ?float $logP = null;
 
     /**
-     * Point d'ébullition à 1 atm (°C). Limonène = 176, eugénol = 254.
+     * °C à 1 atm.
      */
     #[ORM\Column(name: 'boiling_point_celsius', type: 'integer', nullable: true)]
     private ?int $boilingPointCelsius = null;
 
     /**
-     * Tension de vapeur à 25 °C (Pa). Utilisée pour la décroissance temporelle.
+     * Pa à 25 °C.
      */
     #[ORM\Column(name: 'vapor_pressure_pa', type: 'float', nullable: true)]
     private ?float $vaporPressurePa = null;
 
-    /**
-     * Source documentaire (ex: "PubChem CID 3314 / NIST WebBook"). Levier 2.
-     */
     #[ORM\Column(name: 'source', type: 'string', length: 255, nullable: true)]
     private ?string $source = null;
 
-    /**
-     * Niveau de confiance des propriétés (Levier 2). Défaut PLACEHOLDER.
-     */
     #[ORM\Column(name: 'confidence', type: 'string', length: 20, enumType: DataConfidence::class, options: [
         'default' => 'placeholder',
     ])]
@@ -169,17 +152,13 @@ class CompoundPhysical
     }
 
     /**
-     * K_ow = 10^logP — coefficient de partage octanol/eau utilisé pour Nernst.
-     * Retourne null si logP non renseigné.
+     * K_ow = 10^logP, ou null si logP absent.
      */
     public function octanolWaterPartition(): ?float
     {
         return $this->logP === null ? null : 10 ** $this->logP;
     }
 
-    /**
-     * Cinétique aromatique dérivée du point d'ébullition.
-     */
     public function aromaKinetics(): ?AromaKinetics
     {
         return AromaKinetics::fromBoilingPoint($this->boilingPointCelsius);

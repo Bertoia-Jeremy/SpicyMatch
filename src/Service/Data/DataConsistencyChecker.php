@@ -5,40 +5,28 @@ declare(strict_types=1);
 namespace App\Service\Data;
 
 /**
- * Règles de cohérence des données du moteur OAV (Levier 5).
- *
- * Logique pure (sans I/O) → testable unitairement. La commande app:check:data
- * fournit les lignes depuis la base et délègue ici l'évaluation des règles.
- *
- * Chaque méthode retourne une liste de violations :
- *   { severity: 'error'|'warning', message: string }
- *
- * - error   : invariant physique cassé (bloque la CI / l'import)
- * - warning : valeur implausible mais non bloquante
+ * Règles de cohérence cross-tables, pures (sans I/O). Délégué par app:check:data.
+ * Violations : ['severity' => 'error'|'warning', 'message' => string].
  */
 final class DataConsistencyChecker
 {
     /**
-     * Plafond d'OAV plausible. Au-delà, donnée probablement erronée (concentration
-     * surestimée ou ODT sous-estimé). L'eugénol pur en air culmine ~10^8.
+     * Au-delà, donnée probablement erronée (eugénol pur en air ≈ 10^8).
      */
     private const float OAV_PLAUSIBLE_MAX = 1.0e9;
 
     /**
-     * Somme de concentrations strictement impossible : > 1 000 000 ppm = > 100 % de la masse.
+     * > 100 % masse, impossible.
      */
     private const float CONCENTRATION_SUM_IMPOSSIBLE_PPM = 1_000_000.0;
 
     /**
-     * Somme implausible : > 200 000 ppm = > 20 % de la masse en composés volatils
-     * (la plupart des épices < 10 % d'huile essentielle).
+     * > 20 % masse — implausible (HE ≈ 3-10 % typique).
      */
     private const float CONCENTRATION_SUM_IMPLAUSIBLE_PPM = 200_000.0;
 
     /**
-     * Règle : tout OAV matérialisé doit être > 1 (van Gemert — perceptibilité).
-     * Un OAV ≤ 1 viole l'invariant du rebuild → erreur dure.
-     * Un OAV > plafond → warning (donnée suspecte).
+     * OAV > 1 (perceptibilité van Gemert) et < plafond plausible.
      *
      * @param list<array{spice_id: int, aromatic_compound_id: int, matrix: string, oav_value: float}> $rows
      *
@@ -69,10 +57,8 @@ final class DataConsistencyChecker
     }
 
     /**
-     * Règle : la somme des concentrations d'une épice ne peut excéder 10^6 ppm (100 %).
-     *
-     * @param array<int, float>  $sumBySpiceId spice_id => somme des concentration_ppm
-     * @param array<int, string> $spiceNames   spice_id => nom (pour message)
+     * @param array<int, float>  $sumBySpiceId spice_id => Σ ppm
+     * @param array<int, string> $spiceNames
      *
      * @return list<array{severity: string, message: string}>
      */
@@ -89,7 +75,7 @@ final class DataConsistencyChecker
                     'message' => \sprintf(
                         '%s : Σ concentrations = %g ppm > 10^6 (impossible, > 100 %%).',
                         $name,
-                        $sum
+                        $sum,
                     ),
                 ];
             } elseif ($sum > self::CONCENTRATION_SUM_IMPLAUSIBLE_PPM) {
@@ -104,8 +90,7 @@ final class DataConsistencyChecker
     }
 
     /**
-     * Règle : un composé présent en concentration mais sans ODT air ne peut jamais
-     * être OAV-actif en air → trou silencieux dans le moteur.
+     * Composé concentré sans ODT air = trou silencieux (jamais OAV-actif en air).
      *
      * @param list<array{id: int, name: string}> $compoundsWithoutAirOdt
      *

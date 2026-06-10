@@ -5,26 +5,10 @@ declare(strict_types=1);
 namespace App\ValueObject;
 
 /**
- * Numéro CAS (Chemical Abstracts Service) — identifiant universel d'un composé.
+ * Numéro CAS au format XXXXXXX-YY-Z (2-7 / 2 / 1 chiffre de contrôle).
  *
- * Format : jusqu'à 10 chiffres en 3 blocs `XXXXXXX-YY-Z` :
- *   - bloc 1 : 2 à 7 chiffres
- *   - bloc 2 : 2 chiffres
- *   - bloc 3 : 1 chiffre de contrôle (checksum)
- *
- * Le chiffre de contrôle suit un algorithme déterministe : en lisant les chiffres
- * de droite à gauche (hors checksum), chaque chiffre est multiplié par sa position
- * (1, 2, 3, …) ; la somme mod 10 doit égaler le checksum.
- *
- * Exemple — Eugénol 97-53-0 :
- *   chiffres (hors check) lus de droite : 3,5,7,9
- *   3×1 + 5×2 + 7×3 + 9×4 = 3 + 10 + 21 + 36 = 70 → 70 mod 10 = 0 ✓
- *
- * Intérêt qualité (Levier 1) : le checksum détecte les fautes de frappe / digits
- * transposés à la saisie — un CAS mal recopié échoue la validation au lieu de
- * pointer silencieusement vers le mauvais composé (ou aucun).
- *
- * Immuable (readonly). Construire via fromString() ; isValid() pour tester sans throw.
+ * Le checksum détecte les fautes de frappe : sum(digit_i × position_i) mod 10 = check.
+ * Ex. eugénol 97-53-0 → 3×1+5×2+7×3+9×4 = 70 mod 10 = 0 ✓.
  */
 final readonly class CasNumber
 {
@@ -46,8 +30,8 @@ final readonly class CasNumber
         if (! self::checksumValid($digits, $checkDigit)) {
             throw new \InvalidArgumentException(\sprintf(
                 'Numéro CAS "%s" : chiffre de contrôle invalide (faute de frappe probable).',
-                $raw
-            ), );
+                $raw,
+            ));
         }
 
         return new self($normalized);
@@ -72,10 +56,8 @@ final readonly class CasNumber
     }
 
     /**
-     * Vérifie le format et extrait la chaîne de chiffres (hors checksum) + le checksum.
-     *
-     * @param-out string $digits    Concaténation bloc1+bloc2 (sans tirets ni checksum)
-     * @param-out int    $checkDigit Chiffre de contrôle déclaré
+     * @param-out string $digits     bloc1 + bloc2 concaténés
+     * @param-out int    $checkDigit chiffre de contrôle déclaré
      */
     private static function matchesFormat(string $value, ?string &$digits = null, ?int &$checkDigit = null): bool
     {
@@ -89,15 +71,11 @@ final readonly class CasNumber
         return true;
     }
 
-    /**
-     * Valide le chiffre de contrôle CAS.
-     */
     private static function checksumValid(string $digits, int $checkDigit): bool
     {
         $sum = 0;
         $position = 1;
 
-        // Parcours de droite à gauche, poids croissant 1, 2, 3, …
         for ($i = strlen($digits) - 1; $i >= 0; --$i) {
             $sum += ((int) $digits[$i]) * $position;
             ++$position;

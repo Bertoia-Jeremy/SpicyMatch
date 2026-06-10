@@ -9,7 +9,7 @@ use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
 use App\Service\Match\CompatibleSpiceFinder;
-use App\Service\Match\MatchConfidenceAssessor;
+use App\Service\Match\MatchConfidenceAssessorInterface;
 use App\Service\SpicyMatchService;
 use App\Twig\Components\SpicyMatch;
 use App\ValueObject\Match\CulinaryContext;
@@ -26,7 +26,7 @@ class SpicyMatchTest extends TestCase
     private AromaticGroupsRepository&MockObject $aromaticGroupsRepo;
     private SpicyTypeRepository&MockObject $spicyTypeRepo;
     private SpicyMatchService&MockObject $spicyMatchService;
-    private MatchConfidenceAssessor&MockObject $confidenceAssessor;
+    private MatchConfidenceAssessorInterface&MockObject $confidenceAssessor;
 
     /**
      * @var list<array<string, mixed>>
@@ -40,7 +40,7 @@ class SpicyMatchTest extends TestCase
         $this->aromaticGroupsRepo = $this->createMock(AromaticGroupsRepository::class);
         $this->spicyTypeRepo = $this->createMock(SpicyTypeRepository::class);
         $this->spicyMatchService = $this->createMock(SpicyMatchService::class);
-        $this->confidenceAssessor = $this->createMock(MatchConfidenceAssessor::class);
+        $this->confidenceAssessor = $this->createMock(MatchConfidenceAssessorInterface::class);
 
         $this->allSpices = [
             [
@@ -108,7 +108,7 @@ class SpicyMatchTest extends TestCase
         self::assertSame('auto', $component->mode);
     }
 
-    // ── Levier 4 : confiance des données ─────────────────────────────────────
+    // ── Confiance des données ────────────────────────────────────────────────
 
     public function testDataConfidenceNullWhenNoSelection(): void
     {
@@ -497,7 +497,7 @@ class SpicyMatchTest extends TestCase
         self::assertSame('', $component->search);
     }
 
-    // ── Étape 3E-2 : contexte culinaire ─────────────────────────────────────
+    // ── Contexte culinaire ──────────────────────────────────────────────────
 
     public function testDefaultCulinaryContextIsNeutral(): void
     {

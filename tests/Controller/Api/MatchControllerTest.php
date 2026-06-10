@@ -312,7 +312,7 @@ final class MatchControllerTest extends WebTestCase
         self::assertResponseStatusCodeSame(400);
     }
 
-    // ── Étape 3E-1 — Contexte culinaire étendu via API ────────────────────────
+    // ── Contexte culinaire étendu via API ────────────────────────────────────
 
     public function testDefaultCulinaryContextFieldsInResponse(): void
     {

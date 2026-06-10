@@ -10,7 +10,7 @@ use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
 use App\Service\Match\CompatibleSpiceFinder;
-use App\Service\Match\MatchConfidenceAssessor;
+use App\Service\Match\MatchConfidenceAssessorInterface;
 use App\Service\SpicyMatchService;
 use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
@@ -72,7 +72,7 @@ class SpicyMatch extends AbstractController
     #[LiveProp(writable: true)]
     public string $mode = 'auto';
 
-    // ── Contexte culinaire (Étape 3E-2) ─────────────────────────────────────────
+    // ── Contexte culinaire ──────────────────────────────────────────────────────
 
     #[LiveProp(writable: true)]
     public string $matrix = 'air';
@@ -92,7 +92,7 @@ class SpicyMatch extends AbstractController
         private readonly AromaticGroupsRepository $aromaticGroupsRepository,
         private readonly SpicyTypeRepository $spicyTypeRepository,
         private readonly SpicyMatchService $spicyMatchService,
-        private readonly MatchConfidenceAssessor $confidenceAssessor,
+        private readonly MatchConfidenceAssessorInterface $confidenceAssessor,
     ) {
         $this->spices = [
             'selectedSpices' => [],
@@ -198,7 +198,7 @@ class SpicyMatch extends AbstractController
      */
     public function buildCulinaryContext(): CulinaryContext
     {
-        // Bornes source de vérité = constantes publiques de CulinaryContext (Refactor #2).
+        // Bornes source de vérité : constantes publiques de CulinaryContext.
         $matrix = OdtMatrix::tryFrom(strtolower(trim($this->matrix))) ?? OdtMatrix::AIR;
         $fat = max(CulinaryContext::FAT_RATIO_MIN, min(CulinaryContext::FAT_RATIO_MAX, $this->fatRatio));
         $water = max(0.0, 1.0 - $fat);
@@ -214,8 +214,7 @@ class SpicyMatch extends AbstractController
     }
 
     /**
-     * Confiance des données alimentant le scoring courant (Levier 4).
-     * Null tant qu'aucune épice n'est sélectionnée (rien à évaluer).
+     * Null tant qu'aucune épice n'est sélectionnée.
      */
     public function getDataConfidence(): ?DataConfidence
     {

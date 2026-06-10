@@ -6,7 +6,7 @@ namespace App\Tests\Service\Match;
 
 use App\Enum\OdtMatrix;
 use App\Repository\SpicesRepository;
-use App\Service\Match\MatchPipeline;
+use App\Service\Match\MatchPipelineInterface;
 use App\Service\Match\MatrixComparator;
 use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
@@ -18,12 +18,12 @@ use Symfony\Component\Cache\Adapter\ArrayAdapter;
 final class MatrixComparatorTest extends TestCase
 {
     private function makeComparator(
-        ?MatchPipeline $pipeline = null,
+        ?MatchPipelineInterface $pipeline = null,
         ?SpicesRepository $spices = null,
     ): MatrixComparator {
         // ArrayAdapter = cache en mémoire isolé par test (pas de pollution inter-tests).
         return new MatrixComparator(
-            $pipeline ?? $this->createStub(MatchPipeline::class),
+            $pipeline ?? $this->createStub(MatchPipelineInterface::class),
             $spices ?? $this->createStub(SpicesRepository::class),
             new ArrayAdapter(),
         );
@@ -33,7 +33,7 @@ final class MatrixComparatorTest extends TestCase
 
     public function testCompareCallsPipelineForEachMatrix(): void
     {
-        $pipeline = $this->createMock(MatchPipeline::class);
+        $pipeline = $this->createMock(MatchPipelineInterface::class);
         $pipeline->expects(self::exactly(3))
             ->method('run')
             ->willReturn([]);
@@ -53,7 +53,7 @@ final class MatrixComparatorTest extends TestCase
         // Le contexte de base a fat=0.5, cooking=20, temp=80. Chaque matrice doit
         // recevoir le même contexte sauf la matrice.
         $captured = [];
-        $pipeline = $this->createMock(MatchPipeline::class);
+        $pipeline = $this->createMock(MatchPipelineInterface::class);
         $pipeline->method('run')
             ->willReturnCallback(function (MortarIds $m, int $l, CulinaryContext $ctx) use (&$captured): array {
                 $captured[] = $ctx;
@@ -84,7 +84,7 @@ final class MatrixComparatorTest extends TestCase
 
     public function testCompareEnrichesResultsWithNames(): void
     {
-        $pipeline = $this->createStub(MatchPipeline::class);
+        $pipeline = $this->createStub(MatchPipelineInterface::class);
         $pipeline->method('run')
             ->willReturn([
                 [
@@ -109,7 +109,7 @@ final class MatrixComparatorTest extends TestCase
 
     public function testCompareReturnsEmptyArrayPerMatrixIfNoResults(): void
     {
-        $pipeline = $this->createStub(MatchPipeline::class);
+        $pipeline = $this->createStub(MatchPipelineInterface::class);
         $pipeline->method('run')
             ->willReturn([]);
 
@@ -196,12 +196,12 @@ final class MatrixComparatorTest extends TestCase
         self::assertSame([], $grid);
     }
 
-    // ── Cache (PERF-4) ─────────────────────────────────────────────────────────
+    // ── Cache ──────────────────────────────────────────────────────────────────
 
     public function testCompareCachesResultsAcrossCalls(): void
     {
         // Le pipeline doit être appelé 3× la 1re fois, 0× la 2e (hit cache)
-        $pipeline = $this->createMock(MatchPipeline::class);
+        $pipeline = $this->createMock(MatchPipelineInterface::class);
         $pipeline->expects(self::exactly(3))
             ->method('run')
             ->willReturn([]);
@@ -219,7 +219,7 @@ final class MatrixComparatorTest extends TestCase
     public function testCompareCacheKeyDiffersBetweenContexts(): void
     {
         // Mortier identique mais ctx différents → 2× 3 appels (pas de hit croisé)
-        $pipeline = $this->createMock(MatchPipeline::class);
+        $pipeline = $this->createMock(MatchPipelineInterface::class);
         $pipeline->expects(self::exactly(6))
             ->method('run')
             ->willReturn([]);
@@ -233,7 +233,7 @@ final class MatrixComparatorTest extends TestCase
 
     public function testCompareCacheKeyDiffersBetweenMortars(): void
     {
-        $pipeline = $this->createMock(MatchPipeline::class);
+        $pipeline = $this->createMock(MatchPipelineInterface::class);
         $pipeline->expects(self::exactly(6))
             ->method('run')
             ->willReturn([]);
@@ -248,7 +248,7 @@ final class MatrixComparatorTest extends TestCase
     public function testCompareCacheKeyIsOrderIndependentForMortar(): void
     {
         // [1, 2] et [2, 1] doivent partager le même cache (sorted())
-        $pipeline = $this->createMock(MatchPipeline::class);
+        $pipeline = $this->createMock(MatchPipelineInterface::class);
         $pipeline->expects(self::exactly(3))
             ->method('run')
             ->willReturn([]);

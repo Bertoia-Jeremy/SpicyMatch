@@ -171,7 +171,7 @@ final class SpicyMatchTest extends TestCase
         self::assertSame($date, $this->match->getUpdatedAt());
     }
 
-    // ── Étape 3E-2 : contexte culinaire persisté ────────────────────────────
+    // ── Contexte culinaire persisté ──────────────────────────────────────────
 
     public function testDefaultMatrixIsAir(): void
     {

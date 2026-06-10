@@ -10,28 +10,20 @@ use App\ValueObject\Match\MortarIds;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
- * Adaptateur haut niveau — combine MatchPipeline (veto OAV + Tanimoto) avec
- * l'enrichissement des données d'affichage (nom, image, groupe, type).
- *
- * Remplace CompatibilityScoreService pour les 3 consumers UI/éducation :
- *   - SpicyMatch (Lab Live Component)
- *   - QcmQuestionGenerator (mode QCM)
- *   - AcademyManager (Survival, Intrus)
+ * Adapter UI/éducation : pipeline + enrichissement (nom, image, groupe, type) en une requête.
  *
  * @see ARCHITECTURE_MOTEUR_COMPATIBILITE.md §3 + §4.1
  */
 class CompatibleSpiceFinder
 {
     public function __construct(
-        private readonly MatchPipeline $matchPipeline,
+        private readonly MatchPipelineInterface $matchPipeline,
         private readonly SpicesRepository $spicesRepository,
         private readonly RequestStack $requestStack,
     ) {
     }
 
     /**
-     * Trouve les épices compatibles avec le mortier, triées par score OAV Tanimoto décroissant.
-     *
      * @return list<array{id: int, name: string, file: ?string, agId: ?int, color: ?string, groupName: ?string, stId: ?int, typeName: ?string, score: int}>
      */
     public function findCompatible(MortarIds $mortar, int $limit, CulinaryContext $ctx): array
@@ -42,10 +34,7 @@ class CompatibleSpiceFinder
             return [];
         }
 
-        // scoreMap : id → score (issu du pipeline)
         $scoreMap = array_column($pipelineResults, 'score', 'id');
-
-        // Enrichissement : une seule requête SQL pour les données d'affichage.
         $locale = $this->requestStack->getCurrentRequest()?->getLocale();
         $enriched = $this->spicesRepository->findEnrichedByIds(array_keys($scoreMap), $locale);
 
@@ -66,7 +55,6 @@ class CompatibleSpiceFinder
             ];
         }
 
-        // Trier par score décroissant (restitue l'ordre du pipeline)
         usort($results, static fn (array $a, array $b) => $b['score'] <=> $a['score']);
 
         return $results;

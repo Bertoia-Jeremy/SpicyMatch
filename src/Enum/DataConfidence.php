@@ -5,18 +5,8 @@ declare(strict_types=1);
 namespace App\Enum;
 
 /**
- * Niveau de confiance d'une donnée physico-chimique (Levier 2 — provenance).
- *
- * Permet de tracer la qualité de chaque valeur (ODT, concentration, logP…) et,
- * en aval, de calculer la confiance d'un score de compatibilité (= tier le plus
- * faible parmi les données contributrices) et de l'exposer à l'UI sans afficher
- * un "64 %" net bâti sur du placeholder.
- *
- * Hiérarchie (du plus fiable au moins fiable) :
- *   A — MEASURED     : mesure expérimentale, source autoritaire unique, CAS validé
- *   B — LITERATURE   : agrégat littérature (moyenne géométrique de N études)
- *   C — ESTIMATED    : prédit (EPI Suite, QSAR, corrélation structure-propriété)
- *   D — PLACEHOLDER  : valeur fictive de dev/staging (à remplacer)
+ * Tier de confiance d'une donnée physico-chimique (ODT, concentration, logP…).
+ * Du plus fiable au moins : A measured / B literature / C estimated / D placeholder.
  */
 enum DataConfidence: string
 {
@@ -25,9 +15,6 @@ enum DataConfidence: string
     case ESTIMATED = 'estimated';
     case PLACEHOLDER = 'placeholder';
 
-    /**
-     * Rang numérique : plus élevé = plus fiable. Sert aux comparaisons et au min().
-     */
     public function rank(): int
     {
         return match ($this) {
@@ -39,16 +26,13 @@ enum DataConfidence: string
     }
 
     /**
-     * Clé de traduction (domaine messages) — traduire à l'affichage via |trans.
+     * Clé de traduction (domaine messages).
      */
     public function label(): string
     {
         return 'enum.confidence.' . $this->value;
     }
 
-    /**
-     * Lettre de tier (A/B/C/D) pour affichage compact.
-     */
     public function tier(): string
     {
         return match ($this) {
@@ -60,7 +44,7 @@ enum DataConfidence: string
     }
 
     /**
-     * Vrai si la donnée est exploitable en production (tier ≥ littérature).
+     * Vrai si tier ≥ literature.
      */
     public function isProductionGrade(): bool
     {
@@ -69,8 +53,7 @@ enum DataConfidence: string
     }
 
     /**
-     * Retourne le tier le plus faible d'un ensemble (= confiance globale d'un agrégat).
-     * Le maillon le plus faible détermine la confiance de la chaîne.
+     * Maillon le plus faible — détermine la confiance d'une chaîne de données.
      */
     public static function weakest(self ...$confidences): self
     {

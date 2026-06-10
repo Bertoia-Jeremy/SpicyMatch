@@ -110,7 +110,7 @@ class SpicyMatchHistoryController extends AbstractController
             }
         }
 
-        // ── Étape 3E-3 : insights physico-chimiques ───────────────────────────
+        // ── Insights physico-chimiques (page recette) ─────────────────────────
         $spicyMatch = $spicyMatchHistory->getSpicyMatch();
         $culinaryContext = $spicyMatch->getCulinaryContext();
         $mortarSpiceIds = $spicyMatch->getSpices()

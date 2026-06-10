@@ -13,11 +13,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
- * Contrôle d'intégrité OFFLINE des composés aromatiques (Levier 1 — CAS-first).
- *
- * Rapide, sans réseau — complémentaire de app:validate:compounds (cross-check
- * PubChem en ligne). Conçu pour servir de garde bloquant (exit ≠ 0) avant un
- * import ou en CI.
+ * Intégrité OFFLINE des composés (CAS présent/valide/unique, formule).
+ * Complète app:validate:compounds (cross-check PubChem online). Garde CI/import.
  *
  * Règles dures (→ FAILURE) :
  *   - CAS manquant

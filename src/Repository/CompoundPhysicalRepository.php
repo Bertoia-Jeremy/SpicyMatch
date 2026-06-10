@@ -11,7 +11,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<CompoundPhysical>
  */
-class CompoundPhysicalRepository extends ServiceEntityRepository
+final class CompoundPhysicalRepository extends ServiceEntityRepository implements CompoundPhysicalRepositoryInterface
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -32,8 +32,7 @@ class CompoundPhysicalRepository extends ServiceEntityRepository
             return [];
         }
 
-        // JOIN explicite plus rapide qu'IDENTITY() — utilise l'index FK aromatic_compound_id
-        // directement plutôt que de traverser la table compound_physical (PERF-3).
+        // JOIN explicite : utilise l'index FK aromatic_compound_id directement.
         $rows = $this->createQueryBuilder('cp')
             ->join('cp.compound', 'c')
             ->where('c.id IN (:ids)')

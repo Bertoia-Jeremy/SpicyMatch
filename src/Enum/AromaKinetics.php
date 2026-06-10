@@ -5,11 +5,8 @@ declare(strict_types=1);
 namespace App\Enum;
 
 /**
- * Cinétique aromatique d'un composé, dérivée de son point d'ébullition.
- *
- * HEAD  : bp < 150 °C — note de tête, s'évapore vite (limonène, myrcène).
- * HEART : 150 ≤ bp ≤ 250 °C — note de cœur (linalol, géraniol, cinnamaldéhyde).
- * BASE  : bp > 250 °C — note de fond, résiste à la cuisson (eugénol, capsaïcine).
+ * Cinétique aromatique dérivée du point d'ébullition.
+ * HEAD bp < 150 °C (limonène). HEART 150–250 (linalol). BASE > 250 (eugénol).
  */
 enum AromaKinetics: string
 {
@@ -18,10 +15,7 @@ enum AromaKinetics: string
     case BASE = 'base';
 
     /**
-     * Dérive la cinétique depuis un point d'ébullition (°C).
-     *
-     * Retourne null si la donnée n'est pas disponible — l'appelant doit décider
-     * (fallback HEART, masquer, ignorer) plutôt qu'inférer à tort.
+     * Null si bp inconnu — pas d'inférence par défaut.
      */
     public static function fromBoilingPoint(?int $celsius): ?self
     {
@@ -37,7 +31,7 @@ enum AromaKinetics: string
     }
 
     /**
-     * Clé de traduction (domaine messages) — traduire à l'affichage via |trans.
+     * Clé de traduction.
      */
     public function label(): string
     {

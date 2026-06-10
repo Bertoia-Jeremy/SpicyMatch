@@ -8,21 +8,12 @@ use App\Service\Match\OavTanimotoScorer;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Ancres de régression « golden pairings » (Levier 6).
+ * /**
+ * Ancres de régression — verrouillent le comportement du scoring sur des accords
+ * aromatiques connus (profils OAV tirés des fixtures, matrice air).
+ * Scorer pur, sans base. Pendant chimie-réelle dans la suite Integration.
  *
- * Verrouille le comportement du scoring sur des accords aromatiques connus, exprimés
- * via des profils OAV représentatifs tirés des données fixtures (matrice air) :
- *
- *   Composés (id → nom) :  3=Anéthol  4=Estragole  5=Linalol  8=D-Limonène  6=Terpinèn-4-ol
- *
- *   Fenouil  : anéthol 50M, estragole 100k, linalol 50k, limonène 2k
- *   Anis ét. : anéthol 80M, estragole 60k, limonène 1k
- *   Carvi    : anéthol 1.5M, linalol 50k, limonène 30k, terpinèn 2k
- *   Poivre*  : limonène 5k uniquement (profil monoterpène pauvre, anti-exemple)
- *
- * Ces tests tournent sans base (scorer pur) → exécutés par `composer ci`. Ils
- * détectent toute régression de la logique log-Tanimoto / des seuils perceptuels.
- * Le pendant « chimie réelle sur la vraie base » vit dans la suite Integration.
+ * Composés : 3=Anéthol, 4=Estragole, 5=Linalol, 6=Terpinèn-4-ol, 8=D-Limonène.
  */
 final class GoldenPairingsTest extends TestCase
 {

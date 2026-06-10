@@ -134,9 +134,7 @@ final class ImportOdtCommand extends Command
                 continue;
             }
 
-            // Levier 3 — ODT : soit valeur ponctuelle (odt_ppm), soit plage
-            // (odt_min + odt_max) agrégée par moyenne géométrique (correcte pour
-            // données log-normales comme les seuils olfactifs van Gemert).
+            // odt_ppm (ponctuel) OU odt_min + odt_max (plage → moyenne géométrique).
             $odtPpm = $this->resolveOdtPpm($entry, $compoundName, $io);
             if ($odtPpm === null) {
                 ++$skipped;
@@ -218,7 +216,7 @@ final class ImportOdtCommand extends Command
 
     /**
      * Résout l'ODT en ppm depuis une entrée : valeur ponctuelle `odt_ppm`
-     * OU plage `odt_min`/`odt_max` agrégée par moyenne géométrique (Levier 3).
+     * OU plage `odt_min`/`odt_max` agrégée par moyenne géométrique.
      *
      * @param array<string, mixed> $entry
      *

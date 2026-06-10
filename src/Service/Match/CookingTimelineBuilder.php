@@ -6,35 +6,27 @@ namespace App\Service\Match;
 
 use App\Entity\AromaticCompound;
 use App\Enum\AromaKinetics;
-use App\Repository\CompoundPhysicalRepository;
+use App\Repository\CompoundPhysicalRepositoryInterface;
 use App\ValueObject\Match\CulinaryContext;
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
- * Classe les composés aromatiques d'un mortier selon leur cinétique d'évaporation
- * (HEAD / HEART / BASE) et calcule leur rétention sous le contexte culinaire donné.
- *
- * Cache "match.insights.cache" (TTL 1h) sur (compoundIds_hash, ctx_hash) pour éviter
- * le batch fetch CompoundPhysical + N calculs Nernst+decay sur chaque consultation.
+ * Classe les composés d'un mortier par cinétique (HEAD/HEART/BASE) + rétention sous ctx.
+ * Cache TTL 1h sur (compoundIds, ctx).
  */
 final readonly class CookingTimelineBuilder
 {
     public function __construct(
-        private CompoundPhysicalRepository $compoundPhysicalRepository,
+        private CompoundPhysicalRepositoryInterface $compoundPhysicalRepository,
         private OavPartitionCalculator $partitionCalculator,
         private CacheItemPoolInterface $cache,
     ) {
     }
 
     /**
-     * @param iterable<AromaticCompound> $compounds Composés du mortier (déjà chargés)
+     * @param iterable<AromaticCompound> $compounds
      *
-     * @return array{
-     *   head: list<array{id: int, name: string, retention: ?float, kinetics: ?string}>,
-     *   heart: list<array{id: int, name: string, retention: ?float, kinetics: ?string}>,
-     *   base: list<array{id: int, name: string, retention: ?float, kinetics: ?string}>,
-     *   unknown: list<array{id: int, name: string, retention: null, kinetics: null}>,
-     * }
+     * @return array{head: list<TimelineEntry>, heart: list<TimelineEntry>, base: list<TimelineEntry>, unknown: list<TimelineEntry>}
      */
     public function build(iterable $compounds, CulinaryContext $ctx): array
     {
@@ -57,7 +49,7 @@ final readonly class CookingTimelineBuilder
         if ($item->isHit()) {
             $cached = $item->get();
             if (is_array($cached)) {
-                /** @var array{head: list<array<string, mixed>>, heart: list<array<string, mixed>>, base: list<array<string, mixed>>, unknown: list<array<string, mixed>>} $cached */
+                /** @var array{head: list<TimelineEntry>, heart: list<TimelineEntry>, base: list<TimelineEntry>, unknown: list<TimelineEntry>} $cached */
                 return $cached;
             }
         }
@@ -71,12 +63,12 @@ final readonly class CookingTimelineBuilder
             $kinetics = $physical?->aromaKinetics();
             $retention = $physical !== null ? $this->partitionCalculator->correctionFactor($physical, $ctx) : null;
 
-            $entry = [
-                'id' => $id,
-                'name' => $compound->getName() ?? '?',
-                'retention' => $retention,
-                'kinetics' => $kinetics?->value,
-            ];
+            $entry = new TimelineEntry(
+                id: $id,
+                name: $compound->getName() ?? '?',
+                retention: $retention,
+                kinetics: $kinetics?->value,
+            );
 
             $key = match ($kinetics) {
                 AromaKinetics::HEAD => 'head',
@@ -91,7 +83,7 @@ final readonly class CookingTimelineBuilder
         foreach (['head', 'heart', 'base', 'unknown'] as $key) {
             usort(
                 $buckets[$key],
-                static fn (array $a, array $b) => ($b['retention'] ?? -1.0) <=> ($a['retention'] ?? -1.0),
+                static fn (TimelineEntry $a, TimelineEntry $b) => ($b->retention ?? -1.0) <=> ($a->retention ?? -1.0),
             );
         }
 
@@ -103,7 +95,7 @@ final readonly class CookingTimelineBuilder
     }
 
     /**
-     * @return array{head: list<array<string, mixed>>, heart: list<array<string, mixed>>, base: list<array<string, mixed>>, unknown: list<array<string, mixed>>}
+     * @return array{head: list<TimelineEntry>, heart: list<TimelineEntry>, base: list<TimelineEntry>, unknown: list<TimelineEntry>}
      */
     private function emptyBuckets(): array
     {
@@ -122,9 +114,8 @@ final readonly class CookingTimelineBuilder
     {
         sort($compoundIds);
 
-        // Signature du contexte déléguée au VO (Refactor #1).
         return sprintf(
-            'match.insights.timeline.%s.%s',
+            'match.timeline.%s.%s',
             substr(hash('xxh3', implode(',', $compoundIds)), 0, 16),
             $ctx->signatureHash(),
         );

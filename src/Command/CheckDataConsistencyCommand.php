@@ -14,7 +14,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
- * Validation de cohérence cross-tables des données du moteur OAV (Levier 5).
+ * Cohérence cross-tables des données du moteur OAV.
  *
  * Offline, rapide. Complète app:check:compounds (intégrité par composé) en
  * vérifiant des invariants qui s'étendent sur plusieurs tables :

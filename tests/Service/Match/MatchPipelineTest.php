@@ -8,7 +8,7 @@ use App\Entity\AromaticCompound;
 use App\Entity\CompoundPhysical;
 use App\Enum\OdtMatrix;
 use App\Repository\CandidateVetoRepository;
-use App\Repository\CompoundPhysicalRepository;
+use App\Repository\CompoundPhysicalRepositoryInterface;
 use App\Repository\SpiceActiveCompoundRepository;
 use App\Service\Match\CorrectionApplier;
 use App\Service\Match\MatchPipeline;
@@ -32,11 +32,11 @@ final class MatchPipelineTest extends TestCase
         ?CandidateVetoRepository $veto = null,
         ?SpiceActiveCompoundRepository $repo = null,
         ?OavTanimotoScorer $scorer = null,
-        ?CompoundPhysicalRepository $physicalRepo = null,
+        ?CompoundPhysicalRepositoryInterface $physicalRepo = null,
         ?OavPartitionCalculator $calculator = null,
     ): MatchPipeline {
         $calculator ??= new OavPartitionCalculator();
-        $physicalRepo ??= $this->createStub(CompoundPhysicalRepository::class);
+        $physicalRepo ??= $this->createStub(CompoundPhysicalRepositoryInterface::class);
 
         return new MatchPipeline(
             $builder ?? $this->createStub(MortarProfileBuilder::class),
@@ -444,13 +444,13 @@ final class MatchPipelineTest extends TestCase
         self::assertTrue($results[0]['oav_mode']);
     }
 
-    // ── Étape 3C — Correction physico-chimique ────────────────────────────────
+    // ── Correction physico-chimique ──────────────────────────────────────────
 
     public function testNeutralContextSkipsCompoundPhysicalLookup(): void
     {
         // Contexte par défaut (fat=0, cookingTime=0) → needsCorrection() = false
         // → CompoundPhysicalRepository::loadByCompoundIds() ne doit JAMAIS être appelé
-        $physicalRepo = $this->createMock(CompoundPhysicalRepository::class);
+        $physicalRepo = $this->createMock(CompoundPhysicalRepositoryInterface::class);
         $physicalRepo->expects(self::never())
             ->method('loadByCompoundIds');
 
@@ -479,7 +479,7 @@ final class MatchPipelineTest extends TestCase
     public function testExtendedContextTriggersCompoundPhysicalLookup(): void
     {
         // ctx avec fatRatio > 0 → needsCorrection() = true → batch lookup déclenché
-        $physicalRepo = $this->createMock(CompoundPhysicalRepository::class);
+        $physicalRepo = $this->createMock(CompoundPhysicalRepositoryInterface::class);
         $physicalRepo->expects(self::once())
             ->method('loadByCompoundIds')
             ->willReturn([]);
@@ -541,7 +541,7 @@ final class MatchPipelineTest extends TestCase
         $veto->method('findSurvivors')
             ->willReturn([10, 11]);
 
-        $physicalRepo = $this->createStub(CompoundPhysicalRepository::class);
+        $physicalRepo = $this->createStub(CompoundPhysicalRepositoryInterface::class);
         $physicalRepo->method('loadByCompoundIds')
             ->willReturn([
                 1 => $this->makePhysical(1, logP: 4.0), // hydrophobe (K_ow = 10 000)
@@ -587,7 +587,7 @@ final class MatchPipelineTest extends TestCase
         $veto->method('findSurvivors')
             ->willReturn([10, 11]);
 
-        $physicalRepo = $this->createStub(CompoundPhysicalRepository::class);
+        $physicalRepo = $this->createStub(CompoundPhysicalRepositoryInterface::class);
         $physicalRepo->method('loadByCompoundIds')
             ->willReturn([
                 1 => $this->makePhysical(1, logP: 0.0, bp: 100),
@@ -630,7 +630,7 @@ final class MatchPipelineTest extends TestCase
         $veto->method('findSurvivors')
             ->willReturn([10]);
 
-        $physicalRepo = $this->createStub(CompoundPhysicalRepository::class);
+        $physicalRepo = $this->createStub(CompoundPhysicalRepositoryInterface::class);
         $physicalRepo->method('loadByCompoundIds')
             ->willReturn([]); // aucune donnée physique
 

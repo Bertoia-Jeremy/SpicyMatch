@@ -11,6 +11,11 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Snapshot d'une composition (user + spices + contexte culinaire + ranking).
+ * Sémantiquement immutable après création — pas de mutation par les services ;
+ * Doctrine ne supporte pas encore readonly nativement, d'où les setters publics.
+ */
 #[ORM\Entity(repositoryClass: SpicyMatchRepository::class)]
 class SpicyMatch
 {
@@ -61,10 +66,7 @@ class SpicyMatch
     ])]
     private bool $isManual = false;
 
-    /**
-     * Contexte culinaire au moment de la composition.
-     * Permet de restituer le ranking exact lors de l'affichage historique.
-     */
+    // Contexte culinaire au moment de la composition (snapshot pour restituer le ranking exact).
     #[ORM\Column(name: 'matrix', type: 'string', length: 5, enumType: OdtMatrix::class, options: [
         'default' => 'air',
     ])]
@@ -76,9 +78,7 @@ class SpicyMatch
     private float $fatRatio = 0.0;
 
     /**
-     * waterRatio persisté explicitement (et non dérivé) pour garantir l'invariant
-     * fat + water ≈ 1 à long terme, indépendamment d'une éventuelle migration ou
-     * d'un patch qui casserait la dérivation.
+     * Persisté plutôt que dérivé : invariant fat+water≈1 garanti à long terme.
      */
     #[ORM\Column(name: 'water_ratio', type: 'float', options: [
         'default' => 1.0,
@@ -260,7 +260,7 @@ class SpicyMatch
     public function setFatRatio(float $fatRatio): static
     {
         $this->fatRatio = $fatRatio;
-        // Maintient l'invariant fat + water ≈ 1 même si setFatRatio est appelé seul.
+        // Maintient l'invariant fat + water ≈ 1.
         $this->waterRatio = max(0.0, min(1.0, 1.0 - $fatRatio));
 
         return $this;
@@ -302,9 +302,6 @@ class SpicyMatch
         return $this;
     }
 
-    /**
-     * Reconstruit le contexte culinaire complet depuis les colonnes persistées.
-     */
     public function getCulinaryContext(): CulinaryContext
     {
         return new CulinaryContext(
@@ -316,9 +313,6 @@ class SpicyMatch
         );
     }
 
-    /**
-     * Persiste le contexte culinaire dans les colonnes dédiées.
-     */
     public function setCulinaryContext(CulinaryContext $context): static
     {
         $this->matrix = $context->matrix;

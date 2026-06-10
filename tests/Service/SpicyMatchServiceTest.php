@@ -258,7 +258,7 @@ class SpicyMatchServiceTest extends TestCase
     }
 
     // ──────────────────────────────────────────────────────────────────────────
-    // Étape 3E-2 : persistance du contexte culinaire
+    // Persistance du contexte culinaire
     // ──────────────────────────────────────────────────────────────────────────
 
     public function testDefaultCulinaryContextPersistedOnMatch(): void

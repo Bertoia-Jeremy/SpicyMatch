@@ -7,8 +7,8 @@ namespace App\Controller\Api;
 use App\Enum\OdtMatrix;
 use App\Exception\Match\InvalidMortarException;
 use App\Repository\SpicesRepository;
-use App\Service\Match\MatchConfidenceAssessor;
-use App\Service\Match\MatchPipeline;
+use App\Service\Match\MatchConfidenceAssessorInterface;
+use App\Service\Match\MatchPipelineInterface;
 use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -53,9 +53,9 @@ use Symfony\Component\Routing\Attribute\Route;
 final class MatchController extends AbstractController
 {
     public function __construct(
-        private readonly MatchPipeline $matchPipeline,
+        private readonly MatchPipelineInterface $matchPipeline,
         private readonly SpicesRepository $spicesRepository,
-        private readonly MatchConfidenceAssessor $confidenceAssessor,
+        private readonly MatchConfidenceAssessorInterface $confidenceAssessor,
         #[Autowire(service: 'limiter.match_api')]
         private readonly RateLimiterFactory $matchApiLimiter,
     ) {
@@ -115,10 +115,7 @@ final class MatchController extends AbstractController
 
         $limit = max(1, min(100, $request->query->getInt('limit', 20)));
 
-        // Contexte culinaire — matrice ODT + ratios biphasiques + cuisson.
-        // Étape 3E-1 : exposition complète des champs CulinaryContext via l'API.
-        // fat (optionnel) : 0..1 ; water auto-déduit (1-fat) si non fourni ;
-        // cooking_time (min ≥ 0) ; temperature (°C entier).
+        // Contexte culinaire : fat ∈ [0,1] (water auto = 1-fat si absent), cooking_time min ≥ 0, temperature °C.
         $matrixRaw = $request->query->getString('matrix', 'air');
 
         try {
@@ -129,10 +126,8 @@ final class MatchController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        // SEC-1 : validation explicite numérique + plage AVANT cast (sécurité).
-        // (float)"1e308" → INF en PHP — silencieux, échapperait au CulinaryContext.
-        // Bornes : constantes publiques sur CulinaryContext = source de vérité unique
-        // (Refactor #2). API + LiveComponent + VO partagent les mêmes valeurs.
+        // Validation is_numeric + is_finite AVANT cast : (float)"1e308" → INF échappe sinon.
+        // Bornes : constantes publiques de CulinaryContext (partagées API + UI + VO).
         $hasFat = $request->query->has('fat');
         $hasWater = $request->query->has('water');
 
@@ -244,7 +239,7 @@ final class MatchController extends AbstractController
 
         $oavMode = $pipelineResults !== [] && $pipelineResults[0]['oav_mode'];
 
-        // Levier 4 — confiance des données alimentant ce calcul (maillon le plus faible).
+        // Confiance globale = maillon le plus faible parmi les données contributrices.
         $confidence = $this->confidenceAssessor->assess($mortar, $culinaryContext->matrix);
 
         return $this->json([

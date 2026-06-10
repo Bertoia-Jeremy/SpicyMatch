@@ -10,33 +10,17 @@ use App\ValueObject\Match\MortarIds;
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
- * Construit le profil OAV agrégé du mortier (Π_M*) pour une matrice donnée.
- *
- * Pour chaque molécule i : OAV_i^M = max_{s ∈ M} OAV_i^s
- * Le max est préféré à la moyenne : la note dominante du mortier détermine sa signature.
- *
- * Clé de cache : "match.mortar.{matrix}.{id1},{id2},…" (IDs triés).
- * TTL par matrice :
- *   - air   : 86400s (24h) — données matures, stables
- *   - water : 3600s  (1h)  — données en cours de collecte, plus susceptibles d'évoluer
- *   - oil   : 3600s  (1h)  — idem
- *
- * Invalidé par SpiceConcentrationChangedListener sur toute modification de
- * SpiceCompoundConcentration ou CompoundOdt.
+ * Profil OAV mortier agrégé par max(OAV) par composé. TTL par matrice (MatrixStrategy).
+ * Clé : "match.mortar.{matrix}.{ids sorted}". Invalidation : SpiceConcentrationChangedListener.
  *
  * @see ARCHITECTURE_MOTEUR_COMPATIBILITE.md §3.2 + §4.4
  */
 class MortarProfileBuilder
 {
-    private const CACHE_TTL_AIR = 86400; // 24h — données air matures
-
-    private const CACHE_TTL_SHORT = 3600; // 1h — water/oil encore en cours de collecte
-
     /**
-     * TTL court pour le sentinel "OAV vide" : évite de retaper la DB à chaque hit
-     * tout en laissant l'import suivant être visible dans un délai raisonnable.
+     * Sentinel "vide" : court-circuit DB 5 min, sans verrouiller un import à venir.
      */
-    private const CACHE_TTL_EMPTY = 300; // 5 min
+    private const CACHE_TTL_EMPTY = 300;
 
     public function __construct(
         private readonly SpiceActiveCompoundRepository $spiceActiveCompoundRepository,
@@ -45,14 +29,7 @@ class MortarProfileBuilder
     }
 
     /**
-     * Construit ou récupère depuis le cache le profil OAV agrégé du mortier pour la matrice donnée.
-     *
-     * Retourne null si aucune donnée OAV n'est disponible pour ce mortier+matrice.
-     * Le pipeline interprète null comme "mode dégradé" (fallback présence-only).
-     * Un profil null n'est pas mis en cache : la table peut être peuplée dès le prochain
-     * rebuild, et on ne veut pas verrouiller 24h une réponse "pas de données".
-     *
-     * @return array<int, float>|null compound_id => OAV max agrégé, ou null si pas de données
+     * @return array<int, float>|null compound_id => OAV max ; null = pas de données pour cette matrice
      */
     public function build(MortarIds $mortar, OdtMatrix $matrix): ?array
     {
@@ -63,9 +40,6 @@ class MortarProfileBuilder
             /** @var array<int, float>|array{} $cached */
             $cached = $cacheItem->get();
 
-            // PERF-7 : sentinel "OAV vide" — tableau vide caché = pas de données pour
-            // cette matrice. Permet de court-circuiter loadOavProfilesBatch sur le path
-            // chaud sans bloquer 24h en cas d'import à venir (TTL court).
             return $cached === [] ? null : $cached;
         }
 
@@ -88,9 +62,6 @@ class MortarProfileBuilder
         return $profile;
     }
 
-    /**
-     * Invalide le cache pour un mortier donné sur toutes les matrices.
-     */
     public function invalidate(MortarIds $mortar): void
     {
         foreach (OdtMatrix::cases() as $matrix) {
@@ -99,8 +70,7 @@ class MortarProfileBuilder
     }
 
     /**
-     * Invalide tout le cache de profils mortier (toutes matrices, tous mortiers).
-     * Appelé lors d'un rebuild global de spice_active_compound.
+     * Appelé après rebuild global de spice_active_compound.
      */
     public function invalidateAll(): void
     {
@@ -114,13 +84,14 @@ class MortarProfileBuilder
 
     private function getCacheTtl(OdtMatrix $matrix): int
     {
-        return $matrix === OdtMatrix::AIR ? self::CACHE_TTL_AIR : self::CACHE_TTL_SHORT;
+        return $matrix->strategy()
+            ->cacheTtlSeconds();
     }
 
     /**
      * @param list<int> $sortedIds
      *
-     * @return array<int, float> compound_id => OAV max du mortier
+     * @return array<int, float>
      */
     private function computeProfile(array $sortedIds, OdtMatrix $matrix): array
     {

@@ -5,73 +5,35 @@ declare(strict_types=1);
 namespace App\Service\Match;
 
 use App\Entity\CompoundPhysical;
-use App\Enum\OdtMatrix;
 use App\ValueObject\Match\CulinaryContext;
 
 /**
- * Calcule l'OAV efficace d'un composé dans un contexte culinaire donné.
+ * OAV efficace sous contexte culinaire : partition Nernst (eau/huile) × décroissance thermique.
  *
- * Deux phénomènes physiques modélisés :
+ *  Nernst : C_water = C_total / (K_ow·φ_oil + φ_water), C_oil = K_ow·C_water.
+ *  Decay  : k(T) nul sous T_inert, max au bp, linéaire entre. C(t) = C0·exp(-k(T)·t).
  *
- *  1. Partition de Nernst (équilibre thermodynamique biphasique eau/huile) :
- *     À l'équilibre : C_oil / C_water = K_ow = 10^logP.
- *     Bilan matière C_total = φ_oil × C_oil + φ_water × C_water →
- *       C_water = C_total / (K_ow × φ_oil + φ_water)
- *       C_oil   = C_total × K_ow / (K_ow × φ_oil + φ_water)
- *
- *  2. Décroissance temporelle (volatilisation à chaud, ordre 1) :
- *     k(T) = 0 sous T_inert (50 °C), max au point d'ébullition, linéaire entre.
- *     C(t) = C_0 × exp(-k(T) × t).
- *
- * Modes d'usage :
- *  - effectiveOav()      : calcul absolu à partir d'une concentration brute (cf. 3B)
- *  - correctionFactor()  : facteur multiplicatif sans dimension appliqué à un OAV
- *                          précalculé (shadow table). Utilisé par MatchPipeline.
+ * effectiveOav() = calcul absolu (concentration brute). correctionFactor() = facteur ×
+ * appliqué à un OAV précalculé (MatchPipeline + shadow table).
  */
 final readonly class OavPartitionCalculator
 {
     /**
-     * Constante de perte au point d'ébullition (fraction/min). 0.1 = 10 %/min.
-     *
-     * Calibration : empirique, alignée sur la rétention observée pour des
-     * monoterpènes (limonène, linalol) bouillis 30 min ≈ 5 % rétention,
-     * ce qui correspond à exp(-0.1 × 30) ≈ 0.05.
-     *
-     * Domaine de validité : matrice aqueuse ou huileuse, cuisson conventionnelle
-     * à pression atmosphérique. Non applicable au four sec à haute température
-     * (convection 200+°C, mécanisme différent).
-     *
-     * À reconfigurer si le modèle est étendu (cf. ARCHITECTURE §3.7 limitations).
+     * Calibration empirique : monoterpènes (limonène, linalol) bouillis 30 min ≈ 5 % rétention
+     * → exp(-0.1 × 30) ≈ 0.05. Domaine : cuisson conventionnelle, ≤ 1 atm.
      */
     private const float K_AT_BOILING = 0.1;
 
     /**
-     * Température sous laquelle la volatilisation est négligée (°C).
-     *
-     * Justification : sous 50 °C la cinétique d'évaporation devient négligeable
-     * pour les arômes culinaires (point de rosée typique, cf. Henry & vapor pressure).
-     * Au-dessus, modèle linéaire d'évaporation jusqu'au point d'ébullition.
+     * Sous 50 °C, évaporation négligée pour les arômes culinaires (Henry, vapor pressure).
      */
     private const int T_INERT_CELSIUS = 50;
 
-    /**
-     * Vrai si le contexte introduit une physique non triviale (Nernst ou décroissance).
-     *
-     * Contexte neutre = pas de phase grasse ET pas de cuisson → factor = 1 partout
-     * → la shadow table fournit déjà la bonne réponse. Skip pour économiser les requêtes.
-     */
     public function needsCorrection(CulinaryContext $ctx): bool
     {
         return $ctx->fatRatio > 0.0 || $ctx->cookingTimeMin > 0;
     }
 
-    /**
-     * Facteur multiplicatif appliqué à l'OAV brut pour obtenir l'OAV effectif.
-     *
-     * factor = partition(matrix, K_ow, φ_oil, φ_water) × decay(T, bp, t)
-     *
-     * Retourne 1.0 si pas de données physiques (mode dégradé : aucune correction).
-     */
     public function correctionFactor(?CompoundPhysical $physical, CulinaryContext $ctx): float
     {
         if ($physical === null) {
@@ -82,7 +44,7 @@ final readonly class OavPartitionCalculator
     }
 
     /**
-     * @return float|null OAV efficace. Null si ODT manquant ou ≤ 0 (donnée non disponible).
+     * Null si ODT manquant (≤ 0). 0.0 si concentration nulle.
      */
     public function effectiveOav(
         ?CompoundPhysical $physical,
@@ -102,14 +64,9 @@ final readonly class OavPartitionCalculator
             return $concentrationPpm / $odtPpm;
         }
 
-        $factor = $this->correctionFactor($physical, $ctx);
-
-        return $concentrationPpm * $factor / $odtPpm;
+        return $concentrationPpm * $this->correctionFactor($physical, $ctx) / $odtPpm;
     }
 
-    /**
-     * Fraction de la concentration totale présente dans la phase ciblée (eau, huile, gaz).
-     */
     private function partitionFactor(CompoundPhysical $physical, CulinaryContext $ctx): float
     {
         $kOw = $physical->octanolWaterPartition();
@@ -117,21 +74,10 @@ final readonly class OavPartitionCalculator
             return 1.0;
         }
 
-        $denom = $kOw * $ctx->fatRatio + $ctx->waterRatio;
-        if ($denom <= 0.0) {
-            return 1.0;
-        }
-
-        return match ($ctx->matrix) {
-            OdtMatrix::OIL => $kOw / $denom,
-            OdtMatrix::WATER => 1.0 / $denom,
-            OdtMatrix::AIR => 1.0,
-        };
+        return $ctx->matrix->strategy()
+            ->partitionFactor($kOw, $ctx->fatRatio, $ctx->waterRatio);
     }
 
-    /**
-     * Fraction conservée après cuisson : exp(-k(T) × t).
-     */
     private function decayFactor(CompoundPhysical $physical, CulinaryContext $ctx): float
     {
         if ($ctx->cookingTimeMin <= 0) {
@@ -139,11 +85,7 @@ final readonly class OavPartitionCalculator
         }
 
         $bp = $physical->getBoilingPointCelsius();
-        if ($bp === null) {
-            return 1.0;
-        }
-
-        if ($ctx->temperatureCelsius <= self::T_INERT_CELSIUS) {
+        if ($bp === null || $ctx->temperatureCelsius <= self::T_INERT_CELSIUS) {
             return 1.0;
         }
 

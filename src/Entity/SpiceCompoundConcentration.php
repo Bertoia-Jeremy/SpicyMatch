@@ -50,9 +50,6 @@ class SpiceCompoundConcentration
     #[ORM\Column(name: 'source', type: 'string', length: 255)]
     private string $source;
 
-    /**
-     * Niveau de confiance de la concentration (Levier 2). Défaut PLACEHOLDER.
-     */
     #[ORM\Column(name: 'confidence', type: 'string', length: 20, enumType: DataConfidence::class, options: [
         'default' => 'placeholder',
     ])]

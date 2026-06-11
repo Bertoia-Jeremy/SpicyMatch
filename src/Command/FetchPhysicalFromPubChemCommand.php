@@ -103,7 +103,7 @@ final class FetchPhysicalFromPubChemCommand extends Command
                 continue;
             }
 
-            $logP = $this->fetchXLogP3($cas, $io);
+            [$logP, $formula] = $this->fetchProperties($cas, $io);
             if ($logP === null) {
                 ++$failed;
                 usleep(self::REQUEST_DELAY_US);
@@ -111,6 +111,10 @@ final class FetchPhysicalFromPubChemCommand extends Command
             }
 
             if (! $dryRun) {
+                if ($formula !== null && $compound->getFormula() === null) {
+                    $compound->setFormula($formula);
+                }
+
                 $target = $existing ?? new CompoundPhysical($compound);
                 $target->setLogP($logP);
                 $target->setSource(\sprintf('PubChem XLogP3 (auto-fetch via CAS %s)', $cas));
@@ -145,12 +149,13 @@ final class FetchPhysicalFromPubChemCommand extends Command
     }
 
     /**
-     * Interroge PubChem `/compound/name/{CAS}/property/XLogP/JSON`.
-     * Retourne le XLogP3 (float) ou null en cas d'échec / absence de donnée.
+     * Interroge PubChem `/compound/name/{CAS}/property/XLogP,MolecularFormula/JSON`.
+     *
+     * @return array{0: float|null, 1: string|null} [XLogP3, formule brute] — logP null si échec/absence
      */
-    private function fetchXLogP3(string $cas, SymfonyStyle $io): ?float
+    private function fetchProperties(string $cas, SymfonyStyle $io): array
     {
-        $url = self::PUBCHEM_BASE . '/compound/name/' . urlencode($cas) . '/property/XLogP/JSON';
+        $url = self::PUBCHEM_BASE . '/compound/name/' . urlencode($cas) . '/property/XLogP,MolecularFormula/JSON';
 
         try {
             $response = $this->httpClient->request('GET', $url, [
@@ -160,27 +165,33 @@ final class FetchPhysicalFromPubChemCommand extends Command
             if ($response->getStatusCode() !== 200) {
                 $io->text(\sprintf('  ❌ PubChem HTTP %d pour CAS %s', $response->getStatusCode(), $cas));
 
-                return null;
+                return [null, null];
             }
 
             $data = $response->toArray();
             $props = $data['PropertyTable']['Properties'][0] ?? null;
-            if (! is_array($props) || ! isset($props['XLogP'])) {
+            if (! is_array($props)) {
+                $io->text(\sprintf('  ❌ Pas de propriétés pour CAS %s', $cas));
+
+                return [null, null];
+            }
+
+            $formula = isset($props['MolecularFormula']) && is_string($props['MolecularFormula'])
+                ? $props['MolecularFormula']
+                : null;
+
+            $rawLogP = $props['XLogP'] ?? null;
+            if (! is_numeric($rawLogP) || ! is_finite((float) $rawLogP)) {
                 $io->text(\sprintf('  ❌ Pas de XLogP pour CAS %s', $cas));
 
-                return null;
+                return [null, $formula];
             }
 
-            $value = $props['XLogP'];
-            if (! is_numeric($value) || ! is_finite((float) $value)) {
-                return null;
-            }
-
-            return (float) $value;
+            return [(float) $rawLogP, $formula];
         } catch (TransportExceptionInterface $e) {
             $io->text('  ❌ Erreur réseau PubChem : ' . $e->getMessage());
 
-            return null;
+            return [null, null];
         }
     }
 }

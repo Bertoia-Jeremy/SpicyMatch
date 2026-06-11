@@ -55,6 +55,7 @@
 
         {# ── Grille de cartes ── #}
         {% if spices|length > 0 %}
+            <h2 class="sr-only">{{ 'ui.footer.catalog'|trans }}</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                 {% for spice in spices %}
                     {{ macroCardSpice.cardSpice(spice) }}
@@ -65,7 +66,7 @@
             {# ── Empty state ── #}
             <div class="flex flex-col items-center justify-center py-24 text-center">
                 <div class="w-20 h-20 rounded-full bg-spice-surface flex items-center justify-center mb-5">
-                    <i class="fa-solid fa-mortar-pestle text-3xl text-saffron-400"></i>
+                    <i class="fa-solid fa-mortar-pestle text-3xl text-saffron-400" aria-hidden="true"></i>
                 </div>
                 <h2 class="text-xl font-semibold text-stone-800 mb-2">{{ 'ui.catalog.none_found'|trans }}</h2>
                 <p class="text-stone-400 text-sm max-w-xs mb-6">

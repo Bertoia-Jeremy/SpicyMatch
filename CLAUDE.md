@@ -331,7 +331,9 @@ architecture:
     commands:
       - "app:import:odt — compound_odt.yaml. Accepte odt_ppm (ponctuel) OU odt_min/odt_max (→ moyenne géométrique). Lit confidence. Guards path/taille/YAML."
       - "app:import:flavordb — spice_compound_concentration.yaml (concentrations)."
+      - "app:import:acquisition-csv — ingère data/acquisition/*.csv (gitignoré) en base. SEULE commande qui CRÉE les composés manquants (nom+CAS+formule). Upsert concentrations + ODT (si colonnes présentes). Path-guard data/acquisition/, dry-run, idempotent. Physico délégué à fetch:physical."
       - "app:import:physical — compound_physical.yaml (logP/bp/vp + source). OneToOne idempotent."
+      - "app:fetch:physical [--all] — auto-fetch PubChem XLogP3 + MolecularFormula (formule) par CAS pour les composés en base. Confidence ESTIMATED. bp/vp restent manuels."
       - "app:check:compounds [--strict] — intégrité OFFLINE par composé : CAS présent/valide(checksum)/unique, formule, warning isomère ambigu."
       - "app:check:data [--strict] — cohérence cross-tables : OAV>1, OAV<10^9, Σ conc ≤ 10^6 ppm, composé sans ODT air."
       - "app:validate:compounds [--apply] — cross-check ONLINE PubChem (CAS↔formule)."
@@ -469,6 +471,7 @@ design_system:
     hero:           "templates/home/index.html.twig — grid 2 cols lg, fond bg-cream-dark + bg-noise"
     avatar:         "templates/components/_avatar.html.twig — badge équipé prioritaire (icône + couleur rareté), fallback slug"
     lab_filters:    "SpicyMatch.html.twig — filtres (groupeAro + type + search) DANS le LiveComponent via data-model"
+    lab_omission:   "Véracité par omission : sélecteur matrice = SpicyMatch::getAvailableMatrices() (SpiceActiveCompoundRepository::matricesWithData() — seules matrices avec données OAV). Label ui.lab.presence_mode quand isOavScoringAvailable() faux (mortier sans données OAV → tri présence, pas score). Clés ui.lab.no_matrix_data / presence_mode (fr/en/es)."
     catalog_filters: "templates/components/_spices_filters.html.twig — filtres GET → Turbo Frame spices_frame_id (catalogue uniquement)"
     history_index:  "templates/spicy_match_history/index.html.twig — liste avec renommage inline (group + crayon hover) + toggle favori"
     history_view:   "templates/spicy_match_history/view.html.twig — recette + section éducative composés aromatiques partagés"

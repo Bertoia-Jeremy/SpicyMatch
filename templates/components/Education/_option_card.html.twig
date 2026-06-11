@@ -41,7 +41,7 @@
             {% else %}
                 <div class="{{ iconBox }} rounded-xl flex items-center justify-center shrink-0"
                      style="background-color: {{ option.color ?? '#f5f5f4' }}20">
-                    <i class="fa-solid fa-seedling" style="color: {{ option.color ?? '#78716c' }}"></i>
+                    <i class="fa-solid fa-seedling" style="color: {{ option.color ?? '#78716c' }}" aria-hidden="true"></i>
                 </div>
             {% endif %}
             <div class="min-w-0">
@@ -83,7 +83,7 @@
             {% else %}
                 <div class="{{ iconBox }} rounded-lg flex items-center justify-center"
                      style="background-color: {{ option.color ?? '#f5f5f4' }}20">
-                    <i class="fa-solid fa-seedling" style="color: {{ option.color ?? '#78716c' }}"></i>
+                    <i class="fa-solid fa-seedling" style="color: {{ option.color ?? '#78716c' }}" aria-hidden="true"></i>
                 </div>
             {% endif %}
             <div>

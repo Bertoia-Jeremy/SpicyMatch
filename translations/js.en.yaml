@@ -33,3 +33,5 @@ cooking:
 tour:
     done: Done!
     next: Next →
+timer:
+    remaining: '%time% remaining'

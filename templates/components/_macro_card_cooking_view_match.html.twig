@@ -4,9 +4,9 @@
         data-cooking-id="{{ cookingId }}"
         class="flex-1 m-2 cursor-pointer"
     >
-        <div tabindex="0" class="rounded-xl p-4 h-full border border-stone-200 hover:border-saffron-500/50 hover:shadow-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/50">
-            <h4 class="text-lg font-semibold text-center mb-2">{{ title }}</h4>
-            <p class="text-stone-500 text-center text-sm">{{ text|nl2br }}</p>
-        </div>
+        <button type="button" aria-pressed="false" class="block w-full rounded-xl p-4 h-full border border-stone-200 hover:border-saffron-500/50 hover:shadow-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/50 cursor-pointer">
+            <span class="block text-lg font-semibold text-center mb-2">{{ title }}</span>
+            <span class="block text-stone-500 text-center text-sm">{{ text|nl2br }}</span>
+        </button>
     </div>
 {% endmacro %}

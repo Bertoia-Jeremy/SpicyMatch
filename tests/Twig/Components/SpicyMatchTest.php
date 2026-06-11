@@ -6,6 +6,7 @@ namespace App\Tests\Twig\Components;
 
 use App\Enum\OdtMatrix;
 use App\Repository\AromaticGroupsRepository;
+use App\Repository\SpiceActiveCompoundRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
 use App\Service\Match\CompatibleSpiceFinder;
@@ -27,6 +28,7 @@ class SpicyMatchTest extends TestCase
     private SpicyTypeRepository&MockObject $spicyTypeRepo;
     private SpicyMatchService&MockObject $spicyMatchService;
     private MatchConfidenceAssessorInterface&MockObject $confidenceAssessor;
+    private SpiceActiveCompoundRepository&MockObject $spiceActiveCompoundRepo;
 
     /**
      * @var list<array<string, mixed>>
@@ -41,6 +43,7 @@ class SpicyMatchTest extends TestCase
         $this->spicyTypeRepo = $this->createMock(SpicyTypeRepository::class);
         $this->spicyMatchService = $this->createMock(SpicyMatchService::class);
         $this->confidenceAssessor = $this->createMock(MatchConfidenceAssessorInterface::class);
+        $this->spiceActiveCompoundRepo = $this->createMock(SpiceActiveCompoundRepository::class);
 
         $this->allSpices = [
             [
@@ -98,6 +101,7 @@ class SpicyMatchTest extends TestCase
             $this->spicyTypeRepo,
             $this->spicyMatchService,
             $this->confidenceAssessor,
+            $this->spiceActiveCompoundRepo,
         );
     }
 

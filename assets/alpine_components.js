@@ -28,6 +28,25 @@ const toast = (message, icon) => {
     window.dispatchEvent(new CustomEvent('toast', { detail: { message, icon } }));
 };
 
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+const focusFirst = (root) => {
+    const el = root.querySelector(FOCUSABLE);
+    if (el) el.focus();
+};
+
+const loopTab = (e, root) => {
+    const focusable = [...root.querySelectorAll(FOCUSABLE)];
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault(); last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault(); first.focus();
+    }
+};
+
 export default function registerAlpineComponents(Alpine) {
     /* ─── Generic toggles / modals / accordions ──────────────────────── */
     Alpine.data('toggle', (initial = false) => ({
@@ -43,6 +62,7 @@ export default function registerAlpineComponents(Alpine) {
     Alpine.data('navMenu', () => ({
         open: false,
         mobileOpen: false,
+        previouslyFocused: null,
         _keyHandler: null,
 
         init() {
@@ -50,24 +70,35 @@ export default function registerAlpineComponents(Alpine) {
                 document.body.style.overflow = v ? 'hidden' : '';
                 const main = document.getElementById('main-content');
                 if (main) main.inert = v;
+                const footer = document.querySelector('footer');
+                if (footer) footer.inert = v;
                 if (v) {
                     this.$nextTick(() => {
                         const first = this.$el.querySelector('#nav-overlay a, #nav-overlay button');
                         if (first) first.focus();
                     });
+                } else {
+                    this._restoreFocus();
                 }
             });
             this.$watch('mobileOpen', (v) => {
                 document.body.style.overflow = v ? 'hidden' : '';
+                const main = document.getElementById('main-content');
+                if (main) main.inert = v;
+                const footer = document.querySelector('footer');
+                if (footer) footer.inert = v;
                 if (v) {
                     this.$nextTick(() => {
                         const first = this.$el.querySelector('#nav-sheet input, #nav-sheet a, #nav-sheet button');
                         if (first) first.focus();
                     });
+                } else {
+                    this._restoreFocus();
                 }
             });
             this._keyHandler = (e) => {
                 if (e.key === 'Escape') { this.open = false; this.mobileOpen = false; }
+                if (e.key === 'Tab' && (this.open || this.mobileOpen)) loopTab(e, this.$el);
             };
             window.addEventListener('keydown', this._keyHandler);
         },
@@ -76,9 +107,22 @@ export default function registerAlpineComponents(Alpine) {
             window.removeEventListener('keydown', this._keyHandler);
         },
 
-        toggle()       { this.open = !this.open; },
+        _restoreFocus() {
+            if (this.previouslyFocused && this.previouslyFocused.isConnected) {
+                this.previouslyFocused.focus();
+            }
+            this.previouslyFocused = null;
+        },
+
+        toggle() {
+            if (!this.open) this.previouslyFocused = document.activeElement;
+            this.open = !this.open;
+        },
         close()        { this.open = false; },
-        mobileToggle() { this.mobileOpen = !this.mobileOpen; },
+        mobileToggle() {
+            if (!this.mobileOpen) this.previouslyFocused = document.activeElement;
+            this.mobileOpen = !this.mobileOpen;
+        },
         mobileClose()  { this.mobileOpen = false; },
 
         toqueClass()        { return this.open ? 'is-open' : ''; },
@@ -240,6 +284,18 @@ export default function registerAlpineComponents(Alpine) {
         suggestionClass(index) {
             return index === this.selectedIndex ? 'bg-saffron-50 text-saffron-800' : 'text-stone-800';
         },
+
+        optionId(index) {
+            return 'gwg-opt-' + index;
+        },
+
+        isSelectedOption(index) {
+            return index === this.selectedIndex ? 'true' : 'false';
+        },
+
+        activeDescendant() {
+            return this.selectedIndex >= 0 ? 'gwg-opt-' + this.selectedIndex : null;
+        },
     }));
 
     /* ─── Layout / global ─────────────────────────────────────────────── */
@@ -287,15 +343,26 @@ export default function registerAlpineComponents(Alpine) {
         modalOpen: false,
         selectedUrl: null,
         fullPageUrl: null,
+        previouslyFocused: null,
         openSpice(evt) {
             this.selectedUrl = evt.detail?.url ?? null;
             this.fullPageUrl = evt.detail?.fullUrl ?? null;
+            this.previouslyFocused = document.activeElement;
             this.modalOpen = true;
+            this.$nextTick(() => focusFirst(this.$el));
         },
         close() {
             this.modalOpen = false;
             this.selectedUrl = null;
             this.fullPageUrl = null;
+            if (this.previouslyFocused) {
+                this.previouslyFocused.focus();
+                this.previouslyFocused = null;
+            }
+        },
+        handleTab(e) {
+            if (!this.modalOpen) return;
+            loopTab(e, this.$el);
         },
         modalSrc() { return this.modalOpen ? this.selectedUrl : null; },
     }));
@@ -794,24 +861,11 @@ export default function registerAlpineComponents(Alpine) {
         },
 
         trapFocus() {
-            const focusable = this.$el.querySelectorAll(
-                'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
-            );
-            if (focusable.length) focusable[0].focus();
+            focusFirst(this.$el);
         },
 
         handleTab(e) {
-            const focusable = [...this.$el.querySelectorAll(
-                'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
-            )];
-            if (!focusable.length) return;
-            const first = focusable[0];
-            const last = focusable[focusable.length - 1];
-            if (e.shiftKey && document.activeElement === first) {
-                e.preventDefault(); last.focus();
-            } else if (!e.shiftKey && document.activeElement === last) {
-                e.preventDefault(); first.focus();
-            }
+            loopTab(e, this.$el);
         },
 
         start() {

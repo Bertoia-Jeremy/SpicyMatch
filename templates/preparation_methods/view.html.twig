@@ -9,7 +9,7 @@
 
             <div class="mb-8">
                 <a href="{{ path('index_preparation_methods') }}" class="text-stone-500 hover:text-saffron-700 text-sm transition-colors">
-                    <i class="fa-solid fa-arrow-left mr-1"></i> {{ 'ui.catalog.methods_title'|trans }}
+                    <i class="fa-solid fa-arrow-left mr-1" aria-hidden="true"></i> {{ 'ui.catalog.methods_title'|trans }}
                 </a>
             </div>
 
@@ -21,7 +21,7 @@
 
             <div class="bg-white border border-stone-200 rounded-2xl p-8">
                 <h2 class="text-2xl font-bold text-stone-900 mb-4">
-                    <i class="fa-solid fa-mortar-pestle text-saffron-600 mr-2"></i>{{ 'ui.catalog.usage_tips'|trans }}
+                    <i class="fa-solid fa-mortar-pestle text-saffron-600 mr-2" aria-hidden="true"></i>{{ 'ui.catalog.usage_tips'|trans }}
                 </h2>
                 <p class="text-stone-600 leading-relaxed">{{ preparationMethod.getLocalizedDescription(loc) }}</p>
             </div>

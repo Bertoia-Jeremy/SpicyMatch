@@ -149,7 +149,7 @@
          style="border-color: rgba(154,71,32,0.18); background: linear-gradient(180deg, #FBF5E9 0%, #F5ECDB 100%);">
       <span class="hex grid place-items-center"
             style="width:40px; height:46px; background: linear-gradient(180deg,#D2773A,#9A4720);">
-        <i class="fa-solid {{ culinaryContext.icon }} text-[14px]" style="color:#FBF5E9;"></i>
+        <i class="fa-solid {{ culinaryContext.icon }} text-[14px]" style="color:#FBF5E9;" aria-hidden="true"></i>
       </span>
       <div class="flex-1 min-w-0">
         <div class="smallcaps mb-0.5" style="color:#7A6A55;">{{ 'ui.recipe.moment_card'|trans }}</div>
@@ -308,7 +308,7 @@
     <section class="max-w-[1180px] mx-auto px-6 pt-8 pb-6">
       <div class="flex items-center gap-3 mb-5">
         <span class="section-icon">
-          <i class="fa-solid fa-wave-square text-[16px]"></i>
+          <i class="fa-solid fa-wave-square text-[16px]" aria-hidden="true"></i>
         </span>
         <div>
           <h2 class="font-display leading-tight" style="font-size: clamp(22px, 3vw, 30px); color: #2A1F14;">{{ 'ui.recipe.kinetics_title'|trans }}</h2>
@@ -340,7 +340,7 @@
             </div>
             <p class="text-[11px] mb-3" style="color:#7A6A55;">{{ cfg.blurb }}</p>
             {% if bucket|length == 0 %}
-              <p class="text-[12px] italic" style="color:#9A877B;">{{ 'ui.recipe.no_compound_cat'|trans }}</p>
+              <p class="text-[12px] italic" style="color:#7A6A55;">{{ 'ui.recipe.no_compound_cat'|trans }}</p>
             {% else %}
               <ul class="flex flex-col gap-1.5">
                 {% for entry in bucket %}
@@ -364,8 +364,8 @@
       </div>
 
       {% if cookingTimeline.unknown|length > 0 %}
-        <p class="text-[11px] mt-3" style="color:#9A877B;">
-          <i class="fa-solid fa-circle-info text-[10px] mr-1"></i>
+        <p class="text-[11px] mt-3" style="color:#7A6A55;">
+          <i class="fa-solid fa-circle-info text-[10px] mr-1" aria-hidden="true"></i>
           {{ 'ui.recipe.no_physchem'|trans({'%count%': cookingTimeline.unknown|length, '%names%': cookingTimeline.unknown|map(e => e.name)|join(', ')}) }}
         </p>
       {% endif %}
@@ -377,7 +377,7 @@
     <section class="max-w-[1180px] mx-auto px-6 pt-8 pb-6">
       <div class="flex items-center gap-3 mb-5">
         <span class="section-icon">
-          <i class="fa-solid fa-grip-vertical text-[16px]"></i>
+          <i class="fa-solid fa-grip-vertical text-[16px]" aria-hidden="true"></i>
         </span>
         <div>
           <h2 class="font-display leading-tight" style="font-size: clamp(22px, 3vw, 30px); color: #2A1F14;">{{ 'ui.recipe.matrix_title'|trans }}</h2>
@@ -388,17 +388,18 @@
       <div class="rounded-2xl border overflow-hidden"
            style="border-color: rgba(122,106,85,0.25); background:#FBF5E9;">
         <table class="w-full text-[13px]">
+          <caption class="sr-only">{{ 'ui.recipe.matrix_caption'|trans }}</caption>
           <thead>
             <tr style="background: rgba(122,106,85,0.08);">
-              <th class="text-left px-4 py-3 smallcaps" style="color:#5A4A38;">{{ 'ui.recipe.col_spice'|trans }}</th>
+              <th scope="col" class="text-left px-4 py-3 smallcaps" style="color:#5A4A38;">{{ 'ui.recipe.col_spice'|trans }}</th>
               {% for matrixKey in ['air', 'water', 'oil'] %}
                 {% set matrixLabel = ('enum.matrix.' ~ matrixKey)|trans %}
                 {% set isCurrent = culinaryContext.matrix.value == matrixKey %}
-                <th class="px-3 py-3 text-center smallcaps"
+                <th scope="col" class="px-3 py-3 text-center smallcaps"
                     style="color: {{ isCurrent ? '#9A4720' : '#5A4A38' }};">
                   {{ matrixLabel }}
                   {% if isCurrent %}
-                    <i class="fa-solid fa-star text-[8px] ml-1" style="color:#D2773A;" title="{{ 'ui.recipe.current_matrix'|trans }}"></i>
+                    <i class="fa-solid fa-star text-[8px] ml-1" style="color:#D2773A;" title="{{ 'ui.recipe.current_matrix'|trans }}" aria-hidden="true"></i><span class="sr-only">{{ 'ui.recipe.current_matrix'|trans }}</span>
                   {% endif %}
                 </th>
               {% endfor %}
@@ -407,13 +408,13 @@
           <tbody>
             {% for row in matrixGrid %}
               <tr style="border-top: 1px solid rgba(122,106,85,0.15);">
-                <td class="px-4 py-2.5" style="color:#2A1F14;">{{ row.name }}</td>
+                <th scope="row" class="px-4 py-2.5 text-left font-normal" style="color:#2A1F14;">{{ row.name }}</th>
                 {% for matrixKey in ['air', 'water', 'oil'] %}
                   {% set score = row.scores[matrixKey] %}
                   {% set isCurrent = culinaryContext.matrix.value == matrixKey %}
                   {% set isBest = score == max(row.scores) and score > 0 %}
                   <td class="px-3 py-2.5 text-center tabular-nums"
-                      style="color: {{ score == 0 ? '#9A877B' : (isCurrent ? '#9A4720' : '#2A1F14') }};
+                      style="color: {{ score == 0 ? '#7A6A55' : (isCurrent ? '#9A4720' : '#2A1F14') }};
                              font-weight: {{ isBest ? '600' : '400' }};
                              background: {{ isCurrent ? 'rgba(210,119,58,0.06)' : 'transparent' }};"
                       title="{{ score == 0 ? 'ui.recipe.out_of_top5'|trans : 'ui.recipe.tanimoto_title'|trans }}">
@@ -427,7 +428,7 @@
       </div>
 
       <p class="text-[11px] mt-3" style="color:#7A6A55;">
-        <i class="fa-solid fa-flask text-[10px] mr-1" style="color:#9A4720;"></i>
+        <i class="fa-solid fa-flask text-[10px] mr-1" style="color:#9A4720;" aria-hidden="true"></i>
         {{ 'ui.recipe.tanimoto_note'|trans }}
       </p>
     </section>

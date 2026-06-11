@@ -19,7 +19,7 @@ test.describe('Gamification opt-out', () => {
     await page.goto('/');
     await expect(page.locator('main').getByText(/Niveau\s*\d+/i).first()).toBeVisible();
 
-    await page.goto('/users/configuration');
+    await page.goto('/fr/users/configuration');
     // Remove any stale onboarding overlays (DEV-only race) before clicking.
     await page.evaluate(() => {
         document.querySelectorAll('[role="dialog"], .sf-toolbar').forEach(el => el.remove());

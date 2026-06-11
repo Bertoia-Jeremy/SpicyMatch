@@ -116,13 +116,13 @@
                 class="absolute top-4 right-4 w-7 h-7 flex items-center justify-center rounded-full
                        text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors z-10"
                 aria-label="{{ 'ui.onboarding.skip_intro'|trans }}">
-            <i class="fa-solid fa-xmark text-xs"></i>
+            <i class="fa-solid fa-xmark text-xs" aria-hidden="true"></i>
         </button>
 
         <div class="px-7 pt-8 pb-7">
             <div class="text-center mb-6">
                 <div class="w-20 h-20 bg-saffron-100 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-saffron-200">
-                    <i class="fa-solid fa-hand-sparkles text-4xl text-saffron-600"></i>
+                    <i class="fa-solid fa-hand-sparkles text-4xl text-saffron-600" aria-hidden="true"></i>
                 </div>
                 <h2 id="onboarding-welcome-title" class="text-xl font-bold text-stone-800 mb-3 leading-tight">
                     {{ 'ui.onboarding.welcome_title'|trans }}
@@ -136,7 +136,7 @@
                class="flex items-center justify-center gap-2 w-full px-5 py-3.5 bg-paprika-800
                       text-white text-sm font-bold rounded-xl hover:bg-paprika-900
                       transition-colors shadow-sm shadow-paprika-900/20 mb-3">
-                <i class="fa-solid fa-arrow-right"></i>
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 {{ 'ui.onboarding.lets_go'|trans }}
             </a>
             <button @click="skip"

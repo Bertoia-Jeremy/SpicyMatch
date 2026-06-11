@@ -135,6 +135,8 @@ ui:
         try_another: Try another term or check the spelling.
         prompt: Enter a term to explore spices and aromatic compounds.
     pagination:
+        nav_label: Page navigation
+        per_page_hint: Spices per page — changing it reloads the list
         previous: Previous
         next: Next
         per_page_label: Spices per page
@@ -145,6 +147,16 @@ ui:
         unsub_text_html: 'The address <strong class="text-stone-800">%email%</strong> has been removed from our mailing list. You will no longer receive our newsletters.'
         unsub_changed_mind: Changed your mind? You can resubscribe at any time from your profile.
     game:
+        a11y_chain_start: 'Game started. Starting spice: %name%.'
+        a11y_clue: 'Clue %n% of %total% — %label%: %value%'
+        a11y_question: 'Question %num% of %total%.'
+        a11y_word_state: 'Word: %word%. Errors: %errors% of %max%.'
+        a11y_chain: 'Correct. Chain of %n%. Current spice: %name%.'
+        mystery_spice_alt: Photo of the mystery spice
+        progress_label: Game progress
+        a11y_correct: Correct answer
+        a11y_incorrect: 'Wrong answer. The correct answer was %name%'
+        a11y_finished: Game over
         quit: Quit the game
         back: Back
         see_results: See results
@@ -316,6 +328,7 @@ ui:
         history: History
         security: Security
     recipe:
+        matrix_caption: Compatibility scores by cooking matrix
         folio: 'Folio · %id% · Laboratory Notebook'
         rename_aria: Rename the recipe
         rename: Rename
@@ -367,6 +380,7 @@ ui:
         note_manual: '"A freely composed blend — the complementarity of these spices expresses itself without affinity calculation."'
         note_contrast: '"These spices have no main aromatic compound in common — their pairing rests on complementarity and contrast."'
     lab:
+        a11y_results: '%selected% spices in the mortar, %count% compatible spices shown.'
         finalize_title: Finalizing the blend — SpicyMatch
         back_to_lab: Back to the Lab
         finalize: Finalizing the blend
@@ -396,6 +410,8 @@ ui:
         preset_oil: Oil
         advanced: Advanced
         odt_matrix: ODT matrix
+        no_matrix_data: No matrix with data
+        presence_mode: Sorted by shared-compound presence — no quantitative OAV score (insufficient data).
         fat_ratio: Fat ratio
         cooking_time: Cooking time
         temperature: Temperature
@@ -428,7 +444,27 @@ ui:
         clear_all: Clear all
         group: 'Group:'
         type: 'Type:'
+    carousel:
+        label: Related spices
+        roledescription: carousel
+        prev: Previous spices
+        next: Next spices
+    form:
+        required_legend: '* required field'
+    a11y_decl:
+        title: Accessibility statement
+        intro: SpicyMatch is committed to making its website accessible in accordance with Article 47 of French law no. 2005-102 of 11 February 2005. This statement applies to the whole site.
+        status_title: Compliance status
+        status_text: 'SpicyMatch is under evaluation: an RGAA 4.1 compliance audit is being prepared. Accessibility work has been carried out (structure, forms, keyboard navigation, contrast, dynamic content announcements); the compliance status will be published once the audit is complete.'
+        tests_title: Technologies and testing
+        tests_text: 'The site is built with HTML, CSS and JavaScript (Symfony, Twig, Alpine.js). Automated tests (axe-core, WCAG 2.1 AA) run continuously on the main pages; manual keyboard and screen-reader testing completes this coverage.'
+        feedback_title: Feedback and contact
+        feedback_text: 'If you encounter an accessibility barrier on the site, please report it via the'
+        recourse_title: Legal recourse
+        recourse_text: 'If you reported an accessibility issue and did not receive a satisfactory answer, you may contact the French Défenseur des droits (defenseurdesdroits.fr) or write to Défenseur des droits, Libre réponse 71120, 75342 Paris CEDEX 07, France.'
+        date_text: Statement issued on 10 June 2026.
     modal:
+        quick_view_label: Spice quick view
         close: Close
         dominant_flavors: Dominant flavors
         aromatic_compounds: Aromatic compounds
@@ -813,6 +849,7 @@ ui:
         saucier: Saucier
         chef_executif: Executive Chef
     footer:
+        accessibility: Accessibility
         tagline: Aromatic alchemy at the service of your recipes. Discover invisible pairings and elevate your culinary creations.
         navigation: Navigation
         catalog: Spice catalog

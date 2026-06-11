@@ -45,11 +45,14 @@
             <label for="spice_{{ spiceId }}"
                    class="relative overflow-hidden aspect-square bg-stone-100 block cursor-pointer"
                    @click.stop>
+        {% elseif showQuickView %}
+            <button type="button"
+                    class="relative overflow-hidden aspect-square bg-stone-100 cursor-pointer block w-full p-0 border-0
+                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600 focus-visible:ring-inset"
+                    aria-label="{{ 'ui.catalog.preview'|trans }} — {{ spiceName }}"
+                    @click.prevent.stop="$dispatch('open-spice-modal', { url: '{{ path('quick_view_spice', { id: spiceId }) }}', fullUrl: '{{ path('view_spice', { id: spiceId }) }}' })">
         {% else %}
-            <div class="relative overflow-hidden aspect-square bg-stone-100 {{ showQuickView ? 'cursor-pointer' : '' }}"
-                 {% if showQuickView %}
-                 @click.prevent.stop="$dispatch('open-spice-modal', { url: '{{ path('quick_view_spice', { id: spiceId }) }}', fullUrl: '{{ path('view_spice', { id: spiceId }) }}' })"
-                 {% endif %}>
+            <div class="relative overflow-hidden aspect-square bg-stone-100">
         {% endif %}
 
             {% if imageUrl %}
@@ -88,7 +91,7 @@
                                      transition-all duration-200 cursor-pointer"
                               @click.stop="$el.previousElementSibling.click()">
                             <i class="fa-solid fa-check text-[10px] text-white opacity-0
-                                      peer-checked:opacity-100 transition-opacity"></i>
+                                      peer-checked:opacity-100 transition-opacity" aria-hidden="true"></i>
                         </span>
                     </span>
                 {% endif %}
@@ -96,28 +99,30 @@
             {% else %}
                 {# Catalog style: overlay quick view #}
                 {% if showQuickView %}
-                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                         style="background: linear-gradient(to top, {{ color }}CC 0%, transparent 60%)">
-                        <span class="bg-white/95 text-stone-800 text-[10px] font-bold px-3 py-2 rounded-full shadow-lg translate-y-2 group-hover:translate-y-0 transition-all duration-300 uppercase tracking-wider">
-                            <i class="fa-solid fa-magnifying-glass mr-1"></i>{{ 'ui.catalog.preview'|trans }}
+                    <span class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300"
+                          style="background: linear-gradient(to top, {{ color }}CC 0%, transparent 60%)" aria-hidden="true">
+                        <span class="bg-white/95 text-stone-800 text-[10px] font-bold px-3 py-2 rounded-full shadow-lg translate-y-2 group-hover:translate-y-0 group-focus-within:translate-y-0 transition-all duration-300 uppercase tracking-wider">
+                            <i class="fa-solid fa-magnifying-glass mr-1" aria-hidden="true"></i>{{ 'ui.catalog.preview'|trans }}
                         </span>
-                    </div>
+                    </span>
                 {% endif %}
 
                 {# Score badge (catalog style) #}
                 {% if score is not null %}
-                    <div class="absolute top-2 right-2 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-lg shadow-sm border border-stone-100 flex flex-col items-center min-w-[40px]">
+                    <span class="absolute top-2 right-2 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-lg shadow-sm border border-stone-100 flex flex-col items-center min-w-[40px]">
                         <span class="text-[10px] font-bold text-saffron-600 leading-none">{{ score }}%</span>
                         <span class="text-[8px] text-stone-400 uppercase font-bold tracking-tighter">{{ 'ui.catalog.match_label'|trans }}</span>
-                    </div>
+                    </span>
                 {% endif %}
             {% endif %}
 
             {# Barre couleur groupe (commune aux deux styles) #}
-            <div class="absolute bottom-0 left-0 right-0 h-0.5" style="background-color: {{ color }}"></div>
+            <span class="absolute bottom-0 left-0 right-0 h-0.5 block" style="background-color: {{ color }}"></span>
 
         {% if labStyle and model %}
             </label>
+        {% elseif showQuickView %}
+            </button>
         {% else %}
             </div>
         {% endif %}
@@ -159,7 +164,7 @@
                                 fullUrl: '{{ path('view_spice', {id: spiceId}) }}'
                             })">
                         <span>{{ 'ui.catalog.see_details'|trans }}</span>
-                        <i class="fa-solid fa-arrow-right text-[9px] transition-transform group-hover/link:translate-x-0.5"></i>
+                        <i class="fa-solid fa-arrow-right text-[9px] transition-transform group-hover/link:translate-x-0.5" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>

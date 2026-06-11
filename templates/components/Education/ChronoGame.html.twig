@@ -1,10 +1,19 @@
 {% import 'components/Education/_game_header.html.twig' as game_header %}
 <div {{ attributes }}>
+  <div aria-live="polite" class="sr-only">
+    {%- if this.isFinished %}{{ 'ui.game.time_up'|trans }}
+    {%- elseif this.questionsAnswered > 0 %}
+      {%- if this.lastAnswerCorrect %}{{ 'ui.game.correct_points'|trans({'%points%': this.lastPointsEarned}) }}
+      {%- else %}{{ 'ui.game.it_was'|trans({'%name%': this.lastCorrectName}) }}
+      {%- endif %}
+    {%- endif %}
+  </div>
+
   {% if this.streak >= 4 %}{% set streakBonus = '+3' %}
   {% elseif this.streak >= 3 %}{% set streakBonus = '+2' %}
   {% elseif this.streak >= 2 %}{% set streakBonus = '+1' %}
   {% else %}{% set streakBonus = '' %}{% endif %}
-  {% set streakPill = this.streak >= 2 ? ' <span class="tag-primary text-xs"><i class="fa-solid fa-fire mr-1"></i>' ~ this.streak ~ ' ' ~ streakBonus ~ '</span>' : '' %}
+  {% set streakPill = this.streak >= 2 ? ' <span class="tag-primary text-xs"><i class="fa-solid fa-fire mr-1" aria-hidden="true"></i>' ~ this.streak ~ ' ' ~ streakBonus ~ '</span>' : '' %}
   {{ game_header.header(
       icon = 'fa-solid fa-fire-flame-curved',
       title = 'enum.game_mode.chrono.label'|trans,
@@ -39,11 +48,11 @@
               class="hidden" aria-hidden="true"></button>
       <div class="flex items-center justify-between mb-2">
         <span class="text-sm text-stone-500">
-          <i class="fa-solid fa-clock mr-1"></i>{{ 'ui.game.time_remaining'|trans }}
+          <i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>{{ 'ui.game.time_remaining'|trans }}
         </span>
         <span data-game-timer-target="label"
-              aria-live="polite"
               class="text-sm font-semibold text-stone-700"></span>
+        <span data-game-timer-target="announcer" aria-live="polite" class="sr-only"></span>
       </div>
       <div class="w-full bg-stone-200 rounded-full h-3">
         <div data-game-timer-target="bar"
@@ -53,10 +62,10 @@
 
     {# Stats row #}
     <div class="flex items-center justify-center gap-6 mb-6 text-sm text-stone-600">
-      <span><i class="fa-solid fa-check text-turmeric-600 mr-1"></i>{{ this.correctCount }}</span>
-      <span><i class="fa-solid fa-question text-stone-400 mr-1"></i>{{ this.questionsAnswered }}</span>
+      <span><i class="fa-solid fa-check text-turmeric-600 mr-1" aria-hidden="true"></i>{{ this.correctCount }}</span>
+      <span><i class="fa-solid fa-question text-stone-400 mr-1" aria-hidden="true"></i>{{ this.questionsAnswered }}</span>
       {% if this.streak >= 2 %}
-        <span class="text-saffron-600 font-semibold"><i class="fa-solid fa-fire mr-1"></i>{{ this.streak }} {{ streakBonus }}</span>
+        <span class="text-saffron-700 font-semibold"><i class="fa-solid fa-fire mr-1" aria-hidden="true"></i>{{ this.streak }} {{ streakBonus }}</span>
       {% endif %}
     </div>
 
@@ -65,11 +74,11 @@
       <div class="mb-6 text-center text-sm">
         {% if this.lastAnswerCorrect %}
           <span class="text-turmeric-600 font-medium">
-            <i class="fa-solid fa-check-circle mr-1"></i>{{ 'ui.game.correct_points'|trans({'%points%': this.lastPointsEarned}) }}
+            <i class="fa-solid fa-check-circle mr-1" aria-hidden="true"></i>{{ 'ui.game.correct_points'|trans({'%points%': this.lastPointsEarned}) }}
           </span>
         {% else %}
           <span class="text-paprika-600 font-medium">
-            <i class="fa-solid fa-times-circle mr-1"></i>{{ 'ui.game.it_was'|trans({'%name%': this.lastCorrectName}) }}
+            <i class="fa-solid fa-times-circle mr-1" aria-hidden="true"></i>{{ 'ui.game.it_was'|trans({'%name%': this.lastCorrectName}) }}
           </span>
         {% endif %}
       </div>
@@ -82,7 +91,7 @@
       {% if this.currentCard.file is defined and this.currentCard.file %}
         <div class="flex justify-center mb-4">
           <img src="{{ asset('uploads/spices/' ~ this.currentCard.file) }}"
-               alt="?"
+               alt="{{ 'ui.game.mystery_spice_alt'|trans }}"
                class="w-20 h-20 rounded-xl object-cover border border-stone-200">
         </div>
       {% endif %}
@@ -143,7 +152,7 @@
     {# Name options — answerOnce Alpine pour anti double-clic #}
     {% if this.isInCooldown %}
       <div class="mb-3 text-center text-xs text-stone-400 animate-pulse">
-        <i class="fa-solid fa-hourglass-half mr-1"></i>{{ 'ui.game.prepare_next'|trans }}
+        <i class="fa-solid fa-hourglass-half mr-1" aria-hidden="true"></i>{{ 'ui.game.prepare_next'|trans }}
       </div>
     {% endif %}
     <div class="grid grid-cols-2 gap-3" x-data="answerOnce">

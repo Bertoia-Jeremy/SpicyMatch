@@ -1,6 +1,6 @@
 {# templates/components/_pagination.html.twig #}
 {% if pageCount > 1 %}
-    <nav aria-label="Page navigation" class="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-4 mt-10">
+    <nav aria-label="{{ 'ui.pagination.nav_label'|trans }}" class="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-4 mt-10">
         <ul class="flex -space-x-px text-sm list-none p-0 m-0">
             {# Previous Button #}
             {% if previous is defined %}
@@ -30,7 +30,7 @@
                 {% else %}
                     <li>
                         <span aria-current="page" 
-                              class="flex items-center justify-center text-white bg-saffron-600 border border-saffron-600 font-bold text-sm w-10 h-10 shadow-lg shadow-saffron-600/20 z-10 relative">
+                              class="flex items-center justify-center text-white bg-saffron-700 border border-saffron-700 font-bold text-sm w-10 h-10 shadow-lg shadow-saffron-600/20 z-10 relative">
                             {{ page }}
                         </span>
                     </li>
@@ -63,7 +63,7 @@
                 {% endif %}
             {% endfor %}
             
-            <label for="limit" class="sr-only">{{ 'ui.pagination.per_page_label'|trans }}</label>
+            <label for="limit" class="sr-only">{{ 'ui.pagination.per_page_hint'|trans }}</label>
             <select id="limit" 
                     name="limit" 
                     @change="$event.target.form.submit()"

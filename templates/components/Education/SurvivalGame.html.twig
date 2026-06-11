@@ -1,11 +1,19 @@
 {% import 'components/Education/_game_header.html.twig' as game_header %}
 {% import 'components/Education/_option_card.html.twig' as option_card %}
 <div {{ attributes }}>
+  <div aria-live="polite" class="sr-only">
+    {%- if this.isVictory %}{{ 'ui.game.total_victory'|trans }}
+    {%- elseif this.isGameOver %}{{ 'ui.game.game_over'|trans }}
+    {%- elseif this.isStarted and this.chainLength <= 1 %}{{ 'ui.game.a11y_chain_start'|trans({'%name%': this.currentSpiceName}) }}
+    {%- elseif this.isStarted %}{{ 'ui.game.a11y_chain'|trans({'%n%': this.chainLength, '%name%': this.currentSpiceName}) }}
+    {%- endif %}
+  </div>
+
   {{ game_header.header(
       icon = 'fa-solid fa-pepper-hot',
       title = 'enum.game_mode.survival.label'|trans,
       subtitle = 'ui.game.survival_subtitle'|trans,
-      scoreLabel = '<i class="fa-solid fa-link text-xs mr-1"></i>' ~ this.chainLength,
+      scoreLabel = '<i class="fa-solid fa-link text-xs mr-1" aria-hidden="true"></i>' ~ this.chainLength,
       quitUrl = path('education_briefing', { mode: 'survival', difficulty: this.difficulty }),
   ) }}
 
@@ -55,7 +63,7 @@
         {% else %}
           <div class="w-12 h-12 rounded-lg flex items-center justify-center text-xl"
                style="background-color: {{ this.currentSpiceColor ?? '#f5f5f4' }}20">
-            <i class="fa-solid fa-seedling" style="color: {{ this.currentSpiceColor ?? '#78716c' }}"></i>
+            <i class="fa-solid fa-seedling" style="color: {{ this.currentSpiceColor ?? '#78716c' }}" aria-hidden="true"></i>
           </div>
         {% endif %}
         <div class="text-left">

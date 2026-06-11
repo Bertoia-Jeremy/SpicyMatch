@@ -12,7 +12,10 @@
          const idx = map[e.key.toLowerCase()];
          if (idx !== undefined) {
            const btns = this.$el.querySelectorAll('.opt-btn');
-           if (btns[idx]) this.pick(parseInt(btns[idx].dataset.optId));
+           if (btns[idx]) {
+             this.pick(parseInt(btns[idx].dataset.optId));
+             btns[idx].focus();
+           }
          }
          if (e.key === 'Enter') {
            const btn = this.$el.querySelector('[data-live-action-param=answer]:not([disabled]),[data-live-action-param=next]');
@@ -22,6 +25,17 @@
      }"
      @keydown.window="handleKey($event)">
 
+  <div aria-live="polite" class="sr-only">
+    {%- if this.isFinished %}{{ 'ui.game.a11y_finished'|trans }}
+    {%- elseif this.showFeedback %}
+      {%- if this.lastAnswerCorrect %}{{ 'ui.game.a11y_correct'|trans }}
+      {%- else %}{{ 'ui.game.a11y_incorrect'|trans({'%name%': this.lastCorrectAnswerName}) }}
+      {%- endif %}
+    {%- elseif this.prompt %}
+      {{- 'ui.game.a11y_question'|trans({'%num%': this.questionNumber, '%total%': this.totalQuestions}) }} {{ this.prompt }}
+    {%- endif %}
+  </div>
+
   {# HEADER — progress bar remplacée par progress_dots ci-dessous #}
   {{ game_header.header(
       icon = 'fa-solid fa-ban',
@@ -29,7 +43,7 @@
       subtitle = this.isInverted ? 'ui.game.intrus_find_compatible'|trans : 'ui.game.intrus_find_intruder'|trans,
       current = this.questionNumber,
       total = this.totalQuestions,
-      scoreLabel = this.correctCount ~ ' <i class="fa-solid fa-check text-xs text-green-600"></i>&nbsp;' ~ this.incorrectCount ~ ' <i class="fa-solid fa-xmark text-xs text-paprika-500"></i>',
+      scoreLabel = this.correctCount ~ ' <i class="fa-solid fa-check text-xs text-green-600" aria-hidden="true"></i>&nbsp;' ~ this.incorrectCount ~ ' <i class="fa-solid fa-xmark text-xs text-paprika-500" aria-hidden="true"></i>',
       quitUrl = path('education_briefing', { mode: 'intrus', difficulty: this.difficulty }),
       useProgressBar = false,
   ) }}
@@ -63,6 +77,7 @@
                 class="opt-btn relative p-4 rounded-2xl border-2 text-left transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30"
                 data-opt-id="{{ option.id }}"
                 @click="pick({{ option.id }})"
+                :aria-pressed="selectedId === {{ option.id }} ? 'true' : 'false'"
                 :class="selectedId === {{ option.id }}
                     ? 'border-saffron-400 bg-cream shadow-[0_0_0_3px_rgba(224,122,60,0.16)]'
                     : 'border-stone-200 bg-white hover:bg-cream hover:border-saffron-300'">
@@ -74,7 +89,7 @@
             {% else %}
               <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
                    style="background-color: {{ option.color ?? '#f5f5f4' }}20">
-                <i class="fa-solid fa-seedling" style="color: {{ option.color ?? '#78716c' }}"></i>
+                <i class="fa-solid fa-seedling" style="color: {{ option.color ?? '#78716c' }}" aria-hidden="true"></i>
               </div>
             {% endif %}
             <div class="min-w-0">
@@ -111,7 +126,7 @@
               :disabled="!canValidate"
               @click="submitting = true"
               class="btn-pill-primary ml-auto disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
-        <i class="fa-solid fa-check mr-2"></i>{{ 'ui.game.validate'|trans }}
+        <i class="fa-solid fa-check mr-2" aria-hidden="true"></i>{{ 'ui.game.validate'|trans }}
       </button>
     </div>
 
@@ -147,7 +162,7 @@
 
     <div class="rounded-2xl p-4 mb-4 border {{ this.lastAnswerCorrect ? 'bg-green-50 border-green-200' : 'bg-paprika-50 border-paprika-200' }}">
       <div class="flex items-center gap-3 mb-2 flex-wrap">
-        <i class="fa-solid {{ this.lastAnswerCorrect ? 'fa-circle-check text-green-600' : 'fa-circle-xmark text-paprika-600' }} text-xl shrink-0"></i>
+        <i class="fa-solid {{ this.lastAnswerCorrect ? 'fa-circle-check text-green-600' : 'fa-circle-xmark text-paprika-600' }} text-xl shrink-0" aria-hidden="true"></i>
         <h3 class="font-bold {{ this.lastAnswerCorrect ? 'text-green-800' : 'text-paprika-800' }}">
           {{ this.lastAnswerCorrect ? 'ui.game.correct_answer'|trans : 'ui.game.wrong_answer'|trans }}
         </h3>
@@ -167,9 +182,9 @@
             data-live-action-param="next"
             class="btn-pill-primary w-full">
       {% if this.questionNumber >= this.totalQuestions %}
-        <i class="fa-solid fa-flag-checkered mr-2"></i>{{ 'ui.game.finish'|trans }}
+        <i class="fa-solid fa-flag-checkered mr-2" aria-hidden="true"></i>{{ 'ui.game.finish'|trans }}
       {% else %}
-        <i class="fa-solid fa-arrow-right mr-2"></i>{{ 'ui.game.next_question'|trans }}
+        <i class="fa-solid fa-arrow-right mr-2" aria-hidden="true"></i>{{ 'ui.game.next_question'|trans }}
       {% endif %}
     </button>
 

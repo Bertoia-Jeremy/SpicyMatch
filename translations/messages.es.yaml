@@ -135,6 +135,8 @@ ui:
         try_another: Prueba con otro término o revisa la ortografía.
         prompt: Escribe un término para explorar especias y compuestos aromáticos.
     pagination:
+        nav_label: Navegación de páginas
+        per_page_hint: Especias por página — la selección recarga la lista
         previous: Anterior
         next: Siguiente
         per_page_label: Especias por página
@@ -145,6 +147,16 @@ ui:
         unsub_text_html: 'La dirección <strong class="text-stone-800">%email%</strong> se ha eliminado de nuestra lista de correo. Ya no recibirás nuestros boletines.'
         unsub_changed_mind: ¿Has cambiado de opinión? Puedes volver a suscribirte en cualquier momento desde tu perfil.
     game:
+        a11y_chain_start: 'Partida iniciada. Especia inicial: %name%.'
+        a11y_clue: 'Pista %n% de %total% — %label%: %value%'
+        a11y_question: 'Pregunta %num% de %total%.'
+        a11y_word_state: 'Palabra: %word%. Errores: %errors% de %max%.'
+        a11y_chain: 'Correcto. Cadena de %n%. Especia actual: %name%.'
+        mystery_spice_alt: Foto de la especia misteriosa
+        progress_label: Progreso de la partida
+        a11y_correct: Respuesta correcta
+        a11y_incorrect: 'Respuesta incorrecta. La respuesta correcta era %name%'
+        a11y_finished: Partida terminada
         quit: Salir de la partida
         back: Volver
         see_results: Ver resultados
@@ -316,6 +328,7 @@ ui:
         history: Historial
         security: Seguridad
     recipe:
+        matrix_caption: Puntuaciones de compatibilidad por matriz de cocción
         folio: 'Folio · %id% · Cuaderno del Laboratorio'
         rename_aria: Renombrar la receta
         rename: Renombrar
@@ -367,6 +380,7 @@ ui:
         note_manual: '«Mezcla compuesta libremente — la complementariedad de estas especias se expresa sin cálculo de afinidad.»'
         note_contrast: '«Estas especias no tienen ningún compuesto aromático principal en común — su asociación se basa en la complementariedad y el contraste.»'
     lab:
+        a11y_results: '%selected% especias en el mortero, %count% especias compatibles mostradas.'
         finalize_title: Finalización de la mezcla — SpicyMatch
         back_to_lab: Volver al Lab
         finalize: Finalización de la mezcla
@@ -396,6 +410,8 @@ ui:
         preset_oil: Aceite
         advanced: Avanzado
         odt_matrix: Matriz ODT
+        no_matrix_data: Ninguna matriz con datos
+        presence_mode: Orden por presencia de compuestos compartidos — sin puntuación OAV cuantitativa (datos insuficientes).
         fat_ratio: Fracción grasa
         cooking_time: Tiempo de cocción
         temperature: Temperatura
@@ -428,7 +444,27 @@ ui:
         clear_all: Borrar todo
         group: 'Grupo:'
         type: 'Tipo:'
+    carousel:
+        label: Especias relacionadas
+        roledescription: carrusel
+        prev: Especias anteriores
+        next: Especias siguientes
+    form:
+        required_legend: '* campo obligatorio'
+    a11y_decl:
+        title: Declaración de accesibilidad
+        intro: SpicyMatch se compromete a hacer accesible su sitio web de conformidad con el artículo 47 de la ley francesa n.º 2005-102 de 11 de febrero de 2005. Esta declaración se aplica a todo el sitio.
+        status_title: Estado de conformidad
+        status_text: 'SpicyMatch está en proceso de evaluación: se está preparando una auditoría de conformidad RGAA 4.1. Se han realizado trabajos de accesibilidad (estructura, formularios, navegación por teclado, contrastes, anuncios de contenido dinámico); el estado de conformidad se publicará al finalizar la auditoría.'
+        tests_title: Tecnologías y pruebas
+        tests_text: 'El sitio está construido con HTML, CSS y JavaScript (Symfony, Twig, Alpine.js). Las pruebas automatizadas (axe-core, WCAG 2.1 AA) se ejecutan continuamente en las páginas principales; las pruebas manuales con teclado y lector de pantalla completan esta cobertura.'
+        feedback_title: Comentarios y contacto
+        feedback_text: 'Si encuentra un obstáculo de accesibilidad en el sitio, infórmenos a través de la página de'
+        recourse_title: Vías de recurso
+        recourse_text: 'Si ha señalado un problema de accesibilidad y no ha obtenido una respuesta satisfactoria, puede dirigirse al Défenseur des droits francés (defenseurdesdroits.fr) o escribir a Défenseur des droits, Libre réponse 71120, 75342 Paris CEDEX 07, Francia.'
+        date_text: Declaración emitida el 10 de junio de 2026.
     modal:
+        quick_view_label: Vista rápida de la especia
         close: Cerrar
         dominant_flavors: Sabores dominantes
         aromatic_compounds: Compuestos aromáticos
@@ -813,6 +849,7 @@ ui:
         saucier: Salsero
         chef_executif: Chef Ejecutivo
     footer:
+        accessibility: Accesibilidad
         tagline: La alquimia aromática al servicio de tus recetas. Descubre combinaciones invisibles y realza tus creaciones culinarias.
         navigation: Navegación
         catalog: Catálogo de especias

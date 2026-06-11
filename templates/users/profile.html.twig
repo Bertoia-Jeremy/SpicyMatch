@@ -13,7 +13,7 @@
                 <div class="mb-6 p-4 bg-linear-to-r from-turmeric-50 to-saffron-50 border border-saffron-200 rounded-xl">
                     <div class="flex items-center justify-between mb-1">
                         <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-star text-turmeric-500 text-lg"></i>
+                            <i class="fa-solid fa-star text-turmeric-500 text-lg" aria-hidden="true"></i>
                             <span class="text-2xl font-bold text-saffron-700">Niveau {{ lvl }}</span>
                         </div>
                         {% if progression.equippedBadge %}
@@ -38,25 +38,25 @@
                     <div class="text-center p-3 bg-spice-surface border border-spice-border rounded-xl">
                         <div class="text-2xl font-bold text-saffron-700">{{ stats.totalBlends }}</div>
                         <div class="text-xs text-stone-500 mt-1 flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-flask text-saffron-400 text-[10px]"></i>Mélanges créés
+                            <i class="fa-solid fa-flask text-saffron-400 text-[10px]" aria-hidden="true"></i>Mélanges créés
                         </div>
                     </div>
                     <div class="text-center p-3 bg-spice-surface border border-spice-border rounded-xl">
                         <div class="text-2xl font-bold text-saffron-700">{{ stats.distinctSpices }}</div>
                         <div class="text-xs text-stone-500 mt-1 flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-seedling text-saffron-400 text-[10px]"></i>Épices utilisées
+                            <i class="fa-solid fa-seedling text-saffron-400 text-[10px]" aria-hidden="true"></i>Épices utilisées
                         </div>
                     </div>
                     <div class="text-center p-3 bg-spice-surface border border-spice-border rounded-xl">
                         <div class="text-2xl font-bold text-turmeric-600">{{ stats.favorites }}</div>
                         <div class="text-xs text-stone-500 mt-1 flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-star text-turmeric-400 text-[10px]"></i>Favoris
+                            <i class="fa-solid fa-star text-turmeric-400 text-[10px]" aria-hidden="true"></i>Favoris
                         </div>
                     </div>
                     <div class="text-center p-3 bg-spice-surface border border-spice-border rounded-xl">
                         <div class="text-2xl font-bold text-turmeric-600">{{ stats.spicesViewed }}</div>
                         <div class="text-xs text-stone-500 mt-1 flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-book-open text-turmeric-400 text-[10px]"></i>Fiches consultées
+                            <i class="fa-solid fa-book-open text-turmeric-400 text-[10px]" aria-hidden="true"></i>Fiches consultées
                         </div>
                     </div>
                 </div>
@@ -67,28 +67,28 @@
                         <div class="text-center p-3 bg-stone-50 border border-stone-200 rounded-xl">
                             <div class="text-xl font-bold text-stone-700">{{ userStats.visitedGroupsCount }}</div>
                             <div class="text-[10px] text-stone-500 mt-1">
-                                <i class="fa-solid fa-layer-group text-saffron-400"></i> Groupes visités
+                                <i class="fa-solid fa-layer-group text-saffron-400" aria-hidden="true"></i> Groupes visités
                             </div>
                         </div>
                         <div class="text-center p-3 bg-stone-50 border border-stone-200 rounded-xl">
                             <div class="text-xl font-bold text-stone-700">{{ progression.longestReadingStreak }}</div>
                             <div class="text-[10px] text-stone-500 mt-1">
-                                <i class="fa-solid fa-fire text-paprika-400"></i> Meilleur streak
+                                <i class="fa-solid fa-fire text-paprika-400" aria-hidden="true"></i> Meilleur streak
                             </div>
                         </div>
                         <div class="text-center p-3 bg-stone-50 border border-stone-200 rounded-xl">
                             <div class="text-xl font-bold text-stone-700">{{ userStats.easterEggsFound }}</div>
                             <div class="text-[10px] text-stone-500 mt-1">
-                                <i class="fa-solid fa-egg text-turmeric-400"></i> Secrets trouvés
+                                <i class="fa-solid fa-egg text-turmeric-400" aria-hidden="true"></i> Secrets trouvés
                             </div>
                         </div>
                     </div>
                 {% endif %}
 
                 <div class="mt-8">
-                    <h3 class="text-lg font-semibold text-stone-800 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-clock-rotate-left text-saffron-600 text-base"></i>Derniers mélanges
-                    </h3>
+                    <h2 class="text-lg font-semibold text-stone-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-saffron-600 text-base" aria-hidden="true"></i>Derniers mélanges
+                    </h2>
                     {% if latestHistories is not empty %}
                         {% import "components/_macro_card_spicy_match_history.html.twig" as macroCardSpicyMatchHistory %}
                         <div class="space-y-3">
@@ -98,9 +98,9 @@
                                    data-turbo-frame="_top">
                                     <div class="flex justify-between items-center gap-4">
                                         <div class="flex-1 min-w-0">
-                                            <h4 class="text-sm font-semibold text-stone-800 truncate mb-2">
+                                            <h3 class="text-sm font-semibold text-stone-800 truncate mb-2">
                                                 {{ history.title ?: 'ui.common.blend_of'|trans({'%date%': history.createdAt|format_date('medium')}) }}
-                                            </h4>
+                                            </h3>
                                             <div class="flex flex-wrap gap-1 items-center">
                                                 {% for spice in history.spicyMatch.spices %}
                                                     {% set spiceLocName = spice.getLocalizedName(app.request.locale) %}
@@ -111,12 +111,12 @@
                                                 {% endfor %}
                                                 {% if history.spicyMatch.isManual %}
                                                     <span class="inline-flex items-center gap-1 text-[10px] font-medium text-stone-500 bg-stone-100 border border-stone-200 px-1.5 py-0.5 rounded-full" title="{{ 'ui.history.manual'|trans }}">
-                                                        <i class="fa-solid fa-hand text-[8px]"></i>{{ 'ui.history.manual'|trans }}
+                                                        <i class="fa-solid fa-hand text-[8px]" aria-hidden="true"></i>{{ 'ui.history.manual'|trans }}
                                                     </span>
                                                 {% endif %}
                                             </div>
                                         </div>
-                                        <i class="fa-solid fa-chevron-right text-stone-300 text-xs"></i>
+                                        <i class="fa-solid fa-chevron-right text-stone-300 text-xs" aria-hidden="true"></i>
                                     </div>
                                 </a>
                             {% endfor %}
@@ -129,7 +129,7 @@
                 </div>
 
                 {% if progression.userAchievements is not empty %}
-                    <h3 class="text-lg font-semibold text-stone-800 mb-3 mt-8">{{ 'ui.profile.unlocked_achievements'|trans }}</h3>
+                    <h2 class="text-lg font-semibold text-stone-800 mb-3 mt-8">{{ 'ui.profile.unlocked_achievements'|trans }}</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {% for ua in progression.userAchievements %}
                             {% set uaColors = rarity_colors(ua.achievement.rarity) %}
@@ -145,7 +145,7 @@
                                     <div class="font-semibold text-stone-800 text-sm flex items-center gap-1.5">
                                         {{ ua.achievement.name }}
                                         {% if isEquipped %}
-                                            <i class="fa-solid fa-shield-halved text-saffron-500 text-xs"></i>
+                                            <i class="fa-solid fa-shield-halved text-saffron-500 text-xs" aria-hidden="true"></i>
                                         {% endif %}
                                     </div>
                                     <div class="text-xs text-stone-500 mt-0.5">{{ ua.achievement.description }}</div>
@@ -155,7 +155,7 @@
                                         <span class="text-xs text-stone-400">{{ ua.unlockedAt|format_date('medium') }}</span>
                                         {% if isEquipped %}
                                             <span class="text-xs font-semibold text-saffron-600">
-                                                <i class="fa-solid fa-check mr-0.5"></i>Équipé
+                                                <i class="fa-solid fa-check mr-0.5" aria-hidden="true"></i>Équipé
                                             </span>
                                         {% else %}
                                             <button type="button"
@@ -165,8 +165,8 @@
                                                     data-equip-token="{{ csrf_token('equip_badge_' ~ ua.id) }}"
                                                     data-equip-redirect="{{ path('profile_user') }}"
                                                     class="text-xs px-2.5 py-0.5 rounded-full border border-saffron-400 text-saffron-700 hover:bg-saffron-50 transition-colors cursor-pointer">
-                                                <span x-show="!equipping"><i class="fa-solid fa-shield-halved mr-0.5"></i>{{ 'ui.achievements.equip'|trans }}</span>
-                                                <span x-show="equipping" x-cloak><i class="fa-solid fa-spinner fa-spin mr-0.5"></i>…</span>
+                                                <span x-show="!equipping"><i class="fa-solid fa-shield-halved mr-0.5" aria-hidden="true"></i>{{ 'ui.achievements.equip'|trans }}</span>
+                                                <span x-show="equipping" x-cloak><i class="fa-solid fa-spinner fa-spin mr-0.5" aria-hidden="true"></i>…</span>
                                             </button>
                                         {% endif %}
                                     </div>
@@ -187,7 +187,7 @@
 
             {% else %}
                 <div class="text-center text-stone-500 py-12">
-                    <i class="fa-solid fa-flask text-5xl text-stone-300 mb-4 block"></i>
+                    <i class="fa-solid fa-flask text-5xl text-stone-300 mb-4 block" aria-hidden="true"></i>
                     <p class="text-lg font-medium">{{ 'ui.profile.no_progress'|trans }}</p>
                     <p class="text-sm mt-1">{{ 'ui.profile.no_progress_hint'|trans }}</p>
                     {{ buttons.button('ui.history.create_first'|trans, {

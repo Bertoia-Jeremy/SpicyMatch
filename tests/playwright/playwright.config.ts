@@ -16,9 +16,12 @@ export default defineConfig({
   use: {
     // `||` (not `??`) coerces empty env vars to the default.
     baseURL: process.env.APP_URL || 'https://spicymatch.sf4.p84.dbm-local.com',
+    // Les specs matchent du texte FR
+    locale: 'fr-FR',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    // PW_NO_VIDEO=1 : hôtes sans binaire ffmpeg Playwright
+    video: process.env.PW_NO_VIDEO ? 'off' : 'retain-on-failure',
     ignoreHTTPSErrors: true,
     // APIRequestContext inherits baseURL via `extraHTTPHeaders` alone — must set it explicitly.
     extraHTTPHeaders: {
@@ -29,7 +32,8 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      // PW_CHANNEL=chrome : hôtes sans chromium Playwright
+      use: { ...devices['Desktop Chrome'], channel: process.env.PW_CHANNEL || undefined },
     },
   ],
 });

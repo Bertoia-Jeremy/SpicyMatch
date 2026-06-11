@@ -54,3 +54,4 @@ data/exports/
 
 # Sauvegardes SQL (générées automatiquement — non versionnées)
 data/backups/
+data/acquisition/

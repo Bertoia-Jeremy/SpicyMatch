@@ -16,7 +16,7 @@
         {% for flavor in alchemyFlavors %}
             <article class="card-warm p-6 flex flex-col h-full">
                 <div class="w-12 h-12 rounded-xl bg-turmeric-100 flex items-center justify-center mb-4">
-                    <i class="fa-solid fa-flask-vial text-turmeric-600"></i>
+                    <i class="fa-solid fa-flask-vial text-turmeric-600" aria-hidden="true"></i>
                 </div>
                 <h2 class="text-xl font-bold text-stone-900 mb-2">{{ flavor.name }}</h2>
                 {% if flavor.description %}

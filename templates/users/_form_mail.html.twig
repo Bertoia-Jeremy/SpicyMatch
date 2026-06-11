@@ -9,9 +9,11 @@
             {{ form_start(form, {
                     action: path('mail_user'),
                     'attr': {'class': 'space-y-4'}
-                }) 
+                })
             }}
+                <p class="text-xs text-stone-500">{{ 'ui.form.required_legend'|trans }}</p>
                 <div>
+                    {{ form_label(form.mail, 'ui.config.change_mail_form'|trans, {'label_attr': {'class': 'sr-only'}}) }}
                     {{ form_widget(form.mail, {'attr': {'class': 'w-full px-4 py-2 mt-1 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600', 'placeholder': 'form.mail.placeholder'|trans}}) }}
                 </div>
                 <div>

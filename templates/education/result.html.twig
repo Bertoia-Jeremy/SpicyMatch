@@ -42,7 +42,7 @@
       <span class="tag-secondary">{{ session.difficulty.label|trans }}</span>
       {% if session.durationSeconds %}
         <span class="tag-secondary">
-          <i class="fa-solid fa-clock mr-1"></i>{{ (session.durationSeconds / 60)|round(0, 'floor') }}min {{ session.durationSeconds % 60 }}s
+          <i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>{{ (session.durationSeconds / 60)|round(0, 'floor') }}min {{ session.durationSeconds % 60 }}s
         </span>
       {% endif %}
     </div>
@@ -51,19 +51,19 @@
       {% if session.gameMode.isLiveComponent %}
         <a href="{{ path('education_play_live', { mode: session.gameMode.value, difficulty: session.difficulty.value }) }}"
            class="btn-pill-primary inline-flex items-center gap-2">
-          <i class="fa-solid fa-rotate-right"></i>{{ 'ui.edu.replay'|trans }}
+          <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>{{ 'ui.edu.replay'|trans }}
         </a>
       {% else %}
         <a href="{{ path('education_briefing', { mode: session.gameMode.value, difficulty: session.difficulty.value }) }}"
            class="btn-pill-primary inline-flex items-center gap-2">
-          <i class="fa-solid fa-rotate-right"></i>{{ 'ui.edu.replay'|trans }}
+          <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>{{ 'ui.edu.replay'|trans }}
         </a>
       {% endif %}
       <a href="{{ path('education_index') }}" class="btn-pill-outline inline-flex items-center gap-2">
-        <i class="fa-solid fa-gamepad"></i>{{ 'ui.edu.all_modes'|trans }}
+        <i class="fa-solid fa-gamepad" aria-hidden="true"></i>{{ 'ui.edu.all_modes'|trans }}
       </a>
       <a href="{{ path('dashboard_user') }}" class="btn-pill-outline inline-flex items-center gap-2">
-        <i class="fa-solid fa-gauge-high"></i>{{ 'ui.edu.dashboard'|trans }}
+        <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>{{ 'ui.edu.dashboard'|trans }}
       </a>
     </div>
   </div>
@@ -79,9 +79,9 @@
             {{ question.correct ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200' }}">
             <div class="shrink-0">
               {% if question.correct %}
-                <i class="fa-solid fa-circle-check text-green-500"></i>
+                <i class="fa-solid fa-circle-check text-green-500" aria-hidden="true"></i>
               {% else %}
-                <i class="fa-solid fa-circle-xmark text-red-500"></i>
+                <i class="fa-solid fa-circle-xmark text-red-500" aria-hidden="true"></i>
               {% endif %}
             </div>
             <div class="flex-1 min-w-0">

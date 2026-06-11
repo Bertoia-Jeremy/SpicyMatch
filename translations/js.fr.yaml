@@ -33,3 +33,5 @@ cooking:
 tour:
     done: Terminé !
     next: Suivant →
+timer:
+    remaining: '%time% restantes'

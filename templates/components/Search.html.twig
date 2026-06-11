@@ -15,7 +15,7 @@
                 data-live-action-param="clearQuery"
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
                 aria-label="{{ 'ui.search.clear'|trans }}">
-            <i class="fa-solid fa-xmark text-xs"></i>
+            <i class="fa-solid fa-xmark text-xs" aria-hidden="true"></i>
         </button>
     {% endif %}
     {% if this.query|length >= 2 %}
@@ -38,14 +38,14 @@
                 {% endfor %}
                 <a href="{{ path('search_results') }}?q={{ this.query|url_encode }}"
                    class="flex items-center justify-center gap-1.5 px-4 py-2 text-xs text-stone-400 hover:text-saffron-700 hover:bg-stone-50 border-t border-stone-100 transition-colors">
-                    <i class="fa-solid fa-magnifying-glass text-[10px]"></i>{{ 'ui.search.see_all_results'|trans }}
+                    <i class="fa-solid fa-magnifying-glass text-[10px]" aria-hidden="true"></i>{{ 'ui.search.see_all_results'|trans }}
                 </a>
             {% else %}
                 <div class="px-4 py-4 text-center">
                     <p class="text-sm text-stone-400">{{ 'ui.search.no_result_for'|trans({'%query%': this.query}) }}</p>
                     <a href="{{ path('search_results') }}?q={{ this.query|url_encode }}"
                        class="inline-flex items-center gap-1 mt-2 text-xs text-saffron-600 hover:underline">
-                        <i class="fa-solid fa-arrow-right text-[10px]"></i>{{ 'ui.search.full_search_page'|trans }}
+                        <i class="fa-solid fa-arrow-right text-[10px]" aria-hidden="true"></i>{{ 'ui.search.full_search_page'|trans }}
                     </a>
                 </div>
             {% endif %}

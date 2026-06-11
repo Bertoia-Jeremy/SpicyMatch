@@ -60,7 +60,8 @@ class GameSessionRepository extends ServiceEntityRepository
 
         $result = [];
         foreach ($rows as $row) {
-            $result[(string) $row['gameMode']] = (int) $row['cnt'];
+            $mode = $row['gameMode'] instanceof GameMode ? $row['gameMode']->value : (string) $row['gameMode'];
+            $result[$mode] = (int) $row['cnt'];
         }
 
         return $result;

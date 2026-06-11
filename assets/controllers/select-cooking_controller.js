@@ -49,20 +49,22 @@ export default class extends Controller
             this.cookingIdValue = 0;
             this.cookingTargets.forEach(t => {
                 t.classList.remove('hidden');
-                const inner = t.querySelector(':scope > div');
+                const inner = t.querySelector(':scope > button');
                 if (inner) {
                     inner.classList.remove('border-saffron-500', 'bg-saffron-50/50', 'shadow-sm', 'ring-1', 'ring-saffron-400/30');
                     inner.classList.add('border-stone-200');
+                    inner.setAttribute('aria-pressed', 'false');
                 }
             });
         } else {
             // Select: hide others, highlight selected
             this.cookingIdValue = clickedId;
             this.cookingTargets.forEach(t => {
-                const inner = t.querySelector(':scope > div');
+                const inner = t.querySelector(':scope > button');
                 if (t === card) {
                     inner?.classList.remove('border-stone-200');
                     inner?.classList.add('border-saffron-500', 'bg-saffron-50/50', 'shadow-sm', 'ring-1', 'ring-saffron-400/30');
+                    inner?.setAttribute('aria-pressed', 'true');
                 } else {
                     t.classList.add('hidden');
                 }

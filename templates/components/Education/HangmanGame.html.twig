@@ -1,12 +1,24 @@
 {% import 'components/Education/_game_header.html.twig' as game_header %}
 <div {{ attributes }}>
+  <div aria-live="polite" class="sr-only">
+    {%- if this.isFinished %}{{ 'ui.game.a11y_finished'|trans }}
+    {%- elseif this.showFeedback %}
+      {%- if this.wordSolved %}{{ 'ui.game.found'|trans }} {{ this.revealedWord }}
+      {%- else %}{{ 'ui.game.a11y_incorrect'|trans({'%name%': this.revealedWord}) }}
+      {%- endif %}
+    {%- elseif this.maskedWord %}
+      {{- 'ui.game.a11y_question'|trans({'%num%': this.questionNumber, '%total%': this.totalQuestions}) }}
+      {{ 'ui.game.a11y_word_state'|trans({'%word%': this.maskedChars|join(' '), '%errors%': this.errorsCount, '%max%': this.maxErrors}) }}
+    {%- endif %}
+  </div>
+
   {{ game_header.header(
       icon = 'fa-solid fa-temperature-three-quarters',
       title = 'enum.game_mode.hangman.label'|trans,
       subtitle = 'ui.game.hangman_subtitle'|trans,
       current = this.questionNumber,
       total = this.totalQuestions,
-      scoreLabel = this.correctCount ~ ' <i class="fa-solid fa-check text-xs text-green-600"></i>  ' ~ this.incorrectCount ~ ' <i class="fa-solid fa-xmark text-xs text-paprika-500"></i>',
+      scoreLabel = this.correctCount ~ ' <i class="fa-solid fa-check text-xs text-green-600" aria-hidden="true"></i>  ' ~ this.incorrectCount ~ ' <i class="fa-solid fa-xmark text-xs text-paprika-500" aria-hidden="true"></i>',
       quitUrl = path('education_briefing', { mode: 'hangman', difficulty: this.difficulty }),
   ) }}
 
@@ -280,7 +292,7 @@
           {{ 'ui.game.errors'|trans }} <span class="{{ this.errorsCount > this.maxErrors * 0.6 ? 'text-paprika-600 font-semibold' : 'text-stone-700' }}">{{ this.errorsCount }}/{{ this.maxErrors }}</span>
         </p>
         {% if this.hint %}
-          <p class="text-sm text-saffron-600"><i class="fa-solid fa-lightbulb mr-1"></i>{{ this.hint }}</p>
+          <p class="text-sm text-saffron-700"><i class="fa-solid fa-lightbulb mr-1" aria-hidden="true"></i>{{ this.hint }}</p>
         {% endif %}
       </div>
 
@@ -293,14 +305,14 @@
           </p>
           <div class="py-2 px-4 rounded-xl inline-block text-sm
             {{ this.wordSolved ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">
-            <i class="fa-solid {{ this.wordSolved ? 'fa-circle-check' : 'fa-circle-xmark' }} mr-2"></i>
+            <i class="fa-solid {{ this.wordSolved ? 'fa-circle-check' : 'fa-circle-xmark' }} mr-2" aria-hidden="true"></i>
             <span class="font-semibold">
               {{ this.wordSolved ? 'ui.game.found'|trans : 'ui.game.lost'|trans }}
             </span>
           </div>
         {% else %}
           <p class="text-3xl font-mono tracking-[0.5em] font-bold text-stone-800 break-all">
-            {% for char in this.maskedWord|split('') %}
+            {% for char in this.maskedChars %}
               {% if char == '_' %}
                 <span class="inline-block w-6 border-b-2 border-stone-400 mx-0.5">&nbsp;</span>
               {% elseif char == ' ' %}
@@ -343,9 +355,9 @@
                 data-live-action-param="nextWord"
                 class="btn-pill-primary w-full">
           {% if this.questionNumber >= this.totalQuestions %}
-            <i class="fa-solid fa-flag-checkered mr-2"></i>{{ 'ui.game.finish'|trans }}
+            <i class="fa-solid fa-flag-checkered mr-2" aria-hidden="true"></i>{{ 'ui.game.finish'|trans }}
           {% else %}
-            <i class="fa-solid fa-arrow-right mr-2"></i>{{ 'ui.game.next_word'|trans }}
+            <i class="fa-solid fa-arrow-right mr-2" aria-hidden="true"></i>{{ 'ui.game.next_word'|trans }}
           {% endif %}
         </button>
       {% endif %}

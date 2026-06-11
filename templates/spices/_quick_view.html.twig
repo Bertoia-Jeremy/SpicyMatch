@@ -85,7 +85,7 @@
             {% if flavors|length > 0 %}
                 <div class="flex flex-col gap-2.5">
                     <h4 class="font-mono text-[10.5px] tracking-[0.14em] uppercase text-stone-400 flex items-center gap-2">
-                        <i class="fa-solid fa-droplet text-[10px]" style="color: {{ color }}"></i>
+                        <i class="fa-solid fa-droplet text-[10px]" style="color: {{ color }}" aria-hidden="true"></i>
                         {{ 'ui.modal.dominant_flavors'|trans }}
                     </h4>
                     <div class="flex flex-wrap gap-1.5">
@@ -106,7 +106,7 @@
             {% if spice.aromaticsCompounds|length > 0 %}
                 <div class="flex flex-col gap-2.5">
                     <h4 class="font-mono text-[10.5px] tracking-[0.14em] uppercase text-stone-400 flex items-center gap-2">
-                        <i class="fa-solid fa-atom text-stone-400 text-[10px]"></i>
+                        <i class="fa-solid fa-atom text-stone-400 text-[10px]" aria-hidden="true"></i>
                         {{ 'ui.modal.aromatic_compounds'|trans }}
                     </h4>
                     <div class="flex flex-wrap gap-1.5">
@@ -133,9 +133,9 @@
                data-turbo-frame="_top"
                class="inline-flex items-center gap-1.5 text-[13.5px] font-semibold
                       hover:opacity-80 transition-opacity group/link"
-               style="color: var(--color-copper)">
+               style="color: var(--color-copper-text)">
                 {{ 'ui.modal.view_full'|trans }}
-                <i class="fa-solid fa-arrow-right text-xs transition-transform group-hover/link:translate-x-0.5"></i>
+                <i class="fa-solid fa-arrow-right text-xs transition-transform group-hover/link:translate-x-0.5" aria-hidden="true"></i>
             </a>
         </div>
 

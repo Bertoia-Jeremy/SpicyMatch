@@ -7,6 +7,7 @@ namespace App\Twig\Components;
 use App\Enum\DataConfidence;
 use App\Enum\OdtMatrix;
 use App\Repository\AromaticGroupsRepository;
+use App\Repository\SpiceActiveCompoundRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
 use App\Service\Match\CompatibleSpiceFinder;
@@ -93,6 +94,7 @@ class SpicyMatch extends AbstractController
         private readonly SpicyTypeRepository $spicyTypeRepository,
         private readonly SpicyMatchService $spicyMatchService,
         private readonly MatchConfidenceAssessorInterface $confidenceAssessor,
+        private readonly SpiceActiveCompoundRepository $spiceActiveCompoundRepository,
     ) {
         $this->spices = [
             'selectedSpices' => [],
@@ -249,6 +251,36 @@ class SpicyMatch extends AbstractController
     {
         return $this->buildCulinaryContext()
             ->getLabel();
+    }
+
+    /**
+     * Matrices proposables = celles ayant des données OAV réelles (véracité par omission).
+     * Une matrice sans données n'apparaît pas dans le sélecteur.
+     *
+     * @return list<string>
+     */
+    public function getAvailableMatrices(): array
+    {
+        $withData = $this->spiceActiveCompoundRepository->matricesWithData();
+
+        return array_values(array_filter(
+            ['air', 'water', 'oil'],
+            static fn (string $m): bool => in_array($m, $withData, true),
+        ));
+    }
+
+    /**
+     * Vrai si le mortier sélectionné a des données OAV dans la matrice courante
+     * → score quantitatif réel. Faux → repli présence (à libeller comme tel, pas un score OAV).
+     */
+    public function isOavScoringAvailable(): bool
+    {
+        $ids = array_values(array_filter(
+            array_map('intval', $this->spices['selectedSpices']),
+            static fn (int $id): bool => $id > 0,
+        ));
+
+        return $this->spiceActiveCompoundRepository->hasDataForSpices($ids, $this->buildCulinaryContext()->matrix);
     }
 
     #[LiveAction]

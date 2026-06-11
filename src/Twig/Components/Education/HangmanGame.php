@@ -227,6 +227,14 @@ class HangmanGame extends AbstractController
         return $this->doFinish();
     }
 
+    /**
+     * @return list<string> — split('') Twig casserait les accents
+     */
+    public function getMaskedChars(): array
+    {
+        return mb_str_split($this->maskedWord);
+    }
+
     private function doFinish(): RedirectResponse
     {
         /** @var Users $user */

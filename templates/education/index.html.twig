@@ -36,9 +36,9 @@
       {% endif %}
         <div class="flex items-center gap-3 mb-3">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600 group-hover:bg-saffron-200 transition-colors">
-            <i class="{{ mode.icon }}"></i>
+            <i class="{{ mode.icon }}" aria-hidden="true"></i>
           </div>
-          <h3 class="font-semibold text-stone-800 pr-6">{{ mode.label|trans }}</h3>
+          <h2 class="font-semibold text-stone-800 pr-6">{{ mode.label|trans }}</h2>
         </div>
         <p class="text-sm text-stone-600 leading-relaxed">{{ mode.description|trans }}</p>
         <div class="mt-3 flex items-center gap-2 text-xs text-stone-500 flex-wrap">
@@ -50,7 +50,7 @@
           {% endif %}
           {% if remaining <= 0 %}
             <span class="tag-secondary bg-paprika-100 text-paprika-700 border-paprika-300 font-medium">
-                <i class="fa-solid fa-clock-rotate-left mr-1"></i>{{ 'ui.edu.come_back_tomorrow'|trans }}
+                <i class="fa-solid fa-clock-rotate-left mr-1" aria-hidden="true"></i>{{ 'ui.edu.come_back_tomorrow'|trans }}
             </span>
           {% elseif count >= reducedXpThreshold %}
             <span class="tag-secondary bg-turmeric-100 text-turmeric-700 border-turmeric-300"

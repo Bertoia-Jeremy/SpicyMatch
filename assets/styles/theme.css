@@ -60,6 +60,7 @@
   --color-ink-600:           #7A6A55;
   --color-copper:            #B8864A;
   --color-copper-light:      #D4A574;
+  --color-copper-text:       #85602C; /* ≥ 4.5:1 sur cream/parchment */
   --color-ink-deep:          #2A1810;
 
   /* Navigation */

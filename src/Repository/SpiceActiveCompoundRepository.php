@@ -72,4 +72,34 @@ class SpiceActiveCompoundRepository extends ServiceEntityRepository
             ->getConnection()
             ->fetchOne('SELECT COUNT(*) FROM spice_active_compound');
     }
+
+    /**
+     * Matrices ayant au moins une entrée OAV-active (véracité par omission :
+     * une matrice sans données ne doit pas être proposée dans l'UI).
+     *
+     * @return list<string> valeurs OdtMatrix présentes (sous-ensemble de air|water|oil)
+     */
+    public function matricesWithData(): array
+    {
+        $rows = $this->getEntityManager()
+            ->getConnection()
+            ->fetchFirstColumn('SELECT DISTINCT matrix FROM spice_active_compound');
+
+        return array_map(static fn (mixed $m): string => (string) $m, $rows);
+    }
+
+    /**
+     * Vrai si au moins une des épices données possède un composé OAV-actif dans la matrice.
+     * Sert à distinguer scoring OAV réel vs repli présence (pas de score quantitatif).
+     *
+     * @param int[] $spiceIds
+     */
+    public function hasDataForSpices(array $spiceIds, OdtMatrix $matrix): bool
+    {
+        if ($spiceIds === []) {
+            return false;
+        }
+
+        return $this->loadOavProfilesBatch($spiceIds, $matrix) !== [];
+    }
 }

@@ -32,9 +32,9 @@
             {% elseif option.name == selectedAnswer %}border-red-500 bg-red-50
             {% else %}border-stone-200 bg-white{% endif %}">
             {% if option.name == correctAnswer %}
-              <i class="fa-solid fa-check text-green-600 shrink-0"></i>
+              <i class="fa-solid fa-check text-green-600 shrink-0" aria-hidden="true"></i>
             {% elseif option.name == selectedAnswer %}
-              <i class="fa-solid fa-xmark text-red-600 shrink-0"></i>
+              <i class="fa-solid fa-xmark text-red-600 shrink-0" aria-hidden="true"></i>
             {% else %}
               <div class="w-4 shrink-0"></div>
             {% endif %}
@@ -44,14 +44,14 @@
       </div>
 
       <div class="text-center mb-6 py-3 rounded-xl {{ isCorrect ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">
-        <i class="fa-solid {{ isCorrect ? 'fa-circle-check' : 'fa-circle-xmark' }} mr-2"></i>
+        <i class="fa-solid {{ isCorrect ? 'fa-circle-check' : 'fa-circle-xmark' }} mr-2" aria-hidden="true"></i>
         <span class="font-semibold">{{ isCorrect ? 'ui.edu.correct_answer'|trans : 'ui.edu.wrong_answer'|trans }}</span>
       </div>
 
       <a href="{{ path('education_play', { id: session.id }) }}"
          class="btn-pill-primary w-full inline-flex justify-center items-center gap-2"
          data-turbo="false">
-        <i class="fa-solid fa-arrow-right"></i>{{ 'ui.edu.next_question'|trans }}
+        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>{{ 'ui.edu.next_question'|trans }}
       </a>
 
     {% else %}

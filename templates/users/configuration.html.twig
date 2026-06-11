@@ -7,7 +7,7 @@
         {# Mail #}
         <div class="mt-6">
             <h2 class="text-xl font-semibold text-stone-800 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-envelope text-saffron-600 text-base"></i>{{ 'ui.config.email_address'|trans }}
+                <i class="fa-solid fa-envelope text-saffron-600 text-base" aria-hidden="true"></i>{{ 'ui.config.email_address'|trans }}
             </h2>
             <turbo-frame id="userMail_frame_id" class="block">
                 <div class="card-warm p-5">
@@ -27,7 +27,7 @@
         {# Réactiver l'onboarding #}
         <div class="mt-6">
             <h2 class="text-xl font-semibold text-stone-800 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-compass text-saffron-600 text-base"></i>{{ 'ui.config.discovery_path'|trans }}
+                <i class="fa-solid fa-compass text-saffron-600 text-base" aria-hidden="true"></i>{{ 'ui.config.discovery_path'|trans }}
             </h2>
             <div class="card-warm p-5">
                 <div class="flex items-start justify-between gap-4">
@@ -45,7 +45,7 @@
                             "
                             class="shrink-0 text-sm px-4 py-1.5 rounded-full border border-saffron-400
                                    text-saffron-700 hover:bg-saffron-50 transition-colors">
-                        <i class="fa-solid fa-rotate-left mr-1.5"></i>{{ 'ui.config.replay'|trans }}
+                        <i class="fa-solid fa-rotate-left mr-1.5" aria-hidden="true"></i>{{ 'ui.config.replay'|trans }}
                     </button>
                 </div>
             </div>
@@ -54,7 +54,7 @@
         {# Difficulté / Posture #}
         <div class="mt-6">
             <h2 class="text-xl font-semibold text-stone-800 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-gauge-high text-saffron-600 text-base"></i>{{ 'ui.config.game_posture'|trans }}
+                <i class="fa-solid fa-gauge-high text-saffron-600 text-base" aria-hidden="true"></i>{{ 'ui.config.game_posture'|trans }}
             </h2>
             <div class="card-warm p-5">
                 <p class="text-sm text-stone-600 mb-3">
@@ -102,7 +102,7 @@
         {% if app.user.progression %}
         <div class="mt-6">
             <h2 class="text-xl font-semibold text-stone-800 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-shield-halved text-saffron-600 text-base"></i>{{ 'ui.config.gamification_privacy'|trans }}
+                <i class="fa-solid fa-shield-halved text-saffron-600 text-base" aria-hidden="true"></i>{{ 'ui.config.gamification_privacy'|trans }}
             </h2>
             <div class="card-warm p-5">
                 <div class="flex items-start justify-between gap-4">

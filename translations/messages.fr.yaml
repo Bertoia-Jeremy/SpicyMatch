@@ -135,6 +135,8 @@ ui:
         try_another: Essayez un autre terme ou vérifiez l'orthographe.
         prompt: Saisissez un terme pour explorer épices et composés aromatiques.
     pagination:
+        nav_label: Navigation des pages
+        per_page_hint: Nombre d'épices par page — la sélection recharge la liste
         previous: Précédent
         next: Suivant
         per_page_label: Nombre d'épices par page
@@ -145,6 +147,16 @@ ui:
         unsub_text_html: 'L''adresse <strong class="text-stone-800">%email%</strong> a été retirée de notre liste de diffusion. Vous ne recevrez plus nos newsletters.'
         unsub_changed_mind: Vous avez changé d'avis ? Vous pouvez vous réinscrire à tout moment depuis votre profil.
     game:
+        a11y_chain_start: 'Partie lancée. Épice de départ : %name%.'
+        a11y_clue: 'Indice %n% sur %total% — %label% : %value%'
+        a11y_question: 'Question %num% sur %total%.'
+        a11y_word_state: 'Mot : %word%. Erreurs : %errors% sur %max%.'
+        a11y_chain: 'Bonne réponse. Chaîne de %n%. Épice actuelle : %name%.'
+        mystery_spice_alt: Photo de l'épice mystère
+        progress_label: Progression de la partie
+        a11y_correct: Bonne réponse
+        a11y_incorrect: 'Mauvaise réponse. La bonne réponse était %name%'
+        a11y_finished: Partie terminée
         quit: Quitter la partie
         back: Retour
         see_results: Voir les résultats
@@ -316,6 +328,7 @@ ui:
         history: Historique
         security: Sécurité
     recipe:
+        matrix_caption: Scores de compatibilité par matrice de cuisson
         folio: 'Folio · %id% · Carnet du Laboratoire'
         rename_aria: Renommer la recette
         rename: Renommer
@@ -367,6 +380,7 @@ ui:
         note_manual: « Mélange composé librement — la complémentarité de ces épices s'exprime sans calcul d'affinité. »
         note_contrast: « Ces épices n'ont pas de composé aromatique principal en commun — leur association repose sur la complémentarité et le contraste. »
     lab:
+        a11y_results: '%selected% épices dans le mortier, %count% épices compatibles affichées.'
         finalize_title: Finalisation du mélange — SpicyMatch
         back_to_lab: Retour au Lab
         finalize: Finalisation du mélange
@@ -396,6 +410,8 @@ ui:
         preset_oil: Huile
         advanced: Avancé
         odt_matrix: Matrice ODT
+        no_matrix_data: Aucune matrice avec données
+        presence_mode: Tri par présence de composés partagés — pas de score OAV quantitatif (données insuffisantes).
         fat_ratio: Fraction grasse
         cooking_time: Temps de cuisson
         temperature: Température
@@ -428,7 +444,27 @@ ui:
         clear_all: Effacer tout
         group: 'Groupe :'
         type: 'Type :'
+    carousel:
+        label: Épices associées
+        roledescription: carrousel
+        prev: Épices précédentes
+        next: Épices suivantes
+    form:
+        required_legend: '* champ obligatoire'
+    a11y_decl:
+        title: Déclaration d'accessibilité
+        intro: SpicyMatch s'engage à rendre son site web accessible conformément à l'article 47 de la loi n°2005-102 du 11 février 2005. La présente déclaration s'applique à l'ensemble du site.
+        status_title: État de conformité
+        status_text: 'SpicyMatch est en cours d''évaluation : un audit de conformité RGAA 4.1 est en préparation. Des travaux de mise en conformité ont été réalisés (structure, formulaires, navigation clavier, contrastes, annonces des contenus dynamiques) ; l''état de conformité sera publié à l''issue de l''audit.'
+        tests_title: Technologies et tests
+        tests_text: 'Le site repose sur HTML, CSS et JavaScript (Symfony, Twig, Alpine.js). Les tests automatisés (axe-core, référentiel WCAG 2.1 AA) sont exécutés en continu sur les pages principales ; des tests manuels au clavier et au lecteur d''écran complètent cette couverture.'
+        feedback_title: Retour d'information et contact
+        feedback_text: 'Si vous rencontrez un obstacle d''accessibilité sur le site, signalez-le nous via la page'
+        recourse_title: Voies de recours
+        recourse_text: 'Si vous avez signalé un défaut d''accessibilité et que vous n''avez pas obtenu de réponse satisfaisante, vous pouvez saisir le Défenseur des droits (defenseurdesdroits.fr), ou adresser un courrier au Défenseur des droits, Libre réponse 71120, 75342 Paris CEDEX 07.'
+        date_text: Déclaration établie le 10 juin 2026.
     modal:
+        quick_view_label: Aperçu rapide de l'épice
         close: Fermer
         dominant_flavors: Saveurs dominantes
         aromatic_compounds: Composés aromatiques
@@ -813,6 +849,7 @@ ui:
         saucier: Saucier
         chef_executif: Chef Exécutif
     footer:
+        accessibility: Accessibilité
         tagline: L'alchimie aromatique au service de vos recettes. Découvrez des accords invisibles et sublimez vos créations culinaires.
         navigation: Navigation
         catalog: Catalogue des épices

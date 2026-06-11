@@ -62,7 +62,7 @@
                             {{ spice.aromaticGroups.getLocalizedName(loc) }}
                             {% if spice.spicyType %} · {{ spice.spicyType.name }}{% endif %}
                         {% else %}
-                            <i class="fa-solid fa-seedling" style="color: {{ color }}"></i>
+                            <i class="fa-solid fa-seedling" style="color: {{ color }}" aria-hidden="true"></i>
                             {% if spice.spicyType %}{{ spice.spicyType.name }}{% else %}{{ 'ui.catalog.spice_fallback'|trans }}{% endif %}
                         {% endif %}
                     </div>
@@ -86,7 +86,7 @@
                                  style="background: var(--color-parchment); border: 1px solid rgba(184,134,74,0.25)">
                                 <span class="size-8 rounded-lg grid place-items-center flex-none"
                                       style="background: {{ color }}18">
-                                    <i class="fa-solid fa-tag text-sm" style="color: {{ color }}"></i>
+                                    <i class="fa-solid fa-tag text-sm" style="color: {{ color }}" aria-hidden="true"></i>
                                 </span>
                                 <span class="flex flex-col gap-0.5">
                                     <span class="font-mono text-[9.5px] uppercase tracking-widest"
@@ -197,7 +197,7 @@
                          style="background: var(--color-parchment-deep); border: 1px solid rgba(184,134,74,0.2)">
                         <p class="font-mono text-[10px] uppercase tracking-widest mb-2 flex items-center gap-2"
                            style="color: rgba(42,24,16,0.4)">
-                            <i class="fa-solid fa-flask-vial text-[10px]" style="color: {{ color }}"></i>
+                            <i class="fa-solid fa-flask-vial text-[10px]" style="color: {{ color }}" aria-hidden="true"></i>
                             {{ 'ui.catalog.secondary_compounds'|trans }}
                         </p>
                         <div class="grid grid-cols-2 gap-x-4">
@@ -266,7 +266,7 @@
                 <article class="marmite">
                     <div class="marmite-top">
                         <div class="marmite-glyph">
-                            <i class="fa-solid {{ marmiteIcons[loop.index0] ?? 'fa-fire' }} text-2xl"></i>
+                            <i class="fa-solid {{ marmiteIcons[loop.index0] ?? 'fa-fire' }} text-2xl" aria-hidden="true"></i>
                         </div>
                         <div class="marmite-step">{{ loop.index }}</div>
                     </div>
@@ -276,7 +276,7 @@
                     </h4>
                     <p class="font-display text-[15px] leading-relaxed flex-1 mb-4" style="color: rgba(42,24,16,0.5)">{{ tip.getLocalizedText(loc) }}</p>
                     <span class="marmite-foot">
-                        <i class="fa-solid fa-clock text-[10px]" style="color: {{ color }}"></i>
+                        <i class="fa-solid fa-clock text-[10px]" style="color: {{ color }}" aria-hidden="true"></i>
                         {{ 'ui.catalog.step'|trans }} {{ loop.index }}
                     </span>
                 </article>
@@ -312,7 +312,7 @@
                 {% if spice.getLocalizedInformations(loc) %}
                     <div class="carnet-tip">
                         <span class="carnet-tip-ic">
-                            <i class="fa-solid fa-lightbulb text-lg"></i>
+                            <i class="fa-solid fa-lightbulb text-lg" aria-hidden="true"></i>
                         </span>
                         <div>
                             <strong class="block font-display text-[15px] font-medium mb-1" style="color: var(--color-ink-deep)">{{ 'ui.catalog.good_to_know'|trans }}</strong>
@@ -356,7 +356,7 @@
                 {% for prep in spice.preparationTips|slice(0, 4) %}
                     <div class="vertu">
                         <span class="vertu-ic">
-                            <i class="fa-solid {{ vertuIcons[loop.index0] ?? 'fa-leaf' }} text-lg"></i>
+                            <i class="fa-solid {{ vertuIcons[loop.index0] ?? 'fa-leaf' }} text-lg" aria-hidden="true"></i>
                         </span>
                         <div class="min-w-0">
                             <div class="font-display text-[16px] font-medium leading-tight mb-1"
@@ -374,7 +374,7 @@
                     {% for compound in spice.aromaticsCompounds|slice(0, 3) %}
                         <div class="vertu">
                             <span class="vertu-ic">
-                                <i class="fa-solid fa-flask text-lg"></i>
+                                <i class="fa-solid fa-flask text-lg" aria-hidden="true"></i>
                             </span>
                             <div class="min-w-0">
                                 <div class="font-display text-[16px] font-medium leading-tight mb-1"
@@ -426,7 +426,7 @@
                         {% else %}
                             <div class="absolute inset-0 flex items-center justify-center"
                                  style="color: rgba(42,24,16,0.2)">
-                                <i class="fa-solid fa-seedling text-4xl"></i>
+                                <i class="fa-solid fa-seedling text-4xl" aria-hidden="true"></i>
                             </div>
                         {% endif %}
                     </div>

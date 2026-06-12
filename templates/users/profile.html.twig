@@ -1,7 +1,6 @@
 {% extends 'users/dashboard.html.twig' %}
 
 {% block content %}
-    {% import 'macros/buttons.html.twig' as buttons %}
     <turbo-frame id="user_frame_id">
         {% include 'components/_user_tabs.html.twig' %}
 
@@ -175,13 +174,14 @@
                         {% endfor %}
                     </div>
                     <div class="mt-4 text-center">
-                        {{ buttons.button('Voir tous les succès', {
-                            href: path('achievements_user'),
-                            variant: 'turmeric',
-                            size: 'sm',
-                            icon: 'fa-solid fa-trophy',
-                            attr: {'data-haptic': 'light'}
-                        }) }}
+                        <twig:Button
+                            label="{{ 'ui.profile.see_all_achievements'|trans }}"
+                            href="{{ path('achievements_user') }}"
+                            variant="primary"
+                            size="sm"
+                            icon="fa-solid fa-trophy"
+                            data-haptic="light"
+                        />
                     </div>
                 {% endif %}
 
@@ -190,13 +190,13 @@
                     <i class="fa-solid fa-flask text-5xl text-stone-300 mb-4 block" aria-hidden="true"></i>
                     <p class="text-lg font-medium">{{ 'ui.profile.no_progress'|trans }}</p>
                     <p class="text-sm mt-1">{{ 'ui.profile.no_progress_hint'|trans }}</p>
-                    {{ buttons.button('ui.history.create_first'|trans, {
-                        href: path('index_spicy_match'),
-                        variant: 'primary',
-                        class: 'mt-4 inline-flex',
-                        icon: 'fa-solid fa-flask text-sm',
-                        attr: {'data-haptic': 'medium'}
-                    }) }}
+                    <twig:Button
+                        label="{{ 'ui.history.create_first'|trans }}"
+                        href="{{ path('index_spicy_match') }}"
+                        variant="primary"
+                        icon="fa-solid fa-flask text-sm"
+                        data-haptic="medium"
+                    />
                 </div>
             {% endif %}
         </div>

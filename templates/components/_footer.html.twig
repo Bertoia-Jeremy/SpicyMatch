@@ -147,12 +147,13 @@
                        style="color: rgba(42,24,16,0.65)">
                         {{ 'ui.footer.join_text'|trans }}
                     </p>
-                    <a href="{{ path('index_register') }}"
-                       class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-opacity hover:opacity-90"
-                       style="background: var(--color-paprika-700); color: var(--color-parchment); border: 1.5px solid transparent">
-                        {{ 'ui.footer.join_cta'|trans }}
-                        <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
-                    </a>
+                    <twig:Button
+                        label="{{ 'ui.footer.join_cta'|trans }}"
+                        href="{{ path('index_register') }}"
+                        variant="primary"
+                        icon="fa-solid fa-arrow-right"
+                        iconPos="right"
+                    />
                 {% endif %}
             </div>
 

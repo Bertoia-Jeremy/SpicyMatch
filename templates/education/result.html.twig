@@ -49,22 +49,28 @@
 
     <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 justify-center">
       {% if session.gameMode.isLiveComponent %}
-        <a href="{{ path('education_play_live', { mode: session.gameMode.value, difficulty: session.difficulty.value }) }}"
-           class="btn-pill-primary inline-flex items-center gap-2">
-          <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>{{ 'ui.edu.replay'|trans }}
-        </a>
+        <twig:Button
+            label="{{ 'ui.edu.replay'|trans }}"
+            variant="primary"
+            icon="fa-solid fa-rotate-right"
+            href="{{ path('education_play_live', { mode: session.gameMode.value, difficulty: session.difficulty.value }) }}" />
       {% else %}
-        <a href="{{ path('education_briefing', { mode: session.gameMode.value, difficulty: session.difficulty.value }) }}"
-           class="btn-pill-primary inline-flex items-center gap-2">
-          <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>{{ 'ui.edu.replay'|trans }}
-        </a>
+        <twig:Button
+            label="{{ 'ui.edu.replay'|trans }}"
+            variant="primary"
+            icon="fa-solid fa-rotate-right"
+            href="{{ path('education_briefing', { mode: session.gameMode.value, difficulty: session.difficulty.value }) }}" />
       {% endif %}
-      <a href="{{ path('education_index') }}" class="btn-pill-outline inline-flex items-center gap-2">
-        <i class="fa-solid fa-gamepad" aria-hidden="true"></i>{{ 'ui.edu.all_modes'|trans }}
-      </a>
-      <a href="{{ path('dashboard_user') }}" class="btn-pill-outline inline-flex items-center gap-2">
-        <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>{{ 'ui.edu.dashboard'|trans }}
-      </a>
+      <twig:Button
+          label="{{ 'ui.edu.all_modes'|trans }}"
+          variant="secondary"
+          icon="fa-solid fa-gamepad"
+          href="{{ path('education_index') }}" />
+      <twig:Button
+          label="{{ 'ui.edu.dashboard'|trans }}"
+          variant="secondary"
+          icon="fa-solid fa-gauge-high"
+          href="{{ path('dashboard_user') }}" />
     </div>
   </div>
 

@@ -94,13 +94,14 @@
 
   {# ── CTA ── #}
   <div class="flex gap-3 justify-center">
-    <a href="{{ path('education_index') }}" class="btn-pill-outline inline-flex items-center gap-2">
-      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>{{ 'ui.edu.all_modes'|trans }}
-    </a>
+    <twig:Button
+        label="{{ 'ui.edu.all_modes'|trans }}"
+        variant="back"
+        href="{{ path('education_index') }}" />
 
     {% if mode.isLiveComponent %}
       <a :href="'{{ path('education_play_live', { mode: mode.value }) }}' + '?difficulty=' + difficulty"
-         class="btn-pill-primary inline-flex items-center gap-2">
+         class="btn-pill-base btn-pill-primary px-5 py-2 text-sm inline-flex items-center gap-2">
         <i class="fa-solid fa-play" aria-hidden="true"></i>{{ 'ui.edu.play'|trans }}
       </a>
     {% else %}
@@ -111,9 +112,11 @@
         {% if targetSpice %}
           <input type="hidden" name="targetSpiceId" value="{{ targetSpice.id }}">
         {% endif %}
-        <button type="submit" class="btn-pill-primary inline-flex items-center gap-2">
-          <i class="fa-solid fa-fire-burner" aria-hidden="true"></i>{{ 'ui.edu.launch_brigade'|trans }}
-        </button>
+        <twig:Button
+            label="{{ 'ui.edu.launch_brigade'|trans }}"
+            variant="primary"
+            type="submit"
+            icon="fa-solid fa-fire-burner" />
       </form>
     {% endif %}
   </div>

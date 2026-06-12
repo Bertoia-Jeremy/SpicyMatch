@@ -479,13 +479,13 @@
   {# ===== CTA BAS DE PAGE ===== #}
   <section class="max-w-[1180px] mx-auto px-6 pt-10 pb-20">
     <div class="flex justify-center">
-      <a href="{{ path('index_spicy_match') }}"
-         class="btn-primary px-8 py-3.5 rounded-full inline-flex items-center gap-3 text-base w-full md:w-auto justify-center">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M9 3h6M10 3v5L5 19a2 2 0 0 0 1.8 2.9h10.4A2 2 0 0 0 19 19l-5-11V3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Créer un nouveau mélange
-      </a>
+      <twig:Button
+        label="{{ 'ui.recipe.new_blend'|trans }}"
+        href="{{ path('index_spicy_match') }}"
+        variant="primary"
+        size="lg"
+        extra="w-full md:w-auto justify-center"
+      />
     </div>
   </section>
 

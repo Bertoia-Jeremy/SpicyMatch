@@ -42,11 +42,14 @@
                     <p class="text-xs text-saffron-600">+{{ payload.xpReward }} XP</p>
                 </div>
             {% endif %}
-            <button data-action="auto-dismiss#dismiss"
-                    class="shrink-0 text-stone-400 hover:text-stone-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30 rounded"
-                    aria-label="{{ 'ui.modal.close'|trans }}">
-                <i class="fa-solid fa-xmark text-xs" aria-hidden="true"></i>
-            </button>
+            <twig:Button
+                label="{{ 'ui.modal.close'|trans }}"
+                iconOnly
+                icon="fa-solid fa-xmark"
+                variant="ghost"
+                data-action="auto-dismiss#dismiss"
+                extra="shrink-0"
+            />
         </div>
     </template>
 </turbo-stream>

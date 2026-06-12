@@ -1,7 +1,6 @@
 {% extends 'users/dashboard.html.twig' %}
 
 {% block content %}
-{% import 'macros/buttons.html.twig' as buttons %}
 <turbo-frame id="user_frame_id">
 
     {% include 'components/_user_tabs.html.twig' %}
@@ -162,13 +161,13 @@
                 <i class="fa-solid fa-trophy text-5xl text-stone-300 mb-4 block" aria-hidden="true"></i>
                 <p class="text-lg font-medium text-stone-700">{{ 'ui.achievements.none_yet'|trans }}</p>
                 <p class="text-sm mt-1">{{ 'ui.achievements.none_yet_text'|trans }}</p>
-                {{ buttons.button('ui.achievements.create_first'|trans, {
-                    href: path('index_spicy_match'),
-                    variant: 'primary',
-                    class: 'mt-6 inline-flex',
-                    icon: 'fa-solid fa-flask',
-                    attr: {'data-haptic': 'medium'}
-                }) }}
+                <twig:Button
+                    label="{{ 'ui.achievements.create_first'|trans }}"
+                    href="{{ path('index_spicy_match') }}"
+                    variant="primary"
+                    icon="fa-solid fa-flask"
+                    data-haptic="medium"
+                />
             </div>
         {% endif %}
     </div>

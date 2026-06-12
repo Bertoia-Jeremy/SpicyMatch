@@ -4,8 +4,6 @@
 {% block title %}{{ 'ui.catalog.spices_page_title'|trans }}{% endblock %}
 
 {% block body %}
-{% import 'macros/buttons.html.twig' as buttons %}
-
 {# Modale Quick View — doit être en dehors du Turbo Frame pour survivre aux navigations #}
 {% include 'components/_spice_modal.html.twig' %}
 
@@ -21,13 +19,13 @@
                 </p>
             </div>
             {% if is_granted('ROLE_USER') %}
-                {{ buttons.button('ui.catalog.create_blend'|trans, {
-                    href: path('index_spicy_match'),
-                    variant: 'primary',
-                    class: 'shrink-0',
-                    icon: 'fa-solid fa-flask',
-                    attr: { 'data-tour': 'cta-lab' }
-                }) }}
+                <twig:Button
+                    label="{{ 'ui.catalog.create_blend'|trans }}"
+                    href="{{ path('index_spicy_match') }}"
+                    variant="primary"
+                    icon="fa-solid fa-flask"
+                    data-tour="cta-lab"
+                />
             {% endif %}
         </div>
     </div>
@@ -72,12 +70,13 @@
                 <p class="text-stone-400 text-sm max-w-xs mb-6">
                     {{ 'ui.catalog.none_found_text'|trans }}
                 </p>
-                {{ buttons.button('ui.catalog.view_all_spices'|trans, {
-                    href: path('index_spices'),
-                    variant: 'outline',
-                    size: 'sm',
-                    icon: 'fa-solid fa-arrow-rotate-left'
-                }) }}
+                <twig:Button
+                    label="{{ 'ui.catalog.view_all_spices'|trans }}"
+                    href="{{ path('index_spices') }}"
+                    variant="secondary"
+                    size="sm"
+                    icon="fa-solid fa-arrow-rotate-left"
+                />
             </div>
         {% endif %}
 

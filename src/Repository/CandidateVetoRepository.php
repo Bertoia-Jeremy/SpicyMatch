@@ -113,18 +113,18 @@ class CandidateVetoRepository
             SELECT c.id
             FROM spices c
             JOIN (
-                SELECT spice_id, aromatic_compound_id FROM spices_aromatic_compound
+                SELECT spices_id AS spice_id, aromatic_compound_id FROM spices_aromatic_compound
                 UNION DISTINCT
-                SELECT spice_id, aromatic_compound_id FROM secondary_spices_aromatic_compound
+                SELECT spices_id AS spice_id, aromatic_compound_id FROM secondary_spices_aromatic_compound
             ) AS all_compounds ON all_compounds.spice_id = c.id
             JOIN (
-                SELECT spice_id, aromatic_compound_id
+                SELECT spices_id AS spice_id, aromatic_compound_id
                 FROM spices_aromatic_compound
-                WHERE spice_id IN ({$placeholders})
+                WHERE spices_id IN ({$placeholders})
                 UNION DISTINCT
-                SELECT spice_id, aromatic_compound_id
+                SELECT spices_id AS spice_id, aromatic_compound_id
                 FROM secondary_spices_aromatic_compound
-                WHERE spice_id IN ({$placeholders})
+                WHERE spices_id IN ({$placeholders})
             ) AS mortar_compounds
                 ON mortar_compounds.aromatic_compound_id = all_compounds.aromatic_compound_id
             WHERE c.id NOT IN ({$placeholders})

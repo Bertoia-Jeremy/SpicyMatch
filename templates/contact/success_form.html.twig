@@ -2,8 +2,6 @@
 {% block title %}{{ 'ui.contact_success.page_title'|trans }}{% endblock %}
 
 {% block body %}
-{% import 'macros/buttons.html.twig' as buttons %}
-
 <section class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
     <div class="bg-white border border-stone-200 rounded-2xl p-10">
         <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
@@ -14,11 +12,12 @@
         <p class="text-stone-500 mb-8">
             {% if "now"|date("H") < 18 %}{{ 'ui.contact_success.good_day'|trans }}{% else %}{{ 'ui.contact_success.good_evening'|trans }}{% endif %}
         </p>
-        {{ buttons.button('ui.common.back_home'|trans, {
-            href: path('home'),
-            variant: 'primary',
-            icon: 'fa-solid fa-house'
-        }) }}
+        <twig:Button
+            label="{{ 'ui.common.back_home'|trans }}"
+            href="{{ path('home') }}"
+            variant="primary"
+            icon="fa-solid fa-house"
+        />
     </div>
 </section>
 {% endblock %}

@@ -1,7 +1,7 @@
 <turbo-frame id="userMail_frame_id" class="w-full p-4 border border-t-0 border-gray-200 rounded-b-lg">
 
     <div>
-        <a href="{{ path('configuration_user')}}" class="inline-block px-4 py-2 text-sm font-medium text-red-600 border border-red-600 rounded-md hover:bg-red-50 mb-4">{{ 'ui.config.back'|trans }}</a>
+        <twig:Button label="{{ 'ui.config.back'|trans }}" href="{{ path('configuration_user') }}" variant="back" size="sm" extra="mb-4" />
 
         <div class="mb-4">
             <h5 class="text-lg font-semibold mb-2">{{ 'ui.config.change_mail_form'|trans }}</h5>
@@ -17,7 +17,8 @@
                     {{ form_widget(form.mail, {'attr': {'class': 'w-full px-4 py-2 mt-1 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600', 'placeholder': 'form.mail.placeholder'|trans}}) }}
                 </div>
                 <div>
-                    {{ form_widget(form.Valider, {'attr': {'class': 'w-full px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700'}}) }}
+                    <twig:Button label="{{ 'common.actions.save'|trans }}" variant="primary" type="submit" extra="w-full justify-center" />
+                    <div class="hidden">{{ form_widget(form.Valider) }}</div>
                 </div>
             {{ form_end(form) }}
         </div>

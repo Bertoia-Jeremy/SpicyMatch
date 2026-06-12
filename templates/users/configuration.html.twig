@@ -37,16 +37,15 @@
                             {{ 'ui.config.replay_intro_text'|trans }}
                         </p>
                     </div>
-                    <button type="button"
-                            x-data
-                            @click="
-                                localStorage.removeItem('sm_onboarding');
-                                window.location.href = '{{ path('home') }}';
-                            "
-                            class="shrink-0 text-sm px-4 py-1.5 rounded-full border border-saffron-400
-                                   text-saffron-700 hover:bg-saffron-50 transition-colors">
-                        <i class="fa-solid fa-rotate-left mr-1.5" aria-hidden="true"></i>{{ 'ui.config.replay'|trans }}
-                    </button>
+                    <twig:Button
+                        label="{{ 'ui.config.replay'|trans }}"
+                        variant="secondary"
+                        size="sm"
+                        icon="fa-solid fa-rotate-left"
+                        x-data
+                        @click="localStorage.removeItem('sm_onboarding'); window.location.href = '{{ path('home') }}';"
+                        extra="shrink-0"
+                    />
                 </div>
             </div>
         </div>
@@ -91,9 +90,7 @@
                             {{ 'ui.config.posture_easy_html'|trans|raw }}
                         {% endif %}
                     </div>
-                    <button type="submit" class="text-sm px-4 py-1.5 rounded-full border border-saffron-400 text-saffron-700 hover:bg-saffron-50 transition-colors">
-                        {{ 'common.actions.save'|trans }}
-                    </button>
+                    <twig:Button label="{{ 'common.actions.save'|trans }}" variant="secondary" size="sm" type="submit" />
                 </form>
             </div>
         </div>
@@ -118,15 +115,12 @@
                     </div>
                     <form action="{{ path('toggle_gamification_user') }}" method="POST" class="shrink-0">
                         <input type="hidden" name="_token" value="{{ csrf_token('toggle_gamification') }}">
-                        <button type="submit"
-                                class="text-sm px-4 py-1.5 rounded-full border transition-colors
-                                       {% if app.user.progression.gamificationEnabled %}
-                                           border-stone-300 text-stone-600 hover:bg-stone-50
-                                       {% else %}
-                                           border-saffron-400 text-saffron-700 hover:bg-saffron-50
-                                       {% endif %}">
-                            {{ app.user.progression.gamificationEnabled ? 'ui.config.disable'|trans : 'ui.config.enable'|trans }}
-                        </button>
+                        <twig:Button
+                            label="{{ app.user.progression.gamificationEnabled ? 'ui.config.disable'|trans : 'ui.config.enable'|trans }}"
+                            variant="secondary"
+                            size="sm"
+                            type="submit"
+                        />
                     </form>
                 </div>
             </div>

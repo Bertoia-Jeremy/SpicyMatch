@@ -3,8 +3,6 @@
 {% block title %}{{ 'ui.catalog.methods_page_title'|trans }}{% endblock %}
 
 {% block body %}
-{% import 'macros/buttons.html.twig' as buttons %}
-
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
     <div class="text-center mb-10">
@@ -18,13 +16,14 @@
             <div class="card-warm p-6">
                 <h2 class="text-xl font-semibold text-stone-800 mb-3">{{ preparation_method.name }}</h2>
                 <p class="text-stone-500 text-sm leading-relaxed mb-5">{{ preparation_method.description|nl2br }}</p>
-                {{ buttons.button('ui.catalog.view_details'|trans, {
-                    href: path('view_preparation_methods', {'id': preparation_method.id}),
-                    variant: 'outline',
-                    size: 'sm',
-                    icon: 'fa-solid fa-arrow-right',
-                    icon_pos: 'right'
-                }) }}
+                <twig:Button
+                    label="{{ 'ui.catalog.view_details'|trans }}"
+                    href="{{ path('view_preparation_methods', {'id': preparation_method.id}) }}"
+                    variant="secondary"
+                    size="sm"
+                    icon="fa-solid fa-arrow-right"
+                    iconPos="right"
+                />
             </div>
         {% else %}
             <p class="col-span-full text-center text-stone-500 py-12">{{ 'ui.catalog.no_method'|trans }}</p>

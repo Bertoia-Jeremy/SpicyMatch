@@ -27,11 +27,12 @@
       </p>
     {% endif %}
 
-    <a href="{{ path('education_play', { id: session.id }) }}"
-       class="btn-pill-primary mt-6 inline-flex items-center gap-2">
-      <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-      {{ 'ui.edu.next_question'|trans }}
-    </a>
+    <twig:Button
+        label="{{ 'ui.edu.next_question'|trans }}"
+        variant="primary"
+        icon="fa-solid fa-arrow-right"
+        href="{{ path('education_play', { id: session.id }) }}"
+        extra="mt-6" />
   </div>
 </div>
 {% endblock %}

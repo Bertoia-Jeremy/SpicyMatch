@@ -3,8 +3,6 @@
 {% block title %}SpicyMatch — Erreur{% endblock %}
 
 {% block body %}
-{% import 'macros/buttons.html.twig' as buttons %}
-
 <section class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
     <div class="bg-white border border-stone-200 rounded-2xl p-10">
         <div class="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-6">
@@ -16,16 +14,18 @@
         {% endif %}
         <p class="text-stone-500 mb-8">{{ 'ui.error.persist'|trans }}</p>
         <div class="flex gap-3 justify-center">
-            {{ buttons.button('ui.error.home'|trans, {
-                href: path('home'),
-                variant: 'primary',
-                icon: 'fa-solid fa-house'
-            }) }}
-            {{ buttons.button('Signaler', {
-                href: path('new_contact'),
-                variant: 'outline',
-                icon: 'fa-solid fa-envelope'
-            }) }}
+            <twig:Button
+                label="{{ 'ui.error.home'|trans }}"
+                href="{{ path('home') }}"
+                variant="primary"
+                icon="fa-solid fa-house"
+            />
+            <twig:Button
+                label="{{ 'ui.error.report'|trans }}"
+                href="{{ path('new_contact') }}"
+                variant="secondary"
+                icon="fa-solid fa-envelope"
+            />
         </div>
     </div>
 </section>

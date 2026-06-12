@@ -10,9 +10,7 @@
     <div class="w-full md:w-1/2 flex justify-center items-center bg-cream-dark">
         <div class="w-full max-w-md p-8">
 
-            <a href="{{ path('home') }}" class="inline-flex items-center gap-1.5 text-stone-600 hover:text-stone-800 text-xs mb-8 transition-colors no-underline">
-                <i class="fa-solid fa-arrow-left text-[10px]" aria-hidden="true"></i>{{ 'ui.common.back_home'|trans }}
-            </a>
+            <twig:Button label="{{ 'ui.common.back_home'|trans }}" href="{{ path('home') }}" variant="back" size="sm" extra="mb-8" />
 
             <div class="text-center mb-8">
                 <div class="inline-flex items-center gap-2 mb-5 no-underline">
@@ -58,13 +56,12 @@
                     </div>
                 {% endif %}
 
-                {% import 'macros/buttons.html.twig' as buttons %}
-                {{ buttons.button('ui.auth.login_cta'|trans, {
-                    type: 'submit',
-                    variant: 'primary',
-                    class: 'w-full justify-center py-4 mt-2',
-                    icon: 'fa-solid fa-right-to-bracket text-xs'
-                }) }}
+                <twig:Button
+                    label="{{ 'ui.auth.login_cta'|trans }}"
+                    type="submit"
+                    variant="primary"
+                    icon="fa-solid fa-right-to-bracket text-xs"
+                />
             </form>
         </div>
     </div>

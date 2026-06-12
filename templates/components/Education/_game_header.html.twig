@@ -19,14 +19,15 @@
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
             {% if quitUrl %}
-                <button type="button"
-                        x-data="confirmQuit('{{ quitUrl }}')"
-                        @click="quit()"
-                        data-turbo="false"
-                        aria-label="{{ 'ui.game.quit'|trans }}"
-                        class="btn-pill-outline text-sm py-1.5 px-3 shrink-0">
-                    <i class="fa-solid fa-arrow-left text-xs mr-1.5" aria-hidden="true"></i>{{ 'ui.game.back'|trans }}
-                </button>
+                <twig:Button
+                    label="{{ 'ui.game.back'|trans }}"
+                    variant="back"
+                    size="sm"
+                    x-data="confirmQuit('{{ quitUrl }}')"
+                    @click="quit()"
+                    data-turbo="false"
+                    aria-label="{{ 'ui.game.quit'|trans }}"
+                    extra="shrink-0" />
             {% endif %}
             <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600 shrink-0">
                 <i class="{{ icon }}" aria-hidden="true"></i>
@@ -86,10 +87,11 @@
         <h2 class="text-xl font-bold text-stone-800 mb-2">{{ title }}</h2>
         {# |raw needed: SurvivalGame passes <strong> HTML for spice name in defeat message #}
         <p class="text-stone-600 mb-6">{{ paragraphHtml|raw }}</p>
-        <button data-action="live#action"
-                data-live-action-param="{{ buttonAction }}"
-                class="btn-pill-primary">
-            <i class="fa-solid fa-flag-checkered mr-2" aria-hidden="true"></i>{{ buttonLabel }}
-        </button>
+        <twig:Button
+            label="{{ buttonLabel }}"
+            variant="primary"
+            icon="fa-solid fa-flag-checkered"
+            data-action="live#action"
+            data-live-action-param="{{ buttonAction }}" />
     </div>
 {% endmacro %}

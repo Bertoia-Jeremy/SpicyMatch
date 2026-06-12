@@ -119,15 +119,16 @@
         <kbd class="px-1.5 py-0.5 rounded bg-stone-100 border border-stone-200 font-mono text-[11px]">↵</kbd>
         {{ 'ui.game.kbd_validate'|trans }}
       </p>
-      <button type="button"
-              data-action="live#action"
-              data-live-action-param="answer"
-              :data-live-spice-id-param="selectedId"
-              :disabled="!canValidate"
-              @click="submitting = true"
-              class="btn-pill-primary ml-auto disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
-        <i class="fa-solid fa-check mr-2" aria-hidden="true"></i>{{ 'ui.game.validate'|trans }}
-      </button>
+      <twig:Button
+          label="{{ 'ui.game.validate'|trans }}"
+          variant="primary"
+          icon="fa-solid fa-check"
+          data-action="live#action"
+          data-live-action-param="answer"
+          x-bind:data-live-spice-id-param="selectedId"
+          x-bind:disabled="!canValidate"
+          @click="submitting = true"
+          extra="ml-auto disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none" />
     </div>
 
   {% else %}
@@ -178,15 +179,13 @@
       {% endif %}
     </div>
 
-    <button data-action="live#action"
-            data-live-action-param="next"
-            class="btn-pill-primary w-full">
-      {% if this.questionNumber >= this.totalQuestions %}
-        <i class="fa-solid fa-flag-checkered mr-2" aria-hidden="true"></i>{{ 'ui.game.finish'|trans }}
-      {% else %}
-        <i class="fa-solid fa-arrow-right mr-2" aria-hidden="true"></i>{{ 'ui.game.next_question'|trans }}
-      {% endif %}
-    </button>
+    <twig:Button
+        label="{{ this.questionNumber >= this.totalQuestions ? 'ui.game.finish'|trans : 'ui.game.next_question'|trans }}"
+        variant="primary"
+        icon="{{ this.questionNumber >= this.totalQuestions ? 'fa-solid fa-flag-checkered' : 'fa-solid fa-arrow-right' }}"
+        data-action="live#action"
+        data-live-action-param="next"
+        extra="w-full" />
 
   {% endif %}
 

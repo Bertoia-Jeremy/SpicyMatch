@@ -19,9 +19,11 @@
                 {{ 'ui.newsletter.unsub_changed_mind'|trans }}
             </p>
 
-            <a href="{{ path('app_home') }}" class="btn-pill-primary">
-                {{ 'ui.common.back_home'|trans }}
-            </a>
+            <twig:Button
+                label="{{ 'ui.common.back_home'|trans }}"
+                href="{{ path('app_home') }}"
+                variant="primary"
+            />
         </div>
     </div>
 {% endblock %}

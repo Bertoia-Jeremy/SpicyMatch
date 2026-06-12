@@ -49,15 +49,13 @@
         </p>
       {% endif %}
 
-      <button data-action="live#action"
-              data-live-action-param="next"
-              class="btn-pill-primary mt-6">
-        {% if this.questionNumber >= this.totalQuestions %}
-          <i class="fa-solid fa-flag-checkered mr-2" aria-hidden="true"></i>{{ 'ui.game.finish'|trans }}
-        {% else %}
-          <i class="fa-solid fa-arrow-right mr-2" aria-hidden="true"></i>{{ 'ui.game.next_question'|trans }}
-        {% endif %}
-      </button>
+      <twig:Button
+          label="{{ this.questionNumber >= this.totalQuestions ? 'ui.game.finish'|trans : 'ui.game.next_question'|trans }}"
+          variant="primary"
+          icon="{{ this.questionNumber >= this.totalQuestions ? 'fa-solid fa-flag-checkered' : 'fa-solid fa-arrow-right' }}"
+          data-action="live#action"
+          data-live-action-param="next"
+          extra="mt-6" />
     </div>
 
   {% else %}

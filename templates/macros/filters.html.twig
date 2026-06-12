@@ -54,9 +54,7 @@
                         Réinitialiser
                     </a>
                 {% elseif options.reset_click is defined %}
-                    <button type="button" @click="{{ options.reset_click }}" class="text-xs text-stone-400 underline transition-colors hover:text-paprika-700">
-                        Réinitialiser
-                    </button>
+                    <twig:Button label="{{ 'common.reset'|trans }}" variant="ghost" size="xs" @click="{{ options.reset_click }}" />
                 {% endif %}
             </div>
             <div class="p-4 max-h-72 overflow-y-auto custom-scrollbar" role="group" aria-label="{{ label }}">

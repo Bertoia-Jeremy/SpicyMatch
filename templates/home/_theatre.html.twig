@@ -87,10 +87,12 @@
         <p class="theatre-cta-sub">
             {{ 'ui.theatre.cta_sub'|trans }}
         </p>
-        <a href="{{ path('education_index') }}" class="btn-pill-primary text-base px-8 py-4">
-            {{ 'ui.theatre.cta'|trans }}
-            <span aria-hidden="true" class="ml-2">→</span>
-        </a>
+        <twig:Button
+            label="{{ 'ui.theatre.cta'|trans }}"
+            href="{{ path('education_index') }}"
+            variant="primary"
+            size="xl"
+        />
     </div>
 
 </section>

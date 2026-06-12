@@ -1,5 +1,5 @@
 {{ form_start(form) }}
     <p class="text-xs text-stone-500 mb-2">{{ 'ui.form.required_legend'|trans }}</p>
     {{ form_widget(form) }}
-    <button class="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700">{{ button_label|default('Save') }}</button>
+    <twig:Button label="{{ button_label|default('common.actions.save'|trans) }}" variant="primary" type="submit" />
 {{ form_end(form) }}

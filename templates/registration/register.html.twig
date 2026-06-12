@@ -1,7 +1,5 @@
 {% extends 'base.html.twig' %}
 
-{% import 'macros/buttons.html.twig' as buttons %}
-
 {% block title %}{{ 'ui.register.page_title'|trans }}{% endblock %}
 
 {% block body %}
@@ -55,16 +53,16 @@
             </div>
 
             <div>
-                {{ buttons.button('ui.register.submit'|trans, {
-                    variant: 'primary',
-                    type: 'submit',
-                    attr: {
-                        'name': form.Valider.vars.full_name,
-                        'class': 'w-full justify-center cursor-pointer py-3'
-                    }
-                }) }}
+                <twig:Button
+                    label="{{ 'ui.register.submit'|trans }}"
+                    variant="primary"
+                    type="submit"
+                    name="{{ form.Valider.vars.full_name }}"
+                    extra="w-full justify-center cursor-pointer py-3"
+                />
             </div>
 
+            <div class="hidden">{{ form_widget(form.Valider) }}</div>
             {{ form_end(form) }}
 
             <p class="text-center text-sm text-stone-600">

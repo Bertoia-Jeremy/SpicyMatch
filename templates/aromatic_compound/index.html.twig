@@ -3,8 +3,6 @@
 {% block title %}{{ 'ui.catalog.compounds_page_title'|trans }}{% endblock %}
 
 {% block body %}
-{% import 'macros/buttons.html.twig' as buttons %}
-
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="text-center mb-12">
         <span class="tag-primary mb-4 inline-block">{{ 'ui.catalog.compounds_tag'|trans }}</span>
@@ -25,13 +23,14 @@
                     <p class="text-stone-400 text-sm italic mb-6 flex-1">{{ 'ui.catalog.no_description'|trans }}</p>
                 {% endif %}
 
-                {{ buttons.button('ui.catalog.learn_more'|trans, {
-                    href: path('view_aromatic_compound', {id: compound.id}),
-                    variant: 'outline',
-                    size: 'sm',
-                    icon: 'fa-solid fa-arrow-right',
-                    icon_pos: 'right'
-                }) }}
+                <twig:Button
+                    label="{{ 'ui.catalog.learn_more'|trans }}"
+                    href="{{ path('view_aromatic_compound', {id: compound.id}) }}"
+                    variant="secondary"
+                    size="sm"
+                    icon="fa-solid fa-arrow-right"
+                    iconPos="right"
+                />
             </article>
         {% else %}
             <div class="col-span-full text-center py-12">

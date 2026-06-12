@@ -1,5 +1,5 @@
-/* Shared base — applies to all pill variants */
-:is(.btn-pill-primary, .btn-pill-outline) {
+/* Base partagée — tous les variants pill */
+.btn-pill-base {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -8,35 +8,56 @@
   font-weight: 600;
   text-decoration: none !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-
-  &:hover   { transform: translateY(-1px); }
-  &:active  { transform: translateY(0); }
-  &:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 }
+.btn-pill-base:hover  { transform: translateY(-1px); }
+.btn-pill-base:active { transform: translateY(0); }
+.btn-pill-base:disabled,
+.btn-pill-base[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; transform: none; }
 
 /* Primary — paprika profond, texte crème */
 .btn-pill-primary {
   background-color: var(--color-paprika-700);
   color: var(--color-cream);
   border: 1.5px solid transparent;
-
-  &:hover {
-    background-color: var(--color-paprika-800);
-    box-shadow: 0 4px 14px rgba(185, 28, 28, 0.28);
-    color: var(--color-cream);
-  }
+}
+.btn-pill-primary:hover {
+  background-color: var(--color-paprika-800);
+  box-shadow: 0 4px 14px rgba(185, 28, 28, 0.28);
+  color: var(--color-cream);
 }
 
-/* Outline — bordure cuivre, texte encre */
+/* Secondary (ex-outline) — bordure cuivre, texte encre */
 .btn-pill-outline {
   color: var(--color-ink-deep);
   background-color: transparent;
   border: 1.5px solid var(--color-copper);
+}
+.btn-pill-outline:hover {
+  background-color: rgba(184, 134, 74, 0.08);
+  border-color: var(--color-copper-light);
+  color: var(--color-ink-deep);
+  box-shadow: 0 4px 12px rgba(184, 134, 74, 0.14);
+}
 
-  &:hover {
-    background-color: rgba(184, 134, 74, 0.08);
-    border-color: var(--color-copper-light);
-    color: var(--color-ink-deep);
-    box-shadow: 0 4px 12px rgba(184, 134, 74, 0.14);
-  }
+/* Danger — rouge plein, action destructive */
+.btn-pill-danger {
+  background-color: #dc2626;
+  color: #ffffff;
+  border: 1.5px solid transparent;
+}
+.btn-pill-danger:hover {
+  background-color: #b91c1c;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.28);
+  color: #ffffff;
+}
+
+/* Ghost — transparent, hover doux */
+.btn-pill-ghost {
+  background-color: transparent;
+  color: var(--color-ink-deep);
+  border: 1.5px solid transparent;
+}
+.btn-pill-ghost:hover {
+  background-color: #f5f5f4;
+  color: var(--color-ink-deep);
 }

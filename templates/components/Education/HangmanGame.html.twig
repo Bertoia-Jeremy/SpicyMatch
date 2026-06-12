@@ -351,15 +351,13 @@
 
       {# Next word button — only visible during feedback #}
       {% if this.showFeedback %}
-        <button data-action="live#action"
-                data-live-action-param="nextWord"
-                class="btn-pill-primary w-full">
-          {% if this.questionNumber >= this.totalQuestions %}
-            <i class="fa-solid fa-flag-checkered mr-2" aria-hidden="true"></i>{{ 'ui.game.finish'|trans }}
-          {% else %}
-            <i class="fa-solid fa-arrow-right mr-2" aria-hidden="true"></i>{{ 'ui.game.next_word'|trans }}
-          {% endif %}
-        </button>
+        <twig:Button
+            label="{{ this.questionNumber >= this.totalQuestions ? 'ui.game.finish'|trans : 'ui.game.next_word'|trans }}"
+            variant="primary"
+            icon="{{ this.questionNumber >= this.totalQuestions ? 'fa-solid fa-flag-checkered' : 'fa-solid fa-arrow-right' }}"
+            data-action="live#action"
+            data-live-action-param="nextWord"
+            extra="w-full" />
       {% endif %}
     </div>
   </div>

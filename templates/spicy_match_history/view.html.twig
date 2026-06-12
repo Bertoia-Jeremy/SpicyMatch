@@ -54,15 +54,12 @@
 
   {# ===== TOP BAR ===== #}
   <header class="max-w-[1180px] mx-auto px-6 pt-6 pb-3 flex items-center justify-between">
-    <a href="{{ path('index_spicy_match') }}"
-       class="flex items-center gap-2 text-sm transition-colors"
-       style="color: #5A4A38;"
-       onmouseover="this.style.color='#2A1F14'" onmouseout="this.style.color='#5A4A38'">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      Retour au Lab
-    </a>
+    <twig:Button
+        label="{{ 'ui.history.back_to_history'|trans }}"
+        href="{{ path('profile_user', {tab: 'history'}) }}"
+        variant="back"
+        size="sm"
+    />
     <div class="flex items-center gap-2"></div>
   </header>
 

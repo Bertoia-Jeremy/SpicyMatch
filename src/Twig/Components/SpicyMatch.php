@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Twig\Components;
 
+use App\Entity\Spices;
+use App\Entity\Users;
 use App\Enum\DataConfidence;
 use App\Enum\OdtMatrix;
 use App\Repository\AromaticGroupsRepository;
@@ -87,6 +89,11 @@ class SpicyMatch extends AbstractController
     #[LiveProp(writable: true)]
     public int $temperatureCelsius = 20;
 
+    /**
+     * @var list<int>|null
+     */
+    private ?array $excludedSpiceIdsCache = null;
+
     public function __construct(
         private readonly SpicesRepository $spicesRepository,
         private readonly CompatibleSpiceFinder $compatibleSpiceFinder,
@@ -100,6 +107,49 @@ class SpicyMatch extends AbstractController
             'selectedSpices' => [],
             'compatibleSpices' => $spicesRepository->findAllSpices(),
         ];
+    }
+
+    public function mount(): void
+    {
+        $user = $this->getUser();
+        if (! $user instanceof Users) {
+            return;
+        }
+
+        $preferred = $user->getDefaultMatrix()
+            ->value;
+        if (in_array($preferred, $this->getAvailableMatrices(), true)) {
+            $this->matrix = $preferred;
+        }
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function excludedSpiceIds(): array
+    {
+        if ($this->excludedSpiceIdsCache !== null) {
+            return $this->excludedSpiceIdsCache;
+        }
+
+        $user = $this->getUser();
+        if (! $user instanceof Users) {
+            return $this->excludedSpiceIdsCache = [];
+        }
+
+        $ids = $user->getExcludedSpices()
+            ->map(static fn (Spices $s): ?int => $s->getId())
+            ->getValues();
+
+        return $this->excludedSpiceIdsCache = array_values(array_filter(
+            $ids,
+            static fn (?int $id): bool => $id !== null,
+        ));
+    }
+
+    public function getExcludedSpiceCount(): int
+    {
+        return count($this->excludedSpiceIds());
     }
 
     /**
@@ -151,6 +201,14 @@ class SpicyMatch extends AbstractController
                     fn (array $s) => ! in_array($s['id'], $ids, true),
                 ));
             }
+        }
+
+        $excluded = $this->excludedSpiceIds();
+        if ($excluded !== []) {
+            $compatibleSpices = array_values(array_filter(
+                $compatibleSpices,
+                static fn (array $s): bool => ! in_array($s['id'], $excluded, true),
+            ));
         }
 
         if ($this->selectedAromaticGroup !== null) {
@@ -357,7 +415,7 @@ class SpicyMatch extends AbstractController
         $isManual = $this->mode === 'manual';
 
         $user = $this->getUser();
-        \assert($user instanceof \App\Entity\Users || $user === null);
+        \assert($user instanceof Users || $user === null);
 
         $selectedIds = array_map('intval', $this->spices['selectedSpices']);
         $compatibleSpices = $isManual ? [] : $this->getResults()['compatibleSpices'];

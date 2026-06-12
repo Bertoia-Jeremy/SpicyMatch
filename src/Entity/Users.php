@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Enum\GameDifficulty;
+use App\Enum\OdtMatrix;
 use App\Repository\UsersRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -89,9 +90,22 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     ])]
     private string $locale = 'fr';
 
+    #[ORM\Column(enumType: OdtMatrix::class, options: [
+        'default' => 'air',
+    ])]
+    private OdtMatrix $defaultMatrix = OdtMatrix::AIR;
+
+    /**
+     * @var Collection<int, Spices>
+     */
+    #[ORM\ManyToMany(targetEntity: Spices::class)]
+    #[ORM\JoinTable(name: 'users_excluded_spices')]
+    private Collection $excludedSpices;
+
     public function __construct()
     {
         $this->spicyMatches = new ArrayCollection();
+        $this->excludedSpices = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -313,6 +327,42 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLocale(string $locale): static
     {
         $this->locale = $locale;
+
+        return $this;
+    }
+
+    public function getDefaultMatrix(): OdtMatrix
+    {
+        return $this->defaultMatrix;
+    }
+
+    public function setDefaultMatrix(OdtMatrix $defaultMatrix): static
+    {
+        $this->defaultMatrix = $defaultMatrix;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Spices>
+     */
+    public function getExcludedSpices(): Collection
+    {
+        return $this->excludedSpices;
+    }
+
+    public function addExcludedSpice(Spices $spice): static
+    {
+        if (! $this->excludedSpices->contains($spice)) {
+            $this->excludedSpices->add($spice);
+        }
+
+        return $this;
+    }
+
+    public function removeExcludedSpice(Spices $spice): static
+    {
+        $this->excludedSpices->removeElement($spice);
 
         return $this;
     }

@@ -448,6 +448,19 @@ ui:
         compose_short: Componer
         selected: Seleccionadas
         tip_mode_html: '%count% especia(s) — modo <strong class="text-stone-500 font-semibold">%mode%</strong>'
+        excluded_manage: Gestionar
+        excluded_notice: '%count% especia excluida por tus preferencias|%count% especias excluidas por tus preferencias'
+        prefs:
+            default_matrix: Medio por defecto
+            default_matrix_hint: 'Preseleccionado en el Lab. Modificable en cada mezcla.'
+            excluded_spices: Especias excluidas
+            excluded_empty: Ninguna especia excluida — todas se proponen.
+            search_spice: Buscar una especia para excluir…
+            remove_exclusion: Quitar esta exclusión
+            no_match: Ninguna especia encontrada.
+            section_engine: Preferencias del motor
+            section_account: Mi cuenta
+            section_security: Zona sensible
     filters:
         aromatic_group: Grupo Aromático
         spice_type: Tipo de Especia
@@ -516,6 +529,21 @@ ui:
         no_progress: Ningún progreso por ahora
         no_progress_hint: ¡Crea tu primera mezcla para desbloquear tu progresión y ganar XP!
         see_all_achievements: Ver todos los logros
+        tabs:
+            aria_label: Secciones del perfil
+            dashboard: Panel
+            grimoire: Grimorio
+            history: Historial
+            lab: Laboratorio
+            history_filter: Filtro de historial
+        menu:
+            dashboard: Panel
+            grimoire: Grimorio
+            history: Mis mezclas
+            lab: Laboratorio
+            favorites: Mis favoritos
+            security: Seguridad
+            logout: Cerrar sesión
     achievements:
         unlocked_count: '%count% / %total% logros desbloqueados'
         xp_from_achievements: '+%xp% XP ganados con los logros'
@@ -531,6 +559,9 @@ ui:
     history:
         title: Historial de mezclas
         see_all: Ver todo
+        filter_all: Todos
+        filter_favorites: Favoritos
+        filter_manual: Manuales
         manual: Manual
         manual_tooltip: Mezcla creada manualmente — compatibilidad no garantizada
         none_yet: Todavía no tienes ninguna mezcla guardada.
@@ -539,6 +570,7 @@ ui:
         remove_favorite: Quitar de favoritos
         back_to_history: Volver al historial
         no_favorites: Todavía no tienes ninguna mezcla favorita.
+        no_manual: Todavía no tienes ninguna mezcla manual.
         see_my_blends: Ver mis mezclas
         subtitle: Encuentra todas tus recetas guardadas.
         see_favorites: Ver mis favoritos
@@ -550,6 +582,18 @@ ui:
             empty: Ninguna mezcla favorita por ahora.
             empty_hint: Haz clic en la estrella de una mezcla para añadirla a tus favoritos.
             see_history: Ver mi historial
+    dashboard:
+        level: 'Nivel %level%'
+        xp_to_next: '%xp% XP — faltan %toNext% XP para el siguiente nivel'
+        level_short: 'Niv. %level%'
+        stat_blends: Mezclas creadas
+        stat_spices: Especias utilizadas
+        stat_favorites: Favoritos
+        stat_sheets: Fichas consultadas
+        stat_groups: Grupos visitados
+        stat_streak: Mejor racha
+        stat_secrets: Secretos encontrados
+        latest_blends: Últimas mezclas
     error:
         title: Se produjo un error
         code: 'Código de error:'
@@ -558,7 +602,16 @@ ui:
         report: Reportar
     security:
         password: Contraseña
-        password_text: La modificación de la contraseña aún no está disponible.
+        password_text: Cambia tu contraseña a continuación.
+        password_masked: Contraseña definida
+        change_password: Cambiar la contraseña
+        current_password: Contraseña actual
+        current_password_wrong: La contraseña actual es incorrecta.
+        new_password: Nueva contraseña
+        confirm_password: Confirmar la contraseña
+        passwords_mismatch: Las contraseñas no coinciden.
+        password_changed: Contraseña actualizada.
+        coming_soon: Próximamente
         auth: Autenticación
         auth_text: Ninguna opción de doble autenticación configurada por el momento.
     catalog:

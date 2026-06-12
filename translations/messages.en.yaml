@@ -448,6 +448,19 @@ ui:
         compose_short: Compose
         selected: Selected
         tip_mode_html: '%count% spice(s) — <strong class="text-stone-500 font-semibold">%mode%</strong> mode'
+        excluded_manage: Manage
+        excluded_notice: '%count% spice excluded by your preferences|%count% spices excluded by your preferences'
+        prefs:
+            default_matrix: Default medium
+            default_matrix_hint: 'Pre-selected in the Lab. Adjustable for each blend.'
+            excluded_spices: Excluded spices
+            excluded_empty: No excluded spices — all are suggested.
+            search_spice: Search for a spice to exclude…
+            remove_exclusion: Remove this exclusion
+            no_match: No spice found.
+            section_engine: Engine preferences
+            section_account: My account
+            section_security: Sensitive area
     filters:
         aromatic_group: Aromatic Group
         spice_type: Spice Type
@@ -516,6 +529,21 @@ ui:
         no_progress: No progress yet
         no_progress_hint: Create your first blend to unlock your progression and earn XP!
         see_all_achievements: View all achievements
+        tabs:
+            aria_label: Profile sections
+            dashboard: Dashboard
+            grimoire: Grimoire
+            history: History
+            lab: Lab
+            history_filter: History filter
+        menu:
+            dashboard: Dashboard
+            grimoire: Grimoire
+            history: My blends
+            lab: Lab
+            favorites: My favorites
+            security: Security
+            logout: Log out
     achievements:
         unlocked_count: '%count% / %total% achievements unlocked'
         xp_from_achievements: '+%xp% XP earned through achievements'
@@ -531,6 +559,9 @@ ui:
     history:
         title: Blend history
         see_all: See all
+        filter_all: All
+        filter_favorites: Favorites
+        filter_manual: Manual
         manual: Manual
         manual_tooltip: Manually created blend — compatibility not guaranteed
         none_yet: You don't have any saved blend yet.
@@ -539,6 +570,7 @@ ui:
         remove_favorite: Remove from favorites
         back_to_history: Back to history
         no_favorites: You don't have any favorite blend yet.
+        no_manual: You don't have any manual blend yet.
         see_my_blends: See my blends
         subtitle: Find all your saved recipes.
         see_favorites: See my favorites
@@ -550,6 +582,18 @@ ui:
             empty: No favorite blend yet.
             empty_hint: Click the star on a blend to add it to your favorites.
             see_history: See my history
+    dashboard:
+        level: 'Level %level%'
+        xp_to_next: '%xp% XP — %toNext% XP to the next level'
+        level_short: 'Lv. %level%'
+        stat_blends: Blends created
+        stat_spices: Spices used
+        stat_favorites: Favorites
+        stat_sheets: Sheets viewed
+        stat_groups: Groups visited
+        stat_streak: Best streak
+        stat_secrets: Secrets found
+        latest_blends: Latest blends
     error:
         title: An error occurred
         code: 'Error code:'
@@ -558,7 +602,16 @@ ui:
         report: Report
     security:
         password: Password
-        password_text: Changing the password is not available yet.
+        password_text: Change your password below.
+        password_masked: Password set
+        change_password: Change password
+        current_password: Current password
+        current_password_wrong: Current password is incorrect.
+        new_password: New password
+        confirm_password: Confirm password
+        passwords_mismatch: Passwords do not match.
+        password_changed: Password updated.
+        coming_soon: Coming soon
         auth: Authentication
         auth_text: No two-factor authentication option configured yet.
     catalog:

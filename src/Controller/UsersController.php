@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Entity\UserAchievement;
 use App\Entity\Users;
 use App\Enum\GameDifficulty;
+use App\Form\ChangePasswordType;
 use App\Form\UsersMailType;
 use App\Repository\AchievementProgressRepository;
 use App\Repository\AchievementRepository;
@@ -17,9 +18,11 @@ use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -136,24 +139,6 @@ class UsersController extends AbstractController
         return $response;
     }
 
-    #[Route('/history', name: 'history_user', methods: ['GET'])]
-    public function history(Request $request, PaginatorInterface $paginator): Response
-    {
-        /** @var Users $user */
-        $user = $this->getUser();
-
-        $pagination = $paginator->paginate(
-            $this->historyRepository->findByUserQuery($user),
-            $request->query->getInt('page', 1),
-            10,
-        );
-
-        return $this->render('users/history.html.twig', [
-            'user' => 'history',
-            'pagination' => $pagination,
-        ]);
-    }
-
     #[Route('/security', name: 'security_user', methods: ['GET'])]
     public function security(): Response
     {
@@ -162,79 +147,134 @@ class UsersController extends AbstractController
         ]);
     }
 
-    #[Route('/configuration', name: 'configuration_user', methods: ['GET'])]
-    public function configuration(): Response
+    #[Route('/userMail', name: 'mail_user', methods: ['GET', 'POST'])]
+    public function userMail(Request $request): Response
     {
         /** @var Users $user */
         $user = $this->getUser();
 
-        return $this->render('users/configuration.html.twig', [
-            'user' => $user,
+        $formMail = $this->createForm(UsersMailType::class, $user, [
+            'action' => $this->generateUrl('mail_user'),
         ]);
-    }
-
-    #[Route('/userMail', name: 'mail_user', methods: ['GET', 'POST'])]
-    public function userMail(Request $request): Response
-    {
-        $user = $this->getUser();
-
-        $formMail = $this->createForm(UsersMailType::class, $user);
         $formMail->handleRequest($request);
 
         if ($formMail->isSubmitted() && $formMail->isValid()) {
-            $user = $formMail->getData();
-
             $this->usersRepository->addOrUpdate($user);
 
-            return $this->redirectToRoute('configuration_user');
+            return $this->redirectToRoute('profile_tab', [
+                'tab' => 'lab',
+            ]);
         }
 
-        return $this->render('users/_form_mail.html.twig', [
+        return $this->renderLabFragment($user, 'mail', $formMail);
+    }
+
+    #[Route('/password/change', name: 'change_password_user', methods: ['POST'])]
+    public function changePassword(
+        Request $request,
+        UserPasswordHasherInterface $hasher,
+        EntityManagerInterface $em,
+    ): Response {
+        /** @var Users $user */
+        $user = $this->getUser();
+        $form = $this->createForm(ChangePasswordType::class, null, [
+            'action' => $this->generateUrl('change_password_user'),
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $user->setPassword($hasher->hashPassword($user, (string) $form->get('plainPassword')->getData()));
+            $em->flush();
+            $this->addFlash('success', $this->translator->trans('ui.security.password_changed'));
+
+            return $this->redirectToRoute('profile_tab', [
+                'tab' => 'lab',
+            ]);
+        }
+
+        return $this->renderLabFragment($user, 'password', null, $form);
+    }
+
+    private function renderLabFragment(
+        Users $user,
+        ?string $edit,
+        ?FormInterface $mailForm = null,
+        ?FormInterface $passwordForm = null,
+    ): Response {
+        $edit = in_array($edit, ['mail', 'password'], true) ? $edit : null;
+
+        if ($edit === 'mail' && $mailForm === null) {
+            $mailForm = $this->createForm(UsersMailType::class, $user, [
+                'action' => $this->generateUrl('mail_user'),
+            ]);
+        }
+
+        if ($edit === 'password' && $passwordForm === null) {
+            $passwordForm = $this->createForm(ChangePasswordType::class, null, [
+                'action' => $this->generateUrl('change_password_user'),
+            ]);
+        }
+
+        return $this->render('users/tabs/_lab.html.twig', [
             'user' => $user,
-            'form' => $formMail,
+            'editSection' => $edit,
+            'mailForm' => $mailForm?->createView(),
+            'passwordForm' => $passwordForm?->createView(),
         ]);
     }
 
     #[Route('/profile', name: 'profile_user', methods: ['GET'])]
-    public function profile(): Response
+    public function profile(Request $request): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
-        $stats = [
-            'totalBlends' => $this->historyRepository->countByUser($user),
-            'distinctSpices' => $this->historyRepository->countDistinctSpicesByUser($user),
-            'favorites' => $this->historyRepository->countFavoritesByUser($user),
-            'spicesViewed' => $this->spiceViewRepository->countDistinctSpicesByUser($user),
-        ];
+        $tab = $request->query->getString('tab', 'dashboard');
+        if (! in_array($tab, ['dashboard', 'grimoire', 'history', 'lab'], true)) {
+            $tab = 'dashboard';
+        }
 
         return $this->render('users/profile.html.twig', [
-            'progression' => $user->getProgression(),
-            'userStats' => $user->getStats(),
-            'latestHistories' => $this->historyRepository->findByUserWithLimit($user, 3),
-            'stats' => $stats,
+            'activeTab' => $tab,
         ]);
     }
 
-    #[Route('/favorites', name: 'favorites_user', methods: ['GET'])]
-    public function favorites(): Response
+    #[Route('/profile/tab/{tab}', name: 'profile_tab', methods: ['GET'], requirements: [
+        'tab' => 'dashboard|grimoire|history|lab',
+    ])]
+    public function profileTab(string $tab, Request $request, PaginatorInterface $paginator): Response
     {
         /** @var Users $user */
         $user = $this->getUser();
 
-        return $this->render('users/favorites.html.twig', [
-            'favorites' => $this->historyRepository->findFavoritesByUser($user),
-        ]);
+        if ($tab === 'lab') {
+            return $this->renderLabFragment($user, $request->query->getString('edit') ?: null);
+        }
+
+        $data = match ($tab) {
+            'dashboard' => [
+                'progression' => $user->getProgression(),
+                'userStats' => $user->getStats(),
+                'latestHistories' => $this->historyRepository->findByUserWithLimit($user, 3),
+                'stats' => [
+                    'totalBlends' => $this->historyRepository->countByUser($user),
+                    'distinctSpices' => $this->historyRepository->countDistinctSpicesByUser($user),
+                    'favorites' => $this->historyRepository->countFavoritesByUser($user),
+                    'spicesViewed' => $this->spiceViewRepository->countDistinctSpicesByUser($user),
+                ],
+            ],
+            'grimoire' => $this->grimoireData($user),
+            'history' => $this->historyData($user, $request, $paginator),
+            default => throw $this->createNotFoundException(),
+        };
+
+        return $this->render('users/tabs/_' . $tab . '.html.twig', $data);
     }
 
-    #[Route('/achievements', name: 'achievements_user', methods: ['GET'])]
-    public function achievements(): Response
+    /**
+     * @return array<string, mixed>
+     */
+    private function grimoireData(Users $user): array
     {
-        /** @var Users $user */
-        $user = $this->getUser();
         $progression = $user->getProgression();
 
-        // Index AchievementProgress rows by achievement id — avoids N+1 lookups in Twig.
         $progressByAchievementId = [];
         foreach ($this->achievementProgressRepository->findByUser($user) as $ap) {
             $achievement = $ap->getAchievement();
@@ -243,14 +283,36 @@ class UsersController extends AbstractController
             }
         }
 
-        return $this->render('users/achievements.html.twig', [
+        return [
             'progression' => $progression,
             'allAchievements' => $this->achievementRepository->findAllOrdered(),
             'userAchievements' => $progression
                 ? $this->userAchievementRepository->findByProgressionWithAchievement($progression)
                 : [],
             'progressByAchievementId' => $progressByAchievementId,
-        ]);
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function historyData(Users $user, Request $request, PaginatorInterface $paginator): array
+    {
+        $filter = $request->query->getString('filter', 'all');
+        if (! in_array($filter, ['all', 'favorites', 'manual'], true)) {
+            $filter = 'all';
+        }
+
+        $query = match ($filter) {
+            'favorites' => $this->historyRepository->findFavoritesByUserQuery($user),
+            'manual' => $this->historyRepository->findManualByUserQuery($user),
+            default => $this->historyRepository->findByUserQuery($user),
+        };
+
+        return [
+            'pagination' => $paginator->paginate($query, $request->query->getInt('page', 1), 10),
+            'currentFilter' => $filter,
+        ];
     }
 
     #[Route('/gamification/toggle', name: 'toggle_gamification_user', methods: ['POST'])]
@@ -259,7 +321,9 @@ class UsersController extends AbstractController
         if (! $this->isCsrfTokenValid('toggle_gamification', $request->request->get('_token'))) {
             $this->addFlash('error', $this->translator->trans('flash.token_invalid'));
 
-            return $this->redirectToRoute('configuration_user');
+            return $this->redirectToRoute('profile_user', [
+                'tab' => 'lab',
+            ]);
         }
 
         /** @var Users $user */
@@ -273,14 +337,13 @@ class UsersController extends AbstractController
             $em->flush();
         }
 
-        // Server-side counter for the "alchimiste_de_l_ombre" easter egg
-        // (toggle the gamification switch 5 times in a row). Lives in session
-        // — never trusted from client payload.
         $session = $request->getSession();
         $count = (int) $session->get('easter_egg.alchimiste_count', 0);
         $session->set('easter_egg.alchimiste_count', $count + 1);
 
-        return $this->redirectToRoute('configuration_user');
+        return $this->redirectToRoute('profile_tab', [
+            'tab' => 'lab',
+        ]);
     }
 
     #[Route('/difficulty/update', name: 'update_difficulty_user', methods: ['POST'])]
@@ -289,7 +352,9 @@ class UsersController extends AbstractController
         if (! $this->isCsrfTokenValid('update_difficulty', $request->request->get('_token'))) {
             $this->addFlash('error', $this->translator->trans('flash.token_invalid'));
 
-            return $this->redirectToRoute('configuration_user');
+            return $this->redirectToRoute('profile_user', [
+                'tab' => 'lab',
+            ]);
         }
 
         $difficulty = GameDifficulty::tryFrom($request->request->getString('difficulty'));
@@ -297,7 +362,9 @@ class UsersController extends AbstractController
         if ($difficulty === null) {
             $this->addFlash('error', $this->translator->trans('flash.difficulty_invalid'));
 
-            return $this->redirectToRoute('configuration_user');
+            return $this->redirectToRoute('profile_user', [
+                'tab' => 'lab',
+            ]);
         }
 
         /** @var Users $user */
@@ -307,7 +374,9 @@ class UsersController extends AbstractController
 
         $this->addFlash('success', $this->translator->trans('flash.posture_updated'));
 
-        return $this->redirectToRoute('configuration_user');
+        return $this->redirectToRoute('profile_tab', [
+            'tab' => 'lab',
+        ]);
     }
 
     #[Route('/badge/equip/{id}', name: 'equip_badge_user', methods: ['POST'])]
@@ -320,7 +389,9 @@ class UsersController extends AbstractController
         if (! $this->isCsrfTokenValid('equip_badge_' . $ua->getId(), $request->request->get('_token'))) {
             $this->addFlash('error', $this->translator->trans('flash.token_invalid'));
 
-            return $this->redirectToRoute('achievements_user');
+            return $this->redirectToRoute('profile_user', [
+                'tab' => 'grimoire',
+            ]);
         }
 
         if ($progression === null || $ua->getUserProgression() !== $progression) {
@@ -330,7 +401,9 @@ class UsersController extends AbstractController
         $progression->equipBadge($ua);
         $em->flush();
 
-        return $this->redirectToRoute('achievements_user');
+        return $this->redirectToRoute('profile_user', [
+            'tab' => 'grimoire',
+        ]);
     }
 
     #[Route('/{id}', name: 'delete_user', methods: ['POST'])]

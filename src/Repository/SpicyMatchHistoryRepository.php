@@ -66,6 +66,15 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
      */
     public function findFavoritesByUser(Users $user): array
     {
+        return $this->findFavoritesByUserQuery($user)
+            ->getResult();
+    }
+
+    /**
+     * @return \Doctrine\ORM\Query<null, mixed>
+     */
+    public function findFavoritesByUserQuery(Users $user): \Doctrine\ORM\Query
+    {
         return $this->createQueryBuilder('smh')
             ->join('smh.spicyMatch', 'sm')
             ->where('sm.user = :user')
@@ -73,8 +82,22 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
             ->andWhere('smh.deletedAt IS NULL')
             ->setParameter('user', $user)
             ->orderBy('smh.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->getQuery();
+    }
+
+    /**
+     * @return \Doctrine\ORM\Query<null, mixed>
+     */
+    public function findManualByUserQuery(Users $user): \Doctrine\ORM\Query
+    {
+        return $this->createQueryBuilder('smh')
+            ->join('smh.spicyMatch', 'sm')
+            ->where('sm.user = :user')
+            ->andWhere('sm.isManual = true')
+            ->andWhere('smh.deletedAt IS NULL')
+            ->setParameter('user', $user)
+            ->orderBy('smh.createdAt', 'DESC')
+            ->getQuery();
     }
 
     public function countFavoritesByUser(Users $user): int

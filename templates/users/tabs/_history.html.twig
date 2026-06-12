@@ -1,8 +1,18 @@
-{% extends 'users/dashboard.html.twig' %}
-
-{% block content %}
-    <turbo-frame id="user_frame_id">
-        {% include 'components/_user_tabs.html.twig' %}
+<turbo-frame id="frame-history">
+    <div class="mt-6 flex flex-wrap items-center gap-2" role="group" aria-label="{{ 'ui.profile.tabs.history_filter'|trans }}">
+        {% set _filters = [
+            { key: 'all',       label: 'ui.history.filter_all'|trans,       icon: null,              active: 'bg-saffron-600 text-white' },
+            { key: 'favorites', label: 'ui.history.filter_favorites'|trans, icon: 'fa-solid fa-star', active: 'bg-turmeric-500 text-white' },
+            { key: 'manual',    label: 'ui.history.filter_manual'|trans,    icon: 'fa-solid fa-hand', active: 'bg-stone-600 text-white' },
+        ] %}
+        {% for f in _filters %}
+            <a href="{{ path('profile_tab', {tab: 'history', filter: f.key}) }}"
+               data-turbo-frame="frame-history"
+               class="px-3 py-1.5 rounded-full text-sm font-medium transition-colors {{ currentFilter == f.key ? f.active : 'bg-stone-100 text-stone-600 hover:bg-stone-200' }}">
+                {% if f.icon %}<i class="{{ f.icon }} text-xs mr-1" aria-hidden="true"></i>{% endif %}{{ f.label }}
+            </a>
+        {% endfor %}
+    </div>
 
         <div class="mt-6">
             <div class="flex justify-between items-center mb-6">
@@ -49,12 +59,21 @@
                     {% endfor %}
                 </div>
 
-                {# Pagination #}
                 {% if pagination.pageCount > 1 %}
                     <div class="mt-8 flex justify-center">
                         {{ knp_pagination_render(pagination) }}
                     </div>
                 {% endif %}
+            {% elseif currentFilter == 'favorites' %}
+                <div class="card-warm p-10 text-center">
+                    <i class="fa-solid fa-star text-stone-300 text-5xl mb-4 block" aria-hidden="true"></i>
+                    <p class="text-stone-500 text-lg">{{ 'ui.history.no_favorites'|trans }}</p>
+                </div>
+            {% elseif currentFilter == 'manual' %}
+                <div class="card-warm p-10 text-center">
+                    <i class="fa-solid fa-hand text-stone-300 text-5xl mb-4 block" aria-hidden="true"></i>
+                    <p class="text-stone-500 text-lg">{{ 'ui.history.no_manual'|trans }}</p>
+                </div>
             {% else %}
                 <div class="card-warm p-10 text-center">
                     <i class="fa-solid fa-flask text-stone-300 text-5xl mb-4 block" aria-hidden="true"></i>
@@ -68,5 +87,4 @@
                 </div>
             {% endif %}
         </div>
-    </turbo-frame>
-{% endblock %}
+</turbo-frame>

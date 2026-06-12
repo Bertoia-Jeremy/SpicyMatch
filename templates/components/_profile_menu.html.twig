@@ -1,0 +1,67 @@
+{% set _prog = app.user.progression %}
+{% set _badge = _prog ? _prog.equippedBadge : null %}
+{% if _prog %}
+    {% set _lvl = _prog.level %}
+    {% set _grade = _lvl < 20 ? 'ui.grade.commis'|trans : (_lvl < 50 ? 'ui.grade.chef_partie'|trans : (_lvl < 80 ? 'ui.grade.saucier'|trans : 'ui.grade.chef_executif'|trans)) %}
+{% endif %}
+{% set _items = [
+    { tab: 'dashboard', label: 'ui.profile.menu.dashboard'|trans, icon: 'fa-solid fa-gauge-high' },
+    { tab: 'grimoire',  label: 'ui.profile.menu.grimoire'|trans,  icon: 'fa-solid fa-book-open' },
+    { tab: 'history',   label: 'ui.profile.menu.history'|trans,   icon: 'fa-solid fa-clock-rotate-left' },
+    { tab: 'lab',       label: 'ui.profile.menu.lab'|trans,       icon: 'fa-solid fa-flask' },
+] %}
+
+<div class="relative" x-data="{ profileOpen: false }" @keydown.escape.window="profileOpen = false">
+    <button type="button"
+            @click="profileOpen = !profileOpen"
+            aria-haspopup="true"
+            :aria-expanded="profileOpen.toString()"
+            class="flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-full border cursor-pointer transition-colors"
+            style="border-color: rgba(184,134,74,0.4); background: rgba(255,250,235,0.6);">
+        {% include 'components/_avatar.html.twig' with {sizeClass: 'w-8 h-8 text-sm', equippedBadge: _badge} %}
+        <div class="flex flex-col leading-none min-w-0 text-left">
+            <span class="font-display text-[15px] font-medium truncate max-w-[110px]" style="color: var(--color-ink-deep)">{{ app.user.username }}</span>
+            {% if _prog %}
+                <span class="font-display italic text-[11px]" style="color: var(--color-paprika-700)">{{ _grade }} · {{ 'ui.dashboard.level_short'|trans({'%level%': _lvl}) }}</span>
+                <div class="rounded-full mt-1 overflow-hidden" style="width: 90px; height: 3px; background: rgba(184,134,74,0.2);"
+                     title="{{ 'ui.dashboard.xp_to_next'|trans({'%xp%': _prog.xp, '%toNext%': _prog.xpToNextLevel}) }}">
+                    <div class="h-full rounded-full bg-linear-to-r from-turmeric-400 to-saffron-600 transition-all" style="width: {{ _prog.progressPercent }}%"></div>
+                </div>
+            {% endif %}
+        </div>
+        <i class="fa-solid fa-chevron-down text-[10px] ml-0.5 shrink-0" style="color: var(--color-copper-text)" aria-hidden="true"></i>
+    </button>
+
+    <div x-show="profileOpen" x-cloak
+         @click.outside="profileOpen = false"
+         x-transition:enter="transition ease-out duration-150"
+         x-transition:enter-start="opacity-0 -translate-y-1"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-100"
+         x-transition:leave-start="opacity-100 translate-y-0"
+         x-transition:leave-end="opacity-0 -translate-y-1"
+         class="absolute right-0 mt-2 w-56 rounded-xl border shadow-lg py-2 z-[60]"
+         style="background: var(--color-parchment); border-color: rgba(184,134,74,0.3);"
+         role="menu">
+        {% for item in _items %}
+            <a href="{{ path('profile_user', {tab: item.tab}) }}" role="menuitem"
+               class="flex items-center gap-2.5 px-4 py-2 text-sm transition-colors hover:bg-[rgba(184,134,74,0.1)]"
+               style="color: var(--color-ink-deep)">
+                <i class="{{ item.icon }} text-xs w-4" style="color: var(--color-copper-text)" aria-hidden="true"></i>{{ item.label }}
+            </a>
+        {% endfor %}
+        <div class="my-1.5 h-px" style="background: rgba(184,134,74,0.2)"></div>
+        <a href="{{ path('profile_user', {tab: 'history', filter: 'favorites'}) }}" role="menuitem"
+           class="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-[rgba(184,134,74,0.1)]" style="color: var(--color-ink-deep)">
+            <i class="fa-solid fa-star text-xs w-4" style="color: var(--color-copper-text)" aria-hidden="true"></i>{{ 'ui.profile.menu.favorites'|trans }}
+        </a>
+        <a href="{{ path('profile_user', {tab: 'lab'}) }}" role="menuitem"
+           class="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-[rgba(184,134,74,0.1)]" style="color: var(--color-ink-deep)">
+            <i class="fa-solid fa-shield-halved text-xs w-4" style="color: var(--color-copper-text)" aria-hidden="true"></i>{{ 'ui.profile.menu.security'|trans }}
+        </a>
+        <a href="{{ path('app_logout') }}" role="menuitem"
+           class="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-[rgba(184,134,74,0.1)]" style="color: var(--color-paprika-700)">
+            <i class="fa-solid fa-arrow-right-from-bracket text-xs w-4" aria-hidden="true"></i>{{ 'ui.profile.menu.logout'|trans }}
+        </a>
+    </div>
+</div>

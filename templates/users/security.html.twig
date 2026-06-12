@@ -1,8 +1,9 @@
 {% extends 'users/dashboard.html.twig' %}
 
 {% block content %}
-    <turbo-frame id="user_frame_id">
-        {% include 'components/_user_tabs.html.twig' %}
+        <div class="mt-6">
+            <twig:Button label="{{ 'ui.config.back'|trans }}" href="{{ path('profile_user', {tab: 'lab'}) }}" variant="back" size="sm" />
+        </div>
 
         <div class="mt-6 space-y-4">
             <div class="card-warm p-5">
@@ -18,5 +19,4 @@
                 <p class="text-stone-500 text-sm">{{ 'ui.security.auth_text'|trans }}</p>
             </div>
         </div>
-    </turbo-frame>
 {% endblock %}

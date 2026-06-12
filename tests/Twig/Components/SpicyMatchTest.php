@@ -18,6 +18,8 @@ use App\ValueObject\Match\MortarIds;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 #[AllowMockObjectsWithoutExpectations]
 class SpicyMatchTest extends TestCase
@@ -94,7 +96,7 @@ class SpicyMatchTest extends TestCase
 
     private function makeComponent(): SpicyMatch
     {
-        return new SpicyMatch(
+        $component = new SpicyMatch(
             $this->spicesRepo,
             $this->compatibleSpiceFinder,
             $this->aromaticGroupsRepo,
@@ -103,6 +105,27 @@ class SpicyMatchTest extends TestCase
             $this->confidenceAssessor,
             $this->spiceActiveCompoundRepo,
         );
+
+        $component->setContainer($this->makeAnonymousContainer());
+
+        return $component;
+    }
+
+    private function makeAnonymousContainer(): ContainerInterface
+    {
+        $tokenStorage = $this->createMock(TokenStorageInterface::class);
+        $tokenStorage->method('getToken')
+            ->willReturn(null);
+
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('has')
+            ->with('security.token_storage')
+            ->willReturn(true);
+        $container->method('get')
+            ->with('security.token_storage')
+            ->willReturn($tokenStorage);
+
+        return $container;
     }
 
     public function testModeDefaultsToAuto(): void

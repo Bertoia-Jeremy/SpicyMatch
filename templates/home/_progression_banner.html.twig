@@ -46,7 +46,7 @@
                 {% if nextAchievementProgress %}
                     {% set ap = nextAchievementProgress %}
                     {% set apPct = (ap.progress / ap.achievement.triggerValue * 100)|round(0) %}
-                    <a href="{{ path('achievements_user') }}"
+                    <a href="{{ path('profile_user', {tab: 'grimoire'}) }}"
                        class="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-white/80 border border-saffron-200 rounded-full hover:bg-saffron-50 transition-colors group">
                         <i class="{{ ap.achievement.icon }} text-saffron-500 text-xs"></i>
                         <span class="text-xs text-stone-600 group-hover:text-saffron-700 font-medium truncate max-w-40">

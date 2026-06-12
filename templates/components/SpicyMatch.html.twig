@@ -288,6 +288,17 @@
                  visuel immédiat (50–100 ms) pendant que le serveur recalcule les scores. ── #}
             <form data-model="spices" data-loading="addClass(opacity-60)">
                 <h2 class="sr-only">{{ 'ui.lab.spices_count'|trans({'%count%': compatibleSpices|length}) }}</h2>
+                {% if this.excludedSpiceCount > 0 %}
+                    <div class="mb-4 flex items-center justify-between gap-3 rounded-lg bg-saffron-50 border border-spice-border px-4 py-2.5 text-sm">
+                        <span class="text-stone-600">
+                            <i class="fa-solid fa-filter text-saffron-600 mr-1.5" aria-hidden="true"></i>
+                            {{ 'ui.lab.excluded_notice'|trans({'%count%': this.excludedSpiceCount}) }}
+                        </span>
+                        <a href="{{ path('profile_user', {tab: 'lab'}) }}" class="text-saffron-700 hover:text-saffron-600 font-medium underline shrink-0">
+                            {{ 'ui.lab.excluded_manage'|trans }}
+                        </a>
+                    </div>
+                {% endif %}
                 {% if compatibleSpices is not empty %}
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 transition-opacity duration-150">
                         {% for spice in compatibleSpices %}

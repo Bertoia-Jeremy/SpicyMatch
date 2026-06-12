@@ -448,6 +448,19 @@ ui:
         compose_short: Composer
         selected: Sélectionnées
         tip_mode_html: '%count% épice(s) — mode <strong class="text-stone-500 font-semibold">%mode%</strong>'
+        excluded_manage: Gérer
+        excluded_notice: '%count% épice exclue par tes préférences|%count% épices exclues par tes préférences'
+        prefs:
+            default_matrix: Milieu par défaut
+            default_matrix_hint: 'Pré-sélectionné dans le Lab. Modifiable à chaque mélange.'
+            excluded_spices: Épices exclues
+            excluded_empty: Aucune épice exclue — toutes sont proposées.
+            search_spice: Rechercher une épice à exclure…
+            remove_exclusion: Retirer cette exclusion
+            no_match: Aucune épice trouvée.
+            section_engine: Préférences du moteur
+            section_account: Mon compte
+            section_security: Zone sensible
     filters:
         aromatic_group: Groupe Aromatique
         spice_type: Type d'Épice
@@ -516,6 +529,21 @@ ui:
         no_progress: Aucune progression pour l'instant
         no_progress_hint: Créez votre premier mélange pour débloquer votre progression et gagner de l'XP !
         see_all_achievements: Voir tous les succès
+        tabs:
+            aria_label: Sections du profil
+            dashboard: Tableau de bord
+            grimoire: Grimoire
+            history: Historique
+            lab: Laboratoire
+            history_filter: Filtre historique
+        menu:
+            dashboard: Tableau de bord
+            grimoire: Grimoire
+            history: Mes mélanges
+            lab: Laboratoire
+            favorites: Mes favoris
+            security: Sécurité
+            logout: Déconnexion
     achievements:
         unlocked_count: '%count% / %total% succès débloqués'
         xp_from_achievements: '+%xp% XP gagnés via les succès'
@@ -531,6 +559,9 @@ ui:
     history:
         title: Historique des mélanges
         see_all: Tout voir
+        filter_all: Tous
+        filter_favorites: Favoris
+        filter_manual: Manuels
         manual: Manuel
         manual_tooltip: Mélange créé manuellement — compatibilité non garantie
         none_yet: Vous n'avez pas encore de mélange sauvegardé.
@@ -539,6 +570,7 @@ ui:
         remove_favorite: Retirer des favoris
         back_to_history: Retour à l'historique
         no_favorites: Vous n'avez pas encore de mélange favori.
+        no_manual: Vous n'avez pas encore de mélange manuel.
         see_my_blends: Voir mes mélanges
         subtitle: Retrouvez toutes vos recettes sauvegardées.
         see_favorites: Voir mes favoris
@@ -550,6 +582,18 @@ ui:
             empty: Aucun mélange favori pour l'instant.
             empty_hint: Cliquez sur l'étoile d'un mélange pour l'ajouter à vos favoris.
             see_history: Voir mon historique
+    dashboard:
+        level: 'Niveau %level%'
+        xp_to_next: '%xp% XP — encore %toNext% XP pour le niveau suivant'
+        level_short: 'Niv. %level%'
+        stat_blends: Mélanges créés
+        stat_spices: Épices utilisées
+        stat_favorites: Favoris
+        stat_sheets: Fiches consultées
+        stat_groups: Groupes visités
+        stat_streak: Meilleur streak
+        stat_secrets: Secrets trouvés
+        latest_blends: Derniers mélanges
     error:
         title: Une erreur est survenue
         code: 'Code d''erreur :'
@@ -558,7 +602,16 @@ ui:
         report: Signaler
     security:
         password: Mot de passe
-        password_text: La modification du mot de passe n'est pas encore disponible.
+        password_text: Modifie ton mot de passe ci-dessous.
+        password_masked: Mot de passe défini
+        change_password: Changer le mot de passe
+        current_password: Mot de passe actuel
+        current_password_wrong: Mot de passe actuel incorrect.
+        new_password: Nouveau mot de passe
+        confirm_password: Confirmer le mot de passe
+        passwords_mismatch: Les mots de passe ne correspondent pas.
+        password_changed: Mot de passe mis à jour.
+        coming_soon: Bientôt disponible
         auth: Authentification
         auth_text: Aucune option de double authentification configurée pour le moment.
     catalog:

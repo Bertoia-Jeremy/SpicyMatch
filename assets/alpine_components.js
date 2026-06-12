@@ -1108,6 +1108,32 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
+    Alpine.data('profileTabs', (initial) => ({
+        tabs: ['dashboard', 'grimoire', 'history', 'lab'],
+        tab: initial,
+        init() {
+            if (!this.tabs.includes(this.tab)) {
+                this.tab = 'dashboard';
+            }
+            window.addEventListener('popstate', () => {
+                const t = new URL(window.location).searchParams.get('tab');
+                this.tab = this.tabs.includes(t) ? t : 'dashboard';
+            });
+        },
+        go(t) {
+            if (!this.tabs.includes(t) || t === this.tab) {
+                return;
+            }
+            this.tab = t;
+            const url = new URL(window.location);
+            url.searchParams.set('tab', t);
+            history.pushState({ tab: t }, '', url);
+        },
+        isActive(t) {
+            return this.tab === t;
+        },
+    }));
+
     /* ─── Homepage — Toile des Arômes (système solaire moléculaire) ────
        Les données (noms/badges/descriptions traduits + géométrie) sont
        fournies par le template via data-molecules (JSON), pour garder ce

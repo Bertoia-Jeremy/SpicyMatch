@@ -138,18 +138,8 @@
             {% if is_granted('ROLE_USER') and app.user.progression %}
 
                 {# Desktop : grade chip complet #}
-                <div class="hidden lg:flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-full border"
-                     style="border-color: rgba(184,134,74,0.4); background: rgba(255,250,235,0.6);">
-                    {{ _self.herbierLogo('size-8') }}
-                    <div class="flex flex-col leading-none min-w-0">
-                        <span class="font-display text-[15px] font-medium truncate max-w-[100px]"
-                              style="color: var(--color-ink-deep)">{{ app.user.username }}</span>
-                        <span class="font-display italic text-[11px]"
-                              style="color: var(--color-paprika-700)">{{ _grade }}</span>
-                        <div class="rounded-full mt-1 overflow-hidden" style="width: 80px; height: 2px; background: rgba(184,134,74,0.2);">
-                            <div class="gauge-bar h-full rounded-full" style="width: {{ _gaugePct }}%"></div>
-                        </div>
-                    </div>
+                <div class="hidden lg:block">
+                    {% include 'components/_profile_menu.html.twig' %}
                 </div>
 
             {% elseif is_granted('ROLE_USER') %}
@@ -335,7 +325,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="{{ path('history_user') }}" @click="close()"
+                            <a href="{{ path('profile_user', {tab: 'history'}) }}" @click="close()"
                                class="pole-item items-baseline justify-between">
                                 <div>
                                     <div class="pole-name font-display text-[24px] font-medium"
@@ -348,7 +338,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="{{ path('configuration_user') }}" @click="close()"
+                            <a href="{{ path('profile_user', {tab: 'lab'}) }}" @click="close()"
                                class="pole-item items-baseline justify-between">
                                 <div>
                                     <div class="pole-name font-display text-[24px] font-medium"
@@ -551,28 +541,37 @@
                 {% if is_granted('ROLE_USER') %}
                     <ul class="space-y-3">
                         <li>
-                            <a href="{{ path('profile_user') }}" @click="mobileClose()"
+                            <a href="{{ path('profile_user', {tab: 'dashboard'}) }}" @click="mobileClose()"
                                class="pole-item items-baseline justify-between">
                                 <div class="pole-name font-display text-[20px] font-medium"
-                                     style="color: var(--color-ink-deep)">{{ 'ui.common.my_profile'|trans }}</div>
+                                     style="color: var(--color-ink-deep)">{{ 'ui.profile.menu.dashboard'|trans }}</div>
                                 <span class="pole-arrow font-display text-[14px] ml-3"
                                       style="color: rgba(184,134,74,0.7)">→</span>
                             </a>
                         </li>
                         <li>
-                            <a href="{{ path('history_user') }}" @click="mobileClose()"
+                            <a href="{{ path('profile_user', {tab: 'grimoire'}) }}" @click="mobileClose()"
                                class="pole-item items-baseline justify-between">
                                 <div class="pole-name font-display text-[20px] font-medium"
-                                     style="color: var(--color-ink-deep)">{{ 'ui.common.my_blends'|trans }}</div>
+                                     style="color: var(--color-ink-deep)">{{ 'ui.profile.menu.grimoire'|trans }}</div>
                                 <span class="pole-arrow font-display text-[14px] ml-3"
                                       style="color: rgba(184,134,74,0.7)">→</span>
                             </a>
                         </li>
                         <li>
-                            <a href="{{ path('configuration_user') }}" @click="mobileClose()"
+                            <a href="{{ path('profile_user', {tab: 'history'}) }}" @click="mobileClose()"
                                class="pole-item items-baseline justify-between">
                                 <div class="pole-name font-display text-[20px] font-medium"
-                                     style="color: var(--color-ink-deep)">{{ 'ui.common.configuration'|trans }}</div>
+                                     style="color: var(--color-ink-deep)">{{ 'ui.profile.menu.history'|trans }}</div>
+                                <span class="pole-arrow font-display text-[14px] ml-3"
+                                      style="color: rgba(184,134,74,0.7)">→</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ path('profile_user', {tab: 'lab'}) }}" @click="mobileClose()"
+                               class="pole-item items-baseline justify-between">
+                                <div class="pole-name font-display text-[20px] font-medium"
+                                     style="color: var(--color-ink-deep)">{{ 'ui.profile.menu.lab'|trans }}</div>
                                 <span class="pole-arrow font-display text-[14px] ml-3"
                                       style="color: rgba(184,134,74,0.7)">→</span>
                             </a>

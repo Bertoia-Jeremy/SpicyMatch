@@ -1,0 +1,139 @@
+<turbo-frame id="frame-dashboard">
+    <div class="p-4">
+        {% if progression %}
+            {% set lvl = progression.level %}
+            {% set pct = progression.progressPercent %}
+
+            <div class="mb-6 p-4 bg-linear-to-r from-turmeric-50 to-saffron-50 border border-saffron-200 rounded-xl">
+                <div class="flex items-center justify-between mb-1">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-star text-turmeric-500 text-lg" aria-hidden="true"></i>
+                        <span class="text-2xl font-bold text-saffron-700">{{ 'ui.dashboard.level'|trans({'%level%': lvl}) }}</span>
+                    </div>
+                    {% if progression.equippedBadge %}
+                        <div class="flex items-center gap-1.5 text-xs text-stone-500">
+                            <i class="{{ progression.equippedBadge.achievement.icon }} text-saffron-500"></i>
+                            <span class="font-medium text-stone-700">{{ progression.equippedBadge.achievement.name }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="text-sm text-stone-500 mb-2">{{ 'ui.dashboard.xp_to_next'|trans({'%xp%': progression.xp, '%toNext%': progression.xpToNextLevel}) }}</div>
+                <div class="w-full bg-saffron-100 rounded-full h-2.5 overflow-hidden">
+                    <div class="h-2.5 rounded-full bg-linear-to-r from-turmeric-400 to-saffron-600 transition-all" style="width: {{ pct }}%"></div>
+                </div>
+                <div class="flex justify-between text-[10px] text-stone-400 mt-1">
+                    <span>{{ 'ui.dashboard.level_short'|trans({'%level%': lvl}) }}</span>
+                    <span>{{ pct }}%</span>
+                    <span>{{ 'ui.dashboard.level_short'|trans({'%level%': lvl + 1}) }}</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <div class="text-center p-3 bg-spice-surface border border-spice-border rounded-xl">
+                    <div class="text-2xl font-bold text-saffron-700">{{ stats.totalBlends }}</div>
+                    <div class="text-xs text-stone-500 mt-1 flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-flask text-saffron-400 text-[10px]" aria-hidden="true"></i>{{ 'ui.dashboard.stat_blends'|trans }}
+                    </div>
+                </div>
+                <div class="text-center p-3 bg-spice-surface border border-spice-border rounded-xl">
+                    <div class="text-2xl font-bold text-saffron-700">{{ stats.distinctSpices }}</div>
+                    <div class="text-xs text-stone-500 mt-1 flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-seedling text-saffron-400 text-[10px]" aria-hidden="true"></i>{{ 'ui.dashboard.stat_spices'|trans }}
+                    </div>
+                </div>
+                <div class="text-center p-3 bg-spice-surface border border-spice-border rounded-xl">
+                    <div class="text-2xl font-bold text-turmeric-600">{{ stats.favorites }}</div>
+                    <div class="text-xs text-stone-500 mt-1 flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-star text-turmeric-400 text-[10px]" aria-hidden="true"></i>{{ 'ui.dashboard.stat_favorites'|trans }}
+                    </div>
+                </div>
+                <div class="text-center p-3 bg-spice-surface border border-spice-border rounded-xl">
+                    <div class="text-2xl font-bold text-turmeric-600">{{ stats.spicesViewed }}</div>
+                    <div class="text-xs text-stone-500 mt-1 flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-book-open text-turmeric-400 text-[10px]" aria-hidden="true"></i>{{ 'ui.dashboard.stat_sheets'|trans }}
+                    </div>
+                </div>
+            </div>
+
+            {% if userStats %}
+                <div class="grid grid-cols-3 gap-3 mb-6">
+                    <div class="text-center p-3 bg-stone-50 border border-stone-200 rounded-xl">
+                        <div class="text-xl font-bold text-stone-700">{{ userStats.visitedGroupsCount }}</div>
+                        <div class="text-[10px] text-stone-500 mt-1">
+                            <i class="fa-solid fa-layer-group text-saffron-400" aria-hidden="true"></i> {{ 'ui.dashboard.stat_groups'|trans }}
+                        </div>
+                    </div>
+                    <div class="text-center p-3 bg-stone-50 border border-stone-200 rounded-xl">
+                        <div class="text-xl font-bold text-stone-700">{{ progression.longestReadingStreak }}</div>
+                        <div class="text-[10px] text-stone-500 mt-1">
+                            <i class="fa-solid fa-fire text-paprika-400" aria-hidden="true"></i> {{ 'ui.dashboard.stat_streak'|trans }}
+                        </div>
+                    </div>
+                    <div class="text-center p-3 bg-stone-50 border border-stone-200 rounded-xl">
+                        <div class="text-xl font-bold text-stone-700">{{ userStats.easterEggsFound }}</div>
+                        <div class="text-[10px] text-stone-500 mt-1">
+                            <i class="fa-solid fa-egg text-turmeric-400" aria-hidden="true"></i> {{ 'ui.dashboard.stat_secrets'|trans }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="mt-8">
+                <h2 class="text-lg font-semibold text-stone-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-saffron-600 text-base" aria-hidden="true"></i>{{ 'ui.dashboard.latest_blends'|trans }}
+                </h2>
+                {% if latestHistories is not empty %}
+                    {% import "components/_macro_card_spicy_match_history.html.twig" as macroCardSpicyMatchHistory %}
+                    <div class="space-y-3">
+                        {% for history in latestHistories %}
+                            <a class="block bg-stone-50/50 border border-stone-200 rounded-xl hover:shadow-md hover:border-saffron-400/50 transition-all p-4"
+                               href="{{ path('view_spicy_match_history', {'id': history.id}) }}"
+                               data-turbo-frame="_top">
+                                <div class="flex justify-between items-center gap-4">
+                                    <div class="flex-1 min-w-0">
+                                        <h3 class="text-sm font-semibold text-stone-800 truncate mb-2">
+                                            {{ history.title ?: 'ui.common.blend_of'|trans({'%date%': history.createdAt|format_date('medium')}) }}
+                                        </h3>
+                                        <div class="flex flex-wrap gap-1 items-center">
+                                            {% for spice in history.spicyMatch.spices %}
+                                                {% set spiceLocName = spice.getLocalizedName(app.request.locale) %}
+                                                <div class="w-8 h-8 rounded-lg overflow-hidden border border-white shadow-sm" title="{{ spiceLocName }}">
+                                                    {% set spiceImg = vich_uploader_asset(spice, 'imageFile') %}
+                                                    <img src="{{ spiceImg ?: 'https://loremflickr.com/100/100/spice' }}" alt="{{ spiceLocName }}" class="w-full h-full object-cover">
+                                                </div>
+                                            {% endfor %}
+                                            {% if history.spicyMatch.isManual %}
+                                                <span class="inline-flex items-center gap-1 text-[10px] font-medium text-stone-500 bg-stone-100 border border-stone-200 px-1.5 py-0.5 rounded-full" title="{{ 'ui.history.manual'|trans }}">
+                                                    <i class="fa-solid fa-hand text-[8px]" aria-hidden="true"></i>{{ 'ui.history.manual'|trans }}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right text-stone-300 text-xs" aria-hidden="true"></i>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="card-warm p-6 text-center">
+                        <p class="text-stone-400 text-sm">{{ 'ui.profile.no_recent_blend'|trans }}</p>
+                    </div>
+                {% endif %}
+            </div>
+
+        {% else %}
+            <div class="text-center text-stone-500 py-12">
+                <i class="fa-solid fa-flask text-5xl text-stone-300 mb-4 block" aria-hidden="true"></i>
+                <p class="text-lg font-medium">{{ 'ui.profile.no_progress'|trans }}</p>
+                <p class="text-sm mt-1">{{ 'ui.profile.no_progress_hint'|trans }}</p>
+                <twig:Button
+                    label="{{ 'ui.history.create_first'|trans }}"
+                    href="{{ path('index_spicy_match') }}"
+                    variant="primary"
+                    icon="fa-solid fa-flask text-sm"
+                    data-haptic="medium"
+                />
+            </div>
+        {% endif %}
+    </div>
+</turbo-frame>

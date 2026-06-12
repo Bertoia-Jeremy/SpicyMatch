@@ -125,17 +125,21 @@
                 </h2>
                 {% if is_granted('ROLE_USER') %}
                     <ul class="space-y-4 list-none p-0">
-                        <li><a href="{{ path('profile_user') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
+                        <li><a href="{{ path('profile_user', {tab: 'dashboard'}) }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
                             <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                            {{ 'ui.common.my_profile'|trans }}
+                            {{ 'ui.profile.menu.dashboard'|trans }}
                         </a></li>
-                        <li><a href="{{ path('history_user') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
+                        <li><a href="{{ path('profile_user', {tab: 'grimoire'}) }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
                             <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                            {{ 'ui.common.my_blends'|trans }}
+                            {{ 'ui.profile.menu.grimoire'|trans }}
                         </a></li>
-                        <li><a href="{{ path('configuration_user') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
+                        <li><a href="{{ path('profile_user', {tab: 'history'}) }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
                             <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                            {{ 'ui.common.configuration'|trans }}
+                            {{ 'ui.profile.menu.history'|trans }}
+                        </a></li>
+                        <li><a href="{{ path('profile_user', {tab: 'lab'}) }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
+                            <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
+                            {{ 'ui.profile.menu.lab'|trans }}
                         </a></li>
                         <li><a href="{{ path('app_logout') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
                             <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>

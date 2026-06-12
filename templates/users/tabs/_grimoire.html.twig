@@ -1,20 +1,12 @@
-{% extends 'users/dashboard.html.twig' %}
-
-{% block content %}
-<turbo-frame id="user_frame_id">
-
-    {% include 'components/_user_tabs.html.twig' %}
-
+<turbo-frame id="frame-grimoire">
     <div class="p-4">
         {% if progression %}
 
-            {# ── Construire le lookup slug → UserAchievement ─────────────── #}
             {% set unlockedMap = {} %}
             {% for ua in userAchievements %}
                 {% set unlockedMap = unlockedMap|merge({ (ua.achievement.slug): ua }) %}
             {% endfor %}
 
-            {# ── Stats globales ──────────────────────────────────────────── #}
             {% set unlockedCount = userAchievements|length %}
             {% set totalCount = allAchievements|length %}
             {% set xpFromAchievements = 0 %}
@@ -44,7 +36,6 @@
                 </div>
             </div>
 
-            {# ── Grille achievements ──────────────────────────────────────── #}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {% for achievement in allAchievements %}
                     {% set rarity = achievement.rarity.value %}
@@ -53,8 +44,6 @@
                     {% set isUnlocked = unlockedMap[achievement.slug] is defined %}
                     {% set ua = isUnlocked ? unlockedMap[achievement.slug] : null %}
 
-                    {# Generic progress lookup — driven by AchievementProgress rows persisted
-                       by the gamification manager (ProgressTrackableEvaluator::currentValue). #}
                     {% set progressCurrent = 0 %}
                     {% set progressMax = achievement.triggerValue %}
                     {% set progressLabel = 'ui.achievements.not_started'|trans %}
@@ -77,7 +66,6 @@
                          style="{% if isUnlocked and not isEquipped %}border-color: {{ rarityColors.ring }}50; background-color: {{ rarityColors.bg }}40;{% else %}background-color: white;{% endif %}"
                          x-data="equipButton">
 
-                        {# Indicateur en haut à droite #}
                         <div class="absolute top-3 right-3">
                             {% if isUnlocked %}
                                 <i class="fa-solid fa-circle-check text-turmeric-500 text-sm" aria-hidden="true"></i>
@@ -86,7 +74,6 @@
                             {% endif %}
                         </div>
 
-                        {# Icône centrée dans un cercle coloré — driven by RarityExtension hex palette #}
                         <div class="flex justify-center">
                             <div class="w-14 h-14 rounded-full flex items-center justify-center text-2xl"
                                  style="{% if isUnlocked %}background-color: {{ rarityColors.bg }}; color: {{ rarityColors.text }};{% else %}background-color: #e7e5e4; color: #78716c;{% endif %}">
@@ -94,13 +81,11 @@
                             </div>
                         </div>
 
-                        {# Nom + description #}
                         <div class="text-center">
                             <div class="font-bold text-stone-800 text-sm mb-1">{{ achievement.getLocalizedName(app.request.locale) }}</div>
                             <div class="text-xs text-stone-500 leading-relaxed">{{ achievement.getLocalizedDescription(app.request.locale) }}</div>
                         </div>
 
-                        {# Badges rarity + XP #}
                         <div class="flex items-center justify-center gap-2 flex-wrap">
                             <span class="text-xs px-2 py-0.5 rounded-full font-medium"
                                   style="background-color: {{ rarityColors.bg }}; color: {{ rarityColors.text }}">
@@ -111,7 +96,6 @@
                             </span>
                         </div>
 
-                        {# Section basse : date ou barre de progression #}
                         <div class="mt-auto pt-1">
                             {% if isUnlocked %}
                                 <p class="text-center text-xs text-stone-400 mb-2">
@@ -129,7 +113,7 @@
                                                 @click="equip"
                                                 data-equip-url="{{ path('equip_badge_user', {id: ua.id}) }}"
                                                 data-equip-token="{{ csrf_token('equip_badge_' ~ ua.id) }}"
-                                                data-equip-redirect="{{ path('achievements_user') }}"
+                                                data-equip-redirect="{{ path('profile_user', {tab: 'grimoire'}) }}"
                                                 class="text-xs px-3 py-1 rounded-full border border-saffron-400 text-saffron-700 hover:bg-saffron-50 transition-colors cursor-pointer">
                                             <span x-show="!equipping"><i class="fa-solid fa-shield-halved mr-1" aria-hidden="true"></i>{{ 'ui.achievements.equip'|trans }}</span>
                                             <span x-show="equipping" x-cloak><i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i>…</span>
@@ -171,6 +155,4 @@
             </div>
         {% endif %}
     </div>
-
 </turbo-frame>
-{% endblock %}

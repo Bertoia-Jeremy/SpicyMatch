@@ -13,7 +13,10 @@ test.describe('@a11y Accessibility', () => {
     { name: 'home', path: '/' },
     { name: 'login', path: '/login' },
     { name: 'register', path: '/register' },
-    { name: 'spices', path: '/epices/' },
+    { name: 'spices', path: '/fr/epices/' },
+    { name: 'contact', path: '/fr/contact' },
+    { name: 'help', path: '/fr/help' },
+    { name: 'spice types', path: '/fr/epices/types_epices/' },
   ];
 
   for (const { name, path } of publicPages) {
@@ -52,7 +55,7 @@ test.describe('@a11y Accessibility', () => {
     await page.getByRole('button', { name: /connexion|se connecter/i }).click();
     await page.waitForURL(/\/$|\/users\/?$/);
 
-    await page.goto('/education/');
+    await page.goto('/fr/education/');
     await page.waitForLoadState('networkidle');
 
     const results = await new AxeBuilder({ page })
@@ -77,7 +80,7 @@ test.describe('@a11y Accessibility', () => {
     await page.getByRole('button', { name: /connexion|se connecter/i }).click();
     await page.waitForURL(/\/$|\/users\/?$/);
 
-    await page.goto('/users');
+    await page.goto('/fr/users');
     await page.waitForLoadState('networkidle');
 
     const results = await new AxeBuilder({ page })

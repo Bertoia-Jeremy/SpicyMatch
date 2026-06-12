@@ -10,6 +10,8 @@
  * component, e.g. `:class="chevronClass()"` instead of `:class="open ? 'a' : 'b'"`.
  */
 
+import { t } from './i18n.js';
+
 const apiFetch = async (url, options = {}) => {
     const res = await fetch(url, {
         ...options,
@@ -24,6 +26,25 @@ const apiFetch = async (url, options = {}) => {
 
 const toast = (message, icon) => {
     window.dispatchEvent(new CustomEvent('toast', { detail: { message, icon } }));
+};
+
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+const focusFirst = (root) => {
+    const el = root.querySelector(FOCUSABLE);
+    if (el) el.focus();
+};
+
+const loopTab = (e, root) => {
+    const focusable = [...root.querySelectorAll(FOCUSABLE)];
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault(); last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault(); first.focus();
+    }
 };
 
 export default function registerAlpineComponents(Alpine) {
@@ -41,6 +62,7 @@ export default function registerAlpineComponents(Alpine) {
     Alpine.data('navMenu', () => ({
         open: false,
         mobileOpen: false,
+        previouslyFocused: null,
         _keyHandler: null,
 
         init() {
@@ -48,24 +70,35 @@ export default function registerAlpineComponents(Alpine) {
                 document.body.style.overflow = v ? 'hidden' : '';
                 const main = document.getElementById('main-content');
                 if (main) main.inert = v;
+                const footer = document.querySelector('footer');
+                if (footer) footer.inert = v;
                 if (v) {
                     this.$nextTick(() => {
                         const first = this.$el.querySelector('#nav-overlay a, #nav-overlay button');
                         if (first) first.focus();
                     });
+                } else {
+                    this._restoreFocus();
                 }
             });
             this.$watch('mobileOpen', (v) => {
                 document.body.style.overflow = v ? 'hidden' : '';
+                const main = document.getElementById('main-content');
+                if (main) main.inert = v;
+                const footer = document.querySelector('footer');
+                if (footer) footer.inert = v;
                 if (v) {
                     this.$nextTick(() => {
                         const first = this.$el.querySelector('#nav-sheet input, #nav-sheet a, #nav-sheet button');
                         if (first) first.focus();
                     });
+                } else {
+                    this._restoreFocus();
                 }
             });
             this._keyHandler = (e) => {
                 if (e.key === 'Escape') { this.open = false; this.mobileOpen = false; }
+                if (e.key === 'Tab' && (this.open || this.mobileOpen)) loopTab(e, this.$el);
             };
             window.addEventListener('keydown', this._keyHandler);
         },
@@ -74,17 +107,30 @@ export default function registerAlpineComponents(Alpine) {
             window.removeEventListener('keydown', this._keyHandler);
         },
 
-        toggle()       { this.open = !this.open; },
+        _restoreFocus() {
+            if (this.previouslyFocused && this.previouslyFocused.isConnected) {
+                this.previouslyFocused.focus();
+            }
+            this.previouslyFocused = null;
+        },
+
+        toggle() {
+            if (!this.open) this.previouslyFocused = document.activeElement;
+            this.open = !this.open;
+        },
         close()        { this.open = false; },
-        mobileToggle() { this.mobileOpen = !this.mobileOpen; },
+        mobileToggle() {
+            if (!this.mobileOpen) this.previouslyFocused = document.activeElement;
+            this.mobileOpen = !this.mobileOpen;
+        },
         mobileClose()  { this.mobileOpen = false; },
 
         toqueClass()        { return this.open ? 'is-open' : ''; },
-        toqueLabel()        { return this.open ? 'Refermer' : 'Ouvrir'; },
+        toqueLabel()        { return this.open ? t('nav.close') : t('nav.open'); },
         toqueColor()        { return this.open ? 'color: var(--color-paprika-700)' : 'color: var(--color-ink-deep)'; },
         mobileToqueClass()  { return this.mobileOpen ? 'is-open' : ''; },
         mobileToqueColor()  { return this.mobileOpen ? 'color: var(--color-paprika-700)' : 'color: var(--color-ink-deep)'; },
-        mobileToqueLabel()  { return this.mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'; },
+        mobileToqueLabel()  { return this.mobileOpen ? t('nav.menu_close') : t('nav.menu_open'); },
     }));
 
     Alpine.data('dropdown', () => ({
@@ -97,7 +143,7 @@ export default function registerAlpineComponents(Alpine) {
     Alpine.data('passwordVisibility', () => ({
         show: false,
         toggle() { this.show = !this.show; },
-        label() { return this.show ? 'Masquer' : 'Afficher'; },
+        label() { return this.show ? t('password.hide') : t('password.show'); },
         inputType() { return this.show ? 'text' : 'password'; },
     }));
 
@@ -140,7 +186,7 @@ export default function registerAlpineComponents(Alpine) {
 
     Alpine.data('confirmQuit', (url) => ({
         quit() {
-            if (confirm('Quitter la partie ? Ta progression sera perdue.')) {
+            if (confirm(t('game.quit_confirm'))) {
                 window.location.href = url;
             }
         },
@@ -238,6 +284,18 @@ export default function registerAlpineComponents(Alpine) {
         suggestionClass(index) {
             return index === this.selectedIndex ? 'bg-saffron-50 text-saffron-800' : 'text-stone-800';
         },
+
+        optionId(index) {
+            return 'gwg-opt-' + index;
+        },
+
+        isSelectedOption(index) {
+            return index === this.selectedIndex ? 'true' : 'false';
+        },
+
+        activeDescendant() {
+            return this.selectedIndex >= 0 ? 'gwg-opt-' + this.selectedIndex : null;
+        },
     }));
 
     /* ─── Layout / global ─────────────────────────────────────────────── */
@@ -285,15 +343,26 @@ export default function registerAlpineComponents(Alpine) {
         modalOpen: false,
         selectedUrl: null,
         fullPageUrl: null,
+        previouslyFocused: null,
         openSpice(evt) {
             this.selectedUrl = evt.detail?.url ?? null;
             this.fullPageUrl = evt.detail?.fullUrl ?? null;
+            this.previouslyFocused = document.activeElement;
             this.modalOpen = true;
+            this.$nextTick(() => focusFirst(this.$el));
         },
         close() {
             this.modalOpen = false;
             this.selectedUrl = null;
             this.fullPageUrl = null;
+            if (this.previouslyFocused) {
+                this.previouslyFocused.focus();
+                this.previouslyFocused = null;
+            }
+        },
+        handleTab(e) {
+            if (!this.modalOpen) return;
+            loopTab(e, this.$el);
         },
         modalSrc() { return this.modalOpen ? this.selectedUrl : null; },
     }));
@@ -308,8 +377,8 @@ export default function registerAlpineComponents(Alpine) {
         count: initial,
         onToast(evt) {
             const msg = evt.detail?.message;
-            if (msg === 'Ajouté aux favoris') this.count++;
-            else if (msg === 'Supprimé des favoris') this.count--;
+            if (msg === t('favorites.added')) this.count++;
+            else if (msg === t('favorites.removed')) this.count--;
         },
     }));
 
@@ -415,7 +484,7 @@ export default function registerAlpineComponents(Alpine) {
         },
 
         favClass() { return this.favorite ? 'active' : ''; },
-        favLabel()  { return this.favorite ? 'Dans vos favoris' : 'Ajouter aux favoris'; },
+        favLabel()  { return this.favorite ? t('favorites.in') : t('favorites.add'); },
 
     }));
 
@@ -450,10 +519,10 @@ export default function registerAlpineComponents(Alpine) {
             return this.favorite ? 'fa-solid fa-star' : 'fa-regular fa-star';
         },
         starLabel() {
-            return this.favorite ? 'Dans vos favoris' : 'Ajouter aux favoris';
+            return this.favorite ? t('favorites.in') : t('favorites.add');
         },
         starTitle() {
-            return this.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris';
+            return this.favorite ? t('favorites.remove') : t('favorites.add');
         },
         async saveTitle() {
             const t = this.title.trim();
@@ -475,7 +544,7 @@ export default function registerAlpineComponents(Alpine) {
                 const data = await res.json();
                 this.favorite = data.favorite;
                 toast(
-                    data.favorite ? 'Ajouté aux favoris' : 'Supprimé des favoris',
+                    data.favorite ? t('favorites.added') : t('favorites.removed'),
                     data.favorite ? 'fa-solid fa-star' : 'fa-regular fa-star',
                 );
             } catch (e) { console.error('Toggle error', e); }
@@ -493,7 +562,7 @@ export default function registerAlpineComponents(Alpine) {
                     headers: { 'X-CSRF-Token': this.token },
                 });
                 this.removed = true;
-                toast('Supprimé des favoris', 'fa-regular fa-star');
+                toast(t('favorites.removed'), 'fa-regular fa-star');
             } catch (e) { console.error('Toggle error', e); }
         },
     }));
@@ -523,11 +592,11 @@ export default function registerAlpineComponents(Alpine) {
             return this.spiceIds.every(id => this.results[id] && this.results[id].cooking && this.results[id].preparation);
         },
         get ctaLabel() {
-            if (this.allSealed) return "Sceller l'association";
+            if (this.allSealed) return t('melange.seal_assoc');
             const done = this.spiceIds.filter(id => this.results[id] && this.results[id].cooking && this.results[id].preparation).length;
             const total = this.spiceIds.length;
-            if (total - done === 1) return "Une dernière épice à finaliser";
-            return `${done} / ${total} épice(s) scellée(s)`;
+            if (total - done === 1) return t('melange.last_spice');
+            return t('melange.sealed_count', `${done} / ${total}`).replace('%done%', done).replace('%total%', total);
         },
 
         /* ——— UI helpers (méthodes pour compatibilité CSP Alpine) ——— */
@@ -554,9 +623,9 @@ export default function registerAlpineComponents(Alpine) {
         statusLabel(spiceId) {
             const r = this.results[spiceId] || {};
             const isDone = r.cooking && r.preparation;
-            if (isDone) return spiceId === this.current ? 'scellée ✓' : 'scellée';
-            if (spiceId === this.current) return !r.cooking ? 'choisir le temps' : 'choisir la main';
-            return (r.cooking || r.preparation) ? 'en cours' : 'à venir';
+            if (isDone) return spiceId === this.current ? t('melange.status_sealed_current') : t('melange.status_sealed');
+            if (spiceId === this.current) return !r.cooking ? t('melange.status_choose_time') : t('melange.status_choose_hand');
+            return (r.cooking || r.preparation) ? t('melange.status_ongoing') : t('melange.status_upcoming');
         },
         done(spiceId) {
             const r = this.results[spiceId] || {};
@@ -596,10 +665,10 @@ export default function registerAlpineComponents(Alpine) {
             const next = this.spiceIds.find(id => id !== spiceId && !this.done(id));
             const label = this.spiceNames[spiceId] || '';
             if (!next) {
-                this.showToast(`${label} scellée — mélange complet`);
+                this.showToast(t('melange.toast_complete').replace('%spice%', label));
                 return;
             }
-            this.showToast(`${label} scellée — ${this.spiceNames[next]} →`);
+            this.showToast(t('melange.toast_next').replace('%spice%', label).replace('%next%', this.spiceNames[next]));
             this._autoT = setTimeout(() => {
                 this.current = next;
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -702,7 +771,7 @@ export default function registerAlpineComponents(Alpine) {
             return this.allReady ? '' : 'opacity-40 pointer-events-none cursor-not-allowed';
         },
         ctaLabel() {
-            return this.allReady ? 'Voir ma recette finale' : 'Finalise la préparation de chaque épice';
+            return this.allReady ? t('cooking.cta_final') : t('cooking.cta_incomplete');
         },
         ctaHref(finalUrl) { return this.allReady ? finalUrl : '#'; },
         get notAllReady() { return !this.allReady; },
@@ -792,24 +861,11 @@ export default function registerAlpineComponents(Alpine) {
         },
 
         trapFocus() {
-            const focusable = this.$el.querySelectorAll(
-                'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
-            );
-            if (focusable.length) focusable[0].focus();
+            focusFirst(this.$el);
         },
 
         handleTab(e) {
-            const focusable = [...this.$el.querySelectorAll(
-                'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
-            )];
-            if (!focusable.length) return;
-            const first = focusable[0];
-            const last = focusable[focusable.length - 1];
-            if (e.shiftKey && document.activeElement === first) {
-                e.preventDefault(); last.focus();
-            } else if (!e.shiftKey && document.activeElement === last) {
-                e.preventDefault(); first.focus();
-            }
+            loopTab(e, this.$el);
         },
 
         start() {
@@ -843,7 +899,7 @@ export default function registerAlpineComponents(Alpine) {
         transitionUrl: '',
         tours: {},
         get isLastStep() { return this.currentStep + 1 >= this.steps.length; },
-        nextLabel() { return this.isLastStep ? 'Terminé !' : 'Suivant →'; },
+        nextLabel() { return this.isLastStep ? t('tour.done') : t('tour.next'); },
         stepDotClass(i) {
             return i <= this.currentStep + 1
                 ? 'w-5 h-1.5 bg-saffron-500 rounded-full'
@@ -1052,53 +1108,55 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
-    /* ─── Homepage — Toile des Arômes (système solaire moléculaire) ──── */
-    Alpine.data('toile', () => {
-        const makeMol = (id, x, y, accent, grad, delay, name, formula, badge, descr, shared) => ({
-            id, x, y, accent, grad, delay, name, formula, badge, descr, shared,
-            molStyle: `--mol-x:${x}px; --mol-y:${y}px; --mol-accent:${accent}; --mol-delay:${delay}; background:${grad}`,
-        });
+    Alpine.data('profileTabs', (initial) => ({
+        tabs: ['dashboard', 'grimoire', 'history', 'lab'],
+        tab: initial,
+        init() {
+            if (!this.tabs.includes(this.tab)) {
+                this.tab = 'dashboard';
+            }
+            window.addEventListener('popstate', () => {
+                const t = new URL(window.location).searchParams.get('tab');
+                this.tab = this.tabs.includes(t) ? t : 'dashboard';
+            });
+        },
+        go(t) {
+            if (!this.tabs.includes(t) || t === this.tab) {
+                return;
+            }
+            this.tab = t;
+            const url = new URL(window.location);
+            url.searchParams.set('tab', t);
+            history.pushState({ tab: t }, '', url);
+        },
+        isActive(t) {
+            return this.tab === t;
+        },
+    }));
 
-        const molecules = [
-            makeMol('m1', -100, -120, '#D97706',
-                'radial-gradient(circle at 35% 30%,#E8B547,#8a5a0c)', '0s',
-                'Linalol', 'C₁₀H₁₈O', 'Terpène · Floral',
-                "Note florale fraîche aux accents d'agrumes. Présent dans plus de 200 plantes aromatiques — c'est la signature parfumée de la lavande, mais aussi le secret de bien d'autres.",
-                ['Coriandre', 'Basilic', 'Cardamome', 'Thym', '+ 14']),
-            makeMol('m2', 112, -108, '#991B1B',
-                'radial-gradient(circle at 35% 30%,#C04020,#5a0e0e)', '1.2s',
-                'Pipérine', 'C₁₇H₁₉NO₃', 'Alcaloïde · Piquant',
-                "Le composé qui donne au poivre noir son mordant caractéristique. Active les récepteurs TRPV1 — les mêmes que la capsaïcine, mais avec une douceur boisée.",
-                ['Poivre noir', 'Poivre long', 'Cubèbe', '+ 6']),
-            makeMol('m3', -180, 0, '#4D7C0F',
-                'radial-gradient(circle at 35% 30%,#7AA31C,#2f4a08)', '2.4s',
-                'α-Terpinéol', 'C₁₀H₁₈O', 'Terpène · Floral-Pin',
-                "Arôme à la fois floral et résineux, comme du lilas frotté contre un pin. Apprécié en parfumerie autant qu'en cuisine méditerranéenne.",
-                ['Cardamome', 'Marjolaine', 'Niaouli', '+ 9']),
-            makeMol('m4', 188, -8, '#B87333',
-                'radial-gradient(circle at 35% 30%,#B86A20,#5c2c08)', '0.7s',
-                'Eugénol', 'C₁₀H₁₂O₂', 'Phénol · Boisé-Clou',
-                "Le cœur du clou de girofle. Anesthésique léger, parfum dense — une signature impossible à oublier qui se loge dans la mémoire olfactive.",
-                ['Clou de girofle', 'Cannelle', 'Muscade', 'Basilic', '+ 8']),
-            makeMol('m5', -110, 160, '#D97706',
-                'radial-gradient(circle at 35% 30%,#D97706,#7c3a04)', '3s',
-                '1,8-Cinéole', 'C₁₀H₁₈O', 'Oxyde · Frais-Camphré',
-                "Cette fraîcheur qu'on appelle parfois eucalyptée. Ouvre les voies respiratoires et la palette aromatique d'un plat avec la même franchise.",
-                ['Cardamome', 'Romarin', 'Laurier', 'Sauge', '+ 11']),
-            makeMol('m6', 130, 150, '#7c3a04',
-                'radial-gradient(circle at 35% 30%,#6E4128,#2a160a)', '1.8s',
-                'Géraniol', 'C₁₀H₁₈O', 'Terpène · Rose-Citrus',
-                "L'âme parfumée du géranium et de la rose. En cuisine, un fil ténu entre la peau d'agrume et le pétale — à manier avec révérence.",
-                ['Coriandre', 'Citronnelle', 'Carotte', '+ 7']),
-        ];
-
-        return {
-            activeId: 'm1',
-            molecules,
-            get active() { return this.molecules.find(m => m.id === this.activeId); },
-            setActive(id) { this.activeId = id; },
-            isActive(id) { return this.activeId === id; },
-            cardStyle() { return `border-color: ${this.active.accent}`; },
-        };
-    });
+    /* ─── Homepage — Toile des Arômes (système solaire moléculaire) ────
+       Les données (noms/badges/descriptions traduits + géométrie) sont
+       fournies par le template via data-molecules (JSON), pour garder ce
+       fichier JS sans contenu localisé (i18n). */
+    Alpine.data('toile', () => ({
+        activeId: 'm1',
+        molecules: [],
+        init() {
+            try {
+                const raw = JSON.parse(this.$el.dataset.molecules || '[]');
+                this.molecules = raw.map(m => ({
+                    ...m,
+                    molStyle: `--mol-x:${m.x}px; --mol-y:${m.y}px; --mol-accent:${m.accent}; --mol-delay:${m.delay}; background:${m.grad}`,
+                }));
+            } catch (e) {
+                console.error('toile: invalid molecules JSON', e);
+                this.molecules = [];
+            }
+            if (this.molecules.length) this.activeId = this.molecules[0].id;
+        },
+        get active() { return this.molecules.find(m => m.id === this.activeId) || {}; },
+        setActive(id) { this.activeId = id; },
+        isActive(id) { return this.activeId === id; },
+        cardStyle() { return `border-color: ${this.active.accent || 'transparent'}`; },
+    }));
 }

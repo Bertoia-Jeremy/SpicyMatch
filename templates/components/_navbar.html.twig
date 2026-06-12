@@ -55,15 +55,10 @@
     </svg>
 {% endmacro %}
 
-{# ─── Date française (sans ext-intl) ──────────────────────────────────────── #}
-{% set _months = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'] %}
-{% set _days   = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'] %}
-{% set _dateStr = _days["now"|date("w")] ~ " " ~ "now"|date("j") ~ " " ~ _months["now"|date("n") - 1] %}
-
 {# XP gauge — calculé une seule fois, réutilisé par le chip desktop et la grade card mobile #}
 {% if is_granted('ROLE_USER') and app.user.progression %}
     {% set _lvl      = app.user.progression.level %}
-    {% set _grade    = _lvl < 20 ? "Commis" : (_lvl < 50 ? "Chef de Partie" : (_lvl < 80 ? "Saucier" : "Chef Exécutif")) %}
+    {% set _grade    = _lvl < 20 ? 'ui.grade.commis'|trans : (_lvl < 50 ? 'ui.grade.chef_partie'|trans : (_lvl < 80 ? 'ui.grade.saucier'|trans : 'ui.grade.chef_executif'|trans)) %}
     {% set _xp       = app.user.progression.xp %}
     {% set _minXp    = ((_lvl - 1) ** 1.3 * 100)|round %}
     {% set _maxXp    = (_lvl ** 1.3 * 100)|round %}
@@ -77,7 +72,7 @@
 {# ════════════════════════════════════════════════════════════════════
    BARRE PRINCIPALE (sticky h-20 z-50)
    ════════════════════════════════════════════════════════════════════ #}
-<nav class="nav-bar h-20 sticky top-0 z-50" aria-label="Navigation principale">
+<nav class="nav-bar h-20 sticky top-0 z-50" aria-label="{{ 'ui.navbar.main_nav'|trans }}">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-3">
 
         {# ── LEFT : Toque ──────────────────────────────────────────────── #}
@@ -89,15 +84,15 @@
                 :style="toqueColor()"
                 :aria-expanded="open"
                 aria-controls="nav-overlay"
-                aria-label="Menu principal"
+                aria-label="{{ 'ui.navbar.main_menu'|trans }}"
                 class="toque-btn hidden lg:inline-flex shrink-0">
             {{ _self.toqueIcon('w-[26px] h-[26px]') }}
             <div class="flex flex-col leading-none select-none">
                 <span x-text="toqueLabel()"
                       class="font-mono text-[9px] tracking-[0.3em] uppercase"
-                      style="color: var(--color-copper)"></span>
+                      style="color: var(--color-copper-text)"></span>
                 <span class="font-display italic text-[17px] mt-0.5"
-                      style="color: var(--color-ink-deep)">Le Menu</span>
+                      style="color: var(--color-ink-deep)">{{ 'ui.navbar.menu'|trans }}</span>
             </div>
         </button>
 
@@ -108,7 +103,7 @@
                 :style="mobileToqueColor()"
                 :aria-expanded="mobileOpen"
                 aria-controls="nav-sheet"
-                aria-label="Menu principal"
+                aria-label="{{ 'ui.navbar.main_menu'|trans }}"
                 class="toque-btn lg:hidden shrink-0">
             {{ _self.toqueIcon('w-[22px] h-[22px]') }}
             <span x-text="mobileToqueLabel()"
@@ -134,27 +129,17 @@
             {# Mortar → Le Lab #}
             <a href="{{ path('index_spicy_match') }}"
                class="mortar-btn size-11 rounded-full flex items-center justify-center"
-               aria-label="Créer un mélange"
-               title="Le Lab — Créer un mélange">
-                <i class="fa-solid fa-mortar-pestle text-sm" style="color: var(--color-ink-deep)"></i>
+               aria-label="{{ 'ui.navbar.create_blend'|trans }}"
+               title="{{ 'ui.navbar.lab_title'|trans }}">
+                <i class="fa-solid fa-mortar-pestle text-sm" style="color: var(--color-ink-deep)" aria-hidden="true"></i>
             </a>
 
             {# Grade chip / avatar / login ───────────────────────────── #}
             {% if is_granted('ROLE_USER') and app.user.progression %}
 
                 {# Desktop : grade chip complet #}
-                <div class="hidden lg:flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-full border"
-                     style="border-color: rgba(184,134,74,0.4); background: rgba(255,250,235,0.6);">
-                    {{ _self.herbierLogo('size-8') }}
-                    <div class="flex flex-col leading-none min-w-0">
-                        <span class="font-display text-[15px] font-medium truncate max-w-[100px]"
-                              style="color: var(--color-ink-deep)">{{ app.user.username }}</span>
-                        <span class="font-display italic text-[11px]"
-                              style="color: var(--color-paprika-700)">{{ _grade }}</span>
-                        <div class="rounded-full mt-1 overflow-hidden" style="width: 80px; height: 2px; background: rgba(184,134,74,0.2);">
-                            <div class="gauge-bar h-full rounded-full" style="width: {{ _gaugePct }}%"></div>
-                        </div>
-                    </div>
+                <div class="hidden lg:block">
+                    {% include 'components/_profile_menu.html.twig' %}
                 </div>
 
             {% elseif is_granted('ROLE_USER') %}
@@ -168,12 +153,12 @@
                 <a href="{{ path('app_login') }}"
                    class="hidden lg:inline-flex items-center px-4 py-2 rounded-full border text-sm font-medium transition-colors hover:border-copper"
                    style="border-color: rgba(184,134,74,0.4); color: var(--color-ink-deep);">
-                    Connexion
+                    {{ 'ui.common.login'|trans }}
                 </a>
                 <a href="{{ path('index_register') }}"
                    class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold transition-colors hover:opacity-90"
                    style="background: var(--color-paprika-700); color: white;">
-                    S'inscrire
+                    {{ 'ui.common.register'|trans }}
                 </a>
             {% endif %}
 
@@ -210,7 +195,7 @@
      x-transition:leave-end="opacity-0 -translate-y-2"
      class="nav-overlay hidden lg:block"
      role="navigation"
-     aria-label="Menu principal overlay">
+     aria-label="{{ 'ui.navbar.main_menu'|trans }}">
 
     <div class="max-w-7xl mx-auto px-8 lg:px-16 py-12">
         {# Hero Search #}
@@ -225,21 +210,21 @@
             <div>
                 <div class="flex items-center gap-3 mb-2">
                     <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
-                          style="color: var(--color-copper)">I · Exploration</span>
+                          style="color: var(--color-copper-text)">{{ 'ui.navbar.section_exploration'|trans }}</span>
                     <div class="flex-1 h-px"
                          style="background: linear-gradient(90deg, rgba(184,134,74,0.55), transparent)"></div>
                 </div>
                 <p class="font-display italic text-[14px] mb-5"
-                   style="color: var(--color-copper)">Découvrir les épices du monde</p>
+                   style="color: var(--color-copper-text)">{{ 'ui.navbar.exploration_subtitle'|trans }}</p>
                 <ul class="space-y-4">
                     <li>
                         <a href="{{ path('index_spices') }}" @click="close()"
                            class="pole-item items-baseline justify-between group/item">
                             <div>
                                 <div class="pole-name font-display text-[24px] font-medium"
-                                     style="color: var(--color-ink-deep)">Le Catalogue</div>
+                                     style="color: var(--color-ink-deep)">{{ 'ui.navbar.catalog_title'|trans }}</div>
                                 <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
-                                     style="color: rgba(74,50,37,0.55)">Toutes les épices</div>
+                                     style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.catalog_sub'|trans }}</div>
                             </div>
                             <span class="pole-arrow font-display text-[18px] ml-3"
                                   style="color: rgba(184,134,74,0.7)">→</span>
@@ -250,9 +235,9 @@
                            class="pole-item items-baseline justify-between group/item">
                             <div>
                                 <div class="pole-name font-display text-[24px] font-medium"
-                                     style="color: var(--color-ink-deep)">L'Alchimie des Saveurs</div>
+                                     style="color: var(--color-ink-deep)">{{ 'ui.navbar.alchemy_title'|trans }}</div>
                                 <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
-                                     style="color: rgba(74,50,37,0.55)">Composer un mélange</div>
+                                     style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.alchemy_sub'|trans }}</div>
                             </div>
                             <span class="pole-arrow font-display text-[18px] ml-3"
                                   style="color: rgba(184,134,74,0.7)">→</span>
@@ -265,21 +250,21 @@
             <div>
                 <div class="flex items-center gap-3 mb-2">
                     <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
-                          style="color: var(--color-copper)">II · Apprentissage</span>
+                          style="color: var(--color-copper-text)">{{ 'ui.navbar.section_learning'|trans }}</span>
                     <div class="flex-1 h-px"
                          style="background: linear-gradient(90deg, rgba(184,134,74,0.55), transparent)"></div>
                 </div>
                 <p class="font-display italic text-[14px] mb-5"
-                   style="color: var(--color-copper)">Affûter son palais</p>
+                   style="color: var(--color-copper-text)">{{ 'ui.navbar.learning_subtitle'|trans }}</p>
                 <ul class="space-y-4">
                     <li>
                         <a href="{{ path('education_index') }}" @click="close()"
                            class="pole-item items-baseline justify-between">
                             <div>
                                 <div class="pole-name font-display text-[24px] font-medium"
-                                     style="color: var(--color-ink-deep)">L'Académie</div>
+                                     style="color: var(--color-ink-deep)">{{ 'ui.common.academy'|trans }}</div>
                                 <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
-                                     style="color: rgba(74,50,37,0.55)">6 modes de jeu</div>
+                                     style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.academy_sub'|trans }}</div>
                             </div>
                             <span class="pole-arrow font-display text-[18px] ml-3"
                                   style="color: rgba(184,134,74,0.7)">→</span>
@@ -290,9 +275,9 @@
                            class="pole-item items-baseline justify-between">
                             <div>
                                 <div class="pole-name font-display text-[24px] font-medium"
-                                     style="color: var(--color-ink-deep)">Défi de Scoville</div>
+                                     style="color: var(--color-ink-deep)">{{ 'ui.navbar.scoville_title'|trans }}</div>
                                 <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
-                                     style="color: rgba(74,50,37,0.55)">Mode survie</div>
+                                     style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.scoville_sub'|trans }}</div>
                             </div>
                             <span class="pole-arrow font-display text-[18px] ml-3"
                                   style="color: rgba(184,134,74,0.7)">→</span>
@@ -303,9 +288,9 @@
                            class="pole-item items-baseline justify-between">
                             <div>
                                 <div class="pole-name font-display text-[24px] font-medium"
-                                     style="color: var(--color-ink-deep)">Hors Saison</div>
+                                     style="color: var(--color-ink-deep)">{{ 'ui.navbar.intrus_title'|trans }}</div>
                                 <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
-                                     style="color: rgba(74,50,37,0.55)">Trouver l'intrus</div>
+                                     style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.intrus_sub'|trans }}</div>
                             </div>
                             <span class="pole-arrow font-display text-[18px] ml-3"
                                   style="color: rgba(184,134,74,0.7)">→</span>
@@ -318,48 +303,48 @@
             <div>
                 <div class="flex items-center gap-3 mb-2">
                     <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
-                          style="color: var(--color-copper)">III · Atelier</span>
+                          style="color: var(--color-copper-text)">{{ 'ui.navbar.section_atelier'|trans }}</span>
                     <div class="flex-1 h-px"
                          style="background: linear-gradient(90deg, rgba(184,134,74,0.55), transparent)"></div>
                 </div>
                 {% if is_granted('ROLE_USER') %}
                     <p class="font-display italic text-[14px] mb-5"
-                       style="color: var(--color-copper)">Ton espace de chef</p>
+                       style="color: var(--color-copper-text)">{{ 'ui.navbar.atelier_subtitle'|trans }}</p>
                     <ul class="space-y-4">
                         <li>
                             <a href="{{ path('profile_user') }}" @click="close()"
                                class="pole-item items-baseline justify-between">
                                 <div>
                                     <div class="pole-name font-display text-[24px] font-medium"
-                                         style="color: var(--color-ink-deep)">Mon Profil de Chef</div>
+                                         style="color: var(--color-ink-deep)">{{ 'ui.common.my_profile'|trans }}</div>
                                     <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
-                                         style="color: rgba(74,50,37,0.55)">Achievements & progression</div>
+                                         style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.profile_sub'|trans }}</div>
                                 </div>
                                 <span class="pole-arrow font-display text-[18px] ml-3"
                                       style="color: rgba(184,134,74,0.7)">→</span>
                             </a>
                         </li>
                         <li>
-                            <a href="{{ path('history_user') }}" @click="close()"
+                            <a href="{{ path('profile_user', {tab: 'history'}) }}" @click="close()"
                                class="pole-item items-baseline justify-between">
                                 <div>
                                     <div class="pole-name font-display text-[24px] font-medium"
-                                         style="color: var(--color-ink-deep)">Mes Mélanges</div>
+                                         style="color: var(--color-ink-deep)">{{ 'ui.common.my_blends'|trans }}</div>
                                     <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
-                                         style="color: rgba(74,50,37,0.55)">Historique & favoris</div>
+                                         style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.blends_sub'|trans }}</div>
                                 </div>
                                 <span class="pole-arrow font-display text-[18px] ml-3"
                                       style="color: rgba(184,134,74,0.7)">→</span>
                             </a>
                         </li>
                         <li>
-                            <a href="{{ path('configuration_user') }}" @click="close()"
+                            <a href="{{ path('profile_user', {tab: 'lab'}) }}" @click="close()"
                                class="pole-item items-baseline justify-between">
                                 <div>
                                     <div class="pole-name font-display text-[24px] font-medium"
-                                         style="color: var(--color-ink-deep)">Configuration</div>
+                                         style="color: var(--color-ink-deep)">{{ 'ui.common.configuration'|trans }}</div>
                                     <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
-                                         style="color: rgba(74,50,37,0.55)">Paramètres du compte</div>
+                                         style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.config_sub'|trans }}</div>
                                 </div>
                                 <span class="pole-arrow font-display text-[18px] ml-3"
                                       style="color: rgba(184,134,74,0.7)">→</span>
@@ -368,11 +353,11 @@
                     </ul>
                 {% else %}
                     <p class="font-display italic text-[14px] mb-5"
-                       style="color: var(--color-copper)">Rejoins la brigade</p>
+                       style="color: var(--color-copper-text)">{{ 'ui.navbar.join_subtitle'|trans }}</p>
                     <a href="{{ path('index_register') }}" @click="close()"
                        class="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
                        style="background: var(--color-paprika-700); color: white;">
-                        Créer un compte
+                        {{ 'ui.navbar.create_account'|trans }}
                         <span class="pole-arrow">→</span>
                     </a>
                 {% endif %}
@@ -384,16 +369,29 @@
         <div class="mt-12 pt-8 flex items-center justify-between"
              style="border-top: 1px solid rgba(184,134,74,0.35)">
             <div class="flex items-center gap-6 font-mono text-[11px]"
-                 style="color: rgba(74,50,37,0.55)">
+                 style="color: rgba(74,50,37,0.75)">
                 <a href="{{ path('new_contact') }}" @click="close()"
-                   class="spice-underline hover:text-paprika-700 transition-colors">Aide</a>
+                   class="spice-underline hover:text-paprika-700 transition-colors">{{ 'ui.navbar.help'|trans }}</a>
                 {% if is_granted('ROLE_USER') %}
                     <a href="{{ path('app_logout') }}"
-                       class="spice-underline hover:text-paprika-700 transition-colors">Se déconnecter</a>
+                       class="spice-underline hover:text-paprika-700 transition-colors">{{ 'ui.common.logout'|trans }}</a>
                 {% else %}
                     <a href="{{ path('app_login') }}" @click="close()"
-                       class="spice-underline hover:text-paprika-700 transition-colors">Connexion</a>
+                       class="spice-underline hover:text-paprika-700 transition-colors">{{ 'ui.common.login'|trans }}</a>
                 {% endif %}
+            </div>
+
+            {# Sélecteur de langue (i18n) #}
+            <div class="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.15em]">
+                {% for loc in ['fr', 'en', 'es'] %}
+                    <a href="{{ path('switch_locale', {'locale': loc}) }}"
+                       hreflang="{{ loc }}"
+                       {# full reload volontaire : Turbo ne réévalue pas les modules JS → sinon libellés JS figés sur l'ancienne langue #}
+                       data-turbo="false"
+                       class="px-1.5 py-0.5 rounded transition-colors {{ app.request.locale == loc ? 'text-paprika-700 font-semibold' : 'hover:text-paprika-700' }}"
+                       style="{{ app.request.locale == loc ? '' : 'color: rgba(74,50,37,0.75)' }}"
+                       {{ app.request.locale == loc ? 'aria-current="true"' : '' }}>{{ loc }}</a>
+                {% endfor %}
             </div>
         </div>
 
@@ -429,7 +427,7 @@
      x-transition:leave-end="-translate-y-full"
      class="nav-sheet lg:hidden"
      role="navigation"
-     aria-label="Menu principal mobile">
+     aria-label="{{ 'ui.navbar.main_menu'|trans }}">
 
     <div class="p-6">
 
@@ -452,9 +450,9 @@
                 </div>
                 {% if _streak > 0 %}
                     <div class="flex flex-col items-center shrink-0">
-                        <i class="fa-solid fa-fire" style="color: var(--color-saffron-600)"></i>
+                        <i class="fa-solid fa-fire" style="color: var(--color-saffron-600)" aria-hidden="true"></i>
                         <span class="font-mono text-[10px] mt-0.5"
-                              style="color: var(--color-copper)">{{ _streak }}j</span>
+                              style="color: var(--color-copper-text)">{{ _streak }}j</span>
                     </div>
                 {% endif %}
             </div>
@@ -467,7 +465,7 @@
             <div>
                 <div class="flex items-center gap-2 mb-3">
                     <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
-                          style="color: var(--color-copper)">I · Exploration</span>
+                          style="color: var(--color-copper-text)">{{ 'ui.navbar.section_exploration'|trans }}</span>
                     <div class="flex-1 h-px"
                          style="background: linear-gradient(90deg, rgba(184,134,74,0.5), transparent)"></div>
                 </div>
@@ -476,7 +474,7 @@
                         <a href="{{ path('index_spices') }}" @click="mobileClose()"
                            class="pole-item items-baseline justify-between">
                             <div class="pole-name font-display text-[20px] font-medium"
-                                 style="color: var(--color-ink-deep)">Le Catalogue</div>
+                                 style="color: var(--color-ink-deep)">{{ 'ui.navbar.catalog_title'|trans }}</div>
                             <span class="pole-arrow font-display text-[14px] ml-3"
                                   style="color: rgba(184,134,74,0.7)">→</span>
                         </a>
@@ -485,7 +483,7 @@
                         <a href="{{ path('index_spicy_match') }}" @click="mobileClose()"
                            class="pole-item items-baseline justify-between">
                             <div class="pole-name font-display text-[20px] font-medium"
-                                 style="color: var(--color-ink-deep)">L'Alchimie des Saveurs</div>
+                                 style="color: var(--color-ink-deep)">{{ 'ui.navbar.alchemy_title'|trans }}</div>
                             <span class="pole-arrow font-display text-[14px] ml-3"
                                   style="color: rgba(184,134,74,0.7)">→</span>
                         </a>
@@ -497,7 +495,7 @@
             <div>
                 <div class="flex items-center gap-2 mb-3">
                     <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
-                          style="color: var(--color-copper)">II · Apprentissage</span>
+                          style="color: var(--color-copper-text)">{{ 'ui.navbar.section_learning'|trans }}</span>
                     <div class="flex-1 h-px"
                          style="background: linear-gradient(90deg, rgba(184,134,74,0.5), transparent)"></div>
                 </div>
@@ -506,7 +504,7 @@
                         <a href="{{ path('education_index') }}" @click="mobileClose()"
                            class="pole-item items-baseline justify-between">
                             <div class="pole-name font-display text-[20px] font-medium"
-                                 style="color: var(--color-ink-deep)">L'Académie</div>
+                                 style="color: var(--color-ink-deep)">{{ 'ui.common.academy'|trans }}</div>
                             <span class="pole-arrow font-display text-[14px] ml-3"
                                   style="color: rgba(184,134,74,0.7)">→</span>
                         </a>
@@ -515,7 +513,7 @@
                         <a href="{{ path('education_play_live', {'mode': 'survival'}) }}" @click="mobileClose()"
                            class="pole-item items-baseline justify-between">
                             <div class="pole-name font-display text-[20px] font-medium"
-                                 style="color: var(--color-ink-deep)">Défi de Scoville</div>
+                                 style="color: var(--color-ink-deep)">{{ 'ui.navbar.scoville_title'|trans }}</div>
                             <span class="pole-arrow font-display text-[14px] ml-3"
                                   style="color: rgba(184,134,74,0.7)">→</span>
                         </a>
@@ -524,7 +522,7 @@
                         <a href="{{ path('education_play_live', {'mode': 'intrus'}) }}" @click="mobileClose()"
                            class="pole-item items-baseline justify-between">
                             <div class="pole-name font-display text-[20px] font-medium"
-                                 style="color: var(--color-ink-deep)">Hors Saison</div>
+                                 style="color: var(--color-ink-deep)">{{ 'ui.navbar.intrus_title'|trans }}</div>
                             <span class="pole-arrow font-display text-[14px] ml-3"
                                   style="color: rgba(184,134,74,0.7)">→</span>
                         </a>
@@ -536,35 +534,44 @@
             <div>
                 <div class="flex items-center gap-2 mb-3">
                     <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
-                          style="color: var(--color-copper)">III · Atelier</span>
+                          style="color: var(--color-copper-text)">{{ 'ui.navbar.section_atelier'|trans }}</span>
                     <div class="flex-1 h-px"
                          style="background: linear-gradient(90deg, rgba(184,134,74,0.5), transparent)"></div>
                 </div>
                 {% if is_granted('ROLE_USER') %}
                     <ul class="space-y-3">
                         <li>
-                            <a href="{{ path('profile_user') }}" @click="mobileClose()"
+                            <a href="{{ path('profile_user', {tab: 'dashboard'}) }}" @click="mobileClose()"
                                class="pole-item items-baseline justify-between">
                                 <div class="pole-name font-display text-[20px] font-medium"
-                                     style="color: var(--color-ink-deep)">Mon Profil de Chef</div>
+                                     style="color: var(--color-ink-deep)">{{ 'ui.profile.menu.dashboard'|trans }}</div>
                                 <span class="pole-arrow font-display text-[14px] ml-3"
                                       style="color: rgba(184,134,74,0.7)">→</span>
                             </a>
                         </li>
                         <li>
-                            <a href="{{ path('history_user') }}" @click="mobileClose()"
+                            <a href="{{ path('profile_user', {tab: 'grimoire'}) }}" @click="mobileClose()"
                                class="pole-item items-baseline justify-between">
                                 <div class="pole-name font-display text-[20px] font-medium"
-                                     style="color: var(--color-ink-deep)">Mes Mélanges</div>
+                                     style="color: var(--color-ink-deep)">{{ 'ui.profile.menu.grimoire'|trans }}</div>
                                 <span class="pole-arrow font-display text-[14px] ml-3"
                                       style="color: rgba(184,134,74,0.7)">→</span>
                             </a>
                         </li>
                         <li>
-                            <a href="{{ path('configuration_user') }}" @click="mobileClose()"
+                            <a href="{{ path('profile_user', {tab: 'history'}) }}" @click="mobileClose()"
                                class="pole-item items-baseline justify-between">
                                 <div class="pole-name font-display text-[20px] font-medium"
-                                     style="color: var(--color-ink-deep)">Configuration</div>
+                                     style="color: var(--color-ink-deep)">{{ 'ui.profile.menu.history'|trans }}</div>
+                                <span class="pole-arrow font-display text-[14px] ml-3"
+                                      style="color: rgba(184,134,74,0.7)">→</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ path('profile_user', {tab: 'lab'}) }}" @click="mobileClose()"
+                               class="pole-item items-baseline justify-between">
+                                <div class="pole-name font-display text-[20px] font-medium"
+                                     style="color: var(--color-ink-deep)">{{ 'ui.profile.menu.lab'|trans }}</div>
                                 <span class="pole-arrow font-display text-[14px] ml-3"
                                       style="color: rgba(184,134,74,0.7)">→</span>
                             </a>
@@ -574,7 +581,7 @@
                     <a href="{{ path('index_register') }}" @click="mobileClose()"
                        class="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
                        style="background: var(--color-paprika-700); color: white;">
-                        Créer un compte →
+                        {{ 'ui.navbar.create_account'|trans }} →
                     </a>
                 {% endif %}
             </div>
@@ -586,16 +593,29 @@
              style="border-top: 1px solid rgba(184,134,74,0.3)">
             <a href="{{ path('new_contact') }}" @click="mobileClose()"
                class="font-mono text-[11px] transition-colors hover:text-paprika-700"
-               style="color: rgba(74,50,37,0.55)">Aide</a>
+               style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.help'|trans }}</a>
             {% if is_granted('ROLE_USER') %}
                 <a href="{{ path('app_logout') }}"
                    class="font-mono text-[11px] transition-colors hover:text-paprika-700"
-                   style="color: rgba(74,50,37,0.55)">Se déconnecter</a>
+                   style="color: rgba(74,50,37,0.75)">{{ 'ui.common.logout'|trans }}</a>
             {% else %}
                 <a href="{{ path('app_login') }}" @click="mobileClose()"
                    class="font-mono text-[11px] transition-colors hover:text-paprika-700"
-                   style="color: rgba(74,50,37,0.55)">Connexion</a>
+                   style="color: rgba(74,50,37,0.75)">{{ 'ui.common.login'|trans }}</a>
             {% endif %}
+
+            {# Sélecteur de langue (i18n) #}
+            <div class="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.15em]">
+                {% for loc in ['fr', 'en', 'es'] %}
+                    <a href="{{ path('switch_locale', {'locale': loc}) }}"
+                       hreflang="{{ loc }}"
+                       {# full reload volontaire : Turbo ne réévalue pas les modules JS → sinon libellés JS figés sur l'ancienne langue #}
+                       data-turbo="false"
+                       class="px-1.5 py-0.5 rounded transition-colors {{ app.request.locale == loc ? 'text-paprika-700 font-semibold' : 'hover:text-paprika-700' }}"
+                       style="{{ app.request.locale == loc ? '' : 'color: rgba(74,50,37,0.75)' }}"
+                       {{ app.request.locale == loc ? 'aria-current="true"' : '' }}>{{ loc }}</a>
+                {% endfor %}
+            </div>
         </div>
 
     </div>

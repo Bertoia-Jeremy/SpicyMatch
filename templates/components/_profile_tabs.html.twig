@@ -1,0 +1,23 @@
+<div class="flex flex-wrap border-b border-spice-border mt-6" role="tablist"
+     aria-label="{{ 'ui.profile.tabs.aria_label'|trans }}"
+     @keydown.right.prevent="$refs[tabs[(tabs.indexOf(tab)+1) % tabs.length]].focus()"
+     @keydown.left.prevent="$refs[tabs[(tabs.indexOf(tab)-1+tabs.length) % tabs.length]].focus()">
+    {% set items = [
+        { key: 'dashboard', label: 'ui.profile.tabs.dashboard'|trans, icon: 'fa-solid fa-gauge-high' },
+        { key: 'grimoire',  label: 'ui.profile.tabs.grimoire'|trans,  icon: 'fa-solid fa-book-open' },
+        { key: 'history',   label: 'ui.profile.tabs.history'|trans,   icon: 'fa-solid fa-clock-rotate-left' },
+        { key: 'lab',       label: 'ui.profile.tabs.lab'|trans,       icon: 'fa-solid fa-flask' },
+    ] %}
+    {% for item in items %}
+        <button type="button" role="tab"
+                x-ref="{{ item.key }}"
+                :id="'tab-' + '{{ item.key }}'"
+                :aria-selected="isActive('{{ item.key }}').toString()"
+                :tabindex="isActive('{{ item.key }}') ? 0 : -1"
+                @click="go('{{ item.key }}')"
+                class="px-4 py-2 text-sm font-medium transition-colors border-b-2"
+                :class="isActive('{{ item.key }}') ? 'text-saffron-700 border-saffron-700' : 'text-stone-500 border-transparent hover:text-stone-800 hover:border-stone-300'">
+            <i class="{{ item.icon }} text-xs mr-1" aria-hidden="true"></i>{{ item.label }}
+        </button>
+    {% endfor %}
+</div>

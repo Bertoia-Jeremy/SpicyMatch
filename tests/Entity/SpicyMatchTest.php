@@ -8,6 +8,8 @@ use App\Entity\Spices;
 use App\Entity\SpicyMatch;
 use App\Entity\SpicyMatchResult;
 use App\Entity\Users;
+use App\Enum\OdtMatrix;
+use App\ValueObject\Match\CulinaryContext;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 
@@ -167,5 +169,109 @@ final class SpicyMatchTest extends TestCase
         $this->match->setUpdatedAt($date);
 
         self::assertSame($date, $this->match->getUpdatedAt());
+    }
+
+    // ── Contexte culinaire persisté ──────────────────────────────────────────
+
+    public function testDefaultMatrixIsAir(): void
+    {
+        self::assertSame(OdtMatrix::AIR, $this->match->getMatrix());
+    }
+
+    public function testDefaultFatRatioIsZero(): void
+    {
+        self::assertSame(0.0, $this->match->getFatRatio());
+    }
+
+    public function testWaterRatioIsDerivedFromFatRatio(): void
+    {
+        self::assertSame(1.0, $this->match->getWaterRatio());
+
+        $this->match->setFatRatio(0.3);
+        self::assertEqualsWithDelta(0.7, $this->match->getWaterRatio(), 0.001);
+
+        $this->match->setFatRatio(1.0);
+        self::assertSame(0.0, $this->match->getWaterRatio());
+    }
+
+    public function testWaterRatioIsClampedToValidRange(): void
+    {
+        // En cas de fat hors plage stocké (ex: vieille donnée), waterRatio reste ∈ [0, 1]
+        $this->match->setFatRatio(1.5);
+        self::assertSame(0.0, $this->match->getWaterRatio());
+
+        $this->match->setFatRatio(-0.1);
+        self::assertSame(1.0, $this->match->getWaterRatio());
+    }
+
+    public function testDefaultCookingTimeIsZero(): void
+    {
+        self::assertSame(0, $this->match->getCookingTimeMin());
+    }
+
+    public function testDefaultTemperatureIs20(): void
+    {
+        self::assertSame(20, $this->match->getTemperatureCelsius());
+    }
+
+    public function testSetMatrixIsFluent(): void
+    {
+        $result = $this->match->setMatrix(OdtMatrix::WATER);
+        self::assertSame($this->match, $result);
+        self::assertSame(OdtMatrix::WATER, $this->match->getMatrix());
+    }
+
+    public function testGetCulinaryContextReturnsHydratedVO(): void
+    {
+        $this->match->setMatrix(OdtMatrix::OIL);
+        $this->match->setFatRatio(0.75);
+        $this->match->setCookingTimeMin(15);
+        $this->match->setTemperatureCelsius(140);
+
+        $ctx = $this->match->getCulinaryContext();
+
+        self::assertSame(OdtMatrix::OIL, $ctx->matrix);
+        self::assertSame(0.75, $ctx->fatRatio);
+        self::assertEqualsWithDelta(0.25, $ctx->waterRatio, 0.001);
+        self::assertSame(15, $ctx->cookingTimeMin);
+        self::assertSame(140, $ctx->temperatureCelsius);
+    }
+
+    public function testSetCulinaryContextWritesAllFields(): void
+    {
+        $ctx = new CulinaryContext(
+            OdtMatrix::WATER,
+            fatRatio: 0.25,
+            waterRatio: 0.75,
+            cookingTimeMin: 30,
+            temperatureCelsius: 95
+        );
+
+        $this->match->setCulinaryContext($ctx);
+
+        self::assertSame(OdtMatrix::WATER, $this->match->getMatrix());
+        self::assertSame(0.25, $this->match->getFatRatio());
+        self::assertSame(30, $this->match->getCookingTimeMin());
+        self::assertSame(95, $this->match->getTemperatureCelsius());
+    }
+
+    public function testSetCulinaryContextRoundtrip(): void
+    {
+        $original = new CulinaryContext(
+            OdtMatrix::OIL,
+            fatRatio: 0.6,
+            waterRatio: 0.4,
+            cookingTimeMin: 12,
+            temperatureCelsius: 110
+        );
+
+        $this->match->setCulinaryContext($original);
+        $recovered = $this->match->getCulinaryContext();
+
+        self::assertSame($original->matrix, $recovered->matrix);
+        self::assertEqualsWithDelta($original->fatRatio, $recovered->fatRatio, 0.001);
+        self::assertEqualsWithDelta($original->waterRatio, $recovered->waterRatio, 0.001);
+        self::assertSame($original->cookingTimeMin, $recovered->cookingTimeMin);
+        self::assertSame($original->temperatureCelsius, $recovered->temperatureCelsius);
     }
 }

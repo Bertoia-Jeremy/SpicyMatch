@@ -8,7 +8,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/help')]
+#[Route('/{_locale}/help', defaults: [
+    '_locale' => 'fr',
+])]
 final class HelpController extends AbstractController
 {
     private const KNOWN_TOPICS = ['gamification', 'academie', 'easter-eggs'];

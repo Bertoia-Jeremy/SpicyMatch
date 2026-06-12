@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ mode.label }} — Présentation{% endblock %}
+{% block title %}{{ mode.label|trans }} — {{ 'ui.edu.presentation'|trans }}{% endblock %}
 
 {% block body %}
 <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
@@ -11,14 +11,14 @@
     <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-saffron-100 text-saffron-600 mb-4">
       <i class="{{ mode.icon }} text-2xl"></i>
     </div>
-    <h1 class="text-2xl font-bold text-stone-800 mb-1">{{ mode.label }}</h1>
-    <p class="text-stone-500 text-sm">{{ mode.description }}</p>
+    <h1 class="text-2xl font-bold text-stone-800 mb-1">{{ mode.label|trans }}</h1>
+    <p class="text-stone-500 text-sm">{{ mode.description|trans }}</p>
     <div class="flex items-center justify-center gap-2 mt-2">
-      <span class="tag-secondary">{{ mode.xpPerCorrect }} XP / bonne réponse</span>
+      <span class="tag-secondary">{{ 'ui.edu.xp_per_answer'|trans({'%xp%': mode.xpPerCorrect}) }}</span>
       {% if mode.totalQuestions %}
-        <span class="tag-secondary">{{ mode.totalQuestions }} questions</span>
+        <span class="tag-secondary">{{ 'ui.edu.questions'|trans({'%count%': mode.totalQuestions}) }}</span>
       {% else %}
-        <span class="tag-secondary">Questions illimitées</span>
+        <span class="tag-secondary">{{ 'ui.edu.unlimited'|trans }}</span>
       {% endif %}
     </div>
   </div>
@@ -26,7 +26,7 @@
   {# ── Choix de difficulté ── #}
   <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6 mb-6">
     <h2 class="text-lg font-semibold text-stone-800 mb-4">
-      <i class="fa-solid fa-gauge-high text-saffron-600 mr-2"></i>Difficulté
+      <i class="fa-solid fa-gauge-high text-saffron-600 mr-2" aria-hidden="true"></i>{{ 'ui.edu.difficulty'|trans }}
     </h2>
     <div class="grid grid-cols-3 gap-3">
       {% for diff in difficulties %}
@@ -36,27 +36,26 @@
                 :class="buttonClass('{{ diff.value }}')"
                 :aria-pressed="isSelected('{{ diff.value }}')"
                 class="px-3 py-4 rounded-xl border-2 text-center transition-all cursor-pointer">
-          <div class="font-semibold text-sm mb-1">{{ diff.label }}</div>
+          <div class="font-semibold text-sm mb-1">{{ diff.label|trans }}</div>
           <div class="text-xs opacity-60">×{{ diff.xpMultiplier }} XP</div>
         </button>
       {% endfor %}
     </div>
     <p class="mt-3 text-xs text-stone-400">
-      <i class="fa-solid fa-circle-info mr-1"></i>
-      Difficulté par défaut modifiable dans ton
-      <a href="{{ path('configuration_user') }}" class="text-saffron-600 hover:underline">profil</a>.
+      <i class="fa-solid fa-circle-info mr-1" aria-hidden="true"></i>
+      {{ 'ui.edu.default_difficulty_html'|trans({'%url%': path('profile_user', {tab: 'lab'})})|raw }}
     </p>
   </div>
 
   {# ── Consignes ── #}
   <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6 mb-6">
     <h2 class="text-lg font-semibold text-stone-800 mb-3">
-      <i class="fa-solid fa-scroll text-saffron-600 mr-2"></i>Règles
+      <i class="fa-solid fa-scroll text-saffron-600 mr-2" aria-hidden="true"></i>{{ 'ui.edu.rules'|trans }}
     </h2>
     <ul class="space-y-2">
       {% for rule in rules %}
         <li class="flex items-start gap-2 text-sm text-stone-700">
-          <i class="fa-solid fa-check text-saffron-500 mt-0.5 shrink-0"></i>
+          <i class="fa-solid fa-check text-saffron-500 mt-0.5 shrink-0" aria-hidden="true"></i>
           <span>{{ rule }}</span>
         </li>
       {% endfor %}
@@ -68,7 +67,7 @@
     {% from 'components/_macro_card_spice.html.twig' import cardSpice %}
     <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6 mb-6">
       <h2 class="text-lg font-semibold text-stone-800 mb-4">
-        <i class="fa-solid fa-mortar-pestle text-saffron-600 mr-2"></i>Ton ingrédient du jour
+        <i class="fa-solid fa-mortar-pestle text-saffron-600 mr-2" aria-hidden="true"></i>{{ 'ui.edu.ingredient_of_day'|trans }}
       </h2>
       <div class="max-w-[240px] mx-auto">
         {{ cardSpice(targetSpice, { showQuickView: false }) }}
@@ -81,7 +80,7 @@
     <div class="bg-turmeric-50 border border-turmeric-200 rounded-2xl p-5 mb-6">
       <div class="flex items-start gap-3">
         <div class="shrink-0 w-8 h-8 rounded-lg bg-turmeric-100 flex items-center justify-center">
-          <i class="fa-solid fa-lightbulb text-turmeric-600 text-sm"></i>
+          <i class="fa-solid fa-lightbulb text-turmeric-600 text-sm" aria-hidden="true"></i>
         </div>
         <div>
           <h3 class="text-sm font-semibold text-turmeric-800 mb-1">{{ cookingTip.title }}</h3>
@@ -95,14 +94,15 @@
 
   {# ── CTA ── #}
   <div class="flex gap-3 justify-center">
-    <a href="{{ path('education_index') }}" class="btn-pill-outline inline-flex items-center gap-2">
-      <i class="fa-solid fa-arrow-left"></i>Tous les modes
-    </a>
+    <twig:Button
+        label="{{ 'ui.edu.all_modes'|trans }}"
+        variant="back"
+        href="{{ path('education_index') }}" />
 
     {% if mode.isLiveComponent %}
       <a :href="'{{ path('education_play_live', { mode: mode.value }) }}' + '?difficulty=' + difficulty"
-         class="btn-pill-primary inline-flex items-center gap-2">
-        <i class="fa-solid fa-play"></i>Jouer
+         class="btn-pill-base btn-pill-primary px-5 py-2 text-sm inline-flex items-center gap-2">
+        <i class="fa-solid fa-play" aria-hidden="true"></i>{{ 'ui.edu.play'|trans }}
       </a>
     {% else %}
       <form method="post" action="{{ path('education_start') }}" data-turbo="false" class="contents">
@@ -112,9 +112,11 @@
         {% if targetSpice %}
           <input type="hidden" name="targetSpiceId" value="{{ targetSpice.id }}">
         {% endif %}
-        <button type="submit" class="btn-pill-primary inline-flex items-center gap-2">
-          <i class="fa-solid fa-fire-burner"></i>Lancer la brigade
-        </button>
+        <twig:Button
+            label="{{ 'ui.edu.launch_brigade'|trans }}"
+            variant="primary"
+            type="submit"
+            icon="fa-solid fa-fire-burner" />
       </form>
     {% endif %}
   </div>

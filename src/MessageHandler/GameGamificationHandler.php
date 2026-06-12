@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
-use App\Entity\UserProgression;
 use App\Gamification\GamificationManagerInterface;
 use App\Message\GameCompletedEvent;
 use App\Repository\GameSessionRepository;
@@ -44,13 +43,7 @@ class GameGamificationHandler
             return;
         }
 
-        $progression = $user->getProgression();
-        if ($progression === null) {
-            $progression = new UserProgression();
-            $progression->setUser($user);
-            $user->setProgression($progression);
-            $this->em->persist($progression);
-        }
+        $progression = $this->manager->getOrCreateProgression($user);
 
         // Idempotent: count total finished sessions from DB
         $gamesCompleted = $this->sessionRepository->countFinishedByUser($user);

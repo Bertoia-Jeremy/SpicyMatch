@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Entity\Translation\TranslatableInterface;
 use App\Repository\AromaticCompoundRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -11,7 +12,9 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AromaticCompoundRepository::class)]
 #[ORM\Table(name: 'aromatic_compound')]
-class AromaticCompound
+// CAS unique. Multiple NULL toléré par MariaDB → composés sans CAS non bloquants.
+#[ORM\UniqueConstraint(name: 'uniq_aromatic_compound_cas', columns: ['cas_number'])]
+class AromaticCompound implements TranslatableInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -20,6 +23,21 @@ class AromaticCompound
 
     #[ORM\Column(name: 'name', type: 'string', length: 255)]
     private ?string $name = null;
+
+    /**
+     * Numéro CAS — identifiant universel cross-sources (PubChem, van Gemert, FlavorDB, Flavornet).
+     * Format : XXXXXXX-YY-Z (ex: "97-53-0" pour l'eugénol).
+     * Nullable : non renseigné tant que la validation PubChem n'est pas effectuée.
+     */
+    #[ORM\Column(name: 'cas_number', type: 'string', length: 50, nullable: true)]
+    private ?string $casNumber = null;
+
+    /**
+     * Formule brute (ex: "C10H12O2").
+     * Source : PubChem — validé via NIST WebBook.
+     */
+    #[ORM\Column(name: 'formula', type: 'string', length: 30, nullable: true)]
+    private ?string $formula = null;
 
     #[ORM\Column(name: 'description', type: 'text', nullable: true)]
     private ?string $description = null;
@@ -57,16 +75,88 @@ class AromaticCompound
     #[ORM\ManyToMany(targetEntity: Spices::class, mappedBy: 'secondary_aromatics_compounds')]
     private Collection $secondary_spices;
 
+    /**
+     * @var Collection<int, AromaticCompoundTranslation>
+     */
+    #[ORM\OneToMany(mappedBy: 'aromaticCompound', targetEntity: AromaticCompoundTranslation::class, cascade: [
+        'persist',
+        'remove',
+    ], orphanRemoval: true)]
+    private Collection $translations;
+
     public function __construct()
     {
         $this->spices = new ArrayCollection();
         $this->alchemyFlavors = new ArrayCollection();
         $this->secondary_spices = new ArrayCollection();
+        $this->translations = new ArrayCollection();
     }
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    /**
+     * @return Collection<int, AromaticCompoundTranslation>
+     */
+    public function getTranslations(): Collection
+    {
+        return $this->translations;
+    }
+
+    public function addTranslation(AromaticCompoundTranslation $translation): self
+    {
+        if (! $this->translations->contains($translation)) {
+            $this->translations->add($translation);
+            $translation->setAromaticCompound($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTranslation(AromaticCompoundTranslation $translation): self
+    {
+        if ($this->translations->removeElement($translation) && $translation->getAromaticCompound() === $this) {
+            $translation->setAromaticCompound(null);
+        }
+
+        return $this;
+    }
+
+    public function getTranslation(string $locale): ?AromaticCompoundTranslation
+    {
+        if ($locale === 'fr') {
+            return null;
+        }
+
+        foreach ($this->translations as $t) {
+            if ($t->getLocale() === $locale) {
+                return $t;
+            }
+        }
+
+        return null;
+    }
+
+    public function getLocalizedName(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getName() ?? $this->name;
+    }
+
+    public function getLocalizedDescription(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getDescription() ?? $this->description;
+    }
+
+    public function getLocalizedCooking(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getCooking() ?? $this->cooking;
+    }
+
+    public function getLocalizedInformations(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getInformations() ?? $this->informations;
     }
 
     public function getName(): ?string
@@ -77,6 +167,30 @@ class AromaticCompound
     public function setName(string $name): self
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getCasNumber(): ?string
+    {
+        return $this->casNumber;
+    }
+
+    public function setCasNumber(?string $casNumber): self
+    {
+        $this->casNumber = $casNumber;
+
+        return $this;
+    }
+
+    public function getFormula(): ?string
+    {
+        return $this->formula;
+    }
+
+    public function setFormula(?string $formula): self
+    {
+        $this->formula = $formula;
 
         return $this;
     }

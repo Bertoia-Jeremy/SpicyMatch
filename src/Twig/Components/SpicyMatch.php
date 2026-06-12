@@ -5,15 +5,22 @@ declare(strict_types=1);
 namespace App\Twig\Components;
 
 use App\Entity\Spices;
-use App\Factory\SpicyMatchFactory;
+use App\Entity\Users;
+use App\Enum\DataConfidence;
+use App\Enum\OdtMatrix;
 use App\Repository\AromaticGroupsRepository;
+use App\Repository\SpiceActiveCompoundRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
-use App\Service\CompatibilityScoreService;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Service\Match\CompatibleSpiceFinder;
+use App\Service\Match\MatchConfidenceAssessorInterface;
+use App\Service\SpicyMatchService;
+use App\ValueObject\Match\CulinaryContext;
+use App\ValueObject\Match\MortarIds;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
+use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
@@ -21,6 +28,31 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
 class SpicyMatch extends AbstractController
 {
     use DefaultActionTrait;
+
+    /**
+     * Presets prédéfinis exposés via setCookingPreset() — un seul clic suffit pour
+     * basculer entre les trois grands modes culinaires sans toucher aux sliders.
+     */
+    private const array PRESETS = [
+        'dry' => [
+            'matrix' => 'air',
+            'fat' => 0.0,
+            'time' => 0,
+            'temp' => 20,
+        ],
+        'broth' => [
+            'matrix' => 'water',
+            'fat' => 0.0,
+            'time' => 20,
+            'temp' => 80,
+        ],
+        'saute' => [
+            'matrix' => 'oil',
+            'fat' => 1.0,
+            'time' => 10,
+            'temp' => 140,
+        ],
+    ];
 
     /**
      * @var array{selectedSpices: list<int|string>, compatibleSpices: list<array<string, mixed>>}
@@ -43,16 +75,81 @@ class SpicyMatch extends AbstractController
     #[LiveProp(writable: true)]
     public string $mode = 'auto';
 
+    // ── Contexte culinaire ──────────────────────────────────────────────────────
+
+    #[LiveProp(writable: true)]
+    public string $matrix = 'air';
+
+    #[LiveProp(writable: true)]
+    public float $fatRatio = 0.0;
+
+    #[LiveProp(writable: true)]
+    public int $cookingTimeMin = 0;
+
+    #[LiveProp(writable: true)]
+    public int $temperatureCelsius = 20;
+
+    /**
+     * @var list<int>|null
+     */
+    private ?array $excludedSpiceIdsCache = null;
+
     public function __construct(
         private readonly SpicesRepository $spicesRepository,
-        private readonly CompatibilityScoreService $compatibilityScoreService,
+        private readonly CompatibleSpiceFinder $compatibleSpiceFinder,
         private readonly AromaticGroupsRepository $aromaticGroupsRepository,
         private readonly SpicyTypeRepository $spicyTypeRepository,
+        private readonly SpicyMatchService $spicyMatchService,
+        private readonly MatchConfidenceAssessorInterface $confidenceAssessor,
+        private readonly SpiceActiveCompoundRepository $spiceActiveCompoundRepository,
     ) {
         $this->spices = [
             'selectedSpices' => [],
             'compatibleSpices' => $spicesRepository->findAllSpices(),
         ];
+    }
+
+    public function mount(): void
+    {
+        $user = $this->getUser();
+        if (! $user instanceof Users) {
+            return;
+        }
+
+        $preferred = $user->getDefaultMatrix()
+            ->value;
+        if (in_array($preferred, $this->getAvailableMatrices(), true)) {
+            $this->matrix = $preferred;
+        }
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function excludedSpiceIds(): array
+    {
+        if ($this->excludedSpiceIdsCache !== null) {
+            return $this->excludedSpiceIdsCache;
+        }
+
+        $user = $this->getUser();
+        if (! $user instanceof Users) {
+            return $this->excludedSpiceIdsCache = [];
+        }
+
+        $ids = $user->getExcludedSpices()
+            ->map(static fn (Spices $s): ?int => $s->getId())
+            ->getValues();
+
+        return $this->excludedSpiceIdsCache = array_values(array_filter(
+            $ids,
+            static fn (?int $id): bool => $id !== null,
+        ));
+    }
+
+    public function getExcludedSpiceCount(): int
+    {
+        return count($this->excludedSpiceIds());
     }
 
     /**
@@ -82,30 +179,36 @@ class SpicyMatch extends AbstractController
         if (! empty($this->spices['selectedSpices'])) {
             $ids = array_map('intval', $this->spices['selectedSpices']);
 
-            // Flat arrays for display (grouped by aromatic group)
             $selectedFlat = $this->spicesRepository->findSpicesForMatch(implode(',', $ids));
             foreach ($selectedFlat as $spice) {
                 $selectedSpicesData[$spice['groupName']][] = $spice;
             }
 
             if ($this->mode === 'auto') {
-                // Load entities for scoring
-                $selectedEntities = $this->spicesRepository->findBy([
-                    'id' => $ids,
-                ]);
-                $scored = $this->compatibilityScoreService->findCompatible($selectedEntities);
+                $scored = $this->compatibleSpiceFinder->findCompatible(
+                    new MortarIds($ids),
+                    100,
+                    $this->buildCulinaryContext(),
+                );
 
                 $compatibleSpices = array_values(array_filter(
                     $scored,
-                    fn (array $s) => ! in_array($s['id'], $ids, true)
+                    fn (array $s) => ! in_array($s['id'], $ids, true),
                 ));
             } else {
-                // Manual mode: show all spices except already selected, no scoring
                 $compatibleSpices = array_values(array_filter(
                     $compatibleSpices,
-                    fn (array $s) => ! in_array($s['id'], $ids, true)
+                    fn (array $s) => ! in_array($s['id'], $ids, true),
                 ));
             }
+        }
+
+        $excluded = $this->excludedSpiceIds();
+        if ($excluded !== []) {
+            $compatibleSpices = array_values(array_filter(
+                $compatibleSpices,
+                static fn (array $s): bool => ! in_array($s['id'], $excluded, true),
+            ));
         }
 
         if ($this->selectedAromaticGroup !== null) {
@@ -121,7 +224,7 @@ class SpicyMatch extends AbstractController
             $agId = (int) $this->filterAgId;
             $compatibleSpices = array_values(array_filter(
                 $compatibleSpices,
-                fn (array $s) => ($s['agId'] ?? null) === $agId
+                fn (array $s) => ($s['agId'] ?? null) === $agId,
             ));
         }
 
@@ -129,7 +232,7 @@ class SpicyMatch extends AbstractController
             $stId = (int) $this->filterStId;
             $compatibleSpices = array_values(array_filter(
                 $compatibleSpices,
-                fn (array $s) => ($s['stId'] ?? null) === $stId
+                fn (array $s) => ($s['stId'] ?? null) === $stId,
             ));
         }
 
@@ -137,7 +240,7 @@ class SpicyMatch extends AbstractController
             $needle = mb_strtolower($this->search);
             $compatibleSpices = array_values(array_filter(
                 $compatibleSpices,
-                fn (array $s) => str_starts_with(mb_strtolower($s['name']), $needle)
+                fn (array $s) => str_starts_with(mb_strtolower($s['name']), $needle),
             ));
         }
 
@@ -145,6 +248,97 @@ class SpicyMatch extends AbstractController
             'selectedSpices' => $selectedSpicesData,
             'compatibleSpices' => $compatibleSpices,
         ];
+    }
+
+    /**
+     * Construit un CulinaryContext valide depuis les LiveProps (sanitization défensive).
+     *
+     * Les LiveProps sont writable côté client : on coerce/clamp avant d'instancier
+     * pour garantir qu'aucune valeur hors-bornes ne lève d'InvalidArgumentException.
+     */
+    public function buildCulinaryContext(): CulinaryContext
+    {
+        // Bornes source de vérité : constantes publiques de CulinaryContext.
+        $matrix = OdtMatrix::tryFrom(strtolower(trim($this->matrix))) ?? OdtMatrix::AIR;
+        $fat = max(CulinaryContext::FAT_RATIO_MIN, min(CulinaryContext::FAT_RATIO_MAX, $this->fatRatio));
+        $water = max(0.0, 1.0 - $fat);
+        $time = max(CulinaryContext::COOKING_TIME_MIN, min(CulinaryContext::COOKING_TIME_MAX, $this->cookingTimeMin));
+        $temp = max(CulinaryContext::TEMPERATURE_MIN, min(CulinaryContext::TEMPERATURE_MAX, $this->temperatureCelsius));
+
+        try {
+            return new CulinaryContext($matrix, $fat, $water, $time, $temp);
+        } catch (\InvalidArgumentException) {
+            // Garde-fou — ne devrait pas se produire après clamp ci-dessus.
+            return new CulinaryContext();
+        }
+    }
+
+    /**
+     * Null tant qu'aucune épice n'est sélectionnée.
+     */
+    public function getDataConfidence(): ?DataConfidence
+    {
+        $selected = $this->spices['selectedSpices'];
+        if ($selected === []) {
+            return null;
+        }
+
+        $ids = array_values(array_filter(array_map('intval', $selected), static fn (int $id) => $id > 0));
+        if ($ids === []) {
+            return null;
+        }
+
+        return $this->confidenceAssessor->assess(new MortarIds($ids), $this->buildCulinaryContext()->matrix);
+    }
+
+    /**
+     * Vrai si l'utilisateur a quitté le contexte par défaut.
+     * Délégué au VO — source de vérité unique partagée avec l'entité.
+     */
+    public function hasCustomCulinaryContext(): bool
+    {
+        return $this->buildCulinaryContext()
+            ->isCustom();
+    }
+
+    /**
+     * Libellé court du mode culinaire courant pour l'affichage UI.
+     * Délégué au VO.
+     */
+    public function getCulinaryLabel(): string
+    {
+        return $this->buildCulinaryContext()
+            ->getLabel();
+    }
+
+    /**
+     * Matrices proposables = celles ayant des données OAV réelles (véracité par omission).
+     * Une matrice sans données n'apparaît pas dans le sélecteur.
+     *
+     * @return list<string>
+     */
+    public function getAvailableMatrices(): array
+    {
+        $withData = $this->spiceActiveCompoundRepository->matricesWithData();
+
+        return array_values(array_filter(
+            ['air', 'water', 'oil'],
+            static fn (string $m): bool => in_array($m, $withData, true),
+        ));
+    }
+
+    /**
+     * Vrai si le mortier sélectionné a des données OAV dans la matrice courante
+     * → score quantitatif réel. Faux → repli présence (à libeller comme tel, pas un score OAV).
+     */
+    public function isOavScoringAvailable(): bool
+    {
+        $ids = array_values(array_filter(
+            array_map('intval', $this->spices['selectedSpices']),
+            static fn (int $id): bool => $id > 0,
+        ));
+
+        return $this->spiceActiveCompoundRepository->hasDataForSpices($ids, $this->buildCulinaryContext()->matrix);
     }
 
     #[LiveAction]
@@ -159,6 +353,36 @@ class SpicyMatch extends AbstractController
     public function clearSearch(): void
     {
         $this->search = '';
+    }
+
+    /**
+     * Bascule rapide entre les 3 modes culinaires types.
+     * Whitelist stricte → toute valeur inconnue est ignorée.
+     */
+    #[LiveAction]
+    public function setCookingPreset(#[LiveArg] string $preset): void
+    {
+        $config = self::PRESETS[$preset] ?? null;
+        if ($config === null) {
+            return;
+        }
+
+        $this->matrix = $config['matrix'];
+        $this->fatRatio = $config['fat'];
+        $this->cookingTimeMin = $config['time'];
+        $this->temperatureCelsius = $config['temp'];
+    }
+
+    /**
+     * Restaure le contexte culinaire par défaut (mode "À sec").
+     */
+    #[LiveAction]
+    public function resetCulinaryContext(): void
+    {
+        $this->matrix = 'air';
+        $this->fatRatio = 0.0;
+        $this->cookingTimeMin = 0;
+        $this->temperatureCelsius = 20;
     }
 
     #[LiveAction]
@@ -186,47 +410,23 @@ class SpicyMatch extends AbstractController
     }
 
     #[LiveAction]
-    public function nextStep(
-        EntityManagerInterface $entityManager,
-        SpicyMatchFactory $spicyMatchFactory,
-    ): \Symfony\Component\HttpFoundation\RedirectResponse {
+    public function nextStep(): \Symfony\Component\HttpFoundation\RedirectResponse
+    {
         $isManual = $this->mode === 'manual';
 
         $user = $this->getUser();
-        \assert($user instanceof \App\Entity\Users || $user === null);
+        \assert($user instanceof Users || $user === null);
 
-        $spicyMatch = $spicyMatchFactory->create();
-        $spicyMatch->setUser($user);
-        $spicyMatch->setIsManual($isManual);
-
-        // Extraction des IDs depuis la structure SpicyMatch (tableau plat d'IDs)
         $selectedIds = array_map('intval', $this->spices['selectedSpices']);
+        $compatibleSpices = $isManual ? [] : $this->getResults()['compatibleSpices'];
 
-        foreach ($selectedIds as $spiceId) {
-            /** @var Spices|null $spice */
-            $spice = $this->spicesRepository->find($spiceId);
-            if ($spice) {
-                $spicyMatch->addSpice($spice);
-            }
-        }
-
-        // En mode auto, on sauvegarde les résultats scorés pour référence
-        // En mode manuel, pas de score de compatibilité → on skip les results
-        if (! $isManual) {
-            $results = $this->getResults();
-            foreach ($results['compatibleSpices'] as $compatibleData) {
-                $spice = $this->spicesRepository->find($compatibleData['id']);
-                if ($spice) {
-                    $result = new \App\Entity\SpicyMatchResult();
-                    $result->setSpice($spice);
-                    $result->setScore((int) $compatibleData['score']);
-                    $spicyMatch->addResult($result);
-                }
-            }
-        }
-
-        $entityManager->persist($spicyMatch);
-        $entityManager->flush();
+        $spicyMatch = $this->spicyMatchService->createFromSelection(
+            $user,
+            $selectedIds,
+            $isManual,
+            $compatibleSpices,
+            $this->buildCulinaryContext(),
+        );
 
         return $this->redirectToRoute('view_spicy_match', [
             'id' => $spicyMatch->getId(),

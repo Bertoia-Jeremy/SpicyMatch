@@ -1,18 +1,18 @@
 {% extends 'base.html.twig' %}
 {% import 'components/Education/_game_header.html.twig' as game_header %}
 
-{% block title %}{{ session.gameMode.label }} — Question {{ questionNumber }}{% endblock %}
+{% block title %}{{ session.gameMode.label|trans }} — {{ 'ui.edu.question'|trans({'%num%': questionNumber}) }}{% endblock %}
 
 {% block body %}
 <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10" x-data="qcmForm">
 
   {{ game_header.header(
       icon     = session.gameMode.icon,
-      title    = session.gameMode.label,
-      subtitle = session.gameMode.description,
+      title    = session.gameMode.label|trans,
+      subtitle = session.gameMode.description|trans,
       current  = questionNumber,
       total    = session.totalQuestions,
-      scoreLabel = session.score ~ ' pts',
+      scoreLabel = 'ui.edu.pts'|trans({'%score%': session.score}),
       quitUrl  = path('education_briefing', { mode: session.gameMode.value, difficulty: session.difficulty.value }),
   ) }}
 
@@ -32,9 +32,9 @@
             {% elseif option.name == selectedAnswer %}border-red-500 bg-red-50
             {% else %}border-stone-200 bg-white{% endif %}">
             {% if option.name == correctAnswer %}
-              <i class="fa-solid fa-check text-green-600 shrink-0"></i>
+              <i class="fa-solid fa-check text-green-600 shrink-0" aria-hidden="true"></i>
             {% elseif option.name == selectedAnswer %}
-              <i class="fa-solid fa-xmark text-red-600 shrink-0"></i>
+              <i class="fa-solid fa-xmark text-red-600 shrink-0" aria-hidden="true"></i>
             {% else %}
               <div class="w-4 shrink-0"></div>
             {% endif %}
@@ -44,15 +44,17 @@
       </div>
 
       <div class="text-center mb-6 py-3 rounded-xl {{ isCorrect ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">
-        <i class="fa-solid {{ isCorrect ? 'fa-circle-check' : 'fa-circle-xmark' }} mr-2"></i>
-        <span class="font-semibold">{{ isCorrect ? 'Bonne réponse !' : 'Mauvaise réponse' }}</span>
+        <i class="fa-solid {{ isCorrect ? 'fa-circle-check' : 'fa-circle-xmark' }} mr-2" aria-hidden="true"></i>
+        <span class="font-semibold">{{ isCorrect ? 'ui.edu.correct_answer'|trans : 'ui.edu.wrong_answer'|trans }}</span>
       </div>
 
-      <a href="{{ path('education_play', { id: session.id }) }}"
-         class="btn-pill-primary w-full inline-flex justify-center items-center gap-2"
-         data-turbo="false">
-        <i class="fa-solid fa-arrow-right"></i>Question suivante
-      </a>
+      <twig:Button
+          label="{{ 'ui.edu.next_question'|trans }}"
+          variant="primary"
+          icon="fa-solid fa-arrow-right"
+          href="{{ path('education_play', { id: session.id }) }}"
+          data-turbo="false"
+          extra="w-full justify-center" />
 
     {% else %}
       {# Mode normal — formulaire interactif #}
@@ -73,11 +75,12 @@
         <input type="hidden" name="_token" value="{{ csrf_token('education_answer') }}">
         <input type="hidden" name="timeSpentMs" x-bind:value="elapsed()">
 
-        <button type="submit"
-                class="btn-pill-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-                :disabled="canSubmit()">
-          Valider
-        </button>
+        <twig:Button
+            label="{{ 'ui.edu.submit'|trans }}"
+            variant="primary"
+            type="submit"
+            x-bind:disabled="canSubmit()"
+            extra="w-full disabled:opacity-50 disabled:cursor-not-allowed" />
       </form>
     {% endif %}
   </div>

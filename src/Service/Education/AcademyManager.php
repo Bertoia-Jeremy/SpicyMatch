@@ -10,20 +10,27 @@ use App\Entity\Users;
 use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use App\Repository\SpicesRepository;
-use App\Service\CompatibilityScoreService;
+use App\Service\Match\CompatibleSpiceFinder;
+use App\ValueObject\Match\CulinaryContext;
+use App\ValueObject\Match\MortarIds;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class AcademyManager
 {
     public function __construct(
         private readonly SpicesRepository $spicesRepository,
-        private readonly CompatibilityScoreService $compatibilityScoreService,
+        private readonly CompatibleSpiceFinder $compatibleSpiceFinder,
         private readonly CacheInterface $cache,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
     /**
+     * Memoization intra-requête (évite un double fetch dans la même requête HTTP).
+     * La mise en cache inter-requêtes est gérée par le pool Symfony Cache (academy.all_spices).
+     *
      * @var list<Spices>|null
      */
     private ?array $allSpicesCache = null;
@@ -33,7 +40,14 @@ class AcademyManager
      */
     private function getAllSpices(): array
     {
-        return $this->allSpicesCache ??= $this->spicesRepository->findAll();
+        return $this->allSpicesCache ??= $this->cache->get(
+            'academy.all_spices',
+            function (ItemInterface $item): array {
+                $item->expiresAfter(3600);
+
+                return $this->spicesRepository->findAll();
+            },
+        );
     }
 
     private ?\Transliterator $transliterator = null;
@@ -52,11 +66,17 @@ class AcademyManager
     // ──────────────────────────────────────────────
 
     /**
-     * @return array<array{id: int, name: string, file: ?string, color: ?string, groupName: ?string, score: int, mainCompoundsCount: int, secondaryCompoundsCount: int}>
+     * @return list<array{id: int, name: string, file: ?string, agId: ?int, color: ?string, groupName: ?string, stId: ?int, typeName: ?string, score: int}>
      */
     public function findCompatibleSpices(Spices $spice): array
     {
-        return $this->compatibilityScoreService->findCompatible([$spice]);
+        $id = $spice->getId();
+
+        if ($id === null) {
+            return [];
+        }
+
+        return $this->compatibleSpiceFinder->findCompatible(new MortarIds([$id]), 100, new CulinaryContext());
     }
 
     /**
@@ -188,10 +208,8 @@ class AcademyManager
     {
         $guessedFlipped = array_flip($guessedLetters);
         $mask = '';
-        $len = mb_strlen($name);
 
-        for ($i = 0; $i < $len; ++$i) {
-            $char = mb_substr($name, $i, 1);
+        foreach (mb_str_split($name) as $char) {
             $normalized = $this->normalizeChar($char);
 
             if ($char === ' ' || $char === '-' || $char === '\'') {
@@ -212,11 +230,8 @@ class AcademyManager
     public function letterInWord(string $letter, string $word): bool
     {
         $normalizedLetter = $this->normalizeChar($letter);
-        $len = mb_strlen($word);
 
-        for ($i = 0; $i < $len; ++$i) {
-            $char = mb_substr($word, $i, 1);
-
+        foreach (mb_str_split($word) as $char) {
             if ($this->normalizeChar($char) === $normalizedLetter) {
                 return true;
             }
@@ -254,7 +269,8 @@ class AcademyManager
         }
 
         $allSpices = $this->getAllSpices();
-        $candidates = array_filter($allSpices, fn (Spices $s) => ! in_array($s->getId(), $excludeBaseIds, true));
+        $excludeBaseFlipped = array_flip($excludeBaseIds);
+        $candidates = array_filter($allSpices, fn (Spices $s) => ! isset($excludeBaseFlipped[$s->getId()]));
 
         if (count($candidates) < 5) {
             return null;
@@ -268,12 +284,15 @@ class AcademyManager
                 ? $this->findStrictIntruders($baseSpice, $excludeBaseIds)
                 : $this->findIntruders($baseSpice, $excludeBaseIds);
 
-            if ($inverted) {
+            // Use a local copy so the original $inverted is never mutated across iterations.
+            $effectiveInverted = $inverted;
+
+            if ($effectiveInverted) {
                 // Need ≥1 compatible + ≥3 intruders
                 if (count($compatibles) < 1 || count($intruders) < 3) {
-                    // Fallback to classic mode
+                    // Fallback to classic mode for this candidate
                     if (count($compatibles) >= 3 && count($intruders) >= 1) {
-                        $inverted = false;
+                        $effectiveInverted = false;
                     } else {
                         continue;
                     }
@@ -285,7 +304,7 @@ class AcademyManager
                 }
             }
 
-            return $this->buildIntrusQuestion($baseSpice, $compatibles, $intruders, $difficulty, $inverted);
+            return $this->buildIntrusQuestion($baseSpice, $compatibles, $intruders, $difficulty, $effectiveInverted);
         }
 
         return null;
@@ -346,14 +365,10 @@ class AcademyManager
             // Pick 3 spices from this group as the "non-intruders"
             $members = array_slice($groupSpices, 0, 3);
 
-            // Pick 1 intruder from any other group
+            // Pick 1 intruder from any other group (reuse $excludeFlipped defined above)
             $outsiders = [];
             foreach ($allSpices as $spice) {
-                if ($spice->getAromaticGroups()?->getId() !== $groupId && ! in_array(
-                    $spice->getId(),
-                    $excludeBaseIds,
-                    true
-                )) {
+                if ($spice->getAromaticGroups()?->getId() !== $groupId && ! isset($excludeFlipped[$spice->getId()])) {
                     $outsiders[] = $spice;
                 }
             }
@@ -376,7 +391,9 @@ class AcademyManager
 
             return [
                 'type' => 'intrus_group',
-                'prompt' => sprintf('Quelle épice n\'appartient pas au groupe « %s » ?', $groupName),
+                'prompt' => $this->translator->trans('ui.edu.prompt.intrus_group', [
+                    '%group%' => $groupName,
+                ]),
                 'baseSpice' => [
                     'id' => 0,
                     'name' => '',
@@ -408,8 +425,8 @@ class AcademyManager
         $compatibles = $this->findCompatibleSpices($current);
 
         // Exclude already used spices
-        $compatibles = array_filter($compatibles, fn (array $c) => ! in_array($c['id'], $usedIds, true));
-        $compatibles = array_values($compatibles);
+        $usedFlipped = array_flip($usedIds);
+        $compatibles = array_values(array_filter($compatibles, fn (array $c) => ! isset($usedFlipped[$c['id']])));
 
         if (empty($compatibles)) {
             return []; // Pool exhaustion → victory
@@ -484,7 +501,7 @@ class AcademyManager
         if (! empty($flavors)) {
             $clues[] = [
                 'type' => 'flavors',
-                'label' => 'Saveurs',
+                'label' => $this->translator->trans('ui.edu.clue.flavors'),
                 'value' => implode(', ', $flavors),
             ];
         }
@@ -493,7 +510,7 @@ class AcademyManager
         if (! empty($spiceCard['aromaticGroup']['name'])) {
             $clues[] = [
                 'type' => 'group_name',
-                'label' => 'Famille aromatique',
+                'label' => $this->translator->trans('ui.edu.clue.group'),
                 'value' => $spiceCard['aromaticGroup']['name'],
             ];
         }
@@ -502,7 +519,7 @@ class AcademyManager
         if (! empty($spiceCard['spicyType'])) {
             $clues[] = [
                 'type' => 'spicy_type',
-                'label' => 'Type',
+                'label' => $this->translator->trans('ui.edu.clue.type'),
                 'value' => $spiceCard['spicyType'],
             ];
         }
@@ -514,7 +531,7 @@ class AcademyManager
             $tip = $cookingTips[0];
             $clues[] = [
                 'type' => 'cooking_tip',
-                'label' => 'Conseil de cuisson',
+                'label' => $this->translator->trans('ui.edu.clue.cooking_tip'),
                 'value' => $tip['title'] ?? $tip['cookingStep'] ?? '',
             ];
         }
@@ -525,7 +542,7 @@ class AcademyManager
         if (! empty($mainCompounds)) {
             $clues[] = [
                 'type' => 'main_compounds',
-                'label' => 'Composés principaux',
+                'label' => $this->translator->trans('ui.edu.clue.main_compounds'),
                 'value' => implode(', ', $mainCompounds),
             ];
         }
@@ -534,7 +551,7 @@ class AcademyManager
         if (! empty($spiceCard['description'])) {
             $clues[] = [
                 'type' => 'description',
-                'label' => 'Description',
+                'label' => $this->translator->trans('ui.edu.clue.description'),
                 'value' => mb_substr($spiceCard['description'], 0, 120) . '…',
             ];
         }
@@ -579,10 +596,6 @@ class AcademyManager
         }
 
         if (! empty($spiceCard['cookingTips'])) {
-            ++$count;
-        }
-
-        if (! empty($spiceCard['description'])) {
             ++$count;
         }
 
@@ -646,7 +659,8 @@ class AcademyManager
     public function pickHangmanSpice(GameDifficulty $difficulty, array $excludeIds = []): ?Spices
     {
         $allSpices = $this->getAllSpices();
-        $candidates = array_filter($allSpices, fn (Spices $s) => ! in_array($s->getId(), $excludeIds, true));
+        $excludeFlipped = array_flip($excludeIds);
+        $candidates = array_filter($allSpices, fn (Spices $s) => ! isset($excludeFlipped[$s->getId()]));
 
         if (empty($candidates)) {
             return null;
@@ -676,9 +690,10 @@ class AcademyManager
     {
         $cards = $this->getAllSpiceCards();
         $allNames = array_column($cards, 'name');
+        $excludeNamesFlipped = array_flip($excludeNames);
         $available = array_filter(
             $allNames,
-            fn (string $n) => $n !== $correctName && ! in_array($n, $excludeNames, true),
+            fn (string $n) => $n !== $correctName && ! isset($excludeNamesFlipped[$n]),
         );
         $available = array_values($available);
         shuffle($available);
@@ -708,7 +723,8 @@ class AcademyManager
         $excludeIds = $user->getStats()?->getLastVisitedSpices() ?? [];
         $allSpices = $this->getAllSpices();
 
-        $candidates = array_filter($allSpices, fn (Spices $s) => ! in_array($s->getId(), $excludeIds, true));
+        $excludeFlipped = array_flip($excludeIds);
+        $candidates = array_filter($allSpices, fn (Spices $s) => ! isset($excludeFlipped[$s->getId()]));
 
         // For Hangman EASY, prefer shorter names
         if ($mode === GameMode::HANGMAN && $difficulty === GameDifficulty::EASY) {
@@ -750,38 +766,16 @@ class AcademyManager
      */
     public function getRulesFor(GameMode $mode): array
     {
-        return match ($mode) {
-            GameMode::QCM => [
-                'Trouve l\'épice la plus compatible parmi 4 propositions.',
-                'Chaque bonne réponse te rapporte des XP.',
-                '7 questions au total — pas de retour en arrière.',
-            ],
-            GameMode::SURVIVAL => [
-                'Enchaîne les épices compatibles avec l\'épice de départ.',
-                'Une seule erreur et la partie est terminée.',
-                'Plus tu avances, plus tu gagnes d\'XP.',
-            ],
-            GameMode::GUESS_WHO => [
-                'Des indices apparaissent un par un pour identifier l\'épice mystère.',
-                'Moins tu utilises d\'indices, plus tu gagnes de points.',
-                '7 épices à deviner au total.',
-            ],
-            GameMode::INTRUS => [
-                'Parmi 4 épices, trouve celle qui n\'a rien en commun avec les autres.',
-                'Certaines questions sont inversées : trouve la compatible !',
-                '7 questions — attention aux pièges visuels.',
-            ],
-            GameMode::HANGMAN => [
-                'Devine le nom de l\'épice lettre par lettre.',
-                'Les accents sont ignorés — tape la lettre de base.',
-                'Trop d\'erreurs et le pendu est complet.',
-            ],
-            GameMode::CHRONO => [
-                'Identifie chaque épice le plus vite possible.',
-                'Tu vois la photo et les caractéristiques, mais pas le nom.',
-                'Le temps est compté — chaque seconde compte.',
-            ],
+        $keys = match ($mode) {
+            GameMode::QCM => ['ui.edu.rule.qcm_0', 'ui.edu.rule.qcm_1', 'ui.edu.rule.qcm_2'],
+            GameMode::SURVIVAL => ['ui.edu.rule.survival_0', 'ui.edu.rule.survival_1', 'ui.edu.rule.survival_2'],
+            GameMode::GUESS_WHO => ['ui.edu.rule.guess_who_0', 'ui.edu.rule.guess_who_1', 'ui.edu.rule.guess_who_2'],
+            GameMode::INTRUS => ['ui.edu.rule.intrus_0', 'ui.edu.rule.intrus_1', 'ui.edu.rule.intrus_2'],
+            GameMode::HANGMAN => ['ui.edu.rule.hangman_0', 'ui.edu.rule.hangman_1', 'ui.edu.rule.hangman_2'],
+            GameMode::CHRONO => ['ui.edu.rule.chrono_0', 'ui.edu.rule.chrono_1', 'ui.edu.rule.chrono_2'],
         };
+
+        return array_map(fn (string $key): string => $this->translator->trans($key), $keys);
     }
 
     // ──────────────────────────────────────────────
@@ -804,7 +798,10 @@ class AcademyManager
         $allStrictIntruders = $this->cache->get($cacheKey, function (ItemInterface $item) use ($baseSpice): array {
             $item->expiresAfter(3600);
 
-            $compatibles = $this->compatibilityScoreService->findCompatible([$baseSpice]);
+            $id = $baseSpice->getId();
+            $compatibles = $id !== null
+                ? $this->compatibleSpiceFinder->findCompatible(new MortarIds([$id]), 100, new CulinaryContext())
+                : [];
 
             // Keep only scores 1–15 : barely compatible = hard to distinguish
             $lowScored = array_filter($compatibles, fn (array $c) => $c['score'] >= 1 && $c['score'] <= 15);
@@ -986,7 +983,9 @@ class AcademyManager
 
             return [
                 'type' => 'intrus',
-                'prompt' => sprintf('Quelle épice est compatible avec %s ?', $baseSpice->getName()),
+                'prompt' => $this->translator->trans('ui.edu.prompt.intrus_compatible', [
+                    '%spice%' => $baseSpice->getName(),
+                ]),
                 'baseSpice' => [
                     'id' => $baseSpice->getId(),
                     'name' => $baseSpice->getName(),
@@ -1040,7 +1039,9 @@ class AcademyManager
 
         return [
             'type' => 'intrus',
-            'prompt' => sprintf('Quelle épice est l\'intrus par rapport à %s ?', $baseSpice->getName()),
+            'prompt' => $this->translator->trans('ui.edu.prompt.intrus_classic', [
+                '%spice%' => $baseSpice->getName(),
+            ]),
             'baseSpice' => [
                 'id' => $baseSpice->getId(),
                 'name' => $baseSpice->getName(),

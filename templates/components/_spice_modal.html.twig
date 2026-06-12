@@ -14,12 +14,13 @@
 <div
     x-data="quickSpiceView"
     @open-spice-modal.window="openSpice($event)"
-    @keydown.escape.window="close">
+    @keydown.escape.window="close"
+    @keydown.tab="handleTab($event)">
 
     <div
         x-show="modalOpen"
         x-cloak
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+        class="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100"
@@ -35,6 +36,7 @@
         <div
             role="dialog"
             aria-modal="true"
+            aria-label="{{ 'ui.modal.quick_view_label'|trans }}"
             class="relative w-full max-w-[880px] max-h-[90vh] overflow-hidden
                    bg-cream rounded-[18px] shadow-2xl"
             x-transition:enter="transition ease-out duration-300"
@@ -45,14 +47,14 @@
             x-transition:leave-end="opacity-0 translate-y-3 scale-[0.98]">
 
             {# Bouton fermer #}
-            <button
+            <twig:Button
+                label="{{ 'ui.modal.close'|trans }}"
+                variant="ghost"
+                iconOnly
+                icon="fa-solid fa-xmark"
                 @click="close"
-                aria-label="Fermer"
-                class="absolute top-4 right-4 z-20 size-8 flex items-center justify-center
-                       bg-cream/90 backdrop-blur-sm border border-stone-200 rounded-full
-                       text-stone-500 hover:text-saffron-600 hover:bg-white transition-colors shadow-sm">
-                <i class="fa-solid fa-xmark text-sm"></i>
-            </button>
+                extra="absolute top-4 right-4 z-20 size-8 bg-cream/90 backdrop-blur-sm border border-stone-200 rounded-full text-stone-500 hover:text-saffron-600 hover:bg-white transition-colors shadow-sm"
+            />
 
             {# Turbo Frame — charge _quick_view.html.twig (structure 2-col) #}
             <turbo-frame

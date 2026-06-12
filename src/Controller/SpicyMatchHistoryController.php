@@ -13,6 +13,9 @@ use App\Message\FavoriteToggledEvent;
 use App\Repository\CookingTipsRepository;
 use App\Repository\PreparationTipsRepository;
 use App\Repository\SpicyMatchHistoryRepository;
+use App\Service\Match\CookingTimelineBuilder;
+use App\Service\Match\MatrixComparator;
+use App\ValueObject\Match\MortarIds;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,7 +26,9 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('ROLE_USER')]
-#[Route('/spicymatch/history')]
+#[Route('/{_locale}/spicymatch/history', defaults: [
+    '_locale' => 'fr',
+])]
 class SpicyMatchHistoryController extends AbstractController
 {
     public function __construct(
@@ -58,8 +63,12 @@ class SpicyMatchHistoryController extends AbstractController
     }
 
     #[Route('/view/{id}', name: 'view_spicy_match_history', methods: ['GET'])]
-    public function view(SpicyMatchHistory $spicyMatchHistory): Response
-    {
+    public function view(
+        SpicyMatchHistory $spicyMatchHistory,
+        MatrixComparator $matrixComparator,
+        CookingTimelineBuilder $timelineBuilder,
+        Request $request,
+    ): Response {
         /** @var Users $currentUser */
         $currentUser = $this->getUser();
         if ($spicyMatchHistory->getSpicyMatch()->getUser() !== $currentUser) {
@@ -101,12 +110,57 @@ class SpicyMatchHistoryController extends AbstractController
             }
         }
 
+        // ── Insights physico-chimiques (page recette) ─────────────────────────
+        $spicyMatch = $spicyMatchHistory->getSpicyMatch();
+        $culinaryContext = $spicyMatch->getCulinaryContext();
+        $mortarSpiceIds = $spicyMatch->getSpices()
+            ->map(static fn (Spices $s): ?int => $s->getId())
+            ->filter(static fn (?int $id): bool => $id !== null)
+            ->toArray();
+
+        // Comparateur multi-matrice : "et si on cuisinait autrement ?"
+        // MortarIds borne le nombre d'épices ∈ [1, 10]. Slice si data legacy > 10.
+        $matrixGrid = [];
+        $boundedIds = array_slice(array_values($mortarSpiceIds), 0, 10);
+        if ($boundedIds !== []) {
+            try {
+                $matrixRankings = $matrixComparator->compare(
+                    new MortarIds($boundedIds),
+                    $culinaryContext,
+                    limit: 5,
+                    locale: $request->getLocale(),
+                );
+                $matrixGrid = $matrixComparator->buildGrid($matrixRankings);
+            } catch (\App\Exception\Match\InvalidMortarException) {
+                // Données legacy aberrantes — on omet le comparateur, sans casser la page.
+                $matrixGrid = [];
+            }
+        }
+
+        // Timeline cinétique : tête/cœur/fond + rétention sous cuisson
+        $mortarCompounds = [];
+        $seenCompoundIds = [];
+        foreach ($spicyMatch->getSpices() as $spice) {
+            foreach ($spice->getAromaticsCompounds() as $compound) {
+                $cid = $compound->getId();
+                if ($cid === null || isset($seenCompoundIds[$cid])) {
+                    continue;
+                }
+                $seenCompoundIds[$cid] = true;
+                $mortarCompounds[] = $compound;
+            }
+        }
+        $cookingTimeline = $timelineBuilder->build($mortarCompounds, $culinaryContext);
+
         return $this->render('spicy_match_history/view.html.twig', [
             'spicyMatchHistory' => $spicyMatchHistory,
             'preparations' => $spicyMatchHistory->getPreparationTips(),
             'cookingsByStep' => $cookingsByStep,
             'sharedCompounds' => array_values($sharedCompounds ?? []),
-            'spicyMatch' => $spicyMatchHistory->getSpicyMatch(),
+            'spicyMatch' => $spicyMatch,
+            'culinaryContext' => $culinaryContext,
+            'matrixGrid' => $matrixGrid,
+            'cookingTimeline' => $cookingTimeline,
         ]);
     }
 

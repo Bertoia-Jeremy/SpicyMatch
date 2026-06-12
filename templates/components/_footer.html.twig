@@ -57,114 +57,107 @@
                     </div>
                 </a>
                 <p class="text-sm leading-relaxed max-w-xs"
-                   style="color: rgba(42,24,16,0.5)">
-                    L'alchimie aromatique au service de vos recettes. Découvrez des accords invisibles et sublimez vos créations culinaires.
+                   style="color: rgba(42,24,16,0.65)">
+                    {{ 'ui.footer.tagline'|trans }}
                 </p>
-                <div class="flex items-center gap-3">
-                    <a href="#" aria-label="Instagram"
-                       class="size-9 rounded-full flex items-center justify-center transition-colors hover:border-copper"
-                       style="border: 1px solid rgba(184,134,74,0.35); color: rgba(42,24,16,0.45)">
-                        <i class="fa-brands fa-instagram text-sm" aria-hidden="true"></i>
-                    </a>
-                    <a href="#" aria-label="Pinterest"
-                       class="size-9 rounded-full flex items-center justify-center transition-colors hover:border-copper"
-                       style="border: 1px solid rgba(184,134,74,0.35); color: rgba(42,24,16,0.45)">
-                        <i class="fa-brands fa-pinterest-p text-sm" aria-hidden="true"></i>
-                    </a>
-                </div>
             </div>
 
             {# Col 2 : Navigation #}
             <div>
-                <h3 class="font-display italic text-[14px] mb-7 flex items-center gap-3"
-                    style="color: var(--color-copper)">
+                <h2 class="font-display italic text-[14px] mb-7 flex items-center gap-3"
+                    style="color: var(--color-copper-text)">
                     <span class="block h-px w-5" style="background: var(--color-copper)"></span>
-                    Navigation
-                </h3>
+                    {{ 'ui.footer.navigation'|trans }}
+                </h2>
                 <ul class="space-y-4 list-none p-0">
                     <li><a href="{{ path('home') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
                         <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                        Accueil
+                        {{ 'ui.common.home'|trans }}
                     </a></li>
                     <li><a href="{{ path('index_spices') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
                         <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                        Catalogue des épices
+                        {{ 'ui.footer.catalog'|trans }}
                     </a></li>
                     <li><a href="{{ path('index_spicy_match') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
                         <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                        Le Lab — Mélanges
+                        {{ 'ui.footer.lab_blends'|trans }}
                     </a></li>
                     <li><a href="{{ path('new_contact') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
                         <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                        Aide & Contact
+                        {{ 'ui.footer.help_contact'|trans }}
                     </a></li>
                 </ul>
             </div>
 
             {# Col 3 : L'Académie #}
             <div>
-                <h3 class="font-display italic text-[14px] mb-7 flex items-center gap-3"
-                    style="color: var(--color-copper)">
+                <h2 class="font-display italic text-[14px] mb-7 flex items-center gap-3"
+                    style="color: var(--color-copper-text)">
                     <span class="block h-px w-5" style="background: var(--color-copper)"></span>
-                    L'Académie
-                </h3>
+                    {{ 'ui.common.academy'|trans }}
+                </h2>
                 <ul class="space-y-4 list-none p-0">
                     <li><a href="{{ path('education_index') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
                         <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                        L'Académie des saveurs
+                        {{ 'ui.footer.academy_flavors'|trans }}
                     </a></li>
                     <li><a href="{{ path('index_aromatic_compound') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
                         <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                        Composés aromatiques
+                        {{ 'ui.footer.aromatic_compounds'|trans }}
                     </a></li>
                     <li><a href="{{ path('index_aromatic_groups') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
                         <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                        Groupes de saveurs
+                        {{ 'ui.footer.flavor_groups'|trans }}
                     </a></li>
                     <li><a href="{{ path('index_spicy_type') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
                         <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                        Classification
+                        {{ 'ui.footer.classification'|trans }}
                     </a></li>
                 </ul>
             </div>
 
             {# Col 4 : L'Atelier #}
             <div>
-                <h3 class="font-display italic text-[14px] mb-7 flex items-center gap-3"
-                    style="color: var(--color-copper)">
+                <h2 class="font-display italic text-[14px] mb-7 flex items-center gap-3"
+                    style="color: var(--color-copper-text)">
                     <span class="block h-px w-5" style="background: var(--color-copper)"></span>
-                    L'Atelier
-                </h3>
+                    {{ 'ui.footer.atelier'|trans }}
+                </h2>
                 {% if is_granted('ROLE_USER') %}
                     <ul class="space-y-4 list-none p-0">
-                        <li><a href="{{ path('profile_user') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
+                        <li><a href="{{ path('profile_user', {tab: 'dashboard'}) }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
                             <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                            Mon Profil de Chef
+                            {{ 'ui.profile.menu.dashboard'|trans }}
                         </a></li>
-                        <li><a href="{{ path('history_user') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
+                        <li><a href="{{ path('profile_user', {tab: 'grimoire'}) }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
                             <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                            Mes Mélanges
+                            {{ 'ui.profile.menu.grimoire'|trans }}
                         </a></li>
-                        <li><a href="{{ path('configuration_user') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
+                        <li><a href="{{ path('profile_user', {tab: 'history'}) }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
                             <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                            Configuration
+                            {{ 'ui.profile.menu.history'|trans }}
+                        </a></li>
+                        <li><a href="{{ path('profile_user', {tab: 'lab'}) }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
+                            <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
+                            {{ 'ui.profile.menu.lab'|trans }}
                         </a></li>
                         <li><a href="{{ path('app_logout') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
                             <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                            Se déconnecter
+                            {{ 'ui.common.logout'|trans }}
                         </a></li>
                     </ul>
                 {% else %}
                     <p class="text-xs italic leading-relaxed mb-6"
-                       style="color: rgba(42,24,16,0.45)">
-                        Rejoignez notre brigade de passionnés et explorez l'alchimie des saveurs.
+                       style="color: rgba(42,24,16,0.65)">
+                        {{ 'ui.footer.join_text'|trans }}
                     </p>
-                    <a href="{{ path('index_register') }}"
-                       class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-opacity hover:opacity-90"
-                       style="background: var(--color-paprika-700); color: var(--color-parchment); border: 1.5px solid transparent">
-                        Rejoindre la brigade
-                        <i class="fa-solid fa-arrow-right text-xs"></i>
-                    </a>
+                    <twig:Button
+                        label="{{ 'ui.footer.join_cta'|trans }}"
+                        href="{{ path('index_register') }}"
+                        variant="primary"
+                        icon="fa-solid fa-arrow-right"
+                        iconPos="right"
+                    />
                 {% endif %}
             </div>
 
@@ -174,15 +167,14 @@
         <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4"
              style="border-top: 1px solid rgba(184,134,74,0.25)">
             <div class="font-mono text-[10px] tracking-[0.2em] uppercase"
-                 style="color: rgba(42,24,16,0.38)">
+                 style="color: rgba(42,24,16,0.65)">
                 &copy; {{ "now"|date("Y") }} SpicyMatch —
                 <em class="font-display not-italic italic text-[12px] normal-case tracking-normal"
-                   style="color: var(--color-copper)">L'Art de l'Alchimie Culinaire</em>
+                   style="color: var(--color-copper-text)">{{ 'ui.footer.copyright_tagline'|trans }}</em>
             </div>
             <div class="flex items-center gap-6 font-mono text-[10px] uppercase tracking-widest">
-                <a href="#" class="footer-link transition-colors">Mentions Légales</a>
-                <a href="#" class="footer-link transition-colors">Confidentialité</a>
-                <a href="{{ path('new_contact') }}" class="footer-link transition-colors">Contact</a>
+                <a href="{{ path('accessibility_declaration') }}" class="footer-link transition-colors">{{ 'ui.footer.accessibility'|trans }}</a>
+                <a href="{{ path('new_contact') }}" class="footer-link transition-colors">{{ 'ui.common.contact'|trans }}</a>
             </div>
         </div>
 
@@ -198,13 +190,13 @@
                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                 x-transition:leave-end="opacity-0 translate-y-4 scale-90"
                 @click="scrollUp"
-                aria-label="Retour en haut de la page"
+                aria-label="{{ 'ui.footer.scroll_top'|trans }}"
                 class="size-12 rounded-full flex items-center justify-center transition-all duration-300 group cursor-pointer"
                 style="background: var(--color-ink-deep);
                        border: 1px solid rgba(184,134,74,0.3);
                        color: var(--color-parchment);
                        box-shadow: 0 4px 20px rgba(42,24,16,0.25)">
-            <i class="fa-solid fa-arrow-up text-sm transition-transform group-hover:-translate-y-0.5"></i>
+            <i class="fa-solid fa-arrow-up text-sm transition-transform group-hover:-translate-y-0.5" aria-hidden="true"></i>
         </button>
     </div>
 

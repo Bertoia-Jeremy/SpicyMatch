@@ -1,0 +1,122 @@
+# Back-office EasyAdmin (domaine 'admin').
+admin:
+    dashboard:
+        menu: Tableau de bord
+    menu:
+        section_content: Contenu
+        section_preparation: Préparation
+        section_gamification: Gamification
+        section_users: Utilisateurs
+        spices: Épices
+        aromatic_groups: Groupes aromatiques
+        aromatic_compounds: Composants aromatiques
+        alchemy_flavors: Alchimie des saveurs
+        spicy_types: "Types d'épices"
+        cooking_tips: Conseils de cuisson
+        preparation_tips: Conseils de préparation
+        preparation_methods: Méthodes de préparation
+        achievements: Succès
+        game_sessions: Sessions de jeu
+        users: Utilisateurs
+        contact: Contact
+        site: Site SpicyMatch
+    entity:
+        achievement_singular: Succès
+        achievement_plural: Succès
+        game_session_singular: Session de jeu
+        game_session_plural: Sessions de jeu
+    field:
+        name: Nom
+        translations: Traductions (EN / ES)
+        description: Description
+        spices: Épices
+        color: Couleur
+        cas_number: Numéro CAS
+        formula: Formule chimique
+        cooking_advice: Conseil de cuisine
+        benefits: Bienfaits
+        extra_informations: Informations supplémentaires
+        created_at: Créé le
+        updated_at: Modifié le
+        image: Image
+        aromatic_group: Groupe aromatique
+        spicy_type: "Type d'épice"
+        main_compounds: Composés aromatiques principaux
+        secondary_compounds: Composés aromatiques secondaires
+        icon: Icône
+        trigger: Déclencheur
+        trigger_value: Valeur seuil
+        xp_reward: XP Récompense
+        rarity: Rareté
+        easter_egg_slug: Easter Egg Slug
+        cooking_step: Étape de cuisson
+        title: Titre
+        text: Texte
+        advantages: Avantages
+        tools: Outils
+        informations: Informations
+        advice: Conseils
+        user: Utilisateur
+        game_mode: Mode de jeu
+        score: Score
+        correct_answers: Bonnes réponses
+        started_at: Démarré le
+        email: Email
+        subject: Sujet
+        message: Message
+        roles: Rôles
+        preparation_methods: Méthodes de préparation
+        preparation_method: Méthode de préparation
+        aromatic_compounds: Composants aromatiques
+        alchemy_flavors: Alchimie des saveurs
+        spice: Épice
+        difficulty: Difficulté
+        total_questions: Total questions
+        xp_gained: XP gagné
+        started_short: Début
+        finished_short: Fin
+        tools_needed: Outils nécessaires
+        advice_single: Conseil
+        extra_short: Infos supplémentaires
+    dash:
+        title: Dashboard SpicyMatch
+        users: Utilisateurs
+        new_this_week: '+%count% cette semaine'
+        active_30d: Actifs (30j)
+        avg_level: 'Niveau moyen : %level%'
+        blends: Mélanges
+        spices_per_blend: '~%count% épices/mélange'
+        quiz_played: Quiz joués
+        avg_accuracy: 'Précision moy. : %pct%%'
+        achievements_unlocked: Succès débloqués
+        rate: 'Taux : %pct%%'
+        level_distribution: Distribution des niveaux
+        most_viewed_spices: Épices les plus consultées
+        blend_activity: Activité mélanges (30 derniers jours)
+        most_used_spices: Épices les plus utilisées en mélanges
+        col_spice: Épice
+        col_uses: Utilisations
+        popular_groups: Groupes aromatiques populaires
+        col_group: Groupe
+        col_views: Consultations
+    stats:
+        page_title: Stats Gamification · Admin
+        title: Stats Gamification
+        intro: Indicateurs métier et anomalies détectées sur les 30 derniers jours.
+        unlock_rate_title: Taux de débloquage par succès
+        no_data: Pas encore de données.
+        xp_per_day_title: XP cumulé / jour (30j)
+        sessions_per_mode_title: Sessions par mode (30j)
+        anomalies_title: Anomalies détectées
+        anomalies_sub: (> 10 sessions / jour)
+        no_anomaly: Aucune anomalie détectée.
+        col_user: Utilisateur
+        col_reason: Raison
+        col_sessions: Sessions
+        col_total_xp: XP total
+    chart:
+        none: Aucun
+        players: Joueurs
+        views: Vues
+        matches_per_day: Mélanges / jour
+        level_bucket: 'Niv. %from%-%to%'

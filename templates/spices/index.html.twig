@@ -1,11 +1,9 @@
 {% extends 'base.html.twig' %}
 {% import "components/_macro_card_spice.html.twig" as macroCardSpice %}
 
-{% block title %}SpicyMatch — Catalogue d'épices{% endblock %}
+{% block title %}{{ 'ui.catalog.spices_page_title'|trans }}{% endblock %}
 
 {% block body %}
-{% import 'macros/buttons.html.twig' as buttons %}
-
 {# Modale Quick View — doit être en dehors du Turbo Frame pour survivre aux navigations #}
 {% include 'components/_spice_modal.html.twig' %}
 
@@ -15,19 +13,19 @@
     <div class="mb-10">
         <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
-                <h1 class="text-4xl font-bold text-stone-900 mb-2">Nos épices</h1>
+                <h1 class="text-4xl font-bold text-stone-900 mb-2">{{ 'ui.catalog.spices_title'|trans }}</h1>
                 <p class="text-stone-500">
-                    {{ spices.getTotalItemCount() }} épice{{ spices.getTotalItemCount() > 1 ? 's' : '' }} dans notre catalogue
+                    {{ 'ui.catalog.spices_count'|trans({'%count%': spices.getTotalItemCount()}) }}
                 </p>
             </div>
             {% if is_granted('ROLE_USER') %}
-                {{ buttons.button('Créer un mélange', {
-                    href: path('index_spicy_match'),
-                    variant: 'primary',
-                    class: 'shrink-0',
-                    icon: 'fa-solid fa-flask',
-                    attr: { 'data-tour': 'cta-lab' }
-                }) }}
+                <twig:Button
+                    label="{{ 'ui.catalog.create_blend'|trans }}"
+                    href="{{ path('index_spicy_match') }}"
+                    variant="primary"
+                    icon="fa-solid fa-flask"
+                    data-tour="cta-lab"
+                />
             {% endif %}
         </div>
     </div>
@@ -55,6 +53,7 @@
 
         {# ── Grille de cartes ── #}
         {% if spices|length > 0 %}
+            <h2 class="sr-only">{{ 'ui.footer.catalog'|trans }}</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                 {% for spice in spices %}
                     {{ macroCardSpice.cardSpice(spice) }}
@@ -65,18 +64,19 @@
             {# ── Empty state ── #}
             <div class="flex flex-col items-center justify-center py-24 text-center">
                 <div class="w-20 h-20 rounded-full bg-spice-surface flex items-center justify-center mb-5">
-                    <i class="fa-solid fa-mortar-pestle text-3xl text-saffron-400"></i>
+                    <i class="fa-solid fa-mortar-pestle text-3xl text-saffron-400" aria-hidden="true"></i>
                 </div>
-                <h2 class="text-xl font-semibold text-stone-800 mb-2">Aucune épice trouvée</h2>
+                <h2 class="text-xl font-semibold text-stone-800 mb-2">{{ 'ui.catalog.none_found'|trans }}</h2>
                 <p class="text-stone-400 text-sm max-w-xs mb-6">
-                    Aucune épice ne correspond à vos filtres. Essayez de modifier ou réinitialiser vos critères.
+                    {{ 'ui.catalog.none_found_text'|trans }}
                 </p>
-                {{ buttons.button('Voir toutes les épices', {
-                    href: path('index_spices'),
-                    variant: 'outline',
-                    size: 'sm',
-                    icon: 'fa-solid fa-arrow-rotate-left'
-                }) }}
+                <twig:Button
+                    label="{{ 'ui.catalog.view_all_spices'|trans }}"
+                    href="{{ path('index_spices') }}"
+                    variant="secondary"
+                    size="sm"
+                    icon="fa-solid fa-arrow-rotate-left"
+                />
             </div>
         {% endif %}
 

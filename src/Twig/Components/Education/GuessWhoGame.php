@@ -12,6 +12,7 @@ use App\Service\Education\GameSessionManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
@@ -90,6 +91,7 @@ class GuessWhoGame extends AbstractController
         private readonly AcademyManager $academyManager,
         private readonly GameSessionManager $sessionManager,
         private readonly RequestStack $requestStack,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -187,7 +189,9 @@ class GuessWhoGame extends AbstractController
         $questions = $secret['questions'] ?? [];
         $questions[] = [
             'questionIndex' => $this->questionNumber - 1,
-            'prompt' => $clueCount . ' indice' . ($clueCount > 1 ? 's' : '') . ' utilisé' . ($clueCount > 1 ? 's' : ''),
+            'prompt' => $this->translator->trans('ui.edu.prompt.guesswho_clues_used', [
+                '%count%' => $clueCount,
+            ]),
             'correctAnswer' => $correctName,
             'answerGiven' => $spiceName,
             'isCorrect' => $isCorrect,

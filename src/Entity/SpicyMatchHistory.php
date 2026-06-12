@@ -10,6 +10,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SpicyMatchHistoryRepository::class)]
+#[ORM\Index(name: 'idx_smh_spicy_match', columns: ['spicy_match_id'])]
+#[ORM\Index(name: 'idx_smh_created_deleted', columns: ['spicy_match_id', 'deleted_at', 'created_at'])]
+#[ORM\Index(name: 'idx_smh_favorite_deleted', columns: ['spicy_match_id', 'favorite', 'deleted_at'])]
 class SpicyMatchHistory
 {
     #[ORM\Id]

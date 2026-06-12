@@ -21,30 +21,32 @@ class RegistrationFormType extends AbstractType
     {
         $builder
             ->add('username', TextType::class, [
-                'label' => 'Pseudo',
+                'label' => 'form.register.username',
             ])
             ->add('mail', EmailType::class, [
-                'label' => 'Email (facultatif mais utile pour récupérer ton mot de passe)',
+                'label' => 'form.register.mail',
                 'required' => false,
             ])
             ->add('plainPassword', PasswordType::class, [
-                'label' => 'Mot de passe',
+                'label' => 'form.register.password',
                 'mapped' => false,
                 'attr' => [
                     'autocomplete' => 'new-password',
                 ],
                 'constraints' => [
                     new NotBlank([
-                        'message' => 'Veuillez rentrer un mot de passe',
+                        'message' => 'user.password_blank',
                     ]),
                     new Length([
                         'min' => 6,
-                        'minMessage' => 'Votre mot de passe doit contenir au moins {{ limit }} caractères.',
+                        'minMessage' => 'user.password_min',
                         'max' => 255,
                     ]),
                 ],
             ])
-            ->add('Valider', SubmitType::class)
+            ->add('Valider', SubmitType::class, [
+                'label' => 'common.actions.submit',
+            ])
         ;
     }
 

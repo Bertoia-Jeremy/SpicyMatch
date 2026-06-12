@@ -1,0 +1,90 @@
+<turbo-frame id="frame-history">
+    <div class="mt-6 flex flex-wrap items-center gap-2" role="group" aria-label="{{ 'ui.profile.tabs.history_filter'|trans }}">
+        {% set _filters = [
+            { key: 'all',       label: 'ui.history.filter_all'|trans,       icon: null,              active: 'bg-saffron-600 text-white' },
+            { key: 'favorites', label: 'ui.history.filter_favorites'|trans, icon: 'fa-solid fa-star', active: 'bg-turmeric-500 text-white' },
+            { key: 'manual',    label: 'ui.history.filter_manual'|trans,    icon: 'fa-solid fa-hand', active: 'bg-stone-600 text-white' },
+        ] %}
+        {% for f in _filters %}
+            <a href="{{ path('profile_tab', {tab: 'history', filter: f.key}) }}"
+               data-turbo-frame="frame-history"
+               class="px-3 py-1.5 rounded-full text-sm font-medium transition-colors {{ currentFilter == f.key ? f.active : 'bg-stone-100 text-stone-600 hover:bg-stone-200' }}">
+                {% if f.icon %}<i class="{{ f.icon }} text-xs mr-1" aria-hidden="true"></i>{% endif %}{{ f.label }}
+            </a>
+        {% endfor %}
+    </div>
+
+        <div class="mt-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-stone-800 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-saffron-600 text-base" aria-hidden="true"></i>{{ 'ui.history.title'|trans }}
+                </h2>
+                <a href="{{ path('index_spicy_match_history') }}"
+                   data-turbo-frame="_top"
+                   class="text-sm text-saffron-700 hover:text-saffron-600 hover:underline transition-colors font-medium">
+                    {{ 'ui.history.see_all'|trans }}
+                </a>
+            </div>
+
+            {% if pagination|length > 0 %}
+                <div class="space-y-4">
+                    {% for history in pagination %}
+                        <a class="block bg-white border border-stone-200 rounded-xl shadow-sm hover:shadow-md hover:border-saffron-400/50 transition-all p-5"
+                           href="{{ path('view_spicy_match_history', {'id': history.id}) }}"
+                           data-turbo-frame="_top">
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-semibold text-stone-800 mb-2">
+                                        {{ history.title ?: 'ui.common.recipe_of'|trans({'%date%': history.createdAt|format_datetime('medium', 'short')}) }}
+                                    </h3>
+                                    <div class="flex flex-wrap gap-2 items-center">
+                                        {% for spice in history.spicyMatch.spices %}
+                                            <span class="inline-flex items-center gap-1.5 bg-spice-surface border border-spice-border text-stone-700 text-xs font-medium px-2.5 py-1 rounded-full">
+                                                {{ spice.getLocalizedName(app.request.locale) }}
+                                            </span>
+                                        {% endfor %}
+                                        {% if history.spicyMatch.isManual %}
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-medium text-stone-500 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full" title="{{ 'ui.history.manual_tooltip'|trans }}">
+                                                <i class="fa-solid fa-hand text-[9px]" aria-hidden="true"></i>{{ 'ui.history.manual'|trans }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-4 shrink-0">
+                                    <span class="text-sm text-stone-400">{{ history.createdAt|format_date('medium') }}</span>
+                                    <i class="fa-solid fa-chevron-right text-stone-300 text-sm" aria-hidden="true"></i>
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+
+                {% if pagination.pageCount > 1 %}
+                    <div class="mt-8 flex justify-center">
+                        {{ knp_pagination_render(pagination) }}
+                    </div>
+                {% endif %}
+            {% elseif currentFilter == 'favorites' %}
+                <div class="card-warm p-10 text-center">
+                    <i class="fa-solid fa-star text-stone-300 text-5xl mb-4 block" aria-hidden="true"></i>
+                    <p class="text-stone-500 text-lg">{{ 'ui.history.no_favorites'|trans }}</p>
+                </div>
+            {% elseif currentFilter == 'manual' %}
+                <div class="card-warm p-10 text-center">
+                    <i class="fa-solid fa-hand text-stone-300 text-5xl mb-4 block" aria-hidden="true"></i>
+                    <p class="text-stone-500 text-lg">{{ 'ui.history.no_manual'|trans }}</p>
+                </div>
+            {% else %}
+                <div class="card-warm p-10 text-center">
+                    <i class="fa-solid fa-flask text-stone-300 text-5xl mb-4 block" aria-hidden="true"></i>
+                    <p class="text-stone-500 text-lg mb-6">{{ 'ui.history.none_yet'|trans }}</p>
+                    <twig:Button
+                        label="{{ 'ui.history.create_first'|trans }}"
+                        href="{{ path('index_spicy_match') }}"
+                        variant="primary"
+                        icon="fa-solid fa-fire"
+                    />
+                </div>
+            {% endif %}
+        </div>
+</turbo-frame>

@@ -14,7 +14,7 @@ test.describe('Easter egg: temps de l\'infusion', () => {
     await page.waitForURL(/\/$|\/users\/?$/);
 
     // Navigate directly to the Infusion method view (id=4 in fixtures).
-    await page.goto('/preparation/methods/4');
+    await page.goto('/fr/preparation/methods/4');
     await expect(page).toHaveURL(/\/preparation\/methods\/\d+/);
     await expect(page.getByRole('heading', { name: /infusion/i }).first()).toBeVisible();
 

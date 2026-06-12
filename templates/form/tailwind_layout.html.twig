@@ -20,6 +20,29 @@
     {%- endif %}
 {%- endblock %}
 
+{% block form_label_content -%}
+    {{- parent() -}}
+    {%- if required is defined and required -%}
+        <span aria-hidden="true" class="text-red-600"> *</span>
+    {%- endif -%}
+{%- endblock %}
+
+{# Ici (et pas dans form_row) pour couvrir aussi les appels form_widget() directs #}
+{% block widget_attributes -%}
+    {%- set aria_describedby = attr['aria-describedby']|default('') ? [attr['aria-describedby']] : [] -%}
+    {%- if help -%}
+        {%- set aria_describedby = aria_describedby|merge([id ~ '_help']) -%}
+    {%- endif -%}
+    {%- if errors|length > 0 -%}
+        {%- set aria_describedby = aria_describedby|merge(errors|map((_, index) => id ~ '_error' ~ (index + 1))) -%}
+        {%- set attr = attr|merge({'aria-invalid': 'true'}) -%}
+    {%- endif -%}
+    {%- if aria_describedby|length > 0 -%}
+        {%- set attr = attr|merge({'aria-describedby': aria_describedby|join(' ')}) -%}
+    {%- endif -%}
+    {{- parent() -}}
+{%- endblock %}
+
 {# Input, select (single), number, email, password, url, search #}
 {% block form_widget_simple -%}
     {%- set attr = attr|merge({class: (
@@ -53,8 +76,7 @@
 {# Submit / button #}
 {% block button_widget -%}
     {%- set attr = attr|merge({class: (
-        'px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 '
-        ~ 'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 '
+        'btn-pill-base btn-pill-primary px-5 py-2 text-sm '
         ~ (attr.class|default(''))
     )|trim}) -%}
     {{- parent() -}}
@@ -65,7 +87,7 @@
     {%- if errors|length > 0 -%}
         <ul class="mt-1 text-sm text-red-600 space-y-0.5 list-none p-0">
             {%- for error in errors -%}
-                <li>{{ error.message }}</li>
+                <li{% if id is defined and id %} id="{{ id ~ '_error' ~ loop.index }}"{% endif %}>{{ error.message }}</li>
             {%- endfor -%}
         </ul>
     {%- endif %}

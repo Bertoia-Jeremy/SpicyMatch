@@ -1,0 +1,586 @@
+# Concentrations de composés aromatiques par épice — données fictives pour dev/staging
+#
+# Les valeurs sont fictives mais botaniquement cohérentes (relations réelles entre
+# épices et familles moléculaires). Permettent de tester le moteur de compatibilité
+# avant acquisition des vraies données FlavorDB / van Gemert / GC-MS.
+#
+# Unité : ppm (mg/kg de l'épice sèche).
+# OAV = concentration_ppm / odt_ppm (doit être > 1 pour être OAV-actif).
+#
+# Remplacer par les vraies données lors de la phase acquisition (Sprint 2 réel).
+# source_tag indique le groupe aromatique dominant pour repères gastronomiques.
+# ──────────────────────────────────────────────────────────────────────────────────────
+
+# ════════════════════════════════════════════════════════════════════════════════
+# FAMILLE EUGÉNOL — Épices chaudes & boisées (clou, cannelle, laurier, allspice)
+# ════════════════════════════════════════════════════════════════════════════════
+
+- spice_name: "Clou de Girofle"
+  compound_name: "Eugenol"
+  concentration_ppm: 150000
+  source: "fixtures_dev — OAV=30M (dominant)"
+
+- spice_name: "Clou de Girofle"
+  compound_name: "Carvacrol"
+  concentration_ppm: 500
+  source: "fixtures_dev — OAV=167"
+
+- spice_name: "Clou de Girofle"
+  compound_name: "Cinnamaldéhyde"
+  concentration_ppm: 200
+  source: "fixtures_dev — OAV=20"
+
+- spice_name: "Cannelle de Ceylan"
+  compound_name: "Cinnamaldéhyde"
+  concentration_ppm: 60000
+  source: "fixtures_dev — OAV=6M (dominant)"
+
+- spice_name: "Cannelle de Ceylan"
+  compound_name: "Eugenol"
+  concentration_ppm: 1000
+  source: "fixtures_dev — OAV=200"
+
+- spice_name: "Cannelle de Ceylan"
+  compound_name: "Linalol"
+  concentration_ppm: 300
+  source: "fixtures_dev — OAV=30"
+
+- spice_name: "Laurier Noble"
+  compound_name: "Eugenol"
+  concentration_ppm: 3000
+  source: "fixtures_dev — OAV=600"
+
+- spice_name: "Laurier Noble"
+  compound_name: "Linalol"
+  concentration_ppm: 2000
+  source: "fixtures_dev — OAV=200"
+
+- spice_name: "Laurier Noble"
+  compound_name: "Terpinèn-4-ol"
+  concentration_ppm: 800
+  source: "fixtures_dev — OAV=1600"
+
+- spice_name: "Piment de la Jamaïque"
+  compound_name: "Eugenol"
+  concentration_ppm: 40000
+  source: "fixtures_dev — OAV=8M (dominant)"
+
+- spice_name: "Piment de la Jamaïque"
+  compound_name: "Carvacrol"
+  concentration_ppm: 500
+  source: "fixtures_dev — OAV=167"
+
+- spice_name: "Piment de la Jamaïque"
+  compound_name: "Terpinèn-4-ol"
+  concentration_ppm: 1000
+  source: "fixtures_dev — OAV=2000"
+
+- spice_name: "Piment de la Jamaïque"
+  compound_name: "Cinnamaldéhyde"
+  concentration_ppm: 200
+  source: "fixtures_dev — OAV=20"
+
+# ════════════════════════════════════════════════════════════════════════════════
+# FAMILLE ANÉTHOL — Épices anisées (anis, fenouil, estragon, anis vert)
+# ════════════════════════════════════════════════════════════════════════════════
+
+- spice_name: "Anis Étoilé (Badiane)"
+  compound_name: "Anéthol"
+  concentration_ppm: 80000
+  source: "fixtures_dev — OAV=80M (dominant)"
+
+- spice_name: "Anis Étoilé (Badiane)"
+  compound_name: "Estragole"
+  concentration_ppm: 3000
+  source: "fixtures_dev — OAV=60K"
+
+- spice_name: "Anis Étoilé (Badiane)"
+  compound_name: "D-Limonène"
+  concentration_ppm: 1000
+  source: "fixtures_dev — OAV=1000"
+
+- spice_name: "Anis Vert"
+  compound_name: "Anéthol"
+  concentration_ppm: 60000
+  source: "fixtures_dev — OAV=60M (dominant)"
+
+- spice_name: "Anis Vert"
+  compound_name: "Estragole"
+  concentration_ppm: 2000
+  source: "fixtures_dev — OAV=40K"
+
+- spice_name: "Anis Vert"
+  compound_name: "D-Limonène"
+  concentration_ppm: 500
+  source: "fixtures_dev — OAV=500"
+
+- spice_name: "Fenouil (graines)"
+  compound_name: "Anéthol"
+  concentration_ppm: 50000
+  source: "fixtures_dev — OAV=50M (dominant)"
+
+- spice_name: "Fenouil (graines)"
+  compound_name: "Estragole"
+  concentration_ppm: 5000
+  source: "fixtures_dev — OAV=100K"
+
+- spice_name: "Fenouil (graines)"
+  compound_name: "D-Limonène"
+  concentration_ppm: 2000
+  source: "fixtures_dev — OAV=2000"
+
+- spice_name: "Fenouil (graines)"
+  compound_name: "Linalol"
+  concentration_ppm: 500
+  source: "fixtures_dev — OAV=50"
+
+- spice_name: "Estragon Français"
+  compound_name: "Estragole"
+  concentration_ppm: 40000
+  source: "fixtures_dev — OAV=800K (dominant)"
+
+- spice_name: "Estragon Français"
+  compound_name: "Anéthol"
+  concentration_ppm: 2000
+  source: "fixtures_dev — OAV=2M"
+
+- spice_name: "Estragon Français"
+  compound_name: "Linalol"
+  concentration_ppm: 500
+  source: "fixtures_dev — OAV=50"
+
+- spice_name: "Carvi (Cumin des Prés)"
+  compound_name: "D-Limonène"
+  concentration_ppm: 30000
+  source: "fixtures_dev — OAV=30K (dominant)"
+
+- spice_name: "Carvi (Cumin des Prés)"
+  compound_name: "Terpinèn-4-ol"
+  concentration_ppm: 1000
+  source: "fixtures_dev — OAV=2000"
+
+- spice_name: "Carvi (Cumin des Prés)"
+  compound_name: "Linalol"
+  concentration_ppm: 500
+  source: "fixtures_dev — OAV=50"
+
+- spice_name: "Carvi (Cumin des Prés)"
+  compound_name: "Anéthol"
+  concentration_ppm: 1500
+  source: "fixtures_dev — OAV=1.5M"
+
+# ════════════════════════════════════════════════════════════════════════════════
+# FAMILLE LINALOL — Épices florales & douces (coriandre, cardamome, basilic)
+# ════════════════════════════════════════════════════════════════════════════════
+
+- spice_name: "Coriandre (graines)"
+  compound_name: "Linalol"
+  concentration_ppm: 20000
+  source: "fixtures_dev — OAV=2M (dominant)"
+
+- spice_name: "Coriandre (graines)"
+  compound_name: "Géraniol"
+  concentration_ppm: 2000
+  source: "fixtures_dev — OAV=2M"
+
+- spice_name: "Coriandre (graines)"
+  compound_name: "D-Limonène"
+  concentration_ppm: 1000
+  source: "fixtures_dev — OAV=1000"
+
+- spice_name: "Cardamome Verte"
+  compound_name: "Linalol"
+  concentration_ppm: 8000
+  source: "fixtures_dev — OAV=800K"
+
+- spice_name: "Cardamome Verte"
+  compound_name: "Terpinèn-4-ol"
+  concentration_ppm: 3000
+  source: "fixtures_dev — OAV=6000"
+
+- spice_name: "Cardamome Verte"
+  compound_name: "D-Limonène"
+  concentration_ppm: 2000
+  source: "fixtures_dev — OAV=2000"
+
+- spice_name: "Cardamome Verte"
+  compound_name: "Géraniol"
+  concentration_ppm: 500
+  source: "fixtures_dev — OAV=500K"
+
+- spice_name: "Basilic Grand Vert"
+  compound_name: "Linalol"
+  concentration_ppm: 10000
+  source: "fixtures_dev — OAV=1M"
+
+- spice_name: "Basilic Grand Vert"
+  compound_name: "Estragole"
+  concentration_ppm: 5000
+  source: "fixtures_dev — OAV=100K"
+
+- spice_name: "Basilic Grand Vert"
+  compound_name: "Eugenol"
+  concentration_ppm: 2000
+  source: "fixtures_dev — OAV=400K"
+
+- spice_name: "Basilic Grand Vert"
+  compound_name: "D-Limonène"
+  concentration_ppm: 1000
+  source: "fixtures_dev — OAV=1000"
+
+# ════════════════════════════════════════════════════════════════════════════════
+# FAMILLE THYMOL/CARVACROL — Herbes méditerranéennes (thym, origan, marjolaine, sauge, romarin)
+# ════════════════════════════════════════════════════════════════════════════════
+
+- spice_name: "Thym Commun"
+  compound_name: "Thymol"
+  concentration_ppm: 30000
+  source: "fixtures_dev — OAV=15M (dominant)"
+
+- spice_name: "Thym Commun"
+  compound_name: "Carvacrol"
+  concentration_ppm: 5000
+  source: "fixtures_dev — OAV=1.7M"
+
+- spice_name: "Thym Commun"
+  compound_name: "Linalol"
+  concentration_ppm: 1000
+  source: "fixtures_dev — OAV=100K"
+
+- spice_name: "Thym Commun"
+  compound_name: "Terpinèn-4-ol"
+  concentration_ppm: 1500
+  source: "fixtures_dev — OAV=3000"
+
+- spice_name: "Origan Méditerranéen"
+  compound_name: "Carvacrol"
+  concentration_ppm: 45000
+  source: "fixtures_dev — OAV=15M (dominant)"
+
+- spice_name: "Origan Méditerranéen"
+  compound_name: "Thymol"
+  concentration_ppm: 10000
+  source: "fixtures_dev — OAV=5M"
+
+- spice_name: "Origan Méditerranéen"
+  compound_name: "Terpinèn-4-ol"
+  concentration_ppm: 2000
+  source: "fixtures_dev — OAV=4000"
+
+- spice_name: "Origan Méditerranéen"
+  compound_name: "Linalol"
+  concentration_ppm: 500
+  source: "fixtures_dev — OAV=50K"
+
+- spice_name: "Marjolaine"
+  compound_name: "Thymol"
+  concentration_ppm: 15000
+  source: "fixtures_dev — OAV=7.5M"
+
+- spice_name: "Marjolaine"
+  compound_name: "Carvacrol"
+  concentration_ppm: 20000
+  source: "fixtures_dev — OAV=6.7M (dominant)"
+
+- spice_name: "Marjolaine"
+  compound_name: "Terpinèn-4-ol"
+  concentration_ppm: 5000
+  source: "fixtures_dev — OAV=10K"
+
+- spice_name: "Marjolaine"
+  compound_name: "Linalol"
+  concentration_ppm: 2000
+  source: "fixtures_dev — OAV=200K"
+
+- spice_name: "Sauge Officinale"
+  compound_name: "Thymol"
+  concentration_ppm: 5000
+  source: "fixtures_dev — OAV=2.5M"
+
+- spice_name: "Sauge Officinale"
+  compound_name: "Linalol"
+  concentration_ppm: 3000
+  source: "fixtures_dev — OAV=300K"
+
+- spice_name: "Sauge Officinale"
+  compound_name: "Terpinèn-4-ol"
+  concentration_ppm: 2000
+  source: "fixtures_dev — OAV=4000"
+
+- spice_name: "Sauge Officinale"
+  compound_name: "Géraniol"
+  concentration_ppm: 500
+  source: "fixtures_dev — OAV=500K"
+
+- spice_name: "Romarin"
+  compound_name: "Linalol"
+  concentration_ppm: 3000
+  source: "fixtures_dev — OAV=300K"
+
+- spice_name: "Romarin"
+  compound_name: "Terpinèn-4-ol"
+  concentration_ppm: 2000
+  source: "fixtures_dev — OAV=4000"
+
+- spice_name: "Romarin"
+  compound_name: "Carvacrol"
+  concentration_ppm: 1000
+  source: "fixtures_dev — OAV=333K"
+
+- spice_name: "Romarin"
+  compound_name: "Thymol"
+  concentration_ppm: 500
+  source: "fixtures_dev — OAV=250K"
+
+- spice_name: "Romarin"
+  compound_name: "D-Limonène"
+  concentration_ppm: 1500
+  source: "fixtures_dev — OAV=1500"
+
+# ════════════════════════════════════════════════════════════════════════════════
+# FAMILLE TERPINÈN-4-OL / LIMONÈNE — Épices poivrées & résineuses (poivres, muscade, cumin)
+# ════════════════════════════════════════════════════════════════════════════════
+
+- spice_name: "Poivre Noir"
+  compound_name: "Pipérine"
+  concentration_ppm: 50000
+  source: "fixtures_dev — OAV=1000 (dominant)"
+
+- spice_name: "Poivre Noir"
+  compound_name: "D-Limonène"
+  concentration_ppm: 3000
+  source: "fixtures_dev — OAV=3000"
+
+- spice_name: "Poivre Noir"
+  compound_name: "Terpinèn-4-ol"
+  concentration_ppm: 2000
+  source: "fixtures_dev — OAV=4000"
+
+- spice_name: "Poivre Blanc"
+  compound_name: "Pipérine"
+  concentration_ppm: 45000
+  source: "fixtures_dev — OAV=900"
+
+- spice_name: "Poivre Blanc"
+  compound_name: "D-Limonène"
+  concentration_ppm: 2000
+  source: "fixtures_dev — OAV=2000"
+
+- spice_name: "Poivre Blanc"
+  compound_name: "Terpinèn-4-ol"
+  concentration_ppm: 1500
+  source: "fixtures_dev — OAV=3000"
+
+- spice_name: "Poivre Long"
+  compound_name: "Pipérine"
+  concentration_ppm: 40000
+  source: "fixtures_dev — OAV=800"
+
+- spice_name: "Poivre Long"
+  compound_name: "Eugenol"
+  concentration_ppm: 500
+  source: "fixtures_dev — OAV=100K"
+
+- spice_name: "Poivre Long"
+  compound_name: "D-Limonène"
+  concentration_ppm: 1000
+  source: "fixtures_dev — OAV=1000"
+
+- spice_name: "Poivre de Sichuan"
+  compound_name: "D-Limonène"
+  concentration_ppm: 10000
+  source: "fixtures_dev — OAV=10K (dominant)"
+
+- spice_name: "Poivre de Sichuan"
+  compound_name: "Terpinèn-4-ol"
+  concentration_ppm: 3000
+  source: "fixtures_dev — OAV=6000"
+
+- spice_name: "Poivre de Sichuan"
+  compound_name: "Géraniol"
+  concentration_ppm: 1000
+  source: "fixtures_dev — OAV=1M"
+
+- spice_name: "Poivre de Sichuan"
+  compound_name: "Linalol"
+  concentration_ppm: 500
+  source: "fixtures_dev — OAV=50K"
+
+- spice_name: "Muscade"
+  compound_name: "Terpinèn-4-ol"
+  concentration_ppm: 5000
+  source: "fixtures_dev — OAV=10K (dominant)"
+
+- spice_name: "Muscade"
+  compound_name: "Eugenol"
+  concentration_ppm: 1500
+  source: "fixtures_dev — OAV=300K"
+
+- spice_name: "Muscade"
+  compound_name: "Géraniol"
+  concentration_ppm: 1000
+  source: "fixtures_dev — OAV=1M"
+
+- spice_name: "Muscade"
+  compound_name: "Linalol"
+  concentration_ppm: 500
+  source: "fixtures_dev — OAV=50K"
+
+- spice_name: "Macis"
+  compound_name: "Terpinèn-4-ol"
+  concentration_ppm: 8000
+  source: "fixtures_dev — OAV=16K (dominant)"
+
+- spice_name: "Macis"
+  compound_name: "Eugenol"
+  concentration_ppm: 3000
+  source: "fixtures_dev — OAV=600K"
+
+- spice_name: "Macis"
+  compound_name: "Géraniol"
+  concentration_ppm: 500
+  source: "fixtures_dev — OAV=500K"
+
+- spice_name: "Cumin"
+  compound_name: "Terpinèn-4-ol"
+  concentration_ppm: 3000
+  source: "fixtures_dev — OAV=6000"
+
+- spice_name: "Cumin"
+  compound_name: "D-Limonène"
+  concentration_ppm: 2000
+  source: "fixtures_dev — OAV=2000"
+
+- spice_name: "Cumin"
+  compound_name: "Linalol"
+  concentration_ppm: 500
+  source: "fixtures_dev — OAV=50K"
+
+- spice_name: "Cumin"
+  compound_name: "Géraniol"
+  concentration_ppm: 500
+  source: "fixtures_dev — OAV=500K"
+
+# ════════════════════════════════════════════════════════════════════════════════
+# FAMILLE CAPSAÏCINE — Piments (cayenne, espelette, paprika)
+# ════════════════════════════════════════════════════════════════════════════════
+
+- spice_name: "Piment de Cayenne"
+  compound_name: "Capsaïcine"
+  concentration_ppm: 30000
+  source: "fixtures_dev — OAV=300K (dominant)"
+
+- spice_name: "Piment de Cayenne"
+  compound_name: "Eugenol"
+  concentration_ppm: 200
+  source: "fixtures_dev — OAV=40K"
+
+- spice_name: "Piment de Cayenne"
+  compound_name: "D-Limonène"
+  concentration_ppm: 1000
+  source: "fixtures_dev — OAV=1000"
+
+- spice_name: "Piment d'Espelette"
+  compound_name: "Capsaïcine"
+  concentration_ppm: 10000
+  source: "fixtures_dev — OAV=100K"
+
+- spice_name: "Piment d'Espelette"
+  compound_name: "D-Limonène"
+  concentration_ppm: 1000
+  source: "fixtures_dev — OAV=1000"
+
+- spice_name: "Piment d'Espelette"
+  compound_name: "Eugenol"
+  concentration_ppm: 200
+  source: "fixtures_dev — OAV=40K"
+
+- spice_name: "Paprika Doux"
+  compound_name: "Capsaïcine"
+  concentration_ppm: 500
+  source: "fixtures_dev — OAV=5000"
+
+- spice_name: "Paprika Doux"
+  compound_name: "Géraniol"
+  concentration_ppm: 300
+  source: "fixtures_dev — OAV=300K"
+
+- spice_name: "Paprika Doux"
+  compound_name: "D-Limonène"
+  concentration_ppm: 1000
+  source: "fixtures_dev — OAV=1000"
+
+# ════════════════════════════════════════════════════════════════════════════════
+# FAMILLE ZINGÉRONE / CURCUMINE — Épices rhizomes (gingembre, curcuma)
+# ════════════════════════════════════════════════════════════════════════════════
+
+- spice_name: "Gingembre Séché"
+  compound_name: "Zingérone"
+  concentration_ppm: 5000
+  source: "fixtures_dev — OAV=10K (dominant)"
+
+- spice_name: "Gingembre Séché"
+  compound_name: "Terpinèn-4-ol"
+  concentration_ppm: 2000
+  source: "fixtures_dev — OAV=4000"
+
+- spice_name: "Gingembre Séché"
+  compound_name: "D-Limonène"
+  concentration_ppm: 1000
+  source: "fixtures_dev — OAV=1000"
+
+- spice_name: "Gingembre Séché"
+  compound_name: "Linalol"
+  concentration_ppm: 500
+  source: "fixtures_dev — OAV=50K"
+
+- spice_name: "Curcuma"
+  compound_name: "Curcumine"
+  concentration_ppm: 30000
+  source: "fixtures_dev — OAV=300 (dominant polyphénol)"
+
+- spice_name: "Curcuma"
+  compound_name: "Zingérone"
+  concentration_ppm: 500
+  source: "fixtures_dev — OAV=1000"
+
+- spice_name: "Curcuma"
+  compound_name: "Terpinèn-4-ol"
+  concentration_ppm: 1000
+  source: "fixtures_dev — OAV=2000"
+
+# ════════════════════════════════════════════════════════════════════════════════
+# FAMILLE SAFRANAL — Épices monotypiques (safran)
+# ════════════════════════════════════════════════════════════════════════════════
+
+- spice_name: "Safran"
+  compound_name: "Safranal"
+  concentration_ppm: 5000
+  source: "fixtures_dev — OAV=100M (molécule signature)"
+
+- spice_name: "Safran"
+  compound_name: "Géraniol"
+  concentration_ppm: 100
+  source: "fixtures_dev — OAV=100K"
+
+- spice_name: "Safran"
+  compound_name: "D-Limonène"
+  concentration_ppm: 200
+  source: "fixtures_dev — OAV=200"
+
+# ── Pilote Phase A — carvone (signature carvi/aneth) + fenchone (fenouil amer) ──
+
+- spice_name: "Carvi (Cumin des Prés)"
+  compound_name: "S-(+)-Carvone"
+  concentration_ppm: 25000            # HE ~5 % × carvone ~50 % de l'HE = 25 g/kg
+  source: "Lit. GC-MS Carum carvi — composé signature dominant"
+
+- spice_name: "Fenouil (graines)"
+  compound_name: "Fenchone"
+  concentration_ppm: 60000            # ~6 % — variable selon cultivar (amer vs doux)
+  source: "Lit. GC-MS Foeniculum vulgare"
+
+- spice_name: "Anis Étoilé (Badiane)"
+  compound_name: "Fenchone"
+  concentration_ppm: 2000             # minoritaire (la badiane est dominée par l'anéthol)
+  source: "Lit. GC-MS Illicium verum"

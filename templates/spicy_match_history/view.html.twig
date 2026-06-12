@@ -1,8 +1,10 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Recette — {{ spicyMatchHistory.title ?? 'Mélange du ' ~ spicyMatchHistory.createdAt|date('d/m/Y') }}{% endblock %}
+{% block title %}{{ 'ui.common.recipe_label'|trans }} — {{ spicyMatchHistory.title ?? 'ui.common.blend_of'|trans({'%date%': spicyMatchHistory.createdAt|format_date('medium')}) }}{% endblock %}
 
 {% block body %}
+
+{% set loc = app.request.locale %}
 
 {# ─── Maps de données ─────────────────────────────────────────────────── #}
 {% set cookingStepBySpice = {} %}
@@ -34,7 +36,7 @@
   {% endif %}
 {% endfor %}
 
-{% set defaultTitle = 'Recette du ' ~ spicyMatchHistory.createdAt|date('d/m/Y à H:i') %}
+{% set defaultTitle = 'ui.common.recipe_of'|trans({'%date%': spicyMatchHistory.createdAt|format_datetime('medium', 'short')}) %}
 {% set displayTitle = spicyMatchHistory.title ?? defaultTitle %}
 
 <div
@@ -52,15 +54,12 @@
 
   {# ===== TOP BAR ===== #}
   <header class="max-w-[1180px] mx-auto px-6 pt-6 pb-3 flex items-center justify-between">
-    <a href="{{ path('index_spicy_match') }}"
-       class="flex items-center gap-2 text-sm transition-colors"
-       style="color: #5A4A38;"
-       onmouseover="this.style.color='#2A1F14'" onmouseout="this.style.color='#5A4A38'">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      Retour au Lab
-    </a>
+    <twig:Button
+        label="{{ 'ui.history.back_to_history'|trans }}"
+        href="{{ path('profile_user', {tab: 'history'}) }}"
+        variant="back"
+        size="sm"
+    />
     <div class="flex items-center gap-2"></div>
   </header>
 
@@ -76,7 +75,7 @@
 
       <div class="flex-1 min-w-0">
         <div class="smallcaps mb-2">
-          Folio · {{ '%04d'|format(spicyMatchHistory.id) }} · Carnet du Laboratoire
+          {{ 'ui.recipe.folio'|trans({'%id%': '%04d'|format(spicyMatchHistory.id)}) }}
         </div>
 
         <div class="flex items-baseline gap-3 flex-wrap">
@@ -86,14 +85,14 @@
               contenteditable="true"
               spellcheck="false"
               role="textbox"
-              aria-label="Renommer la recette"
+              aria-label="{{ 'ui.recipe.rename_aria'|trans }}"
               class="outline-none rounded px-1 -mx-1 cursor-text"
               @blur="saveTitle($event.target)"
               @keydown.enter.prevent="$event.target.blur()"
               x-text="title"
             >{{ displayTitle }}</span>
           </h1>
-          <button class="icon-btn" @click="$refs.titleEl.focus()" title="Renommer" aria-label="Renommer la recette">
+          <button class="icon-btn" @click="$refs.titleEl.focus()" title="{{ 'ui.recipe.rename'|trans }}" aria-label="{{ 'ui.recipe.rename_aria'|trans }}">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M16 4l4 4-12 12H4v-4L16 4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
             </svg>
@@ -106,30 +105,30 @@
             :class="favClass()"
             @click="toggleFavorite()"
             :aria-pressed="favorite"
-            aria-label="Ajouter aux favoris"
+            aria-label="{{ 'ui.recipe.add_favorite'|trans }}"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true">
               <path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.5L12 14.8 7.1 17.2 8 11.7 4 7.8l5.5-.8L12 2z"/>
             </svg>
-            <span x-text="favLabel()">{{ spicyMatchHistory.isFavorite ? 'Dans vos favoris' : 'Ajouter aux favoris' }}</span>
+            <span x-text="favLabel()">{{ spicyMatchHistory.isFavorite ? 'ui.recipe.in_favorites'|trans : 'ui.recipe.add_favorite'|trans }}</span>
           </button>
 
           <div class="hidden md:flex items-center gap-6 ml-2">
             <div class="stat">
               <span class="stat-num">{{ spicyMatch.spices|length }}</span>
-              <span class="stat-label">épice{{ spicyMatch.spices|length > 1 ? 's' }}</span>
+              <span class="stat-label">{{ 'ui.recipe.spices'|trans({'%count%': spicyMatch.spices|length}) }}</span>
             </div>
             <div class="stat">
               <span class="stat-num">{{ filledMomentsCount }}</span>
-              <span class="stat-label">moment{{ filledMomentsCount > 1 ? 's' }}</span>
+              <span class="stat-label">{{ 'ui.recipe.moments'|trans({'%count%': filledMomentsCount}) }}</span>
             </div>
             <div class="stat">
               <span class="stat-num">{{ uniqueMethods|length }}</span>
-              <span class="stat-label">méthode{{ uniqueMethods|length > 1 ? 's' }}</span>
+              <span class="stat-label">{{ 'ui.recipe.methods'|trans({'%count%': uniqueMethods|length}) }}</span>
             </div>
             <div class="stat">
               <span class="stat-num">{{ sharedCompounds|length > 0 ? sharedCompounds|length : '∅' }}</span>
-              <span class="stat-label">composé commun</span>
+              <span class="stat-label">{{ 'ui.recipe.shared_compound'|trans }}</span>
             </div>
           </div>
         </div>
@@ -141,6 +140,39 @@
     <div class="rule-dots my-2"></div>
   </div>
 
+  {# ===== CARTE DU MOMENT (contexte culinaire persisté — Étape 3E-3) ===== #}
+  <section class="max-w-[1180px] mx-auto px-6 pt-6 pb-2">
+    <div class="flex flex-wrap items-center gap-4 px-5 py-4 rounded-2xl border"
+         style="border-color: rgba(154,71,32,0.18); background: linear-gradient(180deg, #FBF5E9 0%, #F5ECDB 100%);">
+      <span class="hex grid place-items-center"
+            style="width:40px; height:46px; background: linear-gradient(180deg,#D2773A,#9A4720);">
+        <i class="fa-solid {{ culinaryContext.icon }} text-[14px]" style="color:#FBF5E9;" aria-hidden="true"></i>
+      </span>
+      <div class="flex-1 min-w-0">
+        <div class="smallcaps mb-0.5" style="color:#7A6A55;">{{ 'ui.recipe.moment_card'|trans }}</div>
+        <div class="flex items-baseline gap-2 flex-wrap">
+          <span class="font-display text-lg" style="color:#2A1F14;">{{ culinaryContext.label }}</span>
+          <span class="smallcaps" style="color:#9A4720;">{{ culinaryContext.matrix.label|trans }}</span>
+        </div>
+        {% if culinaryContext.isCustom %}
+          <p class="text-[12px] mt-1 tabular-nums" style="color:#5A4A38;">
+            {% if culinaryContext.fatRatio > 0 %}
+              <span>{{ (culinaryContext.fatRatio * 100)|round }}&nbsp;{{ 'ui.recipe.fat'|trans }}</span>
+              <span style="color:#7A6A55;">·</span>
+              <span>{{ (culinaryContext.waterRatio * 100)|round }}&nbsp;{{ 'ui.recipe.aqueous'|trans }}</span>
+            {% endif %}
+            {% if culinaryContext.cookingTimeMin > 0 %}
+              {% if culinaryContext.fatRatio > 0 %}<span style="color:#7A6A55;">·</span>{% endif %}
+              <span>{{ culinaryContext.cookingTimeMin }}&nbsp;min @ {{ culinaryContext.temperatureCelsius }}&nbsp;°C</span>
+            {% endif %}
+          </p>
+        {% else %}
+          <p class="text-[12px] mt-1" style="color:#7A6A55;">{{ 'ui.recipe.dry_profile'|trans }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
   {# ===== PRÉPARATION DES ÉPICES ===== #}
   <section class="max-w-[1180px] mx-auto px-6 pt-8 pb-6">
     <div class="flex items-center gap-3 mb-5">
@@ -150,14 +182,16 @@
         </svg>
       </span>
       <div>
-        <h2 class="font-display leading-tight" style="font-size: clamp(22px, 3vw, 30px); color: #2A1F14;">Préparation des épices</h2>
-        <div class="smallcaps mt-1">La main du chef · {{ preparations|length }} épice{{ preparations|length > 1 ? 's' }}</div>
+        <h2 class="font-display leading-tight" style="font-size: clamp(22px, 3vw, 30px); color: #2A1F14;">{{ 'ui.recipe.prep_title'|trans }}</h2>
+        <div class="smallcaps mt-1">{{ 'ui.recipe.prep_sub'|trans({'%count%': preparations|length}) }}</div>
       </div>
     </div>
 
     <div class="space-y-4">
       {% for prep in preparations %}
-        <article class="card prep" role="article">
+        {% set prepMatrix = prep.applicableMatrix %}
+        {% set prepApplicable = prepMatrix is null or prepMatrix == culinaryContext.matrix %}
+        <article class="card prep {{ prepApplicable ? '' : 'opacity-60' }}" role="article">
           {# Colonne 1 — Thumb hexagonal #}
           <div class="prep-thumb stripes" aria-hidden="true">
             <span class="placeholder-label">{{ prep.spice.name|split(' ')|first|slice(0,4)|upper }}</span>
@@ -166,28 +200,39 @@
           {# Colonne 2 — Narration #}
           <div class="min-w-0">
             <div class="flex items-baseline gap-2 flex-wrap">
-              <span class="prep-name">{{ prep.spice.name }}</span>
-              <span class="prep-form">— {{ prep.title }}</span>
+              <span class="prep-name {{ prepApplicable ? '' : 'line-through' }}">{{ prep.spice.getLocalizedName(loc) }}</span>
+              <span class="prep-form">— {{ prep.getLocalizedTitle(loc) }}</span>
+              {% if not prepApplicable %}
+                {# UX-4 : tooltip explicatif + contraste plus visible (turmeric-50/saffron-900). #}
+                <span class="smallcaps px-2 py-0.5 rounded-full inline-flex items-center gap-1 cursor-help"
+                      style="background:#FEF3C7; color:#78350F; border:1px solid #FCD34D;"
+                      role="note"
+                      aria-label="{{ 'ui.recipe.out_of_matrix_aria'|trans({'%label%': prepMatrix.label|trans}) }}"
+                      title="{{ 'ui.recipe.out_of_matrix_title'|trans({'%label%': prepMatrix.label|trans}) }}">
+                  <i class="fa-solid fa-triangle-exclamation text-[9px]" aria-hidden="true"></i>
+                  {{ 'ui.recipe.out_of_matrix'|trans({'%label%': prepMatrix.label|trans}) }}
+                </span>
+              {% endif %}
             </div>
             <div class="family-mark mt-2" style="color: {{ prep.spice.aromaticGroups.color ?? '#7A6A55' }}">
-              {{ prep.spice.aromaticGroups.name }}
+              {{ prep.spice.aromaticGroups.getLocalizedName(loc) }}
             </div>
-            {% if prep.text %}
-              <p class="mt-2 text-[14px] leading-relaxed" style="color: #5A4A38;">{{ prep.text }}</p>
+            {% if prep.getLocalizedText(loc) %}
+              <p class="mt-2 text-[14px] leading-relaxed" style="color: #5A4A38;">{{ prep.getLocalizedText(loc) }}</p>
             {% endif %}
           </div>
 
           {# Colonne 3 — Méthode #}
           <div class="method-panel">
-            <span class="method-tag">Méthode</span>
+            <span class="method-tag">{{ 'ui.recipe.method'|trans }}</span>
             <div class="method-row">
               <div class="method-icon">
                 {{ include('components/_etamine_icons.html.twig', { name: prep.title }) }}
               </div>
               <div>
-                <div class="method-name">{{ prep.title }}</div>
-                {% if prep.advantages %}
-                  <div class="method-hint">{{ prep.advantages }}</div>
+                <div class="method-name">{{ prep.getLocalizedTitle(loc) }}</div>
+                {% if prep.getLocalizedAdvantages(loc) %}
+                  <div class="method-hint">{{ prep.getLocalizedAdvantages(loc) }}</div>
                 {% endif %}
               </div>
             </div>
@@ -212,18 +257,18 @@
         </svg>
       </span>
       <div>
-        <h2 class="font-display leading-tight" style="font-size: clamp(22px, 3vw, 30px); color: #2A1F14;">Moments d'insertion</h2>
-        <div class="smallcaps mt-1">La maîtrise du temps · 5 fenêtres aromatiques</div>
+        <h2 class="font-display leading-tight" style="font-size: clamp(22px, 3vw, 30px); color: #2A1F14;">{{ 'ui.recipe.moments_title'|trans }}</h2>
+        <div class="smallcaps mt-1">{{ 'ui.recipe.moments_sub'|trans }}</div>
       </div>
     </div>
 
     <div class="hidden md:flex items-center gap-3 mb-3 smallcaps">
-      <span>Plus tôt</span>
+      <span>{{ 'ui.recipe.earlier'|trans }}</span>
       <span class="rule-dots flex-1"></span>
-      <span>Plus tard</span>
+      <span>{{ 'ui.recipe.later'|trans }}</span>
     </div>
 
-    {% set momentNames = {0: 'Avant', 1: 'Début', 2: 'Milieu', 3: 'Fin', 4: 'Après'} %}
+    {% set momentNames = {0: 'ui.recipe.moment_before'|trans, 1: 'ui.recipe.moment_start'|trans, 2: 'ui.recipe.moment_middle'|trans, 3: 'ui.recipe.moment_end'|trans, 4: 'ui.recipe.moment_after'|trans} %}
     {% set momentNums  = {0: '01',    1: '02',    2: '03',    3: '04',    4: '05'} %}
 
     <div class="timeline">
@@ -247,12 +292,144 @@
               </div>
             {% endfor %}
           {% else %}
-            <div class="moment-empty"><span>— libre —</span></div>
+            <div class="moment-empty"><span>{{ 'ui.recipe.moment_free'|trans }}</span></div>
           {% endif %}
         </div>
       {% endfor %}
     </div>
   </section>
+
+  {# ===== TIMELINE CINÉTIQUE (Étape 3E-3) ===== #}
+  {% set kineticsTotal = cookingTimeline.head|length + cookingTimeline.heart|length + cookingTimeline.base|length %}
+  {% if kineticsTotal > 0 %}
+    <section class="max-w-[1180px] mx-auto px-6 pt-8 pb-6">
+      <div class="flex items-center gap-3 mb-5">
+        <span class="section-icon">
+          <i class="fa-solid fa-wave-square text-[16px]" aria-hidden="true"></i>
+        </span>
+        <div>
+          <h2 class="font-display leading-tight" style="font-size: clamp(22px, 3vw, 30px); color: #2A1F14;">{{ 'ui.recipe.kinetics_title'|trans }}</h2>
+          <div class="smallcaps mt-1">
+            {{ 'ui.recipe.kinetics_sub'|trans }}
+            {% if culinaryContext.cookingTimeMin > 0 %}
+              <span style="color:#9A4720;">{{ 'ui.recipe.kinetics_retention'|trans({'%temp%': culinaryContext.temperatureCelsius, '%time%': culinaryContext.cookingTimeMin}) }}</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-4">
+        {% set kineticsConfig = {
+          head:  {label: 'enum.kinetics.head'|trans,  icon: '💨', blurb: 'ui.recipe.kinetics_head_blurb'|trans,  accent: '#D2773A'},
+          heart: {label: 'enum.kinetics.heart'|trans, icon: '❤️', blurb: 'ui.recipe.kinetics_heart_blurb'|trans, accent: '#9A4720'},
+          base:  {label: 'enum.kinetics.base'|trans,  icon: '🪨', blurb: 'ui.recipe.kinetics_base_blurb'|trans,  accent: '#5A4A38'}
+        } %}
+        {% for kineticsKey in ['head', 'heart', 'base'] %}
+          {% set bucket = cookingTimeline[kineticsKey] %}
+          {% set cfg = kineticsConfig[kineticsKey] %}
+          <div class="rounded-2xl border px-5 py-4"
+               style="border-color: rgba(122,106,85,0.25); background:#FBF5E9;">
+            <div class="flex items-baseline justify-between mb-2">
+              <span class="font-display text-base" style="color: {{ cfg.accent }};">
+                <span aria-hidden="true">{{ cfg.icon }}</span> {{ cfg.label }}
+              </span>
+              <span class="smallcaps tabular-nums" style="color:#7A6A55;">{{ bucket|length }} {{ 'ui.recipe.compounds'|trans({'%count%': bucket|length}) }}</span>
+            </div>
+            <p class="text-[11px] mb-3" style="color:#7A6A55;">{{ cfg.blurb }}</p>
+            {% if bucket|length == 0 %}
+              <p class="text-[12px] italic" style="color:#7A6A55;">{{ 'ui.recipe.no_compound_cat'|trans }}</p>
+            {% else %}
+              <ul class="flex flex-col gap-1.5">
+                {% for entry in bucket %}
+                  <li class="flex items-center justify-between gap-2 text-[13px]">
+                    <span style="color:#2A1F14;">{{ entry.name }}</span>
+                    {% if entry.retention is not null and culinaryContext.cookingTimeMin > 0 %}
+                      {% set retentionPct = (entry.retention * 100)|round %}
+                      {% set retentionColor = retentionPct >= 70 ? '#5A8A4A' : (retentionPct >= 30 ? '#9A6A20' : '#9A4720') %}
+                      <span class="smallcaps tabular-nums"
+                            style="color: {{ retentionColor }};"
+                            title="{{ 'ui.recipe.retention_title'|trans }}">
+                        {{ retentionPct }}&nbsp;%
+                      </span>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+
+      {% if cookingTimeline.unknown|length > 0 %}
+        <p class="text-[11px] mt-3" style="color:#7A6A55;">
+          <i class="fa-solid fa-circle-info text-[10px] mr-1" aria-hidden="true"></i>
+          {{ 'ui.recipe.no_physchem'|trans({'%count%': cookingTimeline.unknown|length, '%names%': cookingTimeline.unknown|map(e => e.name)|join(', ')}) }}
+        </p>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  {# ===== COMPARATIF MATRICIEL (Étape 3E-3 — Phase B/E) ===== #}
+  {% if matrixGrid|length > 0 %}
+    <section class="max-w-[1180px] mx-auto px-6 pt-8 pb-6">
+      <div class="flex items-center gap-3 mb-5">
+        <span class="section-icon">
+          <i class="fa-solid fa-grip-vertical text-[16px]" aria-hidden="true"></i>
+        </span>
+        <div>
+          <h2 class="font-display leading-tight" style="font-size: clamp(22px, 3vw, 30px); color: #2A1F14;">{{ 'ui.recipe.matrix_title'|trans }}</h2>
+          <div class="smallcaps mt-1">{{ 'ui.recipe.matrix_sub'|trans|raw }}</div>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border overflow-hidden"
+           style="border-color: rgba(122,106,85,0.25); background:#FBF5E9;">
+        <table class="w-full text-[13px]">
+          <caption class="sr-only">{{ 'ui.recipe.matrix_caption'|trans }}</caption>
+          <thead>
+            <tr style="background: rgba(122,106,85,0.08);">
+              <th scope="col" class="text-left px-4 py-3 smallcaps" style="color:#5A4A38;">{{ 'ui.recipe.col_spice'|trans }}</th>
+              {% for matrixKey in ['air', 'water', 'oil'] %}
+                {% set matrixLabel = ('enum.matrix.' ~ matrixKey)|trans %}
+                {% set isCurrent = culinaryContext.matrix.value == matrixKey %}
+                <th scope="col" class="px-3 py-3 text-center smallcaps"
+                    style="color: {{ isCurrent ? '#9A4720' : '#5A4A38' }};">
+                  {{ matrixLabel }}
+                  {% if isCurrent %}
+                    <i class="fa-solid fa-star text-[8px] ml-1" style="color:#D2773A;" title="{{ 'ui.recipe.current_matrix'|trans }}" aria-hidden="true"></i><span class="sr-only">{{ 'ui.recipe.current_matrix'|trans }}</span>
+                  {% endif %}
+                </th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in matrixGrid %}
+              <tr style="border-top: 1px solid rgba(122,106,85,0.15);">
+                <th scope="row" class="px-4 py-2.5 text-left font-normal" style="color:#2A1F14;">{{ row.name }}</th>
+                {% for matrixKey in ['air', 'water', 'oil'] %}
+                  {% set score = row.scores[matrixKey] %}
+                  {% set isCurrent = culinaryContext.matrix.value == matrixKey %}
+                  {% set isBest = score == max(row.scores) and score > 0 %}
+                  <td class="px-3 py-2.5 text-center tabular-nums"
+                      style="color: {{ score == 0 ? '#7A6A55' : (isCurrent ? '#9A4720' : '#2A1F14') }};
+                             font-weight: {{ isBest ? '600' : '400' }};
+                             background: {{ isCurrent ? 'rgba(210,119,58,0.06)' : 'transparent' }};"
+                      title="{{ score == 0 ? 'ui.recipe.out_of_top5'|trans : 'ui.recipe.tanimoto_title'|trans }}">
+                    {{ score == 0 ? '—' : score }}
+                  </td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <p class="text-[11px] mt-3" style="color:#7A6A55;">
+        <i class="fa-solid fa-flask text-[10px] mr-1" style="color:#9A4720;" aria-hidden="true"></i>
+        {{ 'ui.recipe.tanimoto_note'|trans }}
+      </p>
+    </section>
+  {% endif %}
 
   {# ===== NOTE DE L'ALCHIMISTE ===== #}
   <section class="max-w-[1180px] mx-auto px-6 pt-4 pb-2">
@@ -263,14 +440,14 @@
         </svg>
       </div>
       <div>
-        <div class="smallcaps mb-1">Note de l'Alchimiste</div>
+        <div class="smallcaps mb-1">{{ 'ui.recipe.alchemist_note'|trans }}</div>
         <p class="font-display italic" style="font-size: clamp(18px, 2vw, 22px); line-height: 1.35; color: #2A1F14;">
           {% if sharedCompounds is not empty %}
-            « Ces épices partagent {{ sharedCompounds|length }} composé{{ sharedCompounds|length > 1 ? 's' }} aromatique{{ sharedCompounds|length > 1 ? 's' }} en commun — leur affinité repose sur une signature aromatique commune. »
+            {{ 'ui.recipe.note_shared'|trans({'%count%': sharedCompounds|length}) }}
           {% elseif spicyMatch.isManual %}
-            « Mélange composé librement — la complémentarité de ces épices s'exprime sans calcul d'affinité. »
+            {{ 'ui.recipe.note_manual'|trans }}
           {% else %}
-            « Ces épices n'ont pas de composé aromatique principal en commun — leur association repose sur la complémentarité et le contraste. »
+            {{ 'ui.recipe.note_contrast'|trans }}
           {% endif %}
         </p>
         {% if sharedCompounds is not empty %}
@@ -279,7 +456,7 @@
               <a href="{{ path('view_aromatic_compound', {id: compound.id}) }}"
                  class="smallcaps hover:opacity-75 transition-opacity"
                  style="color: #9A4720;">
-                {{ compound.name }}
+                {{ compound.getLocalizedName(loc) }}
               </a>
               {% if not loop.last %}<span style="color: #7A6A55;">·</span>{% endif %}
             {% endfor %}
@@ -287,7 +464,7 @@
         {% elseif shownGroups|length %}
           <div class="mt-3 flex items-center gap-2 flex-wrap">
             {% for group in shownGroups %}
-              <span class="family-mark" style="color: {{ group.color ?? '#7A6A55' }}">{{ group.name }}</span>
+              <span class="family-mark" style="color: {{ group.color ?? '#7A6A55' }}">{{ group.getLocalizedName(loc) }}</span>
               {% if not loop.last %}<span style="color: #7A6A55;">·</span>{% endif %}
             {% endfor %}
           </div>
@@ -299,13 +476,13 @@
   {# ===== CTA BAS DE PAGE ===== #}
   <section class="max-w-[1180px] mx-auto px-6 pt-10 pb-20">
     <div class="flex justify-center">
-      <a href="{{ path('index_spicy_match') }}"
-         class="btn-primary px-8 py-3.5 rounded-full inline-flex items-center gap-3 text-base w-full md:w-auto justify-center">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M9 3h6M10 3v5L5 19a2 2 0 0 0 1.8 2.9h10.4A2 2 0 0 0 19 19l-5-11V3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Créer un nouveau mélange
-      </a>
+      <twig:Button
+        label="{{ 'ui.recipe.new_blend'|trans }}"
+        href="{{ path('index_spicy_match') }}"
+        variant="primary"
+        size="lg"
+        extra="w-full md:w-auto justify-center"
+      />
     </div>
   </section>
 

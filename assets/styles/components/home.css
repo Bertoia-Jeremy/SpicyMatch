@@ -824,7 +824,7 @@
   letter-spacing: .5em;
 }
 .poster-mid { position: relative; z-index: 1; text-align: center; }
-.poster-mid h4 {
+.poster-mid h3 {
   font-family: var(--font-display);
   font-weight: 500;
   font-size: 54px;
@@ -833,7 +833,7 @@
   margin: 0;
   text-shadow: 0 4px 12px rgba(0,0,0,.4);
 }
-.poster-mid h4 .ital {
+.poster-mid h3 .ital {
   font-style: italic;
   display: block;
   font-size: 42px;

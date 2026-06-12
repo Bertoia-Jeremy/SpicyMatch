@@ -18,10 +18,11 @@ test.describe('First match gamification — Lab entry point', () => {
     await page.getByRole('button', { name: /connexion|se connecter/i }).click();
     await page.waitForURL(/\/$|\/users\/?$/);
 
-    await page.goto('/spicymatch/');
+    await page.goto('/fr/spicymatch/');
     await page.waitForLoadState('networkidle');
 
-    await expect(page.getByText(/\+?\s*\d+\s*xp/i).first()).toBeVisible();
+    // toBeAttached : à 0 XP la jauge a une largeur nulle, donc "non visible"
+    await expect(page.locator('.gauge-bar').first()).toBeAttached();
     await expect(page.locator('input[id^="spice_"]').first()).toBeVisible();
   });
 });

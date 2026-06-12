@@ -28,6 +28,6 @@ class GameModeTest extends TestCase
 
     public function testLabel(): void
     {
-        self::assertSame('Le Choix du Chef', GameMode::QCM->label());
+        self::assertSame('enum.game_mode.qcm.label', GameMode::QCM->label());
     }
 }

@@ -1,0 +1,78 @@
+{# templates/components/Button.html.twig — bouton unifié (a11y + i18n) #}
+{% props
+    label = '',
+    variant = 'primary',
+    size = 'md',
+    href = null,
+    type = 'button',
+    icon = null,
+    iconPos = 'left',
+    iconOnly = false,
+    disabled = false,
+    external = false,
+    extra = ''
+%}
+
+{% set variants = {
+    'primary':   'btn-pill-primary',
+    'secondary': 'btn-pill-outline',
+    'danger':    'btn-pill-danger',
+    'ghost':     'btn-pill-ghost',
+    'back':      'btn-pill-outline'
+} %}
+
+{% set sizes = {
+    'xs': 'px-2.5 py-0.5 text-xs gap-1.5',
+    'sm': 'px-3.5 py-1 text-sm gap-2',
+    'md': 'px-5 py-2 text-sm gap-2',
+    'lg': 'px-7 py-3 text-base gap-2.5',
+    'xl': 'px-9 py-4 text-lg gap-3'
+} %}
+
+{# variant back : flèche par défaut si aucune icône fournie #}
+{% set icon = (variant == 'back' and icon is null) ? 'fas fa-arrow-left' : icon %}
+
+{% set is_link = href is not null %}
+{% set is_disabled_link = is_link and disabled %}
+
+{% set classes = [
+    'btn-pill-base font-bold text-center',
+    variants[variant]|default(variants.primary),
+    sizes[size]|default(sizes.md),
+    is_disabled_link ? 'pointer-events-none opacity-50' : '',
+    extra
+]|join(' ')|trim %}
+
+{% set inner %}
+    {% if icon and iconPos == 'left' %}{{ _self.renderIcon(icon) }}{% endif %}
+    {% if iconOnly %}
+        <span class="sr-only">{{ label }}</span>
+    {% elseif label %}
+        <span class="whitespace-nowrap">{{ label }}</span>
+    {% endif %}
+    {% if icon and iconPos == 'right' %}{{ _self.renderIcon(icon) }}{% endif %}
+{% endset %}
+
+{% if is_link %}
+    <a
+        {% if not disabled %}href="{{ href }}"{% else %}aria-disabled="true" tabindex="-1"{% endif %}
+        {% if external %}target="_blank" rel="noopener noreferrer"{% endif %}
+        {% if iconOnly %}aria-label="{{ label }}"{% endif %}
+        {{ attributes.defaults({ class: classes }) }}
+    >{{ inner }}</a>
+{% else %}
+    <button
+        type="{{ type }}"
+        {% if disabled %}disabled{% endif %}
+        {% if iconOnly %}aria-label="{{ label }}"{% endif %}
+        {{ attributes.defaults({ class: classes }) }}
+    >{{ inner }}</button>
+{% endif %}
+
+{% macro renderIcon(icon) %}
+    {% if '<svg' in icon %}
+        <span class="w-5 h-5 flex items-center justify-center shrink-0" aria-hidden="true">{{ icon|raw }}</span>
+    {% else %}
+        <i class="{{ icon }} flex items-center justify-center shrink-0" aria-hidden="true"></i>
+    {% endif %}
+{% endmacro %}

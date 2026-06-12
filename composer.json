@@ -52,6 +52,7 @@
         "symfony/web-link": "7.4.*",
         "symfony/yaml": "7.4.*",
         "twig/extra-bundle": "^3.12",
+        "twig/intl-extra": "^3.26",
         "twig/twig": "^3.12",
         "vich/uploader-bundle": "^2.5"
     },
@@ -101,10 +102,15 @@
         "rector" : "vendor/bin/rector process",
         "phpstan": "php -d memory_limit=256M vendor/bin/phpstan analyze",
         "test-unit": "vendor/bin/phpunit --testsuite=Unit --no-coverage",
+        "check-data": [
+            "php bin/console app:check:compounds",
+            "php bin/console app:check:data"
+        ],
         "ci": [
             "@check-cs",
             "@phpstan",
-            "@test-unit"
+            "@test-unit",
+            "@check-data"
         ]
     },
     "conflict": {

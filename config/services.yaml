@@ -81,3 +81,42 @@ services:
     App\Service\NewsletterService:
         arguments:
             $appSecret: '%kernel.secret%'
+
+    # i18n — résolution de la locale par requête (route → user → session → Accept-Language → défaut)
+    App\EventSubscriber\LocaleSubscriber:
+        arguments:
+            $defaultLocale: '%kernel.default_locale%'
+
+    # Moteur de compatibilité aromatique — cache des profils mortier OAV
+    App\Service\Match\MortarProfileBuilder:
+        arguments:
+            $matchMortarProfileCache: '@match.mortar_profile.cache'
+
+    # Cache pairs/triplets de compatibilité (O(N²)/O(N³) SQL → TTL 1h)
+    App\Service\SpiceGroupFinderService:
+        arguments:
+            $cache: '@spice.compatibility.cache'
+
+    # Cache des insights physico-chimiques affichés sur la page recette (Étape 3E-3)
+    App\Service\Match\MatrixComparator:
+        arguments:
+            $cache: '@match.matrix_comparator.cache'
+
+    App\Service\Match\CookingTimelineBuilder:
+        arguments:
+            $cache: '@match.cooking_timeline.cache'
+
+    # Alias interfaces ↔ implémentations (moteur OAV)
+    App\Service\Match\MatchPipelineInterface: '@App\Service\Match\MatchPipeline'
+    App\Service\Match\MatchConfidenceAssessorInterface: '@App\Service\Match\MatchConfidenceAssessor'
+    App\Repository\CompoundPhysicalRepositoryInterface: '@App\Repository\CompoundPhysicalRepository'
+
+    # Export CSV — nécessite le répertoire racine du projet
+    App\Command\ExportSpicesCsvCommand:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    # Validation CAS/formules via PubChem — nécessite le répertoire racine du projet
+    App\Command\ValidateCompoundsCommand:
+        arguments:
+            $projectDir: '%kernel.project_dir%'

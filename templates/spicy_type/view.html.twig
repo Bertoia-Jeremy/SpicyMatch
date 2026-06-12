@@ -3,22 +3,18 @@
 {% block title %}{{ spicyType.name }} — SpicyMatch{% endblock %}
 
 {% block body %}
-{% import 'macros/buttons.html.twig' as buttons %}
 {% import "components/_macro_card_spice.html.twig" as macroCardSpice %}
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
     {# Fil d'Ariane #}
     <nav class="mb-8">
-        <a href="{{ path('index_spicy_type') }}" class="text-stone-500 hover:text-saffron-700 text-sm flex items-center gap-2 transition-colors">
-            <i class="fa-solid fa-arrow-left text-xs"></i>
-            Retour aux types
-        </a>
+        <twig:Button label="{{ 'ui.catalog.back_to_types'|trans }}" href="{{ path('index_spicy_type') }}" variant="back" size="sm" />
     </nav>
 
     {# En-tête #}
     <header class="mb-10">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-saffron-100 text-saffron-700 text-xs font-bold uppercase tracking-wider mb-4">
-            <i class="fa-solid fa-tags"></i> Type d'Épice
+            <i class="fa-solid fa-tags" aria-hidden="true"></i> {{ 'ui.catalog.type_badge'|trans }}
         </div>
         <h1 class="text-5xl font-display font-bold text-stone-900">{{ spicyType.name }}</h1>
     </header>
@@ -28,17 +24,17 @@
         <div class="lg:col-span-2 space-y-8">
             <section class="card-warm p-8">
                 <h2 class="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-info text-saffron-500"></i> Définition
+                    <i class="fa-solid fa-circle-info text-saffron-500" aria-hidden="true"></i> {{ 'ui.catalog.definition'|trans }}
                 </h2>
                 <div class="text-stone-600 leading-relaxed space-y-4">
-                    {{ spicyType.description|default('Aucune définition détaillée disponible.')|nl2br }}
+                    {{ spicyType.description|default('ui.catalog.no_definition_detailed'|trans)|nl2br }}
                 </div>
             </section>
 
             {% if spicyType.cooking %}
                 <section class="card-warm p-8">
                     <h2 class="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-mortar-pestle text-saffron-500"></i> Usage général
+                        <i class="fa-solid fa-mortar-pestle text-saffron-500" aria-hidden="true"></i> {{ 'ui.catalog.general_usage'|trans }}
                     </h2>
                     <div class="text-stone-600 leading-relaxed">
                         {{ spicyType.cooking|nl2br }}
@@ -51,7 +47,7 @@
             {% if spicyType.informations %}
                 <section class="card-warm p-8">
                     <h2 class="text-lg font-bold text-stone-900 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-flask text-saffron-500"></i> Note botanique
+                        <i class="fa-solid fa-flask text-saffron-500" aria-hidden="true"></i> {{ 'ui.catalog.botanical_note'|trans }}
                     </h2>
                     <div class="text-sm text-stone-600 leading-relaxed">
                         {{ spicyType.informations|nl2br }}
@@ -67,14 +63,14 @@
         
         <div class="flex items-center justify-between mb-8">
             <h3 class="text-2xl font-bold text-stone-900 flex items-center gap-3">
-                <i class="fa-solid fa-pepper-hot text-paprika-600"></i> Épices de ce type
+                <i class="fa-solid fa-pepper-hot text-paprika-600" aria-hidden="true"></i> {{ 'ui.catalog.spices_of_type'|trans }}
                 <span class="text-sm font-normal text-stone-400">({{ allSpices|length }})</span>
             </h3>
 
             {% if allSpices|length > 8 %}
                 <div class="flex items-center bg-stone-100 p-1 rounded-xl">
-                    <button @click="setGrid" :class="sliderToggleClass()" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Slider</button>
-                    <button @click="setList" :class="gridToggleClass()" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Grille</button>
+                    <button @click="setGrid" :class="sliderToggleClass()" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">{{ 'ui.catalog.view_slider'|trans }}</button>
+                    <button @click="setList" :class="gridToggleClass()" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">{{ 'ui.catalog.view_grid'|trans }}</button>
                 </div>
             {% endif %}
         </div>
@@ -83,7 +79,9 @@
             
             {# --- MODE SLIDER (8 épices max) --- #}
             <div x-show="!gridMode" class="space-y-6">
-                <div class="embla" data-controller="carousel">
+                <div class="embla" data-controller="carousel"
+                     role="group" aria-roledescription="{{ 'ui.carousel.roledescription'|trans }}"
+                     aria-label="{{ 'ui.carousel.label'|trans }}">
                     <div class="embla__viewport" data-carousel-target="viewport">
                         <div class="embla__container">
                             {% for spice in allSpices|slice(0, 8) %}
@@ -96,11 +94,13 @@
 
                     {% if allSpices|length > 1 %}
                     <div class="flex justify-end gap-2 mt-6">
-                        <button type="button" class="embla__button" data-carousel-target="prev" data-action="carousel#prev">
-                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                        <button type="button" class="embla__button" data-carousel-target="prev" data-action="carousel#prev"
+                                aria-label="{{ 'ui.carousel.prev'|trans }}">
+                            <i class="fa-solid fa-chevron-left text-xs" aria-hidden="true"></i>
                         </button>
-                        <button type="button" class="embla__button" data-carousel-target="next" data-action="carousel#next">
-                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        <button type="button" class="embla__button" data-carousel-target="next" data-action="carousel#next"
+                                aria-label="{{ 'ui.carousel.next'|trans }}">
+                            <i class="fa-solid fa-chevron-right text-xs" aria-hidden="true"></i>
                         </button>
                     </div>
                     {% endif %}
@@ -123,18 +123,19 @@
 
                 {% if allSpices|length > 8 %}
                 <div class="flex justify-center" x-show="hasMore()">
-                    {{ buttons.button('Charger plus d\'épices', {
-                        variant: 'outline',
-                        icon: 'fa-solid fa-plus',
-                        attr: { '@click': 'showMore' }
-                    }) }}
+                    <twig:Button
+                        label="{{ 'ui.catalog.load_more_spices'|trans }}"
+                        variant="secondary"
+                        icon="fa-solid fa-plus"
+                        @click="showMore"
+                    />
                 </div>
                 {% endif %}
             </div>
 
         {% else %}
             <div class="card-warm p-10 text-center">
-                <p class="text-stone-400 italic">Aucune épice liée pour le moment.</p>
+                <p class="text-stone-400 italic">{{ 'ui.catalog.no_linked_spices'|trans }}</p>
             </div>
         {% endif %}
     </section>

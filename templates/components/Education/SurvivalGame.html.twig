@@ -1,11 +1,19 @@
 {% import 'components/Education/_game_header.html.twig' as game_header %}
 {% import 'components/Education/_option_card.html.twig' as option_card %}
 <div {{ attributes }}>
+  <div aria-live="polite" class="sr-only">
+    {%- if this.isVictory %}{{ 'ui.game.total_victory'|trans }}
+    {%- elseif this.isGameOver %}{{ 'ui.game.game_over'|trans }}
+    {%- elseif this.isStarted and this.chainLength <= 1 %}{{ 'ui.game.a11y_chain_start'|trans({'%name%': this.currentSpiceName}) }}
+    {%- elseif this.isStarted %}{{ 'ui.game.a11y_chain'|trans({'%n%': this.chainLength, '%name%': this.currentSpiceName}) }}
+    {%- endif %}
+  </div>
+
   {{ game_header.header(
       icon = 'fa-solid fa-pepper-hot',
-      title = 'Défi de Scoville',
-      subtitle = 'Enchaîne les épices compatibles sans erreur',
-      scoreLabel = '<i class="fa-solid fa-link text-xs mr-1"></i>' ~ this.chainLength,
+      title = 'enum.game_mode.survival.label'|trans,
+      subtitle = 'ui.game.survival_subtitle'|trans,
+      scoreLabel = '<i class="fa-solid fa-link text-xs mr-1" aria-hidden="true"></i>' ~ this.chainLength,
       quitUrl = path('education_briefing', { mode: 'survival', difficulty: this.difficulty }),
   ) }}
 
@@ -13,18 +21,18 @@
     {% if this.isVictory %}
       {{ game_header.game_over_summary(
           circleLabel = this.chainLength,
-          title = 'Victoire totale !',
-          paragraphHtml = 'Tu as épuisé toutes les compatibilités possibles !',
-          buttonLabel = 'Voir les résultats',
+          title = 'ui.game.total_victory'|trans,
+          paragraphHtml = 'ui.game.victory_text'|trans,
+          buttonLabel = 'ui.game.see_results'|trans,
           buttonAction = 'finish',
           variant = 'success',
       ) }}
     {% else %}
       {{ game_header.game_over_summary(
           circleLabel = this.chainLength,
-          title = 'Game Over',
-          paragraphHtml = '<strong>' ~ this.lastPickedName ~ '</strong> n\'est pas compatible avec <strong>' ~ this.currentSpiceName ~ '</strong>.<br>Chaîne de ' ~ this.chainLength ~ ' épice' ~ (this.chainLength > 1 ? 's' : '') ~ '.',
-          buttonLabel = 'Voir les résultats',
+          title = 'ui.game.game_over'|trans,
+          paragraphHtml = 'ui.game.defeat_text'|trans({'%a%': this.lastPickedName, '%b%': this.currentSpiceName, '%n%': this.chainLength}),
+          buttonLabel = 'ui.game.see_results'|trans,
           buttonAction = 'finish',
           variant = this.chainLength >= 10 ? 'success' : 'failure',
       ) }}
@@ -33,8 +41,8 @@
   {% elseif not this.isStarted %}
     {# Starting spice selection #}
     <div class="text-center mb-8">
-      <p class="text-lg font-semibold text-stone-800 mb-2">Choisis ton épice de départ</p>
-      <p class="text-sm text-stone-500">Sélectionne l'épice avec laquelle tu veux commencer ta chaîne.</p>
+      <p class="text-lg font-semibold text-stone-800 mb-2">{{ 'ui.game.choose_start'|trans }}</p>
+      <p class="text-sm text-stone-500">{{ 'ui.game.choose_start_text'|trans }}</p>
     </div>
 
     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" x-data="submitOnceGrid">
@@ -46,7 +54,7 @@
   {% else %}
     {# Active game: current spice + options #}
     <div class="text-center mb-8">
-      <p class="text-sm text-stone-500 mb-2">Épice courante</p>
+      <p class="text-sm text-stone-500 mb-2">{{ 'ui.game.current_spice'|trans }}</p>
       <div class="inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-spice-surface border border-spice-border">
         {% if this.currentSpiceFile %}
           <img src="{{ asset('uploads/spices/' ~ this.currentSpiceFile) }}"
@@ -55,7 +63,7 @@
         {% else %}
           <div class="w-12 h-12 rounded-lg flex items-center justify-center text-xl"
                style="background-color: {{ this.currentSpiceColor ?? '#f5f5f4' }}20">
-            <i class="fa-solid fa-seedling" style="color: {{ this.currentSpiceColor ?? '#78716c' }}"></i>
+            <i class="fa-solid fa-seedling" style="color: {{ this.currentSpiceColor ?? '#78716c' }}" aria-hidden="true"></i>
           </div>
         {% endif %}
         <div class="text-left">
@@ -65,7 +73,10 @@
           {% endif %}
         </div>
       </div>
-      <p class="text-stone-700 text-lg mt-4">Quelle épice est compatible ?</p>
+      <p class="text-stone-700 text-lg mt-4">{{ 'ui.game.which_compatible'|trans }}</p>
+      <p class="text-[11px] text-stone-600 mt-1.5 flex items-center justify-center gap-1.5">
+        <i class="fa-solid fa-wind" aria-hidden="true"></i>{{ 'ui.game.air_context_note'|trans }}
+      </p>
     </div>
 
     <div class="grid grid-cols-2 gap-4" x-data="submitOnceGrid">

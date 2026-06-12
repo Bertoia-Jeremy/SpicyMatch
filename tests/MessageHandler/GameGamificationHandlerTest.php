@@ -62,16 +62,17 @@ final class GameGamificationHandlerTest extends TestCase
 
     public function testCreatesProgressionWhenNull(): void
     {
-        $user = $this->createConfiguredMock(Users::class, [
-            'getProgression' => null,
-        ]);
+        $user = $this->createMock(Users::class);
         $this->usersRepo->method('find')
             ->willReturn($user);
         $this->sessionRepo->method('countFinishedByUser')
             ->willReturn(1);
 
-        $user->expects(self::once())->method('setProgression');
-        $this->em->expects(self::once())->method('persist')->with(self::isInstanceOf(UserProgression::class));
+        // Progression creation is now delegated to the manager.
+        $this->manager->expects(self::once())
+            ->method('getOrCreateProgression')
+            ->with($user)
+            ->willReturn(new UserProgression());
 
         $this->manager->expects(self::once())->method('process');
 
@@ -81,9 +82,9 @@ final class GameGamificationHandlerTest extends TestCase
     public function testUsesIdempotentCountFromDatabase(): void
     {
         $progression = new UserProgression();
-        $user = $this->createConfiguredMock(Users::class, [
-            'getProgression' => $progression,
-        ]);
+        $user = $this->createMock(Users::class);
+        $this->manager->method('getOrCreateProgression')
+            ->willReturn($progression);
         $this->usersRepo->method('find')
             ->willReturn($user);
 
@@ -102,9 +103,9 @@ final class GameGamificationHandlerTest extends TestCase
     public function testForwardsAllEventDataInContext(): void
     {
         $progression = new UserProgression();
-        $user = $this->createConfiguredMock(Users::class, [
-            'getProgression' => $progression,
-        ]);
+        $user = $this->createMock(Users::class);
+        $this->manager->method('getOrCreateProgression')
+            ->willReturn($progression);
         $this->usersRepo->method('find')
             ->willReturn($user);
         $this->sessionRepo->method('countFinishedByUser')

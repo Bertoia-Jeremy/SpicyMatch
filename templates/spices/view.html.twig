@@ -1,10 +1,11 @@
 {% extends 'base.html.twig' %}
 {% import "components/_macro_modal_preparation_method.html.twig" as macroModalPreparationMethod %}
 
-{% block title %}SpicyMatch — {{ spice.name }}{% endblock %}
+{% block title %}SpicyMatch — {{ spice.getLocalizedName(app.request.locale) }}{% endblock %}
 
 {% block body %}
 
+{% set loc = app.request.locale %}
 {% set color = spice.aromaticGroups ? spice.aromaticGroups.color : '#C2410C' %}
 
 {# Palettes pour les piles du bowl #}
@@ -28,13 +29,13 @@
     {# Breadcrumb #}
     <nav class="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-widest mb-7"
          style="color: rgba(42,24,16,0.4)">
-        <a href="{{ path('index_spices') }}" class="transition-colors hover:opacity-70">Épices</a>
+        <a href="{{ path('index_spices') }}" class="transition-colors hover:opacity-70">{{ 'ui.catalog.breadcrumb_spices'|trans }}</a>
         <span class="opacity-40">/</span>
         {% if spice.aromaticGroups %}
-            <span class="cursor-default">{{ spice.aromaticGroups.name }}</span>
+            <span class="cursor-default">{{ spice.aromaticGroups.getLocalizedName(loc) }}</span>
             <span class="opacity-40">/</span>
         {% endif %}
-        <span style="color: {{ color }}">{{ spice.name }}</span>
+        <span style="color: {{ color }}">{{ spice.getLocalizedName(loc) }}</span>
     </nav>
 
     {# ─────────── 01 — HERO ─────────── #}
@@ -58,23 +59,23 @@
                                 color: rgba(42,24,16,0.5)">
                         {% if spice.aromaticGroups %}
                             <span class="size-2.5 rounded-full flex-none" style="background: {{ color }}"></span>
-                            {{ spice.aromaticGroups.name }}
+                            {{ spice.aromaticGroups.getLocalizedName(loc) }}
                             {% if spice.spicyType %} · {{ spice.spicyType.name }}{% endif %}
                         {% else %}
-                            <i class="fa-solid fa-seedling" style="color: {{ color }}"></i>
-                            {% if spice.spicyType %}{{ spice.spicyType.name }}{% else %}Épice{% endif %}
+                            <i class="fa-solid fa-seedling" style="color: {{ color }}" aria-hidden="true"></i>
+                            {% if spice.spicyType %}{{ spice.spicyType.name }}{% else %}{{ 'ui.catalog.spice_fallback'|trans }}{% endif %}
                         {% endif %}
                     </div>
 
                     <h1 class="font-display font-normal mb-3 leading-none"
                         style="font-size: clamp(2.5rem, 6vw, 4.5rem); letter-spacing: -0.025em; color: var(--color-ink-deep)">
-                        {{ spice.name }}
+                        {{ spice.getLocalizedName(loc) }}
                     </h1>
 
-                    {% if spice.description %}
+                    {% if spice.getLocalizedDescription(loc) %}
                         <p class="font-display text-lg leading-relaxed max-w-lg mb-7"
                            style="color: rgba(42,24,16,0.5)">
-                            {{ spice.description }}
+                            {{ spice.getLocalizedDescription(loc) }}
                         </p>
                     {% endif %}
 
@@ -85,11 +86,11 @@
                                  style="background: var(--color-parchment); border: 1px solid rgba(184,134,74,0.25)">
                                 <span class="size-8 rounded-lg grid place-items-center flex-none"
                                       style="background: {{ color }}18">
-                                    <i class="fa-solid fa-tag text-sm" style="color: {{ color }}"></i>
+                                    <i class="fa-solid fa-tag text-sm" style="color: {{ color }}" aria-hidden="true"></i>
                                 </span>
                                 <span class="flex flex-col gap-0.5">
                                     <span class="font-mono text-[9.5px] uppercase tracking-widest"
-                                          style="color: rgba(42,24,16,0.4)">Type</span>
+                                          style="color: rgba(42,24,16,0.4)">{{ 'ui.catalog.type'|trans }}</span>
                                     <span class="font-display text-[15px] font-medium leading-none"
                                           style="color: var(--color-ink-deep)">{{ spice.spicyType.name }}</span>
                                 </span>
@@ -103,7 +104,7 @@
                     <div class="hero-img-blob relative">
                         {% set heroImg = vich_uploader_asset(spice, 'imageFile') %}
                         {% if heroImg %}
-                            <img src="{{ heroImg }}" alt="{{ spice.name }}"
+                            <img src="{{ heroImg }}" alt="{{ spice.getLocalizedName(loc) }}"
                                  class="absolute inset-0 w-full h-full object-cover">
                         {% endif %}
                         {# Highlight #}
@@ -112,7 +113,7 @@
                     </div>
                     {# Tags flottants (CSS pur, Lora italic) #}
                     {% if spice.aromaticGroups %}
-                        <span class="hero-tag hero-tag-1">{{ spice.aromaticGroups.name|lower }}</span>
+                        <span class="hero-tag hero-tag-1">{{ spice.aromaticGroups.getLocalizedName(loc)|lower }}</span>
                     {% endif %}
                     {% if spice.spicyType %}
                         <span class="hero-tag hero-tag-2">{{ spice.spicyType.name|lower }}</span>
@@ -131,12 +132,12 @@
     <section class="section reveal is-in mb-16">
         <div class="flex items-baseline justify-between gap-4 mb-7 flex-wrap">
             <h2 class="font-display font-normal text-3xl leading-tight" style="letter-spacing: -0.02em; color: var(--color-ink-deep)">
-                <span class="font-mono text-sm mr-3" style="color: rgba(42,24,16,0.35)">0{{ sectionNum }} — Profil</span>
-                Les <em class="italic not-italic" style="color: {{ color }}">saveurs</em>
+                <span class="font-mono text-sm mr-3" style="color: rgba(42,24,16,0.35)">0{{ sectionNum }} — {{ 'ui.catalog.profile'|trans }}</span>
+                {{ 'ui.catalog.flavors_heading_html'|trans({'%color%': color})|raw }}
             </h2>
         </div>
         <p class="font-display text-lg mb-8 max-w-xl" style="color: rgba(42,24,16,0.4)">
-            Les composés aromatiques qui définissent le caractère de cette épice.
+            {{ 'ui.catalog.flavors_intro'|trans }}
         </p>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
@@ -155,7 +156,7 @@
                         background: radial-gradient(circle at 30% 30%, {{ clr.light }}, {{ clr.dark }});
                     ">
                         <span style="color:white; font-size: {{ loop.index0 == 0 ? '13' : '10' }}px; font-family: var(--font-display); text-align: center; padding: 0 8px; line-height: 1.15; font-weight: 500">
-                            {{ compound.name }}
+                            {{ compound.getLocalizedName(loc) }}
                         </span>
                     </div>
                 {% endfor %}
@@ -164,9 +165,9 @@
             {# Légende + composés secondaires #}
             <div>
                 <h3 class="font-display text-xl font-medium mb-2" style="color: var(--color-ink-deep)">
-                    Composés <em class="italic" style="color: {{ color }}">primaires</em>
+                    {{ 'ui.catalog.primary_compounds_heading_html'|trans({'%color%': color})|raw }}
                 </h3>
-                <p class="font-display mb-5" style="color: rgba(42,24,16,0.4)">Les molécules qui donnent son identité olfactive à cette épice.</p>
+                <p class="font-display mb-5" style="color: rgba(42,24,16,0.4)">{{ 'ui.catalog.primary_compounds_intro'|trans }}</p>
 
                 {# Légende #}
                 <div class="rounded-2xl overflow-hidden shadow-sm mb-4"
@@ -179,7 +180,7 @@
                                   style="background: radial-gradient(circle at 30% 30%, {{ clr.light }}, {{ clr.dark }})"></span>
                             <a href="{{ path('view_aromatic_compound', {id: compound.id}) }}"
                                class="font-display text-[15px] font-medium flex-1 hover:underline transition-opacity hover:opacity-70"
-                               style="color: var(--color-ink-deep)">{{ compound.name }}</a>
+                               style="color: var(--color-ink-deep)">{{ compound.getLocalizedName(loc) }}</a>
                             {% if compound.AlchemyFlavors is not empty %}
                                 <span class="font-mono text-[9.5px] uppercase tracking-wide"
                                       style="color: rgba(42,24,16,0.4)">
@@ -196,8 +197,8 @@
                          style="background: var(--color-parchment-deep); border: 1px solid rgba(184,134,74,0.2)">
                         <p class="font-mono text-[10px] uppercase tracking-widest mb-2 flex items-center gap-2"
                            style="color: rgba(42,24,16,0.4)">
-                            <i class="fa-solid fa-flask-vial text-[10px]" style="color: {{ color }}"></i>
-                            Composés secondaires
+                            <i class="fa-solid fa-flask-vial text-[10px]" style="color: {{ color }}" aria-hidden="true"></i>
+                            {{ 'ui.catalog.secondary_compounds'|trans }}
                         </p>
                         <div class="grid grid-cols-2 gap-x-4">
                             {% for compound in spice.secondaryAromaticsCompounds %}
@@ -205,7 +206,7 @@
                                      style="border-color: rgba(184,134,74,0.2)">
                                     <a href="{{ path('view_aromatic_compound', {id: compound.id}) }}"
                                        class="font-display text-sm hover:underline transition-opacity hover:opacity-70"
-                                       style="color: rgba(42,24,16,0.7)">{{ compound.name }}</a>
+                                       style="color: rgba(42,24,16,0.7)">{{ compound.getLocalizedName(loc) }}</a>
                                     {% if compound.AlchemyFlavors is not empty %}
                                         <span class="font-mono text-[9px] shrink-0"
                                               style="color: rgba(42,24,16,0.4)">{{ compound.AlchemyFlavors|first ? compound.AlchemyFlavors|first.name : '' }}</span>
@@ -251,13 +252,13 @@
     <section class="section reveal is-in mb-16">
         <div class="flex items-baseline justify-between gap-4 mb-3 flex-wrap">
             <h2 class="font-display font-normal text-3xl leading-tight" style="letter-spacing: -0.02em; color: var(--color-ink-deep)">
-                <span class="font-mono text-sm mr-3" style="color: rgba(42,24,16,0.35)">0{{ sectionNum }} — En cuisine</span>
-                Quand la <em class="italic" style="color: {{ color }}">glisser</em> dans votre plat
+                <span class="font-mono text-sm mr-3" style="color: rgba(42,24,16,0.35)">0{{ sectionNum }} — {{ 'ui.catalog.in_kitchen'|trans }}</span>
+                {{ 'ui.catalog.in_kitchen_heading_html'|trans({'%color%': color})|raw }}
             </h2>
-            <span class="font-mono text-[11px]" style="color: rgba(42,24,16,0.4)">{{ spice.cookingTips|length }} moment{{ spice.cookingTips|length > 1 ? 's' : '' }}</span>
+            <span class="font-mono text-[11px]" style="color: rgba(42,24,16,0.4)">{{ 'ui.catalog.moments'|trans({'%count%': spice.cookingTips|length}) }}</span>
         </div>
 
-        {% set marmiteLabels = ['Avant le feu', 'Pendant le feu', 'Après le feu', 'Au dernier moment', 'En marinade'] %}
+        {% set marmiteLabels = ['ui.catalog.marmite_before'|trans, 'ui.catalog.marmite_during'|trans, 'ui.catalog.marmite_after'|trans, 'ui.catalog.marmite_last'|trans, 'ui.catalog.marmite_marinade'|trans] %}
         {% set marmiteIcons = ['fa-fire-flame-curved', 'fa-bowl-hot', 'fa-sparkles', 'fa-clock', 'fa-droplet'] %}
 
         <div class="marmites">
@@ -265,18 +266,18 @@
                 <article class="marmite">
                     <div class="marmite-top">
                         <div class="marmite-glyph">
-                            <i class="fa-solid {{ marmiteIcons[loop.index0] ?? 'fa-fire' }} text-2xl"></i>
+                            <i class="fa-solid {{ marmiteIcons[loop.index0] ?? 'fa-fire' }} text-2xl" aria-hidden="true"></i>
                         </div>
                         <div class="marmite-step">{{ loop.index }}</div>
                     </div>
-                    <div class="marmite-when">{{ marmiteLabels[loop.index0] ?? 'Au choix' }}</div>
+                    <div class="marmite-when">{{ marmiteLabels[loop.index0] ?? 'ui.catalog.marmite_default'|trans }}</div>
                     <h4 class="font-display text-xl font-medium mb-3 leading-tight" style="text-wrap: balance; color: var(--color-ink-deep)">
-                        {{ tip.cookingStep }}
+                        {{ tip.getLocalizedCookingStep(loc) }}
                     </h4>
-                    <p class="font-display text-[15px] leading-relaxed flex-1 mb-4" style="color: rgba(42,24,16,0.5)">{{ tip.text }}</p>
+                    <p class="font-display text-[15px] leading-relaxed flex-1 mb-4" style="color: rgba(42,24,16,0.5)">{{ tip.getLocalizedText(loc) }}</p>
                     <span class="marmite-foot">
-                        <i class="fa-solid fa-clock text-[10px]" style="color: {{ color }}"></i>
-                        Étape {{ loop.index }}
+                        <i class="fa-solid fa-clock text-[10px]" style="color: {{ color }}" aria-hidden="true"></i>
+                        {{ 'ui.catalog.step'|trans }} {{ loop.index }}
                     </span>
                 </article>
             {% endfor %}
@@ -290,8 +291,8 @@
     <section class="section reveal is-in mb-16">
         <div class="flex items-baseline justify-between gap-4 mb-7">
             <h2 class="font-display font-normal text-3xl leading-tight" style="letter-spacing: -0.02em; color: var(--color-ink-deep)">
-                <span class="font-mono text-sm mr-3" style="color: rgba(42,24,16,0.35)">0{{ sectionNum }} — Le carnet</span>
-                Petites <em class="italic" style="color: {{ color }}">notes</em> en passant
+                <span class="font-mono text-sm mr-3" style="color: rgba(42,24,16,0.35)">0{{ sectionNum }} — {{ 'ui.catalog.notebook'|trans }}</span>
+                {{ 'ui.catalog.notebook_heading_html'|trans({'%color%': color})|raw }}
             </h2>
         </div>
 
@@ -299,23 +300,23 @@
             {# Colonne gauche : texte narratif #}
             <div>
                 <h3 class="font-display text-xl font-medium mb-3 leading-tight" style="color: var(--color-ink-deep)">
-                    Comment l'<em class="italic" style="color: {{ color }}">apprivoiser</em>
+                    {{ 'ui.catalog.tame_heading_html'|trans({'%color%': color})|raw }}
                 </h3>
 
-                {% if spice.cooking %}
+                {% if spice.getLocalizedCooking(loc) %}
                     <p class="font-display text-[16.5px] leading-relaxed mb-4" style="color: rgba(42,24,16,0.5)">
-                        {{ spice.cooking }}
+                        {{ spice.getLocalizedCooking(loc) }}
                     </p>
                 {% endif %}
 
-                {% if spice.informations %}
+                {% if spice.getLocalizedInformations(loc) %}
                     <div class="carnet-tip">
                         <span class="carnet-tip-ic">
-                            <i class="fa-solid fa-lightbulb text-lg"></i>
+                            <i class="fa-solid fa-lightbulb text-lg" aria-hidden="true"></i>
                         </span>
                         <div>
-                            <strong class="block font-display text-[15px] font-medium mb-1" style="color: var(--color-ink-deep)">À savoir</strong>
-                            <span class="text-sm leading-relaxed" style="color: rgba(42,24,16,0.5)">{{ spice.informations }}</span>
+                            <strong class="block font-display text-[15px] font-medium mb-1" style="color: var(--color-ink-deep)">{{ 'ui.catalog.good_to_know'|trans }}</strong>
+                            <span class="text-sm leading-relaxed" style="color: rgba(42,24,16,0.5)">{{ spice.getLocalizedInformations(loc) }}</span>
                         </div>
                     </div>
                 {% endif %}
@@ -325,14 +326,14 @@
                     <div class="mt-5 space-y-3">
                         {% for prep in spice.preparationTips %}
                             <article class="card-warm p-4">
-                                <h4 class="font-semibold mb-1.5 text-sm" style="color: var(--color-ink-deep)">{{ prep.title }}</h4>
+                                <h4 class="font-semibold mb-1.5 text-sm" style="color: var(--color-ink-deep)">{{ prep.getLocalizedTitle(loc) }}</h4>
                                 <div class="w-10 h-0.5 mb-3 rounded" style="background-color: {{ color }}"></div>
-                                <p class="text-sm leading-relaxed" style="color: rgba(42,24,16,0.5)">{{ prep.text|nl2br }}</p>
+                                <p class="text-sm leading-relaxed" style="color: rgba(42,24,16,0.5)">{{ prep.getLocalizedText(loc)|nl2br }}</p>
                                 {% if prep.preparationMethod is not null %}
                                     <div class="mt-2 flex justify-end">
                                         {{ macroModalPreparationMethod.modal(
                                             prep.preparationMethod.id,
-                                            prep.preparationMethod.name,
+                                            prep.preparationMethod.getLocalizedName(loc),
                                             true
                                         )}}
                                     </div>
@@ -347,7 +348,7 @@
             <div class="vertus-list">
                 <h4 class="font-mono text-[10.5px] uppercase tracking-widest mb-3"
                     style="color: rgba(42,24,16,0.4)">
-                    — Ses atouts
+                    — {{ 'ui.catalog.its_assets'|trans }}
                 </h4>
 
                 {% set vertuIcons = ['fa-leaf', 'fa-heart', 'fa-star', 'fa-shield-halved', 'fa-circle-check'] %}
@@ -355,16 +356,16 @@
                 {% for prep in spice.preparationTips|slice(0, 4) %}
                     <div class="vertu">
                         <span class="vertu-ic">
-                            <i class="fa-solid {{ vertuIcons[loop.index0] ?? 'fa-leaf' }} text-lg"></i>
+                            <i class="fa-solid {{ vertuIcons[loop.index0] ?? 'fa-leaf' }} text-lg" aria-hidden="true"></i>
                         </span>
                         <div class="min-w-0">
                             <div class="font-display text-[16px] font-medium leading-tight mb-1"
                                  style="color: var(--color-ink-deep)">
-                                {{ prep.title }}
+                                {{ prep.getLocalizedTitle(loc) }}
                             </div>
                             <p class="text-[12.5px] leading-relaxed m-0"
                                style="color: rgba(42,24,16,0.4)">
-                                {{ prep.text|slice(0, 120) }}{% if prep.text|length > 120 %}…{% endif %}
+                                {% set prepText = prep.getLocalizedText(loc) %}{{ prepText|slice(0, 120) }}{% if prepText|length > 120 %}…{% endif %}
                             </p>
                         </div>
                     </div>
@@ -373,16 +374,16 @@
                     {% for compound in spice.aromaticsCompounds|slice(0, 3) %}
                         <div class="vertu">
                             <span class="vertu-ic">
-                                <i class="fa-solid fa-flask text-lg"></i>
+                                <i class="fa-solid fa-flask text-lg" aria-hidden="true"></i>
                             </span>
                             <div class="min-w-0">
                                 <div class="font-display text-[16px] font-medium leading-tight mb-1"
                                      style="color: var(--color-ink-deep)">
-                                    {{ compound.name }}
+                                    {{ compound.getLocalizedName(loc) }}
                                 </div>
                                 {% if compound.AlchemyFlavors is not empty %}
                                     <p class="text-[12.5px] m-0" style="color: rgba(42,24,16,0.4)">
-                                        Note de {{ compound.AlchemyFlavors|map(f => f.name)|join(', ') }}
+                                        {{ 'ui.catalog.note_of'|trans({'%flavors%': compound.AlchemyFlavors|map(f => f.name)|join(', ')}) }}
                                     </p>
                                 {% endif %}
                             </div>
@@ -399,11 +400,11 @@
     <section class="reveal is-in mt-4 pt-10 mb-8" style="border-top: 1px dashed rgba(184,134,74,0.3)">
         <p class="text-center font-mono text-[11px] uppercase tracking-widest mb-1.5"
            style="color: rgba(42,24,16,0.4)">
-            — Le Fil des Épices —
+            — {{ 'ui.catalog.spice_thread'|trans }} —
         </p>
         <p class="text-center font-display italic text-xl mb-8 max-w-md mx-auto"
            style="color: rgba(42,24,16,0.4); text-wrap: balance">
-            Chaque épice ouvre la porte d'une autre.
+            {{ 'ui.catalog.spice_thread_text'|trans }}
         </p>
         <div class="fil-grid">
             {% for related in relatedSpices %}
@@ -417,19 +418,19 @@
                               style="background: rgba(241,231,206,0.9); backdrop-filter: blur(4px);
                                      color: rgba(42,24,16,0.6)">
                             <span class="size-1.5 rounded-full" style="background: {{ relColor }}"></span>
-                            {{ related.aromaticGroups ? related.aromaticGroups.name : 'Épice' }}
+                            {{ related.aromaticGroups ? related.aromaticGroups.getLocalizedName(loc) : 'ui.catalog.spice_fallback'|trans }}
                         </span>
                         {% if relImg %}
-                            <img src="{{ relImg }}" alt="{{ related.name }}"
+                            <img src="{{ relImg }}" alt="{{ related.getLocalizedName(loc) }}"
                                  class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
                         {% else %}
                             <div class="absolute inset-0 flex items-center justify-center"
                                  style="color: rgba(42,24,16,0.2)">
-                                <i class="fa-solid fa-seedling text-4xl"></i>
+                                <i class="fa-solid fa-seedling text-4xl" aria-hidden="true"></i>
                             </div>
                         {% endif %}
                     </div>
-                    <h3 class="font-display text-xl font-medium leading-tight mb-1" style="color: var(--color-ink-deep)">{{ related.name }}</h3>
+                    <h3 class="font-display text-xl font-medium leading-tight mb-1" style="color: var(--color-ink-deep)">{{ related.getLocalizedName(loc) }}</h3>
                     {% if related.spicyType %}
                         <p class="font-display italic text-sm" style="color: {{ relColor }}">{{ related.spicyType.name }}</p>
                     {% endif %}

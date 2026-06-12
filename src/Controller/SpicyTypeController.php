@@ -10,7 +10,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/epices/types_epices')]
+#[Route('/{_locale}/epices/types_epices', defaults: [
+    '_locale' => 'fr',
+])]
 class SpicyTypeController extends AbstractController
 {
     #[Route('/', name: 'index_spicy_type', methods: ['GET'])]

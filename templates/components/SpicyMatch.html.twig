@@ -1,5 +1,4 @@
 {% import "components/_macro_card_spicy_match.html.twig" as macroCardSpicyMatch %}
-{% import 'macros/buttons.html.twig' as buttons %}
 {% import 'macros/filters.html.twig' as filters %}
 
 <div class="w-full" {{ attributes }}>
@@ -12,6 +11,10 @@
     {% for gName, spices in selectedSpices %}
         {% set selectedCount = selectedCount + spices|length %}
     {% endfor %}
+
+    <div aria-live="polite" class="sr-only">
+        {{ 'ui.lab.a11y_results'|trans({'%selected%': selectedCount, '%count%': compatibleSpices|length}) }}
+    </div>
 
     {% set firstThree = [] %}
     {% for gName, spices in selectedSpices %}
@@ -50,9 +53,149 @@
                     </div>
                 {% endset %}
                 <div data-tour="lab-aromatic-filter">
-                    {{ filters.filter_dropdown('Groupe Aromatique', ag_content, {
+                    {{ filters.filter_dropdown('ui.filters.aromatic_group'|trans, ag_content, {
                         count: this.filterAgId ? 1 : 0,
                         reset_click: "$dispatch('live:action', {action: 'resetFilters'})",
+                        style: 'pill'
+                    }) }}
+                </div>
+
+                {# ── Sélecteur de cuisson (Étape 3E-2) ─────────────────────── #}
+                {% set cooking_content %}
+                    <div class="flex flex-col gap-4" x-data="{ advanced: {{ this.hasCustomCulinaryContext and (this.fatRatio > 0 or this.cookingTimeMin > 0) ? 'true' : 'false' }} }">
+                        {# Question d'amorce #}
+                        <p class="text-xs text-stone-500 leading-snug">
+                            {{ 'ui.lab.cooking_question_html'|trans|raw }}
+                        </p>
+
+                        {# Trois grands modes culinaires (UX-6 ARIA labels + UX-2 contraste +800) #}
+                        <div class="grid grid-cols-3 gap-2" role="group" aria-label="{{ 'ui.lab.culinary_context_aria'|trans }}">
+                            <button type="button"
+                                    data-action="live#action"
+                                    data-live-action-param="setCookingPreset"
+                                    data-live-preset-param="dry"
+                                    aria-label="{{ 'ui.lab.preset_dry_aria'|trans }}"
+                                    aria-pressed="{{ this.matrix == 'air' and this.cookingTimeMin == 0 and this.fatRatio == 0 ? 'true' : 'false' }}"
+                                    class="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-center transition
+                                           focus-visible:ring-2 focus-visible:ring-saffron-600 focus-visible:outline-none
+                                           {{ this.matrix == 'air' and this.cookingTimeMin == 0 and this.fatRatio == 0
+                                                ? 'border-saffron-500 bg-saffron-100 text-saffron-800 shadow-sm'
+                                                : 'border-stone-200 bg-white text-stone-600 hover:border-saffron-200 hover:bg-saffron-50/40' }}">
+                                <i class="fa-solid fa-wind text-base" aria-hidden="true"></i>
+                                <span class="text-[12px] font-semibold">{{ 'ui.lab.preset_dry'|trans }}</span>
+                                <span class="text-[9px] text-stone-400 uppercase tracking-wider">{{ 'ui.lab.preset_air'|trans }}</span>
+                            </button>
+
+                            <button type="button"
+                                    data-action="live#action"
+                                    data-live-action-param="setCookingPreset"
+                                    data-live-preset-param="broth"
+                                    aria-label="{{ 'ui.lab.preset_broth_aria'|trans }}"
+                                    aria-pressed="{{ this.matrix == 'water' and this.fatRatio == 0 and this.cookingTimeMin > 0 ? 'true' : 'false' }}"
+                                    class="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-center transition
+                                           focus-visible:ring-2 focus-visible:ring-saffron-600 focus-visible:outline-none
+                                           {{ this.matrix == 'water' and this.fatRatio == 0 and this.cookingTimeMin > 0
+                                                ? 'border-saffron-500 bg-saffron-100 text-saffron-800 shadow-sm'
+                                                : 'border-stone-200 bg-white text-stone-600 hover:border-saffron-200 hover:bg-saffron-50/40' }}">
+                                <i class="fa-solid fa-glass-water text-base" aria-hidden="true"></i>
+                                <span class="text-[12px] font-semibold">{{ 'ui.lab.preset_broth'|trans }}</span>
+                                <span class="text-[9px] text-stone-400 uppercase tracking-wider">{{ 'ui.lab.preset_water'|trans }}</span>
+                            </button>
+
+                            <button type="button"
+                                    data-action="live#action"
+                                    data-live-action-param="setCookingPreset"
+                                    data-live-preset-param="saute"
+                                    aria-label="{{ 'ui.lab.preset_saute_aria'|trans }}"
+                                    aria-pressed="{{ this.matrix == 'oil' and this.fatRatio >= 1 ? 'true' : 'false' }}"
+                                    class="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-center transition
+                                           focus-visible:ring-2 focus-visible:ring-saffron-600 focus-visible:outline-none
+                                           {{ this.matrix == 'oil' and this.fatRatio >= 1
+                                                ? 'border-saffron-500 bg-saffron-100 text-saffron-800 shadow-sm'
+                                                : 'border-stone-200 bg-white text-stone-600 hover:border-saffron-200 hover:bg-saffron-50/40' }}">
+                                <i class="fa-solid fa-fire-flame-curved text-base" aria-hidden="true"></i>
+                                <span class="text-[12px] font-semibold">{{ 'ui.lab.preset_saute'|trans }}</span>
+                                <span class="text-[9px] text-stone-400 uppercase tracking-wider">{{ 'ui.lab.preset_oil'|trans }}</span>
+                            </button>
+                        </div>
+
+                        {# Avancé : sliders fine-tuning #}
+                        <button type="button"
+                                @click="advanced = !advanced"
+                                class="flex items-center justify-between text-[11px] font-mono uppercase tracking-widest
+                                       text-stone-400 hover:text-saffron-600 transition-colors">
+                            <span>{{ 'ui.lab.advanced'|trans }}</span>
+                            <i class="fa-solid fa-chevron-down text-[9px] transition-transform" :class="{ 'rotate-180': advanced }" aria-hidden="true"></i>
+                        </button>
+
+                        <div x-show="advanced" x-cloak class="flex flex-col gap-3">
+                            {# Matrice ODT (override manuel) #}
+                            <div>
+                                <div class="flex items-baseline justify-between mb-1.5">
+                                    <label class="text-[11px] font-mono uppercase tracking-widest text-stone-500">{{ 'ui.lab.odt_matrix'|trans }}</label>
+                                    <span class="text-[11px] text-stone-400">{{ this.matrix }}</span>
+                                </div>
+                                <div class="inline-flex w-full rounded-full bg-stone-50 p-0.5 border border-stone-200">
+                                    {# Véracité par omission : seules les matrices ayant des données OAV réelles sont proposées. #}
+                                    {% for m in this.availableMatrices %}
+                                        <label class="cursor-pointer flex-1">
+                                            <input type="radio" name="matrix" value="{{ m }}" data-model="matrix"
+                                                   {{ this.matrix == m ? 'checked' : '' }} class="sr-only peer">
+                                            <span class="peer-checked:bg-white peer-checked:text-saffron-700 peer-checked:shadow-sm
+                                                         block px-2 py-1 rounded-full text-[11px] font-semibold text-center text-stone-500 transition-all">
+                                                {{ m }}
+                                            </span>
+                                        </label>
+                                    {% else %}
+                                        <span class="block w-full px-2 py-1 text-[11px] text-center text-stone-400">{{ 'ui.lab.no_matrix_data'|trans }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            {# Fraction grasse #}
+                            <div>
+                                <div class="flex items-baseline justify-between mb-1">
+                                    <label for="fatRatio" class="text-[11px] font-mono uppercase tracking-widest text-stone-500">{{ 'ui.lab.fat_ratio'|trans }}</label>
+                                    <span class="text-[11px] text-stone-700 font-semibold tabular-nums">{{ (this.fatRatio * 100)|round }}&nbsp;%</span>
+                                </div>
+                                <input id="fatRatio" type="range" min="0" max="1" step="0.05"
+                                       value="{{ this.fatRatio }}"
+                                       data-model="debounce(400)|fatRatio"
+                                       class="w-full accent-saffron-600">
+                            </div>
+
+                            {# Cuisson #}
+                            <div>
+                                <div class="flex items-baseline justify-between mb-1">
+                                    <label for="cookingTimeMin" class="text-[11px] font-mono uppercase tracking-widest text-stone-500">{{ 'ui.lab.cooking_time'|trans }}</label>
+                                    <span class="text-[11px] text-stone-700 font-semibold tabular-nums">{{ this.cookingTimeMin }}&nbsp;min</span>
+                                </div>
+                                <input id="cookingTimeMin" type="range" min="0" max="120" step="5"
+                                       value="{{ this.cookingTimeMin }}"
+                                       data-model="debounce(400)|cookingTimeMin"
+                                       class="w-full accent-saffron-600">
+                            </div>
+
+                            {# Température #}
+                            <div>
+                                <div class="flex items-baseline justify-between mb-1">
+                                    <label for="temperatureCelsius" class="text-[11px] font-mono uppercase tracking-widest text-stone-500">{{ 'ui.lab.temperature'|trans }}</label>
+                                    <span class="text-[11px] text-stone-700 font-semibold tabular-nums">{{ this.temperatureCelsius }}&nbsp;°C</span>
+                                </div>
+                                <input id="temperatureCelsius" type="range" min="20" max="220" step="5"
+                                       value="{{ this.temperatureCelsius }}"
+                                       data-model="debounce(400)|temperatureCelsius"
+                                       class="w-full accent-saffron-600">
+                            </div>
+                        </div>
+                    </div>
+                {% endset %}
+
+                {# UX-1 : libellé explicite "Mode : X" pour rendre l'action et l'état visibles. #}
+                <div title="{{ 'ui.lab.mode_tooltip'|trans }}">
+                    {{ filters.filter_dropdown('ui.lab.mode_prefix'|trans({'%label%': this.culinaryLabel}), cooking_content, {
+                        count: this.hasCustomCulinaryContext ? 1 : 0,
+                        reset_click: "$dispatch('live:action', {action: 'resetCulinaryContext'})",
                         style: 'pill'
                     }) }}
                 </div>
@@ -75,7 +218,7 @@
                         {% endfor %}
                     </div>
                 {% endset %}
-                {{ filters.filter_dropdown("Type d'Épice", st_content, {
+                {{ filters.filter_dropdown('ui.filters.spice_type'|trans, st_content, {
                     count: this.filterStId ? 1 : 0,
                     reset_click: "$dispatch('live:action', {action: 'resetFilters'})",
                     style: 'pill'
@@ -83,12 +226,13 @@
 
                 {# Barre de recherche #}
                 <div class="relative flex-1 min-w-44">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs pointer-events-none"></i>
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs pointer-events-none" aria-hidden="true"></i>
                     <input
                         type="text"
-                        data-model="search"
+                        data-model="debounce(300)|search"
                         data-tour="lab-search"
-                        placeholder="Rechercher une épice…"
+                        placeholder="{{ 'ui.lab.search_spice'|trans }}"
+                        aria-label="{{ 'ui.lab.search_spice'|trans }}"
                         value="{{ this.search }}"
                         class="w-full pl-8 {{ this.search ? 'pr-8' : 'pr-3' }} py-2 bg-white border border-spice-border rounded-xl text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-saffron-600/30 focus:border-saffron-400 transition">
                     {% if this.search %}
@@ -96,8 +240,8 @@
                                 data-action="live#action"
                                 data-live-action-param="clearSearch"
                                 class="absolute right-2 top-1/2 -translate-y-1/2 size-5 flex items-center justify-center rounded-full text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors"
-                                aria-label="Effacer la recherche">
-                            <i class="fa-solid fa-xmark text-sm"></i>
+                                aria-label="{{ 'ui.lab.clear_search'|trans }}">
+                            <i class="fa-solid fa-xmark text-sm" aria-hidden="true"></i>
                         </button>
                     {% endif %}
                 </div>
@@ -108,7 +252,7 @@
                             data-action="live#action"
                             data-live-action-param="resetFilters"
                             class="pb-1.5 text-xs font-bold uppercase tracking-widest text-stone-400 hover:text-paprika-700 transition-colors whitespace-nowrap">
-                        Tout effacer
+                        {{ 'ui.lab.clear_all'|trans }}
                     </button>
                 {% endif %}
 
@@ -120,7 +264,7 @@
                                {{ this.mode == 'auto' ? 'checked' : '' }} class="sr-only peer">
                         <span class="peer-checked:bg-white peer-checked:text-saffron-700 peer-checked:shadow-sm
                                      px-3 py-1.5 rounded-full text-xs font-semibold text-stone-500 transition-all inline-flex items-center gap-1.5">
-                            <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>Auto
+                            <i class="fa-solid fa-wand-magic-sparkles text-[10px]" aria-hidden="true"></i>{{ 'ui.lab.auto'|trans }}
                         </span>
                     </label>
                     <label class="cursor-pointer">
@@ -128,32 +272,46 @@
                                {{ this.mode == 'manual' ? 'checked' : '' }} class="sr-only peer">
                         <span class="peer-checked:bg-white peer-checked:text-stone-700 peer-checked:shadow-sm
                                      px-3 py-1.5 rounded-full text-xs font-semibold text-stone-500 transition-all inline-flex items-center gap-1.5">
-                            <i class="fa-solid fa-hand text-[10px]"></i>Manuel
+                            <i class="fa-solid fa-hand text-[10px]" aria-hidden="true"></i>{{ 'ui.lab.manual'|trans }}
                         </span>
                     </label>
                 </div>
 
                 {# Meta compteur #}
                 <span class="font-mono text-[11px] text-stone-400 whitespace-nowrap">
-                    {{ compatibleSpices|length }} épice{{ compatibleSpices|length != 1 ? 's' : '' }}
+                    {{ 'ui.lab.spices_count'|trans({'%count%': compatibleSpices|length}) }}
                 </span>
             </div>
 
-            {# ── Grille épices plate ── #}
-            <form data-model="spices">
+            {# ── Grille épices plate.
+                 UX-3 feedback debounce : data-loading="addClass(opacity-60)" donne un signal
+                 visuel immédiat (50–100 ms) pendant que le serveur recalcule les scores. ── #}
+            <form data-model="spices" data-loading="addClass(opacity-60)">
+                <h2 class="sr-only">{{ 'ui.lab.spices_count'|trans({'%count%': compatibleSpices|length}) }}</h2>
+                {% if this.excludedSpiceCount > 0 %}
+                    <div class="mb-4 flex items-center justify-between gap-3 rounded-lg bg-saffron-50 border border-spice-border px-4 py-2.5 text-sm">
+                        <span class="text-stone-600">
+                            <i class="fa-solid fa-filter text-saffron-600 mr-1.5" aria-hidden="true"></i>
+                            {{ 'ui.lab.excluded_notice'|trans({'%count%': this.excludedSpiceCount}) }}
+                        </span>
+                        <a href="{{ path('profile_user', {tab: 'lab'}) }}" class="text-saffron-700 hover:text-saffron-600 font-medium underline shrink-0">
+                            {{ 'ui.lab.excluded_manage'|trans }}
+                        </a>
+                    </div>
+                {% endif %}
                 {% if compatibleSpices is not empty %}
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 transition-opacity duration-150">
                         {% for spice in compatibleSpices %}
                             {{ macroCardSpicyMatch.cardSpicyMatch(spice, false, spice.score ?? null) }}
                         {% endfor %}
                     </div>
                 {% else %}
                     <div class="w-full bg-spice-surface border border-spice-border text-stone-700 px-4 py-4 rounded-xl text-center text-sm">
-                        <i class="fa-solid fa-circle-info text-saffron-500 mr-1.5"></i>
+                        <i class="fa-solid fa-circle-info text-saffron-500 mr-1.5" aria-hidden="true"></i>
                         {% if this.search %}
-                            Aucune épice ne correspond à « {{ this.search }} ».
+                            {{ 'ui.lab.no_match'|trans({'%query%': this.search}) }}
                         {% else %}
-                            Aucune épice supplémentaire n'est compatible avec votre sélection.
+                            {{ 'ui.lab.no_more_compatible'|trans }}
                         {% endif %}
                     </div>
                 {% endif %}
@@ -167,7 +325,7 @@
 
                 {# Entête #}
                 <div class="flex items-baseline justify-between pb-3 border-b border-spice-border">
-                    <h3 class="font-display text-lg font-medium text-stone-800">Mon mélange</h3>
+                    <h3 class="font-display text-lg font-medium text-stone-800">{{ 'ui.lab.my_blend'|trans }}</h3>
                     <span class="group-count">{{ selectedCount }}</span>
                 </div>
 
@@ -175,9 +333,9 @@
                 <div class="workspace-list flex flex-col gap-2">
                     {% if selectedCount == 0 %}
                         <div class="ws-empty">
-                            <i class="fa-solid fa-mortar-pestle text-3xl text-stone-300"></i>
+                            <i class="fa-solid fa-mortar-pestle text-3xl text-stone-300" aria-hidden="true"></i>
                             <p class="text-sm leading-snug text-stone-400">
-                                Cliquez sur une <span class="font-display italic text-stone-500">épice</span> pour commencer votre mélange
+                                {{ 'ui.lab.empty_html'|trans|raw }}
                             </p>
                         </div>
                     {% else %}
@@ -199,7 +357,7 @@
                                             <img src="{{ wsImg }}" alt="{{ spice.name }}" loading="lazy">
                                         {% else %}
                                             <div class="w-full h-full flex items-center justify-center text-stone-300">
-                                                <i class="fa-solid fa-seedling text-sm"></i>
+                                                <i class="fa-solid fa-seedling text-sm" aria-hidden="true"></i>
                                             </div>
                                         {% endif %}
                                     </div>
@@ -221,8 +379,8 @@
                                             @click.prevent="$el.previousElementSibling.click()"
                                             class="size-6 rounded-md flex items-center justify-center shrink-0
                                                    text-stone-400 hover:bg-stone-100 hover:text-saffron-600 transition-colors"
-                                            aria-label="Retirer {{ spice.name }}">
-                                        <i class="fa-solid fa-xmark text-xs"></i>
+                                            aria-label="{{ 'ui.lab.remove'|trans({'%name%': spice.name}) }}">
+                                        <i class="fa-solid fa-xmark text-xs" aria-hidden="true"></i>
                                     </button>
                                 </div>
                             {% endfor %}
@@ -239,7 +397,7 @@
                                 class="inline-flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl
                                        text-sm font-semibold border border-spice-border text-stone-500
                                        hover:border-paprika-300 hover:text-paprika-700 hover:bg-paprika-50/50 transition-colors">
-                            <i class="fa-solid fa-trash-can text-xs"></i>Vider la sélection
+                            <i class="fa-solid fa-trash-can text-xs" aria-hidden="true"></i>{{ 'ui.lab.clear_selection'|trans }}
                         </button>
                     {% endif %}
                     <button type="button"
@@ -251,17 +409,68 @@
                                    text-sm font-semibold bg-saffron-600 text-white shadow-sm
                                    hover:bg-saffron-700 transition-colors
                                    disabled:opacity-40 disabled:cursor-not-allowed">
-                        Composer le mélange<i class="fa-solid fa-arrow-right text-xs"></i>
+                        {{ 'ui.lab.compose'|trans }}<i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
                     </button>
                 </div>
+
+                {# Badge qualité des données (Levier 4) — honnêteté sur la fiabilité du score.
+                   Affiché dès qu'une sélection existe ; alerte visuelle si non production-grade. #}
+                {% set dataConfidence = this.dataConfidence %}
+                {% if dataConfidence is not null %}
+                    {% set isProd = dataConfidence.isProductionGrade %}
+                    <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] border
+                                {{ isProd ? 'bg-emerald-50 border-emerald-200' : 'bg-stone-100 border-stone-300' }}">
+                        <i class="fa-solid {{ isProd ? 'fa-circle-check text-emerald-600' : 'fa-flask-vial text-stone-500' }} shrink-0"
+                           aria-hidden="true"></i>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold {{ isProd ? 'text-emerald-800' : 'text-stone-700' }}">
+                                {{ 'ui.lab.data'|trans({'%label%': dataConfidence.label|trans}) }} <span class="font-mono opacity-70">[{{ dataConfidence.tier }}]</span>
+                            </p>
+                            {% if not isProd %}
+                                <p class="text-stone-500">{{ 'ui.lab.scores_indicative'|trans }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {# Véracité : sans données OAV pour le mortier, le tri est basé sur la présence
+                   de composés partagés, pas sur un score OAV quantitatif. On le dit explicitement. #}
+                {% if selectedCount > 0 and not this.oavScoringAvailable %}
+                    <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] bg-stone-100 border border-stone-300">
+                        <i class="fa-solid fa-diagram-project text-stone-500 shrink-0" aria-hidden="true"></i>
+                        <p class="text-stone-600">{{ 'ui.lab.presence_mode'|trans }}</p>
+                    </div>
+                {% endif %}
 
                 {# Tip footer #}
                 {% if selectedCount > 0 %}
                     <p class="text-[11px] text-stone-400 leading-relaxed flex gap-1.5 pt-1">
-                        <i class="fa-solid fa-circle-info text-saffron-400 mt-0.5 shrink-0"></i>
-                        {{ selectedCount }} épice{{ selectedCount > 1 ? 's' : '' }} — mode
-                        <strong class="text-stone-500 font-semibold">{{ this.mode == 'auto' ? 'auto' : 'manuel' }}</strong>
+                        <i class="fa-solid fa-circle-info text-saffron-400 mt-0.5 shrink-0" aria-hidden="true"></i>
+                        {{ 'ui.lab.tip_mode_html'|trans({'%count%': selectedCount, '%mode%': this.mode == 'auto' ? 'ui.lab.auto'|trans : 'ui.lab.manual'|trans})|raw }}
                     </p>
+                {% endif %}
+
+                {# Indicateur contexte culinaire — visible dès qu'on quitte les defaults.
+                   UX-2 contraste WCAG : bg-saffron-100 + text-saffron-800/900 (ratio ≥ 4.5:1). #}
+                {% if this.hasCustomCulinaryContext %}
+                    <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-saffron-100 border border-saffron-300 text-[11px]">
+                        <i class="fa-solid fa-fire text-saffron-700 shrink-0" aria-hidden="true"></i>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-saffron-900 truncate">{{ this.culinaryLabel }}</p>
+                            <p class="text-saffron-800 tabular-nums">
+                                {{ this.matrix }}
+                                {%- if this.fatRatio > 0 %} · {{ (this.fatRatio * 100)|round }} % gras{% endif -%}
+                                {%- if this.cookingTimeMin > 0 %} · {{ this.cookingTimeMin }} min @ {{ this.temperatureCelsius }} °C{% endif -%}
+                            </p>
+                        </div>
+                        <button type="button"
+                                data-action="live#action"
+                                data-live-action-param="resetCulinaryContext"
+                                aria-label="{{ 'ui.lab.reset_culinary_aria'|trans }}"
+                                class="shrink-0 size-5 rounded-md flex items-center justify-center text-saffron-700 hover:bg-saffron-200 hover:text-saffron-900 transition-colors focus-visible:ring-2 focus-visible:ring-saffron-600 focus-visible:outline-none">
+                            <i class="fa-solid fa-xmark text-[10px]" aria-hidden="true"></i>
+                        </button>
+                    </div>
                 {% endif %}
 
             </div>
@@ -273,14 +482,14 @@
     <div class="floatbar">
         {% if selectedCount == 0 %}
             <div class="flex items-center gap-2 text-stone-400 text-sm flex-1">
-                <i class="fa-solid fa-hand-pointer text-saffron-400"></i>
-                Sélectionnez vos épices
+                <i class="fa-solid fa-hand-pointer text-saffron-400" aria-hidden="true"></i>
+                {{ 'ui.lab.select_spices'|trans }}
             </div>
             <button type="button"
                     disabled
                     class="inline-flex items-center gap-2 h-10 px-4 rounded-xl
                            text-sm font-semibold bg-stone-200 text-stone-400 cursor-not-allowed shrink-0">
-                Composer <i class="fa-solid fa-arrow-right text-xs"></i>
+                {{ 'ui.lab.compose_short'|trans }} <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
             </button>
         {% else %}
             <div class="flex items-center gap-3 flex-1 min-w-0">
@@ -293,7 +502,7 @@
                                 <img src="{{ fbImg }}" alt="{{ sp.name }}" class="w-full h-full object-cover">
                             {% else %}
                                 <div class="w-full h-full grid place-items-center text-stone-300 text-xs">
-                                    <i class="fa-solid fa-seedling"></i>
+                                    <i class="fa-solid fa-seedling" aria-hidden="true"></i>
                                 </div>
                             {% endif %}
                         </div>
@@ -308,9 +517,9 @@
                 </div>
                 <div class="min-w-0">
                     <p class="font-display text-sm font-medium text-stone-800 leading-tight">
-                        {{ selectedCount }} épice{{ selectedCount > 1 ? 's' : '' }}
+                        {{ 'ui.lab.spices_count'|trans({'%count%': selectedCount}) }}
                     </p>
-                    <p class="font-mono text-[10px] uppercase tracking-wide text-stone-400">Sélectionnées</p>
+                    <p class="font-mono text-[10px] uppercase tracking-wide text-stone-400">{{ 'ui.lab.selected'|trans }}</p>
                 </div>
             </div>
             <button type="button"
@@ -320,7 +529,7 @@
                     class="inline-flex items-center gap-2 h-10 px-4 rounded-xl
                            text-sm font-semibold bg-saffron-600 text-white shadow-sm
                            hover:bg-saffron-700 transition-colors shrink-0">
-                Composer <i class="fa-solid fa-arrow-right text-xs"></i>
+                {{ 'ui.lab.compose_short'|trans }} <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
             </button>
         {% endif %}
     </div>

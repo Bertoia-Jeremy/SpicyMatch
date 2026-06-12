@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Tableau de bord{% endblock %}
+{% block title %}{{ 'ui.profile.dashboard_title'|trans }}{% endblock %}
 
 {% block body %}
   {# Utilise app.user.progression directement — fiable sur toutes les pages, indépendamment des vars de contrôleur #}
@@ -31,8 +31,8 @@
             {# Niveau XP #}
             <div class="flex items-center gap-2 mb-2 justify-center md:justify-start flex-wrap">
               <span class="inline-flex items-center gap-1.5 bg-turmeric-300/30 text-turmeric-700 text-sm font-medium px-3 py-1 rounded-full">
-                <i class="fa-solid fa-star text-turmeric-500 text-xs"></i>
-                Niveau {{ _prog.level }} — {{ _prog.xp }} XP
+                <i class="fa-solid fa-star text-turmeric-500 text-xs" aria-hidden="true"></i>
+                {{ 'ui.profile.level_xp'|trans({'%level%': _prog.level, '%xp%': _prog.xp}) }}
               </span>
             </div>
 
@@ -40,18 +40,18 @@
             {% if _badge %}
               {% set _colors = rarity_colors(_badge.achievement.rarity) %}
               <div class="flex items-center gap-2 mb-2 justify-center md:justify-start flex-wrap">
-                <span class="text-xs text-stone-500 font-semibold uppercase tracking-widest">Succès équipé</span>
+                <span class="text-xs text-stone-500 font-semibold uppercase tracking-widest">{{ 'ui.profile.equipped_badge'|trans }}</span>
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-semibold"
                       style="background-color: {{ _colors.bg }}; color: {{ _colors.text }}; border-color: {{ _colors.ring }}60">
                   <i class="{{ _badge.achievement.icon }} text-xs" style="color: {{ _colors.ring }}"></i>
                   {{ _badge.achievement.name }}
-                  <span class="font-normal opacity-60">· {{ _badge.achievement.rarity.label }}</span>
+                  <span class="font-normal opacity-60">· {{ _badge.achievement.rarity.label|trans }}</span>
                 </span>
               </div>
             {% endif %}
           {% endif %}
 
-          <p class="text-stone-500 text-sm">Membre depuis le {{ app.user.createdAt|date('d/m/Y') }}</p>
+          <p class="text-stone-500 text-sm">{{ 'ui.common.member_since'|trans({'%date%': app.user.createdAt|format_date('medium')}) }}</p>
         </div>
       </div>
 

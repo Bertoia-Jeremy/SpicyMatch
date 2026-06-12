@@ -8,12 +8,12 @@
     {# Coins décoratifs #}
     <div class="hero-corner tl">
         <span class="dot-sauge" aria-hidden="true"></span>
-        <span>Saison · Printemps 26 · Chapitre&nbsp;I</span>
+        <span>{{ 'ui.hero.season'|trans|raw }}</span>
     </div>
     <div class="hero-corner tr">
         <span>SpicyMatch</span>
         <span class="hero-corner-bullet" aria-hidden="true"></span>
-        <span>Mélanges · Est. MMXXVI</span>
+        <span>{{ 'ui.hero.blends_est'|trans }}</span>
     </div>
 
     {# ── Colonne gauche : contenu éditorial ── #}
@@ -21,41 +21,32 @@
 
         <div class="hero-meta">
             <span class="hero-meta-line" aria-hidden="true"></span>
-            <span>N°&nbsp;001 — L'éveil des sens</span>
+            <span>{{ 'ui.hero.meta'|trans|raw }}</span>
         </div>
 
         <h1 class="font-display font-medium leading-[.96] tracking-[-0.02em] mb-8"
             style="font-size: clamp(48px, 6.4vw, 100px)">
-            L'<em class="not-italic italic" style="color: var(--color-paprika-800)">Alchimie</em> des Épices.<br>
-            Éveillez le <span class="relative inline-block" style="color: var(--color-turmeric-700)">
-                Chef
-                <span class="absolute left-0 right-0 bottom-[6px] h-[14px] pointer-events-none"
-                      style="background: radial-gradient(ellipse at center, rgba(217,119,6,.28) 0%, transparent 70%); z-index: -1;"
-                      aria-hidden="true"></span>
-            </span><br>
-            qui sommeille en vous.
+            {{ 'ui.hero.title_html'|trans|raw }}
         </h1>
 
         <p class="text-lg max-w-[520px] mb-11 leading-[1.65]" style="color: rgba(42,24,16,.70)">
-            Explorez les liens invisibles entre les molécules et le goût.
-            Apprenez, mélangez, et maîtrisez l'art des saveurs à travers
-            une expérience scientifique &amp; ludique.
+            {{ 'ui.hero.blurb'|trans|raw }}
         </p>
 
         <div class="hero-ctas flex items-center gap-7 flex-wrap">
             {% if is_granted('ROLE_USER') %}
                 <a href="{{ path('index_spicy_match') }}" class="btn-hero-primary">
-                    Lancer un mélange <span class="arrow" aria-hidden="true">→</span>
+                    {{ 'ui.hero.cta_blend'|trans }} <span class="arrow" aria-hidden="true">→</span>
                 </a>
                 <a href="{{ path('index_spices') }}" class="btn-hero-ghost">
-                    Explorer les épices
+                    {{ 'ui.hero.cta_explore'|trans }}
                 </a>
             {% else %}
                 <a href="{{ path('index_register') }}" class="btn-hero-primary">
-                    Commencer l'exploration <span class="arrow" aria-hidden="true">→</span>
+                    {{ 'ui.hero.cta_start'|trans }} <span class="arrow" aria-hidden="true">→</span>
                 </a>
                 <a href="{{ path('index_spices') }}" class="btn-hero-ghost">
-                    Explorer les épices
+                    {{ 'ui.hero.cta_explore'|trans }}
                 </a>
             {% endif %}
         </div>
@@ -63,11 +54,11 @@
     </div>
 
     {# ── Colonne droite : chiffres clés ── #}
-    <aside class="key-figures" aria-label="Chiffres clés">
+    <aside class="key-figures" aria-label="{{ 'ui.hero.figures_label'|trans }}">
 
         <div class="kf-eyebrow">
             <span class="kf-eyebrow-rule" aria-hidden="true"></span>
-            <span>Notre cuisine, en trois chiffres</span>
+            <span>{{ 'ui.hero.figures_eyebrow'|trans }}</span>
         </div>
 
         {# 1 — Épices #}
@@ -76,7 +67,7 @@
                 <span class="kf-big">{{ spicesCount }}</span><span class="kf-plus" aria-hidden="true">+</span>
             </div>
             <div class="kf-cap">
-                <span class="kf-cap-label">épices du monde entier</span>
+                <span class="kf-cap-label">{{ 'ui.hero.figure_spices'|trans }}</span>
                 <span class="kf-cap-flag" aria-hidden="true">
                     <span class="kf-dot" style="background: radial-gradient(circle at 35% 30%, #E8B547, #8a5a0c)"></span>
                     <span class="kf-dot" style="background: radial-gradient(circle at 35% 30%, #C04020, #5a0e0e)"></span>
@@ -88,10 +79,10 @@
         {# 2 — Arômes / composés #}
         <div class="kf-row">
             <div class="kf-num" aria-label="{{ compoundsCount }} arômes">
-                <span class="kf-big">{{ compoundsCount|number_format(0, '.', ' ') }}</span>
+                <span class="kf-big">{{ compoundsCount|format_number }}</span>
             </div>
             <div class="kf-cap">
-                <span class="kf-cap-label">arômes reliés un à un</span>
+                <span class="kf-cap-label">{{ 'ui.hero.figure_aromas'|trans }}</span>
                 <svg class="h-[22px] w-auto opacity-90" viewBox="0 0 80 24" aria-hidden="true">
                     <circle cx="10" cy="12" r="3" fill="#D97706"/>
                     <circle cx="30" cy="8" r="2.5" fill="#991B1B"/>
@@ -106,11 +97,11 @@
 
         {# 3 — Apprentis chefs #}
         <div class="kf-row">
-            <div class="kf-num" aria-label="{{ usersCount|number_format(0, '.', ' ') }} apprentis chefs">
-                <span class="kf-big">{{ usersCount|number_format(0, '.', ' ') }}</span>
+            <div class="kf-num" aria-label="{{ usersCount|format_number }} {{ 'ui.hero.figure_chefs'|trans }}">
+                <span class="kf-big">{{ usersCount|format_number }}</span>
             </div>
             <div class="kf-cap">
-                <span class="kf-cap-label">apprentis chefs avec vous</span>
+                <span class="kf-cap-label">{{ 'ui.hero.figure_chefs'|trans }}</span>
                 <span class="kf-cap-flag" aria-hidden="true">
                     <span class="kf-avatar" style="background: radial-gradient(circle at 35% 30%, #D97706, #7c3a04)"></span>
                     <span class="kf-avatar" style="background: radial-gradient(circle at 35% 30%, #991B1B, #5a0e0e)"></span>

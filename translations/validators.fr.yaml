@@ -1,0 +1,8 @@
+# Messages de validation (domaine 'validators').
+aromatic_group:
+    color_invalid: La couleur doit être un code hexadécimal valide (#RRGGBB).
+user:
+    username_taken: Le pseudo existe déjà
+    email_taken: Cet email est déjà utilisé.
+    password_blank: Veuillez rentrer un mot de passe
+    password_min: Votre mot de passe doit contenir au moins {{ limit }} caractères.

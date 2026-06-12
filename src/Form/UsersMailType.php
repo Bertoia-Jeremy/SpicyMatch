@@ -5,7 +5,6 @@ namespace App\Form;
 use App\Entity\Users;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -18,12 +17,7 @@ class UsersMailType extends AbstractType
                 'label' => false,
                 'required' => false,
                 'attr' => [
-                    'placeholder' => 'Insérez un mail',
-                ],
-            ])
-            ->add('Valider', SubmitType::class, [
-                'attr' => [
-                    'class' => 'btn btn-outline-primary w-100',
+                    'placeholder' => 'form.mail.placeholder',
                 ],
             ])
         ;

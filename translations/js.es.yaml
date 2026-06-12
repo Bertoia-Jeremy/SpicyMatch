@@ -1,0 +1,37 @@
+# Etiquetas de UI expuestas a JavaScript (dominio 'js'), inyectadas en #js-i18n via base.html.twig.
+nav:
+    open: Abrir
+    close: Cerrar
+    menu_open: Abrir menú
+    menu_close: Cerrar menú
+password:
+    show: Mostrar
+    hide: Ocultar
+game:
+    quit_confirm: ¿Salir de la partida? Perderás tu progreso.
+favorites:
+    added: Añadido a favoritos
+    removed: Eliminado de favoritos
+    in: En tus favoritos
+    add: Añadir a favoritos
+    remove: Quitar de favoritos
+melange:
+    seal_assoc: Sellar la combinación
+    last_spice: Una última especia por finalizar
+    sealed_count: '%done% / %total% especia(s) sellada(s)'
+    status_sealed_current: sellada ✓
+    status_sealed: sellada
+    status_choose_time: elegir el momento
+    status_choose_hand: elegir el método
+    status_ongoing: en curso
+    status_upcoming: pendiente
+    toast_complete: '%spice% sellada — mezcla completa'
+    toast_next: '%spice% sellada — %next% →'
+cooking:
+    cta_final: Ver mi receta final
+    cta_incomplete: Finaliza la preparación de cada especia
+tour:
+    done: ¡Listo!
+    next: Siguiente →
+timer:
+    remaining: '%time% restantes'

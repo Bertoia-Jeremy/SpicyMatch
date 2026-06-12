@@ -43,7 +43,8 @@
 ## 3. Contraintes Techniques
 
 ### Code
-- **Toujours expliquer le *pourquoi* avant le *comment*** pour les décisions architecturales non triviales
+- **🚫 ZÉRO commentaire dans le code (RÈGLE DURE, PERMANENTE)** — n'écris JAMAIS de commentaire : ni `//`, `/* */`, `#`, ni bloc Twig `{# #}`, ni prose explicative dans un docblock. Le code doit être auto-explicite via le nommage. Conserve **uniquement** les annotations strictement fonctionnelles : `@param`/`@return`/`@var`/`@throws` requis par PHPStan, et les attributs PHP. **Seule exception** : l'utilisateur demande explicitement un commentaire.
+- Le *pourquoi* d'une décision non triviale s'explique dans la **réponse de chat** (et au besoin le message de commit / la PR), **jamais** dans le code.
 - Les blocs de code incluent **systématiquement** le langage (` ```php `, ` ```typescript `, ` ```bash `, etc.)
 - Préférer les diffs ciblés aux fichiers complets sauf si la refonte totale est justifiée
 - Signaler explicitement les implications de sécurité, les effets de bord ou les breaking changes
@@ -159,6 +160,16 @@ scripts:
   js:
     - yarn dev                # watch Tailwind CLI
     - yarn build              # build Tailwind CLI minifié
+  moteur_oav:
+    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console app:import:odt                   # ODT depuis fixtures/compound_odt.yaml (odt_ppm OU odt_min/max → geomean)
+    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console app:import:flavordb              # concentrations depuis fixtures/spice_compound_concentration.yaml
+    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console app:import:physical              # logP/bp/vp depuis fixtures/compound_physical.yaml
+    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console app:check:compounds [--strict]   # garde intégrité OFFLINE (CAS/formule/isomère)
+    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console app:check:data [--strict]        # garde cohérence cross-tables (OAV>1, Σ conc, trous ODT)
+    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console app:validate:compounds [--apply] # cross-check ONLINE PubChem
+    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console app:recompute:oav --sync         # rebuild synchrone shadow table (3 matrices, après TOUT import)
+    # Séquence complète après import : check:compounds → import:* → check:data → recompute:oav --sync
+    # ⚠️ Données ACTUELLES fictives (tier D). Plan d'acquisition réel : docs/PLAN_ACQUISITION_DONNEES.md
   doctrine:
     - docker exec -w /var/www/html/spicymatch p8.4 php bin/console doctrine:schema:update --force   # apply schema changes
     - docker exec -w /var/www/html/spicymatch p8.4 php bin/console doctrine:fixtures:load --append --group=GroupName
@@ -282,6 +293,116 @@ architecture:
       - "QCM existant inchangé — flux route-based classique cohabite avec les 5 LC modes via play_live.html.twig"
       - "SpicesRepository::findIncompatibleWith() — SQL NOT EXISTS (4 subqueries main×main, main×sec, sec×main, sec×sec) pour trouver les épices 0-compatibilité"
 
+  moteur_oav:
+    description: "Moteur de compatibilité aromatique basé sur les OAV (Odor Activity Values). Remplace l'ancien CompatibilityScoreService (Jaccard pondéré) supprimé. Référence : ARCHITECTURE_MOTEUR_COMPATIBILITE.md"
+    algorithmes:
+      - "Algo 1 — Le Veto : graphe biparti booléen OAV-actif (JOIN+HAVING SQL). Candidat retenu ssi il partage ≥ 1 composé OAV-actif avec CHAQUE épice du mortier."
+      - "Algo 2 — Le Score : Tanimoto pondéré OAV LOG-COMPRESSÉ. w_i = OAV_i>1 ? ln(OAV_i) : 0. S = Σmin(w_c,w_M)/Σmax(w_c,w_M) ∈ [0,1]. Affiché ×100 (floor)."
+      - "⚠️ POURQUOI LE LOG : OAV brut s'étale sur ~6 ordres de grandeur → en Tanimoto LINÉAIRE le composé dominant écrase tout → candidats compatibles à 0%. Le log (perception Weber-Fechner) corrige. Clamp 0 sous OAV=1 (seuil van Gemert + gère OAV<1 post-Nernst)."
+      - "OAV = concentration_ppm / odt_ppm. Seuls les composés OAV > 1 sont perceptibles (van Gemert, 2011)."
+      - "Algo 3 — Correction physico-chimique (Étape 3C) : OavPartitionCalculator applique Nernst (partition gras/eau via K_ow=10^logP) × décroissance thermique (exp(-k(T)·t)). Appliqué runtime AVANT le log, SKIP si contexte neutre (fat=0 ET cuisson=0)."
+    contexte_culinaire:
+      - "CulinaryContext VO (readonly) : matrix + fatRatio + waterRatio + cookingTimeMin + temperatureCelsius. Bornes = constantes publiques (FAT_RATIO_MIN/MAX, COOKING_TIME_MAX=1440, TEMPERATURE_MIN/MAX=-50/500) — source unique partagée API/UI/VO."
+      - "signature()/signatureHash() : clé cache déterministe (partagée MatrixComparator + CookingTimelineBuilder)."
+      - "isCustom(), getLabel(), getIcon() : logique UI centralisée dans le VO (déléguée par LiveComponent + entité)."
+      - "OdtMatrix enum : air/water/oil. AromaKinetics enum : HEAD(<150°C)/HEART(150-250)/BASE(>250) dérivé du point d'ébullition."
+    endpoint:
+      - "GET /api/match?spices=id1,id2&limit=20&matrix=air&fat=0.5&water=0.5&cooking_time=30&temperature=100"
+      - "Validation explicite is_numeric+is_finite+plage AVANT cast (SEC) — paramètres hors bornes → 400."
+      - "Réponse : { mortar, results:[{id,name,score}], oav_mode, matrix, fat_ratio, water_ratio, cooking_time_min, temperature_celsius, confidence, confidence_tier, count }"
+      - "PUBLIC_ACCESS, rate limit 30 req/min sliding window par IP. oav_mode false = fallback présence."
+    entites:
+      - "SpiceActiveCompound — shadow table OAV-actifs (spice_id, aromatic_compound_id, matrix, oav_value DOUBLE). PK composite TRIPLE (+matrix). 4 indexes. Pas de FK (bloque RENAME). Rebuild DBAL 3 passes (air/water/oil) en transaction InnoDB."
+      - "AromaticCompound — name + cas_number (INDEX UNIQUE) + formula. soft-delete."
+      - "SpiceCompoundConcentration — concentration_ppm DECIMAL(14,4) + source + confidence. PK composite (spice_id, aromatic_compound_id)."
+      - "CompoundOdt — odt_ppm DECIMAL(14,8) + reference_source + confidence. PK composite (aromatic_compound_id, matrix)."
+      - "CompoundPhysical — logP, boiling_point_celsius, vapor_pressure_pa, source, confidence. OneToOne AromaticCompound. octanolWaterPartition()=10^logP, aromaKinetics()."
+      - "SpicyMatch — persiste le contexte culinaire : matrix, fat_ratio, water_ratio, cooking_time_min, temperature_celsius. getCulinaryContext()/setCulinaryContext()."
+      - "⚠️ CHECK (oav_value > 1) non émis par Doctrine ORM 3.x — enforced par WHERE du INSERT dans RecomputeOavTableHandler + validé par app:check:data."
+    services:
+      - "MatchPipeline — orchestrateur 7 étapes (profil → veto → hydratation → CORRECTION Nernst+decay → Tanimoto log → tri). 6 deps. NON-final (mock tests)."
+      - "OavPartitionCalculator (readonly) — needsCorrection(ctx), correctionFactor(physical,ctx)=partition×decay, effectiveOav(). Constantes K_AT_BOILING=0.1/min, T_INERT=50°C documentées."
+      - "MortarProfileBuilder — cache profil OAV par (matrix, mortier). Sentinel [] TTL 5min pour OAV vide (PERF). invalidateAll() après rebuild."
+      - "OavTanimotoScorer — log-compressé, perceptualWeight(oav)=oav>1?ln:0. O(N) deux passes."
+      - "MatrixComparator (readonly) — 3× pipeline (rankings par matrice) + cache match.insights.cache TTL 1h. compare()/buildGrid()."
+      - "CookingTimelineBuilder (readonly) — classe composés HEAD/HEART/BASE + rétention. Cache match.insights.cache."
+      - "MatchConfidenceAssessor (readonly, NON-final) — assess(mortar,matrix)→DataConfidence (maillon le plus faible concentrations+ODT). 2 requêtes hors hot-path."
+      - "CompatibleSpiceFinder — adaptateur UI/éducation. CandidateVetoRepository — veto biparti. SpiceActiveCompoundRepository — loadOavProfilesBatch(ids,matrix). CompoundPhysicalRepository (NON-final) — loadByCompoundIds() (JOIN explicite)."
+      - "GeometricMean (src/Service/Math) — of()/ofRange() via logs. DataConsistencyChecker (src/Service/Data) — règles pures testables."
+    commands:
+      - "app:import:odt — compound_odt.yaml. Accepte odt_ppm (ponctuel) OU odt_min/odt_max (→ moyenne géométrique). Lit confidence. Guards path/taille/YAML."
+      - "app:import:flavordb — spice_compound_concentration.yaml (concentrations)."
+      - "app:import:acquisition-csv — ingère data/acquisition/*.csv (gitignoré) en base. SEULE commande qui CRÉE les composés manquants (nom+CAS+formule). Upsert concentrations + ODT (si colonnes présentes). Path-guard data/acquisition/, dry-run, idempotent. Physico délégué à fetch:physical."
+      - "app:import:physical — compound_physical.yaml (logP/bp/vp + source). OneToOne idempotent."
+      - "app:fetch:physical [--all] — auto-fetch PubChem XLogP3 + MolecularFormula (formule) par CAS pour les composés en base. Confidence ESTIMATED. bp/vp restent manuels."
+      - "app:check:compounds [--strict] — intégrité OFFLINE par composé : CAS présent/valide(checksum)/unique, formule, warning isomère ambigu."
+      - "app:check:data [--strict] — cohérence cross-tables : OAV>1, OAV<10^9, Σ conc ≤ 10^6 ppm, composé sans ODT air."
+      - "app:validate:compounds [--apply] — cross-check ONLINE PubChem (CAS↔formule)."
+      - "app:recompute:oav [--sync] — rebuild shadow table. À lancer après TOUT import."
+    qualite_donnees:
+      - "DataConfidence enum : MEASURED(A)/LITERATURE(B)/ESTIMATED(C)/PLACEHOLDER(D). rank(), tier(), isProductionGrade(), weakest(...). Colonne confidence sur les 3 tables data."
+      - "CasNumber VO : validation format + chiffre de contrôle (checksum) → détecte fautes de frappe."
+      - "Badge qualité UI dans le Lab (workspace) : vert si ≥ littérature, sinon 'scores indicatifs'."
+      - "GoldenPairingsTest : ancres anti-régression chimie (anis+fenouil fort, carvi≠0%, etc.)."
+    handler:
+      - "RecomputeOavTableHandler — shadow table atomique : DROP tmp → CREATE tmp LIKE → 3 INSERT (air/water/oil, OAV>1) en transaction → RENAME TABLE → DROP old → invalidateAll()."
+      - "⚠️ RENAME TABLE requiert tmp inexistante — double worker = race (acceptable MVP single-worker)."
+    listener:
+      - "SpiceConcentrationChangedListener — postPersist/postUpdate/postRemove sur SpiceCompoundConcentration ET CompoundOdt. Dedup postFlush. Reset flag AVANT dispatch (reentrancy)."
+    cache:
+      - "match.mortar_profile.cache (filesystem) — TTL air 24h / water+oil 1h / vide 5min (sentinel). Clé match.mortar.{matrix}.{ids}. invalidateAll() après rebuild."
+      - "match.insights.cache (filesystem, TTL 1h) — MatrixComparator + CookingTimelineBuilder. Clé via CulinaryContext::signatureHash()."
+    rate_limit:
+      - "match_api : sliding_window, 30/min par IP. when@test override : fixed_window 10000/min."
+    gotchas:
+      - "Scoring LOG-COMPRESSÉ depuis le fix scores-0% : changer OavTanimotoScorer change tous les scores → GoldenPairingsTest garde-fou."
+      - "Le log vit dans le SCORER, pas la shadow table : la correction Nernst multiplie en runtime, log(OAV×f)≠log(OAV)×f."
+      - "MatchPipeline + CompoundPhysicalRepository + MatchConfidenceAssessor NON-final volontairement (mock PHPUnit)."
+      - "spice_active_compound sans FK → schema:update ne crée pas les FK. Intentionnel."
+      - "⚠️ COLONNES JOINTURE : spices_aromatic_compound + secondary_spices_aromatic_compound = colonne `spices_id` (PLURIEL, nommage ManyToMany Doctrine). spice_active_compound (shadow) = `spice_id` (SINGULIER). Ne pas confondre : findSurvivorsWithPresence (repli présence) doit projeter `spices_id AS spice_id`. Bug latent corrigé 2026-06-10 (exposé par la purge véracité → repli présence enfin exercé)."
+      - "Messenger transport Doctrine + MariaDB : use_notify ignoré → polling 60s. Rebuild OAV pas instantané."
+      - "CompatibilityScoreService SUPPRIMÉ — consumers : SpicyMatch (Lab), QcmQuestionGenerator, AcademyManager."
+    data_status: "⚠️ DONNÉES FICTIVES (tier D/placeholder) : 15 composés, 105 concentrations. Cause connue du 'Carvi 64%' : carvone absente. Plan d'acquisition réel : docs/PLAN_ACQUISITION_DONNEES.md. Infra qualité (Leviers 1-6) prête à recevoir les vraies données."
+
+  i18n:
+    description: "Support multilingue FR (défaut) / EN / ES. Batches A–J + câblage vues + recherche + admin FAITS (ci vert 669 tests). Reste : seed du contenu réel EN/ES + tests Controller /{_locale}. Guide complet : /home/jbertoia/.claude/plans/objet-sp-cification-technique-snappy-teapot.md"
+    socle_en_place:
+      - "Users::$locale (string(5), défaut 'fr') + getter/setter — source prioritaire de la locale utilisateur."
+      - "LocaleSubscriber (kernel.request prio 15) : route _locale → Users.locale → session → Accept-Language → défaut. Guard hasSession() (API stateless). Const PUBLIQUE SUPPORTED_LOCALES=['fr','en','es'] = source unique."
+      - "RootController : GET / (name: root) → redirige vers home avec la locale préférée (getPreferredLanguage ?? default). SEUL point d'entrée non préfixé. ⚠️ LegacyLocaleRedirectSubscriber SUPPRIMÉ (2026-06-06) — projet pas en ligne, pas de rétro-compat d'anciennes URLs ; les URLs de contenu non préfixées renvoient 404 (volontaire)."
+      - "LocaleController : GET /locale/{locale} (name: switch_locale, req fr|en|es) → set session + Users.locale si connecté → redirect referer interne sinon home."
+      - "PRÉFIXE ROUTE /{_locale} APPLIQUÉ : 14 contrôleurs de CONTENU portent #[Route('/{_locale}/...', defaults:['_locale'=>'fr'])] (Home, Spices, AromaticGroups, AromaticCompound, AlchemyFlavors, SpicyType, PreparationMethods, SpicyMatch, SpicyMatchHistory, Education, Users, Help, Contact, Search). Requirement _locale auto-injecté par enabled_locales."
+      - "NON préfixés (volontaire) : Root (/), Api/, Admin/, Security (login/logout via NOM de route → firewall OK), Registration, Newsletter, Consent, EasterEgg, Locale."
+      - "config: translation.yaml enabled_locales:[fr,en,es]. services.yaml bind LocaleSubscriber $defaultLocale=%kernel.default_locale%."
+      - "base.html.twig : <html lang> dynamique + hreflang/canonical (Batch J). Switcher FR/EN/ES dans _navbar.html.twig. format_date/format_number (twig/intl-extra) appliqués (Batch J)."
+    catalogues:
+      - "translations/messages.{fr,en,es}.yaml (12 fichiers avec validators/admin/js) — lint:yaml 12/12. TOP-LEVEL namespaces : common, form, flash, ui, gamification, enum. ⚠️ GOTCHA : edu est sous ui (clés = ui.edu.*), pareil catalog/labo/recipe/lab/game/etc. sous ui. Domaines séparés : validators.*, admin.* (Dashboard::setTranslationDomain('admin')), js.* (bridge)."
+      - "JS i18n bridge : <script type=application/json id=js-i18n>{{ js_i18n_json() }}</script> (JsI18nExtension dumpe tout le domaine js, JSON_HEX hardening) lu par assets/i18n.js t()."
+      - "Pluriel = pipe Symfony 'singulier|pluriel' + {'%count%': n}. HTML inline = clés *_html rendues |raw."
+    fait:
+      - "Batch B enums→clés (6 enums). C forms/flash/validation. D EasyAdmin domaine admin. E TOUS templates user-facing →|trans (catalog, users, education routes+5 LC games, lab/SpicyMatch, recipe history/view, onboarding tours JSON, help prose, admin, search…). F JS data-i18n/bridge. G prompts/clues/règles de jeu →ui.edu.prompt/clue/rule.* via TranslatorInterface injecté (AcademyManager, QcmQuestionGenerator, GuessWhoGame, HangmanGame ; render-at-source ; tests = IdentityTranslator). H catalogues EN/ES remplis. J format_date/number + hreflang/canonical."
+      - "Batch I (slice Spices) : SpiceTranslation (table spice_translation, unique (spice_id,locale), FK CASCADE, name/description/cooking/informations/benefits) + TranslationInterface + Spices::getLocalizedName(locale)/getTranslation(locale) + SpicesRepository::findNamesById(ids, ?locale) (LEFT JOIN WITH locale + COALESCE fallback FR) + MatrixComparator locale dans clé cache."
+      - "Batch I (6 autres entités, 2026-06-06, ci vert) : tables *_translation pour AromaticGroups, AromaticCompound, Achievement, CookingTips, PreparationMethods, PreparationTips (chacune : entité XxxTranslation + repo + unique (owner_id,locale) + FK CASCADE + index locale). Owning entity = collection translations (cascade persist/remove, orphanRemoval) + getTranslation(locale) + getLocalizedXxx(locale) (COALESCE fallback FR). Champs traduits = textes user-facing uniquement (PAS color/cas_number/formula/slug/icon/enums). Champs *Translation nullables (sauf Spices.name) → fallback par champ."
+      - "TranslatableInterface (App\\Entity\\Translation) : getTranslation(locale): ?TranslationInterface — implémenté par les 7 entités (retour covariant). add/removeTranslation restent typés concrets (non unifiables). PAS de trait (champs diffèrent ; cohérence avec le slice Spices > abstraction)."
+      - "Commande app:i18n:seed-translations <en|es> [--overwrite] (remplace seed-spice-translations) : amorce les 7 entités en copiant le FR (update-in-place sur --overwrite, pas de delete/insert). Testée : 244 lignes EN."
+      - "Gamification : PendingGamificationNotification payload 'name' = achievement->getLocalizedName(user->getLocale()) au déblocage (slug aussi stocké). Clôt le reliquat Batch G."
+      - "Batch I CÂBLAGE VUES (2026-06-07, ci vert) : tous les templates détail/liste appellent getLocalizedXxx(app.request.locale) au lieu de .name/.description (spices/view, _quick_view, spicy_match_history/view, aromatic_compound/view+index, alchemy_flavors/view, preparation_methods/view, achievements, profile, users/favorites+history, history/index+favorites, spicy_match/view, _macro_card_spice/little_spice/spicy_match_history, _spices_filters). Spices a désormais getLocalizedDescription/Cooking/Informations/Benefits ; AromaticGroups/Compound ont getLocalizedCooking/Informations. EXCEPTION : Lab LiveComponent SpicyMatch.html.twig reste sur les arrays findAllSpices/findSpicesForMatch (groupName = clé de groupement/sélection — localiser casserait selectAromaticGroup) → noms du panneau gauche en FR (TODO si besoin)."
+      - "Perf i18n : getTranslation('fr') court-circuite (return null) sur les 7 entités → ZÉRO requête lazy en locale par défaut. Listes/hot-paths : AromaticGroupsRepository::findNamesById + AromaticCompoundRepository::findNamesById (modèle Spices). CompatibleSpiceFinder injecte RequestStack → findEnrichedByIds(ids, locale) localise name + groupName (COALESCE) en 1 requête (type non traduisible). Détail = getLocalizedXxx direct (N borné)."
+      - "Recherche multilingue : SpicesRepository::search(word, ?locale) — LEFT JOIN spice_translation/aromatic_compound_translation filtré locale, WHERE (FR OR traduit) LIKE, retour COALESCE(traduit, FR). SearchController passe request.getLocale(). FR = requête simple sans JOIN."
+      - "Switcher corrigé : LocaleController::switch réécrit le segment /{fr|en|es} du path du referer (rewriteLocaleInUrl) au lieu de rediriger le referer brut → le switch fonctionne sur les pages préfixées (sinon le path /fr regagnait via LocaleSubscriber). Host validé avec slash final (anti host.evil.com)."
+      - "Édition admin des traductions : CollectionField 'translations' (onlyOnForms, setEntryIsComplex) dans les 7 CRUD owning → form types App\\Form\\Admin\\Translation\\* (AbstractTranslationType base : locale en/es + reviewed + helpers text/area, labels FR translation_domain=false). Clé admin.field.translations (fr/en/es)."
+      - "Staleness flag : colonne booléenne 'reviewed' (défaut false) sur les 7 *Translation (+ isReviewed/setReviewed dans TranslationInterface). SeedTranslationsCommand n'écrase JAMAIS une ligne reviewed=true (même --overwrite). Coché dans l'admin = traduction validée, protégée du re-seed."
+      - "Sécu : NewsletterController referer validé (safeReferer, anti open-redirect) ; %name% dans les trans *_html|raw échappés (|e) dans spicy_match/view."
+    decisions:
+      - "Contenu dynamique BDD : pattern Translation Table (option A) — PAS Gedmo/Knp (postLoad → N+1 sur hot-path match). Hydratation batch JOIN filtré locale + COALESCE fallback FR."
+      - "Moteur OAV nativement agnostique : locale JAMAIS dans MatchPipeline/scorer/cache OAV. Seul point i18n = hydratation finale des name (findNamesById). 669 tests verts inchangés."
+      - "Exceptions dev-facing (ex: GameSessionManager 'Limite quotidienne atteinte') NON traduites : jamais rendues à l'utilisateur (EducationController catch \\RuntimeException → flash.daily_limit_reached traduit)."
+    reste_a_faire:
+      - "SEED CONTENU RÉEL : les tables *_translation sont vides (ou copies FR via app:i18n:seed-translations). Saisir/valider les vraies traductions EN/ES via l'admin (CollectionField) puis cocher reviewed. Tant que vide, le COALESCE sert le FR (fallback correct)."
+      - "Lab (SpicyMatch.html.twig) : panneau gauche (sélection/workspace) reste FR car basé sur les arrays findAllSpices/findSpicesForMatch dont groupName sert de clé de groupement. Pour le localiser : ajouter un champ nom localisé séparé (garder groupName canonique) + passer la locale à ces requêtes. Les RÉSULTATS (droite) sont déjà localisés via findEnrichedByIds."
+      - "SEO : routes détail = ID numérique, pas de slug par locale (hreflang/canonical OK). Ajouter slug par locale si SEO requis."
+      - "Pré-merge : MAJ tests Controller pour préfixe /{_locale} (nécessite DB spicymatch_test absente en local)."
+
   rgpd:
     cookie_consent:
       - CookieConsentService       # hasConsented(), saveConsent(), respectsDnt(), versioning
@@ -346,12 +467,14 @@ design_system:
     - "@source chemin relatif au fichier SCSS: '../../templates/**/*.html.twig'"
     - "Après tout changement de classes, relancer: yarn build"
   composants_reference:
+    button:         "templates/components/Button.html.twig — composant anonyme <twig:Button> UNIQUE pour tous les boutons pill. Props: label (TOUJOURS |trans), variant (primary|secondary|danger|ghost|back), size (xs→xl), href (→<a> sinon <button>), type, icon (FA ou SVG), iconPos, iconOnly (masque label→sr-only+aria-label), disabled (sur <a>: drop href+aria-disabled+tabindex=-1), external, extra (marge/position uniquement). Attributs non déclarés (@click/data-*/wire/x-bind) forwardés via attributes.defaults(). ⚠️ Alpine: PAS de shorthand `:disabled`/`:class` (Twig le prend pour une prop dynamique) → utiliser `x-bind:disabled`. CSS: .btn-pill-base + .btn-pill-{primary,outline,danger,ghost} dans assets/styles/components/buttons.css. Ancienne macro macros/buttons.html.twig SUPPRIMÉE. NON migrés volontairement (langage visuel ≠ pill, ne PAS forcer): Lab SpicyMatch.html.twig (rounded-xl), toggles vue spicy_type/aromatic_compound (rounded-lg), carousel embla, widgets à contenu dynamique (password toggle x-text, equip double-span, fav star :class), décoratifs (timer caché, pagination)."
     navbar:         "templates/components/_navbar.html.twig — sticky cream/80 backdrop-blur h-20 z-50"
     footer:         "templates/components/_footer.html.twig — bg-paprika-900 text-cream 4 colonnes"
     search:         "templates/components/Search.html.twig — bg-white/80 rounded-full border-spice-border"
     hero:           "templates/home/index.html.twig — grid 2 cols lg, fond bg-cream-dark + bg-noise"
     avatar:         "templates/components/_avatar.html.twig — badge équipé prioritaire (icône + couleur rareté), fallback slug"
     lab_filters:    "SpicyMatch.html.twig — filtres (groupeAro + type + search) DANS le LiveComponent via data-model"
+    lab_omission:   "Véracité par omission : sélecteur matrice = SpicyMatch::getAvailableMatrices() (SpiceActiveCompoundRepository::matricesWithData() — seules matrices avec données OAV). Label ui.lab.presence_mode quand isOavScoringAvailable() faux (mortier sans données OAV → tri présence, pas score). Clés ui.lab.no_matrix_data / presence_mode (fr/en/es)."
     catalog_filters: "templates/components/_spices_filters.html.twig — filtres GET → Turbo Frame spices_frame_id (catalogue uniquement)"
     history_index:  "templates/spicy_match_history/index.html.twig — liste avec renommage inline (group + crayon hover) + toggle favori"
     history_view:   "templates/spicy_match_history/view.html.twig — recette + section éducative composés aromatiques partagés"

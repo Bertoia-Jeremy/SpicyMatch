@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Enum\GameDifficulty;
+use App\Enum\OdtMatrix;
 use App\Repository\UsersRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -15,10 +16,10 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 #[UniqueEntity(fields: [
     'username',
-], message: 'Le pseudo existe déjà', errorPath: 'username', ignoreNull: false, repositoryMethod: 'findNonDeletedBy')]
+], message: 'user.username_taken', errorPath: 'username', ignoreNull: false, repositoryMethod: 'findNonDeletedBy')]
 #[UniqueEntity(fields: [
     'mail',
-], message: 'Cet email est déjà utilisé.', errorPath: 'mail', ignoreNull: true, repositoryMethod: 'findNonDeletedBy')]
+], message: 'user.email_taken', errorPath: 'mail', ignoreNull: true, repositoryMethod: 'findNonDeletedBy')]
 #[ORM\Entity(repositoryClass: UsersRepository::class)]
 #[ORM\Table(name: 'users')]
 class Users implements UserInterface, PasswordAuthenticatedUserInterface
@@ -80,9 +81,31 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     ])]
     private GameDifficulty $preferredDifficulty = GameDifficulty::EASY;
 
+    /**
+     * Langue préférée de l'utilisateur (i18n). Source prioritaire pour le LocaleSubscriber.
+     * Valeurs supportées : fr (défaut), en, es.
+     */
+    #[ORM\Column(name: 'locale', type: 'string', length: 5, options: [
+        'default' => 'fr',
+    ])]
+    private string $locale = 'fr';
+
+    #[ORM\Column(enumType: OdtMatrix::class, options: [
+        'default' => 'air',
+    ])]
+    private OdtMatrix $defaultMatrix = OdtMatrix::AIR;
+
+    /**
+     * @var Collection<int, Spices>
+     */
+    #[ORM\ManyToMany(targetEntity: Spices::class)]
+    #[ORM\JoinTable(name: 'users_excluded_spices')]
+    private Collection $excludedSpices;
+
     public function __construct()
     {
         $this->spicyMatches = new ArrayCollection();
+        $this->excludedSpices = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -292,6 +315,54 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPreferredDifficulty(GameDifficulty $preferredDifficulty): static
     {
         $this->preferredDifficulty = $preferredDifficulty;
+
+        return $this;
+    }
+
+    public function getLocale(): string
+    {
+        return $this->locale;
+    }
+
+    public function setLocale(string $locale): static
+    {
+        $this->locale = $locale;
+
+        return $this;
+    }
+
+    public function getDefaultMatrix(): OdtMatrix
+    {
+        return $this->defaultMatrix;
+    }
+
+    public function setDefaultMatrix(OdtMatrix $defaultMatrix): static
+    {
+        $this->defaultMatrix = $defaultMatrix;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Spices>
+     */
+    public function getExcludedSpices(): Collection
+    {
+        return $this->excludedSpices;
+    }
+
+    public function addExcludedSpice(Spices $spice): static
+    {
+        if (! $this->excludedSpices->contains($spice)) {
+            $this->excludedSpices->add($spice);
+        }
+
+        return $this;
+    }
+
+    public function removeExcludedSpice(Spices $spice): static
+    {
+        $this->excludedSpices->removeElement($spice);
 
         return $this;
     }

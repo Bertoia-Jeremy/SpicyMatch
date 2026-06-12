@@ -1,19 +1,19 @@
 {# templates/components/_pagination.html.twig #}
 {% if pageCount > 1 %}
-    <nav aria-label="Page navigation" class="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-4 mt-10">
+    <nav aria-label="{{ 'ui.pagination.nav_label'|trans }}" class="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-4 mt-10">
         <ul class="flex -space-x-px text-sm list-none p-0 m-0">
             {# Previous Button #}
             {% if previous is defined %}
                 <li>
                     <a href="{{ path(route, query|merge({(pageParameterName): previous})) }}" 
                        class="flex items-center justify-center text-stone-600 bg-white border border-stone-200 hover:bg-spice-surface hover:text-saffron-700 shadow-xs font-medium rounded-s-xl text-sm px-4 h-10 transition-colors">
-                        Précédent
+                        {{ 'ui.pagination.previous'|trans }}
                     </a>
                 </li>
             {% else %}
                 <li>
                     <span class="flex items-center justify-center text-stone-300 bg-stone-50 border border-stone-200 font-medium rounded-s-xl text-sm px-4 h-10 cursor-not-allowed">
-                        Précédent
+                        {{ 'ui.pagination.previous'|trans }}
                     </span>
                 </li>
             {% endif %}
@@ -30,7 +30,7 @@
                 {% else %}
                     <li>
                         <span aria-current="page" 
-                              class="flex items-center justify-center text-white bg-saffron-600 border border-saffron-600 font-bold text-sm w-10 h-10 shadow-lg shadow-saffron-600/20 z-10 relative">
+                              class="flex items-center justify-center text-white bg-saffron-700 border border-saffron-700 font-bold text-sm w-10 h-10 shadow-lg shadow-saffron-600/20 z-10 relative">
                             {{ page }}
                         </span>
                     </li>
@@ -42,13 +42,13 @@
                 <li>
                     <a href="{{ path(route, query|merge({(pageParameterName): next})) }}" 
                        class="flex items-center justify-center text-stone-600 bg-white border border-stone-200 hover:bg-spice-surface hover:text-saffron-700 shadow-xs font-medium rounded-e-xl text-sm px-4 h-10 transition-colors">
-                        Suivant
+                        {{ 'ui.pagination.next'|trans }}
                     </a>
                 </li>
             {% else %}
                 <li>
                     <span class="flex items-center justify-center text-stone-300 bg-stone-50 border border-stone-200 font-medium rounded-e-xl text-sm px-4 h-10 cursor-not-allowed">
-                        Suivant
+                        {{ 'ui.pagination.next'|trans }}
                     </span>
                 </li>
             {% endif %}
@@ -63,16 +63,16 @@
                 {% endif %}
             {% endfor %}
             
-            <label for="limit" class="sr-only">Nombre d'épices par page</label>
+            <label for="limit" class="sr-only">{{ 'ui.pagination.per_page_hint'|trans }}</label>
             <select id="limit" 
                     name="limit" 
                     @change="$event.target.form.submit()"
                     class="block w-36 px-3 py-2 bg-white border border-stone-200 text-stone-700 text-sm rounded-xl focus:ring-saffron-500 focus:border-saffron-500 shadow-xs cursor-pointer transition-all">
                 {% set currentLimit = app.request.query.get('limit', 12) %}
-                <option value="12" {{ currentLimit == 12 ? 'selected' : '' }}>12 par page</option>
-                <option value="24" {{ currentLimit == 24 ? 'selected' : '' }}>24 par page</option>
-                <option value="48" {{ currentLimit == 48 ? 'selected' : '' }}>48 par page</option>
-                <option value="96" {{ currentLimit == 96 ? 'selected' : '' }}>96 par page</option>
+                <option value="12" {{ currentLimit == 12 ? 'selected' : '' }}>{{ 'ui.pagination.per_page'|trans({'%count%': 12}) }}</option>
+                <option value="24" {{ currentLimit == 24 ? 'selected' : '' }}>{{ 'ui.pagination.per_page'|trans({'%count%': 24}) }}</option>
+                <option value="48" {{ currentLimit == 48 ? 'selected' : '' }}>{{ 'ui.pagination.per_page'|trans({'%count%': 48}) }}</option>
+                <option value="96" {{ currentLimit == 96 ? 'selected' : '' }}>{{ 'ui.pagination.per_page'|trans({'%count%': 96}) }}</option>
             </select>
         </form>
     </nav>

@@ -1,12 +1,31 @@
 {% import 'components/Education/_game_header.html.twig' as game_header %}
 <div {{ attributes }}>
+  <div aria-live="polite" class="sr-only">
+    {%- if this.isFinished %}{{ 'ui.game.a11y_finished'|trans }}
+    {%- elseif this.showFeedback %}
+      {%- if this.lastAnswerCorrect %}{{ 'ui.game.a11y_correct'|trans }}
+      {%- else %}{{ 'ui.game.a11y_incorrect'|trans({'%name%': this.lastCorrectName}) }}
+      {%- endif %}
+    {%- elseif this.questionNumber > 0 %}
+      {{- 'ui.game.a11y_question'|trans({'%num%': this.questionNumber, '%total%': this.totalQuestions}) }}
+    {%- endif %}
+  </div>
+
+  {# Séparée : éviter de relire la question à chaque indice #}
+  <div aria-live="polite" class="sr-only">
+    {%- if not this.showFeedback and not this.isFinished and this.revealedClues|length > 0 %}
+      {%- set lastClue = this.revealedClues|last %}
+      {{- 'ui.game.a11y_clue'|trans({'%n%': this.revealedClues|length, '%total%': this.totalCluesCount, '%label%': lastClue.label, '%value%': lastClue.value}) }}
+    {%- endif %}
+  </div>
+
   {{ game_header.header(
       icon = 'fa-solid fa-wine-glass',
-      title = 'Palais Fin',
-      subtitle = 'Devine l\'épice grâce aux indices',
+      title = 'enum.game_mode.guess_who.label'|trans,
+      subtitle = 'ui.game.guesswho_subtitle'|trans,
       current = this.questionNumber,
       total = this.totalQuestions,
-      scoreLabel = this.totalScore ~ ' pts · ' ~ this.correctCount ~ ' <i class="fa-solid fa-check text-xs text-green-600"></i>  ' ~ this.incorrectCount ~ ' <i class="fa-solid fa-xmark text-xs text-paprika-500"></i>',
+      scoreLabel = this.totalScore ~ ' pts · ' ~ this.correctCount ~ ' <i class="fa-solid fa-check text-xs text-green-600" aria-hidden="true"></i>  ' ~ this.incorrectCount ~ ' <i class="fa-solid fa-xmark text-xs text-paprika-500" aria-hidden="true"></i>',
       quitUrl = path('education_briefing', { mode: 'guess_who', difficulty: this.difficulty }),
   ) }}
 
@@ -15,30 +34,28 @@
     <div class="text-center py-10">
       {% if this.lastAnswerCorrect %}
         <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-turmeric-100 flex items-center justify-center">
-          <i class="fa-solid fa-circle-check text-turmeric-600 text-3xl"></i>
+          <i class="fa-solid fa-circle-check text-turmeric-600 text-3xl" aria-hidden="true"></i>
         </div>
-        <h3 class="text-lg font-bold text-turmeric-700 mb-2">Bonne réponse !</h3>
-        <p class="text-stone-600 mb-2">C'était bien <strong>{{ this.lastCorrectName }}</strong></p>
-        <p class="text-saffron-600 font-semibold">+{{ this.lastPointsEarned }} points</p>
+        <h3 class="text-lg font-bold text-turmeric-700 mb-2">{{ 'ui.game.correct_answer'|trans }}</h3>
+        <p class="text-stone-600 mb-2">{{ 'ui.game.it_was_indeed'|trans({'%name%': '<strong>' ~ this.lastCorrectName ~ '</strong>'})|raw }}</p>
+        <p class="text-saffron-600 font-semibold">{{ 'ui.game.points_earned'|trans({'%points%': this.lastPointsEarned}) }}</p>
       {% else %}
         <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-paprika-100 flex items-center justify-center">
-          <i class="fa-solid fa-circle-xmark text-paprika-500 text-3xl"></i>
+          <i class="fa-solid fa-circle-xmark text-paprika-500 text-3xl" aria-hidden="true"></i>
         </div>
-        <h3 class="text-lg font-bold text-paprika-700 mb-2">Mauvaise réponse</h3>
+        <h3 class="text-lg font-bold text-paprika-700 mb-2">{{ 'ui.game.wrong_answer'|trans }}</h3>
         <p class="text-stone-600 mb-2">
-          La bonne réponse était <strong>{{ this.lastCorrectName }}</strong>
+          {{ 'ui.game.correct_was'|trans({'%name%': '<strong>' ~ this.lastCorrectName ~ '</strong>'})|raw }}
         </p>
       {% endif %}
 
-      <button data-action="live#action"
-              data-live-action-param="next"
-              class="btn-pill-primary mt-6">
-        {% if this.questionNumber >= this.totalQuestions %}
-          <i class="fa-solid fa-flag-checkered mr-2"></i>Terminer
-        {% else %}
-          <i class="fa-solid fa-arrow-right mr-2"></i>Question suivante
-        {% endif %}
-      </button>
+      <twig:Button
+          label="{{ this.questionNumber >= this.totalQuestions ? 'ui.game.finish'|trans : 'ui.game.next_question'|trans }}"
+          variant="primary"
+          icon="{{ this.questionNumber >= this.totalQuestions ? 'fa-solid fa-flag-checkered' : 'fa-solid fa-arrow-right' }}"
+          data-action="live#action"
+          data-live-action-param="next"
+          extra="mt-6" />
     </div>
 
   {% else %}
@@ -46,7 +63,7 @@
     <div class="mb-8">
       <div class="flex items-center justify-between mb-4">
         <p class="text-sm font-medium text-stone-700">
-          Indices révélés : {{ this.revealedClues|length }}/{{ this.totalCluesCount }}
+          {{ 'ui.game.clues_revealed'|trans({'%count%': this.revealedClues|length, '%total%': this.totalCluesCount}) }}
         </p>
         {% if this.currentClueIndex < this.totalCluesCount %}
           <button data-action="live#action"
@@ -54,14 +71,14 @@
                   data-loading="action(revealClue)|addAttribute(disabled)"
                   class="text-sm text-saffron-600 hover:text-saffron-800 font-medium transition-colors disabled:opacity-50 disabled:cursor-wait">
             <span data-loading="action(revealClue)|hide">
-              <i class="fa-solid fa-eye mr-1"></i>Révéler un indice
+              <i class="fa-solid fa-eye mr-1" aria-hidden="true"></i>{{ 'ui.game.reveal_clue'|trans }}
             </span>
             <span data-loading="action(revealClue)|show">
-              <i class="fa-solid fa-spinner fa-spin mr-1"></i>Révélation…
+              <i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i>{{ 'ui.game.revealing'|trans }}
             </span>
           </button>
         {% else %}
-          <span class="text-xs text-stone-400">Tous les indices révélés</span>
+          <span class="text-xs text-stone-400">{{ 'ui.game.all_clues_revealed'|trans }}</span>
         {% endif %}
       </div>
 
@@ -77,7 +94,7 @@
         {% if remainingClues > 0 %}
           {% for i in 1..remainingClues %}
             <div class="px-4 py-3 rounded-lg border border-dashed border-stone-300 bg-stone-50">
-              <span class="text-sm text-stone-400"><i class="fa-solid fa-lock text-xs mr-1"></i>Indice verrouillé</span>
+              <span class="text-sm text-stone-400"><i class="fa-solid fa-lock text-xs mr-1" aria-hidden="true"></i>{{ 'ui.game.clue_locked'|trans }}</span>
             </div>
           {% endfor %}
         {% endif %}
@@ -88,7 +105,7 @@
     <div x-data="guessWhoAutocomplete({{ this.getAllSpiceNames()|json_encode }})"
          class="relative"
          @click.outside="closeSuggestions()">
-      <p class="text-sm font-medium text-stone-700 mb-3">Quelle est cette épice ?</p>
+      <p class="text-sm font-medium text-stone-700 mb-3">{{ 'ui.game.which_spice'|trans }}</p>
 
       {# Hidden LC action trigger — Alpine sets the param then clicks it #}
       <button x-ref="submitGuessBtn"
@@ -107,10 +124,12 @@
              @keydown.enter.prevent="submitEnter()"
              @keydown.escape="closeSuggestions()"
              autocomplete="off"
-             placeholder="Commence à taper le nom…"
+             placeholder="{{ 'ui.game.start_typing'|trans }}"
+             aria-label="{{ 'ui.game.start_typing'|trans }}"
              role="combobox"
              aria-autocomplete="list"
              :aria-expanded="hasSuggestions()"
+             :aria-activedescendant="activeDescendant()"
              aria-controls="gwg-suggestions"
              class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-white focus:outline-none focus:ring-2 focus:ring-saffron-600/30 text-stone-800 placeholder-stone-400">
 
@@ -121,6 +140,8 @@
         <template x-for="(name, index) in suggestions" :key="name">
           <li @click="pick(name)"
               :class="suggestionClass(index)"
+              :id="optionId(index)"
+              :aria-selected="isSelectedOption(index)"
               role="option"
               class="px-4 py-2.5 cursor-pointer text-sm transition-colors hover:bg-cream">
             <span x-text="name"></span>

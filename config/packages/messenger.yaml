@@ -24,6 +24,7 @@ framework:
             App\Message\SpiceReadEvent: async
             App\Message\GameCompletedEvent: async
             App\Message\EasterEggFoundEvent: async
+            App\Message\RecomputeOavTableMessage: async
 
 # when@test:
 #    framework:

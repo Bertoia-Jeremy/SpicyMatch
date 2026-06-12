@@ -8,16 +8,14 @@
     {# Section header #}
     <div class="section-head">
         <div>
-            <div class="section-label">Chapitre III · Le Labo Culinaire</div>
+            <div class="section-label">{{ 'ui.labo.chapter'|trans }}</div>
             <h2 class="font-display font-medium leading-none tracking-[-0.015em] m-0"
                 style="font-size: clamp(40px, 5vw, 80px)">
-                L'art du <em class="not-italic italic" style="color: var(--color-turmeric-700)">geste.</em>
+                {{ 'ui.labo.title_html'|trans|raw }}
             </h2>
         </div>
         <p class="section-blurb">
-            Comprendre, c'est bien. Faire, c'est mieux.
-            Trois techniques fondamentales pour libérer
-            tout ce que vos épices ont à offrir.
+            {{ 'ui.labo.blurb'|trans }}
         </p>
     </div>
 
@@ -26,11 +24,11 @@
         {# ── Fiche I : Torréfaction ── #}
         <article class="recipe-card">
             <div class="flex justify-between items-start mb-5 relative z-[1]">
-                <div class="recipe-num">Fiche n°&nbsp;I</div>
-                <div class="recipe-meta">Technique<br>Chaleur sèche</div>
+                <div class="recipe-num">{{ 'ui.labo.fiche1'|trans|raw }}</div>
+                <div class="recipe-meta">{{ 'ui.labo.technique'|trans }}<br>{{ 'ui.labo.dry_heat'|trans }}</div>
             </div>
-            <h3 class="recipe-title">Torré<span class="ital">faction.</span></h3>
-            <div class="recipe-sub">à sec, à la poêle de fonte</div>
+            <h3 class="recipe-title">{{ 'ui.labo.roast_title_html'|trans|raw }}</h3>
+            <div class="recipe-sub">{{ 'ui.labo.roast_sub'|trans }}</div>
 
             <div class="recipe-diagram">
                 <svg viewBox="0 0 240 160" width="100%" height="100%" aria-hidden="true">
@@ -82,26 +80,23 @@
             </div>
 
             <div class="recipe-benefit">
-                <strong>Réaction de Maillard.</strong>
-                La chaleur sèche brise les parois cellulaires
-                et libère les huiles essentielles emprisonnées.
-                Le résultat : un parfum profond, presque noisetté.
+                {{ 'ui.labo.roast_benefit_html'|trans|raw }}
             </div>
 
             <div class="recipe-foot">
-                <span>Cumin · Coriandre · Fenouil</span>
-                <a href="{{ path('index_spices') }}" class="hover:opacity-70 transition-opacity">→ Lire</a>
+                <span>{{ 'ui.labo.roast_spices'|trans }}</span>
+                <a href="{{ path('index_spices') }}" class="hover:opacity-70 transition-opacity">{{ 'ui.labo.read'|trans }}</a>
             </div>
         </article>
 
         {# ── Fiche II : Infusion ── #}
         <article class="recipe-card">
             <div class="flex justify-between items-start mb-5 relative z-[1]">
-                <div class="recipe-num">Fiche n°&nbsp;II</div>
-                <div class="recipe-meta">Technique<br>Chaleur humide</div>
+                <div class="recipe-num">{{ 'ui.labo.fiche2'|trans|raw }}</div>
+                <div class="recipe-meta">{{ 'ui.labo.technique'|trans }}<br>{{ 'ui.labo.wet_heat'|trans }}</div>
             </div>
-            <h3 class="recipe-title">Infu<span class="ital">sion.</span></h3>
-            <div class="recipe-sub">à chaud, dans un corps gras</div>
+            <h3 class="recipe-title">{{ 'ui.labo.infusion_title_html'|trans|raw }}</h3>
+            <div class="recipe-sub">{{ 'ui.labo.infusion_sub'|trans }}</div>
 
             <div class="recipe-diagram">
                 <svg viewBox="0 0 240 160" width="100%" height="100%" aria-hidden="true">
@@ -162,26 +157,23 @@
             </div>
 
             <div class="recipe-benefit">
-                <strong>Diffusion lipidique.</strong>
-                Les arômes liposolubles migrent dans l'huile
-                chaude — un transport idéal pour les notes
-                boisées et résineuses qui craignent la flamme.
+                {{ 'ui.labo.infusion_benefit_html'|trans|raw }}
             </div>
 
             <div class="recipe-foot">
-                <span>Romarin · Laurier · Piment</span>
-                <a href="{{ path('index_spices') }}" class="hover:opacity-70 transition-opacity">→ Lire</a>
+                <span>{{ 'ui.labo.infusion_spices'|trans }}</span>
+                <a href="{{ path('index_spices') }}" class="hover:opacity-70 transition-opacity">{{ 'ui.labo.read'|trans }}</a>
             </div>
         </article>
 
         {# ── Fiche III : Pilonage ── #}
         <article class="recipe-card">
             <div class="flex justify-between items-start mb-5 relative z-[1]">
-                <div class="recipe-num">Fiche n°&nbsp;III</div>
-                <div class="recipe-meta">Technique<br>Mécanique</div>
+                <div class="recipe-num">{{ 'ui.labo.fiche3'|trans|raw }}</div>
+                <div class="recipe-meta">{{ 'ui.labo.technique'|trans }}<br>{{ 'ui.labo.mechanical'|trans }}</div>
             </div>
-            <h3 class="recipe-title">Pi<span class="ital">lonage.</span></h3>
-            <div class="recipe-sub">au mortier de marbre</div>
+            <h3 class="recipe-title">{{ 'ui.labo.pound_title_html'|trans|raw }}</h3>
+            <div class="recipe-sub">{{ 'ui.labo.pound_sub'|trans }}</div>
 
             <div class="recipe-diagram">
                 <svg viewBox="0 0 240 160" width="100%" height="100%" aria-hidden="true">
@@ -250,15 +242,12 @@
             </div>
 
             <div class="recipe-benefit">
-                <strong>Rupture cellulaire.</strong>
-                La pression mécanique éclate les vésicules
-                d'huiles essentielles plus délicatement que
-                le moulin — pas de chaleur, pas d'oxydation.
+                {{ 'ui.labo.pound_benefit_html'|trans|raw }}
             </div>
 
             <div class="recipe-foot">
-                <span>Poivre · Cardamome · Basilic</span>
-                <a href="{{ path('index_spices') }}" class="hover:opacity-70 transition-opacity">→ Lire</a>
+                <span>{{ 'ui.labo.pound_spices'|trans }}</span>
+                <a href="{{ path('index_spices') }}" class="hover:opacity-70 transition-opacity">{{ 'ui.labo.read'|trans }}</a>
             </div>
         </article>
 
@@ -267,7 +256,7 @@
     {# ── Mur de citations ── #}
     <div class="quotes-wrap">
         <div class="quotes-head">
-            <h3>Conseils d'experts, épinglés au mur de la cuisine.</h3>
+            <h3>{{ 'ui.labo.quotes_head'|trans }}</h3>
             {# Boutons décoratifs — pas de JS pour l'instant #}
             <div class="flex gap-[10px]" aria-hidden="true">
                 <button type="button"
@@ -286,26 +275,26 @@
         <div class="quotes-board">
 
             <div class="pin-note">
-                <div class="pin-quote">Une épice n'a jamais un seul rôle. Elle ouvre une porte. Charge à vous de regarder ce qu'il y a derrière.</div>
+                <div class="pin-quote">{{ 'ui.labo.quote1'|trans }}</div>
                 <div class="pin-author">
                     <span class="who">Élise Marchand</span>
-                    <span>Cheffe · Lyon</span>
+                    <span>{{ 'ui.labo.quote1_role'|trans }}</span>
                 </div>
             </div>
 
             <div class="pin-note">
-                <div class="pin-quote">Avant d'ajouter du piment, ajoutez de l'attention. La langue se souvient des deux.</div>
+                <div class="pin-quote">{{ 'ui.labo.quote2'|trans }}</div>
                 <div class="pin-author">
                     <span class="who">Tomás Reverte</span>
-                    <span>Étoilé · Barcelone</span>
+                    <span>{{ 'ui.labo.quote2_role'|trans }}</span>
                 </div>
             </div>
 
             <div class="pin-note">
-                <div class="pin-quote">La torréfaction n'est pas une étape. C'est une conversation entre la graine et la chaleur.</div>
+                <div class="pin-quote">{{ 'ui.labo.quote3'|trans }}</div>
                 <div class="pin-author">
                     <span class="who">Amal Benkirane</span>
-                    <span>Maître épicier · Fès</span>
+                    <span>{{ 'ui.labo.quote3_role'|trans }}</span>
                 </div>
             </div>
 

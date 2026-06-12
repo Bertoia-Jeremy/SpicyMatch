@@ -1,26 +1,25 @@
 {% extends 'base.html.twig' %}
 
-{% import 'macros/buttons.html.twig' as buttons %}
-
-{% block title %}SpicyMatch — Groupes aromatiques{% endblock %}
+{% block title %}{{ 'ui.catalog.groups_page_title'|trans }}{% endblock %}
 
 {% block body %}
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="text-center mb-10">
-        <span class="tag-primary mb-4 inline-block">Catalogue</span>
-        <h1 class="text-4xl font-bold text-stone-900 mb-3">Groupes aromatiques</h1>
-        <p class="text-stone-500 text-lg max-w-xl mx-auto">Les grandes familles d'arômes qui rassemblent les épices par affinité gustative.</p>
+        <span class="tag-primary mb-4 inline-block">{{ 'ui.catalog.groups_tag'|trans }}</span>
+        <h1 class="text-4xl font-bold text-stone-900 mb-3">{{ 'ui.catalog.groups_title'|trans }}</h1>
+        <p class="text-stone-500 text-lg max-w-xl mx-auto">{{ 'ui.catalog.groups_intro'|trans }}</p>
     </div>
 
     <div class="bg-white border border-stone-200 rounded-2xl p-8 text-center">
-        <i class="fa-solid fa-layer-group text-4xl text-saffron-400 mb-4"></i>
-        <p class="text-stone-500">Le catalogue des groupes aromatiques arrive bientôt.</p>
-        {{ buttons.button('Voir les épices', {
-            href: path('index_spices'),
-            variant: 'outline',
-            icon: 'fa-solid fa-arrow-left',
-            attr: { class: 'mt-6 inline-flex' }
-        }) }}
+        <i class="fa-solid fa-layer-group text-4xl text-saffron-400 mb-4" aria-hidden="true"></i>
+        <p class="text-stone-500">{{ 'ui.catalog.groups_soon'|trans }}</p>
+        <twig:Button
+            label="{{ 'ui.catalog.view_spices'|trans }}"
+            href="{{ path('index_spices') }}"
+            variant="secondary"
+            icon="fa-solid fa-arrow-left"
+            extra="mt-6 inline-flex"
+        />
     </div>
 </section>
 {% endblock %}

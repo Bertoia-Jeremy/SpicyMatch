@@ -4,22 +4,33 @@ declare(strict_types=1);
 
 namespace App\Tests\Twig\Components;
 
+use App\Enum\OdtMatrix;
 use App\Repository\AromaticGroupsRepository;
+use App\Repository\SpiceActiveCompoundRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
-use App\Service\CompatibilityScoreService;
+use App\Service\Match\CompatibleSpiceFinder;
+use App\Service\Match\MatchConfidenceAssessorInterface;
+use App\Service\SpicyMatchService;
 use App\Twig\Components\SpicyMatch;
+use App\ValueObject\Match\CulinaryContext;
+use App\ValueObject\Match\MortarIds;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 #[AllowMockObjectsWithoutExpectations]
 class SpicyMatchTest extends TestCase
 {
     private SpicesRepository&MockObject $spicesRepo;
-    private CompatibilityScoreService&MockObject $compatibilityService;
+    private CompatibleSpiceFinder&MockObject $compatibleSpiceFinder;
     private AromaticGroupsRepository&MockObject $aromaticGroupsRepo;
     private SpicyTypeRepository&MockObject $spicyTypeRepo;
+    private SpicyMatchService&MockObject $spicyMatchService;
+    private MatchConfidenceAssessorInterface&MockObject $confidenceAssessor;
+    private SpiceActiveCompoundRepository&MockObject $spiceActiveCompoundRepo;
 
     /**
      * @var list<array<string, mixed>>
@@ -29,9 +40,12 @@ class SpicyMatchTest extends TestCase
     protected function setUp(): void
     {
         $this->spicesRepo = $this->createMock(SpicesRepository::class);
-        $this->compatibilityService = $this->createMock(CompatibilityScoreService::class);
+        $this->compatibleSpiceFinder = $this->createMock(CompatibleSpiceFinder::class);
         $this->aromaticGroupsRepo = $this->createMock(AromaticGroupsRepository::class);
         $this->spicyTypeRepo = $this->createMock(SpicyTypeRepository::class);
+        $this->spicyMatchService = $this->createMock(SpicyMatchService::class);
+        $this->confidenceAssessor = $this->createMock(MatchConfidenceAssessorInterface::class);
+        $this->spiceActiveCompoundRepo = $this->createMock(SpiceActiveCompoundRepository::class);
 
         $this->allSpices = [
             [
@@ -82,12 +96,36 @@ class SpicyMatchTest extends TestCase
 
     private function makeComponent(): SpicyMatch
     {
-        return new SpicyMatch(
+        $component = new SpicyMatch(
             $this->spicesRepo,
-            $this->compatibilityService,
+            $this->compatibleSpiceFinder,
             $this->aromaticGroupsRepo,
             $this->spicyTypeRepo,
+            $this->spicyMatchService,
+            $this->confidenceAssessor,
+            $this->spiceActiveCompoundRepo,
         );
+
+        $component->setContainer($this->makeAnonymousContainer());
+
+        return $component;
+    }
+
+    private function makeAnonymousContainer(): ContainerInterface
+    {
+        $tokenStorage = $this->createMock(TokenStorageInterface::class);
+        $tokenStorage->method('getToken')
+            ->willReturn(null);
+
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('has')
+            ->with('security.token_storage')
+            ->willReturn(true);
+        $container->method('get')
+            ->with('security.token_storage')
+            ->willReturn($tokenStorage);
+
+        return $container;
     }
 
     public function testModeDefaultsToAuto(): void
@@ -95,6 +133,33 @@ class SpicyMatchTest extends TestCase
         $component = $this->makeComponent();
 
         self::assertSame('auto', $component->mode);
+    }
+
+    // ── Confiance des données ────────────────────────────────────────────────
+
+    public function testDataConfidenceNullWhenNoSelection(): void
+    {
+        $this->confidenceAssessor->expects(self::never())
+            ->method('assess');
+
+        $component = $this->makeComponent();
+
+        self::assertNull($component->getDataConfidence());
+    }
+
+    public function testDataConfidenceAssessedWhenSelectionExists(): void
+    {
+        $this->confidenceAssessor->expects(self::once())
+            ->method('assess')
+            ->willReturn(\App\Enum\DataConfidence::PLACEHOLDER);
+
+        $component = $this->makeComponent();
+        $component->spices = [
+            'selectedSpices' => ['1', '2'],
+            'compatibleSpices' => $this->allSpices,
+        ];
+
+        self::assertSame(\App\Enum\DataConfidence::PLACEHOLDER, $component->getDataConfidence());
     }
 
     public function testGetResultsWithNoSelectionReturnsAllSpices(): void
@@ -106,7 +171,7 @@ class SpicyMatchTest extends TestCase
         self::assertCount(5, $results['compatibleSpices']);
     }
 
-    public function testGetResultsInAutoModeCallsCompatibilityService(): void
+    public function testGetResultsInAutoModeCallsCompatibleSpiceFinder(): void
     {
         $this->spicesRepo->expects(self::once())
             ->method('findSpicesForMatch')
@@ -147,12 +212,9 @@ class SpicyMatchTest extends TestCase
             ],
         ];
 
-        $this->spicesRepo->expects(self::once())
-            ->method('findBy')
-            ->willReturn([]);
-
-        $this->compatibilityService->expects(self::once())
+        $this->compatibleSpiceFinder->expects(self::once())
             ->method('findCompatible')
+            ->with(new MortarIds([1]), 100, new CulinaryContext())
             ->willReturn($scored);
 
         $component = $this->makeComponent();
@@ -167,7 +229,7 @@ class SpicyMatchTest extends TestCase
         self::assertCount(3, $results['compatibleSpices']);
     }
 
-    public function testGetResultsInManualModeDoesNotCallCompatibilityService(): void
+    public function testGetResultsInManualModeDoesNotCallCompatibleSpiceFinder(): void
     {
         $this->spicesRepo->method('findSpicesForMatch')
             ->willReturn([
@@ -179,7 +241,7 @@ class SpicyMatchTest extends TestCase
                 ],
             ]);
 
-        $this->compatibilityService->expects(self::never())
+        $this->compatibleSpiceFinder->expects(self::never())
             ->method('findCompatible');
 
         $component = $this->makeComponent();
@@ -460,5 +522,232 @@ class SpicyMatchTest extends TestCase
         $component->clearSearch();
 
         self::assertSame('', $component->search);
+    }
+
+    // ── Contexte culinaire ──────────────────────────────────────────────────
+
+    public function testDefaultCulinaryContextIsNeutral(): void
+    {
+        $component = $this->makeComponent();
+
+        self::assertSame('air', $component->matrix);
+        self::assertSame(0.0, $component->fatRatio);
+        self::assertSame(0, $component->cookingTimeMin);
+        self::assertSame(20, $component->temperatureCelsius);
+        self::assertFalse($component->hasCustomCulinaryContext());
+    }
+
+    public function testBuildCulinaryContextReturnsValidObject(): void
+    {
+        $component = $this->makeComponent();
+        $component->matrix = 'water';
+        $component->fatRatio = 0.5;
+        $component->cookingTimeMin = 20;
+        $component->temperatureCelsius = 80;
+
+        $ctx = $component->buildCulinaryContext();
+
+        self::assertSame(OdtMatrix::WATER, $ctx->matrix);
+        self::assertSame(0.5, $ctx->fatRatio);
+        self::assertSame(0.5, $ctx->waterRatio);
+        self::assertSame(20, $ctx->cookingTimeMin);
+        self::assertSame(80, $ctx->temperatureCelsius);
+    }
+
+    public function testBuildCulinaryContextClampsFatRatioAboveOne(): void
+    {
+        // Sécurité : le client peut envoyer fat=2.5 via LiveProp writable → clamp à 1
+        $component = $this->makeComponent();
+        $component->fatRatio = 2.5;
+
+        $ctx = $component->buildCulinaryContext();
+
+        self::assertSame(1.0, $ctx->fatRatio);
+        self::assertSame(0.0, $ctx->waterRatio);
+    }
+
+    public function testBuildCulinaryContextClampsFatRatioBelowZero(): void
+    {
+        $component = $this->makeComponent();
+        $component->fatRatio = -0.3;
+
+        $ctx = $component->buildCulinaryContext();
+
+        self::assertSame(0.0, $ctx->fatRatio);
+        self::assertSame(1.0, $ctx->waterRatio);
+    }
+
+    public function testBuildCulinaryContextClampsCookingTime(): void
+    {
+        $component = $this->makeComponent();
+        $component->cookingTimeMin = 99_999;
+
+        $ctx = $component->buildCulinaryContext();
+
+        self::assertSame(1440, $ctx->cookingTimeMin); // cap 24 h
+    }
+
+    public function testBuildCulinaryContextClampsTemperature(): void
+    {
+        $component = $this->makeComponent();
+        $component->temperatureCelsius = 9_999;
+
+        $ctx = $component->buildCulinaryContext();
+
+        self::assertSame(500, $ctx->temperatureCelsius);
+    }
+
+    public function testBuildCulinaryContextFallsBackToAirOnUnknownMatrix(): void
+    {
+        // Le client peut envoyer matrix=steam via writable → fallback air
+        $component = $this->makeComponent();
+        $component->matrix = 'steam';
+
+        $ctx = $component->buildCulinaryContext();
+
+        self::assertSame(OdtMatrix::AIR, $ctx->matrix);
+    }
+
+    public function testSetCookingPresetDry(): void
+    {
+        $component = $this->makeComponent();
+        $component->matrix = 'oil';
+        $component->fatRatio = 1.0;
+        $component->cookingTimeMin = 30;
+        $component->temperatureCelsius = 150;
+
+        $component->setCookingPreset('dry');
+
+        self::assertSame('air', $component->matrix);
+        self::assertSame(0.0, $component->fatRatio);
+        self::assertSame(0, $component->cookingTimeMin);
+        self::assertSame(20, $component->temperatureCelsius);
+    }
+
+    public function testSetCookingPresetBroth(): void
+    {
+        $component = $this->makeComponent();
+        $component->setCookingPreset('broth');
+
+        self::assertSame('water', $component->matrix);
+        self::assertSame(0.0, $component->fatRatio);
+        self::assertSame(20, $component->cookingTimeMin);
+        self::assertSame(80, $component->temperatureCelsius);
+    }
+
+    public function testSetCookingPresetSaute(): void
+    {
+        $component = $this->makeComponent();
+        $component->setCookingPreset('saute');
+
+        self::assertSame('oil', $component->matrix);
+        self::assertSame(1.0, $component->fatRatio);
+        self::assertSame(10, $component->cookingTimeMin);
+        self::assertSame(140, $component->temperatureCelsius);
+    }
+
+    public function testSetCookingPresetIgnoresUnknownPreset(): void
+    {
+        // Whitelist stricte — un preset inconnu ne change rien
+        $component = $this->makeComponent();
+        $component->matrix = 'water';
+        $component->fatRatio = 0.3;
+
+        $component->setCookingPreset('hack');
+
+        self::assertSame('water', $component->matrix);
+        self::assertSame(0.3, $component->fatRatio);
+    }
+
+    public function testResetCulinaryContextRestoresDefaults(): void
+    {
+        $component = $this->makeComponent();
+        $component->matrix = 'oil';
+        $component->fatRatio = 0.75;
+        $component->cookingTimeMin = 45;
+        $component->temperatureCelsius = 180;
+
+        $component->resetCulinaryContext();
+
+        self::assertSame('air', $component->matrix);
+        self::assertSame(0.0, $component->fatRatio);
+        self::assertSame(0, $component->cookingTimeMin);
+        self::assertSame(20, $component->temperatureCelsius);
+        self::assertFalse($component->hasCustomCulinaryContext());
+    }
+
+    public function testHasCustomCulinaryContextDetectsAnyDeviation(): void
+    {
+        $component = $this->makeComponent();
+        self::assertFalse($component->hasCustomCulinaryContext());
+
+        $component->matrix = 'water';
+        self::assertTrue($component->hasCustomCulinaryContext());
+        $component->matrix = 'air';
+
+        $component->fatRatio = 0.1;
+        self::assertTrue($component->hasCustomCulinaryContext());
+        $component->fatRatio = 0.0;
+
+        $component->cookingTimeMin = 5;
+        self::assertTrue($component->hasCustomCulinaryContext());
+        $component->cookingTimeMin = 0;
+
+        $component->temperatureCelsius = 21;
+        self::assertTrue($component->hasCustomCulinaryContext());
+    }
+
+    public function testGetResultsPropagatesCulinaryContextToFinder(): void
+    {
+        $this->spicesRepo->method('findSpicesForMatch')
+            ->willReturn([
+                [
+                    'id' => 1,
+                    'name' => 'Cannelle',
+                    'groupName' => 'Chaud',
+                    'color' => '#C00',
+                ],
+            ]);
+
+        $expectedCtx = new CulinaryContext(OdtMatrix::WATER, fatRatio: 0.5, waterRatio: 0.5);
+        $this->compatibleSpiceFinder->expects(self::once())
+            ->method('findCompatible')
+            ->with(new MortarIds([1]), 100, $expectedCtx)
+            ->willReturn([]);
+
+        $component = $this->makeComponent();
+        $component->matrix = 'water';
+        $component->fatRatio = 0.5;
+        $component->spices = [
+            'selectedSpices' => ['1'],
+            'compatibleSpices' => $this->allSpices,
+        ];
+
+        $component->getResults();
+    }
+
+    public function testGetCulinaryLabelReturnsHumanReadableLabel(): void
+    {
+        $component = $this->makeComponent();
+
+        self::assertSame('À sec', $component->getCulinaryLabel());
+
+        $component->matrix = 'water';
+        self::assertSame('Eau', $component->getCulinaryLabel());
+
+        $component->matrix = 'oil';
+        self::assertSame('Huile', $component->getCulinaryLabel());
+
+        // Cuisson en bouillon
+        $component->matrix = 'water';
+        $component->fatRatio = 0.0;
+        $component->cookingTimeMin = 20;
+        self::assertSame('Bouillon', $component->getCulinaryLabel());
+
+        // Sauté
+        $component->matrix = 'oil';
+        $component->fatRatio = 1.0;
+        $component->cookingTimeMin = 10;
+        self::assertSame('Sauté', $component->getCulinaryLabel());
     }
 }

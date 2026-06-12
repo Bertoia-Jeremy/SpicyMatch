@@ -24,7 +24,7 @@ test.describe('Academy daily session limit', () => {
     await page.waitForURL(/\/$|\/users\/?$/);
 
     // The 6th attempt is redirected back to the hub with a warning flash.
-    await page.goto('/education/play-live/intrus?difficulty=easy');
+    await page.goto('/fr/education/play-live/intrus?difficulty=easy');
     await expect(page).toHaveURL(/\/education\/?$/);
     await expect(page.getByText(/limite quotidienne|5 sessions/i).first()).toBeVisible();
   });

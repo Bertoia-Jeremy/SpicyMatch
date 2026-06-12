@@ -1,28 +1,27 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}SpicyMatch — {{ preparationMethod.name }}{% endblock %}
+{% block title %}SpicyMatch — {{ preparationMethod.getLocalizedName(app.request.locale) }}{% endblock %}
 
 {% block body %}
+    {% set loc = app.request.locale %}
     <turbo-frame id="preparation_methode_frame_{{ preparationMethod.id }}">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
             <div class="mb-8">
-                <a href="{{ path('index_preparation_methods') }}" class="text-stone-500 hover:text-saffron-700 text-sm transition-colors">
-                    <i class="fa-solid fa-arrow-left mr-1"></i> Méthodes de préparation
-                </a>
+                <twig:Button label="{{ 'ui.catalog.methods_title'|trans }}" href="{{ path('index_preparation_methods') }}" variant="back" size="sm" />
             </div>
 
             <div class="text-center mb-10">
-                <span class="tag-primary mb-3 inline-block">Méthode</span>
-                <h1 class="text-4xl font-bold text-stone-900 mb-3">{{ preparationMethod.name }}</h1>
-                <p class="text-stone-500 text-lg max-w-xl mx-auto">{{ preparationMethod.description }}</p>
+                <span class="tag-primary mb-3 inline-block">{{ 'ui.catalog.method_badge'|trans }}</span>
+                <h1 class="text-4xl font-bold text-stone-900 mb-3">{{ preparationMethod.getLocalizedName(loc) }}</h1>
+                <p class="text-stone-500 text-lg max-w-xl mx-auto">{{ preparationMethod.getLocalizedDescription(loc) }}</p>
             </div>
 
             <div class="bg-white border border-stone-200 rounded-2xl p-8">
                 <h2 class="text-2xl font-bold text-stone-900 mb-4">
-                    <i class="fa-solid fa-mortar-pestle text-saffron-600 mr-2"></i>Conseils d'utilisation
+                    <i class="fa-solid fa-mortar-pestle text-saffron-600 mr-2" aria-hidden="true"></i>{{ 'ui.catalog.usage_tips'|trans }}
                 </h2>
-                <p class="text-stone-600 leading-relaxed">{{ preparationMethod.description }}</p>
+                <p class="text-stone-600 leading-relaxed">{{ preparationMethod.getLocalizedDescription(loc) }}</p>
             </div>
 
         </div>

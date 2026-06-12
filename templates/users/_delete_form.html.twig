@@ -1,4 +1,4 @@
 <form method="post" action="{{ path('app_users_delete', {'id': user.id}) }}" onsubmit="return confirm('Are you sure you want to delete this item?');">
     <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
-    <button class="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700">Delete</button>
+    <twig:Button label="{{ 'common.delete'|trans }}" variant="danger" type="submit" icon="fas fa-trash" />
 </form>

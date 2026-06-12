@@ -11,13 +11,11 @@ enum AchievementRarity: string
     case EPIC = 'epic';
     case LEGENDARY = 'legendary';
 
+    /**
+     * Clé de traduction (domaine messages) — traduire à l'affichage via |trans.
+     */
     public function label(): string
     {
-        return match ($this) {
-            self::COMMON => 'Graine',
-            self::RARE => 'Infusion',
-            self::EPIC => 'Extraction',
-            self::LEGENDARY => 'Essence',
-        };
+        return 'enum.rarity.' . $this->value;
     }
 }

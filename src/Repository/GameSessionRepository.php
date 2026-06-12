@@ -41,6 +41,33 @@ class GameSessionRepository extends ServiceEntityRepository
     }
 
     /**
+     * Returns today's session count per mode in a single query.
+     * Modes with 0 sessions are absent from the result — callers should use ?? 0.
+     *
+     * @return array<string, int> Keyed by GameMode::value
+     */
+    public function countTodayByUserGrouped(Users $user): array
+    {
+        $rows = $this->createQueryBuilder('gs')
+            ->select('gs.gameMode, COUNT(gs.id) AS cnt')
+            ->where('gs.user = :user')
+            ->andWhere('gs.startedAt >= :today')
+            ->groupBy('gs.gameMode')
+            ->setParameter('user', $user)
+            ->setParameter('today', new \DateTimeImmutable('today'))
+            ->getQuery()
+            ->getArrayResult();
+
+        $result = [];
+        foreach ($rows as $row) {
+            $mode = $row['gameMode'] instanceof GameMode ? $row['gameMode']->value : (string) $row['gameMode'];
+            $result[$mode] = (int) $row['cnt'];
+        }
+
+        return $result;
+    }
+
+    /**
      * @return GameSession[]
      */
     public function findByUser(Users $user, int $limit = 10): array

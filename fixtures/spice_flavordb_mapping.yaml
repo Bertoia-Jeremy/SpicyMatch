@@ -1,0 +1,171 @@
+# Mapping Spices (BDD) ↔ FlavorDB ingredient_id
+#
+# Usage :
+#   - spice_name : valeur exacte du champ `name` dans la table `spices`
+#   - flavordb_id : ID numérique de l'ingrédient dans FlavorDB API
+#                   API : https://cosylab.iiitd.edu.in/flavordb2/api/ingredient/{id}
+#   - flavordb_name : nom FlavorDB pour traçabilité (peut différer du nom BDD)
+#   - notes : raison d'une correspondance non-triviale ou gotcha
+#
+# Statuts :
+#   mapped    → correspondance validée
+#   partial   → composés disponibles mais concentration absente pour certains
+#   missing   → épice absente de FlavorDB, source alternative requise (GC-MS / FoodB)
+#   todo      → à vérifier manuellement
+# ──────────────────────────────────────────────────────────────────────────────────────
+
+- spice_name: "Cannelle"
+  flavordb_id: 23
+  flavordb_name: "cinnamon"
+  status: mapped
+
+- spice_name: "Clou de girofle"
+  flavordb_id: 42
+  flavordb_name: "clove"
+  status: mapped
+
+- spice_name: "Thym"
+  flavordb_id: 198
+  flavordb_name: "thyme"
+  status: mapped
+
+- spice_name: "Origan"
+  flavordb_id: 141
+  flavordb_name: "oregano"
+  status: mapped
+
+- spice_name: "Cumin"
+  flavordb_id: 55
+  flavordb_name: "cumin"
+  status: mapped
+
+- spice_name: "Coriandre"
+  flavordb_id: 48
+  flavordb_name: "coriander"
+  status: mapped
+
+- spice_name: "Cardamome"
+  flavordb_id: 34
+  flavordb_name: "cardamom"
+  status: mapped
+
+- spice_name: "Poivre noir"
+  flavordb_id: 151
+  flavordb_name: "black pepper"
+  status: mapped
+
+- spice_name: "Gingembre"
+  flavordb_id: 80
+  flavordb_name: "ginger"
+  status: mapped
+
+- spice_name: "Curcuma"
+  flavordb_id: 56
+  flavordb_name: "turmeric"
+  status: partial
+  notes: "Certains composés sans concentration dans FlavorDB — compléter via FoodB"
+
+- spice_name: "Fenugrec"
+  flavordb_id: 72
+  flavordb_name: "fenugreek"
+  status: partial
+
+- spice_name: "Basilic"
+  flavordb_id: 20
+  flavordb_name: "basil"
+  status: mapped
+
+- spice_name: "Romarin"
+  flavordb_id: 163
+  flavordb_name: "rosemary"
+  status: mapped
+
+- spice_name: "Laurier"
+  flavordb_id: 104
+  flavordb_name: "bay leaf"
+  status: mapped
+
+- spice_name: "Marjolaine"
+  flavordb_id: 117
+  flavordb_name: "marjoram"
+  status: mapped
+
+- spice_name: "Estragon"
+  flavordb_id: 67
+  flavordb_name: "tarragon"
+  status: mapped
+
+- spice_name: "Anis étoilé"
+  flavordb_id: 15
+  flavordb_name: "star anise"
+  status: mapped
+
+- spice_name: "Fenouil"
+  flavordb_id: 71
+  flavordb_name: "fennel"
+  status: mapped
+
+- spice_name: "Safran"
+  flavordb_id: 170
+  flavordb_name: "saffron"
+  status: partial
+  notes: "Safranal et picrocrocine bien documentés, certains mineurs manquants"
+
+- spice_name: "Vanille"
+  flavordb_id: 209
+  flavordb_name: "vanilla"
+  status: mapped
+
+- spice_name: "Paprika"
+  flavordb_id: 145
+  flavordb_name: "paprika"
+  status: partial
+
+- spice_name: "Piment de Cayenne"
+  flavordb_id: 36
+  flavordb_name: "cayenne pepper"
+  status: partial
+
+- spice_name: "Noix de muscade"
+  flavordb_id: 137
+  flavordb_name: "nutmeg"
+  status: mapped
+
+- spice_name: "Macis"
+  flavordb_id: 113
+  flavordb_name: "mace"
+  status: todo
+  notes: "Macis = enveloppe de la noix de muscade, profil proche mais distinct"
+
+- spice_name: "Anis"
+  flavordb_id: 14
+  flavordb_name: "anise"
+  status: mapped
+
+- spice_name: "Carvi"
+  flavordb_id: 33
+  flavordb_name: "caraway"
+  status: mapped
+
+- spice_name: "Sumac"
+  flavordb_id: null
+  flavordb_name: null
+  status: missing
+  notes: "Absent de FlavorDB — utiliser FoodB ou GC-MS interne"
+
+- spice_name: "Za'atar"
+  flavordb_id: null
+  flavordb_name: null
+  status: missing
+  notes: "Mélange d'épices, pas un ingrédient FlavorDB — mapper les composants individuels"
+
+- spice_name: "Nigelle"
+  flavordb_id: 135
+  flavordb_name: "nigella sativa"
+  status: todo
+
+- spice_name: "Galanga"
+  flavordb_id: 78
+  flavordb_name: "galangal"
+  status: partial
+  notes: "Moins documenté que le gingembre dans FlavorDB"

@@ -19,20 +19,21 @@
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
             {% if quitUrl %}
-                <button type="button"
-                        x-data="confirmQuit('{{ quitUrl }}')"
-                        @click="quit()"
-                        data-turbo="false"
-                        aria-label="Quitter la partie"
-                        class="btn-pill-outline text-sm py-1.5 px-3 shrink-0">
-                    <i class="fa-solid fa-arrow-left text-xs mr-1.5" aria-hidden="true"></i>Retour
-                </button>
+                <twig:Button
+                    label="{{ 'ui.game.back'|trans }}"
+                    variant="back"
+                    size="sm"
+                    x-data="confirmQuit('{{ quitUrl }}')"
+                    @click="quit()"
+                    data-turbo="false"
+                    aria-label="{{ 'ui.game.quit'|trans }}"
+                    extra="shrink-0" />
             {% endif %}
             <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600 shrink-0">
-                <i class="{{ icon }}"></i>
+                <i class="{{ icon }}" aria-hidden="true"></i>
             </div>
             <div>
-                <h2 class="text-lg font-bold text-stone-800">{{ title }}</h2>
+                <h1 class="text-lg font-bold text-stone-800">{{ title }}</h1>
                 {% if subtitle %}
                     <p class="text-xs text-stone-500">{{ subtitle }}</p>
                 {% endif %}
@@ -43,7 +44,7 @@
                 <span class="tag-secondary">{{ current }}/{{ total }}</span>
             {% endif %}
             {% if scoreLabel %}
-                <span class="font-semibold text-saffron-600">{{ scoreLabel|raw }}</span>
+                <span class="font-semibold text-saffron-700">{{ scoreLabel|raw }}</span>
             {% endif %}
         </div>
     </div>
@@ -59,7 +60,8 @@
 {# Dot-based progress — 10 segments colored ok/bad/current/empty. Replaces the bar when games need per-question state. #}
 {% macro progress_dots(answers, questionNumber, totalQuestions) %}
     <div class="flex items-center gap-1.5 mb-6" role="progressbar"
-         aria-valuenow="{{ questionNumber }}" aria-valuemax="{{ totalQuestions }}">
+         aria-label="{{ 'ui.game.progress_label'|trans }}"
+         aria-valuemin="0" aria-valuenow="{{ questionNumber }}" aria-valuemax="{{ totalQuestions }}">
         {% for i in 1..totalQuestions %}
             {% if i <= answers|length %}
                 {% set cls = answers[i - 1].correct ? 'bg-green-400' : 'bg-paprika-400' %}
@@ -82,13 +84,14 @@
         <div class="w-24 h-24 mx-auto mb-6 rounded-full border-8 flex items-center justify-center {{ borderClass }}">
             <div class="text-2xl font-bold">{{ circleLabel }}</div>
         </div>
-        <h3 class="text-xl font-bold text-stone-800 mb-2">{{ title }}</h3>
+        <h2 class="text-xl font-bold text-stone-800 mb-2">{{ title }}</h2>
         {# |raw needed: SurvivalGame passes <strong> HTML for spice name in defeat message #}
         <p class="text-stone-600 mb-6">{{ paragraphHtml|raw }}</p>
-        <button data-action="live#action"
-                data-live-action-param="{{ buttonAction }}"
-                class="btn-pill-primary">
-            <i class="fa-solid fa-flag-checkered mr-2"></i>{{ buttonLabel }}
-        </button>
+        <twig:Button
+            label="{{ buttonLabel }}"
+            variant="primary"
+            icon="fa-solid fa-flag-checkered"
+            data-action="live#action"
+            data-live-action-param="{{ buttonAction }}" />
     </div>
 {% endmacro %}

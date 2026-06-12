@@ -23,14 +23,21 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
 use Symfony\UX\Chartjs\Model\Chart;
 
 class DashboardController extends AbstractDashboardController
 {
+    /**
+     * Domaine de traduction du back-office.
+     */
+    private const DOMAIN = 'admin';
+
     public function __construct(
         private readonly AdminStatsService $statsService,
         private readonly ChartBuilderInterface $chartBuilder,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -46,14 +53,18 @@ class DashboardController extends AbstractDashboardController
         // Level distribution chart
         $levelChart = $this->chartBuilder->createChart(Chart::TYPE_BAR);
         $levelLabels = array_map(
-            fn (int $b) => "Niv. {$b}-" . ($b + 4),
+            fn (int $b) => $this->translator->trans('admin.chart.level_bucket', [
+                '%from%' => $b,
+                '%to%' => $b + 4,
+            ], self::DOMAIN),
             array_keys($gamificationStats['levelDistribution'])
         );
+        $noneLabel = $this->translator->trans('admin.chart.none', [], self::DOMAIN);
         $levelChart->setData([
-            'labels' => $levelLabels ?: ['Aucun'],
+            'labels' => $levelLabels ?: [$noneLabel],
             'datasets' => [
                 [
-                    'label' => 'Joueurs',
+                    'label' => $this->translator->trans('admin.chart.players', [], self::DOMAIN),
                     'backgroundColor' => '#f59e0b',
                     'data' => array_values($gamificationStats['levelDistribution']) ?: [0],
                 ],
@@ -75,10 +86,10 @@ class DashboardController extends AbstractDashboardController
         // Top spices chart
         $spiceChart = $this->chartBuilder->createChart(Chart::TYPE_BAR);
         $spiceChart->setData([
-            'labels' => array_column($spiceStats['topViewed'], 'name') ?: ['Aucun'],
+            'labels' => array_column($spiceStats['topViewed'], 'name') ?: [$noneLabel],
             'datasets' => [
                 [
-                    'label' => 'Vues',
+                    'label' => $this->translator->trans('admin.chart.views', [], self::DOMAIN),
                     'backgroundColor' => '#ef4444',
                     'data' => array_column($spiceStats['topViewed'], 'views') ?: [0],
                 ],
@@ -99,7 +110,7 @@ class DashboardController extends AbstractDashboardController
             'labels' => array_column($matchStats['recentActivity'], 'date') ?: ['—'],
             'datasets' => [
                 [
-                    'label' => 'Mélanges / jour',
+                    'label' => $this->translator->trans('admin.chart.matches_per_day', [], self::DOMAIN),
                     'borderColor' => '#f59e0b',
                     'backgroundColor' => 'rgba(245, 158, 11, 0.1)',
                     'fill' => true,
@@ -131,39 +142,42 @@ class DashboardController extends AbstractDashboardController
     public function configureDashboard(): Dashboard
     {
         return Dashboard::new()
-            ->setTitle('SpicyMatch');
+            ->setTitle('SpicyMatch')
+            ->setTranslationDomain(self::DOMAIN);
     }
 
     public function configureMenuItems(): iterable
     {
-        yield MenuItem::linkToDashboard('Dashboard', 'fa fa-chart-line');
+        yield MenuItem::linkToDashboard('admin.dashboard.menu', 'fa fa-chart-line');
 
-        yield MenuItem::section('Contenu');
-        yield MenuItem::linkToCrud('Épices', 'fa fa-pepper-hot', Spices::class);
-        yield MenuItem::linkToCrud('Groupes aromatiques', 'fa fa-layer-group', AromaticGroups::class);
-        yield MenuItem::linkToCrud('Composants aromatiques', 'fa fa-atom', AromaticCompound::class);
-        yield MenuItem::linkToCrud('Alchimie des saveurs', 'fa fa-flask', AlchemyFlavors::class);
-        yield MenuItem::linkToCrud('Types d\'épices', 'fa fa-tag', SpicyType::class);
+        yield MenuItem::section('admin.menu.section_content');
+        yield MenuItem::linkToCrud('admin.menu.spices', 'fa fa-pepper-hot', Spices::class);
+        yield MenuItem::linkToCrud('admin.menu.aromatic_groups', 'fa fa-layer-group', AromaticGroups::class);
+        yield MenuItem::linkToCrud('admin.menu.aromatic_compounds', 'fa fa-atom', AromaticCompound::class);
+        yield MenuItem::linkToCrud('admin.menu.alchemy_flavors', 'fa fa-flask', AlchemyFlavors::class);
+        yield MenuItem::linkToCrud('admin.menu.spicy_types', 'fa fa-tag', SpicyType::class);
 
-        yield MenuItem::section('Préparation');
-        yield MenuItem::linkToCrud('Conseils de cuisson', 'fa fa-fire', CookingTips::class);
-        yield MenuItem::linkToCrud('Conseils de préparation', 'fa fa-mortar-pestle', PreparationTips::class);
-        yield MenuItem::linkToCrud('Méthodes de préparation', 'fa fa-list-check', PreparationMethods::class);
+        yield MenuItem::section('admin.menu.section_preparation');
+        yield MenuItem::linkToCrud('admin.menu.cooking_tips', 'fa fa-fire', CookingTips::class);
+        yield MenuItem::linkToCrud('admin.menu.preparation_tips', 'fa fa-mortar-pestle', PreparationTips::class);
+        yield MenuItem::linkToCrud('admin.menu.preparation_methods', 'fa fa-list-check', PreparationMethods::class);
 
-        yield MenuItem::section('Gamification');
-        yield MenuItem::linkToCrud('Succès', 'fa fa-trophy', Achievement::class);
-        yield MenuItem::linkToCrud('Sessions de jeu', 'fa fa-gamepad', GameSession::class);
+        yield MenuItem::section('admin.menu.section_gamification');
+        yield MenuItem::linkToCrud('admin.menu.achievements', 'fa fa-trophy', Achievement::class);
+        yield MenuItem::linkToCrud('admin.menu.game_sessions', 'fa fa-gamepad', GameSession::class);
 
-        yield MenuItem::section('Utilisateurs');
-        yield MenuItem::linkToCrud('Utilisateurs', 'fa fa-users', Users::class);
-        yield MenuItem::linkToCrud('Contact', 'fa fa-envelope', Contact::class);
+        yield MenuItem::section('admin.menu.section_users');
+        yield MenuItem::linkToCrud('admin.menu.users', 'fa fa-users', Users::class);
+        yield MenuItem::linkToCrud('admin.menu.contact', 'fa fa-envelope', Contact::class);
 
         yield MenuItem::section('');
-        yield MenuItem::linkToRoute('Site SpicyMatch', 'fa fa-external-link', 'home');
+        yield MenuItem::linkToRoute('admin.menu.site', 'fa fa-external-link', 'home');
     }
 
     public function configureCrud(): Crud
     {
+        // Le domaine de traduction est défini globalement via Dashboard::setTranslationDomain()
+        // (Crud::setTranslationDomain() n'existe pas dans cette version d'EasyAdmin).
         return Crud::new()
             ->setDefaultSort([
                 'created_at' => 'DESC',

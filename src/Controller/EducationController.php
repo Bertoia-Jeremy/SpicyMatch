@@ -17,9 +17,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[IsGranted('ROLE_USER')]
-#[Route('/education')]
+#[Route('/{_locale}/education', defaults: [
+    '_locale' => 'fr',
+])]
 class EducationController extends AbstractController
 {
     public function __construct(
@@ -28,6 +31,7 @@ class EducationController extends AbstractController
         private readonly AcademyManager $academyManager,
         private readonly SpicesRepository $spicesRepository,
         private readonly EntityManagerInterface $em,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -39,11 +43,11 @@ class EducationController extends AbstractController
 
         $modes = array_filter(GameMode::cases(), fn (GameMode $m) => $m->isEnabled());
 
-        // Build per-mode daily session counters so the user sees the remaining
-        // games and the ×0.5 XP threshold before clicking a card.
+        // Single grouped query instead of one query per enabled mode.
+        $grouped = $this->sessionRepository->countTodayByUserGrouped($user);
         $dailyCounts = [];
         foreach ($modes as $mode) {
-            $dailyCounts[$mode->value] = $this->sessionRepository->countTodayByUser($user, $mode);
+            $dailyCounts[$mode->value] = $grouped[$mode->value] ?? 0;
         }
 
         return $this->render('education/index.html.twig', [
@@ -90,7 +94,7 @@ class EducationController extends AbstractController
         $difficulty = GameDifficulty::tryFrom($request->request->getString('difficulty')) ?? GameDifficulty::EASY;
 
         if (! $this->isCsrfTokenValid('education_start', $request->request->getString('_token'))) {
-            $this->addFlash('error', 'Token CSRF invalide.');
+            $this->addFlash('error', $this->translator->trans('flash.csrf_invalid'));
 
             return $this->redirectToRoute('education_index');
         }
@@ -111,8 +115,11 @@ class EducationController extends AbstractController
 
         try {
             $session = $this->sessionManager->startSession($user, $mode, $difficulty, $targetSpice);
-        } catch (\RuntimeException $e) {
-            $this->addFlash('warning', $e->getMessage());
+        } catch (\RuntimeException) {
+            // Seul cas : limite quotidienne atteinte (cf. GameSessionManager).
+            $this->addFlash('warning', $this->translator->trans('flash.daily_limit_reached', [
+                '%mode%' => $this->translator->trans($mode->label()),
+            ]));
 
             return $this->redirectToRoute('education_index');
         }
@@ -251,10 +258,9 @@ class EducationController extends AbstractController
         $todayCount = $this->sessionRepository->countTodayByUser($user, $gameMode);
 
         if ($todayCount >= 5) {
-            $this->addFlash('warning', sprintf(
-                'Limite quotidienne atteinte (5 sessions %s par jour).',
-                $gameMode->label(),
-            ));
+            $this->addFlash('warning', $this->translator->trans('flash.daily_limit_reached', [
+                '%mode%' => $this->translator->trans($gameMode->label()),
+            ]));
 
             return $this->redirectToRoute('education_index');
         }

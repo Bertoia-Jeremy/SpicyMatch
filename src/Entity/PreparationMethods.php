@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Translation\TranslatableInterface;
 use App\Repository\PreparationMethodsRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -9,7 +10,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PreparationMethodsRepository::class)]
-class PreparationMethods
+class PreparationMethods implements TranslatableInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -49,14 +50,91 @@ class PreparationMethods
     #[ORM\Column(type: Types::TEXT)]
     private ?string $advice = null;
 
+    /**
+     * @var Collection<int, PreparationMethodsTranslation>
+     */
+    #[ORM\OneToMany(mappedBy: 'preparationMethod', targetEntity: PreparationMethodsTranslation::class, cascade: [
+        'persist',
+        'remove',
+    ], orphanRemoval: true)]
+    private Collection $translations;
+
     public function __construct()
     {
         $this->preparationTips = new ArrayCollection();
+        $this->translations = new ArrayCollection();
     }
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    /**
+     * @return Collection<int, PreparationMethodsTranslation>
+     */
+    public function getTranslations(): Collection
+    {
+        return $this->translations;
+    }
+
+    public function addTranslation(PreparationMethodsTranslation $translation): static
+    {
+        if (! $this->translations->contains($translation)) {
+            $this->translations->add($translation);
+            $translation->setPreparationMethod($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTranslation(PreparationMethodsTranslation $translation): static
+    {
+        if ($this->translations->removeElement($translation) && $translation->getPreparationMethod() === $this) {
+            $translation->setPreparationMethod(null);
+        }
+
+        return $this;
+    }
+
+    public function getTranslation(string $locale): ?PreparationMethodsTranslation
+    {
+        if ($locale === 'fr') {
+            return null;
+        }
+
+        foreach ($this->translations as $t) {
+            if ($t->getLocale() === $locale) {
+                return $t;
+            }
+        }
+
+        return null;
+    }
+
+    public function getLocalizedName(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getName() ?? $this->name;
+    }
+
+    public function getLocalizedDescription(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getDescription() ?? $this->description;
+    }
+
+    public function getLocalizedTools(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getTools() ?? $this->tools;
+    }
+
+    public function getLocalizedInformations(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getInformations() ?? $this->informations;
+    }
+
+    public function getLocalizedAdvice(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getAdvice() ?? $this->advice;
     }
 
     public function getName(): ?string

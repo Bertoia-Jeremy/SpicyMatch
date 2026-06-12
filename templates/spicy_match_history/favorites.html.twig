@@ -3,32 +3,29 @@
 {% block title %}Mes mélanges favoris{% endblock %}
 
 {% block body %}
-    {% import 'macros/buttons.html.twig' as buttons %}
-    
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="mb-6">
-            <a href="{{ path('index_spicy_match_history') }}" class="inline-flex items-center gap-1.5 text-stone-500 hover:text-saffron-700 text-sm transition-colors">
-                <i class="fa-solid fa-arrow-left text-[10px]"></i>Retour à l'historique
-            </a>
+            <twig:Button label="{{ 'ui.history.back_to_history'|trans }}" href="{{ path('index_spicy_match_history') }}" variant="back" size="sm" />
         </div>
 
         <div class="text-center mb-10">
             <h1 class="text-4xl font-bold text-stone-800">
-                <i class="fa-solid fa-star text-turmeric-500 mr-2"></i>Mes mélanges favoris
+                <i class="fa-solid fa-star text-turmeric-500 mr-2" aria-hidden="true"></i>{{ 'ui.history.fav.title'|trans }}
             </h1>
-            <p class="mt-2 text-stone-500">Les recettes que vous avez marquées comme favorites.</p>
+            <p class="mt-2 text-stone-500">{{ 'ui.history.fav.subtitle'|trans }}</p>
         </div>
 
         {% if spicymatch_histories is empty %}
             <div class="text-center py-16">
-                <i class="fa-regular fa-star text-stone-300 text-5xl mb-4 block"></i>
-                <p class="text-stone-500 text-lg mb-2">Aucun mélange favori pour l'instant.</p>
-                <p class="text-stone-400 text-sm mb-6">Cliquez sur l'étoile d'un mélange pour l'ajouter à vos favoris.</p>
-                {{ buttons.button('Voir mon historique', {
-                    href: path('index_spicy_match_history'),
-                    variant: 'outline',
-                    icon: 'fa-solid fa-clock-rotate-left'
-                }) }}
+                <i class="fa-regular fa-star text-stone-300 text-5xl mb-4 block" aria-hidden="true"></i>
+                <p class="text-stone-500 text-lg mb-2">{{ 'ui.history.fav.empty'|trans }}</p>
+                <p class="text-stone-400 text-sm mb-6">{{ 'ui.history.fav.empty_hint'|trans }}</p>
+                <twig:Button
+                    label="{{ 'ui.history.fav.see_history'|trans }}"
+                    href="{{ path('index_spicy_match_history') }}"
+                    variant="secondary"
+                    icon="fa-solid fa-clock-rotate-left"
+                />
             </div>
         {% else %}
             <div class="space-y-3">
@@ -41,7 +38,7 @@
                             '{{ csrf_token('history_action_' ~ history.id) }}',
                             '{{ history.title ? history.title|e('js') : '' }}',
                             {{ history.isFavorite ? 'true' : 'false' }},
-                            '{{ ('Recette du ' ~ history.createdAt|date('d/m/Y à H:i'))|e('js') }}'
+                            '{{ ('ui.common.recipe_of'|trans({'%date%': history.createdAt|format_datetime('medium', 'short')}))|e('js') }}'
                          )">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                             <div class="flex-1 min-w-0">
@@ -55,7 +52,7 @@
                                                 @click.stop="startEdit"
                                                 class="opacity-0 group-hover:opacity-100 transition-opacity text-stone-300 hover:text-saffron-600 text-[11px] leading-none"
                                                 title="Renommer">
-                                            <i class="fa-solid fa-pencil"></i>
+                                            <i class="fa-solid fa-pencil" aria-hidden="true"></i>
                                         </button>
                                     </h2>
                                     <input x-show="editing"
@@ -71,12 +68,12 @@
                                 <div class="flex flex-wrap gap-1.5 items-center">
                                     {% for spice in history.spicyMatch.spices %}
                                         <span class="inline-flex items-center gap-1.5 bg-spice-surface border border-spice-border text-stone-700 text-xs font-medium px-2.5 py-1 rounded-full">
-                                            {{ spice.name }}
+                                            {{ spice.getLocalizedName(app.request.locale) }}
                                         </span>
                                     {% endfor %}
                                     {% if history.spicyMatch.isManual %}
                                         <span class="inline-flex items-center gap-1 text-[11px] font-medium text-stone-500 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full" title="Mélange créé manuellement — compatibilité non garantie">
-                                            <i class="fa-solid fa-hand text-[9px]"></i>Manuel
+                                            <i class="fa-solid fa-hand text-[9px]" aria-hidden="true"></i>Manuel
                                         </span>
                                     {% endif %}
                                 </div>
@@ -88,13 +85,13 @@
                                         x-show="favorite"
                                         class="text-xl transition-colors focus:outline-none text-turmeric-500 hover:text-stone-300"
                                         title="Retirer des favoris">
-                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star" aria-hidden="true"></i>
                                 </button>
-                                <span class="text-sm text-stone-400">{{ history.createdAt|date('d/m/Y') }}</span>
+                                <span class="text-sm text-stone-400">{{ history.createdAt|format_date('medium') }}</span>
                                 <a href="{{ path('view_spicy_match_history', {'id': history.id}) }}"
                                    class="text-stone-300 hover:text-saffron-600 transition-colors"
                                    @click.stop>
-                                    <i class="fa-solid fa-chevron-right text-sm"></i>
+                                    <i class="fa-solid fa-chevron-right text-sm" aria-hidden="true"></i>
                                 </a>
                             </div>
                         </div>

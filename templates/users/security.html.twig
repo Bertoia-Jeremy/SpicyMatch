@@ -1,22 +1,22 @@
 {% extends 'users/dashboard.html.twig' %}
 
 {% block content %}
-    <turbo-frame id="user_frame_id">
-        {% include 'components/_user_tabs.html.twig' %}
+        <div class="mt-6">
+            <twig:Button label="{{ 'ui.config.back'|trans }}" href="{{ path('profile_user', {tab: 'lab'}) }}" variant="back" size="sm" />
+        </div>
 
         <div class="mt-6 space-y-4">
             <div class="card-warm p-5">
                 <h3 class="font-semibold text-stone-800 mb-1 flex items-center gap-2">
-                    <i class="fa-solid fa-key text-saffron-600"></i>Mot de passe
+                    <i class="fa-solid fa-key text-saffron-600" aria-hidden="true"></i>{{ 'ui.security.password'|trans }}
                 </h3>
-                <p class="text-stone-500 text-sm">La modification du mot de passe n'est pas encore disponible.</p>
+                <p class="text-stone-500 text-sm">{{ 'ui.security.password_text'|trans }}</p>
             </div>
             <div class="card-warm p-5">
                 <h3 class="font-semibold text-stone-800 mb-1 flex items-center gap-2">
-                    <i class="fa-solid fa-shield-halved text-saffron-600"></i>Authentification
+                    <i class="fa-solid fa-shield-halved text-saffron-600" aria-hidden="true"></i>{{ 'ui.security.auth'|trans }}
                 </h3>
-                <p class="text-stone-500 text-sm">Aucune option de double authentification configurée pour le moment.</p>
+                <p class="text-stone-500 text-sm">{{ 'ui.security.auth_text'|trans }}</p>
             </div>
         </div>
-    </turbo-frame>
 {% endblock %}

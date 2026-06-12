@@ -1,7 +1,9 @@
 <turbo-frame id="spice_quick_view">
+    {% set loc = app.request.locale %}
     {% set color = spice.aromaticGroups ? spice.aromaticGroups.color : '#78716C' %}
-    {% set groupName = spice.aromaticGroups ? spice.aromaticGroups.name : null %}
+    {% set groupName = spice.aromaticGroups ? spice.aromaticGroups.getLocalizedName(loc) : null %}
     {% set typeName = spice.spicyType ? spice.spicyType.name : null %}
+    {% set spiceName = spice.getLocalizedName(loc) %}
     {% set imageUrl = vich_uploader_asset(spice, 'imageFile') %}
 
     {# Grille 2 colonnes : image | contenu — footer col-span-2 #}
@@ -11,11 +13,11 @@
         <div class="relative min-h-[220px] sm:min-h-[400px]"
              style="background: linear-gradient(135deg, {{ color }}33, {{ color }}11)">
             {% if imageUrl %}
-                <img src="{{ imageUrl }}" alt="{{ spice.name }}"
+                <img src="{{ imageUrl }}" alt="{{ spiceName }}"
                      class="absolute inset-0 w-full h-full object-cover">
             {% else %}
                 <img src="https://loremflickr.com/600/700/spice,{{ spice.name|url_encode }}"
-                     alt="{{ spice.name }}"
+                     alt="{{ spiceName }}"
                      class="absolute inset-0 w-full h-full object-cover">
             {% endif %}
             {# Gradient overlay bas #}
@@ -44,7 +46,7 @@
 
             {# Titre — Fraunces #}
             <h2 class="font-display font-normal text-[2.1rem] leading-[1.05] tracking-tight text-stone-900 -mt-1">
-                {{ spice.name }}
+                {{ spiceName }}
             </h2>
 
             {# Tags groupe + type #}
@@ -65,11 +67,11 @@
             </div>
 
             {# Description — serif italic avec bordure accent #}
-            {% if spice.description %}
+            {% if spice.getLocalizedDescription(loc) %}
                 <p class="font-display italic font-normal text-[15.5px] leading-relaxed text-stone-600
                           border-l-[2px] pl-4 -ml-0.5"
                    style="border-color: {{ color }}">
-                    {{ spice.description }}
+                    {{ spice.getLocalizedDescription(loc) }}
                 </p>
             {% endif %}
 
@@ -83,8 +85,8 @@
             {% if flavors|length > 0 %}
                 <div class="flex flex-col gap-2.5">
                     <h4 class="font-mono text-[10.5px] tracking-[0.14em] uppercase text-stone-400 flex items-center gap-2">
-                        <i class="fa-solid fa-droplet text-[10px]" style="color: {{ color }}"></i>
-                        Saveurs dominantes
+                        <i class="fa-solid fa-droplet text-[10px]" style="color: {{ color }}" aria-hidden="true"></i>
+                        {{ 'ui.modal.dominant_flavors'|trans }}
                     </h4>
                     <div class="flex flex-wrap gap-1.5">
                         {% for flavor in flavors|slice(0, 8) %}
@@ -104,14 +106,14 @@
             {% if spice.aromaticsCompounds|length > 0 %}
                 <div class="flex flex-col gap-2.5">
                     <h4 class="font-mono text-[10.5px] tracking-[0.14em] uppercase text-stone-400 flex items-center gap-2">
-                        <i class="fa-solid fa-atom text-stone-400 text-[10px]"></i>
-                        Composés aromatiques
+                        <i class="fa-solid fa-atom text-stone-400 text-[10px]" aria-hidden="true"></i>
+                        {{ 'ui.modal.aromatic_compounds'|trans }}
                     </h4>
                     <div class="flex flex-wrap gap-1.5">
                         {% for ac in spice.aromaticsCompounds|slice(0, 6) %}
                             <span class="inline-flex items-center text-[12px] font-mono font-medium px-2.5 py-1 rounded-full
                                          bg-stone-100 border border-stone-200 text-stone-600 tracking-[0.03em]">
-                                {{ ac.name }}
+                                {{ ac.getLocalizedName(loc) }}
                             </span>
                         {% endfor %}
                         {% if spice.aromaticsCompounds|length > 6 %}
@@ -126,14 +128,14 @@
         {# ── Footer — pleine largeur (col-span-2) ── #}
         <div class="sm:col-span-2 border-t border-stone-200 px-7 py-4 flex items-center justify-between
                     bg-cream/80">
-            <span class="font-mono text-[11px] text-stone-400 tracking-[0.04em]">Aperçu rapide</span>
+            <span class="font-mono text-[11px] text-stone-400 tracking-[0.04em]">{{ 'ui.modal.quick_preview'|trans }}</span>
             <a href="{{ path('view_spice', {id: spice.id}) }}"
                data-turbo-frame="_top"
                class="inline-flex items-center gap-1.5 text-[13.5px] font-semibold
                       hover:opacity-80 transition-opacity group/link"
-               style="color: var(--color-copper)">
-                Voir la fiche complète
-                <i class="fa-solid fa-arrow-right text-xs transition-transform group-hover/link:translate-x-0.5"></i>
+               style="color: var(--color-copper-text)">
+                {{ 'ui.modal.view_full'|trans }}
+                <i class="fa-solid fa-arrow-right text-xs transition-transform group-hover/link:translate-x-0.5" aria-hidden="true"></i>
             </a>
         </div>
 

@@ -12,6 +12,7 @@ use App\Service\Education\GameSessionManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
@@ -88,6 +89,7 @@ class HangmanGame extends AbstractController
         private readonly AcademyManager $academyManager,
         private readonly GameSessionManager $sessionManager,
         private readonly RequestStack $requestStack,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -164,7 +166,7 @@ class HangmanGame extends AbstractController
                 $questions = $secret['questions'] ?? [];
                 $questions[] = [
                     'questionIndex' => $this->questionNumber - 1,
-                    'prompt' => $this->hint ?: 'Devine l\'épice',
+                    'prompt' => $this->hint ?: $this->translator->trans('ui.edu.prompt.hangman_default'),
                     'correctAnswer' => $word,
                     'answerGiven' => $word,
                     'isCorrect' => true,
@@ -186,7 +188,7 @@ class HangmanGame extends AbstractController
             $questions = $secret['questions'] ?? [];
             $questions[] = [
                 'questionIndex' => $this->questionNumber - 1,
-                'prompt' => $this->hint ?: 'Devine l\'épice',
+                'prompt' => $this->hint ?: $this->translator->trans('ui.edu.prompt.hangman_default'),
                 'correctAnswer' => $word,
                 'answerGiven' => '—',
                 'isCorrect' => false,
@@ -223,6 +225,14 @@ class HangmanGame extends AbstractController
     public function finish(): RedirectResponse
     {
         return $this->doFinish();
+    }
+
+    /**
+     * @return list<string> — split('') Twig casserait les accents
+     */
+    public function getMaskedChars(): array
+    {
+        return mb_str_split($this->maskedWord);
     }
 
     private function doFinish(): RedirectResponse
@@ -278,8 +288,12 @@ class HangmanGame extends AbstractController
         $word = $spice->getName();
 
         $this->hint = match ($gameDifficulty) {
-            GameDifficulty::EASY => sprintf('Famille : %s', $spice->getAromaticGroups()?->getName() ?? '?'),
-            GameDifficulty::MEDIUM => sprintf('Type : %s', $spice->getSpicyType()?->getName() ?? '?'),
+            GameDifficulty::EASY => $this->translator->trans('ui.edu.prompt.hangman_family', [
+                '%value%' => $spice->getAromaticGroups()?->getName() ?? '?',
+            ]),
+            GameDifficulty::MEDIUM => $this->translator->trans('ui.edu.prompt.hangman_type', [
+                '%value%' => $spice->getSpicyType()?->getName() ?? '?',
+            ]),
             GameDifficulty::HARD => '',
         };
 

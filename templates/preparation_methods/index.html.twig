@@ -1,16 +1,14 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}SpicyMatch — Méthodes de préparation{% endblock %}
+{% block title %}{{ 'ui.catalog.methods_page_title'|trans }}{% endblock %}
 
 {% block body %}
-{% import 'macros/buttons.html.twig' as buttons %}
-
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
     <div class="text-center mb-10">
-        <span class="tag-primary mb-4 inline-block">Guide</span>
-        <h1 class="text-4xl font-bold text-stone-900 mb-2">Méthodes de préparation</h1>
-        <p class="text-stone-500 text-lg">Techniques et conseils pour extraire le meilleur de vos épices</p>
+        <span class="tag-primary mb-4 inline-block">{{ 'ui.catalog.methods_tag'|trans }}</span>
+        <h1 class="text-4xl font-bold text-stone-900 mb-2">{{ 'ui.catalog.methods_title'|trans }}</h1>
+        <p class="text-stone-500 text-lg">{{ 'ui.catalog.methods_intro'|trans }}</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -18,16 +16,17 @@
             <div class="card-warm p-6">
                 <h2 class="text-xl font-semibold text-stone-800 mb-3">{{ preparation_method.name }}</h2>
                 <p class="text-stone-500 text-sm leading-relaxed mb-5">{{ preparation_method.description|nl2br }}</p>
-                {{ buttons.button('Voir les détails', {
-                    href: path('view_preparation_methods', {'id': preparation_method.id}),
-                    variant: 'outline',
-                    size: 'sm',
-                    icon: 'fa-solid fa-arrow-right',
-                    icon_pos: 'right'
-                }) }}
+                <twig:Button
+                    label="{{ 'ui.catalog.view_details'|trans }}"
+                    href="{{ path('view_preparation_methods', {'id': preparation_method.id}) }}"
+                    variant="secondary"
+                    size="sm"
+                    icon="fa-solid fa-arrow-right"
+                    iconPos="right"
+                />
             </div>
         {% else %}
-            <p class="col-span-full text-center text-stone-500 py-12">Aucune méthode disponible pour le moment.</p>
+            <p class="col-span-full text-center text-stone-500 py-12">{{ 'ui.catalog.no_method'|trans }}</p>
         {% endfor %}
     </div>
 

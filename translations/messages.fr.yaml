@@ -1,0 +1,991 @@
+# Catalogue FR (langue par défaut / fallback). Clés sémantiques arborescentes.
+common:
+    actions:
+        submit: Valider
+        save: Enregistrer
+        cancel: Annuler
+    close: Fermer
+    delete: Supprimer
+    reset: Réinitialiser
+
+form:
+    contact:
+        email: Mail
+        name: Nom
+        subject: Sujet
+        message: Message
+    register:
+        username: Pseudo
+        mail: 'Email (facultatif mais utile pour récupérer ton mot de passe)'
+        password: Mot de passe
+    mail:
+        placeholder: Insérez un mail
+
+flash:
+    csrf_invalid: Token CSRF invalide.
+    token_invalid: Token invalide.
+    email_invalid: Adresse email invalide.
+    newsletter_confirmed: Inscription à la newsletter confirmée !
+    account_created: Votre compte a été créé avec succès !
+    welcome_back: 'Bienvenue de retour, %username% !'
+    welcome: 'Bienvenue, %username% !'
+    difficulty_invalid: Difficulté invalide.
+    difficulty_updated: Difficulté mise à jour.
+    posture_updated: Posture mise à jour.
+    preference_saved: Préférence enregistrée.
+    daily_limit_reached: 'Limite quotidienne atteinte (5 sessions %mode% par jour).'
+
+ui:
+    meta:
+        description: SpicyMatch — Créez des mélanges d'épices parfaits grâce à l'analyse moléculaire des composés aromatiques.
+        default_title: SpicyMatch — L'Alchimie Culinaire
+    common:
+        recipe_label: Recette
+        recipe_of: 'Recette du %date%'
+        blend_of: 'Mélange du %date%'
+        member_since: 'Membre depuis le %date%'
+        unlocked_on: 'Débloqué le %date%'
+        skip_to_content: Aller au contenu principal
+        home: Accueil
+        academy: L'Académie
+        configuration: Configuration
+        logout: Se déconnecter
+        login: Connexion
+        register: S'inscrire
+        my_profile: Mon Profil de Chef
+        my_blends: Mes Mélanges
+        contact: Contact
+        back_home: Retour à l'accueil
+    navbar:
+        menu: Le Menu
+        create_blend: Créer un mélange
+        lab_title: Le Lab — Créer un mélange
+        section_exploration: I · Exploration
+        exploration_subtitle: Découvrir les épices du monde
+        catalog_title: Le Catalogue
+        catalog_sub: Toutes les épices
+        alchemy_title: L'Alchimie des Saveurs
+        alchemy_sub: Composer un mélange
+        section_learning: II · Apprentissage
+        learning_subtitle: Affûter son palais
+        academy_sub: 6 modes de jeu
+        scoville_title: Défi de Scoville
+        scoville_sub: Mode survie
+        intrus_title: Hors Saison
+        intrus_sub: Trouver l'intrus
+        section_atelier: III · Atelier
+        atelier_subtitle: Ton espace de chef
+        profile_sub: Succès & progression
+        blends_sub: Historique & favoris
+        config_sub: Paramètres du compte
+        join_subtitle: Rejoins la brigade
+        create_account: Créer un compte
+        help: Aide
+        main_nav: Navigation principale
+        main_menu: Menu principal
+    home:
+        title: SpicyMatch — L'Odyssée des Arômes
+    toile:
+        chapter: Chapitre II · La Toile des Arômes
+        title_html: 'Le système solaire <em class="not-italic italic" style="color: var(--color-turmeric-700)">aromatique.</em>'
+        blurb: Chaque épice est un soleil. Autour, gravitent ses composés. Cliquez une molécule pour découvrir toutes les épices qui partagent cette signature invisible.
+        hud_active: Système actif · CARDAMOME
+        hud_stats: 6 composés · 14 liens identifiés
+        sun_sub: Elettaria · IN
+        side_title_html: 'Une molécule, <em class="not-italic italic" style="color: var(--color-paprika-800)">mille épices.</em>'
+        side_blurb: Le Linalol n'est pas qu'un nom. C'est le fil invisible qui relie la lavande à la coriandre, le basilic à la cardamome. Tirez le fil — toute une famille apparaît.
+        also_in: Aussi dans
+        legend_terpenic: Terpénique
+        legend_piperaceae: Pipéracée
+        legend_phenolic: Phénolique
+        legend_woody: Boisé
+        mol_aria_suffix: cliquer pour voir les détails
+        m1_name: Linalol
+        m1_badge: Terpène · Floral
+        m1_descr: Note florale fraîche aux accents d'agrumes. Présent dans plus de 200 plantes aromatiques — c'est la signature parfumée de la lavande, mais aussi le secret de bien d'autres.
+        m2_name: Pipérine
+        m2_badge: Alcaloïde · Piquant
+        m2_descr: Le composé qui donne au poivre noir son mordant caractéristique. Active les récepteurs TRPV1 — les mêmes que la capsaïcine, mais avec une douceur boisée.
+        m3_name: α-Terpinéol
+        m3_badge: Terpène · Floral-Pin
+        m3_descr: Arôme à la fois floral et résineux, comme du lilas frotté contre un pin. Apprécié en parfumerie autant qu'en cuisine méditerranéenne.
+        m4_name: Eugénol
+        m4_badge: Phénol · Boisé-Clou
+        m4_descr: Le cœur du clou de girofle. Anesthésique léger, parfum dense — une signature impossible à oublier qui se loge dans la mémoire olfactive.
+        m5_name: 1,8-Cinéole
+        m5_badge: Oxyde · Frais-Camphré
+        m5_descr: Cette fraîcheur qu'on appelle parfois eucalyptée. Ouvre les voies respiratoires et la palette aromatique d'un plat avec la même franchise.
+        m6_name: Géraniol
+        m6_badge: Terpène · Rose-Citrus
+        m6_descr: L'âme parfumée du géranium et de la rose. En cuisine, un fil ténu entre la peau d'agrume et le pétale — à manier avec révérence.
+    search:
+        placeholder: Rechercher...
+        clear: Effacer la recherche
+        spice: Épice
+        compound: Composé
+        see_all_results: Voir tous les résultats
+        no_result_for: 'Aucun résultat pour « %query% »'
+        full_search_page: Page de recherche complète
+        page_title: Recherche
+        title: Recherche
+        full_placeholder: Épice, composé, groupe, saveur, méthode...
+        submit: Rechercher
+        results_count: '%count% résultat(s) pour'
+        spices: Épices
+        compounds: Composés aromatiques
+        aromatic_group: Groupe
+        aromatic_groups: Groupes aromatiques
+        alchemy_flavor: Saveur
+        alchemy_flavors: Saveurs aromatiques
+        preparation_method: Méthode
+        preparation_methods: Méthodes de préparation
+        no_result: Aucun résultat
+        no_result_text: 'Rien ne correspond à « %query% ».'
+        try_another: Essayez un autre terme ou vérifiez l'orthographe.
+        prompt: Saisissez un terme pour explorer épices, composés, groupes, saveurs et méthodes.
+    pagination:
+        nav_label: Navigation des pages
+        per_page_hint: Nombre d'épices par page — la sélection recharge la liste
+        previous: Précédent
+        next: Suivant
+        per_page_label: Nombre d'épices par page
+        per_page: '%count% par page'
+    newsletter:
+        unsub_title: Désinscription — SpicyMatch
+        unsub_confirmed: Désinscription confirmée
+        unsub_text_html: 'L''adresse <strong class="text-stone-800">%email%</strong> a été retirée de notre liste de diffusion. Vous ne recevrez plus nos newsletters.'
+        unsub_changed_mind: Vous avez changé d'avis ? Vous pouvez vous réinscrire à tout moment depuis votre profil.
+    game:
+        a11y_chain_start: 'Partie lancée. Épice de départ : %name%.'
+        a11y_clue: 'Indice %n% sur %total% — %label% : %value%'
+        a11y_question: 'Question %num% sur %total%.'
+        a11y_word_state: 'Mot : %word%. Erreurs : %errors% sur %max%.'
+        a11y_chain: 'Bonne réponse. Chaîne de %n%. Épice actuelle : %name%.'
+        mystery_spice_alt: Photo de l'épice mystère
+        progress_label: Progression de la partie
+        a11y_correct: Bonne réponse
+        a11y_incorrect: 'Mauvaise réponse. La bonne réponse était %name%'
+        a11y_finished: Partie terminée
+        quit: Quitter la partie
+        back: Retour
+        see_results: Voir les résultats
+        finish: Terminer
+        next_question: Question suivante
+        correct_answer: Bonne réponse !
+        wrong_answer: Mauvaise réponse
+        intrus_tag: Intrus ✓
+        intrus_tag_plain: Intrus
+        your_choice: Votre choix
+        chrono_subtitle: Identifie les épices le plus vite possible
+        time_up: Temps écoulé !
+        time_up_summary: '%correct%/%answered% correctes<br>%score% points au total.'
+        time_remaining: Temps restant
+        correct_points: 'Correct ! +%points% pts'
+        it_was: 'C''était %name%'
+        which_spice: Quelle est cette épice ?
+        family: 'Famille :'
+        type: 'Type :'
+        flavors: 'Saveurs :'
+        main_compounds: 'Composés principaux :'
+        secondary_compounds: 'Composés secondaires :'
+        tip: 'Conseil :'
+        prepare_next: Prépare ta prochaine réponse…
+        survival_subtitle: Enchaîne les épices compatibles sans erreur
+        total_victory: Victoire totale !
+        victory_text: Tu as épuisé toutes les compatibilités possibles !
+        game_over: Game Over
+        defeat_text: '<strong>%a%</strong> n''est pas compatible avec <strong>%b%</strong>.<br>Chaîne : %n%.'
+        choose_start: Choisis ton épice de départ
+        choose_start_text: Sélectionne l'épice avec laquelle tu veux commencer ta chaîne.
+        current_spice: Épice courante
+        which_compatible: Quelle épice est compatible ?
+        air_context_note: Compatibilités évaluées à l'air (mélange à sec)
+        guesswho_subtitle: Devine l'épice grâce aux indices
+        it_was_indeed: 'C''était bien %name%'
+        points_earned: '+%points% points'
+        correct_was: 'La bonne réponse était %name%'
+        clues_revealed: 'Indices révélés : %count%/%total%'
+        reveal_clue: Révéler un indice
+        revealing: Révélation…
+        all_clues_revealed: Tous les indices révélés
+        clue_locked: Indice verrouillé
+        start_typing: Commence à taper le nom…
+        hangman_subtitle: Devine le nom de l'épice lettre par lettre
+        errors: 'Erreurs :'
+        found: Trouvé !
+        lost: Perdu...
+        next_word: Mot suivant
+        intrus_find_compatible: Trouve le compatible
+        intrus_find_intruder: Trouve l'intrus
+        reference_spice: Épice de référence
+        kbd_select: sélectionner
+        kbd_validate: valider
+        validate: Valider
+        same_family_one: 'appartient à la même famille aromatique'
+        same_family_many: 'appartiennent à la même famille aromatique'
+    edu:
+        prompt:
+            qcm_best_match: 'Quelle épice se marie le mieux avec %spice% ?'
+            intrus_group: 'Quelle épice n''appartient pas au groupe « %group% » ?'
+            intrus_compatible: 'Quelle épice est compatible avec %spice% ?'
+            intrus_classic: 'Quelle épice est l''intrus par rapport à %spice% ?'
+            guesswho_clues_used: '%count% indice utilisé|%count% indices utilisés'
+            hangman_default: Devine l'épice
+            hangman_family: 'Famille : %value%'
+            hangman_type: 'Type : %value%'
+        clue:
+            flavors: Saveurs
+            group: Famille aromatique
+            type: Type
+            cooking_tip: Conseil de cuisson
+            main_compounds: Composés principaux
+            description: Description
+        rule:
+            qcm_0: Trouve l'épice la plus compatible parmi 4 propositions.
+            qcm_1: Chaque bonne réponse te rapporte des XP.
+            qcm_2: 7 questions au total — pas de retour en arrière.
+            survival_0: Enchaîne les épices compatibles avec l'épice de départ.
+            survival_1: Une seule erreur et la partie est terminée.
+            survival_2: Plus tu avances, plus tu gagnes d'XP.
+            guess_who_0: Des indices apparaissent un par un pour identifier l'épice mystère.
+            guess_who_1: Moins tu utilises d'indices, plus tu gagnes de points.
+            guess_who_2: 7 épices à deviner au total.
+            intrus_0: Parmi 4 épices, trouve celle qui n'a rien en commun avec les autres.
+            intrus_1: 'Certaines questions sont inversées : trouve la compatible !'
+            intrus_2: 7 questions — attention aux pièges visuels.
+            hangman_0: Devine le nom de l'épice lettre par lettre.
+            hangman_1: Les accents sont ignorés — tape la lettre de base.
+            hangman_2: Trop d'erreurs et le pendu est complet.
+            chrono_0: Identifie chaque épice le plus vite possible.
+            chrono_1: Tu vois la photo et les caractéristiques, mais pas le nom.
+            chrono_2: Le temps est compté — chaque seconde compte.
+        academy_title: Académie des Épices
+        academy_intro: Teste tes connaissances sur les épices et leurs compatibilités aromatiques.
+        xp_per_correct: '%xp% XP/correct'
+        questions: '%count% questions'
+        unlimited_questions: ∞ questions
+        come_back_tomorrow: Reviens demain
+        reduced_xp_tooltip: 'XP réduit de 50%% au-delà de %threshold% parties/jour'
+        remaining_xp: '%count% restantes · ×0.5 XP'
+        remaining_today: '%remaining%/%max% aujourd''hui'
+        recent_games: Parties récentes
+        correct_count: '%correct%/%total% correct'
+        in_progress: En cours
+        presentation: Présentation
+        xp_per_answer: '%xp% XP / bonne réponse'
+        unlimited: Questions illimitées
+        difficulty: Difficulté
+        default_difficulty_html: 'Difficulté par défaut modifiable dans ton <a href="%url%" class="text-saffron-600 hover:underline">profil</a>.'
+        rules: Règles
+        ingredient_of_day: Ton ingrédient du jour
+        all_modes: Tous les modes
+        play: Jouer
+        launch_brigade: Lancer la brigade
+        question: 'Question %num%'
+        pts: '%score% pts'
+        correct_answer: Bonne réponse !
+        wrong_answer: Mauvaise réponse
+        next_question: Question suivante
+        submit: Valider
+        precision: précision
+        good_answers: Bonnes réponses
+        errors: Erreurs
+        xp_earned: XP gagnés
+        replay: Rejouer
+        dashboard: Tableau de bord
+        question_details: Détail des questions
+        your_answer: 'Ta réponse :'
+        correct_label: Correct
+        quiz_result: Quiz — Résultat
+        is_correct_answer: est la bonne réponse.
+        you_answered: Tu as répondu
+        correct_was: La bonne réponse était
+    onboarding:
+        transition_spices: Bien joué ! Prêt à créer ton premier mélange ?
+        s1_search_title: Cherche une épice
+        s1_search_text: 'Tape un nom pour trouver ton épice. Cumin, paprika, curcuma… tout y est. Clique "Suivant" quand tu veux continuer.'
+        s1_cards_title: Découvre les fiches
+        s1_cards_text: Clique sur l'image d'une épice pour voir son aperçu rapide.
+        s1_modal_title: Voilà la fiche !
+        s1_modal_text: Saveurs, composés aromatiques, accords gourmands… tout est là. Ferme la fiche pour continuer.
+        s1_cta_title: Prêt à créer ?
+        s1_cta_text: Quand une épice te plaît, viens créer un mélange dans le Lab !
+        transition_lab: 'Super ! Dernier arrêt : l''Académie des épices.'
+        s2_mode_title: Auto ou Manuel ?
+        s2_mode_text: 'Auto : l''algo trouve les meilleurs accords pour toi. Manuel : tu choisis librement.'
+        s2_filter_title: Le secret des accords
+        s2_filter_text: Les épices du même groupe aromatique se marient naturellement. Filtre pour explorer une famille.
+        s2_play_title: À toi de jouer !
+        s2_play_text: Clique sur une épice pour l'ajouter. L'algo affiche instantanément les meilleurs accords.
+        s3_games_title: 6 mini-jeux t'attendent
+        s3_games_text: Choisis un mode, une difficulté, et prouve ce que tu sais sur les épices !
+        s3_xp_title: Gagne de l'XP
+        s3_xp_text: Chaque bonne réponse rapporte de l'XP. Monte en niveau et débloque des succès exclusifs !
+        skip_intro: Passer l'introduction
+        welcome_title: Bienvenue sur SpicyMatch !
+        welcome_text_html: 'On va te faire découvrir <strong class="text-stone-700">3 espaces clés</strong> du site en quelques secondes. Promis, c''est rapide.'
+        lets_go: C'est parti !
+        already_know: Je connais déjà, passer →
+        skip: Passer
+        next_step_aria: Étape suivante du tutoriel
+        later: Plus tard
+        go: Allons-y →
+    tabs:
+        profile: Profil
+        favorites: Favoris
+        achievements: Succès
+        configuration: Configuration
+        history: Historique
+        security: Sécurité
+    recipe:
+        new_blend: Créer un nouveau mélange
+        matrix_caption: Scores de compatibilité par matrice de cuisson
+        folio: 'Folio · %id% · Carnet du Laboratoire'
+        rename_aria: Renommer la recette
+        rename: Renommer
+        add_favorite: Ajouter aux favoris
+        in_favorites: Dans vos favoris
+        spices: 'épice|épices'
+        moments: 'moment|moments'
+        methods: 'méthode|méthodes'
+        shared_compound: composé commun
+        moment_card: Carte du moment
+        dry_profile: Profil olfactif sec — sans cuisson.
+        fat: '% gras'
+        aqueous: '% aqueux'
+        prep_title: Préparation des épices
+        prep_sub: 'La main du chef · %count% épice(s)'
+        out_of_matrix_aria: 'Préparation hors matrice : %label%'
+        out_of_matrix_title: 'Cette préparation est répertoriée pour la matrice « %label% ». Pour l''activer, composez un nouveau mélange au Lab en choisissant le mode %label%.'
+        out_of_matrix: 'hors matrice · %label%'
+        method: Méthode
+        moments_title: Moments d'insertion
+        moments_sub: La maîtrise du temps · 5 fenêtres aromatiques
+        earlier: Plus tôt
+        later: Plus tard
+        moment_before: Avant
+        moment_start: Début
+        moment_middle: Milieu
+        moment_end: Fin
+        moment_after: Après
+        moment_free: — libre —
+        kinetics_title: Cinétique aromatique
+        kinetics_sub: Tête · Cœur · Fond
+        kinetics_retention: ' · rétention à %temp% °C / %time% min'
+        kinetics_head_blurb: Notes volatiles · à ajouter en fin de cuisson
+        kinetics_heart_blurb: Notes structurantes · ajout à mi-cuisson
+        kinetics_base_blurb: Notes lourdes · résistent à la cuisson longue
+        compounds: 'composé|composés'
+        no_compound_cat: — aucun composé dans cette catégorie —
+        retention_title: Fraction préservée après le scénario culinaire (Nernst × décroissance thermique)
+        no_physchem: '%count% composé(s) sans donnée physico-chimique (%names%).'
+        matrix_title: Comparatif matriciel
+        matrix_sub: Et si on cuisinait autrement&nbsp;? Top 5 candidats par matrice ODT
+        col_spice: Épice
+        current_matrix: Matrice du mélange
+        out_of_top5: Hors du top 5 dans cette matrice
+        tanimoto_title: Score Tanimoto OAV (échelle 0–100)
+        tanimoto_note: Scores Tanimoto OAV ∈ [0–100] · corrigés par partition Nernst et décroissance thermique pour la matrice évaluée.
+        alchemist_note: Note de l'Alchimiste
+        note_shared: '« Ces épices partagent %count% composé(s) aromatique(s) en commun — leur affinité repose sur une signature aromatique commune. »'
+        note_manual: « Mélange composé librement — la complémentarité de ces épices s'exprime sans calcul d'affinité. »
+        note_contrast: « Ces épices n'ont pas de composé aromatique principal en commun — leur association repose sur la complémentarité et le contraste. »
+    lab:
+        a11y_results: '%selected% épices dans le mortier, %count% épices compatibles affichées.'
+        finalize_title: Finalisation du mélange — SpicyMatch
+        back_to_lab: Retour au Lab
+        finalize: Finalisation du mélange
+        blend_takes_shape_html: 'Le mélange <em class="italic" style="color: #C25E2C;">prend forme</em>.'
+        status_upcoming: à venir
+        step_time: Étape I · Le temps
+        step_time_q_html: 'À quel moment <em class="italic" style="color: #C25E2C;">%name%</em> entrera-t-elle en scène&nbsp;?'
+        step_hand: Étape II · La main
+        step_hand_q_html: 'Par quelle main éveiller <em class="italic" style="color: #C25E2C;">%name%</em>&nbsp;?'
+        page_title: Le Lab — SpicyMatch
+        step1_eyebrow: Étape 1 — Sélection
+        hero_title_html: 'Le Lab,<br><span class="text-saffron-600 italic font-light">l''atelier des saveurs</span>'
+        hero_desc: Choisissez vos épices comme on dispose ses ingrédients sur un plan de travail. L'algorithme révèle les associations qui chantent ensemble.
+        step_select: Sélectionner
+        step_analyze: Analyser
+        step_save: Sauvegarder
+        cooking_question_html: 'Comment allez-vous cuisiner ce mélange ? Les scores s''ajustent à la matrice choisie (Nernst&nbsp;+&nbsp;décroissance thermique).'
+        culinary_context_aria: Sélection du contexte culinaire
+        preset_dry_aria: 'Preset cuisson : À sec — assaisonnement cru, sans cuisson'
+        preset_dry: À sec
+        preset_air: Air
+        preset_broth_aria: 'Preset cuisson : Bouillon — eau, 20 minutes à 80 degrés'
+        preset_broth: Bouillon
+        preset_water: Eau
+        preset_saute_aria: 'Preset cuisson : Sauté — huile pure, 10 minutes à 140 degrés'
+        preset_saute: Sauté
+        preset_oil: Huile
+        advanced: Avancé
+        odt_matrix: Matrice ODT
+        no_matrix_data: Aucune matrice avec données
+        presence_mode: Tri par présence de composés partagés — pas de score OAV quantitatif (données insuffisantes).
+        fat_ratio: Fraction grasse
+        cooking_time: Temps de cuisson
+        temperature: Température
+        mode_tooltip: Le mode culinaire influence le scoring (Nernst + décroissance thermique)
+        mode_prefix: 'Mode : %label%'
+        search_spice: Rechercher une épice…
+        clear_search: Effacer la recherche
+        clear_all: Tout effacer
+        auto: Auto
+        manual: Manuel
+        spices_count: '%count% épice(s)'
+        no_match: 'Aucune épice ne correspond à « %query% ».'
+        no_more_compatible: Aucune épice supplémentaire n'est compatible avec votre sélection.
+        my_blend: Mon mélange
+        empty_html: 'Cliquez sur une <span class="font-display italic text-stone-500">épice</span> pour commencer votre mélange'
+        remove: 'Retirer %name%'
+        clear_selection: Vider la sélection
+        compose: Composer le mélange
+        data: 'Données : %label%'
+        scores_indicative: Scores indicatifs — données en cours de validation.
+        reset_culinary_aria: Réinitialiser le contexte culinaire
+        select_spices: Sélectionnez vos épices
+        compose_short: Composer
+        selected: Sélectionnées
+        tip_mode_html: '%count% épice(s) — mode <strong class="text-stone-500 font-semibold">%mode%</strong>'
+        excluded_manage: Gérer
+        excluded_notice: '%count% épice exclue par tes préférences|%count% épices exclues par tes préférences'
+        prefs:
+            default_matrix: Milieu par défaut
+            default_matrix_hint: 'Pré-sélectionné dans le Lab. Modifiable à chaque mélange.'
+            excluded_spices: Épices exclues
+            excluded_empty: Aucune épice exclue — toutes sont proposées.
+            search_spice: Rechercher une épice à exclure…
+            remove_exclusion: Retirer cette exclusion
+            no_match: Aucune épice trouvée.
+            section_engine: Préférences du moteur
+            section_account: Mon compte
+            section_security: Zone sensible
+    filters:
+        aromatic_group: Groupe Aromatique
+        spice_type: Type d'Épice
+        search: Rechercher…
+        clear_all: Effacer tout
+        group: 'Groupe :'
+        type: 'Type :'
+    carousel:
+        label: Épices associées
+        roledescription: carrousel
+        prev: Épices précédentes
+        next: Épices suivantes
+    form:
+        required_legend: '* champ obligatoire'
+    a11y_decl:
+        title: Déclaration d'accessibilité
+        intro: SpicyMatch s'engage à rendre son site web accessible conformément à l'article 47 de la loi n°2005-102 du 11 février 2005. La présente déclaration s'applique à l'ensemble du site.
+        status_title: État de conformité
+        status_text: 'SpicyMatch est en cours d''évaluation : un audit de conformité RGAA 4.1 est en préparation. Des travaux de mise en conformité ont été réalisés (structure, formulaires, navigation clavier, contrastes, annonces des contenus dynamiques) ; l''état de conformité sera publié à l''issue de l''audit.'
+        tests_title: Technologies et tests
+        tests_text: 'Le site repose sur HTML, CSS et JavaScript (Symfony, Twig, Alpine.js). Les tests automatisés (axe-core, référentiel WCAG 2.1 AA) sont exécutés en continu sur les pages principales ; des tests manuels au clavier et au lecteur d''écran complètent cette couverture.'
+        feedback_title: Retour d'information et contact
+        feedback_text: 'Si vous rencontrez un obstacle d''accessibilité sur le site, signalez-le nous via la page'
+        recourse_title: Voies de recours
+        recourse_text: 'Si vous avez signalé un défaut d''accessibilité et que vous n''avez pas obtenu de réponse satisfaisante, vous pouvez saisir le Défenseur des droits (defenseurdesdroits.fr), ou adresser un courrier au Défenseur des droits, Libre réponse 71120, 75342 Paris CEDEX 07.'
+        date_text: Déclaration établie le 10 juin 2026.
+    modal:
+        quick_view_label: Aperçu rapide de l'épice
+        close: Fermer
+        dominant_flavors: Saveurs dominantes
+        aromatic_compounds: Composés aromatiques
+        quick_preview: Aperçu rapide
+        view_full: Voir la fiche complète
+    config:
+        email_address: Adresse mail
+        current_mail: 'Mail actuellement utilisé :'
+        none: Aucun
+        add_mail: Ajouter un mail
+        change_mail: Changer le mail
+        discovery_path: Parcours de découverte
+        replay_intro: Revoir l'introduction
+        replay_intro_text: Relance le guide de démarrage pour redécouvrir les fonctionnalités principales.
+        replay: Relancer
+        game_posture: Posture de jeu
+        posture_intro: Ta posture détermine la difficulté par défaut des jeux et modifie certains éléments visuels.
+        commis: Commis
+        cuisinier: Cuisinier
+        chef_partie: Chef de Partie
+        posture_hard_html: '<strong>Chef de Partie :</strong> couleurs des groupes aromatiques masquées, chrono réduit au Pendu, intrus plus subtils.'
+        posture_medium_html: '<strong>Cuisinier :</strong> difficulté intermédiaire, comportement standard.'
+        posture_easy_html: '<strong>Commis :</strong> aides visuelles complètes, plus de temps, indices supplémentaires.'
+        gamification_privacy: Gamification & Vie privée
+        progression_system: Système de progression (XP, niveaux, succès)
+        gamification_on: Activé — tes actions donnent de l'XP et débloquent des succès.
+        gamification_off: Désactivé — aucune donnée de progression n'est collectée.
+        disable: Désactiver
+        enable: Activer
+        change_mail_form: 'Formulaire de changement de mail :'
+        back: Retour
+    profile:
+        dashboard_title: Tableau de bord
+        unlocked_achievements: Succès débloqués
+        equipped_badge: Succès équipé
+        level_xp: 'Niveau %level% — %xp% XP'
+        no_recent_blend: Aucun mélange récent.
+        no_progress: Aucune progression pour l'instant
+        no_progress_hint: Créez votre premier mélange pour débloquer votre progression et gagner de l'XP !
+        see_all_achievements: Voir tous les succès
+        tabs:
+            aria_label: Sections du profil
+            dashboard: Tableau de bord
+            grimoire: Grimoire
+            history: Historique
+            lab: Laboratoire
+            history_filter: Filtre historique
+        menu:
+            dashboard: Tableau de bord
+            grimoire: Grimoire
+            history: Mes mélanges
+            lab: Laboratoire
+            favorites: Mes favoris
+            security: Sécurité
+            logout: Déconnexion
+    achievements:
+        unlocked_count: '%count% / %total% succès débloqués'
+        xp_from_achievements: '+%xp% XP gagnés via les succès'
+        global_progress: Progression globale
+        not_started: Pas encore commencé
+        to_discover: À découvrir…
+        equipped_badge: Badge équipé
+        equip: Équiper
+        progress: Progression
+        none_yet: Aucun succès pour l'instant
+        none_yet_text: Créez votre premier mélange pour débloquer des succès et gagner de l'XP !
+        create_first: Créer mon premier mélange
+    history:
+        title: Historique des mélanges
+        see_all: Tout voir
+        filter_all: Tous
+        filter_favorites: Favoris
+        filter_manual: Manuels
+        manual: Manuel
+        manual_tooltip: Mélange créé manuellement — compatibilité non garantie
+        none_yet: Vous n'avez pas encore de mélange sauvegardé.
+        create_first: Créer mon premier mélange
+        my_favorites: Mes favoris
+        remove_favorite: Retirer des favoris
+        back_to_history: Retour à l'historique
+        no_favorites: Vous n'avez pas encore de mélange favori.
+        no_manual: Vous n'avez pas encore de mélange manuel.
+        see_my_blends: Voir mes mélanges
+        subtitle: Retrouvez toutes vos recettes sauvegardées.
+        see_favorites: Voir mes favoris
+        rename_hint: Double-cliquez pour renommer
+        rename: Renommer
+        fav:
+            title: Mes mélanges favoris
+            subtitle: Les recettes que vous avez marquées comme favorites.
+            empty: Aucun mélange favori pour l'instant.
+            empty_hint: Cliquez sur l'étoile d'un mélange pour l'ajouter à vos favoris.
+            see_history: Voir mon historique
+    dashboard:
+        level: 'Niveau %level%'
+        xp_to_next: '%xp% XP — encore %toNext% XP pour le niveau suivant'
+        level_short: 'Niv. %level%'
+        stat_blends: Mélanges créés
+        stat_spices: Épices utilisées
+        stat_favorites: Favoris
+        stat_sheets: Fiches consultées
+        stat_groups: Groupes visités
+        stat_streak: Meilleur streak
+        stat_secrets: Secrets trouvés
+        latest_blends: Derniers mélanges
+    error:
+        title: Une erreur est survenue
+        code: 'Code d''erreur :'
+        persist: Si le problème persiste, merci de contacter l'administrateur.
+        home: Accueil
+        report: Signaler
+    security:
+        password: Mot de passe
+        password_text: Modifie ton mot de passe ci-dessous.
+        password_masked: Mot de passe défini
+        change_password: Changer le mot de passe
+        current_password: Mot de passe actuel
+        current_password_wrong: Mot de passe actuel incorrect.
+        new_password: Nouveau mot de passe
+        confirm_password: Confirmer le mot de passe
+        passwords_mismatch: Les mots de passe ne correspondent pas.
+        password_changed: Mot de passe mis à jour.
+        coming_soon: Bientôt disponible
+        auth: Authentification
+        auth_text: Aucune option de double authentification configurée pour le moment.
+    catalog:
+        no_description: Aucune description disponible.
+        preview: Aperçu
+        match_label: Match
+        compat: Compat.
+        see_details: Voir les détails
+        see_sheet: Voir la fiche
+        flavors_heading_html: 'Les <em class="italic not-italic" style="color: %color%">saveurs</em>'
+        primary_compounds_heading_html: 'Composés <em class="italic" style="color: %color%">primaires</em>'
+        in_kitchen_heading_html: 'Quand l''épice <em class="italic" style="color: %color%">se glisse</em> dans votre plat'
+        notebook_heading_html: 'Petites <em class="italic" style="color: %color%">notes</em> en passant'
+        tame_heading_html: 'Comment l''<em class="italic" style="color: %color%">apprivoiser</em>'
+        load_more_spices: Charger plus d'épices
+        view_slider: Slider
+        view_grid: Grille
+        scientific_note: Note scientifique
+        view_spices: Voir les épices
+        spice_fallback: Épice
+        spices_title: Nos épices
+        spices_page_title: SpicyMatch — Catalogue d'épices
+        spices_count: '%count% épice(s) dans notre catalogue'
+        create_blend: Créer un mélange
+        none_found: Aucune épice trouvée
+        none_found_text: Aucune épice ne correspond à vos filtres. Essayez de modifier ou réinitialiser vos critères.
+        view_all_spices: Voir toutes les épices
+        breadcrumb_spices: Épices
+        type: Type
+        profile: Profil
+        flavors: saveurs
+        flavors_intro: Les composés aromatiques qui définissent le caractère de cette épice.
+        primary_compounds: primaires
+        primary_compounds_intro: Les molécules qui donnent son identité olfactive à cette épice.
+        secondary_compounds: Composés secondaires
+        in_kitchen: En cuisine
+        in_kitchen_title: glisser
+        moments: '%count% moment(s)'
+        marmite_before: Avant le feu
+        marmite_during: Pendant le feu
+        marmite_after: Après le feu
+        marmite_last: Au dernier moment
+        marmite_marinade: En marinade
+        marmite_default: Au choix
+        step: Étape
+        notebook: Le carnet
+        notebook_title: notes en passant
+        tame: apprivoiser
+        good_to_know: À savoir
+        its_assets: Ses atouts
+        note_of: 'Note de %flavors%'
+        spice_thread: Le Fil des Épices
+        spice_thread_text: Chaque épice ouvre la porte d'une autre.
+        compounds_title: Composés aromatiques
+        compounds_page_title: SpicyMatch — Composés aromatiques
+        compounds_tag: Science
+        compounds_intro: Les molécules qui définissent les arômes et les profils gustatifs de chaque épice.
+        learn_more: En savoir plus
+        no_compound: Aucun composé répertorié pour le moment.
+        back_to_compounds: Retour aux composés
+        compound_badge: Composé Aromatique
+        description: Description
+        no_description_detailed: Aucune description détaillée disponible.
+        linked_spices: Épices liées
+        no_linked_spices: Aucune épice liée pour le moment.
+        groups_page_title: SpicyMatch — Groupes aromatiques
+        groups_tag: Catalogue
+        groups_title: Groupes aromatiques
+        groups_intro: Les grandes familles d'arômes qui rassemblent les épices par affinité gustative.
+        groups_soon: Le catalogue des groupes aromatiques arrive bientôt.
+        flavors_page_title: SpicyMatch — Saveurs d'alchimie
+        flavors_tag: Alchimie
+        flavors_title: Saveurs d'alchimie
+        flavors_page_intro: Les profils gustatifs complexes qui émergent de la rencontre des épices.
+        explore_flavor: Explorer la saveur
+        no_flavor: Aucune saveur répertoriée pour le moment.
+        back_to_flavors: Retour aux saveurs
+        flavor_badge: Saveur d'Alchimie
+        taste_profile: Profil gustatif
+        no_profile_detailed: Aucun profil détaillé disponible.
+        culinary_pairings: Accords culinaires
+        associated_compounds: Composés associés
+        no_linked_compound: Aucun composé lié.
+        types_page_title: SpicyMatch — Types d'épices
+        types_tag: Botanique
+        types_title: Types d'épices
+        types_intro: Classification des épices selon leur origine végétale et leur nature biologique.
+        no_type: Aucun type répertorié pour le moment.
+        back_to_types: Retour aux types
+        type_badge: Type d'Épice
+        definition: Définition
+        no_definition_detailed: Aucune définition détaillée disponible.
+        general_usage: Usage général
+        botanical_note: Note botanique
+        spices_of_type: Épices de ce type
+        methods_page_title: SpicyMatch — Méthodes de préparation
+        methods_tag: Guide
+        methods_title: Méthodes de préparation
+        methods_intro: Techniques et conseils pour extraire le meilleur de vos épices
+        view_details: Voir les détails
+        no_method: Aucune méthode disponible pour le moment.
+        method_badge: Méthode
+        usage_tips: Conseils d'utilisation
+    help:
+        back_to_help: ← Centre d'aide
+        gamification_page_title: Gamification · Aide
+        gamification_h1: Gamification
+        gamification_body_html: |
+            <h2>XP et niveaux</h2>
+            <p>Chaque action sur le site te rapporte de l'expérience (XP). Ton niveau est calculé à partir de ton XP total avec une courbe progressive : <code>niveau = ⌊(xp / 100)<sup>1/1.3</sup>⌋ + 1</code>. Plus tu montes, plus chaque niveau demande d'XP — mais il n'y a pas de plafond.</p>
+            <h3>Comment gagner de l'XP</h3>
+            <ul>
+                <li><strong>+10 XP</strong> — sauvegarder un mélange dans le lab</li>
+                <li><strong>+5 XP</strong> — consulter une nouvelle fiche épice (une seule fois par jour par épice)</li>
+                <li><strong>+75 XP</strong> — trouver un easter egg</li>
+                <li><strong>Variable</strong> — terminer une partie de l'Académie (selon mode / difficulté)</li>
+                <li><strong>Bonus</strong> — déblocage d'un succès (+10 à +200 XP selon rareté)</li>
+            </ul>
+            <h2>Reading streak</h2>
+            <p>Tu maintiens un <strong>reading streak</strong> tant que tu consultes au moins une nouvelle fiche épice chaque jour. Une journée sautée réinitialise le compteur. Certains succès récompensent les longues séries.</p>
+            <h2>Limites quotidiennes</h2>
+            <p>Pour éviter le farming, l'Académie limite à <strong>5 parties par mode et par jour</strong>. À partir de la 4<sup>e</sup> partie d'un même mode, l'XP gagné est <strong>réduit de 50 %</strong> — la progression reste possible mais la course au score perd son intérêt.</p>
+        gamification_disable_h2: Désactiver la gamification
+        gamification_disable_html: 'Depuis <a href="%url%" class="text-saffron-600 hover:underline">ta configuration</a>, tu peux désactiver complètement la gamification : plus de toasts, plus de bannière XP, plus de badge d''avatar. Tes données restent intactes et la fonctionnalité reste réactivable à tout moment.'
+        academy_page_title: L'Académie · Aide
+        academy_body_html: |
+            <h2>Les 6 modes</h2>
+            <dl>
+                <dt><strong>Le Choix du Chef</strong> (QCM)</dt>
+                <dd>10 questions à choix multiples sur les compatibilités d'épices. Le mode le plus classique.</dd>
+                <dt><strong>Défi de Scoville</strong> (Survival)</dt>
+                <dd>Choisis une épice de départ et enchaîne des épices compatibles. Un faux pas = game over. Victoire totale si tu épuises toutes les compatibilités.</dd>
+                <dt><strong>Palais Fin</strong> (Guess Who)</dt>
+                <dd>8 épices à deviner à partir d'indices progressifs. Moins d'indices révélés = plus de points.</dd>
+                <dt><strong>Hors Saison</strong> (Intrus)</dt>
+                <dd>10 questions : trouve l'épice incompatible (ou compatible, en mode inversé) parmi 4 choix.</dd>
+                <dt><strong>Cuisson en Cours</strong> (Pendu)</dt>
+                <dd>8 noms d'épices à deviner lettre par lettre. Limite d'erreurs et de temps selon la difficulté.</dd>
+                <dt><strong>À Feu Vif</strong> (Chrono)</dt>
+                <dd>Chronomètre global. Identifie le plus d'épices possible à partir de leur fiche (sans le nom). Bonus vitesse et streak pour les bonnes réponses consécutives.</dd>
+            </dl>
+            <h2>Difficultés</h2>
+            <table class="w-full text-sm">
+                <thead class="text-left"><tr><th class="py-2">Difficulté</th><th>Multiplicateur XP</th><th>Impact</th></tr></thead>
+                <tbody>
+                    <tr><td>Easy</td><td>×1.0</td><td>Plus d'indices, moins d'options, options évidentes.</td></tr>
+                    <tr><td>Medium</td><td>×1.5</td><td>Indices partiels, options moyennes.</td></tr>
+                    <tr><td>Hard</td><td>×2.0</td><td>Pas d'indice, pool complet, pièges visuels.</td></tr>
+                </tbody>
+            </table>
+            <h2>Scoring et XP</h2>
+            <p>L'XP de base est <code>bonnes_réponses × xp_par_mode × multiplicateur_difficulté</code>. Les modes Palais Fin et Chrono ajoutent des bonus (moins d'indices, rapidité, streak).</p>
+        eggs_page_title: Easter Eggs · Aide
+        eggs_intro_html: 'Certaines actions inhabituelles sur le site déclenchent des <strong>easter eggs</strong> — des découvertes cachées qui te font gagner 75 XP et débloquent parfois un succès dédié.'
+        eggs_body_html: |
+            <h2>Ce qu'il faut savoir (sans spoiler)</h2>
+            <ul>
+                <li><strong>Nombre</strong> : 8 easter eggs au total, disséminés dans l'interface. Certains sont rapides à trouver, d'autres demandent de la patience ou une combinaison d'actions.</li>
+                <li><strong>Unicité</strong> : chaque easter egg se déclenche une seule fois par compte. Impossible de farmer les +75 XP en rejouant la même action.</li>
+                <li><strong>Sans preuve</strong> : on ne liste pas les easter eggs — c'est le sel du jeu. Tu peux voir lesquels tu as trouvés dans ton profil après les avoir débloqués.</li>
+            </ul>
+            <h2>Quelques pistes</h2>
+            <ul>
+                <li>Explore les recoins inhabituels du site (erreurs, pages secondaires, paramètres).</li>
+                <li>Reste longtemps sur certaines pages — le temps passé compte parfois.</li>
+                <li>Observe les interactions répétitives — plusieurs clics au même endroit peuvent cacher un trigger.</li>
+                <li>Certains easter eggs demandent une séquence précise d'épices visitées.</li>
+                <li>Une recette légendaire en 4 ingrédients est cachée quelque part…</li>
+            </ul>
+        eggs_outro: Les easter eggs sont un clin d'œil, pas un examen — prends-les comme une chasse au trésor, pas comme une checklist.
+        page_title: Aide · SpicyMatch
+        title: Centre d'aide
+        intro: Tout ce qu'il faut savoir sur les mécaniques du site.
+        gamification: Gamification
+        gamification_desc: XP, niveaux, streaks, limites quotidiennes.
+        academy_desc: 6 modes de jeu, règles, difficulté, scoring.
+        easter_eggs: Easter Eggs
+        easter_eggs_desc: Les trouvailles cachées, sans spoiler.
+    cookie:
+        title: Nous respectons votre vie privée
+        text: SpicyMatch utilise des cookies pour améliorer votre expérience. Vous pouvez choisir lesquels accepter.
+        essential: Cookies essentiels
+        always_on: (toujours actifs)
+        functional: Cookies fonctionnels
+        analytics: Cookies analytiques
+        accept_all: Tout accepter
+        confirm: Confirmer la sélection
+        reject_all: Tout refuser
+    register:
+        page_title: Création de compte
+        title: Créer un compte
+        subtitle: Gratuit, sans mail obligatoire.
+        username: Pseudo
+        mail: 'Email (facultatif — pour récupérer ton mot de passe)'
+        password: Mot de passe
+        toggle_visibility: Basculer la visibilité
+        submit: Créer mon compte
+        already_account: 'Déjà un compte ?'
+        sign_in: Se connecter
+    contact_success:
+        page_title: SpicyMatch — Message envoyé
+        title: Merci pour votre message !
+        text: Nous l'avons bien reçu et ferons de notre mieux pour vous répondre rapidement.
+        good_day: Bonne journée !
+        good_evening: Bonne soirée !
+    auth:
+        login_title: Connexion
+        login_cta: Se connecter
+        no_account: 'Pas de compte ? En créer un (même pas besoin de mail !)'
+        username: Pseudo
+        password: Mot de passe
+        bad_credentials: Identifiants incorrects.
+        spices_alt: Épices
+    contact:
+        tag: Contact
+        title: Nous contacter
+        intro: Une question sur nos épices, un retour sur l'application ou une idée d'association aromatique ? On vous lit.
+        quick_reply: Réponse rapide
+        quick_reply_text: Nous répondons sous 48h ouvrées.
+        suggestions: Suggestions bienvenues
+        suggestions_text: Votre feedback améliore SpicyMatch.
+        send: Envoyer le message
+        page_title: SpicyMatch — Nous contacter
+    banner:
+        level: 'Niveau %level%'
+        xp_to_next: 'encore %xp% XP → niv. %level%'
+        days: jour
+        days_plural: jours
+        create: Créer
+        play: Jouer
+    labo:
+        chapter: Chapitre III · Le Labo Culinaire
+        title_html: 'L''art du <em class="not-italic italic" style="color: var(--color-turmeric-700)">geste.</em>'
+        blurb: Comprendre, c'est bien. Faire, c'est mieux. Trois techniques fondamentales pour libérer tout ce que vos épices ont à offrir.
+        fiche1: Fiche n°&nbsp;I
+        fiche2: Fiche n°&nbsp;II
+        fiche3: Fiche n°&nbsp;III
+        technique: Technique
+        dry_heat: Chaleur sèche
+        wet_heat: Chaleur humide
+        mechanical: Mécanique
+        roast_title_html: 'Torré<span class="ital">faction.</span>'
+        roast_sub: à sec, à la poêle de fonte
+        roast_benefit_html: '<strong>Réaction de Maillard.</strong> La chaleur sèche brise les parois cellulaires et libère les huiles essentielles emprisonnées. Le résultat : un parfum profond, presque noisetté.'
+        roast_spices: Cumin · Coriandre · Fenouil
+        infusion_title_html: 'Infu<span class="ital">sion.</span>'
+        infusion_sub: à chaud, dans un corps gras
+        infusion_benefit_html: '<strong>Diffusion lipidique.</strong> Les arômes liposolubles migrent dans l''huile chaude — un transport idéal pour les notes boisées et résineuses qui craignent la flamme.'
+        infusion_spices: Romarin · Laurier · Piment
+        pound_title_html: 'Pi<span class="ital">lonage.</span>'
+        pound_sub: au mortier de marbre
+        pound_benefit_html: '<strong>Rupture cellulaire.</strong> La pression mécanique éclate les vésicules d''huiles essentielles plus délicatement que le moulin — pas de chaleur, pas d''oxydation.'
+        pound_spices: Poivre · Cardamome · Basilic
+        read: → Lire
+        quotes_head: Conseils d'experts, épinglés au mur de la cuisine.
+        quote1: Une épice n'a jamais un seul rôle. Elle ouvre une porte. Charge à vous de regarder ce qu'il y a derrière.
+        quote1_role: Cheffe · Lyon
+        quote2: Avant d'ajouter du piment, ajoutez de l'attention. La langue se souvient des deux.
+        quote2_role: Étoilé · Barcelone
+        quote3: La torréfaction n'est pas une étape. C'est une conversation entre la graine et la chaleur.
+        quote3_role: Maître épicier · Fès
+    theatre:
+        chapter: Chapitre IV · L'Académie
+        title_html: 'Le théâtre des <em class="not-italic italic" style="color: var(--color-turmeric-700)">sens.</em>'
+        blurb: Six mini-jeux. Des épices comme terrain de jeu. Chaque partie révèle un angle nouveau — l'intrus, la survie, le pendu, la vitesse.
+        play_scoville: Jouer au Défi de Scoville
+        play_choice: Jouer au Choix du Chef
+        play_overcooked: Jouer à Trop Cuit
+        act1: Acte I
+        act2: Acte II
+        act3: Acte III
+        scoville_title_html: 'Défi de <span class="ital">Scoville.</span>'
+        scoville_tag: jeu de survie au piment
+        scoville_footer: Parties illimitées
+        choice_title_html: 'Le Choix <span class="ital">du Chef.</span>'
+        choice_tag: trouver l'intrus en cuisine
+        choice_footer: 10 questions
+        overcooked_title_html: 'Trop <span class="ital">Cuit!</span>'
+        overcooked_tag: le pendu des épices oubliées
+        overcooked_footer: 8 mots à deviner
+        cta_sub: 6 modes disponibles · XP · Succès · Classements
+        cta: Rejoindre l'Académie
+    hero:
+        season: Saison · Printemps 26 · Chapitre&nbsp;I
+        blends_est: Mélanges · Est. MMXXVI
+        meta: N°&nbsp;001 — L'éveil des sens
+        title_html: |
+            L'<em class="not-italic italic" style="color: var(--color-paprika-800)">Alchimie</em> des Épices.<br>
+            Éveillez le <span class="relative inline-block" style="color: var(--color-turmeric-700)">Chef<span class="absolute left-0 right-0 bottom-[6px] h-[14px] pointer-events-none" style="background: radial-gradient(ellipse at center, rgba(217,119,6,.28) 0%, transparent 70%); z-index: -1;" aria-hidden="true"></span></span><br>
+            qui sommeille en vous.
+        blurb: Explorez les liens invisibles entre les molécules et le goût. Apprenez, mélangez, et maîtrisez l'art des saveurs à travers une expérience scientifique &amp; ludique.
+        cta_blend: Lancer un mélange
+        cta_explore: Explorer les épices
+        cta_start: Commencer l'exploration
+        figures_label: Chiffres clés
+        figures_eyebrow: Notre cuisine, en trois chiffres
+        figure_spices: épices du monde entier
+        figure_aromas: arômes reliés un à un
+        figure_chefs: apprentis chefs avec vous
+    grade:
+        commis: Commis
+        chef_partie: Chef de Partie
+        saucier: Saucier
+        chef_executif: Chef Exécutif
+    footer:
+        accessibility: Accessibilité
+        tagline: L'alchimie aromatique au service de vos recettes. Découvrez des accords invisibles et sublimez vos créations culinaires.
+        navigation: Navigation
+        catalog: Catalogue des épices
+        lab_blends: Le Lab — Mélanges
+        help_contact: Aide & Contact
+        academy_flavors: L'Académie des saveurs
+        aromatic_compounds: Composés aromatiques
+        flavor_groups: Groupes de saveurs
+        classification: Classification
+        atelier: L'Atelier
+        join_text: Rejoignez notre brigade de passionnés et explorez l'alchimie des saveurs.
+        join_cta: Rejoindre la brigade
+        copyright_tagline: L'Art de l'Alchimie Culinaire
+        legal: Mentions Légales
+        privacy: Confidentialité
+        scroll_top: Retour en haut de la page
+
+gamification:
+    notif:
+        level_up_title: 'Niveau %level% atteint !'
+        level_up_subtitle: Tu montes en compétence !
+        achievement_unlocked: 'Succès débloqué — %rarity%'
+    source:
+        match_saved: Mélange sauvegardé
+        spice_read: Nouvelle fiche lue
+        easter_egg_found: Easter egg trouvé
+        favorite_toggled: Favori ajouté
+        game_completed: Partie terminée
+
+enum:
+    game_mode:
+        qcm:
+            label: Le Choix du Chef
+            desc: 'Trouve l''épice la plus compatible parmi 4 choix.'
+        survival:
+            label: Défi de Scoville
+            desc: 'Enchaîne les épices compatibles sans erreur.'
+        guess_who:
+            label: Palais Fin
+            desc: 'Devine l''épice à partir d''indices progressifs.'
+        intrus:
+            label: Hors Saison
+            desc: 'Trouve l''intrus parmi les épices compatibles.'
+        hangman:
+            label: Cuisson en Cours
+            desc: 'Devine le nom de l''épice lettre par lettre.'
+        chrono:
+            label: À Feu Vif
+            desc: 'Identifie les épices le plus vite possible.'
+    difficulty:
+        easy: Facile
+        medium: Moyen
+        hard: Difficile
+    rarity:
+        common: Graine
+        rare: Infusion
+        epic: Extraction
+        legendary: Essence
+    kinetics:
+        head: Tête
+        heart: Cœur
+        base: Fond
+    confidence:
+        measured: Mesuré
+        literature: Littérature
+        estimated: Estimé
+        placeholder: Provisoire
+    matrix:
+        air: Air
+        water: Eau
+        oil: Huile

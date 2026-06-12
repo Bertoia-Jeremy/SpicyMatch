@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Entity\Translation\TranslatableInterface;
 use App\Repository\AromaticGroupsRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -12,7 +13,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AromaticGroupsRepository::class)]
 #[ORM\Table(name: 'aromatic_groups')]
-class AromaticGroups
+class AromaticGroups implements TranslatableInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -22,10 +23,7 @@ class AromaticGroups
     #[ORM\Column(name: 'name', type: 'string', length: 255)]
     private ?string $name = null;
 
-    #[Assert\Regex(
-        pattern: '/^#[0-9A-Fa-f]{6}$/',
-        message: 'La couleur doit être un code hexadécimal valide (#RRGGBB).'
-    )]
+    #[Assert\Regex(pattern: '/^#[0-9A-Fa-f]{6}$/', message: 'aromatic_group.color_invalid')]
     #[ORM\Column(name: 'color', type: 'string', length: 255)]
     private ?string $color = null;
 
@@ -53,14 +51,86 @@ class AromaticGroups
     #[ORM\OneToMany(targetEntity: Spices::class, mappedBy: 'aromaticGroups', orphanRemoval: true)]
     private Collection $spices;
 
+    /**
+     * @var Collection<int, AromaticGroupsTranslation>
+     */
+    #[ORM\OneToMany(mappedBy: 'aromaticGroup', targetEntity: AromaticGroupsTranslation::class, cascade: [
+        'persist',
+        'remove',
+    ], orphanRemoval: true)]
+    private Collection $translations;
+
     public function __construct()
     {
         $this->spices = new ArrayCollection();
+        $this->translations = new ArrayCollection();
     }
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    /**
+     * @return Collection<int, AromaticGroupsTranslation>
+     */
+    public function getTranslations(): Collection
+    {
+        return $this->translations;
+    }
+
+    public function addTranslation(AromaticGroupsTranslation $translation): self
+    {
+        if (! $this->translations->contains($translation)) {
+            $this->translations->add($translation);
+            $translation->setAromaticGroup($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTranslation(AromaticGroupsTranslation $translation): self
+    {
+        if ($this->translations->removeElement($translation) && $translation->getAromaticGroup() === $this) {
+            $translation->setAromaticGroup(null);
+        }
+
+        return $this;
+    }
+
+    public function getTranslation(string $locale): ?AromaticGroupsTranslation
+    {
+        if ($locale === 'fr') {
+            return null;
+        }
+
+        foreach ($this->translations as $t) {
+            if ($t->getLocale() === $locale) {
+                return $t;
+            }
+        }
+
+        return null;
+    }
+
+    public function getLocalizedName(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getName() ?? $this->name;
+    }
+
+    public function getLocalizedDescription(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getDescription() ?? $this->description;
+    }
+
+    public function getLocalizedCooking(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getCooking() ?? $this->cooking;
+    }
+
+    public function getLocalizedInformations(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getInformations() ?? $this->informations;
     }
 
     public function getName(): ?string

@@ -10,7 +10,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/epices/composes_aromatiques')]
+#[Route('/{_locale}/epices/composes_aromatiques', defaults: [
+    '_locale' => 'fr',
+])]
 class AromaticCompoundController extends AbstractController
 {
     #[Route('/', name: 'index_aromatic_compound')]

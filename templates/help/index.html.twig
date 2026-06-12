@@ -1,38 +1,38 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Aide · SpicyMatch{% endblock %}
+{% block title %}{{ 'ui.help.page_title'|trans }}{% endblock %}
 
 {% block body %}
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <h1 class="text-3xl font-bold text-stone-800 mb-4">Centre d'aide</h1>
-    <p class="text-stone-600 mb-10">Tout ce qu'il faut savoir sur les mécaniques du site.</p>
+    <h1 class="text-3xl font-bold text-stone-800 mb-4">{{ 'ui.help.title'|trans }}</h1>
+    <p class="text-stone-600 mb-10">{{ 'ui.help.intro'|trans }}</p>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <a href="{{ path('help_topic', { topic: 'gamification' }) }}"
            class="block p-6 rounded-2xl border border-stone-200 bg-white hover:border-saffron-400 hover:bg-spice-surface transition-all">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600 mb-3">
-                <i class="fa-solid fa-trophy"></i>
+                <i class="fa-solid fa-trophy" aria-hidden="true"></i>
             </div>
-            <h2 class="text-lg font-bold text-stone-800 mb-1">Gamification</h2>
-            <p class="text-sm text-stone-600">XP, niveaux, streaks, limites quotidiennes.</p>
+            <h2 class="text-lg font-bold text-stone-800 mb-1">{{ 'ui.help.gamification'|trans }}</h2>
+            <p class="text-sm text-stone-600">{{ 'ui.help.gamification_desc'|trans }}</p>
         </a>
 
         <a href="{{ path('help_topic', { topic: 'academie' }) }}"
            class="block p-6 rounded-2xl border border-stone-200 bg-white hover:border-saffron-400 hover:bg-spice-surface transition-all">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600 mb-3">
-                <i class="fa-solid fa-graduation-cap"></i>
+                <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
             </div>
-            <h2 class="text-lg font-bold text-stone-800 mb-1">L'Académie</h2>
-            <p class="text-sm text-stone-600">6 modes de jeu, règles, difficulté, scoring.</p>
+            <h2 class="text-lg font-bold text-stone-800 mb-1">{{ 'ui.common.academy'|trans }}</h2>
+            <p class="text-sm text-stone-600">{{ 'ui.help.academy_desc'|trans }}</p>
         </a>
 
         <a href="{{ path('help_topic', { topic: 'easter-eggs' }) }}"
            class="block p-6 rounded-2xl border border-stone-200 bg-white hover:border-saffron-400 hover:bg-spice-surface transition-all">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600 mb-3">
-                <i class="fa-solid fa-egg"></i>
+                <i class="fa-solid fa-egg" aria-hidden="true"></i>
             </div>
-            <h2 class="text-lg font-bold text-stone-800 mb-1">Easter Eggs</h2>
-            <p class="text-sm text-stone-600">Les trouvailles cachées, sans spoiler.</p>
+            <h2 class="text-lg font-bold text-stone-800 mb-1">{{ 'ui.help.easter_eggs'|trans }}</h2>
+            <p class="text-sm text-stone-600">{{ 'ui.help.easter_eggs_desc'|trans }}</p>
         </a>
     </div>
 </div>

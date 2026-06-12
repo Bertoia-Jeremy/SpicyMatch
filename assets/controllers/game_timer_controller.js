@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
+import { t } from '../i18n.js';
 
 /**
  * Wall-clock countdown timer for Live Component games.
@@ -21,7 +22,7 @@ import { Controller } from '@hotwired/stimulus';
  * re-renders as long as the containing element has `data-live-ignore`.
  */
 export default class extends Controller {
-    static targets = ['label', 'bar', 'timeoutButton'];
+    static targets = ['label', 'bar', 'timeoutButton', 'announcer'];
 
     static values = {
         // Unix timestamp (seconds) at which the game expires.
@@ -55,6 +56,16 @@ export default class extends Controller {
             this.labelTarget.textContent = `${minutes}:${String(seconds).padStart(2, '0')}`;
             this.labelTarget.classList.toggle('text-paprika-600', remaining <= this.dangerThresholdValue);
             this.labelTarget.classList.toggle('text-stone-700', remaining > this.dangerThresholdValue);
+        }
+
+        // Annonce SR toutes les 10 s (par décade : insensible aux ticks sautés)
+        const decade = Math.floor(remaining / 10);
+        if (this.hasAnnouncerTarget && remaining > 0 && decade !== this.lastAnnounced) {
+            this.lastAnnounced = decade;
+            const minutes = Math.floor(remaining / 60);
+            const seconds = remaining % 60;
+            const time = minutes > 0 ? `${minutes} min ${seconds} s` : `${seconds} s`;
+            this.announcerTarget.textContent = t('timer.remaining', '%time% restantes').replace('%time%', time);
         }
 
         if (this.hasBarTarget && this.totalSecondsValue > 0) {

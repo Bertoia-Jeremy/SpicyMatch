@@ -8,6 +8,7 @@ use App\Entity\AromaticGroups;
 use App\Entity\Spices;
 use App\Entity\SpicyType;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 
@@ -36,7 +37,7 @@ use Doctrine\Persistence\ObjectManager;
  *
  *   → Safran (safranal unique — peu ou pas de compatibilité cross-group)
  */
-class SpicesFixtures extends Fixture implements DependentFixtureInterface
+class SpicesFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     /**
      * @var array<string, array{
@@ -456,5 +457,10 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies(): array
     {
         return [AromaticGroupsFixtures::class, SpicyTypeFixtures::class, AromaticCompoundFixtures::class];
+    }
+
+    public static function getGroups(): array
+    {
+        return ['spice_content'];
     }
 }

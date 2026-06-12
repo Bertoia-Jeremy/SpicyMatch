@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class RegistrationController extends AbstractController
 {
@@ -33,6 +34,7 @@ class RegistrationController extends AbstractController
         UserPasswordHasherInterface $userPasswordHasher,
         UserAuthenticatorInterface $authenticator,
         LoginFormAuthenticator $loginFormAuthenticator,
+        TranslatorInterface $translator,
     ): Response {
         $user = $this->usersFactory->create();
         $form = $this->createForm(RegistrationFormType::class, $user);
@@ -56,7 +58,7 @@ class RegistrationController extends AbstractController
 
             $this->em->flush();
 
-            $this->addFlash('success', 'Votre compte a été créé avec succès !');
+            $this->addFlash('success', $translator->trans('flash.account_created'));
 
             return $authenticator->authenticateUser($user, $loginFormAuthenticator, $request);
         }

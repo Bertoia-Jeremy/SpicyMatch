@@ -45,6 +45,19 @@ class GamificationManager implements GamificationManagerInterface
     ) {
     }
 
+    public function getOrCreateProgression(Users $user): UserProgression
+    {
+        $progression = $user->getProgression();
+        if ($progression === null) {
+            $progression = new UserProgression();
+            $progression->setUser($user);
+            $user->setProgression($progression);
+            $this->em->persist($progression);
+        }
+
+        return $progression;
+    }
+
     public function getOrCreateStats(Users $user): UserStat
     {
         $stats = $user->getStats();
@@ -103,7 +116,9 @@ class GamificationManager implements GamificationManagerInterface
             $progression->addXp($achievement->getXpReward());
             $this->em->persist(new PendingGamificationNotification($user, 'achievement_unlocked', [
                 'slug' => $achievement->getSlug(),
-                'name' => $achievement->getName(),
+                // Nom localisé selon la locale de l'utilisateur au moment du déblocage
+                // (le slug reste stocké pour une re-traduction éventuelle).
+                'name' => $achievement->getLocalizedName($user->getLocale()),
                 'icon' => $achievement->getIcon(),
                 'rarity' => $achievement->getRarity()
                     ->value,
@@ -190,14 +205,20 @@ class GamificationManager implements GamificationManagerInterface
         }
     }
 
+    /**
+     * Retourne une CLÉ de traduction (pas le libellé FR) — la notification est
+     * persistée puis rendue plus tard, potentiellement dans une autre locale.
+     * Le rendu fait |trans (cf. _notification_stream.html.twig). Évite de figer
+     * la langue à la persistance.
+     */
     private function sourceLabelFor(string $eventType): string
     {
         return match ($eventType) {
-            'match_saved' => 'Mélange sauvegardé',
-            'spice_read' => 'Nouvelle fiche lue',
-            'easter_egg_found' => 'Easter egg trouvé',
-            'favorite_toggled' => 'Favori ajouté',
-            'game_completed' => 'Partie terminée',
+            'match_saved' => 'gamification.source.match_saved',
+            'spice_read' => 'gamification.source.spice_read',
+            'easter_egg_found' => 'gamification.source.easter_egg_found',
+            'favorite_toggled' => 'gamification.source.favorite_toggled',
+            'game_completed' => 'gamification.source.game_completed',
             default => '',
         };
     }

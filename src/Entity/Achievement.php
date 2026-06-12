@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Entity\Translation\TranslatableInterface;
 use App\Enum\AchievementRarity;
 use App\Enum\AchievementTrigger;
 use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use App\Repository\AchievementRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -16,7 +19,7 @@ use Doctrine\ORM\Mapping as ORM;
  * trigger_value is the threshold (e.g., 10 for "10 matches done").
  */
 #[ORM\Entity(repositoryClass: AchievementRepository::class)]
-class Achievement
+class Achievement implements TranslatableInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -87,9 +90,75 @@ class Achievement
     #[ORM\Column(nullable: true, enumType: GameDifficulty::class)]
     private ?GameDifficulty $contextDifficulty = null;
 
+    /**
+     * @var Collection<int, AchievementTranslation>
+     */
+    #[ORM\OneToMany(mappedBy: 'achievement', targetEntity: AchievementTranslation::class, cascade: [
+        'persist',
+        'remove',
+    ], orphanRemoval: true)]
+    private Collection $translations;
+
+    public function __construct()
+    {
+        $this->translations = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    /**
+     * @return Collection<int, AchievementTranslation>
+     */
+    public function getTranslations(): Collection
+    {
+        return $this->translations;
+    }
+
+    public function addTranslation(AchievementTranslation $translation): static
+    {
+        if (! $this->translations->contains($translation)) {
+            $this->translations->add($translation);
+            $translation->setAchievement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTranslation(AchievementTranslation $translation): static
+    {
+        if ($this->translations->removeElement($translation) && $translation->getAchievement() === $this) {
+            $translation->setAchievement(null);
+        }
+
+        return $this;
+    }
+
+    public function getTranslation(string $locale): ?AchievementTranslation
+    {
+        if ($locale === 'fr') {
+            return null;
+        }
+
+        foreach ($this->translations as $t) {
+            if ($t->getLocale() === $locale) {
+                return $t;
+            }
+        }
+
+        return null;
+    }
+
+    public function getLocalizedName(string $locale): string
+    {
+        return $this->getTranslation($locale)?->getName() ?? $this->name;
+    }
+
+    public function getLocalizedDescription(string $locale): string
+    {
+        return $this->getTranslation($locale)?->getDescription() ?? $this->description;
     }
 
     public function getSlug(): string

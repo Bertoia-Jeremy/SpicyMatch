@@ -10,31 +10,46 @@
         @keydown.enter.prevent="window.location.href = '{{ path('search_results') }}?q=' + encodeURIComponent($el.value)"
     >
     {% if this.query %}
-        <button type="button"
-                data-action="live#action"
-                data-live-action-param="clearQuery"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
-                aria-label="{{ 'ui.search.clear'|trans }}">
-            <i class="fa-solid fa-xmark text-xs" aria-hidden="true"></i>
-        </button>
+        <twig:Button
+            label="{{ 'ui.search.clear'|trans }}"
+            variant="ghost"
+            iconOnly
+            icon="fa-solid fa-xmark"
+            data-action="live#action"
+            data-live-action-param="clearQuery"
+            extra="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
+        />
     {% endif %}
     {% if this.query|length >= 2 %}
         <div class="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-spice-border z-50 overflow-hidden">
             {% if this.results is defined and this.results is not empty %}
                 {% for result in this.results %}
                     {% if result.type == 'spice' %}
-                        <a href="{{ path('view_spice', {id: result.id}) }}"
-                           class="block px-4 py-2.5 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 border-b border-stone-100 last:border-0 transition-colors">
-                            {{ result.name }}
-                            <span class="text-xs text-saffron-600 ml-1">{{ 'ui.search.spice'|trans }}</span>
-                        </a>
+                        {% set href = path('view_spice', {id: result.id}) %}
+                        {% set badge = 'ui.search.spice'|trans %}
+                        {% set badgeClass = 'text-saffron-600' %}
+                    {% elseif result.type == 'aromatic_group' %}
+                        {% set href = path('index_aromatic_groups') %}
+                        {% set badge = 'ui.search.aromatic_group'|trans %}
+                        {% set badgeClass = 'text-saffron-600' %}
+                    {% elseif result.type == 'alchemy_flavor' %}
+                        {% set href = path('view_alchemy_flavors', {id: result.id}) %}
+                        {% set badge = 'ui.search.alchemy_flavor'|trans %}
+                        {% set badgeClass = 'text-paprika-700' %}
+                    {% elseif result.type == 'preparation_method' %}
+                        {% set href = path('view_preparation_methods', {id: result.id}) %}
+                        {% set badge = 'ui.search.preparation_method'|trans %}
+                        {% set badgeClass = 'text-stone-600' %}
                     {% else %}
-                        <a href="{{ path('view_aromatic_compound', {id: result.id}) }}"
-                           class="block px-4 py-2.5 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 border-b border-stone-100 last:border-0 transition-colors">
-                            {{ result.name }}
-                            <span class="text-xs text-turmeric-600 ml-1">{{ 'ui.search.compound'|trans }}</span>
-                        </a>
+                        {% set href = path('view_aromatic_compound', {id: result.id}) %}
+                        {% set badge = 'ui.search.compound'|trans %}
+                        {% set badgeClass = 'text-turmeric-600' %}
                     {% endif %}
+                    <a href="{{ href }}"
+                       class="block px-4 py-2.5 text-sm text-stone-700 hover:bg-spice-surface hover:text-saffron-700 border-b border-stone-100 last:border-0 transition-colors">
+                        {{ result.name }}
+                        <span class="text-xs {{ badgeClass }} ml-1">{{ badge }}</span>
+                    </a>
                 {% endfor %}
                 <a href="{{ path('search_results') }}?q={{ this.query|url_encode }}"
                    class="flex items-center justify-center gap-1.5 px-4 py-2 text-xs text-stone-400 hover:text-saffron-700 hover:bg-stone-50 border-t border-stone-100 transition-colors">

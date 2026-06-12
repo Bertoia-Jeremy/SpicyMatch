@@ -24,10 +24,7 @@
                        focus:outline-none focus:ring-2 focus:ring-saffron-600/30 focus:border-saffron-600/40
                        transition-colors shadow-sm"
             >
-            <button type="submit"
-                    class="btn-pill-primary px-6 py-3">
-                {{ 'ui.search.submit'|trans }}
-            </button>
+            <twig:Button label="{{ 'ui.search.submit'|trans }}" variant="primary" type="submit" size="lg" />
         </form>
     </div>
 
@@ -39,9 +36,11 @@
                 <span class="text-stone-700 font-medium">« {{ query }} »</span>
             </p>
 
-            {# Séparer épices et composés #}
             {% set spiceResults = results|filter(r => r.type == 'spice') %}
             {% set compoundResults = results|filter(r => r.type == 'aromatic_compound') %}
+            {% set groupResults = results|filter(r => r.type == 'aromatic_group') %}
+            {% set flavorResults = results|filter(r => r.type == 'alchemy_flavor') %}
+            {% set methodResults = results|filter(r => r.type == 'preparation_method') %}
 
             {% if spiceResults is not empty %}
                 <section class="mb-10">
@@ -62,7 +61,7 @@
             {% endif %}
 
             {% if compoundResults is not empty %}
-                <section>
+                <section class="mb-10">
                     <h2 class="text-sm font-bold text-stone-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-atom text-turmeric-500" aria-hidden="true"></i> {{ 'ui.search.compounds'|trans }}
                     </h2>
@@ -73,6 +72,60 @@
                                 <i class="fa-solid fa-atom text-turmeric-500 text-sm shrink-0" aria-hidden="true"></i>
                                 <span class="font-medium text-stone-800 group-hover:text-turmeric-700 transition-colors">{{ result.name }}</span>
                                 <span class="ml-auto text-xs text-turmeric-600 bg-turmeric-50 border border-turmeric-200 px-2 py-0.5 rounded-full">{{ 'ui.search.compound'|trans }}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endif %}
+
+            {% if groupResults is not empty %}
+                <section class="mb-10">
+                    <h2 class="text-sm font-bold text-stone-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-saffron-500" aria-hidden="true"></i> {{ 'ui.search.aromatic_groups'|trans }}
+                    </h2>
+                    <div class="space-y-2">
+                        {% for result in groupResults %}
+                            <a href="{{ path('index_aromatic_groups') }}"
+                               class="flex items-center gap-3 px-5 py-3.5 bg-white border border-stone-200 rounded-xl hover:border-saffron-400/60 hover:shadow-sm transition-all group">
+                                <i class="fa-solid fa-layer-group text-saffron-500 text-sm shrink-0" aria-hidden="true"></i>
+                                <span class="font-medium text-stone-800 group-hover:text-saffron-700 transition-colors">{{ result.name }}</span>
+                                <span class="ml-auto text-xs text-saffron-600 bg-saffron-50 border border-saffron-200 px-2 py-0.5 rounded-full">{{ 'ui.search.aromatic_group'|trans }}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endif %}
+
+            {% if flavorResults is not empty %}
+                <section class="mb-10">
+                    <h2 class="text-sm font-bold text-stone-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-droplet text-paprika-700" aria-hidden="true"></i> {{ 'ui.search.alchemy_flavors'|trans }}
+                    </h2>
+                    <div class="space-y-2">
+                        {% for result in flavorResults %}
+                            <a href="{{ path('view_alchemy_flavors', {id: result.id}) }}"
+                               class="flex items-center gap-3 px-5 py-3.5 bg-white border border-stone-200 rounded-xl hover:border-paprika-200 hover:shadow-sm transition-all group">
+                                <i class="fa-solid fa-droplet text-paprika-700 text-sm shrink-0" aria-hidden="true"></i>
+                                <span class="font-medium text-stone-800 group-hover:text-paprika-700 transition-colors">{{ result.name }}</span>
+                                <span class="ml-auto text-xs text-paprika-700 bg-paprika-50 border border-paprika-200 px-2 py-0.5 rounded-full">{{ 'ui.search.alchemy_flavor'|trans }}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endif %}
+
+            {% if methodResults is not empty %}
+                <section>
+                    <h2 class="text-sm font-bold text-stone-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-mortar-pestle text-stone-500" aria-hidden="true"></i> {{ 'ui.search.preparation_methods'|trans }}
+                    </h2>
+                    <div class="space-y-2">
+                        {% for result in methodResults %}
+                            <a href="{{ path('view_preparation_methods', {id: result.id}) }}"
+                               class="flex items-center gap-3 px-5 py-3.5 bg-white border border-stone-200 rounded-xl hover:border-stone-400/60 hover:shadow-sm transition-all group">
+                                <i class="fa-solid fa-mortar-pestle text-stone-500 text-sm shrink-0" aria-hidden="true"></i>
+                                <span class="font-medium text-stone-800 group-hover:text-stone-900 transition-colors">{{ result.name }}</span>
+                                <span class="ml-auto text-xs text-stone-600 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full">{{ 'ui.search.preparation_method'|trans }}</span>
                             </a>
                         {% endfor %}
                     </div>

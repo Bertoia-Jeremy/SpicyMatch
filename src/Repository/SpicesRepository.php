@@ -165,9 +165,6 @@ class SpicesRepository extends ServiceEntityRepository
     }
 
     /**
-     * Recherche multilingue : matche nom FR ET traduit, renvoie le nom localisé.
-     * En FR (ou null) → requête simple sans JOIN.
-     *
      * @return list<array{id: int, name: string, type: string}>
      */
     public function search(string $word, ?string $locale = null): array
@@ -182,52 +179,69 @@ class SpicesRepository extends ServiceEntityRepository
             ->getConnection();
 
         if ($locale === null || $locale === 'fr') {
-            $sql = 'SELECT s.id, s.name, IF(1, "spice", "") as `type`
+            $sql = "SELECT s.id, s.name, 'spice' AS `type`
                     FROM spices s
-                    WHERE s.name LIKE ?
-                        AND deleted_at IS NULL
+                    WHERE s.name LIKE ? AND s.deleted_at IS NULL
                     UNION
-                    SELECT ac.id, ac.name, IF(1, "aromatic_compound", "") as `type`
+                    SELECT ac.id, ac.name, 'aromatic_compound' AS `type`
                     FROM aromatic_compound ac
-                    WHERE ac.name LIKE ?
-                        AND deleted_at IS NULL
+                    WHERE ac.name LIKE ? AND ac.deleted_at IS NULL
+                    UNION
+                    SELECT ag.id, ag.name, 'aromatic_group' AS `type`
+                    FROM aromatic_groups ag
+                    WHERE ag.name LIKE ? AND ag.deleted_at IS NULL
+                    UNION
+                    SELECT af.id, af.name, 'alchemy_flavor' AS `type`
+                    FROM alchemy_flavors af
+                    WHERE af.name LIKE ? AND af.deleted_at IS NULL
+                    UNION
+                    SELECT pm.id, pm.name, 'preparation_method' AS `type`
+                    FROM preparation_methods pm
+                    WHERE pm.name LIKE ? AND pm.deleted_at IS NULL
                     ORDER BY `name`
-                    LIMIT 10';
+                    LIMIT 20";
 
-            $stmt = $conn->prepare($sql);
-            $stmt->bindValue(1, $like);
-            $stmt->bindValue(2, $like);
-
-            return $stmt->executeQuery()
+            return $conn->executeQuery($sql, [$like, $like, $like, $like, $like])
                 ->fetchAllAssociative();
         }
 
-        $sql = 'SELECT s.id, COALESCE(st.name, s.name) AS name, IF(1, "spice", "") as `type`
+        $sql = "SELECT s.id, COALESCE(st.name, s.name) AS name, 'spice' AS `type`
                 FROM spices s
                 LEFT JOIN spice_translation st
                     ON st.spice_id = s.id AND st.locale = ?
-                WHERE (s.name LIKE ? OR st.name LIKE ?)
-                    AND s.deleted_at IS NULL
+                WHERE (s.name LIKE ? OR st.name LIKE ?) AND s.deleted_at IS NULL
                 UNION
-                SELECT ac.id, COALESCE(act.name, ac.name) AS name, IF(1, "aromatic_compound", "") as `type`
+                SELECT ac.id, COALESCE(act.name, ac.name) AS name, 'aromatic_compound' AS `type`
                 FROM aromatic_compound ac
                 LEFT JOIN aromatic_compound_translation act
                     ON act.aromatic_compound_id = ac.id AND act.locale = ?
-                WHERE (ac.name LIKE ? OR act.name LIKE ?)
-                    AND ac.deleted_at IS NULL
+                WHERE (ac.name LIKE ? OR act.name LIKE ?) AND ac.deleted_at IS NULL
+                UNION
+                SELECT ag.id, COALESCE(agt.name, ag.name) AS name, 'aromatic_group' AS `type`
+                FROM aromatic_groups ag
+                LEFT JOIN aromatic_groups_translation agt
+                    ON agt.aromatic_groups_id = ag.id AND agt.locale = ?
+                WHERE (ag.name LIKE ? OR agt.name LIKE ?) AND ag.deleted_at IS NULL
+                UNION
+                SELECT af.id, af.name AS name, 'alchemy_flavor' AS `type`
+                FROM alchemy_flavors af
+                WHERE af.name LIKE ? AND af.deleted_at IS NULL
+                UNION
+                SELECT pm.id, COALESCE(pmt.name, pm.name) AS name, 'preparation_method' AS `type`
+                FROM preparation_methods pm
+                LEFT JOIN preparation_methods_translation pmt
+                    ON pmt.preparation_methods_id = pm.id AND pmt.locale = ?
+                WHERE (pm.name LIKE ? OR pmt.name LIKE ?) AND pm.deleted_at IS NULL
                 ORDER BY `name`
-                LIMIT 10';
+                LIMIT 20";
 
-        $stmt = $conn->prepare($sql);
-        $stmt->bindValue(1, $locale);
-        $stmt->bindValue(2, $like);
-        $stmt->bindValue(3, $like);
-        $stmt->bindValue(4, $locale);
-        $stmt->bindValue(5, $like);
-        $stmt->bindValue(6, $like);
-
-        return $stmt->executeQuery()
-            ->fetchAllAssociative();
+        return $conn->executeQuery($sql, [
+            $locale, $like, $like,
+            $locale, $like, $like,
+            $locale, $like, $like,
+            $like,
+            $locale, $like, $like,
+        ])->fetchAllAssociative();
     }
 
     /**

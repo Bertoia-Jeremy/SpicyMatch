@@ -4,6 +4,9 @@ common:
         submit: Submit
         save: Save
         cancel: Cancel
+    close: Close
+    delete: Delete
+    reset: Reset
 
 form:
     contact:
@@ -125,15 +128,21 @@ ui:
         full_search_page: Full search page
         page_title: Search
         title: Search
-        full_placeholder: Spice, aromatic compound...
+        full_placeholder: Spice, compound, group, flavor, method...
         submit: Search
         results_count: '%count% result(s) for'
         spices: Spices
         compounds: Aromatic compounds
+        aromatic_group: Group
+        aromatic_groups: Aromatic groups
+        alchemy_flavor: Flavor
+        alchemy_flavors: Aromatic flavors
+        preparation_method: Method
+        preparation_methods: Preparation methods
         no_result: No result
-        no_result_text: 'No spice or aromatic compound matches "%query%".'
+        no_result_text: 'Nothing matches "%query%".'
         try_another: Try another term or check the spelling.
-        prompt: Enter a term to explore spices and aromatic compounds.
+        prompt: Enter a term to explore spices, compounds, groups, flavors and methods.
     pagination:
         nav_label: Page navigation
         per_page_hint: Spices per page — changing it reloads the list
@@ -190,6 +199,7 @@ ui:
         choose_start_text: Select the spice you want to start your chain with.
         current_spice: Current spice
         which_compatible: Which spice is compatible?
+        air_context_note: Compatibility evaluated in air (dry blend)
         guesswho_subtitle: Guess the spice from the clues
         it_was_indeed: 'It was indeed %name%'
         points_earned: '+%points% points'
@@ -328,6 +338,7 @@ ui:
         history: History
         security: Security
     recipe:
+        new_blend: Create a new blend
         matrix_caption: Compatibility scores by cooking matrix
         folio: 'Folio · %id% · Laboratory Notebook'
         rename_aria: Rename the recipe
@@ -504,6 +515,7 @@ ui:
         no_recent_blend: No recent blend.
         no_progress: No progress yet
         no_progress_hint: Create your first blend to unlock your progression and earn XP!
+        see_all_achievements: View all achievements
     achievements:
         unlocked_count: '%count% / %total% achievements unlocked'
         xp_from_achievements: '+%xp% XP earned through achievements'
@@ -525,6 +537,7 @@ ui:
         create_first: Create my first blend
         my_favorites: My favorites
         remove_favorite: Remove from favorites
+        back_to_history: Back to history
         no_favorites: You don't have any favorite blend yet.
         see_my_blends: See my blends
         subtitle: Find all your saved recipes.
@@ -542,6 +555,7 @@ ui:
         code: 'Error code:'
         persist: If the problem persists, please contact the administrator.
         home: Home
+        report: Report
     security:
         password: Password
         password_text: Changing the password is not available yet.
@@ -553,6 +567,7 @@ ui:
         match_label: Match
         compat: Compat.
         see_details: View details
+        see_sheet: View page
         flavors_heading_html: 'The <em class="italic not-italic" style="color: %color%">flavors</em>'
         primary_compounds_heading_html: 'Primary <em class="italic" style="color: %color%">compounds</em>'
         in_kitchen_heading_html: 'When the spice <em class="italic" style="color: %color%">slips into</em> your dish'

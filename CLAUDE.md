@@ -43,7 +43,8 @@
 ## 3. Contraintes Techniques
 
 ### Code
-- **Toujours expliquer le *pourquoi* avant le *comment*** pour les décisions architecturales non triviales
+- **🚫 ZÉRO commentaire dans le code (RÈGLE DURE, PERMANENTE)** — n'écris JAMAIS de commentaire : ni `//`, `/* */`, `#`, ni bloc Twig `{# #}`, ni prose explicative dans un docblock. Le code doit être auto-explicite via le nommage. Conserve **uniquement** les annotations strictement fonctionnelles : `@param`/`@return`/`@var`/`@throws` requis par PHPStan, et les attributs PHP. **Seule exception** : l'utilisateur demande explicitement un commentaire.
+- Le *pourquoi* d'une décision non triviale s'explique dans la **réponse de chat** (et au besoin le message de commit / la PR), **jamais** dans le code.
 - Les blocs de code incluent **systématiquement** le langage (` ```php `, ` ```typescript `, ` ```bash `, etc.)
 - Préférer les diffs ciblés aux fichiers complets sauf si la refonte totale est justifiée
 - Signaler explicitement les implications de sécurité, les effets de bord ou les breaking changes
@@ -358,6 +359,7 @@ architecture:
       - "Le log vit dans le SCORER, pas la shadow table : la correction Nernst multiplie en runtime, log(OAV×f)≠log(OAV)×f."
       - "MatchPipeline + CompoundPhysicalRepository + MatchConfidenceAssessor NON-final volontairement (mock PHPUnit)."
       - "spice_active_compound sans FK → schema:update ne crée pas les FK. Intentionnel."
+      - "⚠️ COLONNES JOINTURE : spices_aromatic_compound + secondary_spices_aromatic_compound = colonne `spices_id` (PLURIEL, nommage ManyToMany Doctrine). spice_active_compound (shadow) = `spice_id` (SINGULIER). Ne pas confondre : findSurvivorsWithPresence (repli présence) doit projeter `spices_id AS spice_id`. Bug latent corrigé 2026-06-10 (exposé par la purge véracité → repli présence enfin exercé)."
       - "Messenger transport Doctrine + MariaDB : use_notify ignoré → polling 60s. Rebuild OAV pas instantané."
       - "CompatibilityScoreService SUPPRIMÉ — consumers : SpicyMatch (Lab), QcmQuestionGenerator, AcademyManager."
     data_status: "⚠️ DONNÉES FICTIVES (tier D/placeholder) : 15 composés, 105 concentrations. Cause connue du 'Carvi 64%' : carvone absente. Plan d'acquisition réel : docs/PLAN_ACQUISITION_DONNEES.md. Infra qualité (Leviers 1-6) prête à recevoir les vraies données."
@@ -465,6 +467,7 @@ design_system:
     - "@source chemin relatif au fichier SCSS: '../../templates/**/*.html.twig'"
     - "Après tout changement de classes, relancer: yarn build"
   composants_reference:
+    button:         "templates/components/Button.html.twig — composant anonyme <twig:Button> UNIQUE pour tous les boutons pill. Props: label (TOUJOURS |trans), variant (primary|secondary|danger|ghost|back), size (xs→xl), href (→<a> sinon <button>), type, icon (FA ou SVG), iconPos, iconOnly (masque label→sr-only+aria-label), disabled (sur <a>: drop href+aria-disabled+tabindex=-1), external, extra (marge/position uniquement). Attributs non déclarés (@click/data-*/wire/x-bind) forwardés via attributes.defaults(). ⚠️ Alpine: PAS de shorthand `:disabled`/`:class` (Twig le prend pour une prop dynamique) → utiliser `x-bind:disabled`. CSS: .btn-pill-base + .btn-pill-{primary,outline,danger,ghost} dans assets/styles/components/buttons.css. Ancienne macro macros/buttons.html.twig SUPPRIMÉE. NON migrés volontairement (langage visuel ≠ pill, ne PAS forcer): Lab SpicyMatch.html.twig (rounded-xl), toggles vue spicy_type/aromatic_compound (rounded-lg), carousel embla, widgets à contenu dynamique (password toggle x-text, equip double-span, fav star :class), décoratifs (timer caché, pagination)."
     navbar:         "templates/components/_navbar.html.twig — sticky cream/80 backdrop-blur h-20 z-50"
     footer:         "templates/components/_footer.html.twig — bg-paprika-900 text-cream 4 colonnes"
     search:         "templates/components/Search.html.twig — bg-white/80 rounded-full border-spice-border"

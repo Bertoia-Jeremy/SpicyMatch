@@ -4,6 +4,9 @@ common:
         submit: Enviar
         save: Guardar
         cancel: Cancelar
+    close: Cerrar
+    delete: Eliminar
+    reset: Restablecer
 
 form:
     contact:
@@ -125,15 +128,21 @@ ui:
         full_search_page: Página de búsqueda completa
         page_title: Búsqueda
         title: Búsqueda
-        full_placeholder: Especia, compuesto aromático...
+        full_placeholder: Especia, compuesto, grupo, sabor, método...
         submit: Buscar
         results_count: '%count% resultado(s) para'
         spices: Especias
         compounds: Compuestos aromáticos
+        aromatic_group: Grupo
+        aromatic_groups: Grupos aromáticos
+        alchemy_flavor: Sabor
+        alchemy_flavors: Sabores aromáticos
+        preparation_method: Método
+        preparation_methods: Métodos de preparación
         no_result: Ningún resultado
-        no_result_text: 'Ninguna especia ni compuesto aromático coincide con «%query%».'
+        no_result_text: 'Nada coincide con «%query%».'
         try_another: Prueba con otro término o revisa la ortografía.
-        prompt: Escribe un término para explorar especias y compuestos aromáticos.
+        prompt: Escribe un término para explorar especias, compuestos, grupos, sabores y métodos.
     pagination:
         nav_label: Navegación de páginas
         per_page_hint: Especias por página — la selección recarga la lista
@@ -190,6 +199,7 @@ ui:
         choose_start_text: Selecciona la especia con la que quieres comenzar tu cadena.
         current_spice: Especia actual
         which_compatible: ¿Qué especia es compatible?
+        air_context_note: Compatibilidad evaluada en aire (mezcla seca)
         guesswho_subtitle: Adivina la especia con las pistas
         it_was_indeed: 'Era %name%'
         points_earned: '+%points% puntos'
@@ -328,6 +338,7 @@ ui:
         history: Historial
         security: Seguridad
     recipe:
+        new_blend: Crear una nueva mezcla
         matrix_caption: Puntuaciones de compatibilidad por matriz de cocción
         folio: 'Folio · %id% · Cuaderno del Laboratorio'
         rename_aria: Renombrar la receta
@@ -504,6 +515,7 @@ ui:
         no_recent_blend: Ninguna mezcla reciente.
         no_progress: Ningún progreso por ahora
         no_progress_hint: ¡Crea tu primera mezcla para desbloquear tu progresión y ganar XP!
+        see_all_achievements: Ver todos los logros
     achievements:
         unlocked_count: '%count% / %total% logros desbloqueados'
         xp_from_achievements: '+%xp% XP ganados con los logros'
@@ -525,6 +537,7 @@ ui:
         create_first: Crear mi primera mezcla
         my_favorites: Mis favoritos
         remove_favorite: Quitar de favoritos
+        back_to_history: Volver al historial
         no_favorites: Todavía no tienes ninguna mezcla favorita.
         see_my_blends: Ver mis mezclas
         subtitle: Encuentra todas tus recetas guardadas.
@@ -542,6 +555,7 @@ ui:
         code: 'Código de error:'
         persist: Si el problema persiste, contacta con el administrador.
         home: Inicio
+        report: Reportar
     security:
         password: Contraseña
         password_text: La modificación de la contraseña aún no está disponible.
@@ -553,6 +567,7 @@ ui:
         match_label: Match
         compat: Compat.
         see_details: Ver detalles
+        see_sheet: Ver la ficha
         flavors_heading_html: 'Los <em class="italic not-italic" style="color: %color%">sabores</em>'
         primary_compounds_heading_html: 'Compuestos <em class="italic" style="color: %color%">primarios</em>'
         in_kitchen_heading_html: 'Cuando la especia <em class="italic" style="color: %color%">se integra</em> en tu plato'

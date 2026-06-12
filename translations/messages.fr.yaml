@@ -4,6 +4,9 @@ common:
         submit: Valider
         save: Enregistrer
         cancel: Annuler
+    close: Fermer
+    delete: Supprimer
+    reset: Réinitialiser
 
 form:
     contact:
@@ -125,15 +128,21 @@ ui:
         full_search_page: Page de recherche complète
         page_title: Recherche
         title: Recherche
-        full_placeholder: Épice, composé aromatique...
+        full_placeholder: Épice, composé, groupe, saveur, méthode...
         submit: Rechercher
         results_count: '%count% résultat(s) pour'
         spices: Épices
         compounds: Composés aromatiques
+        aromatic_group: Groupe
+        aromatic_groups: Groupes aromatiques
+        alchemy_flavor: Saveur
+        alchemy_flavors: Saveurs aromatiques
+        preparation_method: Méthode
+        preparation_methods: Méthodes de préparation
         no_result: Aucun résultat
-        no_result_text: 'Aucune épice ni composé aromatique ne correspond à « %query% ».'
+        no_result_text: 'Rien ne correspond à « %query% ».'
         try_another: Essayez un autre terme ou vérifiez l'orthographe.
-        prompt: Saisissez un terme pour explorer épices et composés aromatiques.
+        prompt: Saisissez un terme pour explorer épices, composés, groupes, saveurs et méthodes.
     pagination:
         nav_label: Navigation des pages
         per_page_hint: Nombre d'épices par page — la sélection recharge la liste
@@ -190,6 +199,7 @@ ui:
         choose_start_text: Sélectionne l'épice avec laquelle tu veux commencer ta chaîne.
         current_spice: Épice courante
         which_compatible: Quelle épice est compatible ?
+        air_context_note: Compatibilités évaluées à l'air (mélange à sec)
         guesswho_subtitle: Devine l'épice grâce aux indices
         it_was_indeed: 'C''était bien %name%'
         points_earned: '+%points% points'
@@ -328,6 +338,7 @@ ui:
         history: Historique
         security: Sécurité
     recipe:
+        new_blend: Créer un nouveau mélange
         matrix_caption: Scores de compatibilité par matrice de cuisson
         folio: 'Folio · %id% · Carnet du Laboratoire'
         rename_aria: Renommer la recette
@@ -504,6 +515,7 @@ ui:
         no_recent_blend: Aucun mélange récent.
         no_progress: Aucune progression pour l'instant
         no_progress_hint: Créez votre premier mélange pour débloquer votre progression et gagner de l'XP !
+        see_all_achievements: Voir tous les succès
     achievements:
         unlocked_count: '%count% / %total% succès débloqués'
         xp_from_achievements: '+%xp% XP gagnés via les succès'
@@ -525,6 +537,7 @@ ui:
         create_first: Créer mon premier mélange
         my_favorites: Mes favoris
         remove_favorite: Retirer des favoris
+        back_to_history: Retour à l'historique
         no_favorites: Vous n'avez pas encore de mélange favori.
         see_my_blends: Voir mes mélanges
         subtitle: Retrouvez toutes vos recettes sauvegardées.
@@ -542,6 +555,7 @@ ui:
         code: 'Code d''erreur :'
         persist: Si le problème persiste, merci de contacter l'administrateur.
         home: Accueil
+        report: Signaler
     security:
         password: Mot de passe
         password_text: La modification du mot de passe n'est pas encore disponible.
@@ -553,6 +567,7 @@ ui:
         match_label: Match
         compat: Compat.
         see_details: Voir les détails
+        see_sheet: Voir la fiche
         flavors_heading_html: 'Les <em class="italic not-italic" style="color: %color%">saveurs</em>'
         primary_compounds_heading_html: 'Composés <em class="italic" style="color: %color%">primaires</em>'
         in_kitchen_heading_html: 'Quand l''épice <em class="italic" style="color: %color%">se glisse</em> dans votre plat'

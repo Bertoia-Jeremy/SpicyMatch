@@ -1,7 +1,6 @@
 {% extends 'users/dashboard.html.twig' %}
 
 {% block content %}
-    {% import 'macros/buttons.html.twig' as buttons %}
     <turbo-frame id="user_frame_id">
         {% include 'components/_user_tabs.html.twig' %}
 
@@ -11,6 +10,7 @@
                     <i class="fa-solid fa-clock-rotate-left text-saffron-600 text-base" aria-hidden="true"></i>{{ 'ui.history.title'|trans }}
                 </h2>
                 <a href="{{ path('index_spicy_match_history') }}"
+                   data-turbo-frame="_top"
                    class="text-sm text-saffron-700 hover:text-saffron-600 hover:underline transition-colors font-medium">
                     {{ 'ui.history.see_all'|trans }}
                 </a>
@@ -59,11 +59,12 @@
                 <div class="card-warm p-10 text-center">
                     <i class="fa-solid fa-flask text-stone-300 text-5xl mb-4 block" aria-hidden="true"></i>
                     <p class="text-stone-500 text-lg mb-6">{{ 'ui.history.none_yet'|trans }}</p>
-                    {{ buttons.button('ui.history.create_first'|trans, {
-                        href: path('index_spicy_match'),
-                        variant: 'primary',
-                        icon: 'fa-solid fa-fire'
-                    }) }}
+                    <twig:Button
+                        label="{{ 'ui.history.create_first'|trans }}"
+                        href="{{ path('index_spicy_match') }}"
+                        variant="primary"
+                        icon="fa-solid fa-fire"
+                    />
                 </div>
             {% endif %}
         </div>

@@ -82,6 +82,14 @@ services:
         arguments:
             $appSecret: '%kernel.secret%'
 
+    # Monétisation — flag global + régie (ethicalads|carbon), zéro octet pub si off ou user premium
+    App\Twig\Extension\AdsExtension:
+        arguments:
+            $enabled: '%env(bool:ADS_ENABLED)%'
+            $provider: '%env(ADS_PROVIDER)%'
+            $publisherId: '%env(ADS_PUBLISHER_ID)%'
+            $environment: '%kernel.environment%'
+
     # i18n — résolution de la locale par requête (route → user → session → Accept-Language → défaut)
     App\EventSubscriber\LocaleSubscriber:
         arguments:

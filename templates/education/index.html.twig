@@ -48,17 +48,19 @@
           {% else %}
             <span class="tag-secondary">{{ 'ui.edu.unlimited_questions'|trans }}</span>
           {% endif %}
-          {% if remaining <= 0 %}
-            <span class="tag-secondary bg-paprika-100 text-paprika-700 border-paprika-300 font-medium">
-                <i class="fa-solid fa-clock-rotate-left mr-1" aria-hidden="true"></i>{{ 'ui.edu.come_back_tomorrow'|trans }}
-            </span>
-          {% elseif count >= reducedXpThreshold %}
-            <span class="tag-secondary bg-turmeric-100 text-turmeric-700 border-turmeric-300"
-                  title="{{ 'ui.edu.reduced_xp_tooltip'|trans({'%threshold%': reducedXpThreshold}) }}">
-              {{ 'ui.edu.remaining_xp'|trans({'%count%': remaining}) }}
-            </span>
-          {% else %}
-            <span class="tag-secondary">{{ 'ui.edu.remaining_today'|trans({'%remaining%': remaining, '%max%': maxDailySessions}) }}</span>
+          {% if is_granted('ROLE_USER') %}
+            {% if remaining <= 0 %}
+              <span class="tag-secondary bg-paprika-100 text-paprika-700 border-paprika-300 font-medium">
+                  <i class="fa-solid fa-clock-rotate-left mr-1" aria-hidden="true"></i>{{ 'ui.edu.come_back_tomorrow'|trans }}
+              </span>
+            {% elseif count >= reducedXpThreshold %}
+              <span class="tag-secondary bg-turmeric-100 text-turmeric-700 border-turmeric-300"
+                    title="{{ 'ui.edu.reduced_xp_tooltip'|trans({'%threshold%': reducedXpThreshold}) }}">
+                {{ 'ui.edu.remaining_xp'|trans({'%count%': remaining}) }}
+              </span>
+            {% else %}
+              <span class="tag-secondary">{{ 'ui.edu.remaining_today'|trans({'%remaining%': remaining, '%max%': maxDailySessions}) }}</span>
+            {% endif %}
           {% endif %}
         </div>
       </a>
@@ -94,5 +96,9 @@
       </div>
     </div>
   {% endif %}
+
+  <div class="mt-12">
+    {% include 'partials/_ads_banner.html.twig' %}
+  </div>
 </div>
 {% endblock %}

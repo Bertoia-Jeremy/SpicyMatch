@@ -100,6 +100,34 @@
 
                 <div>
                     <h3 class="text-lg font-semibold text-stone-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-crown text-saffron-600 text-base" aria-hidden="true"></i>{{ 'ui.config.subscription'|trans }}
+                    </h3>
+                    <div class="card-warm p-5">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <p class="text-sm font-medium text-stone-800">
+                                    {% if user.isPremium %}
+                                        {{ 'ui.config.subscription_premium_until'|trans({'%date%': user.premiumUntil|format_date('long')}) }}
+                                    {% else %}
+                                        {{ 'ui.config.subscription_free'|trans }}
+                                    {% endif %}
+                                </p>
+                                <p class="text-xs text-stone-500 mt-1">{{ 'ui.config.subscription_text'|trans }}</p>
+                                {% if not user.isPremium %}
+                                    <p class="text-sm font-semibold text-saffron-700 mt-2">{{ 'ui.config.subscription_price'|trans }}</p>
+                                {% endif %}
+                            </div>
+                            {% if user.isPremium %}
+                                <span class="shrink-0 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-turmeric-300/40 text-saffron-800 border border-spice-border">{{ 'ui.config.subscription_premium_badge'|trans }}</span>
+                            {% else %}
+                                <span class="shrink-0 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-stone-100 text-stone-400 border border-stone-200">{{ 'ui.security.coming_soon'|trans }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-stone-800 mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-compass text-saffron-600 text-base" aria-hidden="true"></i>{{ 'ui.config.discovery_path'|trans }}
                     </h3>
                     <div class="card-warm p-5">

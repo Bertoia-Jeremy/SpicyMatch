@@ -1,0 +1,11 @@
+{% if ads_enabled() %}
+    <div class="w-full">
+        <div class="flex items-baseline gap-3 mb-1.5 px-1">
+            <span class="font-mono text-[10px] uppercase tracking-[0.2em]" style="color: var(--color-text-muted, #78716c)">{{ 'ui.ads.label'|trans }}</span>
+            <a href="{{ path('premium') }}" class="font-mono text-[10px] uppercase tracking-[0.2em] text-saffron-700 hover:text-saffron-600 hover:underline">{{ 'ui.ads.remove'|trans }}</a>
+        </div>
+        <div class="min-h-[160px] rounded-2xl border border-spice-border bg-spice-surface flex items-center justify-center overflow-hidden p-5">
+            {% include ads_template() %}
+        </div>
+    </div>
+{% endif %}

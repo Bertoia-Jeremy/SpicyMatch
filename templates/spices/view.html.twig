@@ -246,6 +246,10 @@
     </section>
     {% endif %}
 
+    <div class="my-12">
+        {% include 'partials/_ads_banner.html.twig' %}
+    </div>
+
     {# ─────────── En Cuisine (marmites) ─────────── #}
     {% if spice.cookingTips is not empty %}
     {% set sectionNum = sectionNum + 1 %}

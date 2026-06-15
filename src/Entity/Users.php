@@ -95,6 +95,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     ])]
     private OdtMatrix $defaultMatrix = OdtMatrix::AIR;
 
+    #[ORM\Column(name: 'premium_until', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $premiumUntil = null;
+
     /**
      * @var Collection<int, Spices>
      */
@@ -329,6 +332,23 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         $this->locale = $locale;
 
         return $this;
+    }
+
+    public function getPremiumUntil(): ?\DateTimeImmutable
+    {
+        return $this->premiumUntil;
+    }
+
+    public function setPremiumUntil(?\DateTimeImmutable $premiumUntil): static
+    {
+        $this->premiumUntil = $premiumUntil;
+
+        return $this;
+    }
+
+    public function isPremium(?\DateTimeImmutable $now = null): bool
+    {
+        return $this->premiumUntil !== null && $this->premiumUntil > ($now ?? new \DateTimeImmutable());
     }
 
     public function getDefaultMatrix(): OdtMatrix

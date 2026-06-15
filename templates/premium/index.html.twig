@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'ui.premium.title'|trans }}{% endblock %}
+
+{% block body %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+
+    <div class="text-center mb-10">
+        <span class="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full text-xs font-medium bg-turmeric-300/40 text-saffron-800 border border-spice-border">
+            <i class="fa-solid fa-crown" aria-hidden="true"></i>{{ 'ui.config.subscription_premium_badge'|trans }}
+        </span>
+        <h1 class="font-display text-4xl text-stone-900 mb-3">{{ 'ui.premium.title'|trans }}</h1>
+        <p class="text-stone-500 text-lg leading-relaxed max-w-xl mx-auto">{{ 'ui.premium.intro'|trans }}</p>
+    </div>
+
+    <div class="card-warm p-8">
+        <div class="text-center mb-6">
+            <p class="font-display text-3xl text-saffron-700">{{ 'ui.premium.price'|trans }}</p>
+        </div>
+
+        <ul class="space-y-3 mb-8 max-w-md mx-auto">
+            {% for benefit in ['ui.premium.benefit_adfree', 'ui.premium.benefit_support', 'ui.premium.benefit_future'] %}
+                <li class="flex items-start gap-3 text-stone-700">
+                    <i class="fa-solid fa-circle-check text-saffron-600 mt-1 shrink-0" aria-hidden="true"></i>
+                    <span>{{ benefit|trans }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <div class="flex flex-col items-center gap-3">
+            {% if is_granted('ROLE_USER') and app.user.isPremium %}
+                <p class="text-sm font-medium text-saffron-800">{{ 'ui.config.subscription_premium_until'|trans({'%date%': app.user.premiumUntil|format_date('long')}) }}</p>
+            {% elseif is_granted('ROLE_USER') %}
+                <twig:Button label="{{ 'ui.premium.cta_soon'|trans }}" variant="primary" size="lg" disabled="true" />
+                <p class="text-xs text-stone-500">{{ 'ui.premium.soon_hint'|trans }}</p>
+            {% else %}
+                <twig:Button label="{{ 'ui.premium.cta_login'|trans }}" href="{{ path('app_login') }}" variant="primary" size="lg" icon="fa-solid fa-right-to-bracket" />
+                <p class="text-xs text-stone-500">{{ 'ui.premium.login_hint'|trans }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

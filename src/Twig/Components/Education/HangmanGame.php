@@ -35,7 +35,7 @@ class HangmanGame extends AbstractController
     public int $questionNumber = 0;
 
     #[LiveProp]
-    public int $totalQuestions = 7;
+    public int $totalQuestions = 5;
 
     #[LiveProp]
     public int $correctCount = 0;

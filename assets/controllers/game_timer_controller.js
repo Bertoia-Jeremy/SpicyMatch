@@ -35,8 +35,12 @@ export default class extends Controller {
     };
 
     connect() {
+        const nowMs = Date.now();
+        this.deadlineMs = this.totalSecondsValue > 0
+            ? nowMs + this.totalSecondsValue * 1000
+            : this.expiresAtValue * 1000;
         this.render();
-        this.interval = window.setInterval(() => this.render(), 1000);
+        this.interval = window.setInterval(() => this.render(), 250);
     }
 
     disconnect() {
@@ -47,8 +51,8 @@ export default class extends Controller {
     }
 
     render() {
-        const nowSec = Math.floor(Date.now() / 1000);
-        const remaining = Math.max(0, this.expiresAtValue - nowSec);
+        const remainingMs = Math.max(0, this.deadlineMs - Date.now());
+        const remaining = Math.ceil(remainingMs / 1000);
 
         if (this.hasLabelTarget) {
             const minutes = Math.floor(remaining / 60);
@@ -69,20 +73,19 @@ export default class extends Controller {
         }
 
         if (this.hasBarTarget && this.totalSecondsValue > 0) {
-            const pct = Math.max(0, (remaining / this.totalSecondsValue) * 100);
+            const pct = Math.min(100, Math.max(0, (remainingMs / (this.totalSecondsValue * 1000)) * 100));
             this.barTarget.style.width = `${pct}%`;
-            // Toggle colors by threshold.
-            this.barTarget.classList.remove('bg-saffron-500', 'bg-turmeric-500', 'bg-paprika-500');
+            this.barTarget.classList.remove('bg-saffron-500', 'bg-turmeric-500', 'bg-paprika-700');
             if (remaining <= this.dangerThresholdValue) {
-                this.barTarget.classList.add('bg-paprika-500');
+                this.barTarget.style.backgroundColor = 'var(--color-paprika-700)';
             } else if (remaining <= this.warningThresholdValue) {
-                this.barTarget.classList.add('bg-turmeric-500');
+                this.barTarget.style.backgroundColor = 'var(--color-turmeric-500)';
             } else {
-                this.barTarget.classList.add('bg-saffron-500');
+                this.barTarget.style.backgroundColor = 'var(--color-saffron-500)';
             }
         }
 
-        if (remaining <= 0) {
+        if (remainingMs <= 0) {
             if (this.interval) {
                 window.clearInterval(this.interval);
                 this.interval = null;

@@ -125,10 +125,10 @@ class SurvivalGame extends AbstractController
     }
 
     #[LiveAction]
-    public function pick(#[LiveArg] int $spiceId): void
+    public function pick(#[LiveArg] int $spiceId): ?RedirectResponse
     {
         if (! $this->isStarted || $this->isGameOver || $this->isVictory) {
-            return;
+            return null;
         }
 
         // Validate server-side from session secret
@@ -136,10 +136,8 @@ class SurvivalGame extends AbstractController
         $compatibleIds = $secret['compatibleIds'] ?? [];
         $sessionCurrent = $secret['currentSpiceId'] ?? null;
 
-        // Replay guard: the server-side currentSpiceId must match the LiveProp.
-        // Otherwise the client is replaying an old snapshot — reject silently.
         if ($sessionCurrent !== $this->currentSpiceId) {
-            return;
+            return null;
         }
 
         $isCompatible = in_array($spiceId, $compatibleIds, true);
@@ -160,11 +158,10 @@ class SurvivalGame extends AbstractController
         if (! $isCompatible) {
             $this->isGameOver = true;
 
-            return;
+            return $this->finishSession();
         }
 
         ++$this->chainLength;
-        // Mirror in session for authoritative finish() read.
         $secret['chainLength'] = $this->chainLength;
         $this->writeSecret($secret);
         $this->usedIds[] = $spiceId;
@@ -174,20 +171,28 @@ class SurvivalGame extends AbstractController
         if ($spice === null) {
             $this->isGameOver = true;
 
-            return;
+            return $this->finishSession();
         }
 
         $this->setCurrentSpice($spice);
         $this->generateOptions();
 
-        // Pool exhaustion → victory
         if (empty($this->options)) {
             $this->isVictory = true;
+
+            return $this->finishSession();
         }
+
+        return null;
     }
 
     #[LiveAction]
     public function finish(): RedirectResponse
+    {
+        return $this->finishSession();
+    }
+
+    private function finishSession(): RedirectResponse
     {
         /** @var Users $user */
         $user = $this->getUser();
@@ -254,7 +259,6 @@ class SurvivalGame extends AbstractController
             'groupName' => $o['groupName'] ?? null,
         ], $options);
 
-        // Store compatible IDs + current spice anchor in session for server-side validation
         $compatibleIds = [];
 
         foreach ($options as $o) {
@@ -263,10 +267,10 @@ class SurvivalGame extends AbstractController
             }
         }
 
-        $this->writeSecret([
-            'compatibleIds' => $compatibleIds,
-            'currentSpiceId' => $this->currentSpiceId,
-        ]);
+        $secret = $this->readSecret();
+        $secret['compatibleIds'] = $compatibleIds;
+        $secret['currentSpiceId'] = $this->currentSpiceId;
+        $this->writeSecret($secret);
     }
 
     /**

@@ -73,11 +73,11 @@
     {% if this.questionsAnswered > 0 %}
       <div class="mb-6 text-center text-sm">
         {% if this.lastAnswerCorrect %}
-          <span class="text-turmeric-600 font-medium">
+          <span class="text-green-600 font-medium">
             <i class="fa-solid fa-check-circle mr-1" aria-hidden="true"></i>{{ 'ui.game.correct_points'|trans({'%points%': this.lastPointsEarned}) }}
           </span>
         {% else %}
-          <span class="text-paprika-600 font-medium">
+          <span class="text-red-600 font-medium">
             <i class="fa-solid fa-times-circle mr-1" aria-hidden="true"></i>{{ 'ui.game.it_was'|trans({'%name%': this.lastCorrectName}) }}
           </span>
         {% endif %}

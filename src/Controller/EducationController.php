@@ -19,7 +19,6 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-#[IsGranted('ROLE_USER')]
 #[Route('/{_locale}/education', defaults: [
     '_locale' => 'fr',
 ])]
@@ -38,31 +37,41 @@ class EducationController extends AbstractController
     #[Route('/', name: 'education_index', methods: ['GET'])]
     public function index(): Response
     {
-        /** @var Users $user */
+        /** @var Users|null $user */
         $user = $this->getUser();
 
         $modes = array_filter(GameMode::cases(), fn (GameMode $m) => $m->isEnabled());
 
-        // Single grouped query instead of one query per enabled mode.
-        $grouped = $this->sessionRepository->countTodayByUserGrouped($user);
         $dailyCounts = [];
         foreach ($modes as $mode) {
-            $dailyCounts[$mode->value] = $grouped[$mode->value] ?? 0;
+            $dailyCounts[$mode->value] = 0;
+        }
+        $recentSessions = [];
+        $userDifficulty = GameDifficulty::EASY->value;
+
+        if ($user !== null) {
+            $grouped = $this->sessionRepository->countTodayByUserGrouped($user);
+            foreach ($modes as $mode) {
+                $dailyCounts[$mode->value] = $grouped[$mode->value] ?? 0;
+            }
+            $recentSessions = $this->sessionRepository->findByUser($user, 5);
+            $userDifficulty = $user->getPreferredDifficulty()
+                ->value;
         }
 
         return $this->render('education/index.html.twig', [
             'modes' => $modes,
             'difficulties' => GameDifficulty::cases(),
-            'recentSessions' => $this->sessionRepository->findByUser($user, 5),
+            'recentSessions' => $recentSessions,
             'dailyCounts' => $dailyCounts,
-            'maxDailySessions' => 5,
+            'maxDailySessions' => $this->sessionManager->maxDailySessions($user),
             'reducedXpThreshold' => 3,
-            'userDifficulty' => $user->getPreferredDifficulty()
-                ->value,
+            'userDifficulty' => $userDifficulty,
         ]);
     }
 
     #[Route('/briefing', name: 'education_briefing', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
     public function briefing(Request $request): Response
     {
         /** @var Users $user */
@@ -72,19 +81,18 @@ class EducationController extends AbstractController
         $difficulty = GameDifficulty::tryFrom($request->query->getString('difficulty')) ?? GameDifficulty::EASY;
 
         $targetSpice = $this->academyManager->pickTargetSpice($mode, $difficulty, $user);
-        $cookingTip = $targetSpice !== null ? $this->academyManager->randomCookingTipFor($targetSpice) : null;
 
         return $this->render('education/briefing.html.twig', [
             'mode' => $mode,
             'difficulty' => $difficulty,
             'difficulties' => GameDifficulty::cases(),
             'targetSpice' => $targetSpice,
-            'cookingTip' => $cookingTip,
             'rules' => $this->academyManager->getRulesFor($mode),
         ]);
     }
 
     #[Route('/start', name: 'education_start', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
     public function start(Request $request): Response
     {
         /** @var Users $user */
@@ -131,6 +139,7 @@ class EducationController extends AbstractController
     }
 
     #[Route('/play/{id}', name: 'education_play', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
     public function play(int $id): Response
     {
         /** @var Users $user */
@@ -168,6 +177,7 @@ class EducationController extends AbstractController
     }
 
     #[Route('/answer/{id}', name: 'education_answer', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
     public function answer(int $id, Request $request): Response
     {
         /** @var Users $user */
@@ -242,6 +252,7 @@ class EducationController extends AbstractController
     }
 
     #[Route('/play-live/{mode}', name: 'education_play_live', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
     public function playLive(string $mode, Request $request): Response
     {
         $gameMode = GameMode::tryFrom($mode);
@@ -257,9 +268,10 @@ class EducationController extends AbstractController
 
         $todayCount = $this->sessionRepository->countTodayByUser($user, $gameMode);
 
-        if ($todayCount >= 5) {
+        if ($todayCount >= $this->sessionManager->maxDailySessions($user)) {
             $this->addFlash('warning', $this->translator->trans('flash.daily_limit_reached', [
                 '%mode%' => $this->translator->trans($gameMode->label()),
+                '%max%' => $this->sessionManager->maxDailySessions($user),
             ]));
 
             return $this->redirectToRoute('education_index');
@@ -278,6 +290,7 @@ class EducationController extends AbstractController
     }
 
     #[Route('/result/{id}', name: 'education_result', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
     public function result(int $id): Response
     {
         /** @var Users $user */
@@ -288,8 +301,11 @@ class EducationController extends AbstractController
             throw $this->createNotFoundException();
         }
 
+        $todayCount = $this->sessionRepository->countTodayByUser($user, $session->getGameMode());
+
         return $this->render('education/result.html.twig', [
             'session' => $session,
+            'canReplay' => $todayCount < $this->sessionManager->maxDailySessions($user),
         ]);
     }
 }

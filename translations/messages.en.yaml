@@ -33,7 +33,7 @@ flash:
     difficulty_updated: Difficulty updated.
     posture_updated: Posture updated.
     preference_saved: Preference saved.
-    daily_limit_reached: 'Daily limit reached (5 %mode% sessions per day).'
+    daily_limit_reached: 'Daily limit reached (%max% %mode% sessions per day).'
 
 ui:
     meta:
@@ -243,16 +243,16 @@ ui:
         rule:
             qcm_0: Find the most compatible spice among 4 options.
             qcm_1: Each correct answer earns you XP.
-            qcm_2: 7 questions in total — no going back.
+            qcm_2: 5 questions in total — no going back.
             survival_0: Chain compatible spices starting from the initial spice.
             survival_1: A single mistake and the game is over.
             survival_2: The further you go, the more XP you earn.
             guess_who_0: Clues appear one by one to identify the mystery spice.
             guess_who_1: The fewer clues you use, the more points you earn.
-            guess_who_2: 7 spices to guess in total.
+            guess_who_2: 5 spices to guess in total.
             intrus_0: Among 4 spices, find the one that has nothing in common with the others.
             intrus_1: 'Some questions are inverted: find the compatible one!'
-            intrus_2: 7 questions — watch out for visual traps.
+            intrus_2: 5 questions — watch out for visual traps.
             hangman_0: Guess the spice name letter by letter.
             hangman_1: Accents are ignored — type the base letter.
             hangman_2: Too many mistakes and the hangman is complete.
@@ -264,6 +264,8 @@ ui:
         xp_per_correct: '%xp% XP/correct'
         questions: '%count% questions'
         unlimited_questions: ∞ questions
+        timed_mode: Timed
+        survival_mode: Survival
         come_back_tomorrow: Come back tomorrow
         reduced_xp_tooltip: 'XP reduced by 50%% beyond %threshold% games/day'
         remaining_xp: '%count% left · ×0.5 XP'
@@ -277,7 +279,6 @@ ui:
         difficulty: Difficulty
         default_difficulty_html: 'Default difficulty can be changed in your <a href="%url%" class="text-saffron-600 hover:underline">profile</a>.'
         rules: Rules
-        ingredient_of_day: Your ingredient of the day
         all_modes: All modes
         play: Play
         launch_brigade: Start the brigade
@@ -291,6 +292,8 @@ ui:
         good_answers: Correct answers
         errors: Mistakes
         xp_earned: XP earned
+        chain_length: Chain length
+        chain_unit: spices chained
         replay: Play again
         dashboard: Dashboard
         question_details: Question details
@@ -741,7 +744,7 @@ ui:
             <h2>The 6 modes</h2>
             <dl>
                 <dt><strong>The Chef's Choice</strong> (Quiz)</dt>
-                <dd>10 multiple-choice questions on spice compatibilities. The most classic mode.</dd>
+                <dd>5 multiple-choice questions on spice compatibilities. The most classic mode.</dd>
                 <dt><strong>Scoville Challenge</strong> (Survival)</dt>
                 <dd>Pick a starting spice and chain compatible spices. One slip = game over. Total victory if you exhaust all compatibilities.</dd>
                 <dt><strong>Fine Palate</strong> (Guess Who)</dt>
@@ -888,7 +891,7 @@ ui:
         scoville_footer: Unlimited games
         choice_title_html: "The Chef's <span class=\"ital\">Choice.</span>"
         choice_tag: spot the odd one out
-        choice_footer: 10 questions
+        choice_footer: 5 questions
         overcooked_title_html: '<span class="ital">Overcooked!</span>'
         overcooked_tag: hangman of forgotten spices
         overcooked_footer: 8 words to guess

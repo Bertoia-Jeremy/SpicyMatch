@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Service\Education;
 
-use App\Entity\CookingTips;
 use App\Entity\Spices;
 use App\Entity\Users;
 use App\Enum\GameDifficulty;
@@ -15,6 +14,7 @@ use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Translation\LocaleAwareInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class AcademyManager
@@ -76,7 +76,15 @@ class AcademyManager
             return [];
         }
 
-        return $this->compatibleSpiceFinder->findCompatible(new MortarIds([$id]), 100, new CulinaryContext());
+        $locale = $this->translator instanceof LocaleAwareInterface ? $this->translator->getLocale() : 'fr';
+
+        return $this->cache->get('academy.compatible.' . $locale . '.' . $id, function (ItemInterface $item) use (
+            $id
+        ): array {
+            $item->expiresAfter(3600);
+
+            return $this->compatibleSpiceFinder->findCompatible(new MortarIds([$id]), 100, new CulinaryContext());
+        });
     }
 
     /**
@@ -742,21 +750,6 @@ class AcademyManager
         $candidates = array_values($candidates);
 
         return $candidates[array_rand($candidates)];
-    }
-
-    /**
-     * Pick a random CookingTip for the given spice (used in the briefing infographic).
-     */
-    public function randomCookingTipFor(Spices $spice): ?CookingTips
-    {
-        $tips = $spice->getCookingTips()
-            ->toArray();
-
-        if (empty($tips)) {
-            return null;
-        }
-
-        return $tips[array_rand($tips)];
     }
 
     /**

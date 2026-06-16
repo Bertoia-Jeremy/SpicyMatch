@@ -33,7 +33,7 @@ flash:
     difficulty_updated: Difficulté mise à jour.
     posture_updated: Posture mise à jour.
     preference_saved: Préférence enregistrée.
-    daily_limit_reached: 'Limite quotidienne atteinte (5 sessions %mode% par jour).'
+    daily_limit_reached: 'Limite quotidienne atteinte (%max% sessions %mode% par jour).'
 
 ui:
     meta:
@@ -243,16 +243,16 @@ ui:
         rule:
             qcm_0: Trouve l'épice la plus compatible parmi 4 propositions.
             qcm_1: Chaque bonne réponse te rapporte des XP.
-            qcm_2: 7 questions au total — pas de retour en arrière.
+            qcm_2: 5 questions au total — pas de retour en arrière.
             survival_0: Enchaîne les épices compatibles avec l'épice de départ.
             survival_1: Une seule erreur et la partie est terminée.
             survival_2: Plus tu avances, plus tu gagnes d'XP.
             guess_who_0: Des indices apparaissent un par un pour identifier l'épice mystère.
             guess_who_1: Moins tu utilises d'indices, plus tu gagnes de points.
-            guess_who_2: 7 épices à deviner au total.
+            guess_who_2: 5 épices à deviner au total.
             intrus_0: Parmi 4 épices, trouve celle qui n'a rien en commun avec les autres.
             intrus_1: 'Certaines questions sont inversées : trouve la compatible !'
-            intrus_2: 7 questions — attention aux pièges visuels.
+            intrus_2: 5 questions — attention aux pièges visuels.
             hangman_0: Devine le nom de l'épice lettre par lettre.
             hangman_1: Les accents sont ignorés — tape la lettre de base.
             hangman_2: Trop d'erreurs et le pendu est complet.
@@ -264,6 +264,8 @@ ui:
         xp_per_correct: '%xp% XP/correct'
         questions: '%count% questions'
         unlimited_questions: ∞ questions
+        timed_mode: Chrono
+        survival_mode: Survie
         come_back_tomorrow: Reviens demain
         reduced_xp_tooltip: 'XP réduit de 50%% au-delà de %threshold% parties/jour'
         remaining_xp: '%count% restantes · ×0.5 XP'
@@ -277,7 +279,6 @@ ui:
         difficulty: Difficulté
         default_difficulty_html: 'Difficulté par défaut modifiable dans ton <a href="%url%" class="text-saffron-600 hover:underline">profil</a>.'
         rules: Règles
-        ingredient_of_day: Ton ingrédient du jour
         all_modes: Tous les modes
         play: Jouer
         launch_brigade: Lancer la brigade
@@ -291,6 +292,8 @@ ui:
         good_answers: Bonnes réponses
         errors: Erreurs
         xp_earned: XP gagnés
+        chain_length: Longueur de chaîne
+        chain_unit: épices enchaînées
         replay: Rejouer
         dashboard: Tableau de bord
         question_details: Détail des questions
@@ -741,7 +744,7 @@ ui:
             <h2>Les 6 modes</h2>
             <dl>
                 <dt><strong>Le Choix du Chef</strong> (QCM)</dt>
-                <dd>10 questions à choix multiples sur les compatibilités d'épices. Le mode le plus classique.</dd>
+                <dd>5 questions à choix multiples sur les compatibilités d'épices. Le mode le plus classique.</dd>
                 <dt><strong>Défi de Scoville</strong> (Survival)</dt>
                 <dd>Choisis une épice de départ et enchaîne des épices compatibles. Un faux pas = game over. Victoire totale si tu épuises toutes les compatibilités.</dd>
                 <dt><strong>Palais Fin</strong> (Guess Who)</dt>
@@ -888,7 +891,7 @@ ui:
         scoville_footer: Parties illimitées
         choice_title_html: 'Le Choix <span class="ital">du Chef.</span>'
         choice_tag: trouver l'intrus en cuisine
-        choice_footer: 10 questions
+        choice_footer: 5 questions
         overcooked_title_html: 'Trop <span class="ital">Cuit!</span>'
         overcooked_tag: le pendu des épices oubliées
         overcooked_footer: 8 mots à deviner

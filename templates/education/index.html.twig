@@ -45,6 +45,10 @@
           <span class="tag-secondary">{{ 'ui.edu.xp_per_correct'|trans({'%xp%': mode.xpPerCorrect}) }}</span>
           {% if mode.totalQuestions %}
             <span class="tag-secondary">{{ 'ui.edu.questions'|trans({'%count%': mode.totalQuestions}) }}</span>
+          {% elseif mode.value == 'chrono' %}
+            <span class="tag-secondary"><i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>{{ 'ui.edu.timed_mode'|trans }}</span>
+          {% elseif mode.value == 'survival' %}
+            <span class="tag-secondary"><i class="fa-solid fa-link mr-1" aria-hidden="true"></i>{{ 'ui.edu.survival_mode'|trans }}</span>
           {% else %}
             <span class="tag-secondary">{{ 'ui.edu.unlimited_questions'|trans }}</span>
           {% endif %}

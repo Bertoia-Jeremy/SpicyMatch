@@ -17,8 +17,16 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 class GameSessionManager
 {
-    private const int MAX_DAILY_SESSIONS = 5;
+    private const int MAX_DAILY_SESSIONS_FREE = 2;
+    private const int MAX_DAILY_SESSIONS_PREMIUM = 5;
     private const int REDUCED_XP_THRESHOLD = 3;
+
+    public function maxDailySessions(?Users $user): int
+    {
+        return $user !== null && $user->isPremium()
+            ? self::MAX_DAILY_SESSIONS_PREMIUM
+            : self::MAX_DAILY_SESSIONS_FREE;
+    }
 
     /**
      * @param iterable<QuestionGeneratorInterface> $generators
@@ -37,18 +45,21 @@ class GameSessionManager
         GameDifficulty $difficulty,
         ?Spices $targetSpice = null,
     ): GameSession {
+        $maxDaily = $this->maxDailySessions($user);
         $todayCount = $this->sessionRepository->countTodayByUser($user, $mode);
-        if ($todayCount >= self::MAX_DAILY_SESSIONS) {
-            throw new \RuntimeException(sprintf(
-                'Limite quotidienne atteinte (%d sessions par jour).',
-                self::MAX_DAILY_SESSIONS,
-            ));
+        if ($todayCount >= $maxDaily) {
+            throw new \RuntimeException(sprintf('Limite quotidienne atteinte (%d sessions par jour).', $maxDaily));
         }
 
         $session = new GameSession();
         $session->setUser($user);
         $session->setGameMode($mode);
         $session->setDifficulty($difficulty);
+
+        $modeQuestions = $mode->totalQuestions();
+        if ($modeQuestions !== null) {
+            $session->setTotalQuestions($modeQuestions);
+        }
 
         if ($targetSpice !== null) {
             $session->setTargetSpice($targetSpice);
@@ -168,12 +179,10 @@ class GameSessionManager
         ?Spices $targetSpice = null,
         ?int $overrideScore = null,
     ): GameSession {
+        $maxDaily = $this->maxDailySessions($user);
         $todayCount = $this->sessionRepository->countTodayByUser($user, $mode);
-        if ($todayCount >= self::MAX_DAILY_SESSIONS) {
-            throw new \RuntimeException(sprintf(
-                'Limite quotidienne atteinte (%d sessions par jour).',
-                self::MAX_DAILY_SESSIONS,
-            ));
+        if ($todayCount >= $maxDaily) {
+            throw new \RuntimeException(sprintf('Limite quotidienne atteinte (%d sessions par jour).', $maxDaily));
         }
 
         $session = new GameSession();

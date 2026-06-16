@@ -33,7 +33,7 @@ flash:
     difficulty_updated: Dificultad actualizada.
     posture_updated: Postura actualizada.
     preference_saved: Preferencia guardada.
-    daily_limit_reached: 'Límite diario alcanzado (5 sesiones de %mode% por día).'
+    daily_limit_reached: 'Límite diario alcanzado (%max% sesiones de %mode% por día).'
 
 ui:
     meta:
@@ -243,16 +243,16 @@ ui:
         rule:
             qcm_0: Encuentra la especia más compatible entre 4 opciones.
             qcm_1: Cada respuesta correcta te da XP.
-            qcm_2: 7 preguntas en total — sin vuelta atrás.
+            qcm_2: 5 preguntas en total — sin vuelta atrás.
             survival_0: Encadena especias compatibles a partir de la especia inicial.
             survival_1: Un solo error y la partida termina.
             survival_2: Cuanto más avanzas, más XP ganas.
             guess_who_0: Las pistas aparecen una a una para identificar la especia misteriosa.
             guess_who_1: Cuantas menos pistas uses, más puntos ganas.
-            guess_who_2: 7 especias por adivinar en total.
+            guess_who_2: 5 especias por adivinar en total.
             intrus_0: Entre 4 especias, encuentra la que no tiene nada en común con las demás.
             intrus_1: '¡Algunas preguntas están invertidas: encuentra la compatible!'
-            intrus_2: 7 preguntas — cuidado con las trampas visuales.
+            intrus_2: 5 preguntas — cuidado con las trampas visuales.
             hangman_0: Adivina el nombre de la especia letra por letra.
             hangman_1: Los acentos se ignoran — escribe la letra base.
             hangman_2: Demasiados errores y el ahorcado se completa.
@@ -264,6 +264,8 @@ ui:
         xp_per_correct: '%xp% XP/correcta'
         questions: '%count% preguntas'
         unlimited_questions: ∞ preguntas
+        timed_mode: Contrarreloj
+        survival_mode: Supervivencia
         come_back_tomorrow: Vuelve mañana
         reduced_xp_tooltip: 'XP reducido un 50%% más allá de %threshold% partidas/día'
         remaining_xp: '%count% restantes · ×0.5 XP'
@@ -277,7 +279,6 @@ ui:
         difficulty: Dificultad
         default_difficulty_html: 'La dificultad por defecto se puede cambiar en tu <a href="%url%" class="text-saffron-600 hover:underline">perfil</a>.'
         rules: Reglas
-        ingredient_of_day: Tu ingrediente del día
         all_modes: Todos los modos
         play: Jugar
         launch_brigade: Lanzar la brigada
@@ -291,6 +292,8 @@ ui:
         good_answers: Respuestas correctas
         errors: Errores
         xp_earned: XP ganados
+        chain_length: Longitud de la cadena
+        chain_unit: especias encadenadas
         replay: Volver a jugar
         dashboard: Panel
         question_details: Detalle de las preguntas
@@ -741,7 +744,7 @@ ui:
             <h2>Los 6 modos</h2>
             <dl>
                 <dt><strong>La Elección del Chef</strong> (Quiz)</dt>
-                <dd>10 preguntas de opción múltiple sobre compatibilidades de especias. El modo más clásico.</dd>
+                <dd>5 preguntas de opción múltiple sobre compatibilidades de especias. El modo más clásico.</dd>
                 <dt><strong>Desafío Scoville</strong> (Survival)</dt>
                 <dd>Elige una especia de inicio y encadena especias compatibles. Un paso en falso = game over. Victoria total si agotas todas las compatibilidades.</dd>
                 <dt><strong>Paladar Fino</strong> (Guess Who)</dt>
@@ -888,7 +891,7 @@ ui:
         scoville_footer: Partidas ilimitadas
         choice_title_html: 'La Elección <span class="ital">del Chef.</span>'
         choice_tag: encontrar el intruso en la cocina
-        choice_footer: 10 preguntas
+        choice_footer: 5 preguntas
         overcooked_title_html: '<span class="ital">¡Demasiado Hecho!</span>'
         overcooked_tag: el ahorcado de las especias olvidadas
         overcooked_footer: 8 palabras por adivinar

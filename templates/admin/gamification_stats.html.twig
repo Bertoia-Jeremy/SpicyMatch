@@ -75,7 +75,7 @@
 <script type="application/json" id="stats-xp-per-day">{{ xpPerDay|json_encode|raw }}</script>
 <script type="application/json" id="stats-sessions-per-mode">{{ sessionsPerMode|json_encode|raw }}</script>
 
-<script nonce="{{ csp_nonce('script') }}" src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script nonce="{{ csp_nonce('script') }}" src="{{ asset('lib/chartjs/chart.umd.min.js') }}"></script>
 <script nonce="{{ csp_nonce('script') }}">
 (() => {
     const parse = (id) => JSON.parse(document.getElementById(id).textContent);

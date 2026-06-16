@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@import "./fonts.css";
+
 /* Configuration du thème et des variables */
 @import "./theme.css";
 

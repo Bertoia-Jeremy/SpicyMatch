@@ -333,6 +333,9 @@ ui:
         next_step_aria: Étape suivante du tutoriel
         later: Plus tard
         go: Allons-y →
+    account:
+        created_title: Compte créé !
+        created_cta: Commencer l'aventure
     tabs:
         profile: Profil
         favorites: Favoris
@@ -490,6 +493,64 @@ ui:
         recourse_title: Voies de recours
         recourse_text: 'Si vous avez signalé un défaut d''accessibilité et que vous n''avez pas obtenu de réponse satisfaisante, vous pouvez saisir le Défenseur des droits (defenseurdesdroits.fr), ou adresser un courrier au Défenseur des droits, Libre réponse 71120, 75342 Paris CEDEX 07.'
         date_text: Déclaration établie le 10 juin 2026.
+    ads:
+        label: Publicité
+        remove: Retirer les pubs
+        placeholder_title: Coffret d'épices d'exception
+        placeholder_body: Découvrez notre sélection de safran, cardamome et poivres rares, livrés chez vous.
+        placeholder_sponsor: 'Sponsorisé · ÉpicerieExemple'
+        placeholder_cta: Découvrir
+    premium:
+        title: SpicyMatch Premium
+        intro: Soutenez l'atelier et naviguez sans publicité sur tout le site.
+        price: 4,99 €/mois
+        benefit_adfree: Navigation 100 % sans publicité
+        benefit_support: Vous soutenez directement le développement du projet
+        benefit_future: Accès prioritaire aux futures fonctionnalités Premium
+        cta_soon: Bientôt disponible
+        soon_hint: Le paiement arrive très bientôt — merci de votre patience.
+        cta_login: Se connecter pour s'abonner
+        login_hint: La création de compte est gratuite ; l'abonnement se fera depuis votre espace.
+    legal:
+        notice:
+            title: Mentions légales
+            publisher_title: Éditeur du site
+            publisher_text: 'Le site SpicyMatch est édité par [NOM PRÉNOM], domicilié [ADRESSE], immatriculé sous le numéro SIREN [SIREN]. TVA : [N° TVA intracommunautaire ou « TVA non applicable, art. 293 B du CGI »].'
+            director_title: Directeur de la publication
+            director_text: '[NOM PRÉNOM].'
+            host_title: Hébergeur
+            host_text: '[NOM DE L''HÉBERGEUR], [ADRESSE DE L''HÉBERGEUR], [TÉLÉPHONE DE L''HÉBERGEUR].'
+            contact_title: Contact
+            contact_text: 'Pour toute question relative au site, utilisez la page'
+            ip_title: Propriété intellectuelle
+            ip_text: L'ensemble des contenus du site (textes, données aromatiques, visuels, code) est protégé par le droit de la propriété intellectuelle. Toute reproduction ou réutilisation non autorisée est interdite.
+            liability_title: Responsabilité
+            liability_text: Les scores de compatibilité aromatique et les conseils culinaires sont fournis à titre indicatif et ne constituent pas un conseil professionnel. L'éditeur ne saurait être tenu responsable de l'usage qui en est fait.
+            privacy_link_text: 'Pour le traitement de vos données personnelles, consultez la page'
+        privacy:
+            title: Politique de confidentialité
+            intro: Cette politique décrit les données personnelles traitées par SpicyMatch, les finalités poursuivies et vos droits. Elle s'applique à l'ensemble du site.
+            controller_title: Responsable du traitement
+            controller_text: 'Le responsable du traitement est [NOM PRÉNOM], [ADRESSE], joignable via la page de contact du site.'
+            data_title: Données collectées
+            data_account: 'Compte utilisateur : nom d''utilisateur, mot de passe (haché), adresse e-mail (optionnelle), préférences (langue, difficulté), progression et statistiques de jeu — base légale : exécution du service.'
+            data_contact: 'Formulaire de contact : nom, e-mail, message — base légale : intérêt légitime (réponse à votre demande).'
+            data_newsletter: 'Newsletter : adresse e-mail et adresse IP (preuve d''inscription) — base légale : consentement, retirable à tout moment via le lien de désinscription.'
+            data_consent: 'Préférences cookies : choix exprimés, adresse IP et navigateur (preuve du consentement), conservés 13 mois — base légale : obligation légale.'
+            data_monitoring: 'Surveillance technique : journaux d''erreurs anonymisés (sans données personnelles), hébergés sur notre propre infrastructure — base légale : intérêt légitime (sécurité et fiabilité du service).'
+            purposes_title: Finalités
+            purposes_text: Les données servent exclusivement à fournir le service (compte, mélanges, progression), répondre à vos demandes, envoyer la newsletter si vous y avez consenti et garantir la sécurité du site. Aucune donnée n'est vendue ni transmise à des tiers à des fins commerciales.
+            ads_title: Publicité
+            ads_text: 'Lorsque la publicité est active, SpicyMatch utilise une régie sans cookie ni profilage (publicité contextuelle). Aucune donnée de navigation n''est collectée à des fins publicitaires — base légale : intérêt légitime. Vous pouvez vous y opposer en passant au compte Premium.'
+            retention_title: Durées de conservation
+            retention_text: 'Compte : tant que le compte est actif, suppression définitive sur demande. Preuves de consentement cookies : 13 mois. Messages de contact : le temps du traitement de la demande. Newsletter : jusqu''à désinscription.'
+            cookies_title: Cookies
+            cookies_text: Le site n'utilise que des cookies strictement nécessaires (session de connexion, mémorisation de vos choix de consentement) exemptés de consentement préalable. Aucun cookie publicitaire ou de mesure d'audience n'est déposé.
+            rights_title: Vos droits
+            rights_text: Vous disposez des droits d'accès, de rectification, d'effacement, de portabilité et d'opposition. Depuis votre profil, vous pouvez exporter vos données et supprimer votre compte à tout moment. Pour toute autre demande, utilisez la page de contact.
+            complaint_title: Réclamation
+            complaint_text: Si vous estimez que vos droits ne sont pas respectés, vous pouvez introduire une réclamation auprès de la CNIL (cnil.fr).
+            updated_text: Dernière mise à jour le 13 juin 2026.
     modal:
         quick_view_label: Aperçu rapide de l'épice
         close: Fermer
@@ -523,6 +584,12 @@ ui:
         enable: Activer
         change_mail_form: 'Formulaire de changement de mail :'
         back: Retour
+        subscription: Abonnement
+        subscription_free: Compte gratuit
+        subscription_premium_until: 'Premium actif jusqu''au %date%'
+        subscription_text: L'abonnement Premium retire toute publicité du site. Souscription bientôt disponible.
+        subscription_premium_badge: Premium
+        subscription_price: 'Premium — 4,99 €/mois · bientôt disponible'
     profile:
         dashboard_title: Tableau de bord
         unlocked_achievements: Succès débloqués

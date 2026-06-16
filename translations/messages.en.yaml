@@ -333,6 +333,9 @@ ui:
         next_step_aria: Next tutorial step
         later: Later
         go: Let's go →
+    account:
+        created_title: Account created!
+        created_cta: Start the adventure
     tabs:
         profile: Profile
         favorites: Favorites
@@ -490,6 +493,64 @@ ui:
         recourse_title: Legal recourse
         recourse_text: 'If you reported an accessibility issue and did not receive a satisfactory answer, you may contact the French Défenseur des droits (defenseurdesdroits.fr) or write to Défenseur des droits, Libre réponse 71120, 75342 Paris CEDEX 07, France.'
         date_text: Statement issued on 10 June 2026.
+    ads:
+        label: Advertisement
+        remove: Remove ads
+        placeholder_title: Premium spice gift box
+        placeholder_body: Discover our selection of saffron, cardamom and rare peppers, delivered to your door.
+        placeholder_sponsor: 'Sponsored · SampleSpices'
+        placeholder_cta: Discover
+    premium:
+        title: SpicyMatch Premium
+        intro: Support the workshop and browse the whole site ad-free.
+        price: €4.99/month
+        benefit_adfree: 100% ad-free browsing
+        benefit_support: You directly support the project's development
+        benefit_future: Priority access to upcoming Premium features
+        cta_soon: Coming soon
+        soon_hint: Payment is arriving very soon — thanks for your patience.
+        cta_login: Log in to subscribe
+        login_hint: Creating an account is free; you'll subscribe from your dashboard.
+    legal:
+        notice:
+            title: Legal notice
+            publisher_title: Site publisher
+            publisher_text: 'The SpicyMatch website is published by [FULL NAME], residing at [ADDRESS], registered under SIREN number [SIREN]. VAT: [Intra-community VAT number or "VAT not applicable, art. 293 B of the French CGI"].'
+            director_title: Publication director
+            director_text: '[FULL NAME].'
+            host_title: Hosting provider
+            host_text: '[HOST NAME], [HOST ADDRESS], [HOST PHONE].'
+            contact_title: Contact
+            contact_text: 'For any question about the site, please use the'
+            ip_title: Intellectual property
+            ip_text: All site content (texts, aromatic data, visuals, code) is protected by intellectual property law. Any unauthorized reproduction or reuse is prohibited.
+            liability_title: Liability
+            liability_text: Aromatic compatibility scores and culinary tips are provided for information only and do not constitute professional advice. The publisher cannot be held liable for the use made of them.
+            privacy_link_text: 'For the processing of your personal data, please see the'
+        privacy:
+            title: Privacy policy
+            intro: This policy describes the personal data processed by SpicyMatch, the purposes pursued and your rights. It applies to the entire site.
+            controller_title: Data controller
+            controller_text: 'The data controller is [FULL NAME], [ADDRESS], reachable via the site contact page.'
+            data_title: Data collected
+            data_account: 'User account: username, password (hashed), email address (optional), preferences (language, difficulty), game progression and statistics — legal basis: performance of the service.'
+            data_contact: 'Contact form: name, email, message — legal basis: legitimate interest (answering your request).'
+            data_newsletter: 'Newsletter: email address and IP address (proof of subscription) — legal basis: consent, withdrawable at any time via the unsubscribe link.'
+            data_consent: 'Cookie preferences: choices made, IP address and browser (proof of consent), kept for 13 months — legal basis: legal obligation.'
+            data_monitoring: 'Technical monitoring: anonymized error logs (no personal data), hosted on our own infrastructure — legal basis: legitimate interest (security and reliability of the service).'
+            purposes_title: Purposes
+            purposes_text: Data is used exclusively to provide the service (account, blends, progression), answer your requests, send the newsletter if you consented to it and ensure site security. No data is sold or shared with third parties for commercial purposes.
+            ads_title: Advertising
+            ads_text: 'When advertising is active, SpicyMatch uses a cookieless, non-profiling ad network (contextual advertising). No browsing data is collected for advertising purposes — legal basis: legitimate interest. You can opt out by switching to a Premium account.'
+            retention_title: Retention periods
+            retention_text: 'Account: as long as the account is active, permanent deletion on request. Cookie consent proofs: 13 months. Contact messages: for the time needed to handle the request. Newsletter: until unsubscription.'
+            cookies_title: Cookies
+            cookies_text: The site only uses strictly necessary cookies (login session, storage of your consent choices), which are exempt from prior consent. No advertising or audience measurement cookie is set.
+            rights_title: Your rights
+            rights_text: You have the rights of access, rectification, erasure, portability and objection. From your profile you can export your data and delete your account at any time. For any other request, please use the contact page.
+            complaint_title: Complaint
+            complaint_text: If you believe your rights are not respected, you can lodge a complaint with the CNIL (cnil.fr), the French data protection authority.
+            updated_text: Last updated on 13 June 2026.
     modal:
         quick_view_label: Spice quick view
         close: Close
@@ -523,6 +584,12 @@ ui:
         enable: Enable
         change_mail_form: 'Email change form:'
         back: Back
+        subscription: Subscription
+        subscription_free: Free account
+        subscription_premium_until: 'Premium active until %date%'
+        subscription_text: The Premium subscription removes all advertising from the site. Sign-up coming soon.
+        subscription_premium_badge: Premium
+        subscription_price: 'Premium — €4.99/month · coming soon'
     profile:
         dashboard_title: Dashboard
         unlocked_achievements: Unlocked achievements

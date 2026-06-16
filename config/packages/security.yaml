@@ -36,9 +36,10 @@ security:
     access_control:
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/api/match, roles: PUBLIC_ACCESS }  # endpoint de matching OAV — public, sans auth
-        - { path: ^/login, roles: PUBLIC_ACCESS }
-        - { path: ^/register, roles: PUBLIC_ACCESS }
-        - { path: ^/, roles: ROLE_USER }
+        - { path: ^/api/gamification, roles: ROLE_USER }
+        - { path: '^/[a-z]{2}/education/?$', roles: PUBLIC_ACCESS }
+        - { path: '^/[a-z]{2}/(users|spicymatch|education)', roles: ROLE_USER }
+        - { path: ^/, roles: PUBLIC_ACCESS }
 
 when@test:
     security:

@@ -172,7 +172,9 @@
                 <em class="font-display not-italic italic text-[12px] normal-case tracking-normal"
                    style="color: var(--color-copper-text)">{{ 'ui.footer.copyright_tagline'|trans }}</em>
             </div>
-            <div class="flex items-center gap-6 font-mono text-[10px] uppercase tracking-widest">
+            <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-mono text-[10px] uppercase tracking-widest">
+                <a href="{{ path('legal_notice') }}" class="footer-link transition-colors">{{ 'ui.footer.legal'|trans }}</a>
+                <a href="{{ path('privacy_policy') }}" class="footer-link transition-colors">{{ 'ui.footer.privacy'|trans }}</a>
                 <a href="{{ path('accessibility_declaration') }}" class="footer-link transition-colors">{{ 'ui.footer.accessibility'|trans }}</a>
                 <a href="{{ path('new_contact') }}" class="footer-link transition-colors">{{ 'ui.common.contact'|trans }}</a>
             </div>

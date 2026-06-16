@@ -58,7 +58,7 @@ class RegistrationController extends AbstractController
 
             $this->em->flush();
 
-            $this->addFlash('success', $translator->trans('flash.account_created'));
+            $this->addFlash('account_created', $translator->trans('flash.account_created'));
 
             return $authenticator->authenticateUser($user, $loginFormAuthenticator, $request);
         }

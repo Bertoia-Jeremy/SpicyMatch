@@ -32,11 +32,23 @@ class AchievementRepository extends ServiceEntityRepository
      */
     public function findByTrigger(AchievementTrigger $trigger): array
     {
-        if ($this->enabledByTrigger === null) {
+        if ($this->enabledByTrigger === null || $this->cacheIsDetached()) {
             $this->warmEnabledCache();
         }
 
         return $this->enabledByTrigger[$trigger->value] ?? [];
+    }
+
+    private function cacheIsDetached(): bool
+    {
+        $em = $this->getEntityManager();
+        foreach ($this->enabledByTrigger ?? [] as $group) {
+            foreach ($group as $achievement) {
+                return ! $em->contains($achievement);
+            }
+        }
+
+        return false;
     }
 
     /**

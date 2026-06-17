@@ -10,11 +10,14 @@
         {% set _route = app.request.attributes.get('_route') %}
         {% set _params = app.request.attributes.get('_route_params')|default({}) %}
         {% if _route and _params._locale is defined %}
+            {% set _hreflangSlugs = hreflang_slugs|default(null) %}
             <link rel="canonical" href="{{ url(_route, _params) }}">
             {% for _loc in ['fr', 'en', 'es'] %}
-                <link rel="alternate" hreflang="{{ _loc }}" href="{{ url(_route, _params|merge({'_locale': _loc})) }}">
+                {% set _altParams = _params|merge({'_locale': _loc}) %}
+                {% if _hreflangSlugs and _params.slug is defined %}{% set _altParams = _altParams|merge({'slug': _hreflangSlugs[_loc]}) %}{% endif %}
+                <link rel="alternate" hreflang="{{ _loc }}" href="{{ url(_route, _altParams) }}">
             {% endfor %}
-            <link rel="alternate" hreflang="x-default" href="{{ url(_route, _params|merge({'_locale': 'fr'})) }}">
+            <link rel="alternate" hreflang="x-default" href="{{ url(_route, _params|merge({'_locale': 'fr'})|merge(_hreflangSlugs and _params.slug is defined ? {'slug': _hreflangSlugs.fr} : {})) }}">
         {% endif %}
         {% block metas %}{% endblock %}
         <title>{% block title %}{{ 'ui.meta.default_title'|trans }}{% endblock %}</title>

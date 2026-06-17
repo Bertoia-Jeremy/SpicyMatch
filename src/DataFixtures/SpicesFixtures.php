@@ -425,7 +425,7 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface, Fixtu
             $entity = new Spices();
             $entity->setImageSize(0);
             $entity->setName($data['name'])
-                ->setSlug($key)
+                ->setSlug(str_replace('_', '-', $key))
                 ->setDescription($data['description'])
                 ->setCooking($data['cooking'])
                 ->setInformations($data['informations'])

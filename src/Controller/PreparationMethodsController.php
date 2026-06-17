@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\PreparationMethods;
+use App\Controller\Concern\CanonicalSlugTrait;
 use App\Repository\PreparationMethodsRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,6 +14,8 @@ use Symfony\Component\Routing\Annotation\Route;
 ])]
 class PreparationMethodsController extends AbstractController
 {
+    use CanonicalSlugTrait;
+
     #[Route('/', name: 'index_preparation_methods', methods: ['GET'])]
     public function index(PreparationMethodsRepository $preparationMethodsRepository): Response
     {
@@ -22,9 +24,24 @@ class PreparationMethodsController extends AbstractController
         ]);
     }
 
-    #[Route('/{id<\d+>}', name: 'view_preparation_methods', methods: ['GET'])]
-    public function view(PreparationMethods $preparationMethod, Request $request): Response
+    #[Route('/{slug}', name: 'view_preparation_methods', methods: ['GET'])]
+    public function view(string $slug, Request $request, PreparationMethodsRepository $repository): Response
     {
+        $locale = $request->getLocale();
+        $preparationMethod = $repository->findOneByLocalizedSlug($slug, $locale);
+        if ($preparationMethod === null) {
+            throw $this->createNotFoundException();
+        }
+
+        if (($redirect = $this->canonicalSlugRedirect(
+            'view_preparation_methods',
+            $slug,
+            $preparationMethod->getLocalizedSlug($locale),
+            $locale
+        )) !== null) {
+            return $redirect;
+        }
+
         // Seed the server-side timestamp for the "temps_de_l_infusion" easter egg
         // (stay ≥ 260s on the infusion page). Client cannot forge this value —
         // the EasterEggService reads it from session on validation.
@@ -37,6 +54,11 @@ class PreparationMethodsController extends AbstractController
 
         return $this->render('preparation_methods/view.html.twig', [
             'preparationMethod' => $preparationMethod,
+            'hreflang_slugs' => [
+                'fr' => $preparationMethod->getLocalizedSlug('fr'),
+                'en' => $preparationMethod->getLocalizedSlug('en'),
+                'es' => $preparationMethod->getLocalizedSlug('es'),
+            ],
         ]);
     }
 }

@@ -19,6 +19,27 @@ class SpicesRepository extends ServiceEntityRepository
         parent::__construct($registry, Spices::class);
     }
 
+    public function findOneByLocalizedSlug(string $slug, string $locale): ?Spices
+    {
+        if ($locale !== 'fr') {
+            $translated = $this->createQueryBuilder('e')
+                ->innerJoin('e.translations', 't', 'WITH', 't.locale = :loc AND t.slug = :slug')
+                ->setParameter('loc', $locale)
+                ->setParameter('slug', $slug)
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+
+            if ($translated !== null) {
+                return $translated;
+            }
+        }
+
+        return $this->findOneBy([
+            'slug' => $slug,
+        ]);
+    }
+
     public function add(Spices $entity, bool $flush = false): void
     {
         $this->getEntityManager()
@@ -65,7 +86,7 @@ class SpicesRepository extends ServiceEntityRepository
         $ids = array_map('intval', explode(',', $idsString));
 
         return $this->createQueryBuilder('s')
-            ->select('s.id', 's.name', 's.description', 's.file', 'ag.color', 'ag.name AS groupName')
+            ->select('s.id', 's.name', 's.slug', 's.description', 's.file', 'ag.color', 'ag.name AS groupName')
             ->leftJoin('s.aromaticGroups', 'ag')
             ->where('s.id IN (:ids)')
             ->setParameter('ids', $ids)
@@ -85,6 +106,7 @@ class SpicesRepository extends ServiceEntityRepository
             ->select(
                 's.id',
                 's.name',
+                's.slug',
                 's.description',
                 's.file',
                 'ag.id AS agId',
@@ -112,7 +134,7 @@ class SpicesRepository extends ServiceEntityRepository
      * @param list<int>   $ids
      * @param string|null $locale null ou 'fr' → noms canoniques directs
      *
-     * @return list<array{id: int, name: string, file: ?string, agId: ?int, color: ?string, groupName: ?string, stId: ?int, typeName: ?string}>
+     * @return list<array{id: int, name: string, slug: ?string, file: ?string, agId: ?int, color: ?string, groupName: ?string, stId: ?int, typeName: ?string}>
      */
     public function findEnrichedByIds(array $ids, ?string $locale = null): array
     {
@@ -125,6 +147,7 @@ class SpicesRepository extends ServiceEntityRepository
                 ->select(
                     's.id',
                     's.name',
+                    's.slug',
                     's.file',
                     'ag.id AS agId',
                     'ag.color',
@@ -145,6 +168,7 @@ class SpicesRepository extends ServiceEntityRepository
             ->select(
                 's.id',
                 'COALESCE(str.name, s.name) AS name',
+                'COALESCE(str.slug, s.slug) AS slug',
                 's.file',
                 'ag.id AS agId',
                 'ag.color',
@@ -165,7 +189,7 @@ class SpicesRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return list<array{id: int, name: string, type: string}>
+     * @return list<array{id: int, name: string, slug: ?string, type: string}>
      */
     public function search(string $word, ?string $locale = null): array
     {
@@ -179,23 +203,23 @@ class SpicesRepository extends ServiceEntityRepository
             ->getConnection();
 
         if ($locale === null || $locale === 'fr') {
-            $sql = "SELECT s.id, s.name, 'spice' AS `type`
+            $sql = "SELECT s.id, s.name, s.slug, 'spice' AS `type`
                     FROM spices s
                     WHERE s.name LIKE ? AND s.deleted_at IS NULL
                     UNION
-                    SELECT ac.id, ac.name, 'aromatic_compound' AS `type`
+                    SELECT ac.id, ac.name, ac.slug, 'aromatic_compound' AS `type`
                     FROM aromatic_compound ac
                     WHERE ac.name LIKE ? AND ac.deleted_at IS NULL
                     UNION
-                    SELECT ag.id, ag.name, 'aromatic_group' AS `type`
+                    SELECT ag.id, ag.name, ag.slug, 'aromatic_group' AS `type`
                     FROM aromatic_groups ag
                     WHERE ag.name LIKE ? AND ag.deleted_at IS NULL
                     UNION
-                    SELECT af.id, af.name, 'alchemy_flavor' AS `type`
+                    SELECT af.id, af.name, af.slug, 'alchemy_flavor' AS `type`
                     FROM alchemy_flavors af
                     WHERE af.name LIKE ? AND af.deleted_at IS NULL
                     UNION
-                    SELECT pm.id, pm.name, 'preparation_method' AS `type`
+                    SELECT pm.id, pm.name, pm.slug, 'preparation_method' AS `type`
                     FROM preparation_methods pm
                     WHERE pm.name LIKE ? AND pm.deleted_at IS NULL
                     ORDER BY `name`
@@ -205,29 +229,31 @@ class SpicesRepository extends ServiceEntityRepository
                 ->fetchAllAssociative();
         }
 
-        $sql = "SELECT s.id, COALESCE(st.name, s.name) AS name, 'spice' AS `type`
+        $sql = "SELECT s.id, COALESCE(st.name, s.name) AS name, COALESCE(st.slug, s.slug) AS slug, 'spice' AS `type`
                 FROM spices s
                 LEFT JOIN spice_translation st
                     ON st.spice_id = s.id AND st.locale = ?
                 WHERE (s.name LIKE ? OR st.name LIKE ?) AND s.deleted_at IS NULL
                 UNION
-                SELECT ac.id, COALESCE(act.name, ac.name) AS name, 'aromatic_compound' AS `type`
+                SELECT ac.id, COALESCE(act.name, ac.name) AS name, COALESCE(act.slug, ac.slug) AS slug, 'aromatic_compound' AS `type`
                 FROM aromatic_compound ac
                 LEFT JOIN aromatic_compound_translation act
                     ON act.aromatic_compound_id = ac.id AND act.locale = ?
                 WHERE (ac.name LIKE ? OR act.name LIKE ?) AND ac.deleted_at IS NULL
                 UNION
-                SELECT ag.id, COALESCE(agt.name, ag.name) AS name, 'aromatic_group' AS `type`
+                SELECT ag.id, COALESCE(agt.name, ag.name) AS name, COALESCE(agt.slug, ag.slug) AS slug, 'aromatic_group' AS `type`
                 FROM aromatic_groups ag
                 LEFT JOIN aromatic_groups_translation agt
                     ON agt.aromatic_groups_id = ag.id AND agt.locale = ?
                 WHERE (ag.name LIKE ? OR agt.name LIKE ?) AND ag.deleted_at IS NULL
                 UNION
-                SELECT af.id, af.name AS name, 'alchemy_flavor' AS `type`
+                SELECT af.id, COALESCE(aft.name, af.name) AS name, COALESCE(aft.slug, af.slug) AS slug, 'alchemy_flavor' AS `type`
                 FROM alchemy_flavors af
-                WHERE af.name LIKE ? AND af.deleted_at IS NULL
+                LEFT JOIN alchemy_flavors_translation aft
+                    ON aft.alchemy_flavors_id = af.id AND aft.locale = ?
+                WHERE (af.name LIKE ? OR aft.name LIKE ?) AND af.deleted_at IS NULL
                 UNION
-                SELECT pm.id, COALESCE(pmt.name, pm.name) AS name, 'preparation_method' AS `type`
+                SELECT pm.id, COALESCE(pmt.name, pm.name) AS name, COALESCE(pmt.slug, pm.slug) AS slug, 'preparation_method' AS `type`
                 FROM preparation_methods pm
                 LEFT JOIN preparation_methods_translation pmt
                     ON pmt.preparation_methods_id = pm.id AND pmt.locale = ?
@@ -239,7 +265,7 @@ class SpicesRepository extends ServiceEntityRepository
             $locale, $like, $like,
             $locale, $like, $like,
             $locale, $like, $like,
-            $like,
+            $locale, $like, $like,
             $locale, $like, $like,
         ])->fetchAllAssociative();
     }

@@ -16,6 +16,7 @@
         "knplabs/knp-paginator-bundle": "^6.5",
         "nelmio/security-bundle": "^3.4",
         "phpdocumentor/reflection-docblock": "^5.3",
+        "presta/sitemap-bundle": "^4.3",
         "sentry/sentry-symfony": "^5.2",
         "symfony/asset": "7.4.*",
         "symfony/asset-mapper": "7.4.*",

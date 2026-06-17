@@ -129,7 +129,7 @@
         <div class="sm:col-span-2 border-t border-stone-200 px-7 py-4 flex items-center justify-between
                     bg-cream/80">
             <span class="font-mono text-[11px] text-stone-400 tracking-[0.04em]">{{ 'ui.modal.quick_preview'|trans }}</span>
-            <a href="{{ path('view_spice', {id: spice.id}) }}"
+            <a href="{{ path('view_spice', {slug: spice.getLocalizedSlug(app.request.locale)}) }}"
                data-turbo-frame="_top"
                class="inline-flex items-center gap-1.5 text-[13.5px] font-semibold
                       hover:opacity-80 transition-opacity group/link"

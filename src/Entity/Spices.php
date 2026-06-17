@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Entity\Translation\Sluggable;
 use App\Entity\Translation\TranslatableInterface;
 use App\Repository\SpicesRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -18,7 +19,7 @@ use Vich\UploaderBundle\Mapping\Attribute\UploadableField;
 #[Uploadable]
 #[ORM\Entity(repositoryClass: SpicesRepository::class)]
 #[ORM\Table(name: 'spices')]
-class Spices implements TranslatableInterface
+class Spices implements TranslatableInterface, Sluggable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -218,6 +219,11 @@ class Spices implements TranslatableInterface
     public function getLocalizedBenefits(string $locale): ?string
     {
         return $this->getTranslation($locale)?->getBenefits() ?? $this->benefits;
+    }
+
+    public function getLocalizedSlug(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getSlug() ?? $this->slug;
     }
 
     public function getName(): ?string
@@ -471,7 +477,7 @@ class Spices implements TranslatableInterface
         return $this->slug;
     }
 
-    public function setSlug(string $slug): static
+    public function setSlug(?string $slug): static
     {
         $this->slug = $slug;
 

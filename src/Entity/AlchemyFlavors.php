@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Entity\Translation\Sluggable;
+use App\Entity\Translation\TranslatableInterface;
 use App\Repository\AlchemyFlavorsRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -11,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AlchemyFlavorsRepository::class)]
 #[ORM\Table(name: 'alchemy_flavors')]
-class AlchemyFlavors
+class AlchemyFlavors implements TranslatableInterface, Sluggable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -20,6 +22,9 @@ class AlchemyFlavors
 
     #[ORM\Column(name: 'name', type: 'string', length: 255)]
     private ?string $name = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
+    private ?string $slug = null;
 
     #[ORM\Column(name: 'description', type: 'text', nullable: true)]
     private ?string $description = null;
@@ -45,14 +50,103 @@ class AlchemyFlavors
     #[ORM\ManyToMany(targetEntity: AromaticCompound::class, mappedBy: 'alchemyFlavors')]
     private Collection $aromaticsCompounds;
 
+    /**
+     * @var Collection<int, AlchemyFlavorsTranslation>
+     */
+    #[ORM\OneToMany(mappedBy: 'alchemyFlavor', targetEntity: AlchemyFlavorsTranslation::class, cascade: [
+        'persist',
+        'remove',
+    ], orphanRemoval: true)]
+    private Collection $translations;
+
     public function __construct()
     {
         $this->aromaticsCompounds = new ArrayCollection();
+        $this->translations = new ArrayCollection();
     }
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    /**
+     * @return Collection<int, AlchemyFlavorsTranslation>
+     */
+    public function getTranslations(): Collection
+    {
+        return $this->translations;
+    }
+
+    public function addTranslation(AlchemyFlavorsTranslation $translation): self
+    {
+        if (! $this->translations->contains($translation)) {
+            $this->translations->add($translation);
+            $translation->setAlchemyFlavor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTranslation(AlchemyFlavorsTranslation $translation): self
+    {
+        if ($this->translations->removeElement($translation) && $translation->getAlchemyFlavor() === $this) {
+            $translation->setAlchemyFlavor(null);
+        }
+
+        return $this;
+    }
+
+    public function getTranslation(string $locale): ?AlchemyFlavorsTranslation
+    {
+        if ($locale === 'fr') {
+            return null;
+        }
+
+        foreach ($this->translations as $t) {
+            if ($t->getLocale() === $locale) {
+                return $t;
+            }
+        }
+
+        return null;
+    }
+
+    public function getLocalizedName(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getName() ?? $this->name;
+    }
+
+    public function getLocalizedDescription(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getDescription() ?? $this->description;
+    }
+
+    public function getLocalizedCooking(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getCooking() ?? $this->cooking;
+    }
+
+    public function getLocalizedInformations(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getInformations() ?? $this->informations;
+    }
+
+    public function getLocalizedSlug(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getSlug() ?? $this->slug;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(?string $slug): static
+    {
+        $this->slug = $slug;
+
+        return $this;
     }
 
     public function getName(): ?string

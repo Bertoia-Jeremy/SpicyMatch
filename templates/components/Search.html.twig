@@ -25,7 +25,7 @@
             {% if this.results is defined and this.results is not empty %}
                 {% for result in this.results %}
                     {% if result.type == 'spice' %}
-                        {% set href = path('view_spice', {id: result.id}) %}
+                        {% set href = path('view_spice', {slug: result.slug}) %}
                         {% set badge = 'ui.search.spice'|trans %}
                         {% set badgeClass = 'text-saffron-600' %}
                     {% elseif result.type == 'aromatic_group' %}
@@ -33,15 +33,15 @@
                         {% set badge = 'ui.search.aromatic_group'|trans %}
                         {% set badgeClass = 'text-saffron-600' %}
                     {% elseif result.type == 'alchemy_flavor' %}
-                        {% set href = path('view_alchemy_flavors', {id: result.id}) %}
+                        {% set href = path('view_alchemy_flavors', {slug: result.slug}) %}
                         {% set badge = 'ui.search.alchemy_flavor'|trans %}
                         {% set badgeClass = 'text-paprika-700' %}
                     {% elseif result.type == 'preparation_method' %}
-                        {% set href = path('view_preparation_methods', {id: result.id}) %}
+                        {% set href = path('view_preparation_methods', {slug: result.slug}) %}
                         {% set badge = 'ui.search.preparation_method'|trans %}
                         {% set badgeClass = 'text-stone-600' %}
                     {% else %}
-                        {% set href = path('view_aromatic_compound', {id: result.id}) %}
+                        {% set href = path('view_aromatic_compound', {slug: result.slug}) %}
                         {% set badge = 'ui.search.compound'|trans %}
                         {% set badgeClass = 'text-turmeric-600' %}
                     {% endif %}

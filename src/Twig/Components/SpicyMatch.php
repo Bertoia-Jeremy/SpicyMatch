@@ -18,6 +18,7 @@ use App\Service\SpicyMatchService;
 use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
@@ -94,6 +95,14 @@ class SpicyMatch extends AbstractController
      */
     private ?array $excludedSpiceIdsCache = null;
 
+    private ?int $resolvedAgId = null;
+
+    private ?string $resolvedAgSlug = null;
+
+    private ?int $resolvedStId = null;
+
+    private ?string $resolvedStSlug = null;
+
     public function __construct(
         private readonly SpicesRepository $spicesRepository,
         private readonly CompatibleSpiceFinder $compatibleSpiceFinder,
@@ -102,6 +111,7 @@ class SpicyMatch extends AbstractController
         private readonly SpicyMatchService $spicyMatchService,
         private readonly MatchConfidenceAssessorInterface $confidenceAssessor,
         private readonly SpiceActiveCompoundRepository $spiceActiveCompoundRepository,
+        private readonly RequestStack $requestStack,
     ) {
         $this->spices = [
             'selectedSpices' => [],
@@ -150,6 +160,38 @@ class SpicyMatch extends AbstractController
     public function getExcludedSpiceCount(): int
     {
         return count($this->excludedSpiceIds());
+    }
+
+    private function resolveAromaticGroupId(string $slug): ?int
+    {
+        if ($this->resolvedAgSlug !== $slug) {
+            $locale = $this->requestStack->getCurrentRequest()?->getLocale() ?? 'fr';
+            $this->resolvedAgId = $this->aromaticGroupsRepository->findOneByLocalizedSlug($slug, $locale)?->getId();
+            $this->resolvedAgSlug = $slug;
+        }
+
+        return $this->resolvedAgId;
+    }
+
+    private function resolveSpicyTypeId(string $slug): ?int
+    {
+        if ($this->resolvedStSlug !== $slug) {
+            $locale = $this->requestStack->getCurrentRequest()?->getLocale() ?? 'fr';
+            $this->resolvedStId = $this->spicyTypeRepository->findOneByLocalizedSlug($slug, $locale)?->getId();
+            $this->resolvedStSlug = $slug;
+        }
+
+        return $this->resolvedStId;
+    }
+
+    public function getActiveAromaticGroupId(): ?int
+    {
+        return $this->filterAgId !== '' ? $this->resolveAromaticGroupId($this->filterAgId) : null;
+    }
+
+    public function getActiveSpicyTypeId(): ?int
+    {
+        return $this->filterStId !== '' ? $this->resolveSpicyTypeId($this->filterStId) : null;
     }
 
     /**
@@ -221,19 +263,23 @@ class SpicyMatch extends AbstractController
         }
 
         if ($this->filterAgId !== '') {
-            $agId = (int) $this->filterAgId;
-            $compatibleSpices = array_values(array_filter(
-                $compatibleSpices,
-                fn (array $s) => ($s['agId'] ?? null) === $agId,
-            ));
+            $agId = $this->resolveAromaticGroupId($this->filterAgId);
+            if ($agId !== null) {
+                $compatibleSpices = array_values(array_filter(
+                    $compatibleSpices,
+                    fn (array $s) => ($s['agId'] ?? null) === $agId,
+                ));
+            }
         }
 
         if ($this->filterStId !== '') {
-            $stId = (int) $this->filterStId;
-            $compatibleSpices = array_values(array_filter(
-                $compatibleSpices,
-                fn (array $s) => ($s['stId'] ?? null) === $stId,
-            ));
+            $stId = $this->resolveSpicyTypeId($this->filterStId);
+            if ($stId !== null) {
+                $compatibleSpices = array_values(array_filter(
+                    $compatibleSpices,
+                    fn (array $s) => ($s['stId'] ?? null) === $stId,
+                ));
+            }
         }
 
         if ($this->search !== '') {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Entity\Translation\Sluggable;
 use App\Entity\Translation\TranslatableInterface;
 use App\Repository\AromaticCompoundRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -14,7 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'aromatic_compound')]
 // CAS unique. Multiple NULL toléré par MariaDB → composés sans CAS non bloquants.
 #[ORM\UniqueConstraint(name: 'uniq_aromatic_compound_cas', columns: ['cas_number'])]
-class AromaticCompound implements TranslatableInterface
+class AromaticCompound implements TranslatableInterface, Sluggable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -23,6 +24,9 @@ class AromaticCompound implements TranslatableInterface
 
     #[ORM\Column(name: 'name', type: 'string', length: 255)]
     private ?string $name = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
+    private ?string $slug = null;
 
     /**
      * Numéro CAS — identifiant universel cross-sources (PubChem, van Gemert, FlavorDB, Flavornet).
@@ -157,6 +161,23 @@ class AromaticCompound implements TranslatableInterface
     public function getLocalizedInformations(string $locale): ?string
     {
         return $this->getTranslation($locale)?->getInformations() ?? $this->informations;
+    }
+
+    public function getLocalizedSlug(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getSlug() ?? $this->slug;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(?string $slug): static
+    {
+        $this->slug = $slug;
+
+        return $this;
     }
 
     public function getName(): ?string

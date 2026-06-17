@@ -58,7 +58,7 @@
                 {% if alchemyFlavor.aromaticsCompounds is not empty %}
                     <div class="grid grid-cols-1 gap-3">
                         {% for compound in alchemyFlavor.aromaticsCompounds %}
-                            <a href="{{ path('view_aromatic_compound', {id: compound.id}) }}" 
+                            <a href="{{ path('view_aromatic_compound', {slug: compound.getLocalizedSlug(app.request.locale)}) }}"
                                class="flex items-center justify-between p-4 bg-white border border-stone-200 rounded-xl hover:border-saffron-400 hover:shadow-md transition-all group">
                                 <span class="font-semibold text-stone-700 group-hover:text-saffron-700">{{ compound.getLocalizedName(app.request.locale) }}</span>
                                 <i class="fa-solid fa-chevron-right text-stone-300 text-xs group-hover:text-saffron-500 transition-colors" aria-hidden="true"></i>

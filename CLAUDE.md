@@ -427,6 +427,36 @@ architecture:
       - "SpicesController::view ne dispatch SpiceReadEvent QUE si user non null. Navbar/footer gèrent déjà l'anonyme (is_granted + liens login). DifficultyExtension fallback EASY si anonyme."
       - "Lab + Académie restent derrière login (SpicyMatch/GameSession couplés à Users) — ouverture anonyme = chantier ultérieur."
 
+  slugs_per_locale:
+    description: "URLs de contenu en slugs lisibles PAR LOCALE (remplace les ID numériques, 2026-06-16). 6 entités traduisibles : Spices, AromaticCompound, PreparationMethods, AromaticGroups (filtre seulement), AlchemyFlavors, SpicyType. AlchemyFlavors+SpicyType rendus traduisibles à cette occasion (nouvelles tables alchemy_flavors_translation + spicy_type_translation)."
+    stockage:
+      - "Slug FR canonique = colonne `slug` (unique) sur l'entité owning. Slug EN/ES = colonne `slug` (nullable) sur la table *_translation, UNIQUE(locale, slug). getLocalizedSlug(locale) = COALESCE(translation.slug, entity.slug) — même pattern que getLocalizedName, court-circuit return null en 'fr' (zéro N+1)."
+      - "Interface App\\Entity\\Translation\\Sluggable (getName/getSlug/setSlug) implémentée par les 6 entités owning ET les 6 *Translation → listener générique."
+    generation:
+      - "SlugGenerator (src/Service/Slug) : AsciiSlugger lower + unique(name, callable $exists) suffixe -2/-3. Fallback 'n' si vide."
+      - "SlugListener (Doctrine prePersist/preUpdate, AsDoctrineListener) : remplit slug vide depuis le nom, unicité via COUNT (scope = classe ± locale). ⚠️ slug JAMAIS resynchronisé sur rename (immuable post-création = bon SEO). ⚠️ check-then-act non atomique : race possible en concurrence (mono-admin = risque négligeable, pas de retry)."
+      - "Commande app:slug:backfill [--dry-run] : amorce les slugs manquants (entités + translations), idempotent, dédup en mémoire. À lancer après tout import massif."
+      - "SeedTranslationsCommand étendu aux 2 nouvelles entités."
+    routing:
+      - "6 routes détail {id<\\d+>} → {slug} (view_spice + quick_view_spice, view_aromatic_compound, view_preparation_methods, view_alchemy_flavors, view_spicy_type). ID DROP (pas de rétrocompat, pas en ligne)."
+      - "Résolution : XxxRepository::findOneByLocalizedSlug(slug, locale) — translation-first (innerJoin locale+slug, index uniq) PUIS fallback findOneBy(slug) canonique FR. Index-friendly + lève l'ambiguïté (pas de OR cross-table)."
+      - "301 canonique : CanonicalSlugTrait::canonicalSlugRedirect — si le slug d'URL ≠ getLocalizedSlug(locale), 301 vers le slug localisé. Gère le switcher naïf cross-locale (slug FR servi en EN → 301 → slug EN)."
+      - "⚠️ COLLISION ROUTING : view_spice = /{_locale}/epices/{slug} cohabite avec les index frères /epices/{groupes_aromatiques,composes_aromatiques,saveurs_aromatiques,types_epices}. Fix = priority:-10 + requirement negative-lookahead sur slug excluant ces 4 segments. ⚠️ Ajouter une sous-section sous /epices = MAJ le lookahead."
+    filtres:
+      - "Catalogue : ?aromatic_group=<slug> & ?spicy_type=<slug> (SpicesController::index résout slug→entité, dégradation douce si slug inconnu = liste complète). Templates passent getLocalizedSlug ; activeAgId/activeStId (id) pour le 'checked', activeAgSlug/activeStSlug pour les cross-links chips."
+      - "Lab LiveComponent (SpicyMatch.php) : filterAgId/filterStId portent un SLUG (value). Résolution slug→id mémoïsée (resolvedAgId/resolvedStId, getActiveAromaticGroupId/getActiveSpicyTypeId) — 1 requête/slug/render. Le 'checked' compare getActiveAromaticGroupId == group.id (ID, LOCALE-INDÉPENDANT) → pas de désync au switch de locale (corrigé 2026-06-17 : avant comparait le slug localisé)."
+    concurrence:
+      - "SerializesSlugGenerationTrait (src/Controller/Admin/Concern) sur les 6 CRUD sluggables : GET_LOCK MariaDB ('spicymatch_slug_gen') autour de persistEntity → sérialise la génération de slug, élimine la race check-then-act du SlugListener (préféré au try/catch+retry qui casse sur la fermeture de l'EM après UniqueConstraintViolation). N'enveloppe que persistEntity (slug immuable à l'update)."
+      - "search() (SpicesRepository) : chaque branche UNION projette le slug (COALESCE translation/canonique). Résultats recherche → liens slugés. NB : aromatic_group → index_aromatic_groups (pas de route détail groupe)."
+    macros:
+      - "_macro_card_spice : spiceSlug dérivé (array Lab = spice.slug projeté dans findAllSpices/findEnrichedByIds/findSpicesForMatch ; entité = getLocalizedSlug). _macro_modal_preparation_method : param `slug` ajouté."
+    seo:
+      - "hreflang/canonical (base.html.twig) : les controllers détail passent hreflang_slugs={fr,en,es} → les balises alternate pointent vers le BON slug par locale (sinon elles réutilisaient le slug courant = invalide). canonical = slug locale courante."
+      - "Slugs FR = hyphens (clou-girofle, pas clou_girofle). SpicesFixtures::setSlug(str_replace('_','-',$key)) — la clé $key reste la référence Doctrine."
+      - "SITEMAP : PrestaSitemapBundle v4 (config/routes/presta_sitemap.yaml → /sitemap.xml + /sitemap.{section}.xml). SitemapSubscriber (src/EventSubscriber, SitemapPopulateEvent) : section 'pages' (home + 6 index) + 'content' (5 entités détail). Chaque URL = GoogleMultilangUrlDecorator avec xhtml:link alternate fr/en/es (slug per-locale via getLocalizedSlug). Test : php bin/console presta:sitemap:dump /tmp/x --base-url=https://h/."
+      - "robots.txt = public/robots.txt STATIQUE (Allow / ; Disallow /admin, /api/ ; Sitemap: https://VOTRE-DOMAINE/sitemap.xml). ⚠️ remplacer VOTRE-DOMAINE avant prod."
+      - "⚠️ RESTE À FAIRE : seed réel des slugs EN/ES (tables *_translation vides → COALESCE sert le FR ; le sitemap émet donc des alternates es=slug FR tant que non seedé)."
+
   monetisation:
     description: "Infra ads + Premium ad-free (flag OFF par défaut). Décision actée 2026-06-13 : PAS d'interstitiel (Better Ads Standards → Chrome filtrerait toutes les pubs ; compteur localStorage soumis à consentement ePrivacy ; friction au pic de motivation). Display in-flow uniquement."
     premium:

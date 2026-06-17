@@ -39,4 +39,25 @@ class AlchemyFlavorsRepository extends ServiceEntityRepository
                 ->flush();
         }
     }
+
+    public function findOneByLocalizedSlug(string $slug, string $locale): ?AlchemyFlavors
+    {
+        if ($locale !== 'fr') {
+            $translated = $this->createQueryBuilder('e')
+                ->innerJoin('e.translations', 't', 'WITH', 't.locale = :loc AND t.slug = :slug')
+                ->setParameter('loc', $locale)
+                ->setParameter('slug', $slug)
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+
+            if ($translated !== null) {
+                return $translated;
+            }
+        }
+
+        return $this->findOneBy([
+            'slug' => $slug,
+        ]);
+    }
 }

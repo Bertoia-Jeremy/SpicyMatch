@@ -25,7 +25,7 @@
 
                 <twig:Button
                     label="{{ 'ui.catalog.view_spices'|trans }}"
-                    href="{{ path('view_spicy_type', {id: type.id}) }}"
+                    href="{{ path('view_spicy_type', {slug: type.getLocalizedSlug(app.request.locale)}) }}"
                     variant="secondary"
                     size="sm"
                     icon="fa-solid fa-arrow-right"

@@ -1,4 +1,4 @@
-{% macro modal(id, name, createModal) %}
+{% macro modal(id, name, createModal, slug) %}
     <div x-data="toggle">
         <twig:Button
             label="{{ 'ui.recipe.method'|trans }} {{ name }}"
@@ -24,7 +24,7 @@
                     </div>
                     <turbo-frame
                         class="block p-5"
-                        :src="open ? '{{ path('view_preparation_methods', { 'id': id }) }}' : null"
+                        :src="open ? '{{ path('view_preparation_methods', { 'slug': slug }) }}' : null"
                         id="preparation_methode_frame_{{ id }}"
                     >
                         <div class="text-stone-400 text-sm text-center py-4">Chargement...</div>

@@ -453,7 +453,7 @@
         {% if sharedCompounds is not empty %}
           <div class="mt-3 flex flex-wrap gap-2">
             {% for compound in sharedCompounds %}
-              <a href="{{ path('view_aromatic_compound', {id: compound.id}) }}"
+              <a href="{{ path('view_aromatic_compound', {slug: compound.getLocalizedSlug(app.request.locale)}) }}"
                  class="smallcaps hover:opacity-75 transition-opacity"
                  style="color: #9A4720;">
                 {{ compound.getLocalizedName(loc) }}

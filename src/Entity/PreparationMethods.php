@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Translation\Sluggable;
 use App\Entity\Translation\TranslatableInterface;
 use App\Repository\PreparationMethodsRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -10,7 +11,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PreparationMethodsRepository::class)]
-class PreparationMethods implements TranslatableInterface
+class PreparationMethods implements TranslatableInterface, Sluggable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -19,6 +20,9 @@ class PreparationMethods implements TranslatableInterface
 
     #[ORM\Column(length: 255)]
     private ?string $name = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
+    private ?string $slug = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeInterface $created_at = null;
@@ -135,6 +139,23 @@ class PreparationMethods implements TranslatableInterface
     public function getLocalizedAdvice(string $locale): ?string
     {
         return $this->getTranslation($locale)?->getAdvice() ?? $this->advice;
+    }
+
+    public function getLocalizedSlug(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getSlug() ?? $this->slug;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(?string $slug): static
+    {
+        $this->slug = $slug;
+
+        return $this;
     }
 
     public function getName(): ?string

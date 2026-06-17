@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
+use App\Controller\Admin\Concern\SerializesSlugGenerationTrait;
 use App\Entity\Spices;
 use App\Form\Admin\Translation\SpiceTranslationType;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
@@ -20,6 +21,8 @@ use Vich\UploaderBundle\Form\Type\VichImageType;
  */
 class SpicesCrudController extends AbstractCrudController
 {
+    use SerializesSlugGenerationTrait;
+
     public static function getEntityFqcn(): string
     {
         return Spices::class;

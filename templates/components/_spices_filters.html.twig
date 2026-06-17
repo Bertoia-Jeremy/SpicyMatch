@@ -7,6 +7,8 @@
 
 {% set activeAgId = activeAgId|default(null) %}
 {% set activeStId = activeStId|default(null) %}
+{% set activeAgSlug = activeAgSlug|default(null) %}
+{% set activeStSlug = activeStSlug|default(null) %}
 {% set activeSearch = activeSearch|default('') %}
 {% set aromaticGroups = aromaticGroups|default([]) %}
 {% set spicyTypes = spicyTypes|default([]) %}
@@ -28,7 +30,7 @@
                     <label class="flex items-center gap-3 cursor-pointer group/item">
                         <input type="radio"
                                name="aromatic_group"
-                               value="{{ group.id }}"
+                               value="{{ group.getLocalizedSlug(app.request.locale) }}"
                                {{ activeAgId == group.id ? 'checked' : '' }}
                                @change="onRadioChange"
                                class="size-4 border-stone-300 text-saffron-600 focus:ring-saffron-600/20 cursor-pointer">
@@ -51,12 +53,12 @@
                     <label class="flex items-center gap-3 cursor-pointer group/item">
                         <input type="radio"
                                name="spicy_type"
-                               value="{{ type.id }}"
+                               value="{{ type.getLocalizedSlug(app.request.locale) }}"
                                {{ activeStId == type.id ? 'checked' : '' }}
                                @change="onRadioChange"
                                class="size-4 border-stone-300 text-saffron-600 focus:ring-saffron-600/20 cursor-pointer">
                         <span class="text-sm font-medium text-stone-700 group-hover/item:text-saffron-700 transition-colors">
-                            {{ type.name }}
+                            {{ type.getLocalizedName(app.request.locale) }}
                         </span>
                     </label>
                 {% endfor %}
@@ -96,7 +98,7 @@
         <div class="flex flex-wrap gap-2 mt-6">
             {% if activeAgId %}
                 {% for group in aromaticGroups %}{% if group.id == activeAgId %}
-                    <a href="{{ path('index_spices', activeStId ? { spicy_type: activeStId } : {}) }}"
+                    <a href="{{ path('index_spices', activeStSlug ? { spicy_type: activeStSlug } : {}) }}"
                        class="inline-flex items-center gap-1.5 bg-saffron-50/50 border border-saffron-200 text-saffron-800 text-xs font-semibold px-3 py-1.5 rounded-full hover:bg-saffron-100 transition-colors">
                         <span class="text-stone-400 font-normal">{{ 'ui.filters.group'|trans }}</span> {{ group.getLocalizedName(app.request.locale) }}
                         <i class="fa-solid fa-xmark ml-1 text-[10px] text-saffron-400" aria-hidden="true"></i>
@@ -105,9 +107,9 @@
             {% endif %}
             {% if activeStId %}
                 {% for type in spicyTypes %}{% if type.id == activeStId %}
-                    <a href="{{ path('index_spices', activeAgId ? { aromatic_group: activeAgId } : {}) }}"
+                    <a href="{{ path('index_spices', activeAgSlug ? { aromatic_group: activeAgSlug } : {}) }}"
                        class="inline-flex items-center gap-1.5 bg-saffron-50/50 border border-saffron-200 text-saffron-800 text-xs font-semibold px-3 py-1.5 rounded-full hover:bg-saffron-100 transition-colors">
-                        <span class="text-stone-400 font-normal">{{ 'ui.filters.type'|trans }}</span> {{ type.name }}
+                        <span class="text-stone-400 font-normal">{{ 'ui.filters.type'|trans }}</span> {{ type.getLocalizedName(app.request.locale) }}
                         <i class="fa-solid fa-xmark ml-1 text-[10px] text-saffron-400" aria-hidden="true"></i>
                     </a>
                 {% endif %}{% endfor %}

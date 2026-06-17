@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Entity\Translation\Sluggable;
+use App\Entity\Translation\TranslatableInterface;
 use App\Repository\SpicyTypeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -11,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SpicyTypeRepository::class)]
 #[ORM\Table(name: 'spicy_type')]
-class SpicyType
+class SpicyType implements TranslatableInterface, Sluggable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -20,6 +22,9 @@ class SpicyType
 
     #[ORM\Column(name: 'name', type: 'string', length: 255)]
     private ?string $name = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
+    private ?string $slug = null;
 
     #[ORM\Column(name: 'description', type: 'text', nullable: true)]
     private ?string $description = null;
@@ -45,14 +50,103 @@ class SpicyType
     #[ORM\OneToMany(targetEntity: Spices::class, mappedBy: 'spicyType')]
     private Collection $spices;
 
+    /**
+     * @var Collection<int, SpicyTypeTranslation>
+     */
+    #[ORM\OneToMany(mappedBy: 'spicyType', targetEntity: SpicyTypeTranslation::class, cascade: [
+        'persist',
+        'remove',
+    ], orphanRemoval: true)]
+    private Collection $translations;
+
     public function __construct()
     {
         $this->spices = new ArrayCollection();
+        $this->translations = new ArrayCollection();
     }
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    /**
+     * @return Collection<int, SpicyTypeTranslation>
+     */
+    public function getTranslations(): Collection
+    {
+        return $this->translations;
+    }
+
+    public function addTranslation(SpicyTypeTranslation $translation): self
+    {
+        if (! $this->translations->contains($translation)) {
+            $this->translations->add($translation);
+            $translation->setSpicyType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTranslation(SpicyTypeTranslation $translation): self
+    {
+        if ($this->translations->removeElement($translation) && $translation->getSpicyType() === $this) {
+            $translation->setSpicyType(null);
+        }
+
+        return $this;
+    }
+
+    public function getTranslation(string $locale): ?SpicyTypeTranslation
+    {
+        if ($locale === 'fr') {
+            return null;
+        }
+
+        foreach ($this->translations as $t) {
+            if ($t->getLocale() === $locale) {
+                return $t;
+            }
+        }
+
+        return null;
+    }
+
+    public function getLocalizedName(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getName() ?? $this->name;
+    }
+
+    public function getLocalizedDescription(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getDescription() ?? $this->description;
+    }
+
+    public function getLocalizedCooking(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getCooking() ?? $this->cooking;
+    }
+
+    public function getLocalizedInformations(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getInformations() ?? $this->informations;
+    }
+
+    public function getLocalizedSlug(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getSlug() ?? $this->slug;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(?string $slug): static
+    {
+        $this->slug = $slug;
+
+        return $this;
     }
 
     public function getName(): ?string

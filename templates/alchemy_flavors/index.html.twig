@@ -25,7 +25,7 @@
 
                 <twig:Button
                     label="{{ 'ui.catalog.explore_flavor'|trans }}"
-                    href="{{ path('view_alchemy_flavors', {id: flavor.id}) }}"
+                    href="{{ path('view_alchemy_flavors', {slug: flavor.getLocalizedSlug(app.request.locale)}) }}"
                     variant="secondary"
                     size="sm"
                     icon="fa-solid fa-arrow-right"

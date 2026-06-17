@@ -6,6 +6,8 @@ namespace App\Command;
 
 use App\Entity\Achievement;
 use App\Entity\AchievementTranslation;
+use App\Entity\AlchemyFlavors;
+use App\Entity\AlchemyFlavorsTranslation;
 use App\Entity\AromaticCompound;
 use App\Entity\AromaticCompoundTranslation;
 use App\Entity\AromaticGroups;
@@ -18,6 +20,8 @@ use App\Entity\PreparationTips;
 use App\Entity\PreparationTipsTranslation;
 use App\Entity\Spices;
 use App\Entity\SpiceTranslation;
+use App\Entity\SpicyType;
+use App\Entity\SpicyTypeTranslation;
 use App\Entity\Translation\TranslatableInterface;
 use App\Entity\Translation\TranslationInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -212,6 +216,44 @@ final class SeedTranslationsCommand extends Command
                         ->setLocale($locale);
 
                     if (! $existing instanceof PreparationMethodsTranslation) {
+                        $e->addTranslation($t);
+                        $this->em->persist($t);
+                    }
+                },
+            ),
+            'alchemy_flavors' => fn (bool $ow): array => $this->seedEach(
+                $this->em->getRepository(AlchemyFlavors::class)->findAll(),
+                $locale,
+                $ow,
+                function (TranslatableInterface $e, ?TranslationInterface $existing) use ($locale): void {
+                    \assert($e instanceof AlchemyFlavors);
+                    $t = $existing instanceof AlchemyFlavorsTranslation ? $existing : new AlchemyFlavorsTranslation();
+                    $t->setName((string) $e->getName())
+                        ->setDescription($e->getDescription())
+                        ->setCooking($e->getCooking())
+                        ->setInformations($e->getInformations())
+                        ->setLocale($locale);
+
+                    if (! $existing instanceof AlchemyFlavorsTranslation) {
+                        $e->addTranslation($t);
+                        $this->em->persist($t);
+                    }
+                },
+            ),
+            'spicy_types' => fn (bool $ow): array => $this->seedEach(
+                $this->em->getRepository(SpicyType::class)->findAll(),
+                $locale,
+                $ow,
+                function (TranslatableInterface $e, ?TranslationInterface $existing) use ($locale): void {
+                    \assert($e instanceof SpicyType);
+                    $t = $existing instanceof SpicyTypeTranslation ? $existing : new SpicyTypeTranslation();
+                    $t->setName((string) $e->getName())
+                        ->setDescription($e->getDescription())
+                        ->setCooking($e->getCooking())
+                        ->setInformations($e->getInformations())
+                        ->setLocale($locale);
+
+                    if (! $existing instanceof SpicyTypeTranslation) {
                         $e->addTranslation($t);
                         $this->em->persist($t);
                     }

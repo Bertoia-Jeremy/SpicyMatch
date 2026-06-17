@@ -5,6 +5,7 @@
     {% if spice is iterable %}
         {# C'est un tableau (retourné par getResults() dans SpicyMatch) #}
         {% set spiceId = spice.id %}
+        {% set spiceSlug = spice.slug|default(spice.id) %}
         {% set spiceName = spice.name %}
         {% set spiceDescription = spice.description|default(null) %}
         {% set color = spice.color|default('#78716C') %}
@@ -15,6 +16,7 @@
         {# Entité Spices #}
         {% set loc = app.request.locale %}
         {% set spiceId = spice.id %}
+        {% set spiceSlug = spice.getLocalizedSlug(loc) %}
         {% set spiceName = spice.getLocalizedName(loc) %}
         {% set spiceDescription = spice.getLocalizedDescription(loc) %}
         {% set color = spice.aromaticGroups ? spice.aromaticGroups.color : '#78716C' %}
@@ -50,7 +52,7 @@
                     class="relative overflow-hidden aspect-square bg-stone-100 cursor-pointer block w-full p-0 border-0
                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600 focus-visible:ring-inset"
                     aria-label="{{ 'ui.catalog.preview'|trans }} — {{ spiceName }}"
-                    @click.prevent.stop="$dispatch('open-spice-modal', { url: '{{ path('quick_view_spice', { id: spiceId }) }}', fullUrl: '{{ path('view_spice', { id: spiceId }) }}' })">
+                    @click.prevent.stop="$dispatch('open-spice-modal', { url: '{{ path('quick_view_spice', { slug: spiceSlug }) }}', fullUrl: '{{ path('view_spice', { slug: spiceSlug }) }}' })">
         {% else %}
             <div class="relative overflow-hidden aspect-square bg-stone-100">
         {% endif %}
@@ -160,8 +162,8 @@
                                    text-[11px] font-semibold text-saffron-600
                                    hover:text-saffron-700 transition-colors group/link"
                             @click.stop="$dispatch('open-spice-modal', {
-                                url: '{{ path('quick_view_spice', {id: spiceId}) }}',
-                                fullUrl: '{{ path('view_spice', {id: spiceId}) }}'
+                                url: '{{ path('quick_view_spice', {slug: spiceSlug}) }}',
+                                fullUrl: '{{ path('view_spice', {slug: spiceSlug}) }}'
                             })">
                         <span>{{ 'ui.catalog.see_details'|trans }}</span>
                         <i class="fa-solid fa-arrow-right text-[9px] transition-transform group-hover/link:translate-x-0.5" aria-hidden="true"></i>
@@ -173,7 +175,7 @@
             {% set contentTag = model ? 'label' : (linkToSheet ? 'a' : 'div') %}
             <{{ contentTag }}
                 {% if model %}for="spice_{{ spiceId }}"{% endif %}
-                {% if linkToSheet %}href="{{ path('view_spice', { id: spiceId }) }}" aria-label="{{ 'ui.catalog.see_sheet'|trans }} — {{ spiceName }}"{% endif %}
+                {% if linkToSheet %}href="{{ path('view_spice', { slug: spiceSlug }) }}" aria-label="{{ 'ui.catalog.see_sheet'|trans }} — {{ spiceName }}"{% endif %}
                 class="flex flex-col flex-1 p-3 gap-1.5 {{ model or linkToSheet ? 'cursor-pointer hover:bg-stone-50/50 transition-colors' : '' }}{{ linkToSheet ? ' focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600 focus-visible:ring-inset' : '' }}"
                 @click.stop>
 

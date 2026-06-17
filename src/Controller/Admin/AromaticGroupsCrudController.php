@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
+use App\Controller\Admin\Concern\SerializesSlugGenerationTrait;
 use App\Entity\AromaticGroups;
 use App\Form\Admin\Translation\AromaticGroupsTranslationType;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
@@ -18,6 +19,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
  */
 class AromaticGroupsCrudController extends AbstractCrudController
 {
+    use SerializesSlugGenerationTrait;
+
     public static function getEntityFqcn(): string
     {
         return AromaticGroups::class;

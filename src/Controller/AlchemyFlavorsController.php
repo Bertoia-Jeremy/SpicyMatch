@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\AlchemyFlavors;
+use App\Controller\Concern\CanonicalSlugTrait;
 use App\Repository\AlchemyFlavorsRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -15,6 +16,8 @@ use Symfony\Component\Routing\Annotation\Route;
 ])]
 class AlchemyFlavorsController extends AbstractController
 {
+    use CanonicalSlugTrait;
+
     #[Route('/', name: 'index_alchemy_flavors')]
     public function index(AlchemyFlavorsRepository $repository): Response
     {
@@ -23,11 +26,31 @@ class AlchemyFlavorsController extends AbstractController
         ]);
     }
 
-    #[Route('/{id<\d+>}', name: 'view_alchemy_flavors')]
-    public function view(AlchemyFlavors $alchemyFlavor): Response
+    #[Route('/{slug}', name: 'view_alchemy_flavors')]
+    public function view(string $slug, Request $request, AlchemyFlavorsRepository $repository): Response
     {
+        $locale = $request->getLocale();
+        $alchemyFlavor = $repository->findOneByLocalizedSlug($slug, $locale);
+        if ($alchemyFlavor === null) {
+            throw $this->createNotFoundException();
+        }
+
+        if (($redirect = $this->canonicalSlugRedirect(
+            'view_alchemy_flavors',
+            $slug,
+            $alchemyFlavor->getLocalizedSlug($locale),
+            $locale
+        )) !== null) {
+            return $redirect;
+        }
+
         return $this->render('alchemy_flavors/view.html.twig', [
             'alchemyFlavor' => $alchemyFlavor,
+            'hreflang_slugs' => [
+                'fr' => $alchemyFlavor->getLocalizedSlug('fr'),
+                'en' => $alchemyFlavor->getLocalizedSlug('en'),
+                'es' => $alchemyFlavor->getLocalizedSlug('es'),
+            ],
         ]);
     }
 }

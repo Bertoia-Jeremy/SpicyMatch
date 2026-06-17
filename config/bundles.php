@@ -22,4 +22,5 @@ return [
     Symfony\UX\Chartjs\ChartjsBundle::class => ['all' => true],
     Nelmio\SecurityBundle\NelmioSecurityBundle::class => ['all' => true],
     Sentry\SentryBundle\SentryBundle::class => ['all' => true],
+    Presta\SitemapBundle\PrestaSitemapBundle::class => ['all' => true],
 ];

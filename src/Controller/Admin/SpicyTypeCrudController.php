@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
+use App\Controller\Admin\Concern\SerializesSlugGenerationTrait;
 use App\Entity\SpicyType;
+use App\Form\Admin\Translation\SpicyTypeTranslationType;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
@@ -15,6 +18,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
  */
 class SpicyTypeCrudController extends AbstractCrudController
 {
+    use SerializesSlugGenerationTrait;
+
     public static function getEntityFqcn(): string
     {
         return SpicyType::class;
@@ -29,6 +34,10 @@ class SpicyTypeCrudController extends AbstractCrudController
             TextareaField::new('informations', 'admin.field.extra_informations')->hideOnIndex(),
             DateTimeField::new('created_at', 'admin.field.created_at')->hideOnForm(),
             DateTimeField::new('updated_at', 'admin.field.updated_at')->hideOnForm(),
+            CollectionField::new('translations', 'admin.field.translations')
+                ->setEntryType(SpicyTypeTranslationType::class)
+                ->setEntryIsComplex()
+                ->onlyOnForms(),
         ];
     }
 }

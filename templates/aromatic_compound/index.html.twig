@@ -25,7 +25,7 @@
 
                 <twig:Button
                     label="{{ 'ui.catalog.learn_more'|trans }}"
-                    href="{{ path('view_aromatic_compound', {id: compound.id}) }}"
+                    href="{{ path('view_aromatic_compound', {slug: compound.getLocalizedSlug(app.request.locale)}) }}"
                     variant="secondary"
                     size="sm"
                     icon="fa-solid fa-arrow-right"

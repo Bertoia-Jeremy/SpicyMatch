@@ -18,7 +18,7 @@
                 <p class="text-stone-500 text-sm leading-relaxed mb-5">{{ preparation_method.description|nl2br }}</p>
                 <twig:Button
                     label="{{ 'ui.catalog.view_details'|trans }}"
-                    href="{{ path('view_preparation_methods', {'id': preparation_method.id}) }}"
+                    href="{{ path('view_preparation_methods', {slug: preparation_method.getLocalizedSlug(app.request.locale)}) }}"
                     variant="secondary"
                     size="sm"
                     icon="fa-solid fa-arrow-right"

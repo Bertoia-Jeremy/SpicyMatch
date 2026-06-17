@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Twig\Components;
 
+use App\Entity\AromaticGroups;
+use App\Entity\SpicyType;
 use App\Enum\OdtMatrix;
 use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpiceActiveCompoundRepository;
@@ -19,6 +21,8 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 #[AllowMockObjectsWithoutExpectations]
@@ -96,6 +100,9 @@ class SpicyMatchTest extends TestCase
 
     private function makeComponent(): SpicyMatch
     {
+        $requestStack = new RequestStack();
+        $requestStack->push(Request::create('/fr/spicymatch'));
+
         $component = new SpicyMatch(
             $this->spicesRepo,
             $this->compatibleSpiceFinder,
@@ -104,6 +111,7 @@ class SpicyMatchTest extends TestCase
             $this->spicyMatchService,
             $this->confidenceAssessor,
             $this->spiceActiveCompoundRepo,
+            $requestStack,
         );
 
         $component->setContainer($this->makeAnonymousContainer());
@@ -449,9 +457,15 @@ class SpicyMatchTest extends TestCase
                 ],
             ]);
 
+        $group = $this->createStub(AromaticGroups::class);
+        $group->method('getId')
+            ->willReturn(4);
+        $this->aromaticGroupsRepo->method('findOneByLocalizedSlug')
+            ->willReturn($group);
+
         $component = $this->makeComponent();
         $component->mode = 'manual';
-        $component->filterAgId = '4'; // Herbacé
+        $component->filterAgId = 'herbace'; // Herbacé (agId=4)
         $component->spices = [
             'selectedSpices' => ['1'],
             'compatibleSpices' => $this->allSpices,
@@ -474,9 +488,15 @@ class SpicyMatchTest extends TestCase
                 ],
             ]);
 
+        $type = $this->createStub(SpicyType::class);
+        $type->method('getId')
+            ->willReturn(2);
+        $this->spicyTypeRepo->method('findOneByLocalizedSlug')
+            ->willReturn($type);
+
         $component = $this->makeComponent();
         $component->mode = 'manual';
-        $component->filterStId = '2'; // stId=2 → Coriandre only
+        $component->filterStId = 'graine'; // stId=2 → Coriandre only
         $component->spices = [
             'selectedSpices' => ['1'],
             'compatibleSpices' => $this->allSpices,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Entity\Translation\Sluggable;
 use App\Entity\Translation\TranslationInterface;
 use App\Repository\AromaticCompoundTranslationRepository;
 use Doctrine\DBAL\Types\Types;
@@ -16,8 +17,9 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: AromaticCompoundTranslationRepository::class)]
 #[ORM\Table(name: 'aromatic_compound_translation')]
 #[ORM\UniqueConstraint(name: 'uniq_aromatic_compound_locale', columns: ['aromatic_compound_id', 'locale'])]
+#[ORM\UniqueConstraint(name: 'uniq_aromatic_compound_translation_slug', columns: ['locale', 'slug'])]
 #[ORM\Index(name: 'idx_aromatic_compound_translation_locale', columns: ['locale'])]
-class AromaticCompoundTranslation implements TranslationInterface
+class AromaticCompoundTranslation implements TranslationInterface, Sluggable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -38,6 +40,9 @@ class AromaticCompoundTranslation implements TranslationInterface
 
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $name = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $slug = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
@@ -97,6 +102,18 @@ class AromaticCompoundTranslation implements TranslationInterface
     public function setName(?string $name): static
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(?string $slug): static
+    {
+        $this->slug = $slug;
 
         return $this;
     }

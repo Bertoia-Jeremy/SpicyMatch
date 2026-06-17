@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Controller\Admin\Concern\SerializesSlugGenerationTrait;
 use App\Entity\PreparationMethods;
 use App\Form\Admin\Translation\PreparationMethodsTranslationType;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
@@ -15,6 +16,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
  */
 class PreparationMethodsCrudController extends AbstractCrudController
 {
+    use SerializesSlugGenerationTrait;
+
     public static function getEntityFqcn(): string
     {
         return PreparationMethods::class;

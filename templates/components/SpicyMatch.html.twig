@@ -41,12 +41,12 @@
                             <label class="flex items-center gap-3 cursor-pointer group/item">
                                 <input type="radio"
                                        name="filterAgId"
-                                       value="{{ group.id }}"
+                                       value="{{ group.getLocalizedSlug(app.request.locale) }}"
                                        data-model="filterAgId"
-                                       {{ this.filterAgId == group.id ? 'checked' : '' }}
+                                       {{ this.activeAromaticGroupId == group.id ? 'checked' : '' }}
                                        class="size-4 border-stone-300 text-saffron-600 focus:ring-saffron-600/20 cursor-pointer">
                                 <span class="text-sm font-medium text-stone-700 group-hover/item:text-saffron-700 transition-colors">
-                                    {{ group.name }}
+                                    {{ group.getLocalizedName(app.request.locale) }}
                                 </span>
                             </label>
                         {% endfor %}
@@ -207,12 +207,12 @@
                             <label class="flex items-center gap-3 cursor-pointer group/item">
                                 <input type="radio"
                                        name="filterStId"
-                                       value="{{ type.id }}"
+                                       value="{{ type.getLocalizedSlug(app.request.locale) }}"
                                        data-model="filterStId"
-                                       {{ this.filterStId == type.id ? 'checked' : '' }}
+                                       {{ this.activeSpicyTypeId == type.id ? 'checked' : '' }}
                                        class="size-4 border-stone-300 text-saffron-600 focus:ring-saffron-600/20 cursor-pointer">
                                 <span class="text-sm font-medium text-stone-700 group-hover/item:text-saffron-700 transition-colors">
-                                    {{ type.name }}
+                                    {{ type.getLocalizedName(app.request.locale) }}
                                 </span>
                             </label>
                         {% endfor %}

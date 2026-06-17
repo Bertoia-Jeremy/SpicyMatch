@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Entity\Translation\Sluggable;
 use App\Entity\Translation\TranslatableInterface;
 use App\Repository\AromaticGroupsRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -13,7 +14,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AromaticGroupsRepository::class)]
 #[ORM\Table(name: 'aromatic_groups')]
-class AromaticGroups implements TranslatableInterface
+class AromaticGroups implements TranslatableInterface, Sluggable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -22,6 +23,9 @@ class AromaticGroups implements TranslatableInterface
 
     #[ORM\Column(name: 'name', type: 'string', length: 255)]
     private ?string $name = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
+    private ?string $slug = null;
 
     #[Assert\Regex(pattern: '/^#[0-9A-Fa-f]{6}$/', message: 'aromatic_group.color_invalid')]
     #[ORM\Column(name: 'color', type: 'string', length: 255)]
@@ -131,6 +135,23 @@ class AromaticGroups implements TranslatableInterface
     public function getLocalizedInformations(string $locale): ?string
     {
         return $this->getTranslation($locale)?->getInformations() ?? $this->informations;
+    }
+
+    public function getLocalizedSlug(string $locale): ?string
+    {
+        return $this->getTranslation($locale)?->getSlug() ?? $this->slug;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(?string $slug): static
+    {
+        $this->slug = $slug;
+
+        return $this;
     }
 
     public function getName(): ?string

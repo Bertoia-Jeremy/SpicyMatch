@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Entity\Translation\Sluggable;
 use App\Entity\Translation\TranslationInterface;
 use App\Repository\SpiceTranslationRepository;
 use Doctrine\DBAL\Types\Types;
@@ -20,8 +21,9 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: SpiceTranslationRepository::class)]
 #[ORM\Table(name: 'spice_translation')]
 #[ORM\UniqueConstraint(name: 'uniq_spice_locale', columns: ['spice_id', 'locale'])]
+#[ORM\UniqueConstraint(name: 'uniq_spice_translation_slug', columns: ['locale', 'slug'])]
 #[ORM\Index(name: 'idx_spice_translation_locale', columns: ['locale'])]
-class SpiceTranslation implements TranslationInterface
+class SpiceTranslation implements TranslationInterface, Sluggable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -42,6 +44,9 @@ class SpiceTranslation implements TranslationInterface
 
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $name = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $slug = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
@@ -104,6 +109,18 @@ class SpiceTranslation implements TranslationInterface
     public function setName(?string $name): static
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(?string $slug): static
+    {
+        $this->slug = $slug;
 
         return $this;
     }

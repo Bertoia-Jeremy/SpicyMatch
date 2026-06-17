@@ -178,7 +178,7 @@
                              style="{{ not loop.last ? 'border-color: rgba(184,134,74,0.15)' : '' }}">
                             <span class="size-5 rounded-full flex-none shadow-sm"
                                   style="background: radial-gradient(circle at 30% 30%, {{ clr.light }}, {{ clr.dark }})"></span>
-                            <a href="{{ path('view_aromatic_compound', {id: compound.id}) }}"
+                            <a href="{{ path('view_aromatic_compound', {slug: compound.getLocalizedSlug(loc)}) }}"
                                class="font-display text-[15px] font-medium flex-1 hover:underline transition-opacity hover:opacity-70"
                                style="color: var(--color-ink-deep)">{{ compound.getLocalizedName(loc) }}</a>
                             {% if compound.AlchemyFlavors is not empty %}
@@ -204,7 +204,7 @@
                             {% for compound in spice.secondaryAromaticsCompounds %}
                                 <div class="flex items-baseline justify-between gap-2 py-1.5 border-b border-dotted last:border-0"
                                      style="border-color: rgba(184,134,74,0.2)">
-                                    <a href="{{ path('view_aromatic_compound', {id: compound.id}) }}"
+                                    <a href="{{ path('view_aromatic_compound', {slug: compound.getLocalizedSlug(loc)}) }}"
                                        class="font-display text-sm hover:underline transition-opacity hover:opacity-70"
                                        style="color: rgba(42,24,16,0.7)">{{ compound.getLocalizedName(loc) }}</a>
                                     {% if compound.AlchemyFlavors is not empty %}
@@ -236,8 +236,8 @@
                 {% if allFlavors is not empty %}
                     <div class="flex flex-wrap gap-2 mt-4">
                         {% for flavor in allFlavors %}
-                            <a href="{{ path('view_alchemy_flavors', {id: flavor.id}) }}"
-                               class="tag-primary hover:opacity-75 transition-opacity">{{ flavor.name }}</a>
+                            <a href="{{ path('view_alchemy_flavors', {slug: flavor.getLocalizedSlug(loc)}) }}"
+                               class="tag-primary hover:opacity-75 transition-opacity">{{ flavor.getLocalizedName(loc) }}</a>
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -338,7 +338,8 @@
                                         {{ macroModalPreparationMethod.modal(
                                             prep.preparationMethod.id,
                                             prep.preparationMethod.getLocalizedName(loc),
-                                            true
+                                            true,
+                                            prep.preparationMethod.getLocalizedSlug(loc)
                                         )}}
                                     </div>
                                 {% endif %}
@@ -414,7 +415,7 @@
             {% for related in relatedSpices %}
                 {% set relColor = related.aromaticGroups ? related.aromaticGroups.color : '#888' %}
                 {% set relImg = vich_uploader_asset(related, 'imageFile') %}
-                <a href="{{ path('view_spice', {id: related.id}) }}" class="fil-card group">
+                <a href="{{ path('view_spice', {slug: related.getLocalizedSlug(loc)}) }}" class="fil-card group">
                     <div class="fc-img" style="background: {{ relColor }}20">
                         <span class="absolute top-2.5 left-2.5 z-10 inline-flex items-center gap-1.5
                                      rounded-full px-2 py-1

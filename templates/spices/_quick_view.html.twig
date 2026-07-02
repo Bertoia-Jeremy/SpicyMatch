@@ -13,12 +13,14 @@
         <div class="relative min-h-[220px] sm:min-h-[400px]"
              style="background: linear-gradient(135deg, {{ color }}33, {{ color }}11)">
             {% if imageUrl %}
-                <img src="{{ imageUrl }}" alt="{{ spiceName }}"
+                <img src="{{ imageUrl|imagine_filter('spice_hero') }}" alt="{{ spiceName }}"
+                     decoding="async" width="800" height="800"
                      class="absolute inset-0 w-full h-full object-cover">
             {% else %}
-                <img src="https://loremflickr.com/600/700/spice,{{ spice.name|url_encode }}"
-                     alt="{{ spiceName }}"
-                     class="absolute inset-0 w-full h-full object-cover">
+                <span class="absolute inset-0 flex items-center justify-center" aria-hidden="true"
+                      style="color: {{ color }}66">
+                    <i class="fa-solid fa-seedling text-6xl"></i>
+                </span>
             {% endif %}
             {# Gradient overlay bas #}
             <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/25 pointer-events-none"></div>

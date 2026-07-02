@@ -5,7 +5,7 @@
 {% block body %}
 <div class="flex min-h-[calc(100vh-4rem)]">
     <div class="w-1/2 hidden md:block">
-        <img src="{{ asset('images/login.png') }}" alt="" class="w-full h-full object-cover" loading="lazy" decoding="async">
+        <img src="{{ asset('images/login.png') }}" alt="" class="w-full h-full object-cover" fetchpriority="high" decoding="async">
     </div>
     <div class="w-full md:w-1/2 flex justify-center items-center bg-cream-dark">
         <div class="w-full max-w-md p-8">

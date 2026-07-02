@@ -1,0 +1,38 @@
+liip_imagine:
+    driver: gd
+    twig:
+        mode: lazy
+    filter_sets:
+        cache: ~
+        spice_thumb:
+            format: webp
+            quality: 80
+            filters:
+                thumbnail:
+                    size: [96, 96]
+                    mode: outbound
+                    allow_upscale: false
+        spice_card:
+            format: webp
+            quality: 80
+            filters:
+                thumbnail:
+                    size: [400, 400]
+                    mode: outbound
+                    allow_upscale: false
+        spice_card_2x:
+            format: webp
+            quality: 75
+            filters:
+                thumbnail:
+                    size: [800, 800]
+                    mode: outbound
+                    allow_upscale: false
+        spice_hero:
+            format: webp
+            quality: 85
+            filters:
+                thumbnail:
+                    size: [800, 800]
+                    mode: outbound
+                    allow_upscale: false

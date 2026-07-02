@@ -11,6 +11,7 @@ use App\Entity\AromaticGroups;
 use App\Entity\Contact;
 use App\Entity\CookingTips;
 use App\Entity\GameSession;
+use App\Entity\GdprRequest;
 use App\Entity\PreparationMethods;
 use App\Entity\PreparationTips;
 use App\Entity\Spices;
@@ -169,6 +170,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section('admin.menu.section_users');
         yield MenuItem::linkToCrud('admin.menu.users', 'fa fa-users', Users::class);
         yield MenuItem::linkToCrud('admin.menu.contact', 'fa fa-envelope', Contact::class);
+        yield MenuItem::linkToCrud('admin.menu.gdpr_requests', 'fa fa-user-shield', GdprRequest::class);
 
         yield MenuItem::section('');
         yield MenuItem::linkToRoute('admin.menu.site', 'fa fa-external-link', 'home');

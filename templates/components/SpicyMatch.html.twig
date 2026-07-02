@@ -354,7 +354,7 @@
                                 <div class="ws-item">
                                     <div class="ws-thumb">
                                         {% if wsImg %}
-                                            <img src="{{ wsImg }}" alt="{{ spice.name }}" loading="lazy">
+                                            <img src="{{ wsImg|imagine_filter('spice_thumb') }}" alt="{{ spice.name }}" loading="lazy" decoding="async" width="96" height="96">
                                         {% else %}
                                             <div class="w-full h-full flex items-center justify-center text-stone-300">
                                                 <i class="fa-solid fa-seedling text-sm" aria-hidden="true"></i>
@@ -501,7 +501,7 @@
                         {% set fbImg = sp.file ? asset('uploads/spices/' ~ sp.file) : null %}
                         <div class="size-8 rounded-full border-2 border-white overflow-hidden bg-spice-surface {{ not loop.first ? '-ml-2' : '' }}">
                             {% if fbImg %}
-                                <img src="{{ fbImg }}" alt="{{ sp.name }}" class="w-full h-full object-cover">
+                                <img src="{{ fbImg|imagine_filter('spice_thumb') }}" alt="{{ sp.name }}" decoding="async" width="96" height="96" class="w-full h-full object-cover">
                             {% else %}
                                 <div class="w-full h-full grid place-items-center text-stone-300 text-xs">
                                     <i class="fa-solid fa-seedling" aria-hidden="true"></i>

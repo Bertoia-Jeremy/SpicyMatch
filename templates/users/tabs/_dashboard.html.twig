@@ -99,7 +99,13 @@
                                                 {% set spiceLocName = spice.getLocalizedName(app.request.locale) %}
                                                 <div class="w-8 h-8 rounded-lg overflow-hidden border border-white shadow-sm" title="{{ spiceLocName }}">
                                                     {% set spiceImg = vich_uploader_asset(spice, 'imageFile') %}
-                                                    <img src="{{ spiceImg ?: 'https://loremflickr.com/100/100/spice' }}" alt="{{ spiceLocName }}" class="w-full h-full object-cover">
+                                                    {% if spiceImg %}
+                                                        <img src="{{ spiceImg|imagine_filter('spice_thumb') }}" alt="{{ spiceLocName }}" loading="lazy" decoding="async" width="96" height="96" class="w-full h-full object-cover">
+                                                    {% else %}
+                                                        <span class="w-full h-full flex items-center justify-center text-stone-300 bg-stone-100" aria-hidden="true">
+                                                            <i class="fa-solid fa-seedling text-[10px]"></i>
+                                                        </span>
+                                                    {% endif %}
                                                 </div>
                                             {% endfor %}
                                             {% if history.spicyMatch.isManual %}

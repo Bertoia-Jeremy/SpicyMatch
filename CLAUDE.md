@@ -501,6 +501,19 @@ js_interop:
     - "Double-click prevention : x-data='{ submitting: false }' + @click='if (!submitting) { submitting = true; $wire.action() }' + :disabled='submitting'"
     - "Pour les actions qui doivent permettre plusieurs clics (ex: clavier pendu) : utiliser $wire.action().then(() => { submitting = false })"
 
+performance_frontend:
+  description: "Passe Core Web Vitals 2026-07-02 (LCP/CLS/INP). LiipImagineBundle 2.17 installé (recette contrib IGNORÉE → câblage manuel : bundles.php + config/packages/liip_imagine.yaml + config/routes/liip_imagine.yaml)."
+  images:
+    - "Filtres Liip (driver gd, sortie WebP) : spice_thumb 96×96 q80 (vignettes jeux/lab/dashboard), spice_card 400×400 q80 + spice_card_2x 800×800 q75 (cartes catalogue, srcset 1x/2x), spice_hero 800×800 q85 (hero fiche épice + quick view). Usage : {{ url|imagine_filter('spice_card') }} — fonctionne sur vich_uploader_asset ET asset('uploads/spices/…')."
+    - "Cache généré dans public/media/cache/ (gitignoré). ⚠️ L'extension de fichier reste .jpg mais le contenu est WebP (comportement Liip format:) — les navigateurs sniffent les magic bytes, OK. URLs /media/cache = same-origin → CSP img-src 'self' couvre, pas de MAJ nelmio."
+    - "RÈGLE : toute nouvelle <img> = decoding=async + width/height + loading=lazy si below-the-fold. Image LCP (hero fiche, login) = fetchpriority=high SANS lazy. Hero fiche épice préchargé via block metas (link rel=preload as=image)."
+    - "loremflickr.com PURGÉ (7 occurrences) : fallback = icône fa-seedling locale (pattern fil-card). Ne JAMAIS réintroduire d'asset tiers (RGPD zéro-CDN + CSP le bloquait déjà)."
+  fonts:
+    - "base.html.twig précharge 3 woff2 critiques (inter-normal-latin, cormorant-garamond-normal-latin, fa-solid-900) avec crossorigin (obligatoire même same-origin, sinon double fetch). Les subsets latin-ext/italic restent à la demande. fonts.css = font-display swap partout (ne pas toucher)."
+  cls:
+    - "Labels Alpine x-text (toque navbar) : fallback SSR dans le span ({{ 'nav.open'|trans({}, 'js') }}) sinon vide jusqu'au boot Alpine → shift. Pattern à réappliquer pour tout x-text visible au premier paint."
+  gotcha_ci: "lint:twig : _macro_rarity.html.twig en erreur PRÉEXISTANTE (fonction caller() inconnue — macro morte à nettoyer un jour)."
+
 design_system:
   fichier_source: assets/styles/app.css
   tokens_theme: "@theme { --color-*, --font-display, --spacing }"

@@ -29,6 +29,10 @@ assets/build/images/*
 phpstan.neon
 ###< phpstan/phpstan ###
 
+###> liip/imagine-bundle ###
+/public/media/
+###< liip/imagine-bundle ###
+
 ###> symfony/asset-mapper ###
 /public/assets/
 /public/assets/tailwind.css

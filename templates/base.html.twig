@@ -22,6 +22,10 @@
         {% block metas %}{% endblock %}
         <title>{% block title %}{{ 'ui.meta.default_title'|trans }}{% endblock %}</title>
 
+        <link rel="preload" as="font" type="font/woff2" href="{{ asset('fonts/inter-normal-latin.woff2') }}" crossorigin>
+        <link rel="preload" as="font" type="font/woff2" href="{{ asset('fonts/cormorant-garamond-normal-latin.woff2') }}" crossorigin>
+        <link rel="preload" as="font" type="font/woff2" href="{{ asset('lib/fontawesome/webfonts/fa-solid-900.woff2') }}" crossorigin>
+
         <link rel="preload" as="style"
               data-async-css="fontawesome"
               href="{{ asset('lib/fontawesome/css/all.min.css') }}">

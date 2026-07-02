@@ -251,7 +251,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->mail;
     }
 
-    public function setMail(string $mail): self
+    public function setMail(?string $mail): self
     {
         $this->mail = $mail;
 

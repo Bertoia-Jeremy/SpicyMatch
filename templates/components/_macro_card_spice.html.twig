@@ -59,11 +59,14 @@
 
             {% set imgAlt = (showQuickView and not (labStyle and model)) ? '' : spiceName %}
             {% if imageUrl %}
-                <img src="{{ imageUrl }}" alt="{{ imgAlt }}" loading="lazy"
+                <img src="{{ imageUrl|imagine_filter('spice_card') }}"
+                     srcset="{{ imageUrl|imagine_filter('spice_card') }} 1x, {{ imageUrl|imagine_filter('spice_card_2x') }} 2x"
+                     alt="{{ imgAlt }}" loading="lazy" decoding="async" width="400" height="400"
                      class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
             {% else %}
-                <img src="https://loremflickr.com/400/400/spice,{{ spiceName|url_encode }}" alt="{{ imgAlt }}" loading="lazy"
-                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                <span class="absolute inset-0 flex items-center justify-center text-stone-300" aria-hidden="true">
+                    <i class="fa-solid fa-seedling text-4xl"></i>
+                </span>
             {% endif %}
 
             {% if labStyle %}

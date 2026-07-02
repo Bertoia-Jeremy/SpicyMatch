@@ -83,8 +83,9 @@
                     : 'border-stone-200 bg-white hover:bg-cream hover:border-saffron-300'">
           <div class="flex items-center gap-3">
             {% if option.file %}
-              <img src="{{ asset('uploads/spices/' ~ option.file) }}"
+              <img src="{{ asset('uploads/spices/' ~ option.file)|imagine_filter('spice_thumb') }}"
                    alt="{{ option.name }}"
+                   decoding="async" width="96" height="96"
                    class="w-12 h-12 rounded-xl object-cover shrink-0">
             {% else %}
               <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"

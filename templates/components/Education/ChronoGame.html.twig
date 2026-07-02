@@ -90,8 +90,9 @@
 
       {% if this.currentCard.file is defined and this.currentCard.file %}
         <div class="flex justify-center mb-4">
-          <img src="{{ asset('uploads/spices/' ~ this.currentCard.file) }}"
+          <img src="{{ asset('uploads/spices/' ~ this.currentCard.file)|imagine_filter('spice_thumb') }}"
                alt="{{ 'ui.game.mystery_spice_alt'|trans }}"
+               decoding="async" width="96" height="96"
                class="w-20 h-20 rounded-xl object-cover border border-stone-200">
         </div>
       {% endif %}

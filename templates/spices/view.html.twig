@@ -3,6 +3,13 @@
 
 {% block title %}SpicyMatch — {{ spice.getLocalizedName(app.request.locale) }}{% endblock %}
 
+{% block metas %}
+    {% set _heroImg = vich_uploader_asset(spice, 'imageFile') %}
+    {% if _heroImg %}
+        <link rel="preload" as="image" type="image/webp" href="{{ _heroImg|imagine_filter('spice_hero') }}" fetchpriority="high">
+    {% endif %}
+{% endblock %}
+
 {% block body %}
 
 {% set loc = app.request.locale %}
@@ -104,7 +111,8 @@
                     <div class="hero-img-blob relative">
                         {% set heroImg = vich_uploader_asset(spice, 'imageFile') %}
                         {% if heroImg %}
-                            <img src="{{ heroImg }}" alt="{{ spice.getLocalizedName(loc) }}"
+                            <img src="{{ heroImg|imagine_filter('spice_hero') }}" alt="{{ spice.getLocalizedName(loc) }}"
+                                 fetchpriority="high" decoding="async" width="800" height="800"
                                  class="absolute inset-0 w-full h-full object-cover">
                         {% endif %}
                         {# Highlight #}
@@ -426,7 +434,10 @@
                             {{ related.aromaticGroups ? related.aromaticGroups.getLocalizedName(loc) : 'ui.catalog.spice_fallback'|trans }}
                         </span>
                         {% if relImg %}
-                            <img src="{{ relImg }}" alt="{{ related.getLocalizedName(loc) }}"
+                            <img src="{{ relImg|imagine_filter('spice_card') }}"
+                                 srcset="{{ relImg|imagine_filter('spice_card') }} 1x, {{ relImg|imagine_filter('spice_card_2x') }} 2x"
+                                 alt="{{ related.getLocalizedName(loc) }}"
+                                 loading="lazy" decoding="async" width="400" height="400"
                                  class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
                         {% else %}
                             <div class="absolute inset-0 flex items-center justify-center"

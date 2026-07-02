@@ -63,8 +63,9 @@
 
         {# 1 — Épices #}
         <div class="kf-row">
-            <div class="kf-num" aria-label="{{ spicesCount }}+ épices">
-                <span class="kf-big">{{ spicesCount }}</span><span class="kf-plus" aria-hidden="true">+</span>
+            <div class="kf-num">
+                <span class="sr-only">{{ 'ui.hero.figure_spices_sr'|trans({'%count%': spicesCount}) }}</span>
+                <span aria-hidden="true"><span class="kf-big">{{ spicesCount }}</span><span class="kf-plus">+</span></span>
             </div>
             <div class="kf-cap">
                 <span class="kf-cap-label">{{ 'ui.hero.figure_spices'|trans }}</span>
@@ -78,8 +79,9 @@
 
         {# 2 — Arômes / composés #}
         <div class="kf-row">
-            <div class="kf-num" aria-label="{{ compoundsCount }} arômes">
-                <span class="kf-big">{{ compoundsCount|format_number }}</span>
+            <div class="kf-num">
+                <span class="sr-only">{{ 'ui.hero.figure_aromas_sr'|trans({'%count%': compoundsCount}) }}</span>
+                <span class="kf-big" aria-hidden="true">{{ compoundsCount|format_number }}</span>
             </div>
             <div class="kf-cap">
                 <span class="kf-cap-label">{{ 'ui.hero.figure_aromas'|trans }}</span>
@@ -97,8 +99,9 @@
 
         {# 3 — Apprentis chefs #}
         <div class="kf-row">
-            <div class="kf-num" aria-label="{{ usersCount|format_number }} {{ 'ui.hero.figure_chefs'|trans }}">
-                <span class="kf-big">{{ usersCount|format_number }}</span>
+            <div class="kf-num">
+                <span class="sr-only">{{ 'ui.hero.figure_chefs_sr'|trans({'%count%': usersCount}) }}</span>
+                <span class="kf-big" aria-hidden="true">{{ usersCount|format_number }}</span>
             </div>
             <div class="kf-cap">
                 <span class="kf-cap-label">{{ 'ui.hero.figure_chefs'|trans }}</span>

@@ -46,6 +46,7 @@ ui:
         member_since: 'Member since %date%'
         unlocked_on: 'Unlocked on %date%'
         skip_to_content: Skip to main content
+        new_window: (new window)
         home: Home
         academy: The Academy
         configuration: Settings
@@ -126,6 +127,7 @@ ui:
         see_all_results: See all results
         no_result_for: 'No result for "%query%"'
         full_search_page: Full search page
+        live_results_count: '{0} No results|{1} 1 result found|]1,Inf[ %count% results found'
         page_title: Search
         title: Search
         full_placeholder: Spice, compound, group, flavor, method...
@@ -474,6 +476,8 @@ ui:
         clear_all: Clear all
         group: 'Group:'
         type: 'Type:'
+        remove_filter: 'Remove filter %name%'
+        selected_count: '{0} 0 selected|{1} 1 selected|]1,Inf[ %count% selected'
     carousel:
         label: Related spices
         roledescription: carousel
@@ -691,6 +695,7 @@ ui:
         compat: Compat.
         see_details: View details
         see_sheet: View page
+        hidden_group: Hidden aromatic group
         flavors_heading_html: 'The <em class="italic not-italic" style="color: %color%">flavors</em>'
         primary_compounds_heading_html: 'Primary <em class="italic" style="color: %color%">compounds</em>'
         in_kitchen_heading_html: 'When the spice <em class="italic" style="color: %color%">slips into</em> your dish'
@@ -870,6 +875,7 @@ ui:
         accept_all: Accept all
         confirm: Confirm selection
         reject_all: Reject all
+        preferences_legend: Cookie preferences
     register:
         page_title: Account creation
         title: Create an account
@@ -981,6 +987,9 @@ ui:
         figure_spices: spices from around the world
         figure_aromas: aromas linked one by one
         figure_chefs: apprentice chefs with you
+        figure_spices_sr: 'Over %count% spices from around the world'
+        figure_aromas_sr: '%count% aromas linked one by one'
+        figure_chefs_sr: '%count% apprentice chefs with you'
     grade:
         commis: Commis
         chef_partie: Chef de Partie
@@ -1006,6 +1015,7 @@ ui:
         scroll_top: Back to top
 
 gamification:
+    xp_progress: Experience progress toward the next level
     notif:
         level_up_title: 'Level %level% reached!'
         level_up_subtitle: You're leveling up!

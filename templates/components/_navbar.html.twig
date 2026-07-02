@@ -226,7 +226,7 @@
                                 <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
                                      style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.catalog_sub'|trans }}</div>
                             </div>
-                            <span class="pole-arrow font-display text-[18px] ml-3"
+                            <span class="pole-arrow font-display text-[18px] ml-3" aria-hidden="true"
                                   style="color: rgba(184,134,74,0.7)">→</span>
                         </a>
                     </li>
@@ -239,7 +239,7 @@
                                 <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
                                      style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.alchemy_sub'|trans }}</div>
                             </div>
-                            <span class="pole-arrow font-display text-[18px] ml-3"
+                            <span class="pole-arrow font-display text-[18px] ml-3" aria-hidden="true"
                                   style="color: rgba(184,134,74,0.7)">→</span>
                         </a>
                     </li>
@@ -266,7 +266,7 @@
                                 <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
                                      style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.academy_sub'|trans }}</div>
                             </div>
-                            <span class="pole-arrow font-display text-[18px] ml-3"
+                            <span class="pole-arrow font-display text-[18px] ml-3" aria-hidden="true"
                                   style="color: rgba(184,134,74,0.7)">→</span>
                         </a>
                     </li>
@@ -279,7 +279,7 @@
                                 <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
                                      style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.scoville_sub'|trans }}</div>
                             </div>
-                            <span class="pole-arrow font-display text-[18px] ml-3"
+                            <span class="pole-arrow font-display text-[18px] ml-3" aria-hidden="true"
                                   style="color: rgba(184,134,74,0.7)">→</span>
                         </a>
                     </li>
@@ -292,7 +292,7 @@
                                 <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
                                      style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.intrus_sub'|trans }}</div>
                             </div>
-                            <span class="pole-arrow font-display text-[18px] ml-3"
+                            <span class="pole-arrow font-display text-[18px] ml-3" aria-hidden="true"
                                   style="color: rgba(184,134,74,0.7)">→</span>
                         </a>
                     </li>
@@ -320,7 +320,7 @@
                                     <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
                                          style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.profile_sub'|trans }}</div>
                                 </div>
-                                <span class="pole-arrow font-display text-[18px] ml-3"
+                                <span class="pole-arrow font-display text-[18px] ml-3" aria-hidden="true"
                                       style="color: rgba(184,134,74,0.7)">→</span>
                             </a>
                         </li>
@@ -333,7 +333,7 @@
                                     <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
                                          style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.blends_sub'|trans }}</div>
                                 </div>
-                                <span class="pole-arrow font-display text-[18px] ml-3"
+                                <span class="pole-arrow font-display text-[18px] ml-3" aria-hidden="true"
                                       style="color: rgba(184,134,74,0.7)">→</span>
                             </a>
                         </li>
@@ -346,7 +346,7 @@
                                     <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
                                          style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.config_sub'|trans }}</div>
                                 </div>
-                                <span class="pole-arrow font-display text-[18px] ml-3"
+                                <span class="pole-arrow font-display text-[18px] ml-3" aria-hidden="true"
                                       style="color: rgba(184,134,74,0.7)">→</span>
                             </a>
                         </li>
@@ -358,7 +358,7 @@
                        class="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
                        style="background: var(--color-paprika-700); color: white;">
                         {{ 'ui.navbar.create_account'|trans }}
-                        <span class="pole-arrow">→</span>
+                        <span class="pole-arrow" aria-hidden="true">→</span>
                     </a>
                 {% endif %}
             </div>
@@ -386,6 +386,8 @@
                 {% for loc in ['fr', 'en', 'es'] %}
                     <a href="{{ path('switch_locale', {'locale': loc}) }}"
                        hreflang="{{ loc }}"
+                       lang="{{ loc }}"
+                       aria-label="{{ {'fr': 'Français', 'en': 'English', 'es': 'Español'}[loc] }}"
                        {# full reload volontaire : Turbo ne réévalue pas les modules JS → sinon libellés JS figés sur l'ancienne langue #}
                        data-turbo="false"
                        class="px-1.5 py-0.5 rounded transition-colors {{ app.request.locale == loc ? 'text-paprika-700 font-semibold' : 'hover:text-paprika-700' }}"
@@ -444,7 +446,11 @@
                          style="color: var(--color-ink-deep)">{{ app.user.username }}</div>
                     <div class="font-display italic text-[12px]"
                          style="color: var(--color-paprika-700)">{{ _grade }}</div>
-                    <div class="rounded-full mt-1.5 overflow-hidden w-full" style="height: 2px; background: rgba(184,134,74,0.2);">
+                    <div class="rounded-full mt-1.5 overflow-hidden w-full"
+                         role="progressbar"
+                         aria-label="{{ 'gamification.xp_progress'|trans }}"
+                         aria-valuenow="{{ _gaugePct|round }}" aria-valuemin="0" aria-valuemax="100"
+                         style="height: 2px; background: rgba(184,134,74,0.2);">
                         <div class="gauge-bar h-full" style="width: {{ _gaugePct }}%"></div>
                     </div>
                 </div>
@@ -475,7 +481,7 @@
                            class="pole-item items-baseline justify-between">
                             <div class="pole-name font-display text-[20px] font-medium"
                                  style="color: var(--color-ink-deep)">{{ 'ui.navbar.catalog_title'|trans }}</div>
-                            <span class="pole-arrow font-display text-[14px] ml-3"
+                            <span class="pole-arrow font-display text-[14px] ml-3" aria-hidden="true"
                                   style="color: rgba(184,134,74,0.7)">→</span>
                         </a>
                     </li>
@@ -484,7 +490,7 @@
                            class="pole-item items-baseline justify-between">
                             <div class="pole-name font-display text-[20px] font-medium"
                                  style="color: var(--color-ink-deep)">{{ 'ui.navbar.alchemy_title'|trans }}</div>
-                            <span class="pole-arrow font-display text-[14px] ml-3"
+                            <span class="pole-arrow font-display text-[14px] ml-3" aria-hidden="true"
                                   style="color: rgba(184,134,74,0.7)">→</span>
                         </a>
                     </li>
@@ -505,7 +511,7 @@
                            class="pole-item items-baseline justify-between">
                             <div class="pole-name font-display text-[20px] font-medium"
                                  style="color: var(--color-ink-deep)">{{ 'ui.common.academy'|trans }}</div>
-                            <span class="pole-arrow font-display text-[14px] ml-3"
+                            <span class="pole-arrow font-display text-[14px] ml-3" aria-hidden="true"
                                   style="color: rgba(184,134,74,0.7)">→</span>
                         </a>
                     </li>
@@ -514,7 +520,7 @@
                            class="pole-item items-baseline justify-between">
                             <div class="pole-name font-display text-[20px] font-medium"
                                  style="color: var(--color-ink-deep)">{{ 'ui.navbar.scoville_title'|trans }}</div>
-                            <span class="pole-arrow font-display text-[14px] ml-3"
+                            <span class="pole-arrow font-display text-[14px] ml-3" aria-hidden="true"
                                   style="color: rgba(184,134,74,0.7)">→</span>
                         </a>
                     </li>
@@ -523,7 +529,7 @@
                            class="pole-item items-baseline justify-between">
                             <div class="pole-name font-display text-[20px] font-medium"
                                  style="color: var(--color-ink-deep)">{{ 'ui.navbar.intrus_title'|trans }}</div>
-                            <span class="pole-arrow font-display text-[14px] ml-3"
+                            <span class="pole-arrow font-display text-[14px] ml-3" aria-hidden="true"
                                   style="color: rgba(184,134,74,0.7)">→</span>
                         </a>
                     </li>
@@ -545,7 +551,7 @@
                                class="pole-item items-baseline justify-between">
                                 <div class="pole-name font-display text-[20px] font-medium"
                                      style="color: var(--color-ink-deep)">{{ 'ui.profile.menu.dashboard'|trans }}</div>
-                                <span class="pole-arrow font-display text-[14px] ml-3"
+                                <span class="pole-arrow font-display text-[14px] ml-3" aria-hidden="true"
                                       style="color: rgba(184,134,74,0.7)">→</span>
                             </a>
                         </li>
@@ -554,7 +560,7 @@
                                class="pole-item items-baseline justify-between">
                                 <div class="pole-name font-display text-[20px] font-medium"
                                      style="color: var(--color-ink-deep)">{{ 'ui.profile.menu.grimoire'|trans }}</div>
-                                <span class="pole-arrow font-display text-[14px] ml-3"
+                                <span class="pole-arrow font-display text-[14px] ml-3" aria-hidden="true"
                                       style="color: rgba(184,134,74,0.7)">→</span>
                             </a>
                         </li>
@@ -563,7 +569,7 @@
                                class="pole-item items-baseline justify-between">
                                 <div class="pole-name font-display text-[20px] font-medium"
                                      style="color: var(--color-ink-deep)">{{ 'ui.profile.menu.history'|trans }}</div>
-                                <span class="pole-arrow font-display text-[14px] ml-3"
+                                <span class="pole-arrow font-display text-[14px] ml-3" aria-hidden="true"
                                       style="color: rgba(184,134,74,0.7)">→</span>
                             </a>
                         </li>
@@ -572,7 +578,7 @@
                                class="pole-item items-baseline justify-between">
                                 <div class="pole-name font-display text-[20px] font-medium"
                                      style="color: var(--color-ink-deep)">{{ 'ui.profile.menu.lab'|trans }}</div>
-                                <span class="pole-arrow font-display text-[14px] ml-3"
+                                <span class="pole-arrow font-display text-[14px] ml-3" aria-hidden="true"
                                       style="color: rgba(184,134,74,0.7)">→</span>
                             </a>
                         </li>
@@ -581,7 +587,7 @@
                     <a href="{{ path('index_register') }}" @click="mobileClose()"
                        class="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
                        style="background: var(--color-paprika-700); color: white;">
-                        {{ 'ui.navbar.create_account'|trans }} →
+                        {{ 'ui.navbar.create_account'|trans }} <span aria-hidden="true">→</span>
                     </a>
                 {% endif %}
             </div>
@@ -609,6 +615,8 @@
                 {% for loc in ['fr', 'en', 'es'] %}
                     <a href="{{ path('switch_locale', {'locale': loc}) }}"
                        hreflang="{{ loc }}"
+                       lang="{{ loc }}"
+                       aria-label="{{ {'fr': 'Français', 'en': 'English', 'es': 'Español'}[loc] }}"
                        {# full reload volontaire : Turbo ne réévalue pas les modules JS → sinon libellés JS figés sur l'ancienne langue #}
                        data-turbo="false"
                        class="px-1.5 py-0.5 rounded transition-colors {{ app.request.locale == loc ? 'text-paprika-700 font-semibold' : 'hover:text-paprika-700' }}"

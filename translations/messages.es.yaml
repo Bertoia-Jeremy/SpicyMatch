@@ -46,6 +46,7 @@ ui:
         member_since: 'Miembro desde el %date%'
         unlocked_on: 'Desbloqueado el %date%'
         skip_to_content: Saltar al contenido principal
+        new_window: (nueva ventana)
         home: Inicio
         academy: La Academia
         configuration: Configuración
@@ -126,6 +127,7 @@ ui:
         see_all_results: Ver todos los resultados
         no_result_for: 'Ningún resultado para «%query%»'
         full_search_page: Página de búsqueda completa
+        live_results_count: '{0} Ningún resultado|{1} 1 resultado encontrado|]1,Inf[ %count% resultados encontrados'
         page_title: Búsqueda
         title: Búsqueda
         full_placeholder: Especia, compuesto, grupo, sabor, método...
@@ -474,6 +476,8 @@ ui:
         clear_all: Borrar todo
         group: 'Grupo:'
         type: 'Tipo:'
+        remove_filter: 'Quitar el filtro %name%'
+        selected_count: '{0} 0 seleccionado|{1} 1 seleccionado|]1,Inf[ %count% seleccionados'
     carousel:
         label: Especias relacionadas
         roledescription: carrusel
@@ -691,6 +695,7 @@ ui:
         compat: Compat.
         see_details: Ver detalles
         see_sheet: Ver la ficha
+        hidden_group: Grupo aromático oculto
         flavors_heading_html: 'Los <em class="italic not-italic" style="color: %color%">sabores</em>'
         primary_compounds_heading_html: 'Compuestos <em class="italic" style="color: %color%">primarios</em>'
         in_kitchen_heading_html: 'Cuando la especia <em class="italic" style="color: %color%">se integra</em> en tu plato'
@@ -870,6 +875,7 @@ ui:
         accept_all: Aceptar todas
         confirm: Confirmar selección
         reject_all: Rechazar todas
+        preferences_legend: Preferencias de cookies
     register:
         page_title: Creación de cuenta
         title: Crear una cuenta
@@ -981,6 +987,9 @@ ui:
         figure_spices: especias de todo el mundo
         figure_aromas: aromas conectados uno a uno
         figure_chefs: aprendices de chef contigo
+        figure_spices_sr: 'Más de %count% especias de todo el mundo'
+        figure_aromas_sr: '%count% aromas enlazados uno a uno'
+        figure_chefs_sr: '%count% aprendices de chef contigo'
     grade:
         commis: Commis
         chef_partie: Jefe de Partida
@@ -1006,6 +1015,7 @@ ui:
         scroll_top: Volver arriba
 
 gamification:
+    xp_progress: Progreso de experiencia hacia el siguiente nivel
     notif:
         level_up_title: '¡Nivel %level% alcanzado!'
         level_up_subtitle: ¡Estás subiendo de nivel!

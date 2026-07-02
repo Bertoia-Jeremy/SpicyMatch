@@ -18,7 +18,7 @@
             <p class="text-xs text-stone-600">{{ 'ui.form.required_legend'|trans }}</p>
 
             {% if form.vars.errors|length > 0 %}
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-sm">
+                <div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-sm">
                     {{ form_errors(form) }}
                 </div>
             {% endif %}
@@ -44,7 +44,6 @@
                         'class': 'w-full px-4 py-2.5 pr-24 border border-stone-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-saffron-600/30 focus:border-saffron-500 bg-white text-stone-800'
                     }}) }}
                     <button type="button" @click="show = !show"
-                            aria-label="{{ 'ui.register.toggle_visibility'|trans }}"
                             class="absolute inset-y-0 right-0 px-3 flex items-center text-sm text-stone-600 hover:text-stone-700">
                         <span x-text="label()">{{ 'password.show'|trans({}, 'js') }}</span>
                     </button>

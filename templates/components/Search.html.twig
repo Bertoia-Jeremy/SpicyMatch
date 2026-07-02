@@ -1,14 +1,21 @@
-<div {{ attributes }} class="relative">
+<div {{ attributes }} class="relative" role="search">
     <input
         class="w-full pl-4 {{ this.query ? 'pr-8' : 'pr-4' }} py-1.5 border border-spice-border rounded-full bg-white/80 text-stone-700
                placeholder-stone-400 text-sm backdrop-blur-sm
                focus:outline-none focus:ring-1 focus:ring-saffron-600/30 focus:border-saffron-600/40
                transition-colors"
-        type="text" placeholder="{{ 'ui.search.placeholder'|trans }}" aria-label="{{ 'ui.search.title'|trans }}"
+        type="search" placeholder="{{ 'ui.search.placeholder'|trans }}" aria-label="{{ 'ui.search.title'|trans }}"
+        aria-haspopup="listbox"
+        aria-expanded="{{ this.query|length >= 2 ? 'true' : 'false' }}"
         value="{{ this.query }}"
         data-model="query" data-action="live#update"
         @keydown.enter.prevent="window.location.href = '{{ path('search_results') }}?q=' + encodeURIComponent($el.value)"
     >
+    <div role="status" class="sr-only">
+        {%- if this.query|length >= 2 -%}
+            {{ 'ui.search.live_results_count'|trans({'%count%': this.results is defined ? this.results|length : 0}) }}
+        {%- endif -%}
+    </div>
     {% if this.query %}
         <twig:Button
             label="{{ 'ui.search.clear'|trans }}"

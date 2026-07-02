@@ -2,17 +2,19 @@
    Logic lives in assets/alpine_components.js (Alpine.data('cookieConsent')).
    The component reads data-consent-{url,token,version} on mount. #}
 <div x-data="cookieConsent" x-show="visible" x-cloak
+     role="region" aria-label="{{ 'ui.cookie.title'|trans }}"
      data-consent-url="{{ path('consent_save') }}"
      data-consent-token="{{ csrf_token('cookie_consent') }}"
      data-consent-version="{{ constant('App\\Service\\CookieConsentService::CURRENT_VERSION') }}"
      class="fixed bottom-0 inset-x-0 z-50 p-4 sm:p-6">
   <div class="max-w-2xl mx-auto bg-white border border-spice-border rounded-2xl shadow-lg p-6">
-    <h3 class="text-lg font-semibold text-stone-800 mb-2">{{ 'ui.cookie.title'|trans }}</h3>
+    <h2 class="text-lg font-semibold text-stone-800 mb-2">{{ 'ui.cookie.title'|trans }}</h2>
     <p class="text-sm text-stone-600 mb-4">
       {{ 'ui.cookie.text'|trans }}
     </p>
 
-    <div class="space-y-2 mb-4">
+    <fieldset class="space-y-2 mb-4">
+      <legend class="sr-only">{{ 'ui.cookie.preferences_legend'|trans }}</legend>
       <label class="flex items-center gap-2 text-sm">
         <input type="checkbox" checked disabled class="text-saffron-600 rounded">
         <span class="text-stone-700">{{ 'ui.cookie.essential'|trans }}</span>
@@ -26,7 +28,7 @@
         <input type="checkbox" x-model="analytics" class="text-saffron-600 rounded focus:ring-saffron-500">
         <span class="text-stone-700">{{ 'ui.cookie.analytics'|trans }}</span>
       </label>
-    </div>
+    </fieldset>
 
     <div class="flex flex-wrap gap-3">
       <twig:Button label="{{ 'ui.cookie.accept_all'|trans }}" variant="primary" size="sm" @click="acceptAll" />

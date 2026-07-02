@@ -50,6 +50,9 @@
     {% elseif label %}
         <span class="whitespace-nowrap">{{ label }}</span>
     {% endif %}
+    {% if external %}
+        <span class="sr-only">{{ 'ui.common.new_window'|trans }}</span>
+    {% endif %}
     {% if icon and iconPos == 'right' %}{{ _self.renderIcon(icon) }}{% endif %}
 {% endset %}
 

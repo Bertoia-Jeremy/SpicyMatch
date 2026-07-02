@@ -71,9 +71,10 @@
 </div>
 
 {# Data payloads — picked up by the Stimulus controller (kept small & JSON-safe) #}
-<script type="application/json" id="stats-unlock-rates">{{ unlockRates|json_encode|raw }}</script>
-<script type="application/json" id="stats-xp-per-day">{{ xpPerDay|json_encode|raw }}</script>
-<script type="application/json" id="stats-sessions-per-mode">{{ sessionsPerMode|json_encode|raw }}</script>
+{% set jsonSafeFlags = constant('JSON_HEX_TAG') b-or constant('JSON_HEX_AMP') b-or constant('JSON_HEX_APOS') b-or constant('JSON_HEX_QUOT') %}
+<script type="application/json" id="stats-unlock-rates">{{ unlockRates|json_encode(jsonSafeFlags)|raw }}</script>
+<script type="application/json" id="stats-xp-per-day">{{ xpPerDay|json_encode(jsonSafeFlags)|raw }}</script>
+<script type="application/json" id="stats-sessions-per-mode">{{ sessionsPerMode|json_encode(jsonSafeFlags)|raw }}</script>
 
 <script nonce="{{ csp_nonce('script') }}" src="{{ asset('lib/chartjs/chart.umd.min.js') }}"></script>
 <script nonce="{{ csp_nonce('script') }}">

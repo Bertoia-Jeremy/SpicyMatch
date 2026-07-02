@@ -12,7 +12,7 @@
             <h1 class="text-2xl font-display font-semibold text-stone-800 mb-3">{{ 'ui.newsletter.unsub_confirmed'|trans }}</h1>
 
             <p class="text-stone-600 mb-6">
-                {{ 'ui.newsletter.unsub_text_html'|trans({'%email%': email})|raw }}
+                {{ 'ui.newsletter.unsub_text_html'|trans({'%email%': email|e})|raw }}
             </p>
 
             <p class="text-sm text-stone-500 mb-6">

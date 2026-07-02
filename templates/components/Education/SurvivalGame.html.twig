@@ -31,7 +31,7 @@
       {{ game_header.game_over_summary(
           circleLabel = this.chainLength,
           title = 'ui.game.game_over'|trans,
-          paragraphHtml = 'ui.game.defeat_text'|trans({'%a%': this.lastPickedName, '%b%': this.currentSpiceName, '%n%': this.chainLength}),
+          paragraphHtml = 'ui.game.defeat_text'|trans({'%a%': this.lastPickedName|e, '%b%': this.currentSpiceName|e, '%n%': this.chainLength}),
           buttonLabel = 'ui.game.see_results'|trans,
           buttonAction = 'finish',
           variant = this.chainLength >= 10 ? 'success' : 'failure',

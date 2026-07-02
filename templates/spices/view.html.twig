@@ -14,6 +14,7 @@
 
 {% set loc = app.request.locale %}
 {% set color = spice.aromaticGroups ? spice.aromaticGroups.color : '#C2410C' %}
+{% set colorAttr = color|e('html_attr') %}
 
 {# Palettes pour les piles du bowl #}
 {% set pileConfig = [
@@ -141,7 +142,7 @@
         <div class="flex items-baseline justify-between gap-4 mb-7 flex-wrap">
             <h2 class="font-display font-normal text-3xl leading-tight" style="letter-spacing: -0.02em; color: var(--color-ink-deep)">
                 <span class="font-mono text-sm mr-3" style="color: rgba(42,24,16,0.35)">0{{ sectionNum }} — {{ 'ui.catalog.profile'|trans }}</span>
-                {{ 'ui.catalog.flavors_heading_html'|trans({'%color%': color})|raw }}
+                {{ 'ui.catalog.flavors_heading_html'|trans({'%color%': colorAttr})|raw }}
             </h2>
         </div>
         <p class="font-display text-lg mb-8 max-w-xl" style="color: rgba(42,24,16,0.4)">
@@ -173,7 +174,7 @@
             {# Légende + composés secondaires #}
             <div>
                 <h3 class="font-display text-xl font-medium mb-2" style="color: var(--color-ink-deep)">
-                    {{ 'ui.catalog.primary_compounds_heading_html'|trans({'%color%': color})|raw }}
+                    {{ 'ui.catalog.primary_compounds_heading_html'|trans({'%color%': colorAttr})|raw }}
                 </h3>
                 <p class="font-display mb-5" style="color: rgba(42,24,16,0.4)">{{ 'ui.catalog.primary_compounds_intro'|trans }}</p>
 
@@ -265,7 +266,7 @@
         <div class="flex items-baseline justify-between gap-4 mb-3 flex-wrap">
             <h2 class="font-display font-normal text-3xl leading-tight" style="letter-spacing: -0.02em; color: var(--color-ink-deep)">
                 <span class="font-mono text-sm mr-3" style="color: rgba(42,24,16,0.35)">0{{ sectionNum }} — {{ 'ui.catalog.in_kitchen'|trans }}</span>
-                {{ 'ui.catalog.in_kitchen_heading_html'|trans({'%color%': color})|raw }}
+                {{ 'ui.catalog.in_kitchen_heading_html'|trans({'%color%': colorAttr})|raw }}
             </h2>
             <span class="font-mono text-[11px]" style="color: rgba(42,24,16,0.4)">{{ 'ui.catalog.moments'|trans({'%count%': spice.cookingTips|length}) }}</span>
         </div>
@@ -304,7 +305,7 @@
         <div class="flex items-baseline justify-between gap-4 mb-7">
             <h2 class="font-display font-normal text-3xl leading-tight" style="letter-spacing: -0.02em; color: var(--color-ink-deep)">
                 <span class="font-mono text-sm mr-3" style="color: rgba(42,24,16,0.35)">0{{ sectionNum }} — {{ 'ui.catalog.notebook'|trans }}</span>
-                {{ 'ui.catalog.notebook_heading_html'|trans({'%color%': color})|raw }}
+                {{ 'ui.catalog.notebook_heading_html'|trans({'%color%': colorAttr})|raw }}
             </h2>
         </div>
 
@@ -312,7 +313,7 @@
             {# Colonne gauche : texte narratif #}
             <div>
                 <h3 class="font-display text-xl font-medium mb-3 leading-tight" style="color: var(--color-ink-deep)">
-                    {{ 'ui.catalog.tame_heading_html'|trans({'%color%': color})|raw }}
+                    {{ 'ui.catalog.tame_heading_html'|trans({'%color%': colorAttr})|raw }}
                 </h3>
 
                 {% if spice.getLocalizedCooking(loc) %}

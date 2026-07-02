@@ -35,6 +35,8 @@ const focusFirst = (root) => {
     if (el) el.focus();
 };
 
+const pathWithoutLocale = () => window.location.pathname.replace(/^\/[a-z]{2}(?=\/|$)/, '') || '/';
+
 const loopTab = (e, root) => {
     const focusable = [...root.querySelectorAll(FOCUSABLE)];
     if (!focusable.length) return;
@@ -846,10 +848,10 @@ export default function registerAlpineComponents(Alpine) {
             });
             const check = () => {
                 const state = localStorage.getItem('sm_onboarding');
-                if (!state && window.location.pathname === '/') {
+                if (!state && pathWithoutLocale() === '/') {
                     setTimeout(() => {
                         if (localStorage.getItem('sm_onboarding')) return;
-                        if (window.location.pathname !== '/') return;
+                        if (pathWithoutLocale() !== '/') return;
                         this.previouslyFocused = document.activeElement;
                         this.visible = true;
                         this.$nextTick(() => this.trapFocus());
@@ -898,17 +900,28 @@ export default function registerAlpineComponents(Alpine) {
         transitionTitle: '',
         transitionUrl: '',
         tours: {},
+        sheetMode: false,
+        sheetTop: false,
         get isLastStep() { return this.currentStep + 1 >= this.steps.length; },
+        get hasPrev() { return this.currentStep > 0; },
         nextLabel() { return this.isLastStep ? t('tour.done') : t('tour.next'); },
+        stepCounter() { return (this.currentStep + 1) + ' / ' + this.totalSteps; },
         stepDotClass(i) {
             return i <= this.currentStep + 1
                 ? 'w-5 h-1.5 bg-saffron-500 rounded-full'
                 : 'w-1.5 h-1.5 bg-stone-300 rounded-full';
         },
+        tooltipClass() {
+            if (!this.sheetMode) return 'max-w-xs rounded-xl p-5';
+            return this.sheetTop
+                ? 'inset-x-0 top-0 w-full rounded-b-2xl p-6'
+                : 'inset-x-0 bottom-0 w-full rounded-t-2xl p-6 pb-7';
+        },
+        prefersReducedMotion() {
+            return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        },
         _resizeHandler: null,
         _targetClickHandler: null,
-        _modalObserver: null,
-        _modalPollInterval: null,
 
         init() {
             try {
@@ -932,7 +945,7 @@ export default function registerAlpineComponents(Alpine) {
 
             const tour = this.tours[state];
             if (!tour) return;
-            if (!window.location.pathname.startsWith(tour.path)) return;
+            if (!pathWithoutLocale().startsWith(tour.path)) return;
 
             this.tourKey = state;
             this.steps = tour.steps;
@@ -945,15 +958,26 @@ export default function registerAlpineComponents(Alpine) {
             this.$nextTick(() => this.startStep());
         },
 
+        resolveTarget(selector) {
+            for (const el of document.querySelectorAll(selector)) {
+                const rect = el.getBoundingClientRect();
+                if (rect.width > 0 && rect.height > 0 && getComputedStyle(el).visibility !== 'hidden') return el;
+            }
+            return null;
+        },
+
         startStep() {
             const step = this.steps[this.currentStep];
             if (!step) return this.finishTour();
-            const target = document.querySelector(step.target);
+            const target = this.resolveTarget(step.target);
             if (!target) {
                 this.currentStep++;
                 return this.$nextTick(() => this.startStep());
             }
             this.targetEl = target;
+            if (getComputedStyle(target).position !== 'fixed') {
+                target.scrollIntoView({ behavior: this.prefersReducedMotion() ? 'auto' : 'smooth', block: 'center' });
+            }
             this.currentTitle = step.title;
             this.currentText = step.text;
             this.active = true;
@@ -961,6 +985,9 @@ export default function registerAlpineComponents(Alpine) {
             this.$nextTick(() => {
                 this.positionTooltip(target, step.position || 'bottom');
                 this.tooltipActive = true;
+                this.$nextTick(() => {
+                    if (this.$refs.tooltip) this.$refs.tooltip.focus({ preventScroll: true });
+                });
             });
             if (!step.noClickAdvance) {
                 this._targetClickHandler = () => setTimeout(() => this.next(), 250);
@@ -979,8 +1006,8 @@ export default function registerAlpineComponents(Alpine) {
         positionSpotlight(el) {
             const rect = el.getBoundingClientRect();
             this.spotlightStyle = {
-                top: (rect.top + window.scrollY - 8) + 'px',
-                left: (rect.left + window.scrollX - 8) + 'px',
+                top: (rect.top - 8) + 'px',
+                left: (rect.left - 8) + 'px',
                 width: (rect.width + 16) + 'px',
                 height: (rect.height + 16) + 'px',
             };
@@ -991,6 +1018,15 @@ export default function registerAlpineComponents(Alpine) {
             const margin = 12;
             const vw = window.innerWidth;
             const vh = window.innerHeight;
+
+            if (vw < 640) {
+                this.sheetMode = true;
+                this.sheetTop = rect.top > vh * 0.55;
+                this.tooltipStyle = {};
+                return;
+            }
+            this.sheetMode = false;
+
             const tooltipW = Math.min(320, vw - margin * 2);
             const tooltipH = 200;
 
@@ -1012,26 +1048,21 @@ export default function registerAlpineComponents(Alpine) {
 
             let top; let left;
             if (resolved === 'top') {
-                top = rect.top + window.scrollY - tooltipH - margin;
-                left = rect.left + window.scrollX + (rect.width / 2) - (tooltipW / 2);
+                top = rect.top - tooltipH - margin;
+                left = rect.left + (rect.width / 2) - (tooltipW / 2);
             } else if (resolved === 'left') {
-                top = rect.top + window.scrollY;
-                left = rect.left + window.scrollX - tooltipW - margin;
+                top = rect.top;
+                left = rect.left - tooltipW - margin;
             } else if (resolved === 'right') {
-                top = rect.top + window.scrollY;
-                left = rect.right + window.scrollX + margin;
+                top = rect.top;
+                left = rect.right + margin;
             } else {
-                top = rect.bottom + window.scrollY + margin;
-                left = rect.left + window.scrollX + (rect.width / 2) - (tooltipW / 2);
+                top = rect.bottom + margin;
+                left = rect.left + (rect.width / 2) - (tooltipW / 2);
             }
 
-            // Clamp dans le viewport (left + top)
-            const minLeft = window.scrollX + margin;
-            const maxLeft = window.scrollX + vw - tooltipW - margin;
-            left = Math.max(minLeft, Math.min(left, maxLeft));
-            const minTop = window.scrollY + margin;
-            const maxTop = window.scrollY + vh - tooltipH - margin;
-            top = Math.max(minTop, Math.min(top, maxTop));
+            left = Math.max(margin, Math.min(left, vw - tooltipW - margin));
+            top = Math.max(margin, Math.min(top, vh - tooltipH - margin));
 
             this.tooltipStyle = {
                 top: top + 'px',
@@ -1044,6 +1075,13 @@ export default function registerAlpineComponents(Alpine) {
             this.currentStep++;
             this.cleanupStep();
             if (this.currentStep >= this.steps.length) return this.finishTour();
+            this.startStep();
+        },
+
+        prev() {
+            if (this.currentStep === 0) return;
+            this.currentStep--;
+            this.cleanupStep();
             this.startStep();
         },
 
@@ -1090,14 +1128,6 @@ export default function registerAlpineComponents(Alpine) {
                 window.removeEventListener('scroll', this._resizeHandler);
             }
             this._resizeHandler = null;
-            if (this._modalObserver) {
-                this._modalObserver.disconnect();
-                this._modalObserver = null;
-            }
-            if (this._modalPollInterval) {
-                clearInterval(this._modalPollInterval);
-                this._modalPollInterval = null;
-            }
             this.active = false;
             this.tooltipActive = false;
         },

@@ -52,6 +52,26 @@ turbo-frame[aria-busy="true"] {
   border-radius: 12px;
   pointer-events: none;
   transition: top 0.3s ease, left 0.3s ease, width 0.3s ease, height 0.3s ease;
+  animation: spotlight-ring 1.8s ease-out infinite;
+}
+
+@keyframes spotlight-ring {
+  0% {
+    outline: 2px solid color-mix(in srgb, var(--color-saffron-400) 80%, transparent);
+    outline-offset: 0px;
+  }
+  70%, 100% {
+    outline: 2px solid transparent;
+    outline-offset: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spotlight-overlay {
+    animation: none;
+    transition: none;
+    outline: 2px solid color-mix(in srgb, var(--color-saffron-400) 80%, transparent);
+  }
 }
 
 .bg-noise {

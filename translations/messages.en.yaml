@@ -306,35 +306,59 @@ ui:
         you_answered: You answered
         correct_was: The correct answer was
     onboarding:
-        transition_spices: Well done! Ready to create your first blend?
-        s1_search_title: Search for a spice
-        s1_search_text: 'Type a name to find your spice. Cumin, paprika, turmeric… it''s all there. Click "Next" when you want to continue.'
-        s1_cards_title: Discover the cards
-        s1_cards_text: Click a spice image to see its quick preview.
-        s1_modal_title: Here's the card!
-        s1_modal_text: Flavors, aromatic compounds, tasty pairings… it's all there. Close the card to continue.
-        s1_cta_title: Ready to create?
-        s1_cta_text: When you like a spice, come create a blend in the Lab!
-        transition_lab: 'Great! Last stop: the Spice Academy.'
-        s2_mode_title: Auto or Manual?
-        s2_mode_text: 'Auto: the algorithm finds the best pairings for you. Manual: you choose freely.'
-        s2_filter_title: The secret of pairings
-        s2_filter_text: Spices from the same aromatic group pair naturally. Filter to explore a family.
-        s2_play_title: Your turn!
-        s2_play_text: Click a spice to add it. The algorithm instantly shows the best pairings.
-        s3_games_title: 6 mini-games await you
-        s3_games_text: Pick a mode, a difficulty, and prove what you know about spices!
-        s3_xp_title: Earn XP
-        s3_xp_text: Every correct answer earns XP. Level up and unlock exclusive achievements!
-        skip_intro: Skip the introduction
         welcome_title: Welcome to SpicyMatch!
-        welcome_text_html: 'We''ll show you <strong class="text-stone-700">3 key areas</strong> of the site in a few seconds. It''s quick, promise.'
+        welcome_text: 'Discover how to create spice blends that truly work. A quick guided tour in 3 steps:'
+        preview:
+            spices: 'The Catalog — explore spices and their aromatic profiles'
+            lab: 'The Lab — compose your blends, guided by aroma science'
+            academy: 'The Academy — 6 mini-games to test your palate'
+        duration: 1 min tops
         lets_go: Let's go!
         already_know: I already know, skip →
+        skip_intro: Skip the introduction
         skip: Skip
+        prev: Previous
+        prev_step_aria: Previous tutorial step
         next_step_aria: Next tutorial step
+        tour_dialog_aria: Tutorial step
         later: Later
         go: Let's go →
+        transition_spices: Well done! Ready to create your first blend?
+        transition_lab: 'Great! Last stop: the Spice Academy.'
+        tours:
+            spices:
+                search:
+                    title: Find your spice
+                    text: 'Type a name: cumin, paprika, turmeric… The list filters live.'
+                cards:
+                    title: Open a card
+                    text: Click a spice image to discover its flavors, aromatic compounds and tasty pairings.
+                cta:
+                    title: Off to the Lab
+                    text: 'That''s where the magic happens: compose your first spice blend.'
+            lab:
+                mode:
+                    title: Auto or Manual?
+                    text: 'Auto: we only show spices compatible with your selection. Manual: total freedom.'
+                score:
+                    title: The compatibility score
+                    text: Click a spice to add it to your blend. The % shows how well it pairs with your selection, based on shared aromatic compounds.
+                blend:
+                    title: Your blend
+                    text: Your selected spices land here. Remove one anytime with a click on the cross.
+                context:
+                    title: Tell us how you cook
+                    text: Broth, oil sauté, slow simmer… Aromas behave differently depending on cooking — scores adapt automatically.
+                compose:
+                    title: Save your creation
+                    text: 'Happy with your blend? Compose it: you get a detailed recipe with preparation tips.'
+            academy:
+                games:
+                    title: 6 mini-games await you
+                    text: Pick a mode, a difficulty, and prove what you know about spices!
+                xp:
+                    title: Earn XP
+                    text: Every correct answer earns XP. Level up and unlock exclusive achievements!
     account:
         created_title: Account created!
         created_cta: Start the adventure

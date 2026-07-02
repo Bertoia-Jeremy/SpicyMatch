@@ -1,9 +1,5 @@
 # CLAUDE.md — Configuration système pour interactions optimisées
 
-> **🔌 MCP ifttd-mcp** : Avant de finaliser un plan d'architecture ou une décision technique, consulte le MCP `ifttd-mcp` (outil `ifttd_plan_review`) pour obtenir des retours terrain de praticiens.
-
----
-
 > **⚠️ RÈGLE OBLIGATOIRE — MAINTIEN À JOUR**
 > Ce fichier est la **source de vérité** du projet. À chaque fin de session ou après toute décision architecturale, technique ou de design qui change l'état du projet, Claude **doit** mettre à jour ce fichier. Aucune information critique ne doit rester dans la mémoire de session uniquement.
 >
@@ -552,5 +548,6 @@ design_system:
     hangman_game:       "templates/components/Education/HangmanGame.html.twig — SVG pendu + mot masqué monospace + clavier A-Z"
     chrono_game:        "templates/components/Education/ChronoGame.html.twig — timer Alpine.js data-live-ignore + carte épice sans nom + options"
     cookie_consent:     "templates/components/_cookie_consent.html.twig — bannière RGPD Alpine.js avec CSRF"
+    onboarding:         "templates/components/_onboarding.html.twig — modale bienvenue (préview 3 espaces + durée ~1 min) + 3 tours spotlight (spices 3 / lab 5 / academy 2 étapes). CONFIG DÉCLARATIVE : map tourSteps {target, key, position, noClickAdvance} → titre/texte résolus par convention ui.onboarding.tours.{tour}.{key}.title|text ; ajouter/supprimer une étape = 1 entrée Twig + 2 clés YAML par locale (fr/en/es). Moteur JS spotlightTour (alpine_components.js) : resolveTarget = 1re cible VISIBLE d'un sélecteur multiple (responsive desktop/mobile), scrollIntoView auto (skippé si cible fixed), bouton Précédent (prev()), compteur x/y, tooltip bottom-sheet <640px (sheetMode/sheetTop), pulse ring CSS sur .spotlight-overlay (prefers-reduced-motion respecté), positionnement en coordonnées VIEWPORT (overlay+tooltip position:fixed — ne pas réintroduire scrollX/Y). Comparaison d'URL via pathWithoutLocale() (strip préfixe /{_locale} — gotcha i18n corrigé 2026-07-02). Ancres Lab dans SpicyMatch.html.twig : lab-context (dropdown mode cuisson), lab-workspace (aside workspace + floatbar mobile), lab-compose (bouton Composer desktop + 2 boutons floatbar). État localStorage sm_onboarding : null→spices→lab→academy→done. A11Y : tooltip = role=dialog aria-label + tabindex=-1 + focus programmatique à chaque étape (x-ref tooltip, preventScroll) ; titre/texte dans aria-live=polite ; toast transition role=status ; dots + overlay aria-hidden ; contraste compteur/Passer = stone-500 min."
     gamification_notif: "templates/gamification/notification.stream.html.twig — Turbo Stream notifications XP/achievements"
 ```

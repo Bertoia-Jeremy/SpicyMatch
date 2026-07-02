@@ -306,35 +306,59 @@ ui:
         you_answered: Has respondido
         correct_was: La respuesta correcta era
     onboarding:
-        transition_spices: ¡Bien hecho! ¿Listo para crear tu primera mezcla?
-        s1_search_title: Busca una especia
-        s1_search_text: 'Escribe un nombre para encontrar tu especia. Comino, pimentón, cúrcuma… está todo. Haz clic en "Siguiente" cuando quieras continuar.'
-        s1_cards_title: Descubre las fichas
-        s1_cards_text: Haz clic en la imagen de una especia para ver su vista rápida.
-        s1_modal_title: ¡Aquí está la ficha!
-        s1_modal_text: Sabores, compuestos aromáticos, combinaciones deliciosas… está todo. Cierra la ficha para continuar.
-        s1_cta_title: ¿Listo para crear?
-        s1_cta_text: Cuando te guste una especia, ¡ven a crear una mezcla en el Lab!
-        transition_lab: '¡Genial! Última parada: la Academia de las especias.'
-        s2_mode_title: ¿Auto o Manual?
-        s2_mode_text: 'Auto: el algoritmo encuentra las mejores combinaciones por ti. Manual: eliges libremente.'
-        s2_filter_title: El secreto de las combinaciones
-        s2_filter_text: Las especias del mismo grupo aromático combinan de forma natural. Filtra para explorar una familia.
-        s2_play_title: ¡Te toca!
-        s2_play_text: Haz clic en una especia para añadirla. El algoritmo muestra al instante las mejores combinaciones.
-        s3_games_title: 6 minijuegos te esperan
-        s3_games_text: ¡Elige un modo, una dificultad y demuestra lo que sabes sobre las especias!
-        s3_xp_title: Gana XP
-        s3_xp_text: Cada respuesta correcta da XP. ¡Sube de nivel y desbloquea logros exclusivos!
-        skip_intro: Saltar la introducción
         welcome_title: ¡Bienvenido a SpicyMatch!
-        welcome_text_html: 'Te mostraremos <strong class="text-stone-700">3 áreas clave</strong> del sitio en unos segundos. Es rápido, lo prometo.'
+        welcome_text: 'Descubre cómo crear mezclas de especias que realmente funcionan. Una visita guiada en 3 etapas:'
+        preview:
+            spices: 'El Catálogo — explora las especias y sus perfiles aromáticos'
+            lab: 'El Lab — compón tus mezclas, guiado por la ciencia de los aromas'
+            academy: 'La Academia — 6 minijuegos para poner a prueba tu paladar'
+        duration: 1 min como mucho
         lets_go: ¡Vamos!
         already_know: Ya lo conozco, saltar →
+        skip_intro: Saltar la introducción
         skip: Saltar
+        prev: Anterior
+        prev_step_aria: Paso anterior del tutorial
         next_step_aria: Siguiente paso del tutorial
+        tour_dialog_aria: Paso del tutorial
         later: Más tarde
-        go: ¡Vamos! →
+        go: ¡Allá vamos! →
+        transition_spices: ¡Bien hecho! ¿Listo para crear tu primera mezcla?
+        transition_lab: '¡Genial! Última parada: la Academia de las especias.'
+        tours:
+            spices:
+                search:
+                    title: Encuentra tu especia
+                    text: 'Escribe un nombre: comino, pimentón, cúrcuma… La lista se filtra al instante.'
+                cards:
+                    title: Abre una ficha
+                    text: Haz clic en la imagen de una especia para descubrir sus sabores, compuestos aromáticos y maridajes.
+                cta:
+                    title: Rumbo al Lab
+                    text: 'Ahí ocurre la magia: compón tu primera mezcla de especias.'
+            lab:
+                mode:
+                    title: ¿Auto o Manual?
+                    text: 'Auto: solo te mostramos especias compatibles con tu selección. Manual: libertad total.'
+                score:
+                    title: La puntuación de compatibilidad
+                    text: Haz clic en una especia para añadirla a tu mezcla. El % indica cómo combina con tu selección, según los compuestos aromáticos compartidos.
+                blend:
+                    title: Tu mezcla
+                    text: Tus especias seleccionadas aparecen aquí. Quita una en cualquier momento con un clic en la cruz.
+                context:
+                    title: Dinos cómo cocinas
+                    text: Caldo, salteado en aceite, guiso lento… Los aromas se comportan distinto según la cocción — las puntuaciones se adaptan automáticamente.
+                compose:
+                    title: Guarda tu creación
+                    text: '¿Te gusta tu mezcla? Compónla: obtendrás una receta detallada con consejos de preparación.'
+            academy:
+                games:
+                    title: 6 minijuegos te esperan
+                    text: ¡Elige un modo, una dificultad y demuestra lo que sabes de especias!
+                xp:
+                    title: Gana XP
+                    text: Cada respuesta correcta da XP. ¡Sube de nivel y desbloquea logros exclusivos!
     account:
         created_title: ¡Cuenta creada!
         created_cta: Empezar la aventura

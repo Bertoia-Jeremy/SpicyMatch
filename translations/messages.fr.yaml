@@ -306,35 +306,59 @@ ui:
         you_answered: Tu as répondu
         correct_was: La bonne réponse était
     onboarding:
-        transition_spices: Bien joué ! Prêt à créer ton premier mélange ?
-        s1_search_title: Cherche une épice
-        s1_search_text: 'Tape un nom pour trouver ton épice. Cumin, paprika, curcuma… tout y est. Clique "Suivant" quand tu veux continuer.'
-        s1_cards_title: Découvre les fiches
-        s1_cards_text: Clique sur l'image d'une épice pour voir son aperçu rapide.
-        s1_modal_title: Voilà la fiche !
-        s1_modal_text: Saveurs, composés aromatiques, accords gourmands… tout est là. Ferme la fiche pour continuer.
-        s1_cta_title: Prêt à créer ?
-        s1_cta_text: Quand une épice te plaît, viens créer un mélange dans le Lab !
-        transition_lab: 'Super ! Dernier arrêt : l''Académie des épices.'
-        s2_mode_title: Auto ou Manuel ?
-        s2_mode_text: 'Auto : l''algo trouve les meilleurs accords pour toi. Manuel : tu choisis librement.'
-        s2_filter_title: Le secret des accords
-        s2_filter_text: Les épices du même groupe aromatique se marient naturellement. Filtre pour explorer une famille.
-        s2_play_title: À toi de jouer !
-        s2_play_text: Clique sur une épice pour l'ajouter. L'algo affiche instantanément les meilleurs accords.
-        s3_games_title: 6 mini-jeux t'attendent
-        s3_games_text: Choisis un mode, une difficulté, et prouve ce que tu sais sur les épices !
-        s3_xp_title: Gagne de l'XP
-        s3_xp_text: Chaque bonne réponse rapporte de l'XP. Monte en niveau et débloque des succès exclusifs !
-        skip_intro: Passer l'introduction
         welcome_title: Bienvenue sur SpicyMatch !
-        welcome_text_html: 'On va te faire découvrir <strong class="text-stone-700">3 espaces clés</strong> du site en quelques secondes. Promis, c''est rapide.'
+        welcome_text: 'Découvre comment créer des mélanges d''épices qui fonctionnent vraiment. Petite visite guidée en 3 étapes :'
+        preview:
+            spices: 'Le Catalogue — explore les épices et leurs profils aromatiques'
+            lab: 'Le Lab — compose tes mélanges, guidé par la science des arômes'
+            academy: 'L''Académie — 6 mini-jeux pour tester ton palais'
+        duration: 1 min chrono
         lets_go: C'est parti !
         already_know: Je connais déjà, passer →
+        skip_intro: Passer l'introduction
         skip: Passer
+        prev: Précédent
+        prev_step_aria: Étape précédente du tutoriel
         next_step_aria: Étape suivante du tutoriel
+        tour_dialog_aria: Étape du tutoriel
         later: Plus tard
         go: Allons-y →
+        transition_spices: Bien joué ! Prêt à créer ton premier mélange ?
+        transition_lab: 'Super ! Dernier arrêt : l''Académie des épices.'
+        tours:
+            spices:
+                search:
+                    title: Trouve ton épice
+                    text: 'Tape un nom : cumin, paprika, curcuma… La liste se filtre en direct.'
+                cards:
+                    title: Ouvre une fiche
+                    text: Clique sur l'image d'une épice pour découvrir ses saveurs, ses composés aromatiques et ses accords gourmands.
+                cta:
+                    title: Direction le Lab
+                    text: 'C''est là que la magie opère : compose ton premier mélange d''épices.'
+            lab:
+                mode:
+                    title: Auto ou Manuel ?
+                    text: 'Auto : on ne te montre que des épices compatibles avec ta sélection. Manuel : liberté totale.'
+                score:
+                    title: Le score de compatibilité
+                    text: Clique sur une épice pour l'ajouter à ton mélange. Le % indique à quel point elle s'accorde avec ta sélection, sur la base des composés aromatiques partagés.
+                blend:
+                    title: Ton mélange
+                    text: Tes épices sélectionnées se retrouvent ici. Retire-en une à tout moment d'un clic sur la croix.
+                context:
+                    title: Dis-nous comment tu cuisines
+                    text: Bouillon, poêlée à l'huile, mijoté… Les arômes se comportent différemment selon la cuisson — les scores s'adaptent automatiquement.
+                compose:
+                    title: Sauvegarde ta création
+                    text: 'Ton mélange te plaît ? Compose-le : tu obtiens une recette détaillée avec les conseils de préparation.'
+            academy:
+                games:
+                    title: 6 mini-jeux t'attendent
+                    text: Choisis un mode, une difficulté, et prouve ce que tu sais sur les épices !
+                xp:
+                    title: Gagne de l'XP
+                    text: Chaque bonne réponse rapporte de l'XP. Monte en niveau et débloque des succès exclusifs !
     account:
         created_title: Compte créé !
         created_cta: Commencer l'aventure

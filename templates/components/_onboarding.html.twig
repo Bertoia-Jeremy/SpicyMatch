@@ -1,101 +1,48 @@
-{#
-    Onboarding guidé — 2 couches :
-    1. Modale de bienvenue (accueil uniquement)
-    2. Spotlight tour contextuel (pages cibles : épices, lab, académie)
-
-    Logique JS : assets/alpine_components.js (onboardingWelcome, spotlightTour).
-    Configuration des tours (targets, titres, textes) passée via data-tours-json
-    car elle contient des path() Twig résolus côté serveur.
-#}
 {% if is_granted('ROLE_USER') %}
 
-{% set tours = {
-    spices: {
-        path: '/epices',
-        nextState: 'lab',
-        nextUrl: path('index_spicy_match'),
-        transitionTitle: 'ui.onboarding.transition_spices'|trans,
-        steps: [
-            {
-                target: 'input[name="search"]',
-                title: 'ui.onboarding.s1_search_title'|trans,
-                text: 'ui.onboarding.s1_search_text'|trans,
-                position: 'bottom',
-                noClickAdvance: true
-            },
-            {
-                target: '.card-warm',
-                title: 'ui.onboarding.s1_cards_title'|trans,
-                text: 'ui.onboarding.s1_cards_text'|trans,
-                position: 'bottom',
-                followModal: {
-                    title: 'ui.onboarding.s1_modal_title'|trans,
-                    text: 'ui.onboarding.s1_modal_text'|trans,
-                    position: 'top'
-                }
-            },
-            {
-                target: '[data-tour="cta-lab"]',
-                title: 'ui.onboarding.s1_cta_title'|trans,
-                text: 'ui.onboarding.s1_cta_text'|trans,
-                position: 'bottom'
-            }
-        ]
-    },
-    lab: {
-        path: '/spicymatch',
-        nextState: 'academy',
-        nextUrl: path('education_index'),
-        transitionTitle: 'ui.onboarding.transition_lab'|trans,
-        steps: [
-            {
-                target: '[data-tour="mode-toggle"]',
-                title: 'ui.onboarding.s2_mode_title'|trans,
-                text: 'ui.onboarding.s2_mode_text'|trans,
-                position: 'bottom',
-                noClickAdvance: true
-            },
-            {
-                target: '[data-tour="lab-aromatic-filter"]',
-                title: 'ui.onboarding.s2_filter_title'|trans,
-                text: 'ui.onboarding.s2_filter_text'|trans,
-                position: 'bottom',
-                noClickAdvance: true
-            },
-            {
-                target: '.card-warm',
-                title: 'ui.onboarding.s2_play_title'|trans,
-                text: 'ui.onboarding.s2_play_text'|trans,
-                position: 'top',
-                noClickAdvance: true
-            }
-        ]
-    },
-    academy: {
-        path: '/education',
-        nextState: 'done',
-        nextUrl: null,
-        transitionTitle: null,
-        steps: [
-            {
-                target: '[data-tour="game-grid"]',
-                title: 'ui.onboarding.s3_games_title'|trans,
-                text: 'ui.onboarding.s3_games_text'|trans,
-                position: 'bottom'
-            },
-            {
-                target: '.tag-secondary',
-                title: 'ui.onboarding.s3_xp_title'|trans,
-                text: 'ui.onboarding.s3_xp_text'|trans,
-                position: 'left'
-            }
-        ]
-    }
+{% set tourMeta = {
+    spices: { path: '/epices', nextState: 'lab', nextUrl: path('index_spicy_match'), transitionKey: 'transition_spices' },
+    lab: { path: '/spicymatch', nextState: 'academy', nextUrl: path('education_index'), transitionKey: 'transition_lab' },
+    academy: { path: '/education', nextState: 'done', nextUrl: null, transitionKey: null }
 } %}
 
-{# ═══════════════════════════════════════════════════════════ #}
-{# COUCHE 1 — Modale de bienvenue (accueil uniquement)        #}
-{# ═══════════════════════════════════════════════════════════ #}
+{% set tourSteps = {
+    spices: [
+        { target: 'input[name="search"]', key: 'search', position: 'bottom', noClickAdvance: true },
+        { target: '.card-warm', key: 'cards', position: 'bottom' },
+        { target: '[data-tour="cta-lab"]', key: 'cta', position: 'bottom' }
+    ],
+    lab: [
+        { target: '[data-tour="mode-toggle"]', key: 'mode', position: 'bottom', noClickAdvance: true },
+        { target: '.card-warm', key: 'score', position: 'bottom', noClickAdvance: true },
+        { target: '[data-tour="lab-workspace"]', key: 'blend', position: 'left', noClickAdvance: true },
+        { target: '[data-tour="lab-context"]', key: 'context', position: 'bottom', noClickAdvance: true },
+        { target: '[data-tour="lab-compose"]', key: 'compose', position: 'left', noClickAdvance: true }
+    ],
+    academy: [
+        { target: '[data-tour="game-grid"]', key: 'games', position: 'bottom' },
+        { target: '.tag-secondary', key: 'xp', position: 'left' }
+    ]
+} %}
+
+{% set tours = {} %}
+{% for name, meta in tourMeta %}
+    {% set steps = [] %}
+    {% for step in tourSteps[name] %}
+        {% set steps = steps|merge([step|merge({
+            title: ('ui.onboarding.tours.' ~ name ~ '.' ~ step.key ~ '.title')|trans,
+            text: ('ui.onboarding.tours.' ~ name ~ '.' ~ step.key ~ '.text')|trans
+        })]) %}
+    {% endfor %}
+    {% set tours = tours|merge({ (name): {
+        path: meta.path,
+        nextState: meta.nextState,
+        nextUrl: meta.nextUrl,
+        transitionTitle: meta.transitionKey ? ('ui.onboarding.' ~ meta.transitionKey)|trans : null,
+        steps: steps
+    } }) %}
+{% endfor %}
+
 <div x-data="onboardingWelcome"
      x-show="visible"
      x-cloak
@@ -110,7 +57,7 @@
     <div class="absolute inset-0 bg-stone-900/60 backdrop-blur-sm"
          @click="skip"></div>
 
-    <div class="relative z-10 w-full max-w-sm bg-cream rounded-2xl shadow-2xl border border-saffron-200/60 overflow-hidden">
+    <div class="relative z-10 w-full max-w-md bg-cream rounded-2xl shadow-2xl border border-saffron-200/60 overflow-hidden">
 
         <twig:Button
             label="{{ 'ui.onboarding.skip_intro'|trans }}"
@@ -123,16 +70,43 @@
 
         <div class="px-7 pt-8 pb-7">
             <div class="text-center mb-6">
-                <div class="w-20 h-20 bg-saffron-100 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-saffron-200">
-                    <i class="fa-solid fa-hand-sparkles text-4xl text-saffron-600" aria-hidden="true"></i>
+                <div class="w-16 h-16 bg-saffron-100 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-saffron-200">
+                    <i class="fa-solid fa-hand-sparkles text-3xl text-saffron-600" aria-hidden="true"></i>
                 </div>
-                <h2 id="onboarding-welcome-title" class="text-xl font-bold text-stone-800 mb-3 leading-tight">
+                <h2 id="onboarding-welcome-title" class="text-xl font-bold text-stone-800 mb-2 leading-tight">
                     {{ 'ui.onboarding.welcome_title'|trans }}
                 </h2>
                 <p class="text-stone-500 text-sm leading-relaxed">
-                    {{ 'ui.onboarding.welcome_text_html'|trans|raw }}
+                    {{ 'ui.onboarding.welcome_text'|trans }}
                 </p>
             </div>
+
+            <ul class="flex flex-col gap-2.5 mb-5">
+                <li class="flex items-center gap-3 bg-spice-surface border border-spice-border rounded-xl px-4 py-3">
+                    <span class="size-9 shrink-0 rounded-lg bg-saffron-100 border border-saffron-200 flex items-center justify-center">
+                        <i class="fa-solid fa-pepper-hot text-saffron-600" aria-hidden="true"></i>
+                    </span>
+                    <span class="text-sm text-stone-700 leading-snug">{{ 'ui.onboarding.preview.spices'|trans }}</span>
+                </li>
+                <li class="flex items-center gap-3 bg-spice-surface border border-spice-border rounded-xl px-4 py-3">
+                    <span class="size-9 shrink-0 rounded-lg bg-saffron-100 border border-saffron-200 flex items-center justify-center">
+                        <i class="fa-solid fa-mortar-pestle text-saffron-600" aria-hidden="true"></i>
+                    </span>
+                    <span class="text-sm text-stone-700 leading-snug">{{ 'ui.onboarding.preview.lab'|trans }}</span>
+                </li>
+                <li class="flex items-center gap-3 bg-spice-surface border border-spice-border rounded-xl px-4 py-3">
+                    <span class="size-9 shrink-0 rounded-lg bg-saffron-100 border border-saffron-200 flex items-center justify-center">
+                        <i class="fa-solid fa-graduation-cap text-saffron-600" aria-hidden="true"></i>
+                    </span>
+                    <span class="text-sm text-stone-700 leading-snug">{{ 'ui.onboarding.preview.academy'|trans }}</span>
+                </li>
+            </ul>
+
+            <p class="flex items-center justify-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-stone-400 mb-5">
+                <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                {{ 'ui.onboarding.duration'|trans }}
+            </p>
+
             <twig:Button
                 label="{{ 'ui.onboarding.lets_go'|trans }}"
                 href="{{ path('index_spices') }}"
@@ -151,9 +125,6 @@
     </div>
 </div>
 
-{# ═══════════════════════════════════════════════════════════ #}
-{# COUCHE 2 — Spotlight tour (pages cibles)                    #}
-{# ═══════════════════════════════════════════════════════════ #}
 <div x-data="spotlightTour"
      data-tours-json="{{ tours|json_encode|e('html_attr') }}"
      x-cloak>
@@ -167,7 +138,7 @@
          x-transition:leave-end="opacity-0"
          class="spotlight-overlay"
          :style="spotlightStyle"
-         @click="next">
+         aria-hidden="true">
     </div>
 
     <div x-show="tooltipActive"
@@ -177,23 +148,42 @@
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed z-60 max-w-xs bg-white rounded-xl shadow-2xl border border-saffron-200/60 p-5"
+         class="fixed z-60 bg-white shadow-2xl border border-saffron-200/60 focus:outline-none"
+         :class="tooltipClass()"
          :style="tooltipStyle"
-         role="tooltip"
+         role="dialog"
+         aria-label="{{ 'ui.onboarding.tour_dialog_aria'|trans }}"
+         tabindex="-1"
+         x-ref="tooltip"
          @keydown.escape.window="skip">
 
-        <p class="text-sm font-semibold text-stone-800 mb-1" x-text="currentTitle"></p>
-        <p class="text-xs text-stone-600 leading-relaxed mb-4" x-text="currentText"></p>
+        <div class="flex items-center justify-between mb-2">
+            <span class="font-mono text-[10px] uppercase tracking-widest text-stone-500" x-text="stepCounter()"></span>
+            <button @click="skip"
+                    class="text-[11px] font-medium text-stone-500 hover:text-stone-700 transition-colors">
+                {{ 'ui.onboarding.skip'|trans }}
+            </button>
+        </div>
 
-        <div class="flex items-center justify-between">
-            <div class="flex gap-1.5">
+        <div aria-live="polite">
+            <p class="text-sm font-semibold text-stone-800 mb-1" x-text="currentTitle"></p>
+            <p class="text-xs text-stone-600 leading-relaxed mb-4" x-text="currentText"></p>
+        </div>
+
+        <div class="flex items-center justify-between gap-3">
+            <div class="flex gap-1.5" aria-hidden="true">
                 <template x-for="i in totalSteps" :key="i">
                     <div :class="stepDotClass(i)"
                          class="transition-all duration-300"></div>
                 </template>
             </div>
             <div class="flex gap-2">
-                <twig:Button label="{{ 'ui.onboarding.skip'|trans }}" variant="ghost" size="xs" @click="skip" />
+                <button @click="prev"
+                        x-show="hasPrev"
+                        aria-label="{{ 'ui.onboarding.prev_step_aria'|trans }}"
+                        class="text-xs font-semibold text-stone-500 hover:text-stone-700 border border-stone-200 hover:border-stone-300 px-3 py-1.5 rounded-full transition-colors">
+                    ← {{ 'ui.onboarding.prev'|trans }}
+                </button>
                 <button @click="next"
                         aria-label="{{ 'ui.onboarding.next_step_aria'|trans }}"
                         class="text-xs font-semibold text-white bg-paprika-800 hover:bg-paprika-900 px-3 py-1.5 rounded-full transition-colors">
@@ -210,7 +200,8 @@
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0 translate-y-4"
-         class="fixed bottom-8 left-1/2 -translate-x-1/2 z-60 bg-white rounded-xl shadow-2xl border border-saffron-200/60 px-6 py-4 max-w-sm">
+         class="fixed bottom-8 left-1/2 -translate-x-1/2 z-60 bg-white rounded-xl shadow-2xl border border-saffron-200/60 px-6 py-4 max-w-sm"
+         role="status">
         <p class="text-sm font-semibold text-stone-800 mb-2" x-text="transitionTitle"></p>
         <div class="flex gap-2 justify-end">
             <twig:Button label="{{ 'ui.onboarding.later'|trans }}" variant="ghost" size="xs" @click="skipTransition" />

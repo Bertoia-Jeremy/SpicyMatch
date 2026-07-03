@@ -28,7 +28,7 @@ final class CompoundPhysicalRepository extends ServiceEntityRepository implement
      */
     public function loadByCompoundIds(array $compoundIds): array
     {
-        if ($compoundIds === []) {
+        if ([] === $compoundIds) {
             return [];
         }
 
@@ -44,7 +44,7 @@ final class CompoundPhysicalRepository extends ServiceEntityRepository implement
         foreach ($rows as $physical) {
             $compoundId = $physical->getCompound()
                 ->getId();
-            if ($compoundId !== null) {
+            if (null !== $compoundId) {
                 $map[$compoundId] = $physical;
             }
         }

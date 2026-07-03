@@ -42,8 +42,8 @@ class SpicesController extends AbstractController
         $stSlug = trim((string) $request->query->get('spicy_type', '')) ?: null;
         $search = trim((string) $request->query->get('search', '')) ?: null;
 
-        $aromaticGroup = $agSlug !== null ? $aromaticGroupsRepository->findOneByLocalizedSlug($agSlug, $locale) : null;
-        $spicyType = $stSlug !== null ? $spicyTypeRepository->findOneByLocalizedSlug($stSlug, $locale) : null;
+        $aromaticGroup = null !== $agSlug ? $aromaticGroupsRepository->findOneByLocalizedSlug($agSlug, $locale) : null;
+        $spicyType = null !== $stSlug ? $spicyTypeRepository->findOneByLocalizedSlug($stSlug, $locale) : null;
 
         // findFiltered(null, null, null) retourne toutes les épices avec eager-load des relations.
         // Remplace findAll() qui déclenchait du N+1 en Twig sur aromaticGroups / spicyType.
@@ -76,7 +76,7 @@ class SpicesController extends AbstractController
     ): Response {
         $locale = $request->getLocale();
         $spice = $this->spicesRepository->findOneByLocalizedSlug($slug, $locale);
-        if ($spice === null) {
+        if (null === $spice) {
             throw $this->createNotFoundException();
         }
 
@@ -91,7 +91,7 @@ class SpicesController extends AbstractController
 
         /** @var Users|null $user */
         $user = $this->getUser();
-        if ($user !== null) {
+        if (null !== $user) {
             $isNew = $spiceViewRepository->recordView($user, $spice);
             $bus->dispatch(new SpiceReadEvent($user->getId(), $spice->getId(), $isNew));
         }
@@ -112,7 +112,7 @@ class SpicesController extends AbstractController
     {
         $locale = $request->getLocale();
         $spice = $this->spicesRepository->findOneByLocalizedSlug($slug, $locale);
-        if ($spice === null) {
+        if (null === $spice) {
             throw $this->createNotFoundException();
         }
 

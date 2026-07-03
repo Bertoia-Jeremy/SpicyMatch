@@ -61,11 +61,11 @@ final readonly class CasNumber
      */
     private static function matchesFormat(string $value, ?string &$digits = null, ?int &$checkDigit = null): bool
     {
-        if (preg_match(self::PATTERN, $value, $m) !== 1) {
+        if (1 !== preg_match(self::PATTERN, $value, $m)) {
             return false;
         }
 
-        $digits = $m[1] . $m[2];
+        $digits = $m[1].$m[2];
         $checkDigit = (int) $m[3];
 
         return true;

@@ -46,12 +46,12 @@ class AcademyCacheInvalidator
         $this->cache->delete('academy.spice_cards');
         $this->cache->delete('academy.all_spices');
 
-        if ($entity->getId() !== null) {
-            $this->cache->delete('academy.intruders.' . $entity->getId());
-            $this->cache->delete('academy.intruders.strict.' . $entity->getId());
+        if (null !== $entity->getId()) {
+            $this->cache->delete('academy.intruders.'.$entity->getId());
+            $this->cache->delete('academy.intruders.strict.'.$entity->getId());
 
             foreach (['fr', 'en', 'es'] as $locale) {
-                $this->cache->delete('academy.compatible.' . $locale . '.' . $entity->getId());
+                $this->cache->delete('academy.compatible.'.$locale.'.'.$entity->getId());
             }
         }
     }

@@ -157,7 +157,7 @@ final class GamificationManagerTest extends TestCase
 
         $this->achievementRepo->method('findByTrigger')
             ->willReturnCallback(
-                fn (AchievementTrigger $t) => $t === AchievementTrigger::FIRST_MATCH ? [$achievement] : []
+                fn (AchievementTrigger $t) => AchievementTrigger::FIRST_MATCH === $t ? [$achievement] : []
             );
 
         $this->setProgressionField('totalMatches', 1);
@@ -174,7 +174,7 @@ final class GamificationManagerTest extends TestCase
 
         $this->achievementRepo->method('findByTrigger')
             ->willReturnCallback(
-                fn (AchievementTrigger $t) => $t === AchievementTrigger::FIRST_MATCH ? [$achievement] : []
+                fn (AchievementTrigger $t) => AchievementTrigger::FIRST_MATCH === $t ? [$achievement] : []
             );
 
         $this->setProgressionField('totalMatches', 1);
@@ -249,7 +249,7 @@ final class GamificationManagerTest extends TestCase
 
         $levelUps = array_filter(
             $persisted,
-            fn ($n) => $n instanceof PendingGamificationNotification && $n->getType() === 'level_up',
+            fn ($n) => $n instanceof PendingGamificationNotification && 'level_up' === $n->getType(),
         );
         self::assertCount(0, $levelUps);
     }
@@ -339,7 +339,7 @@ final class GamificationManagerTest extends TestCase
 
         $this->achievementRepo->method('findByTrigger')
             ->willReturnCallback(
-                fn (AchievementTrigger $t) => $t === AchievementTrigger::N_MATCHES ? [$achievement] : []
+                fn (AchievementTrigger $t) => AchievementTrigger::N_MATCHES === $t ? [$achievement] : []
             );
 
         $this->setProgressionField('totalMatches', 7);
@@ -364,7 +364,7 @@ final class GamificationManagerTest extends TestCase
         $achievement = $this->makeAchievement(AchievementTrigger::FIRST_MATCH, 1);
         $this->achievementRepo->method('findByTrigger')
             ->willReturnCallback(
-                fn (AchievementTrigger $t) => $t === AchievementTrigger::FIRST_MATCH ? [$achievement] : []
+                fn (AchievementTrigger $t) => AchievementTrigger::FIRST_MATCH === $t ? [$achievement] : []
             );
 
         // Already owned
@@ -398,7 +398,7 @@ final class GamificationManagerTest extends TestCase
 
         $this->achievementRepo->method('findByTrigger')
             ->willReturnCallback(
-                fn (AchievementTrigger $t) => $t === AchievementTrigger::FIRST_MATCH ? [$achievement] : []
+                fn (AchievementTrigger $t) => AchievementTrigger::FIRST_MATCH === $t ? [$achievement] : []
             );
 
         $xpBefore = $this->progression->getXp();
@@ -468,7 +468,7 @@ final class GamificationManagerTest extends TestCase
     private function makeAchievement(AchievementTrigger $trigger, int $xpReward): Achievement
     {
         return (new Achievement())
-            ->setSlug('test-' . $trigger->value)
+            ->setSlug('test-'.$trigger->value)
             ->setName('Test Achievement')
             ->setDescription('Desc')
             ->setIcon('fa-star')

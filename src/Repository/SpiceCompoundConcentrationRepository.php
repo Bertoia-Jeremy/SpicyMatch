@@ -36,7 +36,7 @@ class SpiceCompoundConcentrationRepository extends ServiceEntityRepository
      */
     public function findConcentrationsForSpices(array $spiceIds): array
     {
-        if ($spiceIds === []) {
+        if ([] === $spiceIds) {
             return [];
         }
 

@@ -42,7 +42,7 @@ class SpicyTypeRepository extends ServiceEntityRepository
 
     public function findOneByLocalizedSlug(string $slug, string $locale): ?SpicyType
     {
-        if ($locale !== 'fr') {
+        if ('fr' !== $locale) {
             $translated = $this->createQueryBuilder('e')
                 ->innerJoin('e.translations', 't', 'WITH', 't.locale = :loc AND t.slug = :slug')
                 ->setParameter('loc', $locale)
@@ -51,7 +51,7 @@ class SpicyTypeRepository extends ServiceEntityRepository
                 ->getQuery()
                 ->getOneOrNullResult();
 
-            if ($translated !== null) {
+            if (null !== $translated) {
                 return $translated;
             }
         }

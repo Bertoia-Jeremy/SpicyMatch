@@ -28,7 +28,7 @@ final class AdminStatsService
     public function achievementUnlockRate(): array
     {
         $totalUsers = (int) $this->connection->fetchOne('SELECT COUNT(*) FROM users WHERE deleted_at IS NULL');
-        if ($totalUsers === 0) {
+        if (0 === $totalUsers) {
             return [];
         }
 
@@ -330,7 +330,7 @@ final class AdminStatsService
             static fn (array $r): array => [
                 'user_id' => (int) $r['user_id'],
                 'username' => (string) $r['username'],
-                'flagged_day' => $r['flagged_day'] !== null ? (string) $r['flagged_day'] : null,
+                'flagged_day' => null !== $r['flagged_day'] ? (string) $r['flagged_day'] : null,
                 'sessions' => (int) $r['sessions'],
                 'total_xp' => (int) $r['total_xp'],
                 'reason' => sprintf('%d sessions le %s', (int) $r['sessions'], (string) $r['flagged_day']),

@@ -372,7 +372,7 @@ class AcademyManagerTest extends TestCase
             $spice->method('getAromaticGroups')
                 ->willReturn(null);
             $spice->method('getName')
-                ->willReturn('Épice ' . $i);
+                ->willReturn('Épice '.$i);
             $spices[] = $spice;
         }
 
@@ -422,7 +422,7 @@ class AcademyManagerTest extends TestCase
         $result = $this->manager->generateIntrusQuestion(GameDifficulty::EASY, [], false);
 
         // May be null if random branching produces insufficient data — only validate structure when non-null
-        if ($result !== null) {
+        if (null !== $result) {
             self::assertArrayHasKey('type', $result);
             self::assertArrayHasKey('prompt', $result);
             self::assertArrayHasKey('baseSpice', $result);

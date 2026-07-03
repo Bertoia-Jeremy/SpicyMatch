@@ -14,6 +14,13 @@ form:
         name: Nombre
         subject: Asunto
         message: Mensaje
+        consent: 'Acepto que mis datos (nombre, correo, mensaje) sean tratados para responder a mi solicitud, de acuerdo con la'
+        consent_link: política de privacidad
+    gdpr:
+        email: Dirección de correo
+        email_help: 'La dirección asociada a los datos en cuestión — nos sirve para identificarle y responderle.'
+        request_type: Tipo de solicitud
+        message: Detalles (opcional)
     register:
         username: Usuario
         mail: 'Correo (opcional, pero útil para recuperar tu contraseña)'
@@ -571,11 +578,13 @@ ui:
             ads_title: Publicidad
             ads_text: 'Cuando la publicidad está activa, SpicyMatch utiliza una red publicitaria sin cookies ni perfilado (publicidad contextual). No se recoge ningún dato de navegación con fines publicitarios — base legal: interés legítimo. Puede oponerse pasando a una cuenta Premium.'
             retention_title: Plazos de conservación
-            retention_text: 'Cuenta: mientras la cuenta esté activa, supresión definitiva previa solicitud. Pruebas de consentimiento de cookies: 13 meses. Mensajes de contacto: el tiempo necesario para tramitar la solicitud. Boletín: hasta la baja.'
+            retention_text: 'Cuenta: mientras la cuenta esté activa; tras la eliminación, anonimización definitiva en un plazo de 30 días. Pruebas de consentimiento de cookies: 13 meses. Mensajes de contacto: 12 meses tras su recepción. Solicitudes de ejercicio de derechos: 6 años (prueba de la tramitación). Boletín: hasta la baja.'
             cookies_title: Cookies
             cookies_text: El sitio solo utiliza cookies estrictamente necesarias (sesión de conexión, memorización de sus elecciones de consentimiento), exentas de consentimiento previo. No se instala ninguna cookie publicitaria ni de medición de audiencia.
             rights_title: Sus derechos
-            rights_text: Dispone de los derechos de acceso, rectificación, supresión, portabilidad y oposición. Desde su perfil puede exportar sus datos y eliminar su cuenta en cualquier momento. Para cualquier otra solicitud, utilice la página de contacto.
+            rights_text: Dispone de los derechos de acceso, rectificación, supresión, portabilidad y oposición. Desde su perfil puede exportar sus datos y eliminar su cuenta en cualquier momento.
+            rights_form_text: 'Para cualquier otra solicitud (incluida la supresión de datos sin cuenta), utilice nuestro formulario dedicado:'
+            rights_form_cta: Ejercer mis derechos
             complaint_title: Reclamación
             complaint_text: Si considera que sus derechos no se respetan, puede presentar una reclamación ante la CNIL (cnil.fr), la autoridad francesa de protección de datos.
             updated_text: Última actualización el 13 de junio de 2026.
@@ -935,6 +944,41 @@ ui:
         suggestions_text: Tus comentarios mejoran SpicyMatch.
         send: Enviar mensaje
         page_title: SpicyMatch — Contáctanos
+    gdpr:
+        tag: Sus derechos
+        title: Ejercer mis derechos sobre mis datos
+        intro: 'Acceso, rectificación, supresión, portabilidad u oposición: describa su solicitud y la trataremos conforme al RGPD.'
+        deadline: Respuesta en un mes
+        deadline_text: Tratamos cada solicitud dentro del plazo legal de un mes (artículo 12 del RGPD).
+        identity: Verificación de identidad
+        identity_text: Podemos pedirle que confirme su identidad desde la dirección de correo en cuestión antes de actuar.
+        self_service: Desde su cuenta
+        self_service_text: Si tiene una cuenta, la exportación de sus datos y la eliminación de la cuenta están disponibles directamente en su perfil.
+        form_notice: 'La información de este formulario se utiliza únicamente para tramitar su solicitud — base legal: obligación legal. Se conserva como prueba y luego se elimina.'
+        send: Enviar mi solicitud
+        page_title: SpicyMatch — Ejercer mis derechos
+    gdpr_success:
+        page_title: SpicyMatch — Solicitud enviada
+        title: Solicitud recibida
+        text: Le responderemos en el plazo máximo de un mes, a la dirección indicada.
+    altcha:
+        label: No soy un robot
+        verifying: Verificando…
+        verified: Verificado
+        error: Error de verificación, inténtelo de nuevo.
+        expired: Verificación caducada, vuelva a empezar.
+        wait: Verificación en curso, espere por favor.
+        aria_link: Visitar altcha.org
+        cancel: Cancelar
+        enter_code: Introducir el código
+        enter_code_aria: Introduzca el código que oye. Pulse Espacio para reproducir el audio.
+        enter_code_from_image: Para continuar, introduzca el código de la imagen siguiente.
+        footer_prefix: Protegido por
+        get_audio_challenge: Obtener un desafío de audio
+        loading: Cargando…
+        reload: Recargar
+        verify: Verificar
+        verification_required: ¡Verificación requerida!
     banner:
         level: 'Nivel %level%'
         xp_to_next: 'faltan %xp% XP → niv. %level%'
@@ -1093,3 +1137,9 @@ enum:
         air: Aire
         water: Agua
         oil: Aceite
+    gdpr_request_type:
+        access: Acceso a mis datos (artículo 15)
+        rectification: Rectificación de mis datos (artículo 16)
+        erasure: Supresión de mis datos (artículo 17)
+        portability: Portabilidad de mis datos (artículo 20)
+        opposition: Oposición al tratamiento (artículo 21)

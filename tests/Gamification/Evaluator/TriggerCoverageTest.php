@@ -21,7 +21,7 @@ final class TriggerCoverageTest extends KernelTestCase
 
         $missing = [];
         foreach (AchievementTrigger::cases() as $trigger) {
-            if ($registry->for($trigger) === null) {
+            if (null === $registry->for($trigger)) {
                 $missing[] = $trigger->value;
             }
         }

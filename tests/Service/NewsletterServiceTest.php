@@ -150,7 +150,7 @@ class NewsletterServiceTest extends TestCase
     {
         $token = $this->service->generateUnsubscribeToken('test@example.com');
 
-        self::assertFalse($this->service->validateUnsubscribeToken('test@example.com', $token . 'tampered'));
+        self::assertFalse($this->service->validateUnsubscribeToken('test@example.com', $token.'tampered'));
     }
 
     public function testValidateTokenReturnsFalseForWrongEmail(): void

@@ -61,7 +61,7 @@ final class SurvivalGameTest extends TestCase
     private function makeGame(array $secret = []): array
     {
         $session = new Session(new MockArraySessionStorage());
-        $session->set('game_' . self::TOKEN, $secret);
+        $session->set('game_'.self::TOKEN, $secret);
 
         $request = new Request();
         $request->setSession($session);

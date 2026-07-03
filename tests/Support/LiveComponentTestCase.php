@@ -25,7 +25,7 @@ abstract class LiveComponentTestCase extends IntegrationTestCase
      */
     protected function seedGameState(string $gameToken, array $state): void
     {
-        $this->session->set('game_' . $gameToken, $state);
+        $this->session->set('game_'.$gameToken, $state);
     }
 
     /**
@@ -33,7 +33,7 @@ abstract class LiveComponentTestCase extends IntegrationTestCase
      */
     protected function readGameState(string $gameToken): array
     {
-        $raw = $this->session->get('game_' . $gameToken, []);
+        $raw = $this->session->get('game_'.$gameToken, []);
 
         return \is_array($raw) ? $raw : [];
     }

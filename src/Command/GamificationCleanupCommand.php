@@ -108,7 +108,7 @@ final class GamificationCleanupCommand extends Command
             'days' => $days,
         ]);
 
-        if ($dryRun || $count === 0) {
+        if ($dryRun || 0 === $count) {
             return $count;
         }
 

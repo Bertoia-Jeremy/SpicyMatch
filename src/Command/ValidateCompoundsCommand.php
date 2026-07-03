@@ -74,7 +74,7 @@ final class ValidateCompoundsCommand extends Command
         $apply = (bool) $input->getOption('apply');
         $date = (new \DateTimeImmutable())->format('Y-m-d_His');
 
-        $io->title('Validation CAS + Formules via PubChem — ' . $date);
+        $io->title('Validation CAS + Formules via PubChem — '.$date);
 
         if ($apply) {
             $io->warning('Mode APPLY : les corrections de formule seront appliquées en DB.');
@@ -88,7 +88,7 @@ final class ValidateCompoundsCommand extends Command
              ORDER BY id',
         );
 
-        if ($compounds === []) {
+        if ([] === $compounds) {
             $io->warning('Aucun composé avec numéro CAS en base.');
 
             return Command::SUCCESS;
@@ -168,7 +168,7 @@ final class ValidateCompoundsCommand extends Command
 
         // ── Requête PubChem : propriétés par CAS ────────────────────────────
         $properties = $this->fetchPubChemProperties($cas, $io);
-        if ($properties === null) {
+        if (null === $properties) {
             return [
                 'id' => $compound['id'],
                 'name' => $storedName,
@@ -221,7 +221,7 @@ final class ValidateCompoundsCommand extends Command
             }
         }
 
-        if ($issues === []) {
+        if ([] === $issues) {
             $io->text("  ✅ CAS confirmé, formule et nom concordants (IUPAC: {$pubchemIupac})");
         } else {
             foreach ($issues as $issue) {
@@ -250,14 +250,14 @@ final class ValidateCompoundsCommand extends Command
      */
     private function fetchPubChemProperties(string $cas, SymfonyStyle $io): ?array
     {
-        $url = self::PUBCHEM_BASE . '/compound/name/' . urlencode($cas) . '/property/MolecularFormula,IUPACName/JSON';
+        $url = self::PUBCHEM_BASE.'/compound/name/'.urlencode($cas).'/property/MolecularFormula,IUPACName/JSON';
 
         try {
             $response = $this->httpClient->request('GET', $url, [
                 'timeout' => 10,
             ]);
 
-            if ($response->getStatusCode() !== 200) {
+            if (200 !== $response->getStatusCode()) {
                 $io->text("  ❌ PubChem HTTP {$response->getStatusCode()} pour CAS {$cas}");
 
                 return null;
@@ -266,7 +266,7 @@ final class ValidateCompoundsCommand extends Command
             $data = $response->toArray();
             $props = $data['PropertyTable']['Properties'][0] ?? null;
 
-            if ($props === null) {
+            if (null === $props) {
                 $io->text("  ❌ Aucune donnée PubChem pour CAS {$cas}");
 
                 return null;
@@ -281,7 +281,7 @@ final class ValidateCompoundsCommand extends Command
                 'IUPACName' => $iupac,
             ];
         } catch (TransportExceptionInterface $e) {
-            $io->text('  ❌ Erreur réseau PubChem : ' . $e->getMessage());
+            $io->text('  ❌ Erreur réseau PubChem : '.$e->getMessage());
 
             return null;
         }
@@ -292,14 +292,14 @@ final class ValidateCompoundsCommand extends Command
      */
     private function fetchPubChemSynonyms(string $cas, SymfonyStyle $io): array
     {
-        $url = self::PUBCHEM_BASE . '/compound/name/' . urlencode($cas) . '/synonyms/JSON';
+        $url = self::PUBCHEM_BASE.'/compound/name/'.urlencode($cas).'/synonyms/JSON';
 
         try {
             $response = $this->httpClient->request('GET', $url, [
                 'timeout' => 10,
             ]);
 
-            if ($response->getStatusCode() !== 200) {
+            if (200 !== $response->getStatusCode()) {
                 return [];
             }
 
@@ -367,7 +367,7 @@ final class ValidateCompoundsCommand extends Command
 
         // Vérifier que ça ressemble à une formule (commence par majuscule, contient C ou H)
         if (! preg_match('/^[A-Z]/', $clean) || strlen($clean) > 50) {
-            throw new \RuntimeException('Formule PubChem suspecte ou trop longue : ' . mb_substr($raw, 0, 100));
+            throw new \RuntimeException('Formule PubChem suspecte ou trop longue : '.mb_substr($raw, 0, 100));
         }
 
         return $clean;
@@ -386,7 +386,7 @@ final class ValidateCompoundsCommand extends Command
         // Normaliser Unicode NFC
         if (class_exists(\Normalizer::class)) {
             $normalized = \Normalizer::normalize($clean, \Normalizer::FORM_C);
-            $clean = $normalized !== false ? $normalized : $clean;
+            $clean = false !== $normalized ? $normalized : $clean;
         }
 
         // Cap longueur
@@ -410,7 +410,7 @@ final class ValidateCompoundsCommand extends Command
         // Translitère les caractères accentués en ASCII (é→e, è→e, etc.)
         $transliterated = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $str);
 
-        return $transliterated !== false ? $transliterated : mb_strtolower($str);
+        return false !== $transliterated ? $transliterated : mb_strtolower($str);
     }
 
     /**
@@ -418,7 +418,7 @@ final class ValidateCompoundsCommand extends Command
      */
     private function writeReport(array $report, string $date): void
     {
-        $dir = $this->projectDir . '/data/validation_reports';
+        $dir = $this->projectDir.'/data/validation_reports';
 
         if (! is_dir($dir)) {
             mkdir($dir, 0755, true);
@@ -443,16 +443,16 @@ final class ValidateCompoundsCommand extends Command
             if (isset($c['stored_formula'])) {
                 $yaml .= "    stored_formula: \"{$c['stored_formula']}\"\n";
                 $yaml .= "    pubchem_formula: \"{$c['pubchem_formula']}\"\n";
-                $yaml .= '    formula_match: ' . ($c['formula_match'] ? 'true' : 'false') . "\n";
+                $yaml .= '    formula_match: '.($c['formula_match'] ? 'true' : 'false')."\n";
                 $yaml .= "    pubchem_iupac: \"{$c['pubchem_iupac']}\"\n";
-                $yaml .= '    name_in_synonyms: ' . ($c['name_in_synonyms'] ? 'true' : 'false') . "\n";
+                $yaml .= '    name_in_synonyms: '.($c['name_in_synonyms'] ? 'true' : 'false')."\n";
                 $yaml .= "    name_similarity_pct: {$c['name_similarity_pct']}\n";
             }
 
             if (! empty($c['issues'])) {
                 $yaml .= "    issues:\n";
                 foreach ($c['issues'] as $issue) {
-                    $yaml .= '      - "' . addslashes($issue) . "\"\n";
+                    $yaml .= '      - "'.addslashes($issue)."\"\n";
                 }
             }
 

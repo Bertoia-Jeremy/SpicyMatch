@@ -96,7 +96,7 @@ final class SpiceConcentrationChangedListener
 
         $this->pendingRecompute = true;
         // Conserver la première raison connue (les suivantes sont des doublons du même flush)
-        if ($this->pendingReason === '') {
+        if ('' === $this->pendingReason) {
             $this->pendingReason = sprintf('%s.%s', $entityClass, $operation);
         }
     }

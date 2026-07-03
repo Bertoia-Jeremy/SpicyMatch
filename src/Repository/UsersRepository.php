@@ -53,7 +53,7 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
         $qb = $this->createQueryBuilder('u')
             ->andWhere('u.deleted_at IS NULL')
             ->andWhere(implode(' AND ', array_map(
-                static fn (string $key): string => 'u.' . $key . ' = :' . $key,
+                static fn (string $key): string => 'u.'.$key.' = :'.$key,
                 array_keys($criteria)
             )));
 
@@ -62,6 +62,21 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
         }
 
         return $qb->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return list<Users>
+     */
+    public function findAnonymizableDeletedBefore(\DateTimeImmutable $before): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.deleted_at IS NOT NULL')
+            ->andWhere('u.deleted_at < :before')
+            ->andWhere('u.username NOT LIKE :anonymized')
+            ->setParameter('before', $before)
+            ->setParameter('anonymized', 'anonyme-%')
+            ->getQuery()
             ->getResult();
     }
 

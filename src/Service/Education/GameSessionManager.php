@@ -23,7 +23,7 @@ class GameSessionManager
 
     public function maxDailySessions(?Users $user): int
     {
-        return $user !== null && $user->isPremium()
+        return null !== $user && $user->isPremium()
             ? self::MAX_DAILY_SESSIONS_PREMIUM
             : self::MAX_DAILY_SESSIONS_FREE;
     }
@@ -57,11 +57,11 @@ class GameSessionManager
         $session->setDifficulty($difficulty);
 
         $modeQuestions = $mode->totalQuestions();
-        if ($modeQuestions !== null) {
+        if (null !== $modeQuestions) {
             $session->setTotalQuestions($modeQuestions);
         }
 
-        if ($targetSpice !== null) {
+        if (null !== $targetSpice) {
             $session->setTargetSpice($targetSpice);
         }
 
@@ -83,7 +83,7 @@ class GameSessionManager
         }
 
         $generator = $this->getGenerator($session->getGameMode());
-        if ($generator === null) {
+        if (null === $generator) {
             return null;
         }
 
@@ -191,7 +191,7 @@ class GameSessionManager
         $session->setDifficulty($difficulty);
         $session->setTotalQuestions($totalQuestions);
 
-        if ($targetSpice !== null) {
+        if (null !== $targetSpice) {
             $session->setTargetSpice($targetSpice);
         }
 
@@ -201,11 +201,11 @@ class GameSessionManager
 
         $session->finish();
 
-        if ($durationSeconds !== null) {
+        if (null !== $durationSeconds) {
             $session->setDurationSeconds($durationSeconds);
         }
 
-        if ($overrideScore !== null) {
+        if (null !== $overrideScore) {
             // Reuse $todayCount from the limit check above (session not yet flushed — count is stable).
             $xpEarned = $todayCount > self::REDUCED_XP_THRESHOLD
                 ? (int) round($overrideScore * 0.5)
@@ -250,7 +250,7 @@ class GameSessionManager
             $this->em->persist($gq);
         }
 
-        if ($questionsData !== []) {
+        if ([] !== $questionsData) {
             $this->em->flush();
         }
     }

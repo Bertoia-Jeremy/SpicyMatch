@@ -16,6 +16,6 @@ final class MatchXpStrategy implements XpStrategyInterface
 
     public function supports(string $eventType): bool
     {
-        return $eventType === 'match_saved';
+        return 'match_saved' === $eventType;
     }
 }

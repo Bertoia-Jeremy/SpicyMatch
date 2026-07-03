@@ -29,7 +29,7 @@ class PreparationMethodsController extends AbstractController
     {
         $locale = $request->getLocale();
         $preparationMethod = $repository->findOneByLocalizedSlug($slug, $locale);
-        if ($preparationMethod === null) {
+        if (null === $preparationMethod) {
             throw $this->createNotFoundException();
         }
 
@@ -45,7 +45,7 @@ class PreparationMethodsController extends AbstractController
         // Seed the server-side timestamp for the "temps_de_l_infusion" easter egg
         // (stay ≥ 260s on the infusion page). Client cannot forge this value —
         // the EasterEggService reads it from session on validation.
-        if (mb_strtolower((string) $preparationMethod->getName()) === 'infusion') {
+        if ('infusion' === mb_strtolower((string) $preparationMethod->getName())) {
             $session = $request->getSession();
             if (! \is_int($session->get('easter_egg.infusion_started_at'))) {
                 $session->set('easter_egg.infusion_started_at', time());

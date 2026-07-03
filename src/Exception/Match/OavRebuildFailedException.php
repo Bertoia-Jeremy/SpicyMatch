@@ -16,6 +16,6 @@ final class OavRebuildFailedException extends \RuntimeException
 {
     public static function fromDbalException(\Throwable $cause): self
     {
-        return new self('OAV table rebuild failed: ' . $cause->getMessage(), (int) $cause->getCode(), $cause);
+        return new self('OAV table rebuild failed: '.$cause->getMessage(), (int) $cause->getCode(), $cause);
     }
 }

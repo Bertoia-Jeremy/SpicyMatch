@@ -156,7 +156,7 @@ class CompoundPhysical
      */
     public function octanolWaterPartition(): ?float
     {
-        return $this->logP === null ? null : 10 ** $this->logP;
+        return null === $this->logP ? null : 10 ** $this->logP;
     }
 
     public function aromaKinetics(): ?AromaKinetics

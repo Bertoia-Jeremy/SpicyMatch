@@ -107,10 +107,10 @@ final class GameScoreThresholdEvaluatorTest extends TestCase
             ->setTriggerValue($triggerValue)
             ->setXpReward(10)
             ->setRarity(AchievementRarity::COMMON);
-        if ($mode !== null) {
+        if (null !== $mode) {
             $a->setContextGameMode($mode);
         }
-        if ($group !== null) {
+        if (null !== $group) {
             $a->setContextAromaticGroup($group);
         }
 

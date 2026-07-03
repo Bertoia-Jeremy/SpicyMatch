@@ -30,7 +30,7 @@ enum DataConfidence: string
      */
     public function label(): string
     {
-        return 'enum.confidence.' . $this->value;
+        return 'enum.confidence.'.$this->value;
     }
 
     public function tier(): string
@@ -57,7 +57,7 @@ enum DataConfidence: string
      */
     public static function weakest(self ...$confidences): self
     {
-        if ($confidences === []) {
+        if ([] === $confidences) {
             return self::PLACEHOLDER;
         }
 

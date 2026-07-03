@@ -17,7 +17,7 @@ trait GameSessionTrait
 {
     private function sessionKey(): string
     {
-        return 'game_' . $this->gameToken;
+        return 'game_'.$this->gameToken;
     }
 
     /**

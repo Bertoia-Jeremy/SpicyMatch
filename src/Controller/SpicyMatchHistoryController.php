@@ -99,7 +99,7 @@ class SpicyMatchHistoryController extends AbstractController
         foreach ($spicyMatchHistory->getSpicyMatch()->getSpices() as $spice) {
             $compounds = $spice->getAromaticsCompounds()
                 ->toArray();
-            if ($sharedCompounds === null) {
+            if (null === $sharedCompounds) {
                 $sharedCompounds = $compounds;
             } else {
                 $sharedCompounds = array_uintersect(
@@ -115,14 +115,14 @@ class SpicyMatchHistoryController extends AbstractController
         $culinaryContext = $spicyMatch->getCulinaryContext();
         $mortarSpiceIds = $spicyMatch->getSpices()
             ->map(static fn (Spices $s): ?int => $s->getId())
-            ->filter(static fn (?int $id): bool => $id !== null)
+            ->filter(static fn (?int $id): bool => null !== $id)
             ->toArray();
 
         // Comparateur multi-matrice : "et si on cuisinait autrement ?"
         // MortarIds borne le nombre d'épices ∈ [1, 10]. Slice si data legacy > 10.
         $matrixGrid = [];
         $boundedIds = array_slice(array_values($mortarSpiceIds), 0, 10);
-        if ($boundedIds !== []) {
+        if ([] !== $boundedIds) {
             try {
                 $matrixRankings = $matrixComparator->compare(
                     new MortarIds($boundedIds),
@@ -143,7 +143,7 @@ class SpicyMatchHistoryController extends AbstractController
         foreach ($spicyMatch->getSpices() as $spice) {
             foreach ($spice->getAromaticsCompounds() as $compound) {
                 $cid = $compound->getId();
-                if ($cid === null || isset($seenCompoundIds[$cid])) {
+                if (null === $cid || isset($seenCompoundIds[$cid])) {
                     continue;
                 }
                 $seenCompoundIds[$cid] = true;
@@ -177,7 +177,7 @@ class SpicyMatchHistoryController extends AbstractController
         }
 
         $token = $request->headers->get('X-CSRF-Token', '');
-        if (! $this->isCsrfTokenValid('history_edit_' . $spicyMatchHistory->getId(), $token)) {
+        if (! $this->isCsrfTokenValid('history_edit_'.$spicyMatchHistory->getId(), $token)) {
             return $this->json([
                 'error' => 'Invalid CSRF token',
             ], 403);
@@ -227,14 +227,14 @@ class SpicyMatchHistoryController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
-        if (! $this->isCsrfTokenValid('history_action_' . $spicyMatchHistory->getId(), $data['_token'] ?? '')) {
+        if (! $this->isCsrfTokenValid('history_action_'.$spicyMatchHistory->getId(), $data['_token'] ?? '')) {
             return $this->json([
                 'error' => 'Invalid CSRF token',
             ], 403);
         }
 
         $title = trim((string) ($data['title'] ?? ''));
-        $spicyMatchHistory->setTitle($title !== '' ? $title : null);
+        $spicyMatchHistory->setTitle('' !== $title ? $title : null);
         $spicyMatchHistory->setUpdatedAt(new \DateTimeImmutable());
         $entityManager->flush();
 
@@ -256,7 +256,7 @@ class SpicyMatchHistoryController extends AbstractController
         }
 
         $token = $request->headers->get('X-CSRF-Token', '');
-        if (! $this->isCsrfTokenValid('history_action_' . $spicyMatchHistory->getId(), $token)) {
+        if (! $this->isCsrfTokenValid('history_action_'.$spicyMatchHistory->getId(), $token)) {
             return $this->json([
                 'error' => 'Invalid CSRF token',
             ], 403);

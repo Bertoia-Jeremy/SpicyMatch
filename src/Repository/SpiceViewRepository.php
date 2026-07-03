@@ -35,7 +35,7 @@ class SpiceViewRepository extends ServiceEntityRepository
             'viewedDay' => $today,
         ]);
 
-        if ($existing !== null) {
+        if (null !== $existing) {
             return false;
         }
 

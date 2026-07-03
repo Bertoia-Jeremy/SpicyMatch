@@ -95,7 +95,7 @@ final class GameGamificationHandlerTest extends TestCase
 
         $this->manager->expects(self::once())
             ->method('process')
-            ->with($progression, 'game_completed', self::callback(fn (array $ctx) => $ctx['gamesCompleted'] === 5));
+            ->with($progression, 'game_completed', self::callback(fn (array $ctx) => 5 === $ctx['gamesCompleted']));
 
         ($this->handler)(new GameCompletedEvent(1, 1, 'qcm', 7, 10, 21));
     }

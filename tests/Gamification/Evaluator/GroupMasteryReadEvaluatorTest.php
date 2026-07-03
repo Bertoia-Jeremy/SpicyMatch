@@ -83,7 +83,7 @@ final class GroupMasteryReadEvaluatorTest extends TestCase
             ->setTriggerValue($triggerValue)
             ->setXpReward(10)
             ->setRarity(AchievementRarity::RARE);
-        if ($group !== null) {
+        if (null !== $group) {
             $a->setContextAromaticGroup($group);
         }
 

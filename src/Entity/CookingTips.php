@@ -101,7 +101,7 @@ class CookingTips implements TranslatableInterface
 
     public function getTranslation(string $locale): ?CookingTipsTranslation
     {
-        if ($locale === 'fr') {
+        if ('fr' === $locale) {
             return null;
         }
 

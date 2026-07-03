@@ -47,7 +47,7 @@ abstract class IntegrationTestCase extends KernelTestCase
     protected function tearDown(): void
     {
         // Pop request we pushed in setUp — avoids leaking state across tests.
-        while ($this->requestStack->getCurrentRequest() !== null) {
+        while (null !== $this->requestStack->getCurrentRequest()) {
             $this->requestStack->pop();
         }
 
@@ -60,8 +60,8 @@ abstract class IntegrationTestCase extends KernelTestCase
     protected function createTestUser(string $prefix = 'test'): Users
     {
         $user = new Users();
-        $user->setUsername($prefix . '_' . bin2hex(random_bytes(4)));
-        $user->setMail($user->getUsername() . '@example.test');
+        $user->setUsername($prefix.'_'.bin2hex(random_bytes(4)));
+        $user->setMail($user->getUsername().'@example.test');
         $user->setPassword('hash');
         $this->em->persist($user);
         $this->em->flush();

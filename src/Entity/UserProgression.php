@@ -132,7 +132,7 @@ class UserProgression
      */
     public int $level {
         get {
-            if ($this->xp === 0) {
+            if (0 === $this->xp) {
                 return 1;
             }
             // level = (xp / 100) ^ (1 / 1.3)
@@ -307,12 +307,12 @@ class UserProgression
     {
         $today = new \DateTimeImmutable('today');
 
-        if ($this->lastReadDate === null) {
+        if (null === $this->lastReadDate) {
             $this->currentReadingStreak = 1;
         } else {
             $diff = (int) $today->diff($this->lastReadDate)
                 ->days;
-            if ($diff === 1) {
+            if (1 === $diff) {
                 ++$this->currentReadingStreak;
             } elseif ($diff > 1) {
                 $this->currentReadingStreak = 1;
@@ -359,7 +359,7 @@ class UserProgression
 
     public function equipBadge(?UserAchievement $ua): static
     {
-        if ($ua !== null && $ua->getUserProgression() !== $this) {
+        if (null !== $ua && $ua->getUserProgression() !== $this) {
             throw new \InvalidArgumentException('Badge does not belong to this user.');
         }
         $this->equippedBadge = $ua;

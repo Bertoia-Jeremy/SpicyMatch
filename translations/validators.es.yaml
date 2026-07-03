@@ -1,8 +1,13 @@
 # Mensajes de validación (dominio 'validators').
 aromatic_group:
     color_invalid: El color debe ser un código hexadecimal válido (#RRGGBB).
+altcha:
+    invalid: La verificación anti-robot ha fallado. Marque la casilla e inténtelo de nuevo.
+contact:
+    consent_required: Debe aceptar el tratamiento de sus datos para enviar el mensaje.
 user:
     username_taken: Este nombre de usuario ya existe
     email_taken: Este correo ya está en uso.
     password_blank: Introduce una contraseña
     password_min: Tu contraseña debe tener al menos {{ limit }} caracteres.
+    username_reserved: Este nombre de usuario está reservado.

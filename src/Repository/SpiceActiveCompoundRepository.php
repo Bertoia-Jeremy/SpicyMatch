@@ -35,7 +35,7 @@ class SpiceActiveCompoundRepository extends ServiceEntityRepository
      */
     public function loadOavProfilesBatch(array $spiceIds, OdtMatrix $matrix): array
     {
-        if ($spiceIds === []) {
+        if ([] === $spiceIds) {
             return [];
         }
 
@@ -96,10 +96,10 @@ class SpiceActiveCompoundRepository extends ServiceEntityRepository
      */
     public function hasDataForSpices(array $spiceIds, OdtMatrix $matrix): bool
     {
-        if ($spiceIds === []) {
+        if ([] === $spiceIds) {
             return false;
         }
 
-        return $this->loadOavProfilesBatch($spiceIds, $matrix) !== [];
+        return [] !== $this->loadOavProfilesBatch($spiceIds, $matrix);
     }
 }

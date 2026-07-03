@@ -23,7 +23,7 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
 
     public function supports(GameMode $mode): bool
     {
-        return $mode === GameMode::QCM;
+        return GameMode::QCM === $mode;
     }
 
     public function generate(GameDifficulty $difficulty, array $excludeSpiceIds = []): ?array
@@ -126,14 +126,14 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
         $correctGroupName = $correct['groupName'] ?? null;
         $distractors = [];
 
-        if ($difficulty === GameDifficulty::EASY) {
+        if (GameDifficulty::EASY === $difficulty) {
             // EASY: distractors from different aromatic groups than the correct answer
             foreach ($bottomPool as $s) {
                 if (($s['groupName'] ?? null) !== $correctGroupName && $s['id'] !== $correct['id']) {
                     $distractors[] = $s;
                 }
             }
-        } elseif ($difficulty === GameDifficulty::HARD) {
+        } elseif (GameDifficulty::HARD === $difficulty) {
             // HARD: distractors with scores close to the correct answer (medium range)
             $correctScore = $correct['score'];
             $candidates = array_filter(

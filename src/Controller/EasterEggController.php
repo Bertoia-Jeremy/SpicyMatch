@@ -66,9 +66,9 @@ class EasterEggController extends AbstractController
         }
 
         // 2. Render Turbo Streams from pending notifications (same template as subscriber)
-        if ($request->getPreferredFormat() === 'turbo_stream' || $request->headers->get(
+        if ('turbo_stream' === $request->getPreferredFormat() || 'text/vnd.turbo-stream.html' === $request->headers->get(
             'Accept'
-        ) === 'text/vnd.turbo-stream.html') {
+        )) {
             $notifications = $this->em->getRepository(PendingGamificationNotification::class)->findBy([
                 'user' => $user,
                 'deliveredAt' => null,

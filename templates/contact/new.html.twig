@@ -65,6 +65,23 @@
             </div>
 
             <div>
+                {{ form_errors(form.altcha) }}
+                {% do form.altcha.setRendered() %}
+                {% include 'components/_altcha.html.twig' with {name: field_name(form.altcha)} only %}
+            </div>
+
+            <div>
+                {{ form_errors(form.consent) }}
+                <label class="flex items-start gap-3 text-sm text-stone-700 cursor-pointer">
+                    {{ form_widget(form.consent, {'attr': {'class': 'mt-0.5 h-4 w-4 rounded border-stone-300 text-saffron-600 focus:ring-saffron-600/30'}}) }}
+                    <span>
+                        {{ 'form.contact.consent'|trans }}
+                        <a href="{{ path('privacy_policy') }}" class="text-saffron-700 underline hover:text-saffron-800">{{ 'form.contact.consent_link'|trans }}</a>
+                    </span>
+                </label>
+            </div>
+
+            <div>
                 <twig:Button
                     label="{{ 'ui.contact.send'|trans }}"
                     type="submit"

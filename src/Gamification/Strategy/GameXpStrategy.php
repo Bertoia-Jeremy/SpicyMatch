@@ -20,6 +20,6 @@ final class GameXpStrategy implements XpStrategyInterface
 
     public function supports(string $eventType): bool
     {
-        return $eventType === 'game_completed';
+        return 'game_completed' === $eventType;
     }
 }

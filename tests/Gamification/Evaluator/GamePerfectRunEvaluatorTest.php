@@ -77,7 +77,7 @@ final class GamePerfectRunEvaluatorTest extends TestCase
             ->setTriggerValue($triggerValue)
             ->setXpReward(10)
             ->setRarity(AchievementRarity::EPIC);
-        if ($mode !== null) {
+        if (null !== $mode) {
             $a->setContextGameMode($mode);
         }
 

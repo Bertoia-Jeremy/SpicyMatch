@@ -14,6 +14,13 @@ form:
         name: Name
         subject: Subject
         message: Message
+        consent: 'I agree that my data (name, email, message) will be processed to answer my request, in accordance with the'
+        consent_link: privacy policy
+    gdpr:
+        email: Email address
+        email_help: 'The address linked to the data concerned — we use it to identify you and to reply.'
+        request_type: Request type
+        message: Details (optional)
     register:
         username: Username
         mail: 'Email (optional, but handy to recover your password)'
@@ -571,11 +578,13 @@ ui:
             ads_title: Advertising
             ads_text: 'When advertising is active, SpicyMatch uses a cookieless, non-profiling ad network (contextual advertising). No browsing data is collected for advertising purposes — legal basis: legitimate interest. You can opt out by switching to a Premium account.'
             retention_title: Retention periods
-            retention_text: 'Account: as long as the account is active, permanent deletion on request. Cookie consent proofs: 13 months. Contact messages: for the time needed to handle the request. Newsletter: until unsubscription.'
+            retention_text: 'Account: as long as the account is active; after deletion, permanent anonymization within 30 days. Cookie consent proofs: 13 months. Contact messages: 12 months after receipt. Data rights requests: 6 years (proof of handling). Newsletter: until unsubscription.'
             cookies_title: Cookies
             cookies_text: The site only uses strictly necessary cookies (login session, storage of your consent choices), which are exempt from prior consent. No advertising or audience measurement cookie is set.
             rights_title: Your rights
-            rights_text: You have the rights of access, rectification, erasure, portability and objection. From your profile you can export your data and delete your account at any time. For any other request, please use the contact page.
+            rights_text: You have the rights of access, rectification, erasure, portability and objection. From your profile you can export your data and delete your account at any time.
+            rights_form_text: 'For any other request (including deleting data without an account), use our dedicated form:'
+            rights_form_cta: Exercise my rights
             complaint_title: Complaint
             complaint_text: If you believe your rights are not respected, you can lodge a complaint with the CNIL (cnil.fr), the French data protection authority.
             updated_text: Last updated on 13 June 2026.
@@ -935,6 +944,41 @@ ui:
         suggestions_text: Your feedback improves SpicyMatch.
         send: Send message
         page_title: SpicyMatch — Contact us
+    gdpr:
+        tag: Your rights
+        title: Exercise my data rights
+        intro: 'Access, rectification, erasure, portability or objection: describe your request and we will handle it in accordance with the GDPR.'
+        deadline: Reply within one month
+        deadline_text: We handle every request within the legal one-month deadline (Article 12 GDPR).
+        identity: Identity check
+        identity_text: We may ask you to confirm your identity from the email address concerned before acting.
+        self_service: From your account
+        self_service_text: If you have an account, data export and account deletion are available directly from your profile.
+        form_notice: 'The information in this form is used solely to handle your request — legal basis: legal obligation. It is kept as proof and then deleted.'
+        send: Send my request
+        page_title: SpicyMatch — Exercise my rights
+    gdpr_success:
+        page_title: SpicyMatch — Request sent
+        title: Request received
+        text: We will get back to you within one month at the latest, at the address provided.
+    altcha:
+        label: I'm not a robot
+        verifying: Verifying…
+        verified: Verified
+        error: Verification error, please retry.
+        expired: Verification expired, please retry.
+        wait: Verification in progress, please wait.
+        aria_link: Visit altcha.org
+        cancel: Cancel
+        enter_code: Enter code
+        enter_code_aria: Enter code you hear. Press Space to play audio.
+        enter_code_from_image: To proceed, please enter the code from the image below.
+        footer_prefix: Protected by
+        get_audio_challenge: Get an audio challenge
+        loading: Loading…
+        reload: Reload
+        verify: Verify
+        verification_required: Verification required!
     banner:
         level: 'Level %level%'
         xp_to_next: '%xp% XP left → lvl %level%'
@@ -1093,3 +1137,9 @@ enum:
         air: Air
         water: Water
         oil: Oil
+    gdpr_request_type:
+        access: Access to my data (Article 15)
+        rectification: Rectification of my data (Article 16)
+        erasure: Erasure of my data (Article 17)
+        portability: Portability of my data (Article 20)
+        opposition: Objection to processing (Article 21)

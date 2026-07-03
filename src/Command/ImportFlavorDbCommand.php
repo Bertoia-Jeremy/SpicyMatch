@@ -79,9 +79,9 @@ final class ImportFlavorDbCommand extends Command
 
         // ── Guard path traversal : le fichier doit être dans fixtures/ ──────────
         $resolvedPath = realpath($file);
-        $allowedDir = realpath($this->projectDir . '/fixtures');
+        $allowedDir = realpath($this->projectDir.'/fixtures');
 
-        if ($resolvedPath === false || $allowedDir === false || ! str_starts_with($resolvedPath, $allowedDir . '/')) {
+        if (false === $resolvedPath || false === $allowedDir || ! str_starts_with($resolvedPath, $allowedDir.'/')) {
             $io->error(sprintf('Le fichier "%s" doit se trouver dans le répertoire fixtures/ du projet.', $file));
 
             return Command::FAILURE;
@@ -89,7 +89,7 @@ final class ImportFlavorDbCommand extends Command
 
         // ── Guard taille ────────────────────────────────────────────────────────
         $fileSize = filesize($resolvedPath);
-        if ($fileSize === false || $fileSize > self::MAX_FILE_SIZE) {
+        if (false === $fileSize || $fileSize > self::MAX_FILE_SIZE) {
             $io->error('Fichier trop volumineux (max 10 Mo).');
 
             return Command::FAILURE;
@@ -126,7 +126,7 @@ final class ImportFlavorDbCommand extends Command
             $concentrationPpmRaw = $entry['concentration_ppm'] ?? null;
             $source = isset($entry['source']) ? (string) $entry['source'] : 'FlavorDB';
 
-            if ($spiceName === null || $compoundName === null || $concentrationPpmRaw === null) {
+            if (null === $spiceName || null === $compoundName || null === $concentrationPpmRaw) {
                 $io->warning(sprintf('Entrée ignorée (champs manquants) : %s', json_encode($entry)));
                 ++$skipped;
                 continue;
@@ -158,7 +158,7 @@ final class ImportFlavorDbCommand extends Command
             $spice = $spiceCache[$spiceName] ??= $this->spicesRepository->findOneBy([
                 'name' => $spiceName,
             ]);
-            if ($spice === null) {
+            if (null === $spice) {
                 $io->warning(sprintf('Épice "%s" introuvable — ignorée.', $spiceName));
                 ++$skipped;
                 continue;
@@ -168,7 +168,7 @@ final class ImportFlavorDbCommand extends Command
             $compound = $compoundCache[$compoundName] ??= $this->aromaticCompoundRepository->findOneBy([
                 'name' => $compoundName,
             ]);
-            if ($compound === null) {
+            if (null === $compound) {
                 $io->warning(sprintf('Composé "%s" introuvable — ignoré.', $compoundName));
                 ++$skipped;
                 continue;
@@ -183,7 +183,7 @@ final class ImportFlavorDbCommand extends Command
                 ]
             );
 
-            if ($existing !== null) {
+            if (null !== $existing) {
                 $existing->setConcentrationPpm((string) $concentrationPpm);
                 $existing->setSource($source);
                 $io->text(sprintf('  UPDATE %s / %s = %s ppm', $spiceName, $compoundName, $concentrationPpm));

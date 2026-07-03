@@ -52,7 +52,7 @@ final class ExportSpicesCsvCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $date = (new \DateTimeImmutable())->format('Y-m-d_His');
 
-        $outputDir = $this->projectDir . '/' . ltrim((string) $input->getOption('output-dir'), '/');
+        $outputDir = $this->projectDir.'/'.ltrim((string) $input->getOption('output-dir'), '/');
 
         if (! is_dir($outputDir) && ! mkdir($outputDir, 0755, true)) {
             $io->error("Impossible de créer le répertoire : {$outputDir}");
@@ -60,7 +60,7 @@ final class ExportSpicesCsvCommand extends Command
             return Command::FAILURE;
         }
 
-        $io->title('Export CSV Épices SpicyMatch — ' . $date);
+        $io->title('Export CSV Épices SpicyMatch — '.$date);
 
         $exports = [
             'aromatic_groups' => $this->exportAromaticGroups($outputDir, $date),
@@ -101,7 +101,7 @@ final class ExportSpicesCsvCommand extends Command
         );
 
         return $this->writeCsv(
-            $dir . "/aromatic_groups_{$date}.csv",
+            $dir."/aromatic_groups_{$date}.csv",
             ['id', 'name', 'color', 'description', 'cooking', 'informations'],
             $rows,
         );
@@ -120,7 +120,7 @@ final class ExportSpicesCsvCommand extends Command
         );
 
         return $this->writeCsv(
-            $dir . "/spicy_types_{$date}.csv",
+            $dir."/spicy_types_{$date}.csv",
             ['id', 'name', 'description', 'cooking', 'informations'],
             $rows,
         );
@@ -139,7 +139,7 @@ final class ExportSpicesCsvCommand extends Command
         );
 
         return $this->writeCsv(
-            $dir . "/alchemy_flavors_{$date}.csv",
+            $dir."/alchemy_flavors_{$date}.csv",
             ['id', 'name', 'description', 'cooking', 'informations'],
             $rows,
         );
@@ -170,7 +170,7 @@ final class ExportSpicesCsvCommand extends Command
             $headers = ['id', 'name', 'description', 'cooking', 'informations'];
         }
 
-        return $this->writeCsv($dir . "/aromatic_compounds_{$date}.csv", $headers, $rows);
+        return $this->writeCsv($dir."/aromatic_compounds_{$date}.csv", $headers, $rows);
     }
 
     /**
@@ -225,7 +225,7 @@ final class ExportSpicesCsvCommand extends Command
             ];
         }
 
-        return $this->writeCsv($dir . "/spices_{$date}.csv", $headers, $rows);
+        return $this->writeCsv($dir."/spices_{$date}.csv", $headers, $rows);
     }
 
     /**
@@ -247,7 +247,7 @@ final class ExportSpicesCsvCommand extends Command
         );
 
         return $this->writeCsv(
-            $dir . "/spice_compounds_mapping_{$date}.csv",
+            $dir."/spice_compounds_mapping_{$date}.csv",
             ['spice_name', 'compound_name', 'compound_type'],
             $rows,
         );
@@ -274,9 +274,9 @@ final class ExportSpicesCsvCommand extends Command
             );
         }
 
-        if ($rows === []) {
+        if ([] === $rows) {
             return $this->writeCsv(
-                $dir . "/compound_odt_{$date}.csv",
+                $dir."/compound_odt_{$date}.csv",
                 ['aromatic_compound_name', 'cas_number', 'matrix', 'odt_ppm', 'reference_source'],
                 []
             );
@@ -284,7 +284,7 @@ final class ExportSpicesCsvCommand extends Command
 
         $headers = array_keys($rows[0]);
 
-        return $this->writeCsv($dir . "/compound_odt_{$date}.csv", $headers, $rows);
+        return $this->writeCsv($dir."/compound_odt_{$date}.csv", $headers, $rows);
     }
 
     /**
@@ -302,7 +302,7 @@ final class ExportSpicesCsvCommand extends Command
         );
 
         return $this->writeCsv(
-            $dir . "/spice_compound_concentration_{$date}.csv",
+            $dir."/spice_compound_concentration_{$date}.csv",
             ['spice_name', 'aromatic_compound_name', 'concentration_ppm', 'source'],
             $rows,
         );
@@ -322,7 +322,7 @@ final class ExportSpicesCsvCommand extends Command
         );
 
         return $this->writeCsv(
-            $dir . "/spice_active_compound_{$date}.csv",
+            $dir."/spice_active_compound_{$date}.csv",
             ['spice_name', 'aromatic_compound_name', 'oav_value'],
             $rows,
         );
@@ -337,7 +337,7 @@ final class ExportSpicesCsvCommand extends Command
     private function writeCsv(string $filePath, array $headers, array $rows): array
     {
         $handle = fopen($filePath, 'w');
-        if ($handle === false) {
+        if (false === $handle) {
             throw new \RuntimeException("Impossible d'ouvrir le fichier en écriture : {$filePath}");
         }
 
@@ -350,7 +350,7 @@ final class ExportSpicesCsvCommand extends Command
         // Données
         foreach ($rows as $row) {
             $line = array_map(static function (mixed $value): string {
-                if ($value === null) {
+                if (null === $value) {
                     return '';
                 }
 

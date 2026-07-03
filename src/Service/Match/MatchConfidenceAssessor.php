@@ -23,13 +23,13 @@ final readonly class MatchConfidenceAssessor implements MatchConfidenceAssessorI
     public function assess(MortarIds $mortar, OdtMatrix $matrix): DataConfidence
     {
         $spiceIds = $mortar->toArray();
-        if ($spiceIds === []) {
+        if ([] === $spiceIds) {
             return DataConfidence::PLACEHOLDER;
         }
 
         $tiers = [...$this->concentrationTiers($spiceIds), ...$this->odtTiers($spiceIds, $matrix)];
 
-        if ($tiers === []) {
+        if ([] === $tiers) {
             return DataConfidence::PLACEHOLDER;
         }
 
@@ -95,7 +95,7 @@ final readonly class MatchConfidenceAssessor implements MatchConfidenceAssessorI
         $tiers = [];
         foreach ($rawValues as $raw) {
             $tier = DataConfidence::tryFrom((string) $raw);
-            if ($tier !== null) {
+            if (null !== $tier) {
                 $tiers[] = $tier;
             }
         }

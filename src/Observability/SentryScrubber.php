@@ -24,13 +24,13 @@ final class SentryScrubber
     public function __invoke(Event $event, ?EventHint $hint = null): Event
     {
         $request = $event->getRequest();
-        if ($request !== []) {
+        if ([] !== $request) {
             $request = $this->scrubRequestPayload($request);
             $event->setRequest($request);
         }
 
         $extra = $event->getExtra();
-        if ($extra !== []) {
+        if ([] !== $extra) {
             $event->setExtra($this->scrubArray($extra));
         }
 

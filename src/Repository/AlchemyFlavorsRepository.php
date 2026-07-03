@@ -42,7 +42,7 @@ class AlchemyFlavorsRepository extends ServiceEntityRepository
 
     public function findOneByLocalizedSlug(string $slug, string $locale): ?AlchemyFlavors
     {
-        if ($locale !== 'fr') {
+        if ('fr' !== $locale) {
             $translated = $this->createQueryBuilder('e')
                 ->innerJoin('e.translations', 't', 'WITH', 't.locale = :loc AND t.slug = :slug')
                 ->setParameter('loc', $locale)
@@ -51,7 +51,7 @@ class AlchemyFlavorsRepository extends ServiceEntityRepository
                 ->getQuery()
                 ->getOneOrNullResult();
 
-            if ($translated !== null) {
+            if (null !== $translated) {
                 return $translated;
             }
         }

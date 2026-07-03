@@ -99,7 +99,7 @@ class SpicyType implements TranslatableInterface, Sluggable
 
     public function getTranslation(string $locale): ?SpicyTypeTranslation
     {
-        if ($locale === 'fr') {
+        if ('fr' === $locale) {
             return null;
         }
 

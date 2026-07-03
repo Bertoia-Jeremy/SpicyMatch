@@ -102,7 +102,7 @@ final readonly class MatrixComparator
     private function rankFor(MortarIds $mortar, CulinaryContext $ctx, int $limit, ?string $locale = null): array
     {
         $pipeline = $this->matchPipeline->run($mortar, $limit, $ctx);
-        if ($pipeline === []) {
+        if ([] === $pipeline) {
             return [];
         }
 

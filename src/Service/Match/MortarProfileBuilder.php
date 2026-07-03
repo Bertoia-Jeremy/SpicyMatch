@@ -40,12 +40,12 @@ class MortarProfileBuilder
             /** @var array<int, float>|array{} $cached */
             $cached = $cacheItem->get();
 
-            return $cached === [] ? null : $cached;
+            return [] === $cached ? null : $cached;
         }
 
         $profile = $this->computeProfile($mortar->toArray(), $matrix);
 
-        if ($profile === []) {
+        if ([] === $profile) {
             // Cache court de l'état vide : le prochain build pour ce mortier+matrice
             // n'ira pas en DB pendant 5 min, mais un rebuild OAV invalidera le pool entier.
             $cacheItem->set([]);
@@ -79,7 +79,7 @@ class MortarProfileBuilder
 
     private function buildCacheKey(MortarIds $mortar, OdtMatrix $matrix): string
     {
-        return 'match.mortar.' . $matrix->value . '.' . implode(',', $mortar->sorted());
+        return 'match.mortar.'.$matrix->value.'.'.implode(',', $mortar->sorted());
     }
 
     private function getCacheTtl(OdtMatrix $matrix): int

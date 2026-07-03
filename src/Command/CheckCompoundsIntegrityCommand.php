@@ -90,7 +90,7 @@ final class CheckCompoundsIntegrityCommand extends Command
             $cas = $row['cas_number'];
             $formula = $row['formula'];
 
-            if ($cas === null || trim((string) $cas) === '') {
+            if (null === $cas || '' === trim((string) $cas)) {
                 $errors[] = \sprintf('#%d "%s" : CAS manquant.', $row['id'], $name);
             } else {
                 $cas = trim((string) $cas);
@@ -109,7 +109,7 @@ final class CheckCompoundsIntegrityCommand extends Command
                 }
             }
 
-            if ($formula === null || trim((string) $formula) === '') {
+            if (null === $formula || '' === trim((string) $formula)) {
                 $errors[] = \sprintf('#%d "%s" : formule manquante.', $row['id'], $name);
             }
 
@@ -122,14 +122,14 @@ final class CheckCompoundsIntegrityCommand extends Command
             $io->warning($w);
         }
 
-        if ($errors !== []) {
+        if ([] !== $errors) {
             $io->error(\sprintf('%d erreur(s) d\'intégrité :', count($errors)));
             $io->listing($errors);
 
             return Command::FAILURE;
         }
 
-        if ($strict && $warnings !== []) {
+        if ($strict && [] !== $warnings) {
             $io->error(\sprintf('%d warning(s) bloquant(s) en mode --strict.', count($warnings)));
 
             return Command::FAILURE;
@@ -138,7 +138,7 @@ final class CheckCompoundsIntegrityCommand extends Command
         $io->success(\sprintf(
             'Intégrité OK — %d composés, CAS valides/uniques, formules présentes%s.',
             count($rows),
-            $warnings !== [] ? \sprintf(' (%d warning isomère)', count($warnings)) : '',
+            [] !== $warnings ? \sprintf(' (%d warning isomère)', count($warnings)) : '',
         ));
 
         return Command::SUCCESS;
@@ -149,10 +149,10 @@ final class CheckCompoundsIntegrityCommand extends Command
         $lower = mb_strtolower($name);
 
         // Présence d'un marqueur stéréo → considéré comme désambiguïsé.
-        $hasStereoMarker = preg_match(
+        $hasStereoMarker = 1 === preg_match(
             '/(^|[^a-z])(r|s|d|l|cis|trans|\(\+\)|\(-\)|α|β|alpha|beta)[\s\-]/iu',
             $name
-        ) === 1;
+        );
         if ($hasStereoMarker) {
             return false;
         }

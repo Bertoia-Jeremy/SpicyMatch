@@ -35,12 +35,12 @@ final class AllPreparationMethodsReadEvaluator implements TriggerEvaluatorInterf
         }
 
         $user = $progression->getUser();
-        if ($user === null) {
+        if (null === $user) {
             return false;
         }
 
         $totalMethods = $this->preparationMethodsRepository->count([]);
-        if ($totalMethods === 0) {
+        if (0 === $totalMethods) {
             return false;
         }
 

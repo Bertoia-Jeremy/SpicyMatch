@@ -125,7 +125,7 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         self::assertNotNull($thym);
 
         $results = $this->compatibleSpiceFinder->findCompatible([$thym->getId()], 100);
-        $origan = array_filter($results, fn ($r) => $r['name'] === 'Origan Méditerranéen');
+        $origan = array_filter($results, fn ($r) => 'Origan Méditerranéen' === $r['name']);
 
         self::assertNotEmpty($origan, 'Origan should appear as compatible with Thym via OAV');
     }
@@ -280,7 +280,7 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
 
         foreach ($triplets as $triplet) {
             $names = array_column($triplet['spices'], 'name');
-            if (count(array_intersect($expectedNames, $names)) === 3) {
+            if (3 === count(array_intersect($expectedNames, $names))) {
                 $found = true;
                 self::assertGreaterThanOrEqual(6, $triplet['score'], 'Score should reflect 2 shared main compounds');
                 break;

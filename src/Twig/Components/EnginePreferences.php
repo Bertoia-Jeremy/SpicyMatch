@@ -65,7 +65,7 @@ class EnginePreferences
     public function getSelectableSpices(): array
     {
         $needle = mb_strtolower(trim($this->search));
-        if ($needle === '') {
+        if ('' === $needle) {
             return [];
         }
 
@@ -84,7 +84,7 @@ class EnginePreferences
     public function selectMatrix(#[LiveArg] string $value): void
     {
         $matrix = OdtMatrix::tryFrom($value);
-        if ($matrix === null) {
+        if (null === $matrix) {
             return;
         }
 
@@ -98,7 +98,7 @@ class EnginePreferences
     public function toggleSpice(#[LiveArg] int $id): void
     {
         $spice = $this->spicesRepository->find($id);
-        if ($spice === null) {
+        if (null === $spice) {
             return;
         }
 

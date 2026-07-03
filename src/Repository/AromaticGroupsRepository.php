@@ -42,7 +42,7 @@ class AromaticGroupsRepository extends ServiceEntityRepository
 
     public function findOneByLocalizedSlug(string $slug, string $locale): ?AromaticGroups
     {
-        if ($locale !== 'fr') {
+        if ('fr' !== $locale) {
             $translated = $this->createQueryBuilder('e')
                 ->innerJoin('e.translations', 't', 'WITH', 't.locale = :loc AND t.slug = :slug')
                 ->setParameter('loc', $locale)
@@ -51,7 +51,7 @@ class AromaticGroupsRepository extends ServiceEntityRepository
                 ->getQuery()
                 ->getOneOrNullResult();
 
-            if ($translated !== null) {
+            if (null !== $translated) {
                 return $translated;
             }
         }
@@ -72,11 +72,11 @@ class AromaticGroupsRepository extends ServiceEntityRepository
      */
     public function findNamesById(array $ids, ?string $locale = null): array
     {
-        if ($ids === []) {
+        if ([] === $ids) {
             return [];
         }
 
-        if ($locale === null || $locale === 'fr') {
+        if (null === $locale || 'fr' === $locale) {
             $rows = $this->createQueryBuilder('g')
                 ->select('g.id', 'g.name')
                 ->where('g.id IN (:ids)')

@@ -25,7 +25,7 @@ class NewsletterController extends AbstractController
     public function subscribe(Request $request): Response
     {
         $email = $request->request->getString('email');
-        if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if ('' === $email || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->addFlash('error', $this->translator->trans('flash.email_invalid'));
 
             return $this->redirect($this->safeReferer($request));
@@ -54,7 +54,7 @@ class NewsletterController extends AbstractController
     {
         $referer = $request->headers->get('referer');
         $base = $request->getSchemeAndHttpHost();
-        if (is_string($referer) && ($referer === $base || str_starts_with($referer, $base . '/'))) {
+        if (is_string($referer) && ($referer === $base || str_starts_with($referer, $base.'/'))) {
             return $referer;
         }
 
@@ -65,7 +65,7 @@ class NewsletterController extends AbstractController
     public function unsubscribeByLink(string $token, Request $request): Response
     {
         $email = $request->query->getString('email');
-        if ($email === '') {
+        if ('' === $email) {
             throw $this->createNotFoundException();
         }
 

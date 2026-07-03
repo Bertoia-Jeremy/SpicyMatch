@@ -37,7 +37,7 @@ class SpiceGroupFinderService
      */
     public function findTopPairs(int $limit = 20): array
     {
-        return $this->cache->get('spice.top_pairs.' . $limit, function (ItemInterface $item) use ($limit): array {
+        return $this->cache->get('spice.top_pairs.'.$limit, function (ItemInterface $item) use ($limit): array {
             $item->expiresAfter(3600);
 
             /** @var list<array<string, mixed>> $rows */
@@ -55,7 +55,7 @@ class SpiceGroupFinderService
      */
     public function findTopTriplets(int $limit = 10): array
     {
-        return $this->cache->get('spice.top_triplets.' . $limit, function (ItemInterface $item) use ($limit): array {
+        return $this->cache->get('spice.top_triplets.'.$limit, function (ItemInterface $item) use ($limit): array {
             $item->expiresAfter(3600);
 
             /** @var list<array<string, mixed>> $rows */

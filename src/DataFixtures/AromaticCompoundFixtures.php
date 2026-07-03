@@ -167,7 +167,7 @@ class AromaticCompoundFixtures extends Fixture implements FixtureGroupInterface
                 ->setCreatedAt($now)
                 ->setUpdatedAt($now);
 
-            $this->addReference('compound_' . $key, $entity);
+            $this->addReference('compound_'.$key, $entity);
             $manager->persist($entity);
         }
 

@@ -33,7 +33,7 @@ final class NUniqueSpicesUsedInGamesEvaluator implements TriggerEvaluatorInterfa
         }
 
         $user = $progression->getUser();
-        if ($user === null) {
+        if (null === $user) {
             return false;
         }
 

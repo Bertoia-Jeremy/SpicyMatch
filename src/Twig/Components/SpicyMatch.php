@@ -138,7 +138,7 @@ class SpicyMatch extends AbstractController
      */
     private function excludedSpiceIds(): array
     {
-        if ($this->excludedSpiceIdsCache !== null) {
+        if (null !== $this->excludedSpiceIdsCache) {
             return $this->excludedSpiceIdsCache;
         }
 
@@ -153,7 +153,7 @@ class SpicyMatch extends AbstractController
 
         return $this->excludedSpiceIdsCache = array_values(array_filter(
             $ids,
-            static fn (?int $id): bool => $id !== null,
+            static fn (?int $id): bool => null !== $id,
         ));
     }
 
@@ -186,12 +186,12 @@ class SpicyMatch extends AbstractController
 
     public function getActiveAromaticGroupId(): ?int
     {
-        return $this->filterAgId !== '' ? $this->resolveAromaticGroupId($this->filterAgId) : null;
+        return '' !== $this->filterAgId ? $this->resolveAromaticGroupId($this->filterAgId) : null;
     }
 
     public function getActiveSpicyTypeId(): ?int
     {
-        return $this->filterStId !== '' ? $this->resolveSpicyTypeId($this->filterStId) : null;
+        return '' !== $this->filterStId ? $this->resolveSpicyTypeId($this->filterStId) : null;
     }
 
     /**
@@ -226,7 +226,7 @@ class SpicyMatch extends AbstractController
                 $selectedSpicesData[$spice['groupName']][] = $spice;
             }
 
-            if ($this->mode === 'auto') {
+            if ('auto' === $this->mode) {
                 $scored = $this->compatibleSpiceFinder->findCompatible(
                     new MortarIds($ids),
                     100,
@@ -246,14 +246,14 @@ class SpicyMatch extends AbstractController
         }
 
         $excluded = $this->excludedSpiceIds();
-        if ($excluded !== []) {
+        if ([] !== $excluded) {
             $compatibleSpices = array_values(array_filter(
                 $compatibleSpices,
                 static fn (array $s): bool => ! in_array($s['id'], $excluded, true),
             ));
         }
 
-        if ($this->selectedAromaticGroup !== null) {
+        if (null !== $this->selectedAromaticGroup) {
             usort($compatibleSpices, function (array $a, array $b) {
                 $groupA = $a['groupName'] === $this->selectedAromaticGroup ? 0 : 1;
                 $groupB = $b['groupName'] === $this->selectedAromaticGroup ? 0 : 1;
@@ -262,9 +262,9 @@ class SpicyMatch extends AbstractController
             });
         }
 
-        if ($this->filterAgId !== '') {
+        if ('' !== $this->filterAgId) {
             $agId = $this->resolveAromaticGroupId($this->filterAgId);
-            if ($agId !== null) {
+            if (null !== $agId) {
                 $compatibleSpices = array_values(array_filter(
                     $compatibleSpices,
                     fn (array $s) => ($s['agId'] ?? null) === $agId,
@@ -272,9 +272,9 @@ class SpicyMatch extends AbstractController
             }
         }
 
-        if ($this->filterStId !== '') {
+        if ('' !== $this->filterStId) {
             $stId = $this->resolveSpicyTypeId($this->filterStId);
-            if ($stId !== null) {
+            if (null !== $stId) {
                 $compatibleSpices = array_values(array_filter(
                     $compatibleSpices,
                     fn (array $s) => ($s['stId'] ?? null) === $stId,
@@ -282,7 +282,7 @@ class SpicyMatch extends AbstractController
             }
         }
 
-        if ($this->search !== '') {
+        if ('' !== $this->search) {
             $needle = mb_strtolower($this->search);
             $compatibleSpices = array_values(array_filter(
                 $compatibleSpices,
@@ -325,12 +325,12 @@ class SpicyMatch extends AbstractController
     public function getDataConfidence(): ?DataConfidence
     {
         $selected = $this->spices['selectedSpices'];
-        if ($selected === []) {
+        if ([] === $selected) {
             return null;
         }
 
         $ids = array_values(array_filter(array_map('intval', $selected), static fn (int $id) => $id > 0));
-        if ($ids === []) {
+        if ([] === $ids) {
             return null;
         }
 
@@ -409,7 +409,7 @@ class SpicyMatch extends AbstractController
     public function setCookingPreset(#[LiveArg] string $preset): void
     {
         $config = self::PRESETS[$preset] ?? null;
-        if ($config === null) {
+        if (null === $config) {
             return;
         }
 
@@ -458,10 +458,10 @@ class SpicyMatch extends AbstractController
     #[LiveAction]
     public function nextStep(): \Symfony\Component\HttpFoundation\RedirectResponse
     {
-        $isManual = $this->mode === 'manual';
+        $isManual = 'manual' === $this->mode;
 
         $user = $this->getUser();
-        \assert($user instanceof Users || $user === null);
+        \assert($user instanceof Users || null === $user);
 
         $selectedIds = array_map('intval', $this->spices['selectedSpices']);
         $compatibleSpices = $isManual ? [] : $this->getResults()['compatibleSpices'];

@@ -40,7 +40,7 @@ class BackfillGamificationCommand extends Command
         foreach ($users as $user) {
             $needsFlush = false;
 
-            if ($user->getProgression() === null) {
+            if (null === $user->getProgression()) {
                 $progression = new UserProgression();
                 $progression->setUser($user);
                 $user->setProgression($progression);
@@ -50,7 +50,7 @@ class BackfillGamificationCommand extends Command
 
             $progression = $user->getProgression();
 
-            if ($user->getStats() === null) {
+            if (null === $user->getStats()) {
                 $stats = new UserStat();
                 $stats->setUser($user);
                 $user->setStats($stats);

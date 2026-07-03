@@ -48,12 +48,12 @@ final class SlugListener
         }
 
         $current = $entity->getSlug();
-        if ($current !== null && $current !== '') {
+        if (null !== $current && '' !== $current) {
             return false;
         }
 
         $name = $entity->getName();
-        if ($name === null || $name === '') {
+        if (null === $name || '' === $name) {
             return false;
         }
 
@@ -79,7 +79,7 @@ final class SlugListener
             ->where('e.slug = :slug')
             ->setParameter('slug', $slug);
 
-        if ($locale !== null) {
+        if (null !== $locale) {
             $qb->andWhere('e.locale = :loc')
                 ->setParameter('loc', $locale);
         }

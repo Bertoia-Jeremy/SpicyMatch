@@ -17,6 +17,6 @@ final class SpiceReadXpStrategy implements XpStrategyInterface
 
     public function supports(string $eventType): bool
     {
-        return $eventType === 'spice_read';
+        return 'spice_read' === $eventType;
     }
 }

@@ -22,7 +22,7 @@ class CookieConsentService
     public function hasConsented(): bool
     {
         $data = $this->getConsentFromCookie();
-        if ($data === null) {
+        if (null === $data) {
             return false;
         }
 
@@ -59,7 +59,7 @@ class CookieConsentService
     {
         $request = $this->requestStack->getCurrentRequest();
 
-        return $request?->headers->get('DNT') === '1';
+        return '1' === $request?->headers->get('DNT');
     }
 
     public static function getCookieName(): string
@@ -78,12 +78,12 @@ class CookieConsentService
     private function getConsentFromCookie(): ?array
     {
         $request = $this->requestStack->getCurrentRequest();
-        if ($request === null) {
+        if (null === $request) {
             return null;
         }
 
         $cookie = $request->cookies->get(self::COOKIE_NAME);
-        if ($cookie === null) {
+        if (null === $cookie) {
             return null;
         }
 

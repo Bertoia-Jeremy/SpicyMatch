@@ -58,7 +58,7 @@ final class HangmanGameTest extends TestCase
     private function makeGame(array $secret = []): array
     {
         $session = new Session(new MockArraySessionStorage());
-        $session->set('game_' . self::TOKEN, $secret);
+        $session->set('game_'.self::TOKEN, $secret);
 
         $request = new Request();
         $request->setSession($session);
@@ -151,7 +151,7 @@ final class HangmanGameTest extends TestCase
         self::assertSame(0, $game->errorsCount);
 
         // Session must still have exactly ['T'], not ['T', 'T']
-        $stored = $session->get('game_' . self::TOKEN);
+        $stored = $session->get('game_'.self::TOKEN);
         self::assertSame(['T'], $stored['guessedLetters']);
     }
 
@@ -172,7 +172,7 @@ final class HangmanGameTest extends TestCase
 
         $game->guessLetter('t'); // lowercase — normalized to 'T'
 
-        $stored = $session->get('game_' . self::TOKEN);
+        $stored = $session->get('game_'.self::TOKEN);
         self::assertContains('T', $stored['guessedLetters']);
     }
 
@@ -253,7 +253,7 @@ final class HangmanGameTest extends TestCase
 
         $game->guessLetter('Z');
 
-        $stored = $session->get('game_' . self::TOKEN);
+        $stored = $session->get('game_'.self::TOKEN);
         self::assertCount(1, $stored['questions']);
         self::assertFalse($stored['questions'][0]['isCorrect']);
         self::assertSame('Thym', $stored['questions'][0]['correctAnswer']);

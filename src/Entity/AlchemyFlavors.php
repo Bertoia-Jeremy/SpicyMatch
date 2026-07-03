@@ -99,7 +99,7 @@ class AlchemyFlavors implements TranslatableInterface, Sluggable
 
     public function getTranslation(string $locale): ?AlchemyFlavorsTranslation
     {
-        if ($locale === 'fr') {
+        if ('fr' === $locale) {
             return null;
         }
 

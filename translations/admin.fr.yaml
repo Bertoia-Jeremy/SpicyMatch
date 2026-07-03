@@ -19,12 +19,15 @@ admin:
         game_sessions: Sessions de jeu
         users: Utilisateurs
         contact: Contact
+        gdpr_requests: Demandes RGPD
         site: Site SpicyMatch
     entity:
         achievement_singular: Succès
         achievement_plural: Succès
         game_session_singular: Session de jeu
         game_session_plural: Sessions de jeu
+        gdpr_request_singular: Demande RGPD
+        gdpr_request_plural: Demandes RGPD
     field:
         name: Nom
         translations: Traductions (EN / ES)
@@ -78,6 +81,9 @@ admin:
         tools_needed: Outils nécessaires
         advice_single: Conseil
         extra_short: Infos supplémentaires
+        gdpr_request_type: Type de demande
+        treated_at: Traitée le
+        consented_at: Consentement le
     dash:
         title: Dashboard SpicyMatch
         users: Utilisateurs

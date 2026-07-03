@@ -72,7 +72,7 @@ final readonly class CorrectionApplier
     {
         foreach ($profile as $compoundId => $oav) {
             $factor = $factors[$compoundId] ?? 1.0;
-            if ($factor !== 1.0) {
+            if (1.0 !== $factor) {
                 $profile[$compoundId] = $oav * $factor;
             }
         }

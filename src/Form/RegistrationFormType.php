@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Form;
 
 use App\Entity\Users;
+use App\Validator\AltchaSolved;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -14,6 +16,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Regex;
 
 class RegistrationFormType extends AbstractType
 {
@@ -22,6 +25,9 @@ class RegistrationFormType extends AbstractType
         $builder
             ->add('username', TextType::class, [
                 'label' => 'form.register.username',
+                'constraints' => [
+                    new Regex(pattern: '/^anonyme-/i', match: false, message: 'user.username_reserved'),
+                ],
             ])
             ->add('mail', EmailType::class, [
                 'label' => 'form.register.mail',
@@ -43,6 +49,12 @@ class RegistrationFormType extends AbstractType
                         'max' => 255,
                     ]),
                 ],
+            ])
+            ->add('altcha', HiddenType::class, [
+                'mapped' => false,
+                'label' => false,
+                'error_bubbling' => false,
+                'constraints' => [new AltchaSolved()],
             ])
             ->add('Valider', SubmitType::class, [
                 'label' => 'common.actions.submit',

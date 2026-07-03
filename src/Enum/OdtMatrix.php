@@ -20,7 +20,7 @@ enum OdtMatrix: string
      */
     public function label(): string
     {
-        return 'enum.matrix.' . $this->value;
+        return 'enum.matrix.'.$this->value;
     }
 
     public function strategy(): MatrixStrategy

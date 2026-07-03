@@ -78,7 +78,7 @@ final class SlugBackfillCommand extends Command
 
             foreach ($rows as $row) {
                 $slug = $row->getSlug();
-                if ($slug !== null && $slug !== '') {
+                if (null !== $slug && '' !== $slug) {
                     $used[$this->scope($row)][$slug] = true;
                 }
             }
@@ -86,12 +86,12 @@ final class SlugBackfillCommand extends Command
             $written = 0;
 
             foreach ($rows as $row) {
-                if ($row->getSlug() !== null && $row->getSlug() !== '') {
+                if (null !== $row->getSlug() && '' !== $row->getSlug()) {
                     continue;
                 }
 
                 $name = $row->getName();
-                if ($name === null || $name === '') {
+                if (null === $name || '' === $name) {
                     continue;
                 }
 
@@ -110,7 +110,7 @@ final class SlugBackfillCommand extends Command
                 ++$total;
             }
 
-            $short = substr((string) strrchr('\\' . $class, '\\'), 1);
+            $short = substr((string) strrchr('\\'.$class, '\\'), 1);
             $io->writeln(sprintf('  %-32s %d slug(s)', $short, $written));
         }
 
@@ -128,7 +128,7 @@ final class SlugBackfillCommand extends Command
         $key = $row::class;
 
         if ($row instanceof TranslationInterface) {
-            $key .= '|' . $row->getLocale();
+            $key .= '|'.$row->getLocale();
         }
 
         return $key;

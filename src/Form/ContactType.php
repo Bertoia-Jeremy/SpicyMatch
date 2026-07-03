@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace App\Form;
 
 use App\Entity\Contact;
+use App\Validator\AltchaSolved;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\IsTrue;
 
 class ContactType extends AbstractType
 {
@@ -29,6 +33,17 @@ class ContactType extends AbstractType
             ])
             ->add('message', TextareaType::class, [
                 'label' => 'form.contact.message',
+            ])
+            ->add('altcha', HiddenType::class, [
+                'mapped' => false,
+                'label' => false,
+                'error_bubbling' => false,
+                'constraints' => [new AltchaSolved()],
+            ])
+            ->add('consent', CheckboxType::class, [
+                'mapped' => false,
+                'label' => 'form.contact.consent',
+                'constraints' => [new IsTrue(message: 'contact.consent_required')],
             ])
             ->add('Valider', SubmitType::class, [
                 'label' => 'common.actions.submit',

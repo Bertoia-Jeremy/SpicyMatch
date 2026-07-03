@@ -36,4 +36,14 @@ class ContactRepository extends ServiceEntityRepository
                 ->flush();
         }
     }
+
+    public function purgeCreatedBefore(\DateTimeImmutable $before): int
+    {
+        return $this->createQueryBuilder('c')
+            ->delete()
+            ->where('c.created_at < :before')
+            ->setParameter('before', $before)
+            ->getQuery()
+            ->execute();
+    }
 }

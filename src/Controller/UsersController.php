@@ -77,7 +77,7 @@ class UsersController extends AbstractController
                 'createdAt' => $user->getCreatedAt()?->format(\DATE_ATOM),
                 'lastLoginAt' => $user->getLastLoginAt()?->format(\DATE_ATOM),
             ],
-            'progression' => $progression === null ? null : [
+            'progression' => null === $progression ? null : [
                 'xp' => $progression->getXp(),
                 'level' => $progression->getLevel(),
                 'totalMatches' => $progression->getTotalMatches(),
@@ -88,7 +88,7 @@ class UsersController extends AbstractController
                 'discoveries' => $progression->getDiscoveries(),
                 'gamificationEnabled' => $progression->isGamificationEnabled(),
             ],
-            'stats' => $stats === null ? null : [
+            'stats' => null === $stats ? null : [
                 'easterEggsFound' => $stats->getEasterEggsFound(),
                 'foundEggSlugs' => $stats->getFoundEggSlugs(),
                 'visitedAromaticGroups' => $stats->getVisitedAromaticGroups(),
@@ -101,7 +101,7 @@ class UsersController extends AbstractController
                     'unlockedAt' => $ua->getUnlockedAt()
                         ->format(\DATE_ATOM),
                 ],
-                $progression !== null
+                null !== $progression
                     ? $this->userAchievementRepository->findByProgressionWithAchievement($progression)
                     : [],
             ),
@@ -203,13 +203,13 @@ class UsersController extends AbstractController
     ): Response {
         $edit = in_array($edit, ['mail', 'password'], true) ? $edit : null;
 
-        if ($edit === 'mail' && $mailForm === null) {
+        if ('mail' === $edit && null === $mailForm) {
             $mailForm = $this->createForm(UsersMailType::class, $user, [
                 'action' => $this->generateUrl('mail_user'),
             ]);
         }
 
-        if ($edit === 'password' && $passwordForm === null) {
+        if ('password' === $edit && null === $passwordForm) {
             $passwordForm = $this->createForm(ChangePasswordType::class, null, [
                 'action' => $this->generateUrl('change_password_user'),
             ]);
@@ -244,7 +244,7 @@ class UsersController extends AbstractController
         /** @var Users $user */
         $user = $this->getUser();
 
-        if ($tab === 'lab') {
+        if ('lab' === $tab) {
             return $this->renderLabFragment($user, $request->query->getString('edit') ?: null);
         }
 
@@ -265,7 +265,7 @@ class UsersController extends AbstractController
             default => throw $this->createNotFoundException(),
         };
 
-        return $this->render('users/tabs/_' . $tab . '.html.twig', $data);
+        return $this->render('users/tabs/_'.$tab.'.html.twig', $data);
     }
 
     /**
@@ -278,7 +278,7 @@ class UsersController extends AbstractController
         $progressByAchievementId = [];
         foreach ($this->achievementProgressRepository->findByUser($user) as $ap) {
             $achievement = $ap->getAchievement();
-            if ($achievement !== null && $achievement->getId() !== null) {
+            if (null !== $achievement && null !== $achievement->getId()) {
                 $progressByAchievementId[$achievement->getId()] = $ap;
             }
         }
@@ -330,7 +330,7 @@ class UsersController extends AbstractController
         $user = $this->getUser();
         $progression = $user->getProgression();
 
-        if ($progression !== null) {
+        if (null !== $progression) {
             $progression->isGamificationEnabled()
                 ? $progression->disableGamification()
                 : $progression->enableGamification();
@@ -359,7 +359,7 @@ class UsersController extends AbstractController
 
         $difficulty = GameDifficulty::tryFrom($request->request->getString('difficulty'));
 
-        if ($difficulty === null) {
+        if (null === $difficulty) {
             $this->addFlash('error', $this->translator->trans('flash.difficulty_invalid'));
 
             return $this->redirectToRoute('profile_user', [
@@ -386,7 +386,7 @@ class UsersController extends AbstractController
         $user = $this->getUser();
         $progression = $user->getProgression();
 
-        if (! $this->isCsrfTokenValid('equip_badge_' . $ua->getId(), $request->request->get('_token'))) {
+        if (! $this->isCsrfTokenValid('equip_badge_'.$ua->getId(), $request->request->get('_token'))) {
             $this->addFlash('error', $this->translator->trans('flash.token_invalid'));
 
             return $this->redirectToRoute('profile_user', [
@@ -394,7 +394,7 @@ class UsersController extends AbstractController
             ]);
         }
 
-        if ($progression === null || $ua->getUserProgression() !== $progression) {
+        if (null === $progression || $ua->getUserProgression() !== $progression) {
             throw $this->createAccessDeniedException();
         }
 
@@ -413,7 +413,7 @@ class UsersController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
-        if ($this->isCsrfTokenValid('delete' . $user->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->request->get('_token'))) {
             $user->setDeletedAt(new \DateTimeImmutable());
             $entityManager->persist($user);
             $entityManager->flush();

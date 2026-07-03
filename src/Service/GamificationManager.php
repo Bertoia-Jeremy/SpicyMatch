@@ -48,7 +48,7 @@ class GamificationManager implements GamificationManagerInterface
     public function getOrCreateProgression(Users $user): UserProgression
     {
         $progression = $user->getProgression();
-        if ($progression === null) {
+        if (null === $progression) {
             $progression = new UserProgression();
             $progression->setUser($user);
             $user->setProgression($progression);
@@ -61,7 +61,7 @@ class GamificationManager implements GamificationManagerInterface
     public function getOrCreateStats(Users $user): UserStat
     {
         $stats = $user->getStats();
-        if ($stats === null) {
+        if (null === $stats) {
             $stats = new UserStat();
             $stats->setUser($user);
             $user->setStats($stats);
@@ -82,7 +82,7 @@ class GamificationManager implements GamificationManagerInterface
         }
 
         $user = $progression->getUser();
-        if ($user === null) {
+        if (null === $user) {
             return;
         }
 
@@ -167,7 +167,7 @@ class GamificationManager implements GamificationManagerInterface
     private function updateAchievementProgress(UserProgression $progression, string $eventType, array $context): void
     {
         $user = $progression->getUser();
-        if ($user === null) {
+        if (null === $user) {
             return;
         }
 
@@ -190,7 +190,7 @@ class GamificationManager implements GamificationManagerInterface
             }
         }
 
-        if ($achievementsToLoad === []) {
+        if ([] === $achievementsToLoad) {
             return;
         }
 
@@ -199,7 +199,7 @@ class GamificationManager implements GamificationManagerInterface
 
         foreach ($progressTargets as [$achievement, $value]) {
             $id = $achievement->getId();
-            if ($id !== null && isset($byAchievementId[$id])) {
+            if (null !== $id && isset($byAchievementId[$id])) {
                 $byAchievementId[$id]->setProgress($value);
             }
         }

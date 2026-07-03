@@ -69,6 +69,10 @@ nelmio_security:
             connect-src:
                 - 'self'
                 - 'https://server.ethicalads.io'
+            worker-src:
+                - 'self'
+                - 'blob:'
+                - 'data:'
             font-src:
                 - 'self'
                 - 'data:'

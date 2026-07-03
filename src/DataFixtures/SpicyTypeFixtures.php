@@ -52,7 +52,7 @@ class SpicyTypeFixtures extends Fixture implements FixtureGroupInterface
                 ->setCreatedAt($now)
                 ->setUpdatedAt($now);
 
-            $this->addReference('spicyType_' . $key, $entity);
+            $this->addReference('spicyType_'.$key, $entity);
             $manager->persist($entity);
         }
 

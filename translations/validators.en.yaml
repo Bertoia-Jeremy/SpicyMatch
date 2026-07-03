@@ -1,8 +1,13 @@
 # Validation messages (domain 'validators').
 aromatic_group:
     color_invalid: The color must be a valid hexadecimal code (#RRGGBB).
+altcha:
+    invalid: The anti-robot check failed. Tick the box and try again.
+contact:
+    consent_required: You must accept the processing of your data to send the message.
 user:
     username_taken: This username is already taken
     email_taken: This email is already in use.
     password_blank: Please enter a password
     password_min: Your password must be at least {{ limit }} characters long.
+    username_reserved: This username is reserved.

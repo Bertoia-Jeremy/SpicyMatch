@@ -119,7 +119,7 @@ class ChronoGame extends AbstractController
         $correctName = $secret['correctName'] ?? '';
         $questionStartedAt = $secret['questionStartedAt'] ?? null;
 
-        if ($questionStartedAt === null) {
+        if (null === $questionStartedAt) {
             return null;
         }
 
@@ -264,12 +264,12 @@ class ChronoGame extends AbstractController
 
         $card = $this->academyManager->getRandomSpiceCard($this->recentIds);
 
-        if ($card === null) {
+        if (null === $card) {
             $this->recentIds = [];
             $card = $this->academyManager->getRandomSpiceCard();
         }
 
-        if ($card === null) {
+        if (null === $card) {
             $this->isFinished = true;
 
             return;
@@ -304,11 +304,11 @@ class ChronoGame extends AbstractController
      */
     public function getCurrentCard(): array
     {
-        if ($this->resolvedCardCache !== null) {
+        if (null !== $this->resolvedCardCache) {
             return $this->resolvedCardCache;
         }
 
-        if ($this->currentCardId === 0) {
+        if (0 === $this->currentCardId) {
             return $this->resolvedCardCache = [];
         }
 
@@ -333,7 +333,7 @@ class ChronoGame extends AbstractController
         // Common fields (no name!)
         $display = [];
 
-        if ($difficulty === GameDifficulty::EASY) {
+        if (GameDifficulty::EASY === $difficulty) {
             // Full info: image, description, group, type, compounds, tips
             $display['file'] = $card['file'];
             $display['description'] = $card['description'];
@@ -343,7 +343,7 @@ class ChronoGame extends AbstractController
             $display['secondaryCompounds'] = $card['secondaryCompounds'];
             $display['alchemyFlavors'] = $card['alchemyFlavors'];
             $display['cookingTips'] = $card['cookingTips'];
-        } elseif ($difficulty === GameDifficulty::MEDIUM) {
+        } elseif (GameDifficulty::MEDIUM === $difficulty) {
             // Partial: image, group, compounds (no description)
             $display['file'] = $card['file'];
             $display['aromaticGroup'] = $card['aromaticGroup'];

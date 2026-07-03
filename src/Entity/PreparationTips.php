@@ -98,7 +98,7 @@ class PreparationTips implements TranslatableInterface
 
     public function getTranslation(string $locale): ?PreparationTipsTranslation
     {
-        if ($locale === 'fr') {
+        if ('fr' === $locale) {
             return null;
         }
 

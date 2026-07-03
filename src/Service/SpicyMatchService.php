@@ -61,7 +61,7 @@ class SpicyMatchService
         }
 
         // Auto mode: persist scored results for history/reference
-        if (! $isManual && $compatibleSpices !== []) {
+        if (! $isManual && [] !== $compatibleSpices) {
             $compatibleIds = array_column($compatibleSpices, 'id');
             $scoreBySpiceId = array_column($compatibleSpices, 'score', 'id');
 

@@ -33,13 +33,13 @@ final readonly class CookingTimelineBuilder
         $indexed = [];
         foreach ($compounds as $compound) {
             $id = $compound->getId();
-            if ($id === null) {
+            if (null === $id) {
                 continue;
             }
             $indexed[$id] = $compound;
         }
 
-        if ($indexed === []) {
+        if ([] === $indexed) {
             return $this->emptyBuckets();
         }
 
@@ -61,7 +61,7 @@ final readonly class CookingTimelineBuilder
         foreach ($indexed as $id => $compound) {
             $physical = $physicals[$id] ?? null;
             $kinetics = $physical?->aromaKinetics();
-            $retention = $physical !== null ? $this->partitionCalculator->correctionFactor($physical, $ctx) : null;
+            $retention = null !== $physical ? $this->partitionCalculator->correctionFactor($physical, $ctx) : null;
 
             $entry = new TimelineEntry(
                 id: $id,

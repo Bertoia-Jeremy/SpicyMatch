@@ -29,7 +29,7 @@ class EasyAdminSubscriber implements EventSubscriberInterface
         $instance->setCreatedAt(new \DateTimeImmutable('now'))
             ->setUpdatedAt(new \DateTimeImmutable('now'));
 
-        if (! ($instance instanceof CookingTips)) {
+        if (! $instance instanceof CookingTips) {
             return;
         }
 

@@ -15,7 +15,7 @@ final class GeometricMean
      */
     public static function of(array $values): float
     {
-        if ($values === []) {
+        if ([] === $values) {
             throw new \InvalidArgumentException('Moyenne géométrique : liste vide.');
         }
 

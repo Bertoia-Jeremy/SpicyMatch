@@ -22,12 +22,12 @@ final class ContextFilter
     public static function matches(Achievement $achievement, array $context): bool
     {
         $expectedMode = $achievement->getContextGameMode();
-        if ($expectedMode !== null && ! self::modeMatches($expectedMode, $context['gameMode'] ?? null)) {
+        if (null !== $expectedMode && ! self::modeMatches($expectedMode, $context['gameMode'] ?? null)) {
             return false;
         }
 
         $expectedDifficulty = $achievement->getContextDifficulty();
-        if ($expectedDifficulty !== null && ! self::difficultyMatches(
+        if (null !== $expectedDifficulty && ! self::difficultyMatches(
             $expectedDifficulty,
             $context['difficulty'] ?? null
         )) {

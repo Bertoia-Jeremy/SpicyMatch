@@ -328,7 +328,7 @@ class AchievementFixtures extends Fixture
             }
 
             $manager->persist($achievement);
-            $this->addReference('achievement_' . $data['slug'], $achievement);
+            $this->addReference('achievement_'.$data['slug'], $achievement);
         }
 
         $manager->flush();

@@ -82,6 +82,11 @@ services:
         arguments:
             $appSecret: '%kernel.secret%'
 
+    App\Service\Security\AltchaManager:
+        arguments:
+            $altchaHmacKey: '%env(ALTCHA_HMAC_KEY)%'
+            $cache: '@cache.app'
+
     # Monétisation — flag global + régie (ethicalads|carbon), zéro octet pub si off ou user premium
     App\Twig\Extension\AdsExtension:
         arguments:

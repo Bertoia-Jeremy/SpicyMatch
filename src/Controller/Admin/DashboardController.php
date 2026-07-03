@@ -4,19 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
-use App\Entity\Achievement;
-use App\Entity\AlchemyFlavors;
-use App\Entity\AromaticCompound;
-use App\Entity\AromaticGroups;
-use App\Entity\Contact;
-use App\Entity\CookingTips;
-use App\Entity\GameSession;
-use App\Entity\GdprRequest;
-use App\Entity\PreparationMethods;
-use App\Entity\PreparationTips;
-use App\Entity\Spices;
-use App\Entity\SpicyType;
-use App\Entity\Users;
 use App\Service\Admin\AdminStatsService;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
@@ -152,25 +139,33 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToDashboard('admin.dashboard.menu', 'fa fa-chart-line');
 
         yield MenuItem::section('admin.menu.section_content');
-        yield MenuItem::linkToCrud('admin.menu.spices', 'fa fa-pepper-hot', Spices::class);
-        yield MenuItem::linkToCrud('admin.menu.aromatic_groups', 'fa fa-layer-group', AromaticGroups::class);
-        yield MenuItem::linkToCrud('admin.menu.aromatic_compounds', 'fa fa-atom', AromaticCompound::class);
-        yield MenuItem::linkToCrud('admin.menu.alchemy_flavors', 'fa fa-flask', AlchemyFlavors::class);
-        yield MenuItem::linkToCrud('admin.menu.spicy_types', 'fa fa-tag', SpicyType::class);
+        yield MenuItem::linkTo(SpicesCrudController::class, 'admin.menu.spices', 'fa fa-pepper-hot');
+        yield MenuItem::linkTo(AromaticGroupsCrudController::class, 'admin.menu.aromatic_groups', 'fa fa-layer-group');
+        yield MenuItem::linkTo(AromaticCompoundCrudController::class, 'admin.menu.aromatic_compounds', 'fa fa-atom');
+        yield MenuItem::linkTo(AlchemyFlavorsCrudController::class, 'admin.menu.alchemy_flavors', 'fa fa-flask');
+        yield MenuItem::linkTo(SpicyTypeCrudController::class, 'admin.menu.spicy_types', 'fa fa-tag');
 
         yield MenuItem::section('admin.menu.section_preparation');
-        yield MenuItem::linkToCrud('admin.menu.cooking_tips', 'fa fa-fire', CookingTips::class);
-        yield MenuItem::linkToCrud('admin.menu.preparation_tips', 'fa fa-mortar-pestle', PreparationTips::class);
-        yield MenuItem::linkToCrud('admin.menu.preparation_methods', 'fa fa-list-check', PreparationMethods::class);
+        yield MenuItem::linkTo(CookingTipsCrudController::class, 'admin.menu.cooking_tips', 'fa fa-fire');
+        yield MenuItem::linkTo(
+            PreparationTipsCrudController::class,
+            'admin.menu.preparation_tips',
+            'fa fa-mortar-pestle'
+        );
+        yield MenuItem::linkTo(
+            PreparationMethodsCrudController::class,
+            'admin.menu.preparation_methods',
+            'fa fa-list-check'
+        );
 
         yield MenuItem::section('admin.menu.section_gamification');
-        yield MenuItem::linkToCrud('admin.menu.achievements', 'fa fa-trophy', Achievement::class);
-        yield MenuItem::linkToCrud('admin.menu.game_sessions', 'fa fa-gamepad', GameSession::class);
+        yield MenuItem::linkTo(AchievementCrudController::class, 'admin.menu.achievements', 'fa fa-trophy');
+        yield MenuItem::linkTo(GameSessionCrudController::class, 'admin.menu.game_sessions', 'fa fa-gamepad');
 
         yield MenuItem::section('admin.menu.section_users');
-        yield MenuItem::linkToCrud('admin.menu.users', 'fa fa-users', Users::class);
-        yield MenuItem::linkToCrud('admin.menu.contact', 'fa fa-envelope', Contact::class);
-        yield MenuItem::linkToCrud('admin.menu.gdpr_requests', 'fa fa-user-shield', GdprRequest::class);
+        yield MenuItem::linkTo(UsersCrudController::class, 'admin.menu.users', 'fa fa-users');
+        yield MenuItem::linkTo(ContactCrudController::class, 'admin.menu.contact', 'fa fa-envelope');
+        yield MenuItem::linkTo(GdprRequestCrudController::class, 'admin.menu.gdpr_requests', 'fa fa-user-shield');
 
         yield MenuItem::section('');
         yield MenuItem::linkToRoute('admin.menu.site', 'fa fa-external-link', 'home');

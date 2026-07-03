@@ -31,7 +31,7 @@ class SpicyTypeController extends AbstractController
     {
         $locale = $request->getLocale();
         $spicyType = $repository->findOneByLocalizedSlug($slug, $locale);
-        if ($spicyType === null) {
+        if (null === $spicyType) {
             throw $this->createNotFoundException();
         }
 

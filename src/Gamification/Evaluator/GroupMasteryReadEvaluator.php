@@ -35,7 +35,7 @@ final class GroupMasteryReadEvaluator implements TriggerEvaluatorInterface
         $user = $progression->getUser();
         $group = $achievement->getContextAromaticGroup();
 
-        if ($user === null || $group === null) {
+        if (null === $user || null === $group) {
             return false;
         }
 

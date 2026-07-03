@@ -42,6 +42,9 @@ class Contact
     #[ORM\Column(name: 'deleted_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeInterface $deleted_at = null;
 
+    #[ORM\Column(name: 'consented_at', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $consentedAt = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -127,6 +130,18 @@ class Contact
     public function setUpdatedAt(\DateTimeInterface $updated_at): self
     {
         $this->updated_at = $updated_at;
+
+        return $this;
+    }
+
+    public function getConsentedAt(): ?\DateTimeImmutable
+    {
+        return $this->consentedAt;
+    }
+
+    public function setConsentedAt(?\DateTimeImmutable $consentedAt): self
+    {
+        $this->consentedAt = $consentedAt;
 
         return $this;
     }

@@ -84,9 +84,9 @@ final class ImportOdtCommand extends Command
 
         // ── Guard path traversal : le fichier doit être dans fixtures/ ──────────
         $resolvedPath = realpath($file);
-        $allowedDir = realpath($this->projectDir . '/fixtures');
+        $allowedDir = realpath($this->projectDir.'/fixtures');
 
-        if ($resolvedPath === false || $allowedDir === false || ! str_starts_with($resolvedPath, $allowedDir . '/')) {
+        if (false === $resolvedPath || false === $allowedDir || ! str_starts_with($resolvedPath, $allowedDir.'/')) {
             $io->error(sprintf('Le fichier "%s" doit se trouver dans le répertoire fixtures/ du projet.', $file));
 
             return Command::FAILURE;
@@ -94,7 +94,7 @@ final class ImportOdtCommand extends Command
 
         // ── Guard taille ────────────────────────────────────────────────────────
         $fileSize = filesize($resolvedPath);
-        if ($fileSize === false || $fileSize > self::MAX_FILE_SIZE) {
+        if (false === $fileSize || $fileSize > self::MAX_FILE_SIZE) {
             $io->error('Fichier trop volumineux (max 10 Mo).');
 
             return Command::FAILURE;
@@ -128,7 +128,7 @@ final class ImportOdtCommand extends Command
             $matrix = OdtMatrix::tryFrom($matrixStr) ?? $defaultMatrix;
             $confidence = $this->resolveConfidence($entry);
 
-            if ($compoundName === null) {
+            if (null === $compoundName) {
                 $io->warning(sprintf('Entrée ignorée (compound_name manquant) : %s', json_encode($entry)));
                 ++$skipped;
                 continue;
@@ -136,7 +136,7 @@ final class ImportOdtCommand extends Command
 
             // odt_ppm (ponctuel) OU odt_min + odt_max (plage → moyenne géométrique).
             $odtPpm = $this->resolveOdtPpm($entry, $compoundName, $io);
-            if ($odtPpm === null) {
+            if (null === $odtPpm) {
                 ++$skipped;
                 continue;
             }
@@ -146,14 +146,14 @@ final class ImportOdtCommand extends Command
                 'name' => $compoundName,
             ]);
 
-            if ($compound === null) {
+            if (null === $compound) {
                 $io->warning(sprintf('Composé "%s" introuvable en BDD — ignoré.', $compoundName));
                 ++$skipped;
                 continue;
             }
 
             $compoundId = $compound->getId();
-            if ($compoundId === null) {
+            if (null === $compoundId) {
                 ++$skipped;
                 continue;
             }
@@ -161,7 +161,7 @@ final class ImportOdtCommand extends Command
             // Recherche de l'entrée existante (PK composite)
             $existing = $this->compoundOdtRepository->findForCompound($compoundId, $matrix);
 
-            if ($existing !== null) {
+            if (null !== $existing) {
                 $existing->setOdtPpm((string) $odtPpm);
                 $existing->setReferenceSource($source);
                 $existing->setConfidence($confidence);
@@ -239,7 +239,7 @@ final class ImportOdtCommand extends Command
         }
 
         $raw = $entry['odt_ppm'] ?? null;
-        if ($raw === null || ! is_numeric($raw)) {
+        if (null === $raw || ! is_numeric($raw)) {
             $io->warning(sprintf('ODT manquant ou non numérique pour "%s" — ignoré.', $compoundName));
 
             return null;
@@ -264,7 +264,7 @@ final class ImportOdtCommand extends Command
     {
         $raw = isset($entry['confidence']) ? (string) $entry['confidence'] : null;
 
-        return $raw !== null ? (DataConfidence::tryFrom(
+        return null !== $raw ? (DataConfidence::tryFrom(
             $raw
         ) ?? DataConfidence::PLACEHOLDER) : DataConfidence::PLACEHOLDER;
     }

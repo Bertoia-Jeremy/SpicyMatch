@@ -51,13 +51,13 @@ final class RateLimitListener
         }
 
         $request = $event->getRequest();
-        if ($request->getMethod() !== 'POST') {
+        if ('POST' !== $request->getMethod()) {
             return;
         }
 
         $path = $request->getPathInfo();
         $limiterFactory = $this->pickLimiter($path);
-        if ($limiterFactory === null) {
+        if (null === $limiterFactory) {
             return;
         }
 
@@ -97,11 +97,11 @@ final class RateLimitListener
         }
 
         // User mutation routes — POST-only, matched by suffix patterns.
-        if (preg_match('#^/users/(gamification/toggle|badge/equip/\d+|difficulty/update)$#', $path) === 1) {
+        if (1 === preg_match('#^/users/(gamification/toggle|badge/equip/\d+|difficulty/update)$#', $path)) {
             return $this->userActionsLimiter;
         }
 
-        if (preg_match('#^/spicymatch/history/\d+/(rename|favorite/toggle)$#', $path) === 1) {
+        if (1 === preg_match('#^/spicymatch/history/\d+/(rename|favorite/toggle)$#', $path)) {
             return $this->userActionsLimiter;
         }
 
@@ -115,10 +115,10 @@ final class RateLimitListener
     {
         $token = $this->tokenStorage->getToken();
         $user = $token?->getUser();
-        if ($user instanceof Users && $user->getId() !== null) {
-            return 'user:' . $user->getId();
+        if ($user instanceof Users && null !== $user->getId()) {
+            return 'user:'.$user->getId();
         }
 
-        return 'ip:' . $clientIp;
+        return 'ip:'.$clientIp;
     }
 }

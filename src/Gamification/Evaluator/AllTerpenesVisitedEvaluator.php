@@ -40,12 +40,12 @@ final class AllTerpenesVisitedEvaluator implements TriggerEvaluatorInterface, Pr
         }
 
         $stats = $progression->getUser()?->getStats();
-        if ($stats === null) {
+        if (null === $stats) {
             return false;
         }
 
         $totalGroups = $this->aromaticGroupsRepository->count([]);
-        if ($totalGroups === 0) {
+        if (0 === $totalGroups) {
             return false;
         }
 

@@ -35,7 +35,7 @@ final class GamePerfectRunEvaluator implements TriggerEvaluatorInterface
         $user = $progression->getUser();
         $mode = $achievement->getContextGameMode();
 
-        if ($user === null || $mode === null) {
+        if (null === $user || null === $mode) {
             return false;
         }
 

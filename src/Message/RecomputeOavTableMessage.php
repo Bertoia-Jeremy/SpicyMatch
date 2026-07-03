@@ -23,7 +23,7 @@ final class RecomputeOavTableMessage
     public function __construct(
         public readonly string $reason = 'manual',
     ) {
-        if (trim($this->reason) === '') {
+        if ('' === trim($this->reason)) {
             throw new \InvalidArgumentException('RecomputeOavTableMessage::$reason must not be empty.');
         }
     }

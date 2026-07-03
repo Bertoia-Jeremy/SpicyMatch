@@ -27,7 +27,7 @@ final class OavTanimotoScorer
      */
     public function score(array $candidateOav, array $mortarOav): float
     {
-        if ($candidateOav === [] || $mortarOav === []) {
+        if ([] === $candidateOav || [] === $mortarOav) {
             return 0.0;
         }
 

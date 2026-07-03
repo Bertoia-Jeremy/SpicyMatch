@@ -67,7 +67,7 @@ final class DataConsistencyChecker
         $violations = [];
 
         foreach ($sumBySpiceId as $spiceId => $sum) {
-            $name = $spiceNames[$spiceId] ?? ('épice ' . $spiceId);
+            $name = $spiceNames[$spiceId] ?? ('épice '.$spiceId);
 
             if ($sum > self::CONCENTRATION_SUM_IMPOSSIBLE_PPM) {
                 $violations[] = [

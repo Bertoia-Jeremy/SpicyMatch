@@ -18,7 +18,7 @@ enum GameMode: string
      */
     public function label(): string
     {
-        return 'enum.game_mode.' . $this->value . '.label';
+        return 'enum.game_mode.'.$this->value.'.label';
     }
 
     public function xpPerCorrect(): int
@@ -40,7 +40,7 @@ enum GameMode: string
 
     public function isLiveComponent(): bool
     {
-        return $this !== self::QCM;
+        return self::QCM !== $this;
     }
 
     /**
@@ -48,7 +48,7 @@ enum GameMode: string
      */
     public function description(): string
     {
-        return 'enum.game_mode.' . $this->value . '.desc';
+        return 'enum.game_mode.'.$this->value.'.desc';
     }
 
     public function icon(): string

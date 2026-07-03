@@ -52,8 +52,8 @@ trait QueryCountTrait
                 'Expected fewer than %d SQL queries, got %d. Executed queries:%s',
                 $maxQueries,
                 $count,
-                "\n" . implode("\n", array_map(
-                    static fn (array $q) => '  - ' . $q['sql'],
+                "\n".implode("\n", array_map(
+                    static fn (array $q) => '  - '.$q['sql'],
                     array_slice($logger->queries, 0, 20),
                 )),
             ),

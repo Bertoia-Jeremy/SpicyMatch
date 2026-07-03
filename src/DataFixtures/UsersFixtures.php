@@ -56,7 +56,7 @@ class UsersFixtures extends Fixture
                 ->setUpdatedAt($now)
                 ->setPassword($this->passwordHasher->hashPassword($user, $data['password']));
 
-            $this->addReference('user_' . $key, $user);
+            $this->addReference('user_'.$key, $user);
             $manager->persist($user);
         }
 

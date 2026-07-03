@@ -113,7 +113,7 @@ final class AdsExtensionTest extends TestCase
     ): AdsExtension {
         $tokenStorage = $this->createStub(TokenStorageInterface::class);
 
-        if ($user !== null) {
+        if (null !== $user) {
             $token = $this->createStub(TokenInterface::class);
             $token->method('getUser')
                 ->willReturn($user);

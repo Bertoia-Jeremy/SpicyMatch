@@ -138,7 +138,7 @@ class Achievement implements TranslatableInterface
 
     public function getTranslation(string $locale): ?AchievementTranslation
     {
-        if ($locale === 'fr') {
+        if ('fr' === $locale) {
             return null;
         }
 

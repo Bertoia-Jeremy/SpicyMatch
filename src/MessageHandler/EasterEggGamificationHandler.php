@@ -26,12 +26,12 @@ class EasterEggGamificationHandler
     public function __invoke(EasterEggFoundEvent $event): void
     {
         $user = $this->usersRepository->find($event->userId);
-        if ($user === null) {
+        if (null === $user) {
             return;
         }
 
         // Idempotence — one award per (user, slug).
-        if (! $this->processedEvents->claim($user, 'easter_egg_found', 'egg:' . $event->easterEggSlug)) {
+        if (! $this->processedEvents->claim($user, 'easter_egg_found', 'egg:'.$event->easterEggSlug)) {
             $this->logger->info('gamification.easter_egg.duplicate', [
                 'userId' => $user->getId(),
                 'slug' => $event->easterEggSlug,

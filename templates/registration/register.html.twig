@@ -52,6 +52,12 @@
             </div>
 
             <div>
+                {{ form_errors(form.altcha) }}
+                {% do form.altcha.setRendered() %}
+                {% include 'components/_altcha.html.twig' with {name: field_name(form.altcha)} only %}
+            </div>
+
+            <div>
                 <twig:Button
                     label="{{ 'ui.register.submit'|trans }}"
                     variant="primary"

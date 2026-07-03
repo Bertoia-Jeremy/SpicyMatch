@@ -26,7 +26,7 @@ class FavoriteGamificationHandler
     public function __invoke(FavoriteToggledEvent $event): void
     {
         $user = $this->usersRepository->find($event->userId);
-        if ($user === null) {
+        if (null === $user) {
             return;
         }
 

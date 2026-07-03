@@ -24,7 +24,7 @@ final class DifficultyRuleApplier
 
     public function isMonochrome(GameDifficulty $difficulty): bool
     {
-        return $difficulty === GameDifficulty::HARD;
+        return GameDifficulty::HARD === $difficulty;
     }
 
     public function hangmanTimeLimitSeconds(GameDifficulty $difficulty): int
@@ -38,7 +38,7 @@ final class DifficultyRuleApplier
 
     public function intrusStrictMode(GameDifficulty $difficulty): bool
     {
-        return $difficulty === GameDifficulty::HARD;
+        return GameDifficulty::HARD === $difficulty;
     }
 
     /**

@@ -21,7 +21,7 @@ class SpicesRepository extends ServiceEntityRepository
 
     public function findOneByLocalizedSlug(string $slug, string $locale): ?Spices
     {
-        if ($locale !== 'fr') {
+        if ('fr' !== $locale) {
             $translated = $this->createQueryBuilder('e')
                 ->innerJoin('e.translations', 't', 'WITH', 't.locale = :loc AND t.slug = :slug')
                 ->setParameter('loc', $locale)
@@ -30,7 +30,7 @@ class SpicesRepository extends ServiceEntityRepository
                 ->getQuery()
                 ->getOneOrNullResult();
 
-            if ($translated !== null) {
+            if (null !== $translated) {
                 return $translated;
             }
         }
@@ -138,11 +138,11 @@ class SpicesRepository extends ServiceEntityRepository
      */
     public function findEnrichedByIds(array $ids, ?string $locale = null): array
     {
-        if ($ids === []) {
+        if ([] === $ids) {
             return [];
         }
 
-        if ($locale === null || $locale === 'fr') {
+        if (null === $locale || 'fr' === $locale) {
             return $this->createQueryBuilder('s')
                 ->select(
                     's.id',
@@ -194,15 +194,15 @@ class SpicesRepository extends ServiceEntityRepository
     public function search(string $word, ?string $locale = null): array
     {
         $word = mb_substr(trim($word), 0, 100);
-        if ($word === '') {
+        if ('' === $word) {
             return [];
         }
 
-        $like = '%' . $word . '%';
+        $like = '%'.$word.'%';
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        if ($locale === null || $locale === 'fr') {
+        if (null === $locale || 'fr' === $locale) {
             $sql = "SELECT s.id, s.name, s.slug, 'spice' AS `type`
                     FROM spices s
                     WHERE s.name LIKE ? AND s.deleted_at IS NULL
@@ -285,19 +285,19 @@ class SpicesRepository extends ServiceEntityRepository
             ->leftJoin('s.spicyType', 'st')
             ->orderBy('s.name', 'ASC');
 
-        if ($aromaticGroupId !== null) {
+        if (null !== $aromaticGroupId) {
             $qb->andWhere('s.aromaticGroups = :agId')
                 ->setParameter('agId', $aromaticGroupId);
         }
 
-        if ($spicyTypeId !== null) {
+        if (null !== $spicyTypeId) {
             $qb->andWhere('s.spicyType = :stId')
                 ->setParameter('stId', $spicyTypeId);
         }
 
-        if ($search !== null && $search !== '') {
+        if (null !== $search && '' !== $search) {
             $qb->andWhere('s.name LIKE :search')
-                ->setParameter('search', $search . '%');
+                ->setParameter('search', $search.'%');
         }
 
         return $qb->getQuery()
@@ -546,7 +546,7 @@ class SpicesRepository extends ServiceEntityRepository
     public function findRelated(Spices $spice, int $limit = 4): array
     {
         $group = $spice->getAromaticGroups();
-        if ($group === null) {
+        if (null === $group) {
             return [];
         }
 
@@ -575,12 +575,12 @@ class SpicesRepository extends ServiceEntityRepository
      */
     public function findNamesById(array $ids, ?string $locale = null): array
     {
-        if ($ids === []) {
+        if ([] === $ids) {
             return [];
         }
 
         // FR (défaut) : pas de JOIN, le nom canonique vit sur l'entité.
-        if ($locale === null || $locale === 'fr') {
+        if (null === $locale || 'fr' === $locale) {
             $rows = $this->createQueryBuilder('s')
                 ->select('s.id', 's.name')
                 ->where('s.id IN (:ids)')

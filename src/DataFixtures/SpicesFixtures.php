@@ -447,7 +447,7 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface, Fixtu
                 );
             }
 
-            $this->addReference('spice_' . $key, $entity);
+            $this->addReference('spice_'.$key, $entity);
             $manager->persist($entity);
         }
 

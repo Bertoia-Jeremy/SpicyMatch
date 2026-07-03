@@ -32,13 +32,13 @@ final class ProcessedGamificationEventRepositoryTest extends KernelTestCase
 
     public function testClaimSucceedsFirstTime(): void
     {
-        $key = 'test:' . uniqid();
+        $key = 'test:'.uniqid();
         self::assertTrue($this->repo->claim($this->user, 'test_event', $key));
     }
 
     public function testClaimFailsOnDuplicate(): void
     {
-        $key = 'test:' . uniqid();
+        $key = 'test:'.uniqid();
         self::assertTrue($this->repo->claim($this->user, 'test_event', $key));
         self::assertFalse($this->repo->claim($this->user, 'test_event', $key));
     }
@@ -46,15 +46,15 @@ final class ProcessedGamificationEventRepositoryTest extends KernelTestCase
     public function testClaimSucceedsForDifferentKeys(): void
     {
         $suffix = uniqid();
-        self::assertTrue($this->repo->claim($this->user, 'test_event', 'key_a:' . $suffix));
-        self::assertTrue($this->repo->claim($this->user, 'test_event', 'key_b:' . $suffix));
+        self::assertTrue($this->repo->claim($this->user, 'test_event', 'key_a:'.$suffix));
+        self::assertTrue($this->repo->claim($this->user, 'test_event', 'key_b:'.$suffix));
     }
 
     private function createUser(): Users
     {
         $user = new Users();
-        $user->setUsername('test_idempotency_' . uniqid());
-        $user->setMail($user->getUsername() . '@example.com');
+        $user->setUsername('test_idempotency_'.uniqid());
+        $user->setMail($user->getUsername().'@example.com');
         $user->setPassword('hash');
         $this->em->persist($user);
         $this->em->flush();

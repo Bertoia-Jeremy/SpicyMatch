@@ -87,7 +87,7 @@ final class FetchPhysicalFromPubChemCommand extends Command
             $name = (string) $compound->getName();
             $cas = $compound->getCasNumber();
 
-            if ($compoundId === null || $cas === null || trim($cas) === '') {
+            if (null === $compoundId || null === $cas || '' === trim($cas)) {
                 $io->text(\sprintf('  SKIP %s : pas de CAS', $name));
                 ++$skipped;
                 continue;
@@ -97,21 +97,21 @@ final class FetchPhysicalFromPubChemCommand extends Command
                 'compound' => $compound,
             ]);
 
-            if (! $forceAll && $existing?->getLogP() !== null) {
+            if (! $forceAll && null !== $existing?->getLogP()) {
                 $io->text(\sprintf('  SKIP %s : logP déjà renseigné (%g)', $name, $existing->getLogP()));
                 ++$skipped;
                 continue;
             }
 
             [$logP, $formula] = $this->fetchProperties($cas, $io);
-            if ($logP === null) {
+            if (null === $logP) {
                 ++$failed;
                 usleep(self::REQUEST_DELAY_US);
                 continue;
             }
 
             if (! $dryRun) {
-                if ($formula !== null && $compound->getFormula() === null) {
+                if (null !== $formula && null === $compound->getFormula()) {
                     $compound->setFormula($formula);
                 }
 
@@ -120,10 +120,10 @@ final class FetchPhysicalFromPubChemCommand extends Command
                 $target->setSource(\sprintf('PubChem XLogP3 (auto-fetch via CAS %s)', $cas));
                 // XLogP3 = prédiction algorithmique → tier ESTIMATED.
                 // Si la valeur existante était MEASURED/LITERATURE, on ne dégrade pas.
-                if ($existing === null || $existing->getConfidence() === DataConfidence::PLACEHOLDER) {
+                if (null === $existing || DataConfidence::PLACEHOLDER === $existing->getConfidence()) {
                     $target->setConfidence(DataConfidence::ESTIMATED);
                 }
-                if ($existing === null) {
+                if (null === $existing) {
                     $this->em->persist($target);
                 }
             }
@@ -145,7 +145,7 @@ final class FetchPhysicalFromPubChemCommand extends Command
             $dryRun ? ' (dry-run)' : '',
         ));
 
-        return $failed === 0 ? Command::SUCCESS : Command::FAILURE;
+        return 0 === $failed ? Command::SUCCESS : Command::FAILURE;
     }
 
     /**
@@ -155,14 +155,14 @@ final class FetchPhysicalFromPubChemCommand extends Command
      */
     private function fetchProperties(string $cas, SymfonyStyle $io): array
     {
-        $url = self::PUBCHEM_BASE . '/compound/name/' . urlencode($cas) . '/property/XLogP,MolecularFormula/JSON';
+        $url = self::PUBCHEM_BASE.'/compound/name/'.urlencode($cas).'/property/XLogP,MolecularFormula/JSON';
 
         try {
             $response = $this->httpClient->request('GET', $url, [
                 'timeout' => 10,
             ]);
 
-            if ($response->getStatusCode() !== 200) {
+            if (200 !== $response->getStatusCode()) {
                 $io->text(\sprintf('  ❌ PubChem HTTP %d pour CAS %s', $response->getStatusCode(), $cas));
 
                 return [null, null];
@@ -189,7 +189,7 @@ final class FetchPhysicalFromPubChemCommand extends Command
 
             return [(float) $rawLogP, $formula];
         } catch (TransportExceptionInterface $e) {
-            $io->text('  ❌ Erreur réseau PubChem : ' . $e->getMessage());
+            $io->text('  ❌ Erreur réseau PubChem : '.$e->getMessage());
 
             return [null, null];
         }

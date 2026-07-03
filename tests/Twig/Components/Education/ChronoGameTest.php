@@ -50,7 +50,7 @@ final class ChronoGameTest extends TestCase
     private function makeGame(array $secret = []): array
     {
         $session = new Session(new MockArraySessionStorage());
-        $session->set('game_' . self::TOKEN, $secret);
+        $session->set('game_'.self::TOKEN, $secret);
 
         $request = new Request();
         $request->setSession($session);
@@ -325,7 +325,7 @@ final class ChronoGameTest extends TestCase
 
         $game->answer('Cumin');
 
-        $stored = $session->get('game_' . self::TOKEN);
+        $stored = $session->get('game_'.self::TOKEN);
         self::assertArrayHasKey('wrongAnswerCooldown', $stored);
         self::assertGreaterThan(time(), $stored['wrongAnswerCooldown']);
     }

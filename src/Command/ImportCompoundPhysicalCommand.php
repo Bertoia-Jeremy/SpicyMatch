@@ -72,7 +72,7 @@ final class ImportCompoundPhysicalCommand extends Command
         $dryRun = (bool) $input->getOption('dry-run');
 
         $resolvedPath = $this->guardPath($file, $io);
-        if ($resolvedPath === null) {
+        if (null === $resolvedPath) {
             return Command::FAILURE;
         }
 
@@ -99,7 +99,7 @@ final class ImportCompoundPhysicalCommand extends Command
             }
 
             $compoundName = isset($entry['compound_name']) ? (string) $entry['compound_name'] : null;
-            if ($compoundName === null) {
+            if (null === $compoundName) {
                 $io->warning('Entrée ignorée (compound_name manquant).');
                 ++$skipped;
                 continue;
@@ -109,7 +109,7 @@ final class ImportCompoundPhysicalCommand extends Command
                 'name' => $compoundName,
             ]);
 
-            if ($compound === null) {
+            if (null === $compound) {
                 $io->warning(\sprintf('Composé "%s" introuvable en BDD — ignoré.', $compoundName));
                 ++$skipped;
                 continue;
@@ -120,7 +120,7 @@ final class ImportCompoundPhysicalCommand extends Command
             $vaporPressure = $this->parseFloat($entry['vapor_pressure_pa'] ?? null);
             $source = isset($entry['source']) ? (string) $entry['source'] : null;
 
-            if ($logP === null && $boilingPoint === null && $vaporPressure === null) {
+            if (null === $logP && null === $boilingPoint && null === $vaporPressure) {
                 $io->warning(\sprintf('Aucune donnée exploitable pour "%s" — ignoré.', $compoundName));
                 ++$skipped;
                 continue;
@@ -130,7 +130,7 @@ final class ImportCompoundPhysicalCommand extends Command
                 'compound' => $compound,
             ]);
 
-            if ($existing !== null) {
+            if (null !== $existing) {
                 $existing->setLogP($logP);
                 $existing->setBoilingPointCelsius($boilingPoint);
                 $existing->setVaporPressurePa($vaporPressure);
@@ -191,16 +191,16 @@ final class ImportCompoundPhysicalCommand extends Command
     private function guardPath(string $file, SymfonyStyle $io): ?string
     {
         $resolvedPath = realpath($file);
-        $allowedDir = realpath($this->projectDir . '/fixtures');
+        $allowedDir = realpath($this->projectDir.'/fixtures');
 
-        if ($resolvedPath === false || $allowedDir === false || ! str_starts_with($resolvedPath, $allowedDir . '/')) {
+        if (false === $resolvedPath || false === $allowedDir || ! str_starts_with($resolvedPath, $allowedDir.'/')) {
             $io->error(\sprintf('Le fichier "%s" doit se trouver dans fixtures/.', $file));
 
             return null;
         }
 
         $size = filesize($resolvedPath);
-        if ($size === false || $size > self::MAX_FILE_SIZE) {
+        if (false === $size || $size > self::MAX_FILE_SIZE) {
             $io->error('Fichier trop volumineux (max 10 Mo).');
 
             return null;
@@ -211,7 +211,7 @@ final class ImportCompoundPhysicalCommand extends Command
 
     private function parseFloat(mixed $raw): ?float
     {
-        if ($raw === null || $raw === '') {
+        if (null === $raw || '' === $raw) {
             return null;
         }
         if (! is_numeric($raw)) {
@@ -223,7 +223,7 @@ final class ImportCompoundPhysicalCommand extends Command
 
     private function parseInt(mixed $raw): ?int
     {
-        if ($raw === null || $raw === '') {
+        if (null === $raw || '' === $raw) {
             return null;
         }
         if (! is_numeric($raw)) {

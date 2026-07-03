@@ -58,21 +58,21 @@ final class CheckDataConsistencyCommand extends Command
             ...$this->checker->checkMissingAirOdt($this->fetchCompoundsWithoutAirOdt()),
         ];
 
-        $errors = array_filter($violations, static fn (array $v) => $v['severity'] === 'error');
-        $warnings = array_filter($violations, static fn (array $v) => $v['severity'] === 'warning');
+        $errors = array_filter($violations, static fn (array $v) => 'error' === $v['severity']);
+        $warnings = array_filter($violations, static fn (array $v) => 'warning' === $v['severity']);
 
         foreach ($warnings as $w) {
             $io->warning($w['message']);
         }
 
-        if ($errors !== []) {
+        if ([] !== $errors) {
             $io->error(\sprintf('%d erreur(s) de cohérence :', count($errors)));
             $io->listing(array_map(static fn (array $v) => $v['message'], $errors));
 
             return Command::FAILURE;
         }
 
-        if ($strict && $warnings !== []) {
+        if ($strict && [] !== $warnings) {
             $io->error(\sprintf('%d warning(s) bloquant(s) en mode --strict.', count($warnings)));
 
             return Command::FAILURE;
@@ -80,7 +80,7 @@ final class CheckDataConsistencyCommand extends Command
 
         $io->success(\sprintf(
             'Cohérence OK%s.',
-            $warnings !== [] ? \sprintf(' (%d warning)', count($warnings)) : '',
+            [] !== $warnings ? \sprintf(' (%d warning)', count($warnings)) : '',
         ));
 
         return Command::SUCCESS;

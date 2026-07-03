@@ -16,6 +16,6 @@ enum AchievementRarity: string
      */
     public function label(): string
     {
-        return 'enum.rarity.' . $this->value;
+        return 'enum.rarity.'.$this->value;
     }
 }

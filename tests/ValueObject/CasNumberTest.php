@@ -41,7 +41,7 @@ final class CasNumberTest extends TestCase
     #[DataProvider('validCasProvider')]
     public function testValidCasIsAccepted(string $cas): void
     {
-        self::assertTrue(CasNumber::isValid($cas), $cas . ' devrait être valide');
+        self::assertTrue(CasNumber::isValid($cas), $cas.' devrait être valide');
         self::assertSame($cas, (string) CasNumber::fromString($cas));
     }
 
@@ -88,7 +88,7 @@ final class CasNumberTest extends TestCase
     #[DataProvider('malformedProvider')]
     public function testMalformedIsRejected(string $cas): void
     {
-        self::assertFalse(CasNumber::isValid($cas), $cas . ' devrait être rejeté');
+        self::assertFalse(CasNumber::isValid($cas), $cas.' devrait être rejeté');
     }
 
     public function testFromStringThrowsOnMalformed(): void

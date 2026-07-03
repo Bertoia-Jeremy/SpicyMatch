@@ -110,7 +110,7 @@ class GuessWhoGame extends AbstractController
      */
     public function getAllSpiceNames(): array
     {
-        if ($this->cachedSpiceNames !== null) {
+        if (null !== $this->cachedSpiceNames) {
             return $this->cachedSpiceNames;
         }
 
@@ -150,7 +150,7 @@ class GuessWhoGame extends AbstractController
         $answeredSteps = $secret['answeredSteps'] ?? [];
 
         // Replay guard
-        if ($currentStep === null || \in_array($currentStep, $answeredSteps, true)) {
+        if (null === $currentStep || \in_array($currentStep, $answeredSteps, true)) {
             return null;
         }
 
@@ -172,9 +172,9 @@ class GuessWhoGame extends AbstractController
             $cluesUsed = \count($this->revealedClues);
             $points = match (true) {
                 $cluesUsed <= 1 => 10,
-                $cluesUsed === 2 => 8,
-                $cluesUsed === 3 => 6,
-                $cluesUsed === 4 => 4,
+                2 === $cluesUsed => 8,
+                3 === $cluesUsed => 6,
+                4 === $cluesUsed => 4,
                 default => 2,
             };
             $serverScore += $points;

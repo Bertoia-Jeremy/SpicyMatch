@@ -21,7 +21,7 @@ class SearchController extends AbstractController
         $query = trim((string) $request->query->get('q', ''));
         $results = [];
 
-        if ($query !== '' && mb_strlen($query) >= 2) {
+        if ('' !== $query && mb_strlen($query) >= 2) {
             $results = $spicesRepository->search($query, $request->getLocale());
         }
 

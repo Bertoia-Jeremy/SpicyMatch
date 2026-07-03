@@ -15,7 +15,7 @@ enum GameDifficulty: string
      */
     public function label(): string
     {
-        return 'enum.difficulty.' . $this->value;
+        return 'enum.difficulty.'.$this->value;
     }
 
     public function xpMultiplier(): float

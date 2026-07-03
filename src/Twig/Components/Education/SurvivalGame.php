@@ -114,7 +114,7 @@ class SurvivalGame extends AbstractController
 
         $spice = $this->findSpiceById($spiceId);
 
-        if ($spice === null) {
+        if (null === $spice) {
             return;
         }
 
@@ -168,7 +168,7 @@ class SurvivalGame extends AbstractController
 
         $spice = $this->findSpiceById($spiceId);
 
-        if ($spice === null) {
+        if (null === $spice) {
             $this->isGameOver = true;
 
             return $this->finishSession();
@@ -242,7 +242,7 @@ class SurvivalGame extends AbstractController
     {
         $spice = $this->spicesRepository->find($this->currentSpiceId);
 
-        if ($spice === null) {
+        if (null === $spice) {
             $this->options = [];
 
             return;

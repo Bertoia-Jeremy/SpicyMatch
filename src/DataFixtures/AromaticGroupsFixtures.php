@@ -72,7 +72,7 @@ class AromaticGroupsFixtures extends Fixture implements FixtureGroupInterface
                 ->setCreatedAt($now)
                 ->setUpdatedAt($now);
 
-            $this->addReference('group_' . $key, $entity);
+            $this->addReference('group_'.$key, $entity);
             $manager->persist($entity);
         }
 

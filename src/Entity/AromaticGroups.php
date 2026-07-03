@@ -104,7 +104,7 @@ class AromaticGroups implements TranslatableInterface, Sluggable
 
     public function getTranslation(string $locale): ?AromaticGroupsTranslation
     {
-        if ($locale === 'fr') {
+        if ('fr' === $locale) {
             return null;
         }
 

@@ -19,7 +19,7 @@ enum AromaKinetics: string
      */
     public static function fromBoilingPoint(?int $celsius): ?self
     {
-        if ($celsius === null) {
+        if (null === $celsius) {
             return null;
         }
 
@@ -35,6 +35,6 @@ enum AromaKinetics: string
      */
     public function label(): string
     {
-        return 'enum.kinetics.' . $this->value;
+        return 'enum.kinetics.'.$this->value;
     }
 }

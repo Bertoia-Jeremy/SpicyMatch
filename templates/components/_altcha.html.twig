@@ -1,0 +1,28 @@
+<script type="module" nonce="{{ csp_nonce('script') }}">
+    import '{{ asset('lib/altcha/altcha.js') }}';
+    globalThis.$altcha.i18n.set('{{ app.request.locale }}', {
+        ariaLinkLabel: {{ ('ui.altcha.aria_link'|trans)|json_encode|raw }},
+        cancel: {{ ('ui.altcha.cancel'|trans)|json_encode|raw }},
+        enterCode: {{ ('ui.altcha.enter_code'|trans)|json_encode|raw }},
+        enterCodeAria: {{ ('ui.altcha.enter_code_aria'|trans)|json_encode|raw }},
+        enterCodeFromImage: {{ ('ui.altcha.enter_code_from_image'|trans)|json_encode|raw }},
+        error: {{ ('ui.altcha.error'|trans)|json_encode|raw }},
+        expired: {{ ('ui.altcha.expired'|trans)|json_encode|raw }},
+        footer: {{ (('ui.altcha.footer_prefix'|trans) ~ ' <a href="https://altcha.org/" tabindex="-1" target="_blank" aria-label="ALTCHA">ALTCHA</a>')|json_encode|raw }},
+        getAudioChallenge: {{ ('ui.altcha.get_audio_challenge'|trans)|json_encode|raw }},
+        label: {{ ('ui.altcha.label'|trans)|json_encode|raw }},
+        loading: {{ ('ui.altcha.loading'|trans)|json_encode|raw }},
+        reload: {{ ('ui.altcha.reload'|trans)|json_encode|raw }},
+        verify: {{ ('ui.altcha.verify'|trans)|json_encode|raw }},
+        verificationRequired: {{ ('ui.altcha.verification_required'|trans)|json_encode|raw }},
+        verified: {{ ('ui.altcha.verified'|trans)|json_encode|raw }},
+        verifying: {{ ('ui.altcha.verifying'|trans)|json_encode|raw }},
+        waitAlert: {{ ('ui.altcha.wait'|trans)|json_encode|raw }}
+    });
+</script>
+<altcha-widget
+    challenge="{{ path('api_altcha_challenge') }}"
+    name="{{ name }}"
+    language="{{ app.request.locale }}"
+    style="--altcha-border-radius: 0.75rem; --altcha-color-border: #FED7AA; --altcha-color-base: #ffffff; --altcha-max-width: 100%;"
+></altcha-widget>

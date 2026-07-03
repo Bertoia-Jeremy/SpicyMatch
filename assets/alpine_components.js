@@ -37,6 +37,20 @@ const focusFirst = (root) => {
 
 const pathWithoutLocale = () => window.location.pathname.replace(/^\/[a-z]{2}(?=\/|$)/, '') || '/';
 
+const saveOnboardingState = (el, state) => {
+    el.dataset.onboardingState = state || '';
+    return fetch(el.dataset.stateUrl, {
+        method: 'POST',
+        keepalive: true,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': el.dataset.stateCsrf,
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({ state }),
+    }).catch(() => {});
+};
+
 const loopTab = (e, root) => {
     const focusable = [...root.querySelectorAll(FOCUSABLE)];
     if (!focusable.length) return;
@@ -847,10 +861,11 @@ export default function registerAlpineComponents(Alpine) {
                 document.querySelectorAll('main, nav, footer').forEach(el => { el.inert = val; });
             });
             const check = () => {
-                const state = localStorage.getItem('sm_onboarding');
+                if (document.getElementById('account-created-title')) return;
+                const state = this.$root.dataset.onboardingState;
                 if (!state && pathWithoutLocale() === '/') {
                     setTimeout(() => {
-                        if (localStorage.getItem('sm_onboarding')) return;
+                        if (this.$root.dataset.onboardingState) return;
                         if (pathWithoutLocale() !== '/') return;
                         this.previouslyFocused = document.activeElement;
                         this.visible = true;
@@ -870,16 +885,26 @@ export default function registerAlpineComponents(Alpine) {
             loopTab(e, this.$el);
         },
 
-        start() {
-            localStorage.setItem('sm_onboarding', 'spices');
+        start(event) {
+            const destination = event.currentTarget.closest('a')?.href || event.currentTarget.href;
             this.visible = false;
-            if (this.previouslyFocused) this.previouslyFocused.focus();
+            saveOnboardingState(this.$root, 'spices').finally(() => {
+                window.location.href = destination;
+            });
         },
 
         skip() {
-            localStorage.setItem('sm_onboarding', 'done');
+            saveOnboardingState(this.$root, 'done');
             this.visible = false;
             if (this.previouslyFocused) this.previouslyFocused.focus();
+        },
+    }));
+
+    Alpine.data('onboardingReset', () => ({
+        reset() {
+            saveOnboardingState(this.$root, null).finally(() => {
+                window.location.href = this.$el.dataset.homeUrl;
+            });
         },
     }));
 
@@ -938,9 +963,8 @@ export default function registerAlpineComponents(Alpine) {
 
         checkTour() {
             if (this.paused) return;
-            if (!localStorage.getItem('sm_onboarding')) return;
 
-            const state = localStorage.getItem('sm_onboarding');
+            const state = this.$root.dataset.onboardingState;
             if (!state || state === 'done') return;
 
             const tour = this.tours[state];
@@ -953,7 +977,7 @@ export default function registerAlpineComponents(Alpine) {
             this.currentStep = 0;
             this.showTransition = false;
 
-            localStorage.setItem('sm_onboarding', tour.nextState || 'done');
+            saveOnboardingState(this.$root, tour.nextState || 'done');
 
             this.$nextTick(() => this.startStep());
         },
@@ -1086,7 +1110,7 @@ export default function registerAlpineComponents(Alpine) {
         },
 
         skip() {
-            localStorage.setItem('sm_onboarding', 'done');
+            saveOnboardingState(this.$root, 'done');
             this.cleanup();
             this.active = false;
             this.tooltipActive = false;
@@ -1111,7 +1135,7 @@ export default function registerAlpineComponents(Alpine) {
         },
 
         skipTransition() {
-            localStorage.setItem('sm_onboarding', 'done');
+            saveOnboardingState(this.$root, 'done');
             this.showTransition = false;
             this.active = false;
             this.tooltipActive = false;

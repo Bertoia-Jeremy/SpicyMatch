@@ -15,12 +15,15 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
+use Symfony\Component\Security\Http\Util\TargetPathTrait;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class RegistrationController extends AbstractController
 {
+    use TargetPathTrait;
+
     public function __construct(
         private readonly UsersFactory $usersFactory,
         private readonly UsersRepository $usersRepository,
@@ -59,6 +62,8 @@ class RegistrationController extends AbstractController
             $this->em->flush();
 
             $this->addFlash('account_created', $translator->trans('flash.account_created'));
+
+            $this->removeTargetPath($request->getSession(), 'main');
 
             return $authenticator->authenticateUser($user, $loginFormAuthenticator, $request);
         }

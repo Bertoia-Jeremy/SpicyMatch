@@ -44,6 +44,9 @@
 {% endfor %}
 
 <div x-data="onboardingWelcome"
+     data-onboarding-state="{{ app.user.onboardingState }}"
+     data-state-url="{{ path('api_onboarding_state') }}"
+     data-state-csrf="{{ csrf_token('onboarding') }}"
      x-show="visible"
      x-cloak
      x-transition:enter="transition ease-out duration-300"
@@ -112,7 +115,7 @@
                 href="{{ path('index_spices') }}"
                 variant="primary"
                 icon="fa-solid fa-arrow-right"
-                @click="start"
+                @click.prevent="start"
                 extra="w-full justify-center mb-3"
             />
             <twig:Button
@@ -127,6 +130,9 @@
 
 <div x-data="spotlightTour"
      data-tours-json="{{ tours|json_encode|e('html_attr') }}"
+     data-onboarding-state="{{ app.user.onboardingState }}"
+     data-state-url="{{ path('api_onboarding_state') }}"
+     data-state-csrf="{{ csrf_token('onboarding') }}"
      x-cloak>
 
     <div x-show="active"

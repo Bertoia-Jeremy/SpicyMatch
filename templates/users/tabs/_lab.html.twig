@@ -143,8 +143,11 @@
                                 variant="secondary"
                                 size="sm"
                                 icon="fa-solid fa-rotate-left"
-                                x-data
-                                @click="localStorage.removeItem('sm_onboarding'); window.location.href = '{{ path('home') }}';"
+                                x-data="onboardingReset"
+                                data-state-url="{{ path('api_onboarding_state') }}"
+                                data-state-csrf="{{ csrf_token('onboarding') }}"
+                                data-home-url="{{ path('home') }}"
+                                @click="reset"
                                 extra="shrink-0"
                             />
                         </div>

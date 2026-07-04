@@ -1,9 +1,9 @@
 {% if is_granted('ROLE_USER') %}
 
 {% set tourMeta = {
-    spices: { path: '/epices', nextState: 'lab', nextUrl: path('index_spicy_match'), transitionKey: 'transition_spices' },
-    lab: { path: '/spicymatch', nextState: 'academy', nextUrl: path('education_index'), transitionKey: 'transition_lab' },
-    academy: { path: '/education', nextState: 'done', nextUrl: null, transitionKey: null }
+    spices: { path: '/epices', nextUrl: path('index_spicy_match'), transitionKey: 'transition_spices' },
+    lab: { path: '/spicymatch', nextUrl: path('education_index'), transitionKey: 'transition_lab' },
+    academy: { path: '/education', nextUrl: null, transitionKey: null }
 } %}
 
 {% set tourSteps = {
@@ -21,7 +21,8 @@
     ],
     academy: [
         { target: '[data-tour="game-grid"]', key: 'games', position: 'bottom' },
-        { target: '.tag-secondary', key: 'xp', position: 'left' }
+        { target: '.tag-secondary', key: 'xp', position: 'left' },
+        { target: '[data-tour="nav-profile"]', key: 'optout', position: 'bottom' }
     ]
 } %}
 
@@ -36,7 +37,6 @@
     {% endfor %}
     {% set tours = tours|merge({ (name): {
         path: meta.path,
-        nextState: meta.nextState,
         nextUrl: meta.nextUrl,
         transitionTitle: meta.transitionKey ? ('ui.onboarding.' ~ meta.transitionKey)|trans : null,
         steps: steps

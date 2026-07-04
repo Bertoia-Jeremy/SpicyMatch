@@ -366,6 +366,9 @@ ui:
                 xp:
                     title: Gana XP
                     text: Cada respuesta correcta da XP. ¡Sube de nivel y desbloquea logros exclusivos!
+                optout:
+                    title: ¿No te van los juegos?
+                    text: 'Sin problema: puedes desactivar toda la experiencia de gamificación cuando quieras, desde tu perfil, pestaña Laboratorio.'
     account:
         created_title: ¡Cuenta creada!
         created_cta: Empezar la aventura
@@ -627,6 +630,13 @@ ui:
         subscription_text: La suscripción Premium elimina toda la publicidad del sitio. Disponible próximamente.
         subscription_premium_badge: Premium
         subscription_price: 'Premium — 4,99 €/mes · disponible próximamente'
+        danger_zone: Zona de peligro
+        delete_account: Eliminar mi cuenta
+        delete_account_text: 'Tu cuenta se desactiva de inmediato y se cierra tu sesión. Tus datos personales se anonimizan definitivamente en un plazo de 30 días. Esta acción es irreversible.'
+        delete_account_button: Eliminar mi cuenta
+        delete_account_confirm: '¿Confirmas la eliminación definitiva de tu cuenta?'
+        delete_account_confirm_button: 'Sí, eliminar'
+        delete_account_cancel: Cancelar
     profile:
         dashboard_title: Panel
         unlocked_achievements: Logros desbloqueados

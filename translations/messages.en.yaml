@@ -366,6 +366,9 @@ ui:
                 xp:
                     title: Earn XP
                     text: Every correct answer earns XP. Level up and unlock exclusive achievements!
+                optout:
+                    title: Not into games?
+                    text: 'No worries: you can turn off the whole gamification experience whenever you like, from your profile, Laboratory tab.'
     account:
         created_title: Account created!
         created_cta: Start the adventure
@@ -627,6 +630,13 @@ ui:
         subscription_text: The Premium subscription removes all advertising from the site. Sign-up coming soon.
         subscription_premium_badge: Premium
         subscription_price: 'Premium — €4.99/month · coming soon'
+        danger_zone: Danger zone
+        delete_account: Delete my account
+        delete_account_text: 'Your account is deactivated immediately and you are logged out. Your personal data is permanently anonymised within 30 days. This action is irreversible.'
+        delete_account_button: Delete my account
+        delete_account_confirm: 'Confirm the permanent deletion of your account?'
+        delete_account_confirm_button: 'Yes, delete'
+        delete_account_cancel: Cancel
     profile:
         dashboard_title: Dashboard
         unlocked_achievements: Unlocked achievements

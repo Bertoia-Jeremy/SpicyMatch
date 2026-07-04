@@ -16,7 +16,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class OnboardingController extends AbstractController
 {
-    public const ALLOWED_STATES = ['spices', 'lab', 'academy', 'done'];
+    public const ALLOWED_KEYS = ['welcome', 'spices', 'lab', 'academy'];
 
     #[Route('/state', name: 'api_onboarding_state', methods: ['POST'])]
     public function saveState(Request $request, EntityManagerInterface $em): JsonResponse
@@ -36,10 +36,23 @@ class OnboardingController extends AbstractController
 
         $state = $payload['state'] ?? null;
 
-        if (null !== $state && ! in_array($state, self::ALLOWED_STATES, true)) {
-            return new JsonResponse([
-                'error' => 'Invalid state',
-            ], 400);
+        if (null !== $state) {
+            if (! is_string($state)) {
+                return new JsonResponse([
+                    'error' => 'Invalid state',
+                ], 400);
+            }
+
+            $keys = array_values(array_unique(array_filter(explode(',', $state))));
+            foreach ($keys as $key) {
+                if (! in_array($key, self::ALLOWED_KEYS, true)) {
+                    return new JsonResponse([
+                        'error' => 'Invalid state',
+                    ], 400);
+                }
+            }
+
+            $state = [] === $keys ? null : implode(',', $keys);
         }
 
         /** @var Users $user */

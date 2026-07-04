@@ -366,6 +366,9 @@ ui:
                 xp:
                     title: Gagne de l'XP
                     text: Chaque bonne réponse rapporte de l'XP. Monte en niveau et débloque des succès exclusifs !
+                optout:
+                    title: Pas fan des jeux ?
+                    text: 'Aucun souci : tu peux désactiver toute l''expérience de gamification quand tu veux, depuis ton profil, onglet Laboratoire.'
     account:
         created_title: Compte créé !
         created_cta: Commencer l'aventure
@@ -627,6 +630,13 @@ ui:
         subscription_text: L'abonnement Premium retire toute publicité du site. Souscription bientôt disponible.
         subscription_premium_badge: Premium
         subscription_price: 'Premium — 4,99 €/mois · bientôt disponible'
+        danger_zone: Zone de danger
+        delete_account: Supprimer mon compte
+        delete_account_text: 'Ton compte est immédiatement désactivé et te déconnecte. Tes données personnelles sont définitivement anonymisées sous 30 jours. Cette action est irréversible.'
+        delete_account_button: Supprimer mon compte
+        delete_account_confirm: 'Confirmer la suppression définitive de ton compte ?'
+        delete_account_confirm_button: Oui, supprimer
+        delete_account_cancel: Annuler
     profile:
         dashboard_title: Tableau de bord
         unlocked_achievements: Succès débloqués

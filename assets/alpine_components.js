@@ -74,6 +74,13 @@ export default function registerAlpineComponents(Alpine) {
         chevronClass() { return this.open ? '' : '-rotate-180'; },
     }));
 
+    Alpine.data('deleteAccount', () => ({
+        confirming: false,
+        get idle() { return !this.confirming; },
+        ask() { this.confirming = true; },
+        cancel() { this.confirming = false; },
+    }));
+
     /* Navbar — overlay (desktop) + sheet (mobile). */
     Alpine.data('navMenu', () => ({
         open: false,
@@ -888,13 +895,13 @@ export default function registerAlpineComponents(Alpine) {
         start(event) {
             const destination = event.currentTarget.closest('a')?.href || event.currentTarget.href;
             this.visible = false;
-            saveOnboardingState(this.$root, 'spices').finally(() => {
+            saveOnboardingState(this.$root, 'welcome').finally(() => {
                 window.location.href = destination;
             });
         },
 
         skip() {
-            saveOnboardingState(this.$root, 'done');
+            saveOnboardingState(this.$root, 'welcome,spices,lab,academy');
             this.visible = false;
             if (this.previouslyFocused) this.previouslyFocused.focus();
         },
@@ -961,25 +968,39 @@ export default function registerAlpineComponents(Alpine) {
             document.addEventListener('turbo:before-visit', () => this.cleanup());
         },
 
+        seenSet() {
+            const raw = this.$root.dataset.onboardingState || '';
+            return raw ? raw.split(',').filter(Boolean) : [];
+        },
+
+        markSeen(key) {
+            const seen = this.seenSet();
+            if (!seen.includes(key)) seen.push(key);
+            saveOnboardingState(this.$root, seen.join(','));
+        },
+
         checkTour() {
             if (this.paused) return;
 
-            const state = this.$root.dataset.onboardingState;
-            if (!state || state === 'done') return;
+            const seen = this.seenSet();
+            const path = pathWithoutLocale();
 
-            const tour = this.tours[state];
-            if (!tour) return;
-            if (!pathWithoutLocale().startsWith(tour.path)) return;
+            for (const key of Object.keys(this.tours)) {
+                if (seen.includes(key)) continue;
+                const tour = this.tours[key];
+                if (!path.startsWith(tour.path)) continue;
 
-            this.tourKey = state;
-            this.steps = tour.steps;
-            this.totalSteps = tour.steps.length;
-            this.currentStep = 0;
-            this.showTransition = false;
+                this.tourKey = key;
+                this.steps = tour.steps;
+                this.totalSteps = tour.steps.length;
+                this.currentStep = 0;
+                this.showTransition = false;
 
-            saveOnboardingState(this.$root, tour.nextState || 'done');
+                this.markSeen(key);
 
-            this.$nextTick(() => this.startStep());
+                this.$nextTick(() => this.startStep());
+                return;
+            }
         },
 
         resolveTarget(selector) {
@@ -1110,7 +1131,6 @@ export default function registerAlpineComponents(Alpine) {
         },
 
         skip() {
-            saveOnboardingState(this.$root, 'done');
             this.cleanup();
             this.active = false;
             this.tooltipActive = false;
@@ -1135,7 +1155,6 @@ export default function registerAlpineComponents(Alpine) {
         },
 
         skipTransition() {
-            saveOnboardingState(this.$root, 'done');
             this.showTransition = false;
             this.active = false;
             this.tooltipActive = false;

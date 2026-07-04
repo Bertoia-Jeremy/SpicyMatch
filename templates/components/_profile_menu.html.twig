@@ -13,6 +13,7 @@
 
 <div class="relative" x-data="{ profileOpen: false }" @keydown.escape.window="profileOpen = false">
     <button type="button"
+            data-tour="nav-profile"
             @click="profileOpen = !profileOpen"
             aria-haspopup="true"
             :aria-expanded="profileOpen.toString()"

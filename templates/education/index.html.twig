@@ -20,7 +20,7 @@
   {% endfor %}
 
   {# Mode selection cards #}
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+  <div data-tour="game-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
     {% for mode in modes %}
       {% set count = dailyCounts[mode.value] ?? 0 %}
       {% set remaining = maxDailySessions - count %}

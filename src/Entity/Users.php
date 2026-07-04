@@ -98,7 +98,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'premium_until', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $premiumUntil = null;
 
-    #[ORM\Column(name: 'onboarding_state', type: 'string', length: 20, nullable: true)]
+    #[ORM\Column(name: 'onboarding_state', type: 'string', length: 64, nullable: true)]
     private ?string $onboardingState = null;
 
     /**

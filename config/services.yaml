@@ -122,6 +122,7 @@ services:
     # Alias interfaces ↔ implémentations (moteur OAV)
     App\Service\Match\MatchPipelineInterface: '@App\Service\Match\MatchPipeline'
     App\Service\Match\MatchConfidenceAssessorInterface: '@App\Service\Match\MatchConfidenceAssessor'
+    App\Service\Match\FlavorGraphHybridizerInterface: '@App\Service\Match\FlavorGraphHybridizer'
     App\Repository\CompoundPhysicalRepositoryInterface: '@App\Repository\CompoundPhysicalRepository'
 
     # Export CSV — nécessite le répertoire racine du projet

@@ -11,8 +11,10 @@ use App\Repository\CandidateVetoRepository;
 use App\Repository\CompoundPhysicalRepositoryInterface;
 use App\Repository\SpiceActiveCompoundRepository;
 use App\Service\Match\CorrectionApplier;
+use App\Service\Match\FlavorGraphHybridizerInterface;
 use App\Service\Match\MatchPipeline;
 use App\Service\Match\MortarProfileBuilder;
+use App\Service\Match\NullFlavorGraphHybridizer;
 use App\Service\Match\OavPartitionCalculator;
 use App\Service\Match\OavTanimotoScorer;
 use App\ValueObject\Match\CulinaryContext;
@@ -34,6 +36,7 @@ final class MatchPipelineTest extends TestCase
         ?OavTanimotoScorer $scorer = null,
         ?CompoundPhysicalRepositoryInterface $physicalRepo = null,
         ?OavPartitionCalculator $calculator = null,
+        ?FlavorGraphHybridizerInterface $hybridizer = null,
     ): MatchPipeline {
         $calculator ??= new OavPartitionCalculator();
         $physicalRepo ??= $this->createStub(CompoundPhysicalRepositoryInterface::class);
@@ -47,6 +50,7 @@ final class MatchPipelineTest extends TestCase
             // L'applier réutilise les mocks injectés pour préserver les expects() des tests
             // (e.g. testExtendedContextTriggersCompoundPhysicalLookup vérifie loadByCompoundIds).
             new CorrectionApplier($physicalRepo, $calculator),
+            $hybridizer ?? new NullFlavorGraphHybridizer(),
         );
     }
 

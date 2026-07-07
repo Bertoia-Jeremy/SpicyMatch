@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Controller\Api;
 
 use App\Enum\OdtMatrix;
+use App\Enum\PairingAffinity;
 use App\Exception\Match\InvalidMortarException;
 use App\Repository\SpicesRepository;
+use App\Service\Match\FlavorGraphHybridizerInterface;
 use App\Service\Match\MatchConfidenceAssessorInterface;
 use App\Service\Match\MatchPipelineInterface;
 use App\ValueObject\Match\CulinaryContext;
@@ -56,6 +58,7 @@ final class MatchController extends AbstractController
         private readonly MatchPipelineInterface $matchPipeline,
         private readonly SpicesRepository $spicesRepository,
         private readonly MatchConfidenceAssessorInterface $confidenceAssessor,
+        private readonly FlavorGraphHybridizerInterface $hybridizer,
         #[Autowire(service: 'limiter.match_api')]
         private readonly RateLimiterFactory $matchApiLimiter,
     ) {
@@ -221,8 +224,12 @@ final class MatchController extends AbstractController
             ], Response::HTTP_NOT_FOUND);
         }
 
+        // Confiance globale = maillon le plus faible parmi les données contributrices.
+        // Assess une seule fois : passé au pipeline (pondération du blend) ET réutilisé dans la réponse.
+        $confidence = $this->confidenceAssessor->assess($mortar, $culinaryContext->matrix);
+
         // Exécution du pipeline avec le contexte culinaire (matrice ODT)
-        $pipelineResults = $this->matchPipeline->run($mortar, $limit, $culinaryContext);
+        $pipelineResults = $this->matchPipeline->run($mortar, $limit, $culinaryContext, $confidence);
 
         // Enrichissement avec les noms d'épices — DQL scalaire (pas d'hydratation entité)
         $candidateIds = array_column($pipelineResults, 'id');
@@ -233,14 +240,12 @@ final class MatchController extends AbstractController
                 'id' => $row['id'],
                 'name' => $nameMap[$row['id']] ?? null,
                 'score' => $row['score'],
+                'affinity' => PairingAffinity::fromScore($row['score'] / 100.0)->value,
             ],
             $pipelineResults
         );
 
         $oavMode = [] !== $pipelineResults && $pipelineResults[0]['oav_mode'];
-
-        // Confiance globale = maillon le plus faible parmi les données contributrices.
-        $confidence = $this->confidenceAssessor->assess($mortar, $culinaryContext->matrix);
 
         return $this->json([
             'mortar' => $mortar->toArray(),
@@ -253,6 +258,7 @@ final class MatchController extends AbstractController
             'temperature_celsius' => $culinaryContext->temperatureCelsius,
             'confidence' => $confidence->value,
             'confidence_tier' => $confidence->tier(),
+            'flavorgraph_mode' => $this->hybridizer->isActive(),
             'count' => count($results),
         ]);
     }

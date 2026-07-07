@@ -192,6 +192,7 @@
                 {% endset %}
 
                 {# UX-1 : libellé explicite "Mode : X" pour rendre l'action et l'état visibles. #}
+                {% if oav_context_enabled %}
                 <div title="{{ 'ui.lab.mode_tooltip'|trans }}" data-tour="lab-context">
                     {{ filters.filter_dropdown('ui.lab.mode_prefix'|trans({'%label%': this.culinaryLabel}), cooking_content, {
                         count: this.hasCustomCulinaryContext ? 1 : 0,
@@ -199,6 +200,7 @@
                         style: 'pill'
                     }) }}
                 </div>
+                {% endif %}
 
                 {# Filtre Type d'Épice #}
                 {% set st_content %}

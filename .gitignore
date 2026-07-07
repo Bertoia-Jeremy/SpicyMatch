@@ -60,3 +60,6 @@ data/exports/
 # Sauvegardes SQL (générées automatiquement — non versionnées)
 data/backups/
 data/acquisition/
+
+# FlavorGraph : embeddings binaires volumineux (téléchargés, ~10 Mo — non versionnés)
+data/flavorgraph/*.pickle

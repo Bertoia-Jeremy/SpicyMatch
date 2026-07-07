@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service\Match;
 
+use App\Enum\DataConfidence;
 use App\Repository\CandidateVetoRepository;
 use App\Repository\SpiceActiveCompoundRepository;
 use App\ValueObject\Match\CulinaryContext;
@@ -24,6 +25,7 @@ final class MatchPipeline implements MatchPipelineInterface
         private readonly OavTanimotoScorer $scorer,
         private readonly OavPartitionCalculator $partitionCalculator,
         private readonly CorrectionApplier $correctionApplier,
+        private readonly FlavorGraphHybridizerInterface $hybridizer,
     ) {
     }
 
@@ -32,7 +34,7 @@ final class MatchPipeline implements MatchPipelineInterface
      *
      * @return list<array{id: int, score: int, oav_mode: bool}>
      */
-    public function run(MortarIds $mortar, int $limit, CulinaryContext $ctx): array
+    public function run(MortarIds $mortar, int $limit, CulinaryContext $ctx, ?DataConfidence $confidence = null): array
     {
         $matrix = $ctx->matrix;
 
@@ -48,37 +50,34 @@ final class MatchPipeline implements MatchPipelineInterface
         }
 
         if (! $oavMode) {
-            return array_slice(
-                array_map(static fn (int $id) => [
-                    'id' => $id,
-                    'score' => 0,
-                    'oav_mode' => false,
-                ], $survivorIds),
-                0,
-                $limit,
-            );
-        }
+            $results = array_map(static fn (int $id) => [
+                'id' => $id,
+                'score' => 0,
+                'oav_mode' => false,
+            ], $survivorIds);
+        } else {
+            $profiles = $this->spiceActiveCompoundRepository->loadOavProfilesBatch($survivorIds, $matrix);
 
-        $profiles = $this->spiceActiveCompoundRepository->loadOavProfilesBatch($survivorIds, $matrix);
-
-        if ($this->partitionCalculator->needsCorrection($ctx)) {
-            $this->correctionApplier->apply($mortarProfile, $profiles, $ctx);
-        }
-
-        $results = [];
-        foreach ($survivorIds as $spiceId) {
-            $candidateOav = $profiles[$spiceId] ?? null;
-            if (null === $candidateOav) {
-                continue;
+            if ($this->partitionCalculator->needsCorrection($ctx)) {
+                $this->correctionApplier->apply($mortarProfile, $profiles, $ctx);
             }
 
-            $scoreInt = $this->scorer->scoreAsInt($candidateOav, $mortarProfile);
-            $results[] = [
-                'id' => $spiceId,
-                'score' => $scoreInt,
-                'oav_mode' => true,
-            ];
+            $results = [];
+            foreach ($survivorIds as $spiceId) {
+                $candidateOav = $profiles[$spiceId] ?? null;
+                if (null === $candidateOav) {
+                    continue;
+                }
+
+                $results[] = [
+                    'id' => $spiceId,
+                    'score' => $this->scorer->scoreAsInt($candidateOav, $mortarProfile),
+                    'oav_mode' => true,
+                ];
+            }
         }
+
+        $results = $this->hybridizer->rerank($results, $mortar, $oavMode, $matrix, $confidence);
 
         usort($results, static fn (array $a, array $b) => $b['score'] <=> $a['score']);
 

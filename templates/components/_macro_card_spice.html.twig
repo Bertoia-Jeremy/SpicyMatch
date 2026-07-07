@@ -28,6 +28,7 @@
     {# Options #}
     {% set isSelection = options.isSelection|default(false) %}
     {% set score = options.score|default(null) %}
+    {% set affinity = (spice is iterable and spice.affinity is defined) ? spice.affinity : null %}
     {% set compact = options.compact|default(false) %}
     {% set showQuickView = options.showQuickView|default(true) %}
     {% set model = options.model|default(null) %}
@@ -153,7 +154,12 @@
                         <div class="w-full pt-0.5">
                             <div class="flex items-center justify-between mb-0.5">
                                 <span class="text-[9px] font-mono uppercase tracking-wide text-stone-400">{{ 'ui.catalog.compat'|trans }}</span>
-                                <span class="text-[10px] font-bold text-saffron-600">{{ score }}%</span>
+                                <div class="flex items-center gap-1.5">
+                                    {% if affinity %}
+                                        <span class="text-[9px] font-semibold uppercase tracking-wide text-saffron-700">{{ ('ui.pairing.' ~ affinity)|trans }}</span>
+                                    {% endif %}
+                                    <span class="text-[10px] font-bold text-saffron-600">{{ score }}%</span>
+                                </div>
                             </div>
                             <div class="h-1 w-full bg-stone-100 rounded-full overflow-hidden">
                                 <div class="h-full bg-saffron-500 transition-all duration-1000" style="width: {{ score }}%"></div>

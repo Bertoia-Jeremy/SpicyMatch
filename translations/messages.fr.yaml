@@ -43,6 +43,11 @@ flash:
     daily_limit_reached: 'Limite quotidienne atteinte (%max% sessions %mode% par jour).'
 
 ui:
+    pairing:
+        excellent: Excellent
+        harmonieux: Harmonieux
+        audacieux: Audacieux
+        discordant: Discordant
     meta:
         description: SpicyMatch — Créez des mélanges d'épices parfaits grâce à l'analyse moléculaire des composés aromatiques.
         default_title: SpicyMatch — L'Alchimie Culinaire

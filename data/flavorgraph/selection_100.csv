@@ -1,0 +1,101 @@
+kind,db_id,spice_fr,slug,fg_node,fg_node_id,aromatic_group_id
+existing,5,Anis Étoilé (Badiane),anis-etoile,star_anise,6091,
+existing,22,Anis Vert,anis-vert,anise_seed,153,
+existing,7,Basilic Grand Vert,basilic,basil,328,
+existing,1,Cannelle de Ceylan,cannelle,cinnamon,1368,
+existing,9,Cardamome Verte,cardamome,cardamom,991,
+existing,29,Carvi (Cumin des Prés),carvi,caraway_seed,988,
+existing,2,Clou de Girofle,clou-girofle,clove,1411,
+existing,8,Coriandre (graines),coriandre,coriander_seed,1592,
+existing,17,Cumin,cumin,cumin_seed,1775,
+existing,18,Curcuma,curcuma,turmeric,6545,
+existing,6,Estragon Français,estragon,tarragon,6349,
+existing,4,Fenouil (graines),fenouil,fennel_seed,2315,
+existing,19,Gingembre Séché,gingembre,ginger,2837,
+existing,3,Laurier Noble,laurier,bay_leaf,341,
+existing,21,Macis,macis,mace,4021,
+existing,27,Marjolaine,marjolaine,marjoram,4084,
+existing,10,Muscade,muscade,nutmeg,4438,
+existing,16,Origan Méditerranéen,origan,oregano,4545,
+existing,14,Paprika Doux,paprika-doux,paprika,4608,
+existing,13,Piment de Cayenne,piment-cayenne,cayenne_pepper,1036,
+existing,20,Piment de la Jamaïque,piment-jamaique,allspice,86,
+existing,25,Poivre Blanc,poivre-blanc,white_pepper,6894,
+existing,23,Poivre de Sichuan,poivre-sichuan,szechuan_peppercorn,6305,
+existing,11,Poivre Noir,poivre-noir,black_pepper,499,
+existing,26,Romarin,romarin,rosemary,5535,
+existing,30,Safran,safran,saffron,5579,
+existing,28,Sauge Officinale,sauge,sage,5582,
+existing,15,Thym Commun,thym,thyme,6409,
+new,,Basilic Thaï,basilic-thai,thai_basil,6385,1
+new,,Cannelle de Chine (Cassia),cannelle-cassia,cassia,1018,1
+new,,Coriandre Fraîche (Cilantro),coriandre-fraiche,cilantro,1363,
+new,,Fenugrec,fenugrec,fenugreek_seed,2317,
+new,,Nigelle,nigelle,nigella_seed,4383,
+new,,Cumin Noir,cumin-noir,black_cumin_seed,482,
+new,,Galanga,galanga,galangal,2786,
+new,,Sumac,sumac,sumac,6209,
+new,,Vanille,vanille,vanilla,6631,
+new,,Pavot (graines),pavot,poppy_seed,4961,
+new,,Sésame,sesame,sesame_seed,5750,
+new,,Moutarde Jaune,moutarde-jaune,yellow_mustard,7067,
+new,,Moutarde Brune,moutarde-brune,brown_mustard,735,
+new,,Aneth,aneth,dill,1895,
+new,,Aneth (graines),aneth-graines,dill_seed,1903,
+new,,Cerfeuil,cerfeuil,chervil,1128,
+new,,Ciboulette,ciboulette,chive,1263,
+new,,Persil,persil,parsley,4620,
+new,,Menthe,menthe,mint,4243,
+new,,Menthe Poivrée,menthe-poivree,peppermint,4744,
+new,,Menthe Verte,menthe-verte,spearmint,6032,
+new,,Citronnelle,citronnelle,lemongrass,3775,2
+new,,Combava (feuilles),combava,kaffir_lime_leaf,3542,2
+new,,Feuille de Curry (Kaloupilé),feuille-curry,curry_leaf,1786,
+new,,Ajowan,ajowan,ajwain,70,
+new,,Asa-fœtida (Hing),asafoetida,asafoetida_powder,205,
+new,,Genièvre (baies),genievre,juniper_berry,3540,
+new,,Raifort,raifort,horseradish,3312,
+new,,Wasabi,wasabi,wasabi,6782,
+new,,Piment d'Alep,piment-alep,aleppo_pepper,76,3
+new,,Piment Ancho,piment-ancho,ancho_chili,132,3
+new,,Piment Habanero,piment-habanero,habanero,3144,3
+new,,Jalapeño,jalapeno,jalapeno,3492,3
+new,,Piment Serrano,piment-serrano,serrano_pepper,5741,3
+new,,Piment de árbol,piment-arbol,arbol_chile,190,3
+new,,Piment Guajillo,piment-guajillo,guajillo_chilies,3131,3
+new,,Chipotle,chipotle,chipotle_chile,1254,3
+new,,Paprika Fumé,paprika-fume,smoked_paprika,5899,3
+new,,Sarriette,sarriette,savory,5661,4
+new,,Livèche,liveche,lovage,3920,
+new,,Oseille,oseille,sorrel,5959,
+new,,Verveine Citronnelle,verveine,lemon_verbena,3766,2
+new,,Épazote,epazote,epazote,2223,
+new,,Angélique,angelique,angelica,145,
+new,,Graines de Paradis (Maniguette),maniguette,grains_of_paradise,2932,
+new,,Amchur (Mangue en poudre),amchur,mango_powder,4056,
+new,,Pollen de Fenouil,pollen-fenouil,fennel_pollen,2313,
+new,,Céleri (graines),celeri-graines,celery_seed,1050,
+new,,Échalote,echalote,shallot,5759,
+new,,Ail,ail,garlic,2793,
+new,,Oignon,oignon,onion,4478,
+new,,Poivre Vert,poivre-vert,green_peppercorn,3023,3
+new,,Baies Roses,baies-roses,pink_peppercorn,4874,
+new,,Filé (Sassafras),file-sassafras,file_powder,2336,
+new,,Réglisse,reglisse,licorice,3788,
+new,,Shiso (Périlla),shiso,shiso,5784,
+new,,Yuzu,yuzu,yuzu,7095,2
+new,,Roucou (Annatto),roucou,annatto_seed,157,
+new,,Tamarin,tamarin,tamarind_pod,6332,
+new,,Pandan,pandan,pandan_leaf,4594,
+new,,Piment Poblano,piment-poblano,poblano_pepper,4940,3
+new,,Piment Anaheim,piment-anaheim,anaheim_chili,129,3
+new,,Piment Thaï,piment-thai,thai_chile,6386,3
+new,,Piment Scotch Bonnet,piment-scotch-bonnet,scotch_bonnet_pepper,5675,3
+new,,Sarriette d'Hiver,sarriette-hiver,winter_savory,7020,4
+new,,Mélisse,melisse,lemon_balm,3727,2
+new,,Camomille,camomille,chamomile_flower,1067,
+new,,Sansho,sansho,sansho,5645,3
+new,,Citron Noir (Loomi),citron-noir,dried_lime,2020,
+new,,Culantro,culantro,culantro,1771,
+new,,Câpre,capre,caper,966,
+new,,Rose (pétales),rose-petales,rose_petal,5530,

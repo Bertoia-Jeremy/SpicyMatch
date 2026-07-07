@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service\Match;
 
+use App\Enum\PairingAffinity;
 use App\Repository\SpicesRepository;
 use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
@@ -24,7 +25,7 @@ class CompatibleSpiceFinder
     }
 
     /**
-     * @return list<array{id: int, name: string, file: ?string, agId: ?int, color: ?string, groupName: ?string, stId: ?int, typeName: ?string, score: int}>
+     * @return list<array{id: int, name: string, file: ?string, agId: ?int, color: ?string, groupName: ?string, stId: ?int, typeName: ?string, score: int, affinity: string}>
      */
     public function findCompatible(MortarIds $mortar, int $limit, CulinaryContext $ctx): array
     {
@@ -41,6 +42,7 @@ class CompatibleSpiceFinder
         $results = [];
         foreach ($enriched as $row) {
             $id = (int) $row['id'];
+            $score = $scoreMap[$id] ?? 0;
 
             $results[] = [
                 'id' => $id,
@@ -51,7 +53,8 @@ class CompatibleSpiceFinder
                 'groupName' => isset($row['groupName']) ? (string) $row['groupName'] : null,
                 'stId' => isset($row['stId']) ? (int) $row['stId'] : null,
                 'typeName' => isset($row['typeName']) ? (string) $row['typeName'] : null,
-                'score' => $scoreMap[$id] ?? 0,
+                'score' => $score,
+                'affinity' => PairingAffinity::fromScore($score / 100.0)->value,
             ];
         }
 

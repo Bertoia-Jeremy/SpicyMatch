@@ -141,6 +141,7 @@
   </div>
 
   {# ===== CARTE DU MOMENT (contexte culinaire persisté — Étape 3E-3) ===== #}
+  {% if oav_context_enabled %}
   <section class="max-w-[1180px] mx-auto px-6 pt-6 pb-2">
     <div class="flex flex-wrap items-center gap-4 px-5 py-4 rounded-2xl border"
          style="border-color: rgba(154,71,32,0.18); background: linear-gradient(180deg, #FBF5E9 0%, #F5ECDB 100%);">
@@ -172,6 +173,7 @@
       </div>
     </div>
   </section>
+  {% endif %}
 
   {# ===== PRÉPARATION DES ÉPICES ===== #}
   <section class="max-w-[1180px] mx-auto px-6 pt-8 pb-6">
@@ -301,7 +303,7 @@
 
   {# ===== TIMELINE CINÉTIQUE (Étape 3E-3) ===== #}
   {% set kineticsTotal = cookingTimeline.head|length + cookingTimeline.heart|length + cookingTimeline.base|length %}
-  {% if kineticsTotal > 0 %}
+  {% if oav_context_enabled and kineticsTotal > 0 %}
     <section class="max-w-[1180px] mx-auto px-6 pt-8 pb-6">
       <div class="flex items-center gap-3 mb-5">
         <span class="section-icon">
@@ -370,7 +372,7 @@
   {% endif %}
 
   {# ===== COMPARATIF MATRICIEL (Étape 3E-3 — Phase B/E) ===== #}
-  {% if matrixGrid|length > 0 %}
+  {% if oav_context_enabled and matrixGrid|length > 0 %}
     <section class="max-w-[1180px] mx-auto px-6 pt-8 pb-6">
       <div class="flex items-center gap-3 mb-5">
         <span class="section-icon">

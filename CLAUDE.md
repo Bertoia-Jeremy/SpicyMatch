@@ -46,12 +46,15 @@ tooling:
 
 scripts:
   php:
-    - docker exec -w /var/www/html/spicymatch p8.4 composer ci              # ⭐ check-cs + phpstan + test-unit — OBLIGATOIRE avant commit
+    - docker exec -w /var/www/html/spicymatch p8.4 composer ci              # ⭐ check-cs + phpstan + test-unit + schema-test + test-integration + test-controller + check-data — OBLIGATOIRE avant commit
     - docker exec -w /var/www/html/spicymatch p8.4 composer fix-cs
     - docker exec -w /var/www/html/spicymatch p8.4 composer rector-dry / rector
     - docker exec -w /var/www/html/spicymatch p8.4 composer phpstan
-    - docker exec -w /var/www/html/spicymatch p8.4 composer test-unit
-    - docker exec -w /var/www/html/spicymatch p8.4 php vendor/bin/phpunit --testsuite=Integration  # DB requise
+    - docker exec -w /var/www/html/spicymatch p8.4 composer test-unit         # rapide, sans DB
+    - docker exec -w /var/www/html/spicymatch p8.4 composer test-integration  # DB spicymatch_test requise
+    - docker exec -w /var/www/html/spicymatch p8.4 composer test-controller   # DB spicymatch_test requise
+    # ⚠️ Pré-requis env frais : DB spicymatch_test seedée (fixtures 30 épices + app:recompute:oav --sync --env=test), sinon test-integration/test-controller rouges
+    # Config PHPUnit versionnée = phpunit.dist.xml (phpunit.xml local gitignoré prime s'il existe)
     # Baseline après vrai fix : phpstan analyze --generate-baseline=phpstan-baseline.neon
   js:
     - yarn dev    # watch Tailwind
@@ -204,7 +207,7 @@ architecture:
       - "Lab : panneau gauche (sélection) reste FR (groupName = clé de groupement) ; résultats localisés via findEnrichedByIds."
     reste_a_faire:
       - "Seed contenu réel EN/ES via admin puis cocher reviewed (tant que vide → COALESCE sert le FR)."
-      - "Tests Controller préfixe /{_locale} (DB spicymatch_test absente en local)."
+      - "Tests Controller préfixe /{_locale} : suite Controller en CI depuis la rationalisation (DB spicymatch_test seedée en local)."
 
   rgpd:
     cookie_consent:

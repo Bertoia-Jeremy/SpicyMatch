@@ -92,7 +92,7 @@ final class CulinaryContextTest extends TestCase
     {
         $ctx = CulinaryContext::fromRequest('oil');
         self::assertSame('oil', $ctx->matrix->value);
-        self::assertSame('Huile', $ctx->matrix->label());
+        self::assertSame('enum.matrix.oil', $ctx->matrix->label());
     }
 
     // ── Phase 3 : extension fatRatio / waterRatio / temps / température ──────
@@ -155,7 +155,7 @@ final class CulinaryContextTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('waterRatio');
-        new CulinaryContext(fatRatio: 1.5, waterRatio: -0.5);
+        new CulinaryContext(fatRatio: 0.5, waterRatio: -0.5);
     }
 
     // ── Validation : somme des ratios ≠ 1 ────────────────────────────────────

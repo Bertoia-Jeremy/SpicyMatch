@@ -4,18 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
-/**
- * Regression guard: the Nelmio security bundle must attach the expected headers
- * on every HTTP response. Dropping the bundle or misconfiguring CSP would
- * silently reopen clickjacking / XSS surface.
- */
 final class SecurityHeadersTest extends WebTestCase
 {
-    /**
-     * @dataProvider publicRoutesProvider
-     */
+    #[DataProvider('publicRoutesProvider')]
     public function testResponseExposesSecurityHeaders(string $path): void
     {
         $client = static::createClient();
@@ -46,6 +40,6 @@ final class SecurityHeadersTest extends WebTestCase
      */
     public static function publicRoutesProvider(): array
     {
-        return [['/'], ['/login'], ['/spices']];
+        return [['/fr/'], ['/login'], ['/fr/epices/']];
     }
 }

@@ -8,6 +8,8 @@ use App\Entity\Spices;
 use App\Repository\SpicesRepository;
 use App\Service\Match\CompatibleSpiceFinder;
 use App\Service\SpiceGroupFinderService;
+use App\ValueObject\Match\CulinaryContext;
+use App\ValueObject\Match\MortarIds;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
@@ -88,7 +90,7 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         self::assertNotNull($thym);
         self::assertNotNull($origan);
 
-        $results = $this->compatibleSpiceFinder->findCompatible([$thym->getId(), $origan->getId()], 100);
+        $results = $this->findCompatibleByIds([$thym->getId(), $origan->getId()]);
 
         self::assertNotEmpty($results, 'Thym + Origan should have compatible spices via OAV engine');
         self::assertGreaterThanOrEqual(3, count($results), 'At least 3 compatible spices expected');
@@ -107,7 +109,7 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         $thym = $this->findSpiceByName('Thym Commun');
         self::assertNotNull($thym);
 
-        $results = $this->compatibleSpiceFinder->findCompatible([$thym->getId()], 100);
+        $results = $this->findCompatibleByIds([$thym->getId()]);
 
         self::assertNotEmpty($results);
         foreach ($results as $r) {
@@ -124,7 +126,7 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         $thym = $this->findSpiceByName('Thym Commun');
         self::assertNotNull($thym);
 
-        $results = $this->compatibleSpiceFinder->findCompatible([$thym->getId()], 100);
+        $results = $this->findCompatibleByIds([$thym->getId()]);
         $origan = array_filter($results, fn ($r) => 'Origan Méditerranéen' === $r['name']);
 
         self::assertNotEmpty($origan, 'Origan should appear as compatible with Thym via OAV');
@@ -138,7 +140,7 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         $thym = $this->findSpiceByName('Thym Commun');
         self::assertNotNull($thym);
 
-        $results = $this->compatibleSpiceFinder->findCompatible([$thym->getId()], 100);
+        $results = $this->findCompatibleByIds([$thym->getId()]);
         self::assertNotEmpty($results);
 
         $scores = array_column($results, 'score');
@@ -156,7 +158,7 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         $thym = $this->findSpiceByName('Thym Commun');
         self::assertNotNull($thym);
 
-        $results = $this->compatibleSpiceFinder->findCompatible([$thym->getId()], 100);
+        $results = $this->findCompatibleByIds([$thym->getId()]);
         self::assertNotEmpty($results);
 
         $required = ['id', 'name', 'file', 'color', 'groupName', 'score', 'agId', 'stId', 'typeName'];
@@ -176,7 +178,7 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         self::assertNotNull($thym);
         self::assertNotNull($origan);
 
-        $results = $this->compatibleSpiceFinder->findCompatible([$thym->getId(), $origan->getId()], 100);
+        $results = $this->findCompatibleByIds([$thym->getId(), $origan->getId()]);
 
         $resultIds = array_column($results, 'id');
         self::assertNotContains($thym->getId(), $resultIds, 'Thym must not appear in its own results');
@@ -343,6 +345,16 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
     // ──────────────────────────────────────────────────────────────────────────
     // Helpers
     // ──────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @param int[] $ids
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function findCompatibleByIds(array $ids): array
+    {
+        return $this->compatibleSpiceFinder->findCompatible(new MortarIds($ids), 100, CulinaryContext::default());
+    }
 
     private function findSpiceByName(string $name): ?Spices
     {

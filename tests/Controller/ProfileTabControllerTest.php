@@ -10,6 +10,15 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class ProfileTabControllerTest extends WebTestCase
 {
+    public function testAnonymousUserIsRedirectedToLogin(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/fr/users/profile');
+
+        self::assertResponseRedirects('/login');
+    }
+
     public function testProfileShellRendersTabBar(): void
     {
         $client = static::createClient();

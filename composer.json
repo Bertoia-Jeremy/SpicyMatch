@@ -102,11 +102,12 @@
         "check-cs": "vendor/bin/ecs check --ansi",
         "fix-cs": "vendor/bin/ecs check --fix --ansi",
         "rector-dry": "vendor/bin/rector process --dry-run",
-        "rector" : "vendor/bin/rector process",
+        "rector": "vendor/bin/rector process",
         "phpstan": "php -d memory_limit=256M vendor/bin/phpstan analyze",
         "test-unit": "vendor/bin/phpunit --testsuite=Unit --no-coverage",
         "schema-test": "php bin/console doctrine:schema:update --env=test --force",
-        "test-api": "vendor/bin/phpunit tests/Controller/Api --no-coverage",
+        "test-integration": "vendor/bin/phpunit --testsuite=Integration --no-coverage",
+        "test-controller": "vendor/bin/phpunit --testsuite=Controller --no-coverage",
         "check-data": [
             "php bin/console app:check:compounds",
             "php bin/console app:check:data"
@@ -116,7 +117,8 @@
             "@phpstan",
             "@test-unit",
             "@schema-test",
-            "@test-api",
+            "@test-integration",
+            "@test-controller",
             "@check-data"
         ]
     },

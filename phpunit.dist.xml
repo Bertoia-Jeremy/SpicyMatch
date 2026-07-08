@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         stopOnFailure="false"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Service</directory>
+            <directory>tests/Entity</directory>
+            <directory>tests/Enum</directory>
+            <directory>tests/Gamification</directory>
+            <directory>tests/MessageHandler</directory>
+            <directory>tests/Twig</directory>
+            <directory>tests/ValueObject</directory>
+            <directory>tests/EventSubscriber</directory>
+        </testsuite>
+        <testsuite name="Integration">
+            <directory>tests/Integration</directory>
+            <directory>tests/Repository</directory>
+        </testsuite>
+        <testsuite name="Controller">
+            <directory>tests/Controller</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory>src</directory>
+        </include>
+    </source>
+
+    <php>
+        <ini name="display_errors" value="1"/>
+        <env name="APP_ENV" value="test"/>
+        <env name="KERNEL_CLASS" value="App\Kernel"/>
+        <env name="DATABASE_URL" value="mysql://root:root@mysql:3306/spicymatch?serverVersion=10.4.11-Mariadb"/>
+
+        <!-- ###+ sentry/sentry-symfony ### -->
+        <env name="SENTRY_DSN" value=""/>
+        <!-- ###- sentry/sentry-symfony ### -->
+    </php>
+</phpunit>

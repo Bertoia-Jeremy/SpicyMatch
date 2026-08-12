@@ -152,11 +152,13 @@
 
             {% else %}
                 <a href="{{ path('app_login') }}"
+                   x-data="gateTrigger('', 'login')" @click="trigger($event)"
                    class="hidden lg:inline-flex items-center px-4 py-2 rounded-full border text-sm font-medium transition-colors hover:border-copper"
                    style="border-color: rgba(184,134,74,0.4); color: var(--color-ink-deep);">
                     {{ 'ui.common.login'|trans }}
                 </a>
                 <a href="{{ path('index_register') }}"
+                   x-data="gateTrigger('', 'register')" @click="trigger($event)"
                    class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold transition-colors hover:opacity-90"
                    style="background: var(--color-paprika-700); color: white;">
                     {{ 'ui.common.register'|trans }}
@@ -355,7 +357,8 @@
                 {% else %}
                     <p class="font-display italic text-[14px] mb-5"
                        style="color: var(--color-copper-text)">{{ 'ui.navbar.join_subtitle'|trans }}</p>
-                    <a href="{{ path('index_register') }}" @click="close()"
+                    <a href="{{ path('index_register') }}"
+                       x-data="gateTrigger('', 'register')" @click="trigger($event)"
                        class="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
                        style="background: var(--color-paprika-700); color: white;">
                         {{ 'ui.navbar.create_account'|trans }}
@@ -377,7 +380,8 @@
                     <a href="{{ path('app_logout') }}"
                        class="spice-underline hover:text-paprika-700 transition-colors">{{ 'ui.common.logout'|trans }}</a>
                 {% else %}
-                    <a href="{{ path('app_login') }}" @click="close()"
+                    <a href="{{ path('app_login') }}"
+                       x-data="gateTrigger('', 'login')" @click="trigger($event)"
                        class="spice-underline hover:text-paprika-700 transition-colors">{{ 'ui.common.login'|trans }}</a>
                 {% endif %}
             </div>
@@ -585,7 +589,8 @@
                         </li>
                     </ul>
                 {% else %}
-                    <a href="{{ path('index_register') }}" @click="mobileClose()"
+                    <a href="{{ path('index_register') }}"
+                       x-data="gateTrigger('', 'register')" @click="trigger($event)"
                        class="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
                        style="background: var(--color-paprika-700); color: white;">
                         {{ 'ui.navbar.create_account'|trans }} <span aria-hidden="true">→</span>
@@ -606,7 +611,8 @@
                    class="font-mono text-[11px] transition-colors hover:text-paprika-700"
                    style="color: rgba(74,50,37,0.75)">{{ 'ui.common.logout'|trans }}</a>
             {% else %}
-                <a href="{{ path('app_login') }}" @click="mobileClose()"
+                <a href="{{ path('app_login') }}"
+                   x-data="gateTrigger('', 'login')" @click="trigger($event)"
                    class="font-mono text-[11px] transition-colors hover:text-paprika-700"
                    style="color: rgba(74,50,37,0.75)">{{ 'ui.common.login'|trans }}</a>
             {% endif %}

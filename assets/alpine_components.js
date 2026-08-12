@@ -87,6 +87,7 @@ export default function registerAlpineComponents(Alpine) {
         mobileOpen: false,
         previouslyFocused: null,
         _keyHandler: null,
+        _gateHandler: null,
 
         init() {
             this.$watch('open', (v) => {
@@ -124,10 +125,13 @@ export default function registerAlpineComponents(Alpine) {
                 if (e.key === 'Tab' && (this.open || this.mobileOpen)) loopTab(e, this.$el);
             };
             window.addEventListener('keydown', this._keyHandler);
+            this._gateHandler = () => { this.open = false; this.mobileOpen = false; };
+            window.addEventListener('gate-login', this._gateHandler);
         },
 
         destroy() {
             window.removeEventListener('keydown', this._keyHandler);
+            window.removeEventListener('gate-login', this._gateHandler);
         },
 
         _restoreFocus() {
@@ -915,15 +919,20 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
-    Alpine.data('gateTrigger', (url = '') => ({
+    Alpine.data('gateTrigger', (url = '', tab = 'login') => ({
         url,
-        trigger() {
-            window.dispatchEvent(new CustomEvent('gate-login', { detail: { url: this.url } }));
+        tab,
+        trigger(event) {
+            if (!document.querySelector('[x-data="gateLoginModal"]')) return;
+            event.preventDefault();
+            const target = this.url || (window.location.pathname + window.location.search);
+            window.dispatchEvent(new CustomEvent('gate-login', { detail: { url: target, tab: this.tab } }));
         },
     }));
 
     Alpine.data('gateLoginModal', () => ({
         open: false,
+        activeTab: 'login',
         targetUrl: '',
         previouslyFocused: null,
 
@@ -932,6 +941,7 @@ export default function registerAlpineComponents(Alpine) {
         },
 
         onGate(evt) {
+            this.activeTab = evt.detail.tab || 'login';
             this.targetUrl = evt.detail.url;
             this.previouslyFocused = document.activeElement;
             this.open = true;
@@ -951,8 +961,20 @@ export default function registerAlpineComponents(Alpine) {
             loopTab(e, this.$el);
         },
 
-        registerHref() {
-            return this.$root.dataset.registerBaseUrl + '?target=' + encodeURIComponent(this.targetUrl);
+        showLogin() {
+            this.activeTab = 'login';
+        },
+
+        showRegister() {
+            this.activeTab = 'register';
+        },
+
+        isLoginTab() {
+            return 'login' === this.activeTab;
+        },
+
+        isRegisterTab() {
+            return 'register' === this.activeTab;
         },
     }));
 

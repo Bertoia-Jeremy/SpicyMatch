@@ -41,7 +41,8 @@ class RegistrationController extends AbstractController
         LoginFormAuthenticator $loginFormAuthenticator,
         TranslatorInterface $translator,
     ): Response {
-        $target = $this->redirectTargetGuard->safeOrNull($request->query->get('target'));
+        $target = $this->redirectTargetGuard->safeOrNull($request->request->get('_target_path'))
+            ?? $this->redirectTargetGuard->safeOrNull($request->query->get('target'));
 
         $user = $this->usersFactory->create();
         $form = $this->createForm(RegistrationFormType::class, $user);

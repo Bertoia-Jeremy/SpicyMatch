@@ -24,6 +24,8 @@ use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 #[AllowMockObjectsWithoutExpectations]
 class SpicyMatchTest extends TestCase
@@ -125,13 +127,19 @@ class SpicyMatchTest extends TestCase
         $tokenStorage->method('getToken')
             ->willReturn(null);
 
+        $authChecker = $this->createMock(AuthorizationCheckerInterface::class);
+        $authChecker->method('isGranted')
+            ->willReturn(false);
+
         $container = $this->createMock(ContainerInterface::class);
         $container->method('has')
-            ->willReturnCallback(static fn (string $id): bool => 'security.token_storage' === $id);
+            ->willReturnCallback(static fn (string $id): bool => in_array($id, ['security.token_storage', 'security.authorization_checker'], true));
         $container->method('get')
-            ->willReturnCallback(
-                static fn (string $id): ?object => 'security.token_storage' === $id ? $tokenStorage : null
-            );
+            ->willReturnCallback(static fn (string $id): ?object => match ($id) {
+                'security.token_storage' => $tokenStorage,
+                'security.authorization_checker' => $authChecker,
+                default => null,
+            });
 
         return $container;
     }
@@ -769,5 +777,17 @@ class SpicyMatchTest extends TestCase
         $component->fatRatio = 1.0;
         $component->cookingTimeMin = 10;
         self::assertSame('Sauté', $component->getCulinaryLabel());
+    }
+
+    public function testNextStepDeniesAnonymousUserInsteadOfCrashing(): void
+    {
+        $component = $this->makeComponent();
+
+        $this->spicyMatchService->expects(self::never())
+            ->method('createFromSelection');
+
+        $this->expectException(AccessDeniedException::class);
+
+        $component->nextStep();
     }
 }

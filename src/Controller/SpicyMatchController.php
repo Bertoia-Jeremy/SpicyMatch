@@ -18,7 +18,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/{_locale}/spicymatch', defaults: [
     '_locale' => 'fr',
 ])]
-#[IsGranted('ROLE_USER')]
 class SpicyMatchController extends AbstractController
 {
     #[Route('/', name: 'index_spicy_match')]
@@ -28,6 +27,7 @@ class SpicyMatchController extends AbstractController
     }
 
     #[Route('/view/{id<\d+>}', name: 'view_spicy_match')]
+    #[IsGranted('ROLE_USER')]
     public function view(
         SpicyMatch $spicyMatch,
         SpicyMatchHistoryFactory $spicyMatchHistoryFactory,

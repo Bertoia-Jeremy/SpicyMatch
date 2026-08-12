@@ -458,10 +458,12 @@ class SpicyMatch extends AbstractController
     #[LiveAction]
     public function nextStep(): \Symfony\Component\HttpFoundation\RedirectResponse
     {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
         $isManual = 'manual' === $this->mode;
 
         $user = $this->getUser();
-        \assert($user instanceof Users || null === $user);
+        \assert($user instanceof Users);
 
         $selectedIds = array_map('intval', $this->spices['selectedSpices']);
         $compatibleSpices = $isManual ? [] : $this->getResults()['compatibleSpices'];

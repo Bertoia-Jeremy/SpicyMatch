@@ -8,6 +8,7 @@ use App\Entity\Achievement;
 use App\Entity\UserProgression;
 use App\Enum\AchievementRarity;
 use App\Enum\AchievementTrigger;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class UserProgressionTest extends TestCase
@@ -21,37 +22,23 @@ final class UserProgressionTest extends TestCase
 
     // ── Level formula ─────────────────────────────────────────────────────────
 
-    public function testLevelOneAtZeroXp(): void
+    #[DataProvider('levelFormulaProvider')]
+    public function testLevelFromXp(int $xp, int $expectedLevel): void
     {
-        self::assertSame(1, $this->progression->level);
+        $this->progression->addXp($xp);
+        self::assertSame($expectedLevel, $this->progression->level);
     }
 
-    public function testLevelTwoAt247Xp(): void
+    /**
+     * @return iterable<string, array{int, int}>
+     */
+    public static function levelFormulaProvider(): iterable
     {
-        // 100 * 2^1.3 = 246.22 => needs 247 for level 2
-        $this->progression->addXp(247);
-        self::assertSame(2, $this->progression->level);
-    }
-
-    public function testLevelThreeAt418Xp(): void
-    {
-        // 100 * 3^1.3 = 417.11 => needs 418 for level 3
-        $this->progression->addXp(418);
-        self::assertSame(3, $this->progression->level);
-    }
-
-    public function testLevel50At16200Xp(): void
-    {
-        // floor((16200 / 100) ^ (1/1.3)) = floor(162^0.769) = 50
-        $this->progression->addXp(16200);
-        self::assertSame(50, $this->progression->level);
-    }
-
-    public function testLevelScalesWithoutCap(): void
-    {
-        // floor((99999 / 100) ^ (1/1.3)) = 203 — no cap
-        $this->progression->addXp(99999);
-        self::assertSame(203, $this->progression->level);
+        yield 'level 1 at zero xp' => [0, 1];
+        yield 'level 2 at 247 xp' => [247, 2];
+        yield 'level 3 at 418 xp' => [418, 3];
+        yield 'level 50 at 16200 xp' => [16200, 50];
+        yield 'level 203 at 99999 xp (no cap)' => [99999, 203];
     }
 
     // ── XP to next level ─────────────────────────────────────────────────────
@@ -132,45 +119,7 @@ final class UserProgressionTest extends TestCase
         self::assertLessThanOrEqual(100.0, $percent);
     }
 
-    // ── updatedAt tracking ─────────────────────────────────────────────────
-
-    public function testAddXpUpdatesTimestamp(): void
-    {
-        $before = $this->progression->getUpdatedAt();
-        usleep(1000); // 1ms
-        $this->progression->addXp(10);
-        self::assertGreaterThanOrEqual($before, $this->progression->getUpdatedAt());
-    }
-
-    public function testSetTotalMatchesUpdatesTimestamp(): void
-    {
-        $before = $this->progression->getUpdatedAt();
-        usleep(1000);
-        $this->progression->setTotalMatches(5);
-        self::assertGreaterThanOrEqual($before, $this->progression->getUpdatedAt());
-    }
-
-    public function testDisableGamificationUpdatesTimestamp(): void
-    {
-        $before = $this->progression->getUpdatedAt();
-        usleep(1000);
-        $this->progression->disableGamification();
-        self::assertGreaterThanOrEqual($before, $this->progression->getUpdatedAt());
-    }
-
-    // ── setters / incrementers ─────────────────────────────────────────────
-
-    public function testSetUniqueSpicesUsed(): void
-    {
-        $this->progression->setUniqueSpicesUsed(42);
-        self::assertSame(42, $this->progression->getUniqueSpicesUsed());
-    }
-
-    public function testSetDiscoveries(): void
-    {
-        $this->progression->setDiscoveries(15);
-        self::assertSame(15, $this->progression->getDiscoveries());
-    }
+    // ── incrementers ────────────────────────────────────────────────────────
 
     public function testIncrementDiscoveries(): void
     {

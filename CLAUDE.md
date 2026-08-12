@@ -76,12 +76,20 @@ conventions:
   commits: Conventional Commits (feat/fix/chore/refactor + scope optionnel)
   php: PSR-12, short arrays, attributs PHP 8+ (pas d'annotations)
   testing:
-    suites: Unit (tests/Service|Entity|Enum|Gamification|MessageHandler|Twig), Integration (tests/Integration, DB), Controller
+    suites: "Unit (tests/Service|Entity|Enum|Gamification|MessageHandler|Twig|ValueObject|EventSubscriber, TestCase pur), Integration (tests/Integration|Repository, KernelTestCase+DB), Controller (WebTestCase+DB). Les 3 suites tournent en CI (composer ci). ⚠️ Tout nouveau répertoire sous tests/ DOIT être ajouté à une <testsuite> de phpunit.dist.xml sinon jamais exécuté."
+    regles_or:
+      - "Un comportement, un owner : testé exhaustivement au niveau le plus bas qui le prouve (VO/service), câblage seul au-dessus (1 nominal + 1 erreur)."
+      - "≥3 variantes de même forme → #[DataProvider] avec datasets nommés (yield 'intention' => [...]) ; le nom du dataset remplace le commentaire."
+      - "Asserter l'état/l'output, pas le trajet. Exception : service de persistance à EM mocké → persist/flush EST le seul effet observable, le garder (NewsletterService, SpicyMatchService)."
+      - "Repository avec SQL/DQL non trivial (JOIN/HAVING/natif) → test DB réelle obligatoire (mock de repo ne prouve rien). Ex CandidateVetoRepositoryTest (gotcha spices_id/spice_id)."
+      - "Zéro test d'accesseur pur (PHPStan couvre le typage). Zéro commentaire (y compris séparateurs // ── xxx ──)."
     gotchas:
       - Classes final → pas de createMock() → vraie instance + dépendances mockées (ex AchievementChecker)
       - PHPUnit 13 : createMock() sans expects() = notice → createStub() OU #[AllowMockObjectsWithoutExpectations]
+      - "with*() sans expects() = deprecation PHPUnit 14 → willReturnCallback() sur les stubs de routage (ex container mock SpicyMatchTest)"
       - PHPUnit 13 first-wins : willReturn() dans setUp() prime sur willReturnCallback() du test → pas de stubs globaux en setUp() si override nécessaire
       - Propriétés private en test Entity : new \ReflectionProperty(Cls::class, 'field')->setValue($obj, $val)
+      - "Integration DB sans polluer : $connection->beginTransaction() → insert → assert → rollBack() en finally (ex FlavorGraphAffinityRepositoryTest). QueryCountTrait cassé (DebugStack retiré en DBAL 4)."
 
 architecture:
   pattern: MVC Symfony (Controller > Service > Repository > Entity), REST via controllers (pas d'API Platform), admin EasyAdmin

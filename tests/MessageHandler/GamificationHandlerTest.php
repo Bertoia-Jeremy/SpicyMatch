@@ -57,37 +57,6 @@ final class GamificationHandlerTest extends TestCase
         ($this->handler)(new MatchSavedEvent(999, 1));
     }
 
-    public function testInvokeCreatesUserProgressionIfNull(): void
-    {
-        $progression = new UserProgression();
-        $user = $this->createMock(Users::class);
-        $user->method('getStats')
-            ->willReturn(new UserStat());
-
-        $spicyMatch = $this->createMock(SpicyMatch::class);
-        $spicyMatch->method('getUser')
-            ->willReturn($user);
-
-        $history = $this->createMock(SpicyMatchHistory::class);
-        $history->method('getSpicyMatch')
-            ->willReturn($spicyMatch);
-
-        $this->historyRepo->method('find')
-            ->willReturn($history);
-        $this->historyRepo->method('countByUser')
-            ->willReturn(0);
-        $this->historyRepo->method('countDistinctSpicesByUser')
-            ->willReturn(0);
-
-        // Progression creation is now delegated to the manager.
-        $this->manager->expects(self::once())
-            ->method('getOrCreateProgression')
-            ->with($user)
-            ->willReturn($progression);
-
-        ($this->handler)(new MatchSavedEvent(1, 1));
-    }
-
     public function testInvokeSetsMatchCountFromDb(): void
     {
         $progression = new UserProgression();

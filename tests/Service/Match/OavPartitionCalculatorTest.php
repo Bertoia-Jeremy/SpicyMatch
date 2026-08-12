@@ -9,6 +9,7 @@ use App\Entity\CompoundPhysical;
 use App\Enum\OdtMatrix;
 use App\Service\Match\OavPartitionCalculator;
 use App\ValueObject\Match\CulinaryContext;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class OavPartitionCalculatorTest extends TestCase
@@ -311,27 +312,30 @@ final class OavPartitionCalculatorTest extends TestCase
 
     // ── needsCorrection() ─────────────────────────────────────────────────────
 
-    public function testNeedsCorrectionFalseForDefaultContext(): void
+    #[DataProvider('needsCorrectionProvider')]
+    public function testNeedsCorrection(bool $expected, CulinaryContext $ctx): void
     {
-        self::assertFalse($this->calc->needsCorrection(new CulinaryContext()));
+        self::assertSame($expected, $this->calc->needsCorrection($ctx));
     }
 
-    public function testNeedsCorrectionFalseForPureWaterNoCooking(): void
+    /**
+     * @return iterable<string, array{bool, CulinaryContext}>
+     */
+    public static function needsCorrectionProvider(): iterable
     {
-        $ctx = new CulinaryContext(OdtMatrix::WATER, fatRatio: 0.0, waterRatio: 1.0);
-        self::assertFalse($this->calc->needsCorrection($ctx));
-    }
-
-    public function testNeedsCorrectionTrueWhenFatRatioPositive(): void
-    {
-        $ctx = new CulinaryContext(OdtMatrix::WATER, fatRatio: 0.3, waterRatio: 0.7);
-        self::assertTrue($this->calc->needsCorrection($ctx));
-    }
-
-    public function testNeedsCorrectionTrueWhenCookingTimePositive(): void
-    {
-        $ctx = new CulinaryContext(OdtMatrix::WATER, cookingTimeMin: 10);
-        self::assertTrue($this->calc->needsCorrection($ctx));
+        yield 'neutral default skips correction' => [false, new CulinaryContext()];
+        yield 'pure water without cooking skips correction' => [
+            false,
+            new CulinaryContext(OdtMatrix::WATER, fatRatio: 0.0, waterRatio: 1.0),
+        ];
+        yield 'positive fat ratio needs correction' => [
+            true,
+            new CulinaryContext(OdtMatrix::WATER, fatRatio: 0.3, waterRatio: 0.7),
+        ];
+        yield 'positive cooking time needs correction' => [
+            true,
+            new CulinaryContext(OdtMatrix::WATER, cookingTimeMin: 10),
+        ];
     }
 
     // ── correctionFactor() ────────────────────────────────────────────────────

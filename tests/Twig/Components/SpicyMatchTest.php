@@ -127,11 +127,11 @@ class SpicyMatchTest extends TestCase
 
         $container = $this->createMock(ContainerInterface::class);
         $container->method('has')
-            ->with('security.token_storage')
-            ->willReturn(true);
+            ->willReturnCallback(static fn (string $id): bool => 'security.token_storage' === $id);
         $container->method('get')
-            ->with('security.token_storage')
-            ->willReturn($tokenStorage);
+            ->willReturnCallback(
+                static fn (string $id): ?object => 'security.token_storage' === $id ? $tokenStorage : null
+            );
 
         return $container;
     }

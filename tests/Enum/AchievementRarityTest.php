@@ -5,28 +5,26 @@ declare(strict_types=1);
 namespace App\Tests\Enum;
 
 use App\Enum\AchievementRarity;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class AchievementRarityTest extends TestCase
 {
-    public function testCommonLabel(): void
+    #[DataProvider('labelProvider')]
+    public function testLabelIsTranslationKey(AchievementRarity $rarity, string $expected): void
     {
-        self::assertSame('enum.rarity.common', AchievementRarity::COMMON->label());
+        self::assertSame($expected, $rarity->label());
     }
 
-    public function testRareLabel(): void
+    /**
+     * @return iterable<string, array{AchievementRarity, string}>
+     */
+    public static function labelProvider(): iterable
     {
-        self::assertSame('enum.rarity.rare', AchievementRarity::RARE->label());
-    }
-
-    public function testEpicLabel(): void
-    {
-        self::assertSame('enum.rarity.epic', AchievementRarity::EPIC->label());
-    }
-
-    public function testLegendaryLabel(): void
-    {
-        self::assertSame('enum.rarity.legendary', AchievementRarity::LEGENDARY->label());
+        yield 'common' => [AchievementRarity::COMMON, 'enum.rarity.common'];
+        yield 'rare' => [AchievementRarity::RARE, 'enum.rarity.rare'];
+        yield 'epic' => [AchievementRarity::EPIC, 'enum.rarity.epic'];
+        yield 'legendary' => [AchievementRarity::LEGENDARY, 'enum.rarity.legendary'];
     }
 
     public function testDbValuesUnchanged(): void

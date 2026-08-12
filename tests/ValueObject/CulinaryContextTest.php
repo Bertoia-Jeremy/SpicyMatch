@@ -6,112 +6,95 @@ namespace App\Tests\ValueObject;
 
 use App\Enum\OdtMatrix;
 use App\ValueObject\Match\CulinaryContext;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class CulinaryContextTest extends TestCase
 {
     // ── Constructeur & valeurs par défaut ──────────────────────────────────────
 
-    public function testDefaultMatrixIsAir(): void
+    public function testDefaultsAreNeutralAir(): void
     {
         $ctx = new CulinaryContext();
+
         self::assertSame(OdtMatrix::AIR, $ctx->matrix);
+        self::assertSame(0.0, $ctx->fatRatio);
+        self::assertSame(1.0, $ctx->waterRatio);
+        self::assertSame(0, $ctx->cookingTimeMin);
+        self::assertSame(20, $ctx->temperatureCelsius);
     }
 
-    public function testDefaultFactoryReturnsAir(): void
+    public function testDefaultFactoryReturnsNeutralAir(): void
     {
         $ctx = CulinaryContext::default();
+
         self::assertSame(OdtMatrix::AIR, $ctx->matrix);
+        self::assertFalse($ctx->isCustom());
+    }
+
+    public function testIsReadonly(): void
+    {
+        self::assertTrue((new \ReflectionClass(CulinaryContext::class))->isReadOnly());
     }
 
     // ── fromRequest : valeurs valides ─────────────────────────────────────────
 
-    public function testFromRequestAcceptsAir(): void
+    #[DataProvider('validMatrixRequestProvider')]
+    public function testFromRequestAcceptsValidMatrix(string $raw, OdtMatrix $expected): void
     {
-        $ctx = CulinaryContext::fromRequest('air');
-        self::assertSame(OdtMatrix::AIR, $ctx->matrix);
+        self::assertSame($expected, CulinaryContext::fromRequest($raw)->matrix);
     }
 
-    public function testFromRequestAcceptsWater(): void
+    /**
+     * @return iterable<string, array{string, OdtMatrix}>
+     */
+    public static function validMatrixRequestProvider(): iterable
     {
-        $ctx = CulinaryContext::fromRequest('water');
-        self::assertSame(OdtMatrix::WATER, $ctx->matrix);
-    }
-
-    public function testFromRequestAcceptsOil(): void
-    {
-        $ctx = CulinaryContext::fromRequest('oil');
-        self::assertSame(OdtMatrix::OIL, $ctx->matrix);
-    }
-
-    public function testFromRequestIsTrimmingWhitespace(): void
-    {
-        $ctx = CulinaryContext::fromRequest('  water  ');
-        self::assertSame(OdtMatrix::WATER, $ctx->matrix);
-    }
-
-    public function testFromRequestIsCaseInsensitive(): void
-    {
-        $ctx = CulinaryContext::fromRequest('AIR');
-        self::assertSame(OdtMatrix::AIR, $ctx->matrix);
+        yield 'air' => ['air', OdtMatrix::AIR];
+        yield 'water' => ['water', OdtMatrix::WATER];
+        yield 'oil' => ['oil', OdtMatrix::OIL];
+        yield 'trimmed whitespace' => ['  water  ', OdtMatrix::WATER];
+        yield 'case insensitive' => ['AIR', OdtMatrix::AIR];
     }
 
     // ── fromRequest : valeurs invalides ──────────────────────────────────────
 
-    public function testFromRequestThrowsOnInvalidMatrix(): void
+    #[DataProvider('invalidMatrixRequestProvider')]
+    public function testFromRequestThrowsOnInvalidMatrix(string $raw): void
     {
         $this->expectException(\ValueError::class);
-        CulinaryContext::fromRequest('steam');
+        CulinaryContext::fromRequest($raw);
     }
 
-    public function testFromRequestThrowsOnEmptyString(): void
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function invalidMatrixRequestProvider(): iterable
     {
-        $this->expectException(\ValueError::class);
-        CulinaryContext::fromRequest('');
+        yield 'unknown matrix' => ['steam'];
+        yield 'empty string' => [''];
+        yield 'numeric' => ['42'];
     }
 
-    public function testFromRequestThrowsOnNumeric(): void
+    public function testMatrixLabelIsTranslationKey(): void
     {
-        $this->expectException(\ValueError::class);
-        CulinaryContext::fromRequest('42');
+        $matrix = CulinaryContext::fromRequest('oil')->matrix;
+
+        self::assertSame('oil', $matrix->value);
+        self::assertSame('enum.matrix.oil', $matrix->label());
     }
 
-    // ── Immutabilité (readonly) ───────────────────────────────────────────────
+    // ── Ratios / temps / température acceptés ─────────────────────────────────
 
-    public function testIsReadonly(): void
+    public function testSingleArgConstructorLeavesOtherFieldsNeutral(): void
     {
-        $ctx = CulinaryContext::default();
-        $reflection = new \ReflectionClass($ctx);
+        $ctx = new CulinaryContext(OdtMatrix::WATER);
 
-        self::assertTrue($reflection->isReadOnly(), 'CulinaryContext doit être une classe readonly');
-    }
-
-    // ── Valeur de l'enum (intégration OdtMatrix) ─────────────────────────────
-
-    public function testMatrixValueMatchesEnumValue(): void
-    {
-        $ctx = CulinaryContext::fromRequest('oil');
-        self::assertSame('oil', $ctx->matrix->value);
-        self::assertSame('enum.matrix.oil', $ctx->matrix->label());
-    }
-
-    // ── Phase 3 : extension fatRatio / waterRatio / temps / température ──────
-
-    public function testDefaultRatiosAreWaterOnly(): void
-    {
-        $ctx = new CulinaryContext();
+        self::assertSame(OdtMatrix::WATER, $ctx->matrix);
         self::assertSame(0.0, $ctx->fatRatio);
         self::assertSame(1.0, $ctx->waterRatio);
-    }
-
-    public function testDefaultCookingTimeIsZero(): void
-    {
-        self::assertSame(0, (new CulinaryContext())->cookingTimeMin);
-    }
-
-    public function testDefaultTemperatureIs20(): void
-    {
-        self::assertSame(20, (new CulinaryContext())->temperatureCelsius);
+        self::assertSame(0, $ctx->cookingTimeMin);
+        self::assertSame(20, $ctx->temperatureCelsius);
     }
 
     public function testAcceptsPureOilContext(): void
@@ -123,7 +106,6 @@ final class CulinaryContextTest extends TestCase
 
     public function testAcceptsMixedEmulsion(): void
     {
-        // Vinaigrette typique : 75 % huile, 25 % eau
         $ctx = new CulinaryContext(OdtMatrix::OIL, fatRatio: 0.75, waterRatio: 0.25);
         self::assertEqualsWithDelta(1.0, $ctx->fatRatio + $ctx->waterRatio, 0.001);
     }
@@ -135,178 +117,149 @@ final class CulinaryContextTest extends TestCase
         self::assertSame(100, $ctx->temperatureCelsius);
     }
 
-    // ── Validation : ratios hors plage ────────────────────────────────────────
-
-    public function testThrowsWhenFatRatioBelowZero(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('fatRatio');
-        new CulinaryContext(fatRatio: -0.1, waterRatio: 1.1);
-    }
-
-    public function testThrowsWhenFatRatioAboveOne(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('fatRatio');
-        new CulinaryContext(fatRatio: 1.5, waterRatio: -0.5);
-    }
-
-    public function testThrowsWhenWaterRatioBelowZero(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('waterRatio');
-        new CulinaryContext(fatRatio: 0.5, waterRatio: -0.5);
-    }
-
-    // ── Validation : somme des ratios ≠ 1 ────────────────────────────────────
-
-    public function testThrowsWhenRatiosDoNotSumToOne(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('≈ 1');
-        new CulinaryContext(fatRatio: 0.3, waterRatio: 0.3);
-    }
-
     public function testRatiosWithinToleranceAreAccepted(): void
     {
-        // Tolérance numérique : 0.0001 d'écart est OK
         $ctx = new CulinaryContext(fatRatio: 0.4, waterRatio: 0.6001);
         self::assertSame(0.4, $ctx->fatRatio);
     }
 
-    // ── Validation : cookingTime négatif ──────────────────────────────────────
-
-    public function testThrowsWhenCookingTimeNegative(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('cookingTimeMin');
-        new CulinaryContext(cookingTimeMin: -5);
-    }
-
     public function testCookingTimeZeroIsAccepted(): void
     {
-        $ctx = new CulinaryContext(cookingTimeMin: 0);
-        self::assertSame(0, $ctx->cookingTimeMin);
+        self::assertSame(0, (new CulinaryContext(cookingTimeMin: 0))->cookingTimeMin);
     }
 
-    // ── Defaults sur arg unique ───────────────────────────────────────────────
+    // ── Validation : entrées hors plage ──────────────────────────────────────
 
-    public function testSingleArgConstructorUsesNeutralDefaults(): void
+    #[DataProvider('invalidConstructionProvider')]
+    public function testThrowsOnInvalidConstruction(string $expectedMessage, callable $factory): void
     {
-        // matrix seule → fat=0, water=1, time=0, temp=20 (contexte neutre).
-        $ctx = new CulinaryContext(OdtMatrix::WATER);
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage($expectedMessage);
+        $factory();
+    }
 
-        self::assertSame(OdtMatrix::WATER, $ctx->matrix);
-        self::assertSame(0.0, $ctx->fatRatio);
-        self::assertSame(1.0, $ctx->waterRatio);
-        self::assertSame(0, $ctx->cookingTimeMin);
-        self::assertSame(20, $ctx->temperatureCelsius);
+    /**
+     * @return iterable<string, array{string, callable(): CulinaryContext}>
+     */
+    public static function invalidConstructionProvider(): iterable
+    {
+        yield 'fat ratio below zero' => [
+            'fatRatio',
+            static fn () => new CulinaryContext(fatRatio: -0.1, waterRatio: 1.1),
+        ];
+        yield 'fat ratio above one' => [
+            'fatRatio',
+            static fn () => new CulinaryContext(fatRatio: 1.5, waterRatio: -0.5),
+        ];
+        yield 'water ratio below zero' => [
+            'waterRatio',
+            static fn () => new CulinaryContext(fatRatio: 0.5, waterRatio: -0.5),
+        ];
+        yield 'ratios do not sum to one' => [
+            '≈ 1',
+            static fn () => new CulinaryContext(fatRatio: 0.3, waterRatio: 0.3),
+        ];
+        yield 'negative cooking time' => [
+            'cookingTimeMin',
+            static fn () => new CulinaryContext(cookingTimeMin: -5),
+        ];
     }
 
     // ── isCustom() ────────────────────────────────────────────────────────────
 
-    public function testIsCustomReturnsFalseForDefault(): void
+    #[DataProvider('customContextProvider')]
+    public function testIsCustom(bool $expected, CulinaryContext $ctx): void
     {
-        self::assertFalse((new CulinaryContext())->isCustom());
+        self::assertSame($expected, $ctx->isCustom());
     }
 
-    public function testIsCustomReturnsTrueForNonAirMatrix(): void
+    /**
+     * @return iterable<string, array{bool, CulinaryContext}>
+     */
+    public static function customContextProvider(): iterable
     {
-        self::assertTrue((new CulinaryContext(OdtMatrix::WATER))->isCustom());
-    }
-
-    public function testIsCustomReturnsTrueWithFat(): void
-    {
-        self::assertTrue((new CulinaryContext(fatRatio: 0.2, waterRatio: 0.8))->isCustom());
-    }
-
-    public function testIsCustomReturnsTrueWithCooking(): void
-    {
-        self::assertTrue((new CulinaryContext(cookingTimeMin: 10))->isCustom());
-    }
-
-    public function testIsCustomReturnsTrueWithTemperatureChange(): void
-    {
-        self::assertTrue((new CulinaryContext(temperatureCelsius: 100))->isCustom());
+        yield 'neutral default is not custom' => [false, new CulinaryContext()];
+        yield 'non-air matrix is custom' => [true, new CulinaryContext(OdtMatrix::WATER)];
+        yield 'added fat is custom' => [true, new CulinaryContext(fatRatio: 0.2, waterRatio: 0.8)];
+        yield 'cooking time is custom' => [true, new CulinaryContext(cookingTimeMin: 10)];
+        yield 'temperature change is custom' => [true, new CulinaryContext(temperatureCelsius: 100)];
     }
 
     // ── getLabel() ────────────────────────────────────────────────────────────
 
-    public function testGetLabelForDefault(): void
+    #[DataProvider('labelProvider')]
+    public function testGetLabel(string $expected, CulinaryContext $ctx): void
     {
-        self::assertSame('À sec', (new CulinaryContext())->getLabel());
+        self::assertSame($expected, $ctx->getLabel());
     }
 
-    public function testGetLabelForWaterMatrix(): void
+    /**
+     * @return iterable<string, array{string, CulinaryContext}>
+     */
+    public static function labelProvider(): iterable
     {
-        self::assertSame('Eau', (new CulinaryContext(OdtMatrix::WATER))->getLabel());
-    }
-
-    public function testGetLabelForOilMatrix(): void
-    {
-        self::assertSame('Huile', (new CulinaryContext(OdtMatrix::OIL))->getLabel());
-    }
-
-    public function testGetLabelForBouillonCooking(): void
-    {
-        $ctx = new CulinaryContext(OdtMatrix::WATER, cookingTimeMin: 20, temperatureCelsius: 80);
-        self::assertSame('Bouillon', $ctx->getLabel());
-    }
-
-    public function testGetLabelForSaute(): void
-    {
-        // fat ≥ 0.75 + cooking > 0 → Sauté
-        $ctx = new CulinaryContext(
-            OdtMatrix::OIL,
-            fatRatio: 1.0,
-            waterRatio: 0.0,
-            cookingTimeMin: 10,
-            temperatureCelsius: 140
-        );
-        self::assertSame('Sauté', $ctx->getLabel());
-    }
-
-    public function testGetLabelForEmulsion(): void
-    {
-        // fat ∈ ]0, 0.75[ + cooking > 0 → Émulsion chaude
-        $ctx = new CulinaryContext(
-            OdtMatrix::WATER,
-            fatRatio: 0.5,
-            waterRatio: 0.5,
-            cookingTimeMin: 15,
-            temperatureCelsius: 70
-        );
-        self::assertSame('Émulsion chaude', $ctx->getLabel());
-    }
-
-    public function testGetLabelForConfit(): void
-    {
-        $ctx = new CulinaryContext(
-            OdtMatrix::OIL,
-            fatRatio: 0.0,
-            waterRatio: 1.0,
-            cookingTimeMin: 60,
-            temperatureCelsius: 85
-        );
-        self::assertSame('Confit', $ctx->getLabel());
+        yield 'default is dry' => ['À sec', new CulinaryContext()];
+        yield 'water matrix' => ['Eau', new CulinaryContext(OdtMatrix::WATER)];
+        yield 'oil matrix' => ['Huile', new CulinaryContext(OdtMatrix::OIL)];
+        yield 'bouillon' => [
+            'Bouillon',
+            new CulinaryContext(OdtMatrix::WATER, cookingTimeMin: 20, temperatureCelsius: 80),
+        ];
+        yield 'saute' => [
+            'Sauté',
+            new CulinaryContext(
+                OdtMatrix::OIL,
+                fatRatio: 1.0,
+                waterRatio: 0.0,
+                cookingTimeMin: 10,
+                temperatureCelsius: 140
+            ),
+        ];
+        yield 'hot emulsion' => [
+            'Émulsion chaude',
+            new CulinaryContext(
+                OdtMatrix::WATER,
+                fatRatio: 0.5,
+                waterRatio: 0.5,
+                cookingTimeMin: 15,
+                temperatureCelsius: 70
+            ),
+        ];
+        yield 'confit' => [
+            'Confit',
+            new CulinaryContext(
+                OdtMatrix::OIL,
+                fatRatio: 0.0,
+                waterRatio: 1.0,
+                cookingTimeMin: 60,
+                temperatureCelsius: 85
+            ),
+        ];
     }
 
     // ── getIcon() ────────────────────────────────────────────────────────────
 
-    public function testGetIconForDefault(): void
+    #[DataProvider('iconProvider')]
+    public function testGetIcon(string $expected, CulinaryContext $ctx): void
     {
-        self::assertSame('fa-wind', (new CulinaryContext())->getIcon());
+        self::assertSame($expected, $ctx->getIcon());
     }
 
-    public function testGetIconForCookingWithFat(): void
+    /**
+     * @return iterable<string, array{string, CulinaryContext}>
+     */
+    public static function iconProvider(): iterable
     {
-        $ctx = new CulinaryContext(
-            OdtMatrix::OIL,
-            fatRatio: 1.0,
-            waterRatio: 0.0,
-            cookingTimeMin: 10,
-            temperatureCelsius: 140
-        );
-        self::assertSame('fa-fire-flame-curved', $ctx->getIcon());
+        yield 'default is wind' => ['fa-wind', new CulinaryContext()];
+        yield 'cooking with fat is flame' => [
+            'fa-fire-flame-curved',
+            new CulinaryContext(
+                OdtMatrix::OIL,
+                fatRatio: 1.0,
+                waterRatio: 0.0,
+                cookingTimeMin: 10,
+                temperatureCelsius: 140
+            ),
+        ];
     }
 }

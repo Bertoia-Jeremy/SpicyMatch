@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller\Api;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
@@ -21,41 +22,35 @@ final class MatchControllerTest extends WebTestCase
 {
     // ── Validation des paramètres (400) ────────────────────────────────────────
 
-    public function testMissingSpicesParamReturns400(): void
+    #[DataProvider('invalidRequestProvider')]
+    public function testInvalidRequestReturns400(string $query, ?string $expectedError): void
     {
         $client = static::createClient();
-        $client->request('GET', '/api/match');
+        $client->request('GET', $query);
 
         self::assertResponseStatusCodeSame(400);
         $data = json_decode((string) $client->getResponse()->getContent(), true);
         self::assertArrayHasKey('error', $data);
+
+        if (null !== $expectedError) {
+            self::assertStringContainsString($expectedError, $data['error']);
+        }
     }
 
-    public function testEmptySpicesParamReturns400(): void
+    /**
+     * @return iterable<string, array{string, ?string}>
+     */
+    public static function invalidRequestProvider(): iterable
     {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=');
-
-        self::assertResponseStatusCodeSame(400);
-    }
-
-    public function testNonPositiveIdsReturns400(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=0,-1,abc');
-
-        // Tous les IDs invalides → count($mortarIds) < 1
-        self::assertResponseStatusCodeSame(400);
-    }
-
-    public function testMoreThanTenIdsReturns400(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=1,2,3,4,5,6,7,8,9,10,11');
-
-        self::assertResponseStatusCodeSame(400);
-        $data = json_decode((string) $client->getResponse()->getContent(), true);
-        self::assertArrayHasKey('error', $data);
+        yield 'missing spices param' => ['/api/match', null];
+        yield 'empty spices param' => ['/api/match?spices=', null];
+        yield 'all ids non positive' => ['/api/match?spices=0,-1,abc', null];
+        yield 'more than ten ids' => ['/api/match?spices=1,2,3,4,5,6,7,8,9,10,11', null];
+        yield 'invalid matrix' => ['/api/match?spices=15&matrix=steam', 'Matrice invalide'];
+        yield 'empty matrix' => ['/api/match?spices=15&matrix=', null];
+        yield 'ratios do not sum to one' => ['/api/match?spices=15&fat=0.3&water=0.3', 'culinaires invalides'];
+        yield 'negative cooking time' => ['/api/match?spices=15&cooking_time=-5', null];
+        yield 'fat ratio above one' => ['/api/match?spices=15&fat=1.5', null];
     }
 
     public function testExactlyTenIdsIsAccepted(): void
@@ -247,69 +242,28 @@ final class MatchControllerTest extends WebTestCase
 
     // ── Paramètre matrix ───────────────────────────────────────────────────────
 
-    public function testInvalidMatrixReturns400(): void
+    #[DataProvider('acceptedMatrixProvider')]
+    public function testMatrixIsEchoedInResponse(string $query, string $expectedMatrix): void
     {
         $client = static::createClient();
-        $client->request('GET', '/api/match?spices=15&matrix=steam');
-
-        self::assertResponseStatusCodeSame(400);
-        $data = json_decode((string) $client->getResponse()->getContent(), true);
-        self::assertArrayHasKey('error', $data);
-        self::assertStringContainsString('Matrice invalide', $data['error']);
-    }
-
-    public function testResponseIncludesMatrixKey(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=15&matrix=air');
+        $client->request('GET', $query);
 
         self::assertResponseIsSuccessful();
         $data = json_decode((string) $client->getResponse()->getContent(), true);
 
         self::assertArrayHasKey('matrix', $data);
-        self::assertSame('air', $data['matrix']);
+        self::assertSame($expectedMatrix, $data['matrix']);
     }
 
-    public function testDefaultMatrixIsAirWhenOmitted(): void
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function acceptedMatrixProvider(): iterable
     {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=15');
-
-        self::assertResponseIsSuccessful();
-        $data = json_decode((string) $client->getResponse()->getContent(), true);
-
-        self::assertArrayHasKey('matrix', $data);
-        self::assertSame('air', $data['matrix']);
-    }
-
-    public function testWaterMatrixIsAccepted(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=15&matrix=water');
-
-        self::assertResponseIsSuccessful();
-        $data = json_decode((string) $client->getResponse()->getContent(), true);
-
-        self::assertSame('water', $data['matrix']);
-    }
-
-    public function testOilMatrixIsAccepted(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=15&matrix=oil');
-
-        self::assertResponseIsSuccessful();
-        $data = json_decode((string) $client->getResponse()->getContent(), true);
-
-        self::assertSame('oil', $data['matrix']);
-    }
-
-    public function testEmptyMatrixReturns400(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=15&matrix=');
-
-        self::assertResponseStatusCodeSame(400);
+        yield 'explicit air' => ['/api/match?spices=15&matrix=air', 'air'];
+        yield 'default air when omitted' => ['/api/match?spices=15', 'air'];
+        yield 'water' => ['/api/match?spices=15&matrix=water', 'water'];
+        yield 'oil' => ['/api/match?spices=15&matrix=oil', 'oil'];
     }
 
     // ── Contexte culinaire étendu via API ────────────────────────────────────
@@ -363,33 +317,6 @@ final class MatchControllerTest extends WebTestCase
 
         self::assertSame(30, $data['cooking_time_min']);
         self::assertSame(100, $data['temperature_celsius']);
-    }
-
-    public function testInvalidRatiosReturns400(): void
-    {
-        // fat=0.3 + water=0.3 → somme ≠ 1 → InvalidArgumentException
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=15&fat=0.3&water=0.3');
-
-        self::assertResponseStatusCodeSame(400);
-        $data = json_decode((string) $client->getResponse()->getContent(), true);
-        self::assertStringContainsString('culinaires invalides', $data['error']);
-    }
-
-    public function testNegativeCookingTimeReturns400(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=15&cooking_time=-5');
-
-        self::assertResponseStatusCodeSame(400);
-    }
-
-    public function testFatRatioAboveOneReturns400(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=15&fat=1.5');
-
-        self::assertResponseStatusCodeSame(400);
     }
 
     public function testExtendedContextChangesMatchScoring(): void

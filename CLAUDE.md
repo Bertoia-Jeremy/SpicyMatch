@@ -144,6 +144,8 @@ architecture:
       - "Réponses correctes en session HTTP (game_{token}), JAMAIS en #[LiveProp] (sérialisé client)"
       - "LC = createFinishedSession(), pas de GameQuestion rows"
       - "SpicesRepository::findIncompatibleWith() : SQL NOT EXISTS 4 subqueries (main/sec × main/sec)"
+      - "Anonyme + clic carte jeu = pop-in login contextuelle (components/_gate_login_modal.html.twig), pas de redirect plein-écran. Alpine gateTrigger/gateLoginModal (CustomEvent gate-login) + _target_path POST prioritaire dans LoginFormAuthenticator::onAuthenticationSuccess (RedirectTargetGuard anti-open-redirect) → retour direct sur le jeu ciblé après login/inscription."
+      - "5 LC de jeu = #[IsGranted('ROLE_USER')] classe (les routes /_components/Education:* ne sont PAS locale-préfixées → tombent dans le catch-all PUBLIC_ACCESS de security.yaml sinon)."
 
   moteur_oav:
     description: "Compatibilité aromatique par OAV (Odor Activity Values). Référence : ARCHITECTURE_MOTEUR_COMPATIBILITE.md"

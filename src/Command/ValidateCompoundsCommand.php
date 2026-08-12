@@ -396,9 +396,7 @@ final class ValidateCompoundsCommand extends Command
         $injectionPatterns = ['/\[INST\]/i', '/###\s*System/i', '/<\|im_start\|>/i', '/Ignore previous instructions/i'];
         foreach ($injectionPatterns as $pattern) {
             if (preg_match($pattern, $clean)) {
-                throw new \RuntimeException(
-                    'Contenu suspect détecté dans la réponse PubChem (possible prompt injection)'
-                );
+                throw new \RuntimeException('Contenu suspect détecté dans la réponse PubChem (possible prompt injection)');
             }
         }
 

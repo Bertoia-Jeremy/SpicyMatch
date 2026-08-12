@@ -159,7 +159,7 @@ final class OavTanimotoScorerTest extends TestCase
         ], [
             1 => 100.0,
             2 => 50.0,
-        ],));
+        ], ));
     }
 
     public function testScoreFromPipelineSpecCandidate11(): void
@@ -172,7 +172,7 @@ final class OavTanimotoScorerTest extends TestCase
         ], [
             1 => 100.0,
             2 => 50.0,
-        ],));
+        ], ));
     }
 
     // ── Bornes ────────────────────────────────────────────────────────────────────

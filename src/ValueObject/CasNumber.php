@@ -28,10 +28,7 @@ final readonly class CasNumber
         }
 
         if (! self::checksumValid($digits, $checkDigit)) {
-            throw new \InvalidArgumentException(\sprintf(
-                'Numéro CAS "%s" : chiffre de contrôle invalide (faute de frappe probable).',
-                $raw,
-            ));
+            throw new \InvalidArgumentException(\sprintf('Numéro CAS "%s" : chiffre de contrôle invalide (faute de frappe probable).', $raw));
         }
 
         return new self($normalized);

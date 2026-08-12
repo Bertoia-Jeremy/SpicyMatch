@@ -10,6 +10,7 @@ use App\Factory\UsersFactory;
 use App\Form\RegistrationFormType;
 use App\Repository\UsersRepository;
 use App\Security\LoginFormAuthenticator;
+use App\Security\RedirectTargetGuard;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,6 +29,7 @@ class RegistrationController extends AbstractController
         private readonly UsersFactory $usersFactory,
         private readonly UsersRepository $usersRepository,
         private readonly EntityManagerInterface $em,
+        private readonly RedirectTargetGuard $redirectTargetGuard,
     ) {
     }
 
@@ -39,6 +41,8 @@ class RegistrationController extends AbstractController
         LoginFormAuthenticator $loginFormAuthenticator,
         TranslatorInterface $translator,
     ): Response {
+        $target = $this->redirectTargetGuard->safeOrNull($request->query->get('target'));
+
         $user = $this->usersFactory->create();
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
@@ -70,6 +74,7 @@ class RegistrationController extends AbstractController
 
         return $this->render('registration/register.html.twig', [
             'form' => $form,
+            'target' => $target,
         ]);
     }
 }

@@ -35,12 +35,7 @@ final class TriggerEvaluatorRegistry
             $key = $evaluator->trigger()
                 ->value;
             if (isset($indexed[$key])) {
-                throw new \LogicException(sprintf(
-                    'Duplicate TriggerEvaluator for %s: %s and %s',
-                    $key,
-                    $indexed[$key]::class,
-                    $evaluator::class,
-                ));
+                throw new \LogicException(sprintf('Duplicate TriggerEvaluator for %s: %s and %s', $key, $indexed[$key]::class, $evaluator::class));
             }
             $indexed[$key] = $evaluator;
 

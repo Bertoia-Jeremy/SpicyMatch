@@ -317,6 +317,13 @@ ui:
         is_correct_answer: is the correct answer.
         you_answered: You answered
         correct_was: The correct answer was
+        gate:
+            title: Log in to play
+            subtitle: One last step before the game.
+            why_title: Why create an account?
+            why_fair: A fair, protected game — no bots, only real players.
+            why_progress: Your progress and XP saved, with your reports sent by email.
+            why_space: A personal space to keep your preferences from one game to the next.
     onboarding:
         welcome_title: Welcome to SpicyMatch!
         welcome_text: 'Discover how to create spice blends that truly work. A quick guided tour in 3 steps:'

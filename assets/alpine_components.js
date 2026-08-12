@@ -915,6 +915,47 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
+    Alpine.data('gateTrigger', (url = '') => ({
+        url,
+        trigger() {
+            window.dispatchEvent(new CustomEvent('gate-login', { detail: { url: this.url } }));
+        },
+    }));
+
+    Alpine.data('gateLoginModal', () => ({
+        open: false,
+        targetUrl: '',
+        previouslyFocused: null,
+
+        init() {
+            document.addEventListener('turbo:before-visit', () => { this.open = false; });
+        },
+
+        onGate(evt) {
+            this.targetUrl = evt.detail.url;
+            this.previouslyFocused = document.activeElement;
+            this.open = true;
+            this.$nextTick(() => focusFirst(this.$el));
+        },
+
+        close() {
+            if (!this.open) return;
+            this.open = false;
+            if (this.previouslyFocused) this.previouslyFocused.focus();
+            this.previouslyFocused = null;
+            this.targetUrl = '';
+        },
+
+        handleTab(e) {
+            if (!this.open) return;
+            loopTab(e, this.$el);
+        },
+
+        registerHref() {
+            return this.$root.dataset.registerBaseUrl + '?target=' + encodeURIComponent(this.targetUrl);
+        },
+    }));
+
     Alpine.data('spotlightTour', () => ({
         active: false,
         tooltipActive: false,

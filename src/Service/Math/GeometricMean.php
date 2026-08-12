@@ -22,10 +22,7 @@ final class GeometricMean
         $sumLog = 0.0;
         foreach ($values as $v) {
             if ($v <= 0.0) {
-                throw new \InvalidArgumentException(\sprintf(
-                    'Moyenne géométrique : valeur ≤ 0 interdite (reçu %g).',
-                    $v,
-                ));
+                throw new \InvalidArgumentException(\sprintf('Moyenne géométrique : valeur ≤ 0 interdite (reçu %g).', $v));
             }
             $sumLog += log($v);
         }

@@ -45,28 +45,15 @@ final readonly class CulinaryContext
         }
 
         if (abs($fatRatio + $waterRatio - 1.0) > self::RATIO_SUM_TOLERANCE) {
-            throw new \InvalidArgumentException(\sprintf(
-                'fatRatio + waterRatio doit être ≈ 1 (tolérance %f), reçu %f',
-                self::RATIO_SUM_TOLERANCE,
-                $fatRatio + $waterRatio,
-            ));
+            throw new \InvalidArgumentException(\sprintf('fatRatio + waterRatio doit être ≈ 1 (tolérance %f), reçu %f', self::RATIO_SUM_TOLERANCE, $fatRatio + $waterRatio));
         }
 
         if ($cookingTimeMin < self::COOKING_TIME_MIN || $cookingTimeMin > self::COOKING_TIME_MAX) {
-            throw new \InvalidArgumentException(\sprintf(
-                'cookingTimeMin doit être ∈ [0, %d], reçu %d',
-                self::COOKING_TIME_MAX,
-                $cookingTimeMin
-            ), );
+            throw new \InvalidArgumentException(\sprintf('cookingTimeMin doit être ∈ [0, %d], reçu %d', self::COOKING_TIME_MAX, $cookingTimeMin));
         }
 
         if ($temperatureCelsius < self::TEMPERATURE_MIN || $temperatureCelsius > self::TEMPERATURE_MAX) {
-            throw new \InvalidArgumentException(\sprintf(
-                'temperatureCelsius doit être ∈ [%d, %d], reçu %d',
-                self::TEMPERATURE_MIN,
-                self::TEMPERATURE_MAX,
-                $temperatureCelsius,
-            ), );
+            throw new \InvalidArgumentException(\sprintf('temperatureCelsius doit être ∈ [%d, %d], reçu %d', self::TEMPERATURE_MIN, self::TEMPERATURE_MAX, $temperatureCelsius));
         }
     }
 

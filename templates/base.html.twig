@@ -99,6 +99,9 @@
 
         {# Onboarding — nouveaux utilisateurs uniquement (géré côté client via localStorage) #}
         {% include 'components/_onboarding.html.twig' %}
+        {% if not is_granted('ROLE_USER') %}
+            {% include 'components/_gate_login_modal.html.twig' %}
+        {% endif %}
 
     </body>
 </html>

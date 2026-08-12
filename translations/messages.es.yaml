@@ -317,6 +317,13 @@ ui:
         is_correct_answer: es la respuesta correcta.
         you_answered: Has respondido
         correct_was: La respuesta correcta era
+        gate:
+            title: Inicia sesión para jugar
+            subtitle: Un último paso antes de la partida.
+            why_title: ¿Por qué crear una cuenta?
+            why_fair: Un juego protegido y justo — sin bots, solo jugadores reales.
+            why_progress: Tu progreso y tu XP guardados, con tus resúmenes enviados por email.
+            why_space: Un espacio personal para conservar tus preferencias en cada partida.
     onboarding:
         welcome_title: ¡Bienvenido a SpicyMatch!
         welcome_text: 'Descubre cómo crear mezclas de especias que realmente funcionan. Una visita guiada en 3 etapas:'

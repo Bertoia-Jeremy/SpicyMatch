@@ -253,8 +253,6 @@ class AcademyManager
     // ──────────────────────────────────────────────
 
     /**
-     * Generate an Intrus question.
-     *
      * Classic: 3 compatible + 1 intruder, find the intruder.
      * Inverted: 3 intruders + 1 compatible, find the compatible.
      *

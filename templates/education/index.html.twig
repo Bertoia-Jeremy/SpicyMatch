@@ -30,8 +30,13 @@
          aria-disabled="true"
          tabindex="-1"
          class="relative block p-5 rounded-2xl border shadow-sm opacity-60 pointer-events-none bg-white border-stone-200">
+      {% elseif is_granted('ROLE_USER') %}
+      <a href="{{ cardUrl }}"
+         class="relative block p-5 rounded-2xl border shadow-sm transition-all cursor-pointer group hover:border-saffron-300 hover:shadow-md hover:bg-cream bg-white border-stone-200">
       {% else %}
       <a href="{{ cardUrl }}"
+         x-data="gateTrigger('{{ cardUrl|e('js') }}')"
+         @click.prevent="trigger()"
          class="relative block p-5 rounded-2xl border shadow-sm transition-all cursor-pointer group hover:border-saffron-300 hover:shadow-md hover:bg-cream bg-white border-stone-200">
       {% endif %}
         <div class="flex items-center gap-3 mb-3">

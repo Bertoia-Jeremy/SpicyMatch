@@ -14,7 +14,7 @@
                 <p class="text-stone-600 text-sm mt-1">{{ 'ui.register.subtitle'|trans }}</p>
             </div>
 
-            {{ form_start(form, {'attr': {'class': 'space-y-5'}}) }}
+            {{ form_start(form, {'attr': {'id': 'register-form', 'class': 'space-y-5'}}) }}
             <p class="text-xs text-stone-600">{{ 'ui.form.required_legend'|trans }}</p>
 
             {% if form.vars.errors|length > 0 %}
@@ -68,6 +68,7 @@
             </div>
 
             <div class="hidden">{{ form_widget(form.Valider) }}</div>
+            <input type="hidden" name="_target_path" value="{{ target|default('') }}">
             {{ form_end(form) }}
 
             <p class="text-center text-sm text-stone-600">

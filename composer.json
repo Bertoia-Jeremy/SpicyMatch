@@ -10,7 +10,7 @@
         "ext-json": "*",
         "altcha-org/altcha": "^2.1",
         "doctrine/doctrine-bundle": "^3.3.1",
-        "doctrine/doctrine-migrations-bundle": "^4.0",
+        "doctrine/doctrine-migrations-bundle": "^4.0.1",
         "doctrine/orm": "^3.6.8",
         "dragonmantank/cron-expression": "^3.6",
         "easycorp/easyadmin-bundle": "^5.5.1",
@@ -19,7 +19,7 @@
         "nelmio/security-bundle": "^3.9",
         "phpdocumentor/reflection-docblock": "^5.6.7",
         "presta/sitemap-bundle": "^4.3.1",
-        "sentry/sentry-symfony": "^5.12",
+        "sentry/sentry-symfony": "^5.13",
         "symfony/asset": "7.4.*",
         "symfony/asset-mapper": "7.4.*",
         "symfony/console": "7.4.*",
@@ -57,7 +57,7 @@
         "twig/extra-bundle": "^3.24",
         "twig/intl-extra": "^3.26",
         "twig/twig": "^3.28",
-        "vich/uploader-bundle": "^2.9.4"
+        "vich/uploader-bundle": "^2.10.0"
     },
     "config": {
         "allow-plugins": {
@@ -134,10 +134,10 @@
     "require-dev": {
         "amphp/http-client": ">=5.3.6",
         "doctrine/doctrine-fixtures-bundle": "^4.3.1",
-        "phpstan/phpdoc-parser": ">=2.3.3",
+        "phpstan/phpdoc-parser": ">=2.3.5",
         "phpstan/phpstan-doctrine": "^2.0.28",
         "phpunit/phpunit": ">=13.3",
-        "rector/rector": ">=2.6.2",
+        "rector/rector": ">=2.6.6",
         "symfony/apache-pack": "^1.0.1",
         "symfony/browser-kit": "7.4.*",
         "symfony/css-selector": "7.4.*",
@@ -145,6 +145,6 @@
         "symfony/maker-bundle": "^1.67",
         "symfony/stopwatch": "7.4.*",
         "symfony/web-profiler-bundle": "7.4.*",
-        "symplify/easy-coding-standard": "^13.2.17"
+        "symplify/easy-coding-standard": "^13.2.19"
     }
 }

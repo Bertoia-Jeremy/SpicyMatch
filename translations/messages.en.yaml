@@ -734,11 +734,17 @@ ui:
         home: Home
         report: Report
         '404':
-            title: This page vanished in a puff of paprika
-            description: "We can't track it down — it may have drifted off with a pinch of chili. No worries: the best discoveries often start with a wrong turn."
+            eyebrow: 'Spice unaccounted for'
+            aria_label: '404 error'
+            title: This page went up in smoke during roasting
+            title_html: 'This page went up in <em>smoke</em> during roasting'
+            description: "We turned the whole spice rack upside down: still no sign of it. No worries — the best finds often start with a trail that vanishes."
+            xp_note: 'A dead end is still a lead. +0 XP · lesson learned'
             back: Back to home
-            explore: Head to the Academy
-            countdown: 'Automatic redirect in %count% seconds.'
+            explore: Explore the spices
+            play: Start a game
+            footnote: Expected to land somewhere else?
+            footnote_link: Report the wrong trail
         '403':
             title: Restricted access
             description: You do not have the permissions required to view this page. Sign in or head back home.

@@ -4,21 +4,38 @@
 
 {% block body %}
     {% set homeUrl = path('home', {'_locale': app.request.locale}) %}
-    {% set countdownParts = 'ui.error.404.countdown'|trans|split('%count%') %}
-
+    {% set spicesUrl = path('index_spices', {'_locale': app.request.locale}) %}
     {% set academyUrl = path('education_index', {'_locale': app.request.locale}) %}
+    {% set contactUrl = path('new_contact', {'_locale': app.request.locale}) %}
 
-    <section x-data="errorCountdown(10, '{{ homeUrl }}')"
-             class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
-        <div class="card-warm p-10">
-            <div class="w-16 h-16 rounded-full bg-spice-surface border border-spice-border flex items-center justify-center mx-auto mb-6 motion-safe:animate-bounce-slow">
-                <i class="fa-solid fa-pepper-hot text-saffron-700 text-2xl" aria-hidden="true"></i>
+    <section class="etamine-paper relative overflow-hidden">
+        <div class="err-motes absolute inset-0" aria-hidden="true">
+            <span class="err-mote absolute top-[18%] left-[12%] w-2 h-2 rounded-full bg-copper/40"></span>
+            <span class="err-mote absolute top-[65%] left-[22%] w-1.5 h-1.5 rounded-full bg-saffron-600/40"></span>
+            <span class="err-mote absolute top-[30%] right-[18%] w-2 h-2 rounded-full bg-copper-light/50"></span>
+            <span class="err-mote absolute top-[75%] right-[26%] w-1.5 h-1.5 rounded-full bg-paprika-700/30"></span>
+        </div>
+
+        <div class="relative w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 text-center">
+            <p class="smallcaps mb-6">{{ 'ui.error.404.eyebrow'|trans }}</p>
+
+            <div class="flex items-center justify-center gap-2 mb-8" role="img" aria-label="{{ 'ui.error.404.aria_label'|trans }}">
+                <span class="font-display text-6xl font-bold text-ink-800" aria-hidden="true">4</span>
+                <span class="err-hex-slot hex relative w-16 h-[4.5rem] grid place-items-center shrink-0" aria-hidden="true">
+                    <span class="font-mono text-2xl font-bold">0</span>
+                    <span class="err-hex-mark hex absolute top-0 right-0 w-6 h-7 grid place-items-center bg-ink-800 text-parchment-50 font-mono text-xs font-bold">?</span>
+                </span>
+                <span class="font-display text-6xl font-bold text-ink-800" aria-hidden="true">4</span>
             </div>
-            <p class="font-display text-6xl font-bold text-saffron-700 leading-none mb-4">404</p>
-            <h1 class="text-3xl font-bold text-stone-900 mb-3">{{ 'ui.error.404.title'|trans }}</h1>
-            <p class="text-stone-500 mb-8">{{ 'ui.error.404.description'|trans }}</p>
 
-            <div class="flex flex-wrap gap-3 justify-center">
+            <h1 class="font-display text-3xl sm:text-4xl font-bold text-ink-900 mb-4">{{ 'ui.error.404.title_html'|trans|raw }}</h1>
+            <p class="text-ink-700 mb-8">{{ 'ui.error.404.description'|trans }}</p>
+
+            <p class="rule-dots max-w-xs mx-auto mb-8"></p>
+
+            <p class="smallcaps mb-10">{{ 'ui.error.404.xp_note'|trans }}</p>
+
+            <div class="flex flex-wrap gap-3 justify-center mb-10">
                 <twig:Button
                     label="{{ 'ui.error.404.back'|trans }}"
                     href="{{ homeUrl }}"
@@ -28,6 +45,13 @@
                 />
                 <twig:Button
                     label="{{ 'ui.error.404.explore'|trans }}"
+                    href="{{ spicesUrl }}"
+                    variant="secondary"
+                    icon="fa-solid fa-pepper-hot"
+                    data-turbo="false"
+                />
+                <twig:Button
+                    label="{{ 'ui.error.404.play'|trans }}"
                     href="{{ academyUrl }}"
                     variant="secondary"
                     icon="fa-solid fa-graduation-cap"
@@ -35,10 +59,9 @@
                 />
             </div>
 
-            <p class="mt-6 text-sm text-stone-500" aria-live="polite">
-                {{- countdownParts[0] -}}
-                <span x-text="remaining" class="font-semibold text-saffron-700">10</span>
-                {{- countdownParts[1]|default('') -}}
+            <p class="text-sm text-ink-600">
+                {{ 'ui.error.404.footnote'|trans }}
+                <a href="{{ contactUrl }}" class="font-semibold text-copper-text underline decoration-copper-border hover:text-ink-800" data-turbo="false">{{ 'ui.error.404.footnote_link'|trans }}</a>
             </p>
         </div>
     </section>

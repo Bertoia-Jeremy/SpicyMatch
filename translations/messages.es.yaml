@@ -734,11 +734,17 @@ ui:
         home: Inicio
         report: Reportar
         '404':
-            title: Esta página se ha esfumado entre una nube de pimentón
-            description: 'No conseguimos encontrarla — puede que se haya ido flotando con una pizca de chile. Tranquilo: los mejores descubrimientos suelen empezar por una pista equivocada.'
+            eyebrow: 'Especia desaparecida del bote'
+            aria_label: 'Error 404'
+            title: Esta página se esfumó durante el tueste
+            title_html: 'Esta página se esfumó durante el <em>tueste</em>'
+            description: 'Hemos revuelto toda la especiera: sigue sin aparecer. Tranquilo — los mejores hallazgos suelen empezar con una pista que se desvanece.'
+            xp_note: 'Una pista falsa sigue siendo una pista. +0 XP · lección aprendida'
             back: Volver al inicio
-            explore: Directo a la Academia
-            countdown: 'Redirección automática en %count% segundos.'
+            explore: Explorar las especias
+            play: Empezar una partida
+            footnote: ¿Esperabas llegar a otro sitio?
+            footnote_link: Informa de la pista falsa
         '403':
             title: Acceso restringido
             description: No tienes los permisos necesarios para ver esta página. Inicia sesión o vuelve al inicio.

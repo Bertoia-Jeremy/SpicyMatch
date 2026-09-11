@@ -18,7 +18,7 @@ description: Matching aromatique (épices, composés, groupes aromatiques, méth
 
 stack:
   backend:
-    - Symfony 7.4 / PHP 8.4
+    - Symfony 7.4 / PHP 8.5
     - Doctrine ORM 3.x (attributs, schema:update — PAS de migrations)
     - Symfony Messenger (transport Doctrine, async)
     - Symfony Security (LoginFormAuthenticator custom)

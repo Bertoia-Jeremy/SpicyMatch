@@ -734,11 +734,17 @@ ui:
         home: Accueil
         report: Signaler
         '404':
-            title: Cette page a pris la poudre d'escampette
-            description: 'Impossible de remettre la main dessus — elle s''est peut-être volatilisée avec une pincée de piment. Pas grave : les meilleures découvertes commencent souvent par une mauvaise piste.'
+            eyebrow: 'Épice introuvable au bocal'
+            aria_label: 'Erreur 404'
+            title: 'Cette page s''est volatilisée à la torréfaction'
+            title_html: 'Cette page s''est <em>volatilisée</em> à la torréfaction'
+            description: 'On a retourné toute l''étagère à épices : cette page reste introuvable. Pas de panique — les meilleures trouvailles commencent souvent par une piste qui se dérobe.'
+            xp_note: '« Une fausse piste reste une piste. » +0 XP · leçon apprise'
             back: Retour à l'accueil
-            explore: Direction l'Académie
-            countdown: 'Redirection automatique dans %count% secondes.'
+            explore: Explorer les épices
+            play: Lancer une partie
+            footnote: Tu pensais atterrir ailleurs ?
+            footnote_link: Signale la fausse piste
         '403':
             title: Accès réservé
             description: Tu n'as pas les droits nécessaires pour consulter cette page. Connecte-toi ou retourne à l'accueil.

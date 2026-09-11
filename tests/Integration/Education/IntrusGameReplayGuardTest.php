@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Integration\Education;
 
 use App\Service\Education\AcademyManager;
-use App\Service\Education\DifficultyRuleApplier;
 use App\Service\Education\GameSessionManager;
 use App\Tests\Support\LiveComponentTestCase;
 use App\Twig\Components\Education\IntrusGame;
@@ -24,7 +23,6 @@ final class IntrusGameReplayGuardTest extends LiveComponentTestCase
         $game = new IntrusGame(
             $container->get(AcademyManager::class),
             $container->get(GameSessionManager::class),
-            $container->get(DifficultyRuleApplier::class),
             $this->requestStack,
         );
 

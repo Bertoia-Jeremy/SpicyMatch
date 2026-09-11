@@ -4,28 +4,22 @@ declare(strict_types=1);
 
 namespace App\Tests\Twig\Components\Education;
 
+use App\Repository\SpicesRepository;
 use App\Service\Education\AcademyManager;
 use App\Service\Education\GameSessionManager;
+use App\Service\Match\CompatibleSpiceFinder;
 use App\Twig\Components\Education\ChronoGame;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
+use Symfony\Component\Translation\IdentityTranslator;
 
-/**
- * Unit tests for ChronoGame::answer() and getCurrentCard().
- *
- * answer() is only tested for the non-finish path (time not elapsed).
- * finish() / timeout() call AbstractController::getUser() → integration only.
- *
- * Security focus:
- *  - Server-side elapsed-time check prevents answering after timeout.
- *  - Score/streak computed server-side from session, not from LiveProps.
- *  - wrongAnswerCooldown blocks rapid-fire wrong answers (anti-farming).
- */
 #[AllowMockObjectsWithoutExpectations]
 final class ChronoGameTest extends TestCase
 {
@@ -39,8 +33,6 @@ final class ChronoGameTest extends TestCase
         $this->academyManager = $this->createMock(AcademyManager::class);
         $this->sessionManager = $this->createMock(GameSessionManager::class);
     }
-
-    // ── Helpers ──────────────────────────────────────────────────────────────
 
     /**
      * @param array<string, mixed> $secret
@@ -68,8 +60,6 @@ final class ChronoGameTest extends TestCase
     }
 
     /**
-     * Base session secret for an in-progress question.
-     *
      * @return array<string, mixed>
      */
     private function inProgressSecret(string $correctName = 'Cannelle', int $timeOffset = 0): array
@@ -85,8 +75,6 @@ final class ChronoGameTest extends TestCase
             'timeLimit' => 90,
         ];
     }
-
-    // ── getCurrentCard() ─────────────────────────────────────────────────────
 
     public function testGetCurrentCardReturnsEmptyWhenCurrentCardIdIsZero(): void
     {
@@ -139,7 +127,7 @@ final class ChronoGameTest extends TestCase
         self::assertArrayHasKey('file', $card);
         self::assertArrayHasKey('description', $card);
         self::assertArrayHasKey('mainCompounds', $card);
-        self::assertArrayNotHasKey('id', $card);   // name/id intentionally hidden
+        self::assertArrayNotHasKey('id', $card);
         self::assertArrayNotHasKey('name', $card);
     }
 
@@ -181,7 +169,7 @@ final class ChronoGameTest extends TestCase
         [$game] = $this->makeGame();
         $game->currentCardId = 1;
 
-        $this->academyManager->expects(self::once()) // called exactly once despite two invocations
+        $this->academyManager->expects(self::once())
             ->method('getAllSpiceCards')
             ->willReturn([
                 1 => [
@@ -201,8 +189,6 @@ final class ChronoGameTest extends TestCase
         $game->getCurrentCard();
         $game->getCurrentCard();
     }
-
-    // ── answer() — guards ─────────────────────────────────────────────────────
 
     public function testAnswerDoesNothingWhenIsFinished(): void
     {
@@ -228,36 +214,29 @@ final class ChronoGameTest extends TestCase
         self::assertSame(0, $game->correctCount);
     }
 
-    /**
-     * Security: anti-farming cooldown — wrong answers cannot be spammed.
-     */
     public function testAnswerReturnsNullDuringWrongAnswerCooldown(): void
     {
         $secret = $this->inProgressSecret();
-        $secret['wrongAnswerCooldown'] = time() + 10; // cooldown active
+        $secret['wrongAnswerCooldown'] = time() + 10;
 
         [$game] = $this->makeGame($secret);
 
-        // generateQuestion() would be called if we proceed — but with cooldown active we return early
         $result = $game->answer('Cannelle');
 
         self::assertNull($result);
         self::assertTrue($game->isInCooldown);
     }
 
-    // ── answer() — correct answer ─────────────────────────────────────────────
-
     public function testAnswerCorrectIncrementsCorrectCountAndStreak(): void
     {
         [$game] = $this->makeGame($this->inProgressSecret('Cannelle'));
 
-        // generateQuestion() will be called after a correct answer → stub it
         $this->academyManager->method('getRandomSpiceCard')
-            ->willReturn(null); // → isFinished=true
+            ->willReturn(null);
         $this->academyManager->method('getChronoOptionsCount')
             ->willReturn(4);
 
-        $game->answer('Cannelle'); // correct
+        $game->answer('Cannelle');
 
         self::assertSame(1, $game->correctCount);
         self::assertSame(1, $game->streak);
@@ -281,7 +260,6 @@ final class ChronoGameTest extends TestCase
     public function testAnswerCorrectEarnsAtLeastOnePoint(): void
     {
         [$game] = $this->makeGame($this->inProgressSecret('Cannelle', timeOffset: 30));
-        // timeOffset=30s → base=1 (default), streak bonus=0 → 1 point
 
         $this->academyManager->method('getRandomSpiceCard')
             ->willReturn(null);
@@ -292,8 +270,6 @@ final class ChronoGameTest extends TestCase
 
         self::assertGreaterThanOrEqual(1, $game->lastPointsEarned);
     }
-
-    // ── answer() — wrong answer ───────────────────────────────────────────────
 
     public function testAnswerWrongResetsStreak(): void
     {
@@ -308,7 +284,7 @@ final class ChronoGameTest extends TestCase
         $this->academyManager->method('getChronoOptionsCount')
             ->willReturn(4);
 
-        $game->answer('Cumin'); // wrong
+        $game->answer('Cumin');
 
         self::assertSame(0, $game->streak);
         self::assertFalse($game->lastAnswerCorrect);
@@ -344,11 +320,8 @@ final class ChronoGameTest extends TestCase
         self::assertSame(0, $game->lastPointsEarned);
     }
 
-    // ── answer() — difficulty-based timing ────────────────────────────────────
-
     public function testAnswerCorrectFastResponseEarnsHighBasePoints(): void
     {
-        // EASY: [t1=8, t2=12]. questionStartedAt = 2 seconds ago → elapsed < 8 → base=5
         $secret = $this->inProgressSecret('Cannelle', timeOffset: 2);
 
         [$game] = $this->makeGame($secret);
@@ -361,13 +334,11 @@ final class ChronoGameTest extends TestCase
 
         $game->answer('Cannelle');
 
-        // base=5, streak=1 (first correct) → streakBonus=min(max(1-1,0),3)=0 → 5
         self::assertSame(5, $game->lastPointsEarned);
     }
 
     public function testAnswerCorrectStreakBonusMaxesAt3(): void
     {
-        // streak=4 → streakBonus = min(max(4-1,0),3) = min(3,3) = 3
         $secret = $this->inProgressSecret('Cannelle', timeOffset: 1);
         $secret['streak'] = 4;
 
@@ -382,7 +353,235 @@ final class ChronoGameTest extends TestCase
 
         $game->answer('Cannelle');
 
-        // base=5, streakBonus=3 → 8
         self::assertSame(8, $game->lastPointsEarned);
+    }
+
+    public function testLocalizedNameOptionsReturnTheLocalizedNames(): void
+    {
+        $this->stubLocalizedCards();
+        [$game] = $this->makeGame();
+        $game->nameOptions = ['Poivre', 'Cannelle'];
+
+        self::assertSame(['Pepper', 'Cinnamon'], $game->getLocalizedNameOptions());
+    }
+
+    public function testLocalizedNameOptionsFallBackToCanonicalWhenNotEnriched(): void
+    {
+        $this->stubCards();
+        [$game] = $this->makeGame();
+        $game->nameOptions = ['Poivre', 'Cannelle'];
+
+        self::assertSame(['Poivre', 'Cannelle'], $game->getLocalizedNameOptions());
+    }
+
+    public function testLastCorrectNameLabelIsLocalized(): void
+    {
+        $this->stubLocalizedCards();
+        [$game] = $this->makeGame();
+        $game->lastCorrectName = 'Poivre';
+
+        self::assertSame('Pepper', $game->getLastCorrectNameLabel());
+    }
+
+    public function testGetCurrentCardLocalizesTheAromaticGroupName(): void
+    {
+        $this->stubLocalizedCards();
+        [$game] = $this->makeGame();
+        $game->currentCardId = 42;
+        $game->difficulty = 'easy';
+
+        $card = $game->getCurrentCard();
+
+        self::assertSame('Terpenes', $card['aromaticGroup']['name']);
+        self::assertSame('#C00', $card['aromaticGroup']['color']);
+    }
+
+    #[DataProvider('provideAnswerCandidates')]
+    public function testAnswerAcceptsLocaleAndFrenchNames(string $given, bool $expected): void
+    {
+        $this->stubLocalizedCards();
+        $secret = $this->inProgressSecret('Poivre');
+        $secret['correctId'] = 42;
+
+        [$game] = $this->makeGame($secret);
+        $this->academyManager->method('getRandomSpiceCard')
+            ->willReturn(null);
+        $this->academyManager->method('getChronoOptionsCount')
+            ->willReturn(4);
+
+        $game->answer($given);
+
+        self::assertSame($expected, $game->lastAnswerCorrect);
+        self::assertSame($expected ? 1 : 0, $game->correctCount);
+    }
+
+    /**
+     * @return iterable<string, array{string, bool}>
+     */
+    public static function provideAnswerCandidates(): iterable
+    {
+        yield 'saisie dans la locale courante' => ['Pepper', true];
+        yield 'saisie en français canonique' => ['Poivre', true];
+        yield 'autre épice dans la locale courante' => ['Cinnamon', false];
+        yield 'autre épice en français' => ['Cannelle', false];
+    }
+
+    public function testFrenchRenderIssuesNoEnrichmentQuery(): void
+    {
+        $repository = $this->createMock(SpicesRepository::class);
+        $repository->expects(self::never())
+            ->method('findEnrichedByIds');
+
+        $game = $this->makeGameWithRealManager('fr', $repository);
+        $game->currentCardId = 42;
+        $game->nameOptions = ['Poivre', 'Cannelle'];
+        $game->lastCorrectName = 'Poivre';
+
+        self::assertSame(['Poivre', 'Cannelle'], $game->getLocalizedNameOptions());
+        self::assertSame('Poivre', $game->getLastCorrectNameLabel());
+        self::assertSame('Terpènes', $game->getCurrentCard()['aromaticGroup']['name']);
+    }
+
+    public function testEnglishRenderIssuesASingleEnrichmentQuery(): void
+    {
+        $repository = $this->createMock(SpicesRepository::class);
+        $repository->expects(self::once())
+            ->method('findEnrichedByIds')
+            ->with([42, 7], 'en')
+            ->willReturn([
+                [
+                    'id' => 42,
+                    'name' => 'Pepper',
+                    'slug' => 'pepper',
+                    'file' => null,
+                    'agId' => 1,
+                    'color' => '#C00',
+                    'groupName' => 'Terpenes',
+                    'stId' => null,
+                    'typeName' => null,
+                ],
+                [
+                    'id' => 7,
+                    'name' => 'Cinnamon',
+                    'slug' => 'cinnamon',
+                    'file' => null,
+                    'agId' => 1,
+                    'color' => '#C00',
+                    'groupName' => 'Terpenes',
+                    'stId' => null,
+                    'typeName' => null,
+                ],
+            ]);
+
+        $game = $this->makeGameWithRealManager('en', $repository);
+        $game->currentCardId = 42;
+        $game->nameOptions = ['Poivre', 'Cannelle'];
+        $game->lastCorrectName = 'Poivre';
+
+        self::assertSame(['Pepper', 'Cinnamon'], $game->getLocalizedNameOptions());
+        self::assertSame('Pepper', $game->getLastCorrectNameLabel());
+        self::assertSame('Terpenes', $game->getCurrentCard()['aromaticGroup']['name']);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function localizedCards(): array
+    {
+        return [
+            42 => [
+                'id' => 42,
+                'name' => 'Poivre',
+                'file' => null,
+                'description' => 'Baie piquante',
+                'aromaticGroup' => [
+                    'name' => 'Terpènes',
+                    'color' => '#C00',
+                ],
+                'spicyType' => 'Épice',
+                'mainCompounds' => [],
+                'secondaryCompounds' => [],
+                'alchemyFlavors' => [],
+                'cookingTips' => [],
+            ],
+            7 => [
+                'id' => 7,
+                'name' => 'Cannelle',
+                'file' => null,
+                'description' => 'Écorce chaude',
+                'aromaticGroup' => [
+                    'name' => 'Terpènes',
+                    'color' => '#C00',
+                ],
+                'spicyType' => 'Épice',
+                'mainCompounds' => [],
+                'secondaryCompounds' => [],
+                'alchemyFlavors' => [],
+                'cookingTips' => [],
+            ],
+        ];
+    }
+
+    private function stubCards(): void
+    {
+        $this->academyManager->method('getAllSpiceCards')
+            ->willReturn(self::localizedCards());
+    }
+
+    private function stubLocalizedCards(): void
+    {
+        $this->stubCards();
+
+        $translations = [
+            42 => [
+                'name' => 'Pepper',
+                'groupName' => 'Terpenes',
+            ],
+            7 => [
+                'name' => 'Cinnamon',
+                'groupName' => 'Terpenes',
+            ],
+        ];
+
+        $this->academyManager->method('localizeSpiceSummaries')
+            ->willReturnCallback(static fn (array $summaries): array => array_map(
+                static fn (array $summary): array => [
+                    ...$summary,
+                    'name' => $translations[$summary['id']]['name'] ?? $summary['name'],
+                    'groupName' => $translations[$summary['id']]['groupName'] ?? $summary['groupName'],
+                ],
+                $summaries,
+            ));
+    }
+
+    /**
+     * @param SpicesRepository&MockObject $repository
+     */
+    private function makeGameWithRealManager(string $locale, SpicesRepository $repository): ChronoGame
+    {
+        $translator = new IdentityTranslator();
+        $translator->setLocale($locale);
+
+        $cache = new ArrayAdapter();
+        $cache->get('academy.spice_cards', static fn (): array => self::localizedCards());
+
+        $manager = new AcademyManager(
+            $repository,
+            $this->createStub(CompatibleSpiceFinder::class),
+            $cache,
+            $translator,
+        );
+
+        $session = new Session(new MockArraySessionStorage());
+        $request = new Request();
+        $request->setSession($session);
+        $requestStack = new RequestStack();
+        $requestStack->push($request);
+
+        $game = new ChronoGame($manager, $this->sessionManager, $requestStack);
+        $game->gameToken = self::TOKEN;
+        $game->difficulty = 'easy';
+
+        return $game;
     }
 }

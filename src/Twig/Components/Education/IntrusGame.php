@@ -8,7 +8,6 @@ use App\Entity\Users;
 use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use App\Service\Education\AcademyManager;
-use App\Service\Education\DifficultyRuleApplier;
 use App\Service\Education\GameSessionManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -102,7 +101,6 @@ class IntrusGame extends AbstractController
     public function __construct(
         private readonly AcademyManager $academyManager,
         private readonly GameSessionManager $sessionManager,
-        private readonly DifficultyRuleApplier $difficultyRuleApplier,
         private readonly RequestStack $requestStack,
     ) {
     }
@@ -246,15 +244,12 @@ class IntrusGame extends AbstractController
         ++$this->questionNumber;
         $gameDifficulty = GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY;
 
-        // Alternate between classic and inverted randomly
         $inverted = 1 === random_int(0, 1);
 
-        $strict = $this->difficultyRuleApplier->intrusStrictMode($gameDifficulty);
         $question = $this->academyManager->generateIntrusQuestion(
             $gameDifficulty,
             $this->usedBaseIds,
-            $inverted,
-            $strict
+            $inverted
         );
 
         if (null === $question) {

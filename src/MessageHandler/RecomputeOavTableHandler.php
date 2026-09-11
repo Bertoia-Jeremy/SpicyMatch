@@ -11,6 +11,8 @@ use App\Service\Match\MortarProfileBuilder;
 use Doctrine\DBAL\Connection;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\DelayStamp;
 
 /**
  * Rebuild atomique de spice_active_compound (vue matérialisée OAV) — toutes matrices.
@@ -48,26 +50,46 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 #[AsMessageHandler]
 final class RecomputeOavTableHandler
 {
+    private const REBUILD_LOCK = 'spicymatch_oav_rebuild';
+
+    private const LOCK_WAIT_SECONDS = 0;
+
+    private const MAX_REBUILD_ATTEMPTS = 3;
+
+    private const RETRY_DELAY_MS = 60_000;
+
     public function __construct(
         private readonly Connection $connection,
         private readonly MortarProfileBuilder $mortarProfileBuilder,
         private readonly LoggerInterface $logger,
+        private readonly MessageBusInterface $messageBus,
+        private readonly LoggerInterface $oavLogger,
     ) {
     }
 
-    public function __invoke(RecomputeOavTableMessage $message): void
+    public function __invoke(RecomputeOavTableMessage $message): bool
     {
         // Sanitize reason pour éviter les log injections (CRLF)
         $reason = preg_replace('/[\r\n]/', ' ', $message->reason) ?? 'manual';
 
-        $this->logger->info('[OAV] Début du rebuild spice_active_compound (toutes matrices)', [
-            'reason' => $reason,
-        ]);
-
         $start = microtime(true);
 
         try {
-            $this->doRebuild($reason);
+            if (! $this->acquireRebuildLock($reason)) {
+                $this->scheduleRetry($message, $reason);
+
+                return false;
+            }
+
+            $this->logger->info('[OAV] Début du rebuild spice_active_compound (toutes matrices)', [
+                'reason' => $reason,
+            ]);
+
+            try {
+                $this->doRebuild($reason);
+            } finally {
+                $this->releaseRebuildLock();
+            }
         } catch (\Doctrine\DBAL\Exception $e) {
             $this->logger->error('[OAV] Rebuild échoué — exception DBAL', [
                 'reason' => $reason,
@@ -80,6 +102,30 @@ final class RecomputeOavTableHandler
         $elapsed = round((microtime(true) - $start) * 1000);
         $this->logger->info('[OAV] Rebuild terminé', [
             'elapsed_ms' => $elapsed,
+        ]);
+
+        return true;
+    }
+
+    private function scheduleRetry(RecomputeOavTableMessage $message, string $reason): void
+    {
+        if ($message->attempt >= self::MAX_REBUILD_ATTEMPTS) {
+            $this->oavLogger->error('[OAV] Rebuild non re-planifié — tentatives épuisées, shadow table potentiellement périmée', [
+                'reason' => $reason,
+                'attempt' => $message->attempt,
+                'max_attempts' => self::MAX_REBUILD_ATTEMPTS,
+            ]);
+
+            return;
+        }
+
+        $retry = $message->nextAttempt();
+        $this->messageBus->dispatch($retry, [new DelayStamp(self::RETRY_DELAY_MS)]);
+
+        $this->oavLogger->info('[OAV] Rebuild re-planifié après abandon', [
+            'reason' => $reason,
+            'attempt' => $retry->attempt,
+            'delay_ms' => self::RETRY_DELAY_MS,
         ]);
     }
 
@@ -156,9 +202,41 @@ final class RecomputeOavTableHandler
                           spice_active_compound_tmp TO spice_active_compound'
         );
 
-        $this->connection->executeStatement('DROP TABLE spice_active_compound_old');
+        $this->connection->executeStatement('DROP TABLE IF EXISTS spice_active_compound_old');
 
         // ── Invalide le cache des profils mortier (scores périmés sur toutes matrices) ──
         $this->mortarProfileBuilder->invalidateAll();
+    }
+
+    private function acquireRebuildLock(string $reason): bool
+    {
+        $acquired = $this->connection->fetchOne('SELECT GET_LOCK(?, ?)', [
+            self::REBUILD_LOCK,
+            self::LOCK_WAIT_SECONDS,
+        ]);
+
+        if (null === $acquired) {
+            $this->oavLogger->error('[OAV] Rebuild abandonné — GET_LOCK a renvoyé NULL (erreur serveur MariaDB)', [
+                'reason' => $reason,
+                'lock' => self::REBUILD_LOCK,
+            ]);
+
+            return false;
+        }
+
+        if ('1' !== (string) $acquired) {
+            $this->oavLogger->info('[OAV] Rebuild abandonné — verrou détenu par un rebuild concurrent', [
+                'reason' => $reason,
+            ]);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function releaseRebuildLock(): void
+    {
+        $this->connection->executeStatement('SELECT RELEASE_LOCK(?)', [self::REBUILD_LOCK]);
     }
 }

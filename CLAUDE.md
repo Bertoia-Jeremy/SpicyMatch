@@ -131,7 +131,7 @@ architecture:
     description: "6 jeux : QCM route-based + 5 Live Components (IntrusGame, SurvivalGame, GuessWhoGame, HangmanGame, ChronoGame)"
     services:
       - GameSessionManager  # sessions, XP, limite 5/jour/mode, createFinishedSession() pour LC
-      - AcademyManager      # logique de jeu (compatibilité, intrus, cartes, questions), cache pool academy.cache TTL 1h
+      - AcademyManager      # logique de jeu (compatibilité, intrus ordinaux, cartes, questions), cache pool academy.cache TTL 1h
       - QcmQuestionGenerator (QuestionGeneratorInterface)
     event_listener: AcademyCacheInvalidator (Doctrine post* sur Spices → invalide academy.spice_cards + academy.intruders.{id})
     routes:
@@ -143,7 +143,11 @@ architecture:
     regles:
       - "Réponses correctes en session HTTP (game_{token}), JAMAIS en #[LiveProp] (sérialisé client)"
       - "LC = createFinishedSession(), pas de GameQuestion rows"
-      - "SpicesRepository::findIncompatibleWith() : SQL NOT EXISTS 4 subqueries (main/sec × main/sec)"
+      - "SpicesRepository::findIncompatibleWith() : SQL NOT EXISTS 4 subqueries (main/sec × main/sec). N'est PLUS un fallback : c'est le segment permanent en tête de l'ensemble éligible des intrus (servi en EASY, atteint en HARD seulement sur pool pauvre). Disjonction avec findSurvivorsWithPresence() prouvée par SpicesIncompatibilityDisjunctionTest."
+      - "Sélection Intrus = ORDINALE PURE (invariants I1..I5) : jamais de seuil absolu ni de ratio sur le score, seulement des rangs et des égalités. L'intrus est tiré EN PREMIER dans l'ensemble éligible ; sa position définit la coupure cut(x) ; les 3 compatibles sont tirées uniquement AU-DESSUS de cette coupure → exclusion mutuelle structurelle, zéro déduplication à l'assemblage. Inversé = symétrique (bonne réponse d'abord)."
+      - "La difficulté ne pilote qu'une fenêtre ordinale (OrdinalWindow::select : tiers haut / médian / bas, partagée par AcademyManager et QcmQuestionGenerator) à l'intérieur d'ensembles DÉJÀ admissibles — la justesse vient de la construction, jamais de la fenêtre. Le mode strict binaire (intrusStrictMode / findStrictIntruders / academy.intruders.strict.*) est SUPPRIMÉ : c'était la condition de possibilité du bug des doublons."
+      - "I3 : les 4 options d'une question intrus passent par la fabrique unique AcademyManager::toOption() ({id,name,file,color,groupName}). Un littéral inline sans groupName rend l'intrus identifiable à sa seule puce de famille. Localisation : AcademyManager::localizedOptions() réécrit name/groupName des 4 options via findEnrichedByIds(ids, locale) au moment de l'assemblage — 1 requête batch en EN/ES, ZÉRO en FR. Ne JAMAIS localiser par l'entité ici : les Spices viennent du pool academy.cache (filesystem), donc détachées, et getLocalizedName() y déclencherait un lazy-load de collection sans EntityManager."
+      - "QCM = règle R1 : le maximum de l'ensemble des options est UNIQUE et atteint par la bonne réponse ; les distracteurs sont tirés strictement SOUS son score. Pool à scores tous égaux → generate() retourne null (question sans solution)."
       - "Anonyme + clic carte jeu = pop-in login/inscription contextuelle (design_system.composants.gate_login_modal), pas de redirect plein-écran. _target_path POST prioritaire dans LoginFormAuthenticator::onAuthenticationSuccess (RedirectTargetGuard anti-open-redirect) → retour direct sur le jeu ciblé après login/inscription."
       - "5 LC de jeu = #[IsGranted('ROLE_USER')] classe (les routes /_components/Education:* ne sont PAS locale-préfixées → tombent dans le catch-all PUBLIC_ACCESS de security.yaml sinon)."
 
@@ -180,7 +184,7 @@ architecture:
       - "app:check:compounds / app:check:data / app:validate:compounds [--apply] / app:recompute:oav [--sync]"
     qualite_donnees:
       - "DataConfidence enum MEASURED(A)/LITERATURE(B)/ESTIMATED(C)/PLACEHOLDER(D), colonne confidence sur les 3 tables data. CasNumber VO (checksum). Badge qualité UI dans le Lab. GoldenPairingsTest = ancres anti-régression chimie."
-    handler: "RecomputeOavTableHandler — DROP tmp → CREATE LIKE → 3 INSERT (OAV>1) en transaction → RENAME → DROP old → invalidateAll(). ⚠️ double worker = race (acceptable single-worker)."
+    handler: "RecomputeOavTableHandler — DROP tmp → CREATE LIKE → 3 INSERT (OAV>1) en transaction → RENAME → DROP old → invalidateAll(). Concurrence : GET_LOCK non bloquant porté par la CONNEXION (immune aux commits implicites du DDL), release en finally ; si déjà pris → abandon + redispatch DelayStamp 60s, borné MAX_REBUILD_ATTEMPTS=3 puis arrêt définitif. ⚠️ app:recompute:oav --sync retourne FAILURE sur abandon (avant : SUCCESS silencieux → séquence d'import no-op)."
     listener: "SpiceConcentrationChangedListener — post* sur SpiceCompoundConcentration + CompoundOdt, dedup postFlush, reset flag AVANT dispatch."
     cache:
       - "match.mortar_profile.cache — TTL air 24h / water+oil 1h / vide 5min. match.insights.cache TTL 1h (clé signatureHash)."

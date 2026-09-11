@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Twig\Components\Education;
 
 use App\Service\Education\AcademyManager;
-use App\Service\Education\DifficultyRuleApplier;
 use App\Service\Education\GameSessionManager;
 use App\Twig\Components\Education\IntrusGame;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -59,7 +58,6 @@ final class IntrusGameTest extends TestCase
         $game = new IntrusGame(
             $this->academyManager,
             $this->sessionManager,
-            new DifficultyRuleApplier(), // final class — use real instance
             $requestStack,
         );
         $game->gameToken = self::TOKEN;

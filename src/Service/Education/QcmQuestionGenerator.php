@@ -53,25 +53,29 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
                 continue;
             }
 
-            // Split into high-score (correct) and low-score (distractors) pools
-            $total = count($scored);
-            $topCutoff = (int) ceil($total * 0.3);
-            $bottomCutoff = (int) floor($total * 0.7);
+            $topPool = array_slice($scored, 0, max(1, (int) ceil(count($scored) * 0.3)));
+            shuffle($topPool);
 
-            $topPool = array_slice($scored, 0, max(1, $topCutoff));
-            $bottomPool = array_slice($scored, $bottomCutoff);
+            $correct = null;
+            $dominated = [];
 
-            // Pick correct answer from top pool
-            $correctIdx = array_rand($topPool);
-            $correct = $topPool[$correctIdx];
+            foreach ($topPool as $candidateAnswer) {
+                $strictlyBelow = $this->strictlyBelow($scored, $candidateAnswer, $baseData);
 
-            // Pick distractors based on difficulty
-            $distractors = $this->pickDistractors($difficulty, $correct, $bottomPool, $scored, $baseData);
-            if (count($distractors) < 3) {
+                if (count($strictlyBelow) >= 3) {
+                    $correct = $candidateAnswer;
+                    $dominated = $strictlyBelow;
+
+                    break;
+                }
+            }
+
+            if (null === $correct) {
                 continue;
             }
 
-            // Build options (1 correct + 3 distractors), shuffle
+            $distractors = $this->pickDistractors($difficulty, $correct, $dominated);
+
             $options = array_merge(
                 [[
                     'id' => (int) $correct['id'],
@@ -109,69 +113,53 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
     }
 
     /**
+     * @param list<array<string, mixed>> $scored
      * @param array<string, mixed>       $correct
-     * @param list<array<string, mixed>> $bottomPool
-     * @param list<array<string, mixed>> $allScored
      * @param array<string, mixed>       $baseData
      *
      * @return list<array<string, mixed>>
      */
-    private function pickDistractors(
-        GameDifficulty $difficulty,
-        array $correct,
-        array $bottomPool,
-        array $allScored,
-        array $baseData,
-    ): array {
-        $correctGroupName = $correct['groupName'] ?? null;
-        $distractors = [];
+    private function strictlyBelow(array $scored, array $correct, array $baseData): array
+    {
+        $correctScore = (int) $correct['score'];
+
+        return array_values(array_filter(
+            $scored,
+            static fn (array $s) => (int) $s['score'] < $correctScore && $s['id'] !== $baseData['id'],
+        ));
+    }
+
+    /**
+     * @param array<string, mixed>       $correct
+     * @param list<array<string, mixed>> $dominated
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function pickDistractors(GameDifficulty $difficulty, array $correct, array $dominated): array
+    {
+        $window = OrdinalWindow::select(array_reverse($dominated), $difficulty, 3);
 
         if (GameDifficulty::EASY === $difficulty) {
-            // EASY: distractors from different aromatic groups than the correct answer
-            foreach ($bottomPool as $s) {
-                if (($s['groupName'] ?? null) !== $correctGroupName && $s['id'] !== $correct['id']) {
-                    $distractors[] = $s;
-                }
-            }
-        } elseif (GameDifficulty::HARD === $difficulty) {
-            // HARD: distractors with scores close to the correct answer (medium range)
-            $correctScore = $correct['score'];
-            $candidates = array_filter(
-                $allScored,
-                fn (array $s) => $s['id'] !== $correct['id']
-                    && $s['id'] !== $baseData['id']
-                    && abs($s['score'] - $correctScore) <= 20
-            );
-            usort(
-                $candidates,
-                fn (array $a, array $b) => abs($a['score'] - $correctScore) <=> abs($b['score'] - $correctScore)
-            );
-            $distractors = $candidates;
-        } else {
-            // MEDIUM: distractors from same group but lower scores
-            foreach ($bottomPool as $s) {
-                if ($s['id'] !== $correct['id']) {
-                    $distractors[] = $s;
-                }
-            }
+            $window = $this->preferDistinctGroup($window, $correct['groupName'] ?? null);
         }
 
-        // Fallback: if not enough distractors, fill from bottom pool
-        if (count($distractors) < 3) {
-            $distractorIds = array_flip(array_column($distractors, 'id'));
-            foreach ($allScored as $s) {
-                if ($s['id'] !== $correct['id'] && ! isset($distractorIds[$s['id']])) {
-                    $distractors[] = $s;
-                    $distractorIds[$s['id']] = true;
-                }
-                if (count($distractors) >= 3) {
-                    break;
-                }
-            }
-        }
+        shuffle($window);
 
-        shuffle($distractors);
+        return array_slice($window, 0, 3);
+    }
 
-        return $distractors;
+    /**
+     * @param list<array<string, mixed>> $window
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function preferDistinctGroup(array $window, mixed $correctGroupName): array
+    {
+        $distinct = array_values(array_filter(
+            $window,
+            static fn (array $s) => ($s['groupName'] ?? null) !== $correctGroupName,
+        ));
+
+        return count($distinct) >= 3 ? $distinct : $window;
     }
 }

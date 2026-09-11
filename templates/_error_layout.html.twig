@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}" class="motion-safe:scroll-smooth">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="{% block meta_description %}{{ 'ui.meta.description'|trans }}{% endblock %}">
+        <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+        <meta name="robots" content="noindex">
+
+        {% block metas %}{% endblock %}
+        <title>{% block title %}{{ 'ui.meta.default_title'|trans }}{% endblock %}</title>
+
+        <link rel="preload" as="font" type="font/woff2" href="{{ asset('fonts/inter-normal-latin.woff2') }}" crossorigin>
+        <link rel="preload" as="font" type="font/woff2" href="{{ asset('fonts/cormorant-garamond-normal-latin.woff2') }}" crossorigin>
+        <link rel="preload" as="font" type="font/woff2" href="{{ asset('lib/fontawesome/webfonts/fa-solid-900.woff2') }}" crossorigin>
+
+        <link rel="stylesheet" href="{{ asset('lib/fontawesome/css/all.min.css') }}">
+
+        {% block stylesheets %}
+            <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}">
+        {% endblock %}
+
+        <script type="application/json" id="js-i18n">{{ js_i18n_json() }}</script>
+
+        {% block javascripts %}
+            {{ importmap('app', { nonce: csp_nonce('script') }) }}
+        {% endblock %}
+    </head>
+
+    <body class="bg-cream text-stone-900 font-sans selection:bg-saffron-200 selection:text-saffron-900 overflow-x-hidden">
+
+        <a href="#main-content"
+           class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-200 focus:px-4 focus:py-2 focus:bg-saffron-700 focus:text-cream focus:rounded-full focus:text-sm focus:font-semibold focus:shadow-lg">
+            {{ 'ui.common.skip_to_content'|trans }}
+        </a>
+
+        {% include 'components/_navbar.html.twig' %}
+
+        <main id="main-content" class="min-h-screen">
+            {% block body %}{% endblock %}
+        </main>
+
+        {% include 'components/_footer.html.twig' %}
+
+    </body>
+</html>

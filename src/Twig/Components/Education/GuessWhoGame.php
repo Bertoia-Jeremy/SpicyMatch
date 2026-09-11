@@ -9,6 +9,7 @@ use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use App\Service\Education\AcademyManager;
 use App\Service\Education\GameSessionManager;
+use App\Service\Education\LocalizedSpiceNames;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -89,6 +90,21 @@ class GuessWhoGame extends AbstractController
      */
     private ?array $cachedSpiceNames = null;
 
+    /**
+     * @var array<int, array<string, mixed>>|null
+     */
+    private ?array $spiceCardsCache = null;
+
+    /**
+     * @var array<int, array{canonical: string, localized: string, groupName: ?string}>|null
+     */
+    private ?array $nameMapCache = null;
+
+    /**
+     * @var array<string, string>|null
+     */
+    private ?array $labelByCanonicalCache = null;
+
     public function __construct(
         private readonly AcademyManager $academyManager,
         private readonly GameSessionManager $sessionManager,
@@ -106,8 +122,6 @@ class GuessWhoGame extends AbstractController
     }
 
     /**
-     * Returns all spice names for client-side autocomplete filtering.
-     *
      * @return string[]
      */
     public function getAllSpiceNames(): array
@@ -116,11 +130,76 @@ class GuessWhoGame extends AbstractController
             return $this->cachedSpiceNames;
         }
 
-        $cards = $this->academyManager->getAllSpiceCards();
-        $names = array_column($cards, 'name');
+        $names = array_column($this->nameMap(), 'localized');
         sort($names);
 
         return $this->cachedSpiceNames = $names;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function spiceCards(): array
+    {
+        return $this->spiceCardsCache ??= $this->academyManager->getAllSpiceCards();
+    }
+
+    /**
+     * @return array<int, array{canonical: string, localized: string, groupName: ?string}>
+     */
+    private function nameMap(): array
+    {
+        return $this->nameMapCache ??= LocalizedSpiceNames::build($this->spiceCards(), $this->academyManager);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function acceptedSpiceNames(): array
+    {
+        $names = [];
+
+        foreach ($this->nameMap() as $entry) {
+            $names[] = $entry['canonical'];
+            $names[] = $entry['localized'];
+        }
+
+        return array_values(array_unique($names));
+    }
+
+    private function canonicalName(string $given): string
+    {
+        $map = $this->nameMap();
+
+        if (\in_array($given, array_column($map, 'canonical'), true)) {
+            return $given;
+        }
+
+        foreach ($map as $entry) {
+            if ($entry['localized'] === $given) {
+                return $entry['canonical'];
+            }
+        }
+
+        return $given;
+    }
+
+    private function localizedLabel(string $canonical): string
+    {
+        return LocalizedSpiceNames::label(
+            $canonical,
+            $this->labelByCanonicalCache ??= LocalizedSpiceNames::labelIndex($this->nameMap()),
+        );
+    }
+
+    private function matchesExpectedName(string $given, string $expected, int $expectedId): bool
+    {
+        return LocalizedSpiceNames::matches($given, $expected, $expectedId, $this->nameMap());
+    }
+
+    public function getLastCorrectNameLabel(): string
+    {
+        return $this->localizedLabel($this->lastCorrectName);
     }
 
     #[LiveAction]
@@ -151,19 +230,17 @@ class GuessWhoGame extends AbstractController
         $currentStep = $secret['currentStep'] ?? null;
         $answeredSteps = $secret['answeredSteps'] ?? [];
 
-        // Replay guard
         if (null === $currentStep || \in_array($currentStep, $answeredSteps, true)) {
             return null;
         }
 
-        // Validate against known spice names — reject freeform injected values
-        if (! \in_array($spiceName, $this->getAllSpiceNames(), true)) {
+        if (! \in_array($spiceName, $this->acceptedSpiceNames(), true)) {
             return null;
         }
 
         $answeredSteps[] = $currentStep;
 
-        $isCorrect = $spiceName === $correctName;
+        $isCorrect = $this->matchesExpectedName($spiceName, $correctName, (int) ($secret['correctId'] ?? 0));
         $correctSteps = $secret['correctSteps'] ?? [];
         $serverScore = $secret['totalScore'] ?? 0;
 
@@ -186,7 +263,6 @@ class GuessWhoGame extends AbstractController
             ++$this->incorrectCount;
         }
 
-        // Store per-question history for result page
         $clueCount = \count($this->revealedClues);
         $questions = $secret['questions'] ?? [];
         $questions[] = [
@@ -195,7 +271,7 @@ class GuessWhoGame extends AbstractController
                 '%count%' => $clueCount,
             ]),
             'correctAnswer' => $correctName,
-            'answerGiven' => $spiceName,
+            'answerGiven' => $this->canonicalName($spiceName),
             'isCorrect' => $isCorrect,
         ];
 
@@ -209,7 +285,6 @@ class GuessWhoGame extends AbstractController
         $this->lastPointsEarned = $points;
         $this->lastCorrectName = $correctName;
 
-        // Last question answered — skip feedback screen, redirect immediately
         if ($this->questionNumber >= $this->totalQuestions) {
             return $this->doFinish();
         }
@@ -253,7 +328,6 @@ class GuessWhoGame extends AbstractController
 
         $secret = $this->readSecret();
 
-        // Guard: already finishing (prevents double-call race)
         if ($secret['finished'] ?? false) {
             return $this->redirectToRoute('education_index');
         }
@@ -262,12 +336,10 @@ class GuessWhoGame extends AbstractController
         $correctSteps = $secret['correctSteps'] ?? [];
         $questionHistory = $secret['questions'] ?? [];
 
-        // Guard: session already consumed (double-call prevention)
         if (empty($answeredSteps)) {
             return $this->redirectToRoute('education_index');
         }
 
-        // Mark as finishing immediately to block concurrent calls
         $this->writeSecret(array_merge($secret, [
             'finished' => true,
         ]));
@@ -302,7 +374,7 @@ class GuessWhoGame extends AbstractController
             GameDifficulty::HARD => 2,
         };
 
-        $cards = $this->academyManager->getAllSpiceCards();
+        $cards = $this->spiceCards();
         $eligible = array_filter(
             $cards,
             fn (array $c) => ! in_array($c['id'], $this->usedSpiceIds, true)
@@ -324,10 +396,10 @@ class GuessWhoGame extends AbstractController
         $this->currentClueIndex = 1;
         $this->revealedClues = [$allClues[0]];
 
-        // Preserve all accumulated session state — only reset the per-question keys
         $previous = $this->readSecret();
         $this->writeSecret([
             'correctName' => $card['name'],
+            'correctId' => (int) $card['id'],
             'currentStep' => $this->questionNumber,
             'answeredSteps' => $previous['answeredSteps'] ?? [],
             'correctSteps' => $previous['correctSteps'] ?? [],

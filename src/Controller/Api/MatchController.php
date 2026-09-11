@@ -6,6 +6,7 @@ namespace App\Controller\Api;
 
 use App\Enum\OdtMatrix;
 use App\Enum\PairingAffinity;
+use App\Enum\ScoringMode;
 use App\Exception\Match\InvalidMortarException;
 use App\Repository\SpicesRepository;
 use App\Service\Match\FlavorGraphHybridizerInterface;
@@ -38,6 +39,7 @@ use Symfony\Component\Routing\Attribute\Route;
  *   "mortar": [1, 2],
  *   "results": [{ "id": 14, "name": "Marjolaine", "score": 87 }, …],
  *   "oav_mode": true,
+ *   "scoring_mode": "hybrid",
  *   "matrix": "air",
  *   "fat_ratio": 0.0,
  *   "water_ratio": 1.0,
@@ -246,11 +248,13 @@ final class MatchController extends AbstractController
         );
 
         $oavMode = [] !== $pipelineResults && $pipelineResults[0]['oav_mode'];
+        $scoringMode = ScoringMode::resolve($oavMode, $this->hybridizer->isActive());
 
         return $this->json([
             'mortar' => $mortar->toArray(),
             'results' => $results,
             'oav_mode' => $oavMode,
+            'scoring_mode' => $scoringMode->value,
             'matrix' => $culinaryContext->matrix->value,
             'fat_ratio' => $culinaryContext->fatRatio,
             'water_ratio' => $culinaryContext->waterRatio,

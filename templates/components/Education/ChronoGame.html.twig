@@ -4,7 +4,7 @@
     {%- if this.isFinished %}{{ 'ui.game.time_up'|trans }}
     {%- elseif this.questionsAnswered > 0 %}
       {%- if this.lastAnswerCorrect %}{{ 'ui.game.correct_points'|trans({'%points%': this.lastPointsEarned}) }}
-      {%- else %}{{ 'ui.game.it_was'|trans({'%name%': this.lastCorrectName}) }}
+      {%- else %}{{ 'ui.game.it_was'|trans({'%name%': this.lastCorrectNameLabel}) }}
       {%- endif %}
     {%- endif %}
   </div>
@@ -33,8 +33,6 @@
     ) }}
 
   {% else %}
-    {# Timer — Stimulus-driven (CSP-friendly, no inline JS). data-live-ignore
-       prevents morphdom from re-running connect() on every LC re-render. #}
     <div data-live-ignore
          data-controller="game-timer"
          data-game-timer-expires-at-value="{{ this.startedAt + this.timeLimit }}"
@@ -60,7 +58,6 @@
       </div>
     </div>
 
-    {# Stats row #}
     <div class="flex items-center justify-center gap-6 mb-6 text-sm text-stone-600">
       <span><i class="fa-solid fa-check text-turmeric-600 mr-1" aria-hidden="true"></i>{{ this.correctCount }}</span>
       <span><i class="fa-solid fa-question text-stone-400 mr-1" aria-hidden="true"></i>{{ this.questionsAnswered }}</span>
@@ -69,7 +66,6 @@
       {% endif %}
     </div>
 
-    {# Last answer feedback (inline) #}
     {% if this.questionsAnswered > 0 %}
       <div class="mb-6 text-center text-sm">
         {% if this.lastAnswerCorrect %}
@@ -78,13 +74,12 @@
           </span>
         {% else %}
           <span class="text-red-600 font-medium">
-            <i class="fa-solid fa-times-circle mr-1" aria-hidden="true"></i>{{ 'ui.game.it_was'|trans({'%name%': this.lastCorrectName}) }}
+            <i class="fa-solid fa-times-circle mr-1" aria-hidden="true"></i>{{ 'ui.game.it_was'|trans({'%name%': this.lastCorrectNameLabel}) }}
           </span>
         {% endif %}
       </div>
     {% endif %}
 
-    {# Spice card info (without name) #}
     <div class="bg-white border border-stone-200 rounded-2xl p-6 mb-6">
       <p class="text-xs text-stone-500 uppercase tracking-wide mb-3">{{ 'ui.game.which_spice'|trans }}</p>
 
@@ -150,14 +145,13 @@
       </div>
     </div>
 
-    {# Name options — answerOnce Alpine pour anti double-clic #}
     {% if this.isInCooldown %}
       <div class="mb-3 text-center text-xs text-stone-400 animate-pulse">
         <i class="fa-solid fa-hourglass-half mr-1" aria-hidden="true"></i>{{ 'ui.game.prepare_next'|trans }}
       </div>
     {% endif %}
     <div class="grid grid-cols-2 gap-3" x-data="answerOnce">
-      {% for name in this.nameOptions %}
+      {% for name in this.localizedNameOptions %}
         <button type="button"
                 data-action="live#action"
                 data-live-action-param="answer"

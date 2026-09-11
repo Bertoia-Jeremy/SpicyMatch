@@ -1295,4 +1295,46 @@ export default function registerAlpineComponents(Alpine) {
         isActive(id) { return this.activeId === id; },
         cardStyle() { return `border-color: ${this.active.accent || 'transparent'}`; },
     }));
+
+    Alpine.data('errorCountdown', (seconds = 10, url = '/') => ({
+        remaining: Number(seconds),
+        paused: false,
+        _timer: null,
+        _pauseHandler: null,
+        _resumeHandler: null,
+
+        init() {
+            this._pauseHandler = () => { this.paused = true; };
+            this._resumeHandler = () => { this.paused = false; };
+            this.$el.addEventListener('mouseenter', this._pauseHandler);
+            this.$el.addEventListener('focusin', this._pauseHandler);
+            this.$el.addEventListener('mouseleave', this._resumeHandler);
+            this.$el.addEventListener('focusout', this._resumeHandler);
+            this._timer = setInterval(() => this.tick(), 1000);
+        },
+
+        destroy() {
+            this._stop();
+            this.$el.removeEventListener('mouseenter', this._pauseHandler);
+            this.$el.removeEventListener('focusin', this._pauseHandler);
+            this.$el.removeEventListener('mouseleave', this._resumeHandler);
+            this.$el.removeEventListener('focusout', this._resumeHandler);
+        },
+
+        tick() {
+            if (this.paused) return;
+            this.remaining -= 1;
+            if (this.remaining <= 0) {
+                this.remaining = 0;
+                this._stop();
+                window.location.assign(url);
+            }
+        },
+
+        _stop() {
+            if (this._timer === null) return;
+            clearInterval(this._timer);
+            this._timer = null;
+        },
+    }));
 }

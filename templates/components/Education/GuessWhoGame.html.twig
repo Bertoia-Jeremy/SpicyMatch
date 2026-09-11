@@ -4,14 +4,13 @@
     {%- if this.isFinished %}{{ 'ui.game.a11y_finished'|trans }}
     {%- elseif this.showFeedback %}
       {%- if this.lastAnswerCorrect %}{{ 'ui.game.a11y_correct'|trans }}
-      {%- else %}{{ 'ui.game.a11y_incorrect'|trans({'%name%': this.lastCorrectName}) }}
+      {%- else %}{{ 'ui.game.a11y_incorrect'|trans({'%name%': this.lastCorrectNameLabel}) }}
       {%- endif %}
     {%- elseif this.questionNumber > 0 %}
       {{- 'ui.game.a11y_question'|trans({'%num%': this.questionNumber, '%total%': this.totalQuestions}) }}
     {%- endif %}
   </div>
 
-  {# Séparée : éviter de relire la question à chaque indice #}
   <div aria-live="polite" class="sr-only">
     {%- if not this.showFeedback and not this.isFinished and this.revealedClues|length > 0 %}
       {%- set lastClue = this.revealedClues|last %}
@@ -30,14 +29,13 @@
   ) }}
 
   {% if this.showFeedback %}
-    {# Inline feedback between questions #}
     <div class="text-center py-10">
       {% if this.lastAnswerCorrect %}
         <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-turmeric-100 flex items-center justify-center">
           <i class="fa-solid fa-circle-check text-turmeric-600 text-3xl" aria-hidden="true"></i>
         </div>
         <h3 class="text-lg font-bold text-turmeric-700 mb-2">{{ 'ui.game.correct_answer'|trans }}</h3>
-        <p class="text-stone-600 mb-2">{{ 'ui.game.it_was_indeed'|trans({'%name%': '<strong>' ~ (this.lastCorrectName|e) ~ '</strong>'})|raw }}</p>
+        <p class="text-stone-600 mb-2">{{ 'ui.game.it_was_indeed'|trans({'%name%': '<strong>' ~ (this.lastCorrectNameLabel|e) ~ '</strong>'})|raw }}</p>
         <p class="text-saffron-600 font-semibold">{{ 'ui.game.points_earned'|trans({'%points%': this.lastPointsEarned}) }}</p>
       {% else %}
         <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-paprika-100 flex items-center justify-center">
@@ -45,7 +43,7 @@
         </div>
         <h3 class="text-lg font-bold text-paprika-700 mb-2">{{ 'ui.game.wrong_answer'|trans }}</h3>
         <p class="text-stone-600 mb-2">
-          {{ 'ui.game.correct_was'|trans({'%name%': '<strong>' ~ (this.lastCorrectName|e) ~ '</strong>'})|raw }}
+          {{ 'ui.game.correct_was'|trans({'%name%': '<strong>' ~ (this.lastCorrectNameLabel|e) ~ '</strong>'})|raw }}
         </p>
       {% endif %}
 
@@ -59,7 +57,6 @@
     </div>
 
   {% else %}
-    {# Active question: clues + autocomplete input #}
     <div class="mb-8">
       <div class="flex items-center justify-between mb-4">
         <p class="text-sm font-medium text-stone-700">
@@ -101,13 +98,11 @@
       </div>
     </div>
 
-    {# Autocomplete input — Alpine filters client-side, LC handles validation + scoring #}
     <div x-data="guessWhoAutocomplete({{ this.getAllSpiceNames()|json_encode }})"
          class="relative"
          @click.outside="closeSuggestions()">
       <p class="text-sm font-medium text-stone-700 mb-3">{{ 'ui.game.which_spice'|trans }}</p>
 
-      {# Hidden LC action trigger — Alpine sets the param then clicks it #}
       <button x-ref="submitGuessBtn"
               type="button"
               data-action="live#action"

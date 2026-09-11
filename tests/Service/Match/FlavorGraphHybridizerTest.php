@@ -39,7 +39,7 @@ final class FlavorGraphHybridizerTest extends TestCase
         self::assertSame([], $hybridizer->rerank([], new MortarIds([1]), true, OdtMatrix::AIR));
     }
 
-    public function testDegradedModeScoresPurelyFromFlavorGraph(): void
+    public function testDegradedModeCompressesFlavorGraphScore(): void
     {
         $hybridizer = $this->makeHybridizer([
             10 => [
@@ -54,7 +54,7 @@ final class FlavorGraphHybridizerTest extends TestCase
 
         $out = $hybridizer->rerank($results, new MortarIds([1]), false, OdtMatrix::AIR);
 
-        self::assertSame(60, $out[0]['score']);
+        self::assertSame(39, $out[0]['score']);
     }
 
     public function testPlaceholderTierWeightsFlavorGraphHeavily(): void
@@ -122,7 +122,69 @@ final class FlavorGraphHybridizerTest extends TestCase
 
         $out = $hybridizer->rerank($results, new MortarIds([1, 2]), false, OdtMatrix::AIR);
 
-        self::assertSame(40, $out[0]['score']);
+        self::assertSame(26, $out[0]['score']);
+    }
+
+    public function testDegradedScoreNeverExceedsCap(): void
+    {
+        $hybridizer = $this->makeHybridizer([
+            10 => [
+                1 => 1.0,
+            ],
+        ], DataConfidence::PLACEHOLDER);
+        $results = [[
+            'id' => 10,
+            'score' => 0,
+            'oav_mode' => false,
+        ]];
+
+        $out = $hybridizer->rerank($results, new MortarIds([1]), false, OdtMatrix::AIR);
+
+        self::assertSame(65, $out[0]['score']);
+    }
+
+    public function testDegradedCompressionPreservesOrder(): void
+    {
+        $hybridizer = $this->makeHybridizer([
+            10 => [
+                1 => 0.80,
+            ],
+            11 => [
+                1 => 0.40,
+            ],
+        ], DataConfidence::PLACEHOLDER);
+        $results = [
+            [
+                'id' => 10,
+                'score' => 0,
+                'oav_mode' => false,
+            ],
+            [
+                'id' => 11,
+                'score' => 0,
+                'oav_mode' => false,
+            ],
+        ];
+
+        $out = $hybridizer->rerank($results, new MortarIds([1]), false, OdtMatrix::AIR);
+
+        self::assertSame(52, $out[0]['score']);
+        self::assertSame(26, $out[1]['score']);
+        self::assertGreaterThan($out[1]['score'], $out[0]['score']);
+    }
+
+    public function testCandidateAbsentFromFlavorGraphStaysAtZeroInDegradedMode(): void
+    {
+        $hybridizer = $this->makeHybridizer([], DataConfidence::PLACEHOLDER);
+        $results = [[
+            'id' => 10,
+            'score' => 0,
+            'oav_mode' => false,
+        ]];
+
+        $out = $hybridizer->rerank($results, new MortarIds([1]), false, OdtMatrix::AIR);
+
+        self::assertSame(0, $out[0]['score']);
     }
 
     public function testIsActiveReturnsTrue(): void

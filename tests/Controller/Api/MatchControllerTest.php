@@ -113,6 +113,7 @@ final class MatchControllerTest extends WebTestCase
         self::assertArrayHasKey('mortar', $data);
         self::assertArrayHasKey('results', $data);
         self::assertArrayHasKey('oav_mode', $data);
+        self::assertArrayHasKey('scoring_mode', $data);
         self::assertArrayHasKey('count', $data);
         self::assertSame([15], $data['mortar']);
         self::assertSame(count($data['results']), $data['count']);

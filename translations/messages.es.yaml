@@ -476,7 +476,11 @@ ui:
         advanced: Avanzado
         odt_matrix: Matriz ODT
         no_matrix_data: Ninguna matriz con datos
-        presence_mode: Orden por presencia de compuestos compartidos — sin puntuación OAV cuantitativa (datos insuficientes).
+        scoring_mode:
+            hybrid: 'Puntuación química OAV combinada con la afinidad por coocurrencia (FlavorGraph).'
+            oav: 'Puntuación química OAV sola (Tanimoto ponderado).'
+            flavorgraph: 'Afinidad por coocurrencia (FlavorGraph), sin medición química: escala reducida, máximo %max%.'
+            presence: 'Orden por presencia de compuestos compartidos, sin puntuación cuantitativa.'
         fat_ratio: Fracción grasa
         cooking_time: Tiempo de cocción
         temperature: Temperatura
@@ -729,6 +733,17 @@ ui:
         persist: Si el problema persiste, contacta con el administrador.
         home: Inicio
         report: Reportar
+        '404':
+            title: Esta página se ha esfumado entre una nube de pimentón
+            description: 'No conseguimos encontrarla — puede que se haya ido flotando con una pizca de chile. Tranquilo: los mejores descubrimientos suelen empezar por una pista equivocada.'
+            back: Volver al inicio
+            explore: Directo a la Academia
+            countdown: 'Redirección automática en %count% segundos.'
+        '403':
+            title: Acceso restringido
+            description: No tienes los permisos necesarios para ver esta página. Inicia sesión o vuelve al inicio.
+            back: Volver al inicio
+            countdown: 'Redirección automática en %count% segundos.'
     security:
         password: Contraseña
         password_text: Cambia tu contraseña a continuación.

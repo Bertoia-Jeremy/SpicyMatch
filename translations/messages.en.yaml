@@ -476,7 +476,11 @@ ui:
         advanced: Advanced
         odt_matrix: ODT matrix
         no_matrix_data: No matrix with data
-        presence_mode: Sorted by shared-compound presence — no quantitative OAV score (insufficient data).
+        scoring_mode:
+            hybrid: 'OAV chemical score blended with co-occurrence affinity (FlavorGraph).'
+            oav: 'OAV chemical score only (weighted Tanimoto).'
+            flavorgraph: 'Co-occurrence affinity (FlavorGraph), no chemical measurement: reduced scale, maximum %max%.'
+            presence: 'Sorted by shared-compound presence, no quantitative score.'
         fat_ratio: Fat ratio
         cooking_time: Cooking time
         temperature: Temperature
@@ -729,6 +733,17 @@ ui:
         persist: If the problem persists, please contact the administrator.
         home: Home
         report: Report
+        '404':
+            title: This page vanished in a puff of paprika
+            description: "We can't track it down — it may have drifted off with a pinch of chili. No worries: the best discoveries often start with a wrong turn."
+            back: Back to home
+            explore: Head to the Academy
+            countdown: 'Automatic redirect in %count% seconds.'
+        '403':
+            title: Restricted access
+            description: You do not have the permissions required to view this page. Sign in or head back home.
+            back: Back to home
+            countdown: 'Automatic redirect in %count% seconds.'
     security:
         password: Password
         password_text: Change your password below.

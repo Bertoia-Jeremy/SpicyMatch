@@ -48,7 +48,6 @@ class AcademyCacheInvalidator
 
         if (null !== $entity->getId()) {
             $this->cache->delete('academy.intruders.'.$entity->getId());
-            $this->cache->delete('academy.intruders.strict.'.$entity->getId());
 
             foreach (['fr', 'en', 'es'] as $locale) {
                 $this->cache->delete('academy.compatible.'.$locale.'.'.$entity->getId());

@@ -449,12 +449,10 @@
                     </div>
                 {% endif %}
 
-                {# Véracité : sans données OAV pour le mortier, le tri est basé sur la présence
-                   de composés partagés, pas sur un score OAV quantitatif. On le dit explicitement. #}
                 {% if selectedCount > 0 and not this.oavScoringAvailable %}
                     <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] bg-stone-100 border border-stone-300">
                         <i class="fa-solid fa-diagram-project text-stone-500 shrink-0" aria-hidden="true"></i>
-                        <p class="text-stone-600">{{ 'ui.lab.presence_mode'|trans }}</p>
+                        <p class="text-stone-600">{{ this.scoringMode.label|trans({'%max%': this.degradedScoreMax}) }}</p>
                     </div>
                 {% endif %}
 

@@ -76,7 +76,7 @@ class AcademyManager
             return [];
         }
 
-        $locale = $this->translator instanceof LocaleAwareInterface ? $this->translator->getLocale() : 'fr';
+        $locale = $this->currentLocale();
 
         return $this->cache->get('academy.compatible.'.$locale.'.'.$id, function (ItemInterface $item) use (
             $id
@@ -153,10 +153,6 @@ class AcademyManager
         return array_slice($scoredSpices, 0, $keep);
     }
 
-    // ──────────────────────────────────────────────
-    // Cartes épices cachées (Chrono, Guess Who)
-    // ──────────────────────────────────────────────
-
     /**
      * @return array<int, array<string, mixed>> Indexed by spice ID
      */
@@ -192,9 +188,15 @@ class AcademyManager
         return $cards[array_rand($cards)];
     }
 
-    // ──────────────────────────────────────────────
-    // Normalisation texte (Hangman)
-    // ──────────────────────────────────────────────
+    /**
+     * @param list<array{id: int, name: string, file: ?string, color: ?string, groupName: ?string}> $summaries
+     *
+     * @return list<array{id: int, name: string, file: ?string, color: ?string, groupName: ?string}>
+     */
+    public function localizeSpiceSummaries(array $summaries): array
+    {
+        return $this->localizedOptions($summaries);
+    }
 
     /**
      * Strip accents and uppercase a single character.
@@ -264,9 +266,7 @@ class AcademyManager
         GameDifficulty $difficulty,
         array $excludeBaseIds = [],
         bool $inverted = false,
-        bool $strict = false,
     ): ?array {
-        // 50/50 chance of a group-based "hors-groupe" question (non-inverted only)
         if (! $inverted && 0 === random_int(0, 1)) {
             $groupQuestion = $this->generateGroupIntrusQuestion($difficulty, $excludeBaseIds);
             if (null !== $groupQuestion) {
@@ -285,35 +285,48 @@ class AcademyManager
         shuffle($candidates);
 
         foreach ($candidates as $baseSpice) {
-            $compatibles = $this->findCompatibleSpices($baseSpice);
-            $intruders = $strict
-                ? $this->findStrictIntruders($baseSpice, $excludeBaseIds)
-                : $this->findIntruders($baseSpice, $excludeBaseIds);
+            $compatibles = $this->rankedCompatibles($baseSpice);
+            $intruders = $this->findIntruders(
+                $baseSpice,
+                [...$excludeBaseIds, ...array_map(static fn (array $c) => (int) $c['id'], $compatibles)],
+            );
 
-            // Use a local copy so the original $inverted is never mutated across iterations.
-            $effectiveInverted = $inverted;
+            $question = $inverted
+                ? $this->buildInvertedIntrusQuestion($baseSpice, $compatibles, $intruders, $difficulty)
+                : null;
 
-            if ($effectiveInverted) {
-                // Need ≥1 compatible + ≥3 intruders
-                if (count($compatibles) < 1 || count($intruders) < 3) {
-                    // Fallback to classic mode for this candidate
-                    if (count($compatibles) >= 3 && count($intruders) >= 1) {
-                        $effectiveInverted = false;
-                    } else {
-                        continue;
-                    }
-                }
-            } else {
-                // Need ≥3 compatibles + ≥1 intruder
-                if (count($compatibles) < 3 || count($intruders) < 1) {
-                    continue;
-                }
+            $question ??= $this->buildClassicIntrusQuestion($baseSpice, $compatibles, $intruders, $difficulty);
+
+            if (null !== $question) {
+                return $question;
             }
-
-            return $this->buildIntrusQuestion($baseSpice, $compatibles, $intruders, $difficulty, $effectiveInverted);
         }
 
         return null;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function rankedCompatibles(Spices $baseSpice): array
+    {
+        $seen = [];
+        $ranked = [];
+
+        foreach ($this->findCompatibleSpices($baseSpice) as $entry) {
+            $id = (int) $entry['id'];
+
+            if (isset($seen[$id])) {
+                continue;
+            }
+
+            $seen[$id] = true;
+            $ranked[] = $entry;
+        }
+
+        usort($ranked, static fn (array $a, array $b) => (int) $b['score'] <=> (int) $a['score']);
+
+        return $ranked;
     }
 
     /**
@@ -388,10 +401,10 @@ class AcademyManager
 
             $options = [];
             foreach ($members as $member) {
-                $options[] = $this->spiceToOption($member);
+                $options[] = $this->toOption($member);
             }
 
-            $options[] = $this->spiceToOption($intruder);
+            $options[] = $this->toOption($intruder);
 
             shuffle($options);
 
@@ -404,7 +417,7 @@ class AcademyManager
                     'id' => 0,
                     'name' => '',
                 ],
-                'options' => $options,
+                'options' => $this->localizedOptions($options),
                 'correctAnswerId' => $intruder->getId(),
                 'isInverted' => false,
                 'metadata' => [
@@ -417,8 +430,6 @@ class AcademyManager
     }
 
     /**
-     * Generate options for the next survival pick.
-     *
      * @param list<int> $usedIds
      *
      * @return list<array{id: int, name: string, file: ?string, color: ?string, groupName: ?string, isCompatible: bool}>
@@ -430,22 +441,19 @@ class AcademyManager
     ): array {
         $compatibles = $this->findCompatibleSpices($current);
 
-        // Exclude already used spices
         $usedFlipped = array_flip($usedIds);
         $compatibles = array_values(array_filter($compatibles, fn (array $c) => ! isset($usedFlipped[$c['id']])));
 
         if (empty($compatibles)) {
-            return []; // Pool exhaustion → victory
+            return [];
         }
 
-        // Filter by difficulty
         $filtered = $this->filterByDifficulty($compatibles, $difficulty);
 
         if (empty($filtered)) {
             $filtered = $compatibles;
         }
 
-        // Pick some compatible ones
         $optionCount = match ($difficulty) {
             GameDifficulty::EASY => 6,
             GameDifficulty::MEDIUM => 5,
@@ -455,39 +463,40 @@ class AcademyManager
         shuffle($filtered);
         $correctOptions = array_slice($filtered, 0, max(1, (int) ceil($optionCount * 0.6)));
 
-        // Add some incompatible traps
         $intruders = $this->findIntruders($current, $usedIds);
         shuffle($intruders);
         $trapCount = $optionCount - count($correctOptions);
         $traps = array_slice($intruders, 0, $trapCount);
 
         $options = [];
+        $compatibleFlags = [];
 
         foreach ($correctOptions as $c) {
-            $options[] = [
-                'id' => $c['id'],
-                'name' => $c['name'],
-                'file' => $c['file'],
-                'color' => $c['color'],
-                'groupName' => $c['groupName'],
-                'isCompatible' => true,
-            ];
+            $options[] = $this->toOption($c);
+            $compatibleFlags[] = true;
         }
 
         foreach ($traps as $trap) {
-            $options[] = [
-                'id' => $trap->getId(),
-                'name' => $trap->getName(),
-                'file' => $trap->getFile(),
-                'color' => $trap->getAromaticGroups()?->getColor(),
-                'groupName' => $trap->getAromaticGroups()?->getName(),
-                'isCompatible' => false,
+            $options[] = $this->toOption($trap);
+            $compatibleFlags[] = false;
+        }
+
+        $survivalOptions = [];
+
+        foreach ($this->localizedOptions($options) as $index => $option) {
+            $survivalOptions[] = [
+                'id' => $option['id'],
+                'name' => $option['name'],
+                'file' => $option['file'],
+                'color' => $option['color'],
+                'groupName' => $option['groupName'],
+                'isCompatible' => $compatibleFlags[$index],
             ];
         }
 
-        shuffle($options);
+        shuffle($survivalOptions);
 
-        return array_slice($options, 0, $optionCount);
+        return array_slice($survivalOptions, 0, $optionCount);
     }
 
     /**
@@ -769,83 +778,68 @@ class AcademyManager
         return array_map(fn (string $key): string => $this->translator->trans($key), $keys);
     }
 
-    // ──────────────────────────────────────────────
-    // Intrus — mode strict (Chef de Partie)
-    // ──────────────────────────────────────────────
-
-    /**
-     * Find intruders for strict mode (Chef de Partie).
-     * Instead of 0-compatibility, returns spices with low but non-zero score (1-15/100).
-     * These are trickier to spot as intruders.
-     *
-     * @param list<int> $excludeIds
-     *
-     * @return list<Spices>
-     */
-    public function findStrictIntruders(Spices $baseSpice, array $excludeIds = []): array
+    private function currentLocale(): string
     {
-        $cacheKey = 'academy.intruders.strict.'.$baseSpice->getId();
-
-        $allStrictIntruders = $this->cache->get($cacheKey, function (ItemInterface $item) use ($baseSpice): array {
-            $item->expiresAfter(3600);
-
-            $id = $baseSpice->getId();
-            $compatibles = null !== $id
-                ? $this->compatibleSpiceFinder->findCompatible(new MortarIds([$id]), 100, new CulinaryContext())
-                : [];
-
-            // Keep only scores 1–15 : barely compatible = hard to distinguish
-            $lowScored = array_filter($compatibles, fn (array $c) => $c['score'] >= 1 && $c['score'] <= 15);
-
-            if (empty($lowScored)) {
-                // Fallback: widen to 1–25
-                $lowScored = array_filter($compatibles, fn (array $c) => $c['score'] >= 1 && $c['score'] <= 25);
-            }
-
-            if (empty($lowScored)) {
-                // Ultimate fallback: true intruders
-                return $this->spicesRepository->findIncompatibleWith($baseSpice);
-            }
-
-            // Load full entities
-            $ids = array_column($lowScored, 'id');
-
-            return $this->spicesRepository->createQueryBuilder('s')
-                ->addSelect('ag')
-                ->leftJoin('s.aromaticGroups', 'ag')
-                ->where('s.id IN (:ids)')
-                ->setParameter('ids', $ids)
-                ->getQuery()
-                ->getResult();
-        });
-
-        if (empty($excludeIds)) {
-            return $allStrictIntruders;
-        }
-
-        $excludeFlipped = array_flip($excludeIds);
-
-        return array_values(array_filter(
-            $allStrictIntruders,
-            fn (Spices $s) => ! isset($excludeFlipped[$s->getId()]),
-        ));
+        return $this->translator instanceof LocaleAwareInterface ? $this->translator->getLocale() : 'fr';
     }
 
-    // ──────────────────────────────────────────────
-    // Private helpers
-    // ──────────────────────────────────────────────
+    /**
+     * @param list<array{id: int, name: string, file: ?string, color: ?string, groupName: ?string}> $options
+     *
+     * @return list<array{id: int, name: string, file: ?string, color: ?string, groupName: ?string}>
+     */
+    private function localizedOptions(array $options): array
+    {
+        $locale = $this->currentLocale();
+
+        if ([] === $options || 'fr' === $locale) {
+            return $options;
+        }
+
+        $enriched = $this->spicesRepository->findEnrichedByIds(
+            array_map(static fn (array $option) => $option['id'], $options),
+            $locale,
+        );
+
+        $byId = array_column($enriched, null, 'id');
+
+        return array_map(static function (array $option) use ($byId): array {
+            $row = $byId[$option['id']] ?? null;
+
+            if (null === $row) {
+                return $option;
+            }
+
+            $option['name'] = (string) $row['name'];
+            $option['groupName'] = null !== $row['groupName'] ? (string) $row['groupName'] : null;
+
+            return $option;
+        }, $options);
+    }
 
     /**
+     * @param Spices|array<string, mixed> $source
+     *
      * @return array{id: int, name: string, file: ?string, color: ?string, groupName: ?string}
      */
-    private function spiceToOption(Spices $spice): array
+    private function toOption(Spices|array $source): array
     {
+        if ($source instanceof Spices) {
+            return [
+                'id' => (int) $source->getId(),
+                'name' => (string) $source->getName(),
+                'file' => $source->getFile(),
+                'color' => $source->getAromaticGroups()?->getColor(),
+                'groupName' => $source->getAromaticGroups()?->getName(),
+            ];
+        }
+
         return [
-            'id' => $spice->getId(),
-            'name' => $spice->getName(),
-            'file' => $spice->getFile(),
-            'color' => $spice->getAromaticGroups()?->getColor(),
-            'groupName' => $spice->getAromaticGroups()?->getName(),
+            'id' => (int) $source['id'],
+            'name' => (string) $source['name'],
+            'file' => null !== ($source['file'] ?? null) ? (string) $source['file'] : null,
+            'color' => null !== ($source['color'] ?? null) ? (string) $source['color'] : null,
+            'groupName' => null !== ($source['groupName'] ?? null) ? (string) $source['groupName'] : null,
         ];
     }
 
@@ -936,110 +930,146 @@ class AcademyManager
     }
 
     /**
-     * @param list<array<string, mixed>>|list<Spices> $compatibles
-     * @param list<Spices>                            $intruders
+     * @param list<array<string, mixed>> $compatibles
+     * @param list<Spices>               $intruders
      *
-     * @return array{type: string, prompt: string, baseSpice: array<string, mixed>, options: array<int, array<string, mixed>>, correctAnswerId: int, isInverted: bool, metadata: array<string, mixed>}
+     * @return array{type: string, prompt: string, baseSpice: array<string, mixed>, options: array<int, array<string, mixed>>, correctAnswerId: int, isInverted: bool, metadata: array<string, mixed>}|null
      */
-    private function buildIntrusQuestion(
+    private function buildClassicIntrusQuestion(
         Spices $baseSpice,
         array $compatibles,
         array $intruders,
         GameDifficulty $difficulty,
-        bool $inverted,
-    ): array {
-        if ($inverted) {
-            // 3 intruders + 1 compatible
-            shuffle($intruders);
-            $pickedIntruders = array_slice($intruders, 0, 3);
-
-            // Pick best compatible based on difficulty
-            $filteredCompatibles = $this->filterCompatiblesForIntrus($compatibles, $difficulty);
-            $correctEntry = $filteredCompatibles[array_rand($filteredCompatibles)];
-
-            $options = [];
-
-            foreach ($pickedIntruders as $intruder) {
-                $options[] = $this->spiceToOption($intruder);
-            }
-
-            $options[] = [
-                'id' => $correctEntry['id'],
-                'name' => $correctEntry['name'],
-                'file' => $correctEntry['file'],
-                'color' => $correctEntry['color'],
-            ];
-
-            shuffle($options);
-
-            return [
-                'type' => 'intrus',
-                'prompt' => $this->translator->trans('ui.edu.prompt.intrus_compatible', [
-                    '%spice%' => $baseSpice->getName(),
-                ]),
-                'baseSpice' => [
-                    'id' => $baseSpice->getId(),
-                    'name' => $baseSpice->getName(),
-                ],
-                'options' => $options,
-                'correctAnswerId' => $correctEntry['id'],
-                'isInverted' => true,
-                'metadata' => [
-                    'difficulty' => $difficulty->value,
-                ],
-            ];
+    ): ?array {
+        if (count($compatibles) < 3) {
+            return null;
         }
 
-        // Classic: 3 compatibles + 1 intruder
-        $filteredCompatibles = $this->filterCompatiblesForIntrus($compatibles, $difficulty);
+        $eligible = $this->eligibleIntruders($compatibles, $intruders);
 
-        shuffle($filteredCompatibles);
-        $pickedCompatibles = array_slice($filteredCompatibles, 0, 3);
-
-        shuffle($intruders);
-        $intruder = $intruders[0];
-
-        // For HARD, try to pick an intruder from same SpicyType (visual trap)
-        if (GameDifficulty::HARD === $difficulty && null !== $baseSpice->getSpicyType()) {
-            $sameTypeIntruders = array_filter(
-                $intruders,
-                fn (Spices $s) => $s->getSpicyType()?->getId() === $baseSpice->getSpicyType()
-                    ->getId(),
-            );
-
-            if (! empty($sameTypeIntruders)) {
-                $sameTypeIntruders = array_values($sameTypeIntruders);
-                $intruder = $sameTypeIntruders[array_rand($sameTypeIntruders)];
-            }
+        if ([] === $eligible) {
+            return null;
         }
+
+        $window = $this->preferSameSpicyType(
+            OrdinalWindow::select($eligible, $difficulty, 1),
+            $baseSpice,
+            $difficulty,
+        );
+        shuffle($window);
+        $intruder = $window[0];
+
+        $companions = OrdinalWindow::select(array_slice($compatibles, 0, $intruder['cut']), $difficulty, 3);
+        shuffle($companions);
 
         $options = [];
 
-        foreach ($pickedCompatibles as $c) {
-            $options[] = [
-                'id' => $c['id'],
-                'name' => $c['name'],
-                'file' => $c['file'],
-                'color' => $c['color'],
-            ];
+        foreach (array_slice($companions, 0, 3) as $companion) {
+            $options[] = $this->toOption($companion);
         }
 
-        $options[] = $this->spiceToOption($intruder);
+        $options[] = $intruder['option'];
 
         shuffle($options);
 
+        return $this->intrusQuestion(
+            $baseSpice,
+            'ui.edu.prompt.intrus_classic',
+            $options,
+            $intruder['option']['id'],
+            false,
+            $difficulty,
+        );
+    }
+
+    /**
+     * @param list<array<string, mixed>> $compatibles
+     * @param list<Spices>               $intruders
+     *
+     * @return array{type: string, prompt: string, baseSpice: array<string, mixed>, options: array<int, array<string, mixed>>, correctAnswerId: int, isInverted: bool, metadata: array<string, mixed>}|null
+     */
+    private function buildInvertedIntrusQuestion(
+        Spices $baseSpice,
+        array $compatibles,
+        array $intruders,
+        GameDifficulty $difficulty,
+    ): ?array {
+        $scores = array_map(static fn (array $entry) => (int) $entry['score'], $compatibles);
+        $intruderCount = count($intruders);
+        $eligibleAnswers = [];
+
+        foreach ($compatibles as $index => $entry) {
+            $below = $intruderCount + count(array_filter($scores, static fn (int $s) => $s < $scores[$index]));
+
+            if ($below >= 3) {
+                $eligibleAnswers[] = $entry;
+            }
+        }
+
+        if ([] === $eligibleAnswers) {
+            return null;
+        }
+
+        $answerWindow = OrdinalWindow::select($eligibleAnswers, $difficulty, 1);
+        shuffle($answerWindow);
+        $answer = $answerWindow[0];
+        $answerScore = (int) $answer['score'];
+
+        $decoys = [];
+
+        foreach ($intruders as $intruder) {
+            $decoys[] = $this->toOption($intruder);
+        }
+
+        for ($index = count($compatibles) - 1; $index >= 0; --$index) {
+            if ($scores[$index] < $answerScore) {
+                $decoys[] = $this->toOption($compatibles[$index]);
+            }
+        }
+
+        $decoyWindow = OrdinalWindow::select($decoys, $difficulty, 3);
+        shuffle($decoyWindow);
+
+        $options = array_slice($decoyWindow, 0, 3);
+        $options[] = $this->toOption($answer);
+
+        shuffle($options);
+
+        return $this->intrusQuestion(
+            $baseSpice,
+            'ui.edu.prompt.intrus_compatible',
+            $options,
+            (int) $answer['id'],
+            true,
+            $difficulty,
+        );
+    }
+
+    /**
+     * @param list<array{id: int, name: string, file: ?string, color: ?string, groupName: ?string}> $options
+     *
+     * @return array{type: string, prompt: string, baseSpice: array<string, mixed>, options: array<int, array<string, mixed>>, correctAnswerId: int, isInverted: bool, metadata: array<string, mixed>}
+     */
+    private function intrusQuestion(
+        Spices $baseSpice,
+        string $promptKey,
+        array $options,
+        int $correctAnswerId,
+        bool $inverted,
+        GameDifficulty $difficulty,
+    ): array {
         return [
             'type' => 'intrus',
-            'prompt' => $this->translator->trans('ui.edu.prompt.intrus_classic', [
+            'prompt' => $this->translator->trans($promptKey, [
                 '%spice%' => $baseSpice->getName(),
             ]),
             'baseSpice' => [
                 'id' => $baseSpice->getId(),
                 'name' => $baseSpice->getName(),
             ],
-            'options' => $options,
-            'correctAnswerId' => $intruder->getId(),
-            'isInverted' => false,
+            'options' => $this->localizedOptions($options),
+            'correctAnswerId' => $correctAnswerId,
+            'isInverted' => $inverted,
             'metadata' => [
                 'difficulty' => $difficulty->value,
             ],
@@ -1047,32 +1077,77 @@ class AcademyManager
     }
 
     /**
-     * Filter compatible spices based on difficulty for Intrus mode.
-     *
-     * EASY: score > 70, MEDIUM: 40-70, HARD: 20-50
-     *
      * @param list<array<string, mixed>> $compatibles
+     * @param list<Spices>               $intruders
      *
-     * @return list<array<string, mixed>>
+     * @return list<array{option: array{id: int, name: string, file: ?string, color: ?string, groupName: ?string}, cut: int, spicyTypeId: ?int}>
      */
-    private function filterCompatiblesForIntrus(array $compatibles, GameDifficulty $difficulty): array
+    private function eligibleIntruders(array $compatibles, array $intruders): array
     {
-        $filtered = match ($difficulty) {
-            GameDifficulty::EASY => array_filter($compatibles, fn (array $c) => $c['score'] > 70),
-            GameDifficulty::MEDIUM => array_filter(
-                $compatibles,
-                fn (array $c) => $c['score'] >= 40 && $c['score'] <= 70
-            ),
-            GameDifficulty::HARD => array_filter($compatibles, fn (array $c) => $c['score'] >= 20 && $c['score'] <= 50),
-        };
+        $total = count($compatibles);
+        $eligible = [];
 
-        $filtered = array_values($filtered);
-
-        // Fallback: if no spices match the range, use all compatibles
-        if (count($filtered) < 3) {
-            return $compatibles;
+        foreach ($intruders as $intruder) {
+            $eligible[] = [
+                'option' => $this->toOption($intruder),
+                'cut' => $total,
+                'spicyTypeId' => $intruder->getSpicyType()?->getId(),
+            ];
         }
 
-        return $filtered;
+        $boundaries = $this->strictBoundaries($compatibles);
+
+        for ($index = $total - 1; $index >= 0; --$index) {
+            if ($boundaries[$index] < 3) {
+                continue;
+            }
+
+            $spicyTypeId = $compatibles[$index]['stId'] ?? null;
+
+            $eligible[] = [
+                'option' => $this->toOption($compatibles[$index]),
+                'cut' => $boundaries[$index],
+                'spicyTypeId' => null !== $spicyTypeId ? (int) $spicyTypeId : null,
+            ];
+        }
+
+        return $eligible;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $compatibles
+     *
+     * @return list<int>
+     */
+    private function strictBoundaries(array $compatibles): array
+    {
+        $firstOfScore = [];
+        $boundaries = [];
+
+        foreach ($compatibles as $index => $entry) {
+            $score = (int) $entry['score'];
+            $firstOfScore[$score] ??= $index;
+            $boundaries[] = $firstOfScore[$score];
+        }
+
+        return $boundaries;
+    }
+
+    /**
+     * @param list<array{option: array{id: int, name: string, file: ?string, color: ?string, groupName: ?string}, cut: int, spicyTypeId: ?int}> $window
+     *
+     * @return list<array{option: array{id: int, name: string, file: ?string, color: ?string, groupName: ?string}, cut: int, spicyTypeId: ?int}>
+     */
+    private function preferSameSpicyType(array $window, Spices $baseSpice, GameDifficulty $difficulty): array
+    {
+        $baseTypeId = $baseSpice->getSpicyType()?->getId();
+
+        if (GameDifficulty::HARD !== $difficulty || null === $baseTypeId) {
+            return $window;
+        }
+
+        $sameType = array_values(array_filter($window, static fn (array $e) => $e['spicyTypeId'] === $baseTypeId));
+
+        return [] === $sameType ? $window : $sameType;
     }
 }

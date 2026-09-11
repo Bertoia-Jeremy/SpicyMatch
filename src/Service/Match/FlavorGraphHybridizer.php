@@ -11,6 +11,8 @@ use App\ValueObject\Match\MortarIds;
 
 final class FlavorGraphHybridizer implements FlavorGraphHybridizerInterface
 {
+    public const float DEGRADED_SCORE_SCALE = 0.65;
+
     public function __construct(
         private readonly FlavorGraphAffinityRepository $repository,
         private readonly MatchConfidenceAssessorInterface $confidenceAssessor,
@@ -29,6 +31,7 @@ final class FlavorGraphHybridizer implements FlavorGraphHybridizerInterface
         }
 
         $weight = $this->oavWeight($oavMode, $tier, $mortar, $matrix);
+        $scale = $oavMode ? 1.0 : self::DEGRADED_SCORE_SCALE;
         $candidateIds = array_map(static fn (array $r): int => $r['id'], $results);
         $profiles = $this->repository->loadPairwiseBatch($candidateIds, $mortar);
         $mortarIds = $mortar->toArray();
@@ -42,7 +45,7 @@ final class FlavorGraphHybridizer implements FlavorGraphHybridizerInterface
 
             $flavorGraph = $this->meanAffinity($profile, $mortarIds, $mortarSize);
             $oav = $result['score'] / 100.0;
-            $results[$i]['score'] = (int) round(100.0 * ($weight * $oav + (1.0 - $weight) * $flavorGraph));
+            $results[$i]['score'] = (int) round(100.0 * $scale * ($weight * $oav + (1.0 - $weight) * $flavorGraph));
         }
 
         return $results;

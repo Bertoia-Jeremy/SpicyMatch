@@ -11,12 +11,11 @@ use App\Enum\GameDifficulty;
  *
  * - Commis (EASY)         : aides visuelles complètes, chrono confortable, intrus faciles.
  * - Cuisinier (MEDIUM)    : comportement par défaut.
- * - Chef de Partie (HARD) : rendu monochrome, chrono Hangman -30 %, intrus stricts (score > 0 mais faible).
+ * - Chef de Partie (HARD) : rendu monochrome, chrono Hangman -30 %.
  *
  * Ce service ne fait que définir les règles. La propagation est garantie via :
  *  - une variable Twig globale (DifficultyExtension) pour le rendu,
- *  - une validation serveur des timers (GameSession::$expiresAt),
- *  - une clé de cache discriminée pour les intrus stricts.
+ *  - une validation serveur des timers (GameSession::$expiresAt).
  */
 final class DifficultyRuleApplier
 {
@@ -34,11 +33,6 @@ final class DifficultyRuleApplier
             GameDifficulty::MEDIUM => self::HANGMAN_BASE_SECONDS,
             GameDifficulty::HARD => (int) round(self::HANGMAN_BASE_SECONDS * 0.7), // 42s
         };
-    }
-
-    public function intrusStrictMode(GameDifficulty $difficulty): bool
-    {
-        return GameDifficulty::HARD === $difficulty;
     }
 
     /**

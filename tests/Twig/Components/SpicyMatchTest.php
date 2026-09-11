@@ -12,6 +12,7 @@ use App\Repository\SpiceActiveCompoundRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
 use App\Service\Match\CompatibleSpiceFinder;
+use App\Service\Match\FlavorGraphHybridizerInterface;
 use App\Service\Match\MatchConfidenceAssessorInterface;
 use App\Service\SpicyMatchService;
 use App\Twig\Components\SpicyMatch;
@@ -105,6 +106,10 @@ class SpicyMatchTest extends TestCase
         $requestStack = new RequestStack();
         $requestStack->push(Request::create('/fr/spicymatch'));
 
+        $hybridizer = $this->createStub(FlavorGraphHybridizerInterface::class);
+        $hybridizer->method('isActive')
+            ->willReturn(true);
+
         $component = new SpicyMatch(
             $this->spicesRepo,
             $this->compatibleSpiceFinder,
@@ -114,6 +119,7 @@ class SpicyMatchTest extends TestCase
             $this->confidenceAssessor,
             $this->spiceActiveCompoundRepo,
             $requestStack,
+            $hybridizer,
         );
 
         $component->setContainer($this->makeAnonymousContainer());

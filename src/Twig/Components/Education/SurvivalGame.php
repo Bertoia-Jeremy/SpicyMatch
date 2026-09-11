@@ -105,7 +105,6 @@ class SurvivalGame extends AbstractController
     {
         $secret = $this->readSecret();
 
-        // Replay guard: only honor start() if the session has no current spice yet.
         if (($secret['currentSpiceId'] ?? null) !== null) {
             return;
         }
@@ -133,7 +132,6 @@ class SurvivalGame extends AbstractController
             return null;
         }
 
-        // Validate server-side from session secret
         $secret = $this->readSecret();
         $compatibleIds = $secret['compatibleIds'] ?? [];
         $sessionCurrent = $secret['currentSpiceId'] ?? null;
@@ -144,7 +142,6 @@ class SurvivalGame extends AbstractController
 
         $isCompatible = in_array($spiceId, $compatibleIds, true);
 
-        // Find the picked option's name
         $pickedName = '';
 
         foreach ($this->options as $opt) {
@@ -199,7 +196,6 @@ class SurvivalGame extends AbstractController
         /** @var Users $user */
         $user = $this->getUser();
 
-        // Authoritative chainLength from session, never LiveProp.
         $secret = $this->readSecret();
         $serverChain = (int) ($secret['chainLength'] ?? 0);
 
@@ -223,21 +219,15 @@ class SurvivalGame extends AbstractController
 
     private function loadStartingSpices(): void
     {
-        $cards = $this->academyManager->getAllSpiceCards();
         $spices = [];
 
-        foreach ($cards as $card) {
-            $spices[] = [
-                'id' => $card['id'],
-                'name' => $card['name'],
-                'file' => $card['file'],
-                'color' => $card['aromaticGroup']['color'] ?? null,
-                'groupName' => $card['aromaticGroup']['name'] ?? null,
-            ];
+        foreach ($this->academyManager->getAllSpiceCards() as $card) {
+            $spices[] = $this->toSummary($card);
         }
 
         shuffle($spices);
-        $this->startingSpices = array_slice($spices, 0, 12);
+
+        $this->startingSpices = $this->academyManager->localizeSpiceSummaries(array_slice($spices, 0, 12));
     }
 
     private function generateOptions(): void
@@ -298,14 +288,26 @@ class SurvivalGame extends AbstractController
             return null;
         }
 
-        $card = $cards[$id];
+        $summary = $this->toSummary($cards[$id]);
+
+        return $this->academyManager->localizeSpiceSummaries([$summary])[0] ?? $summary;
+    }
+
+    /**
+     * @param array<string, mixed> $card
+     *
+     * @return array{id: int, name: string, file: ?string, color: ?string, groupName: ?string}
+     */
+    private function toSummary(array $card): array
+    {
+        $group = \is_array($card['aromaticGroup'] ?? null) ? $card['aromaticGroup'] : [];
 
         return [
-            'id' => $card['id'],
-            'name' => $card['name'],
-            'file' => $card['file'],
-            'color' => $card['aromaticGroup']['color'] ?? null,
-            'groupName' => $card['aromaticGroup']['name'] ?? null,
+            'id' => (int) $card['id'],
+            'name' => (string) $card['name'],
+            'file' => null !== ($card['file'] ?? null) ? (string) $card['file'] : null,
+            'color' => null !== ($group['color'] ?? null) ? (string) $group['color'] : null,
+            'groupName' => null !== ($group['name'] ?? null) ? (string) $group['name'] : null,
         ];
     }
 }

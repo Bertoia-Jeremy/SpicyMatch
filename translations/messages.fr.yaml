@@ -476,7 +476,11 @@ ui:
         advanced: Avancé
         odt_matrix: Matrice ODT
         no_matrix_data: Aucune matrice avec données
-        presence_mode: Tri par présence de composés partagés — pas de score OAV quantitatif (données insuffisantes).
+        scoring_mode:
+            hybrid: 'Score chimique OAV mélangé à l''affinité par co-occurrence (FlavorGraph).'
+            oav: 'Score chimique OAV seul (Tanimoto pondéré).'
+            flavorgraph: 'Affinité par co-occurrence (FlavorGraph), sans mesure chimique : échelle réduite, maximum %max%.'
+            presence: 'Tri par présence de composés partagés, sans score quantitatif.'
         fat_ratio: Fraction grasse
         cooking_time: Temps de cuisson
         temperature: Température
@@ -729,6 +733,17 @@ ui:
         persist: Si le problème persiste, merci de contacter l'administrateur.
         home: Accueil
         report: Signaler
+        '404':
+            title: Cette page a pris la poudre d'escampette
+            description: 'Impossible de remettre la main dessus — elle s''est peut-être volatilisée avec une pincée de piment. Pas grave : les meilleures découvertes commencent souvent par une mauvaise piste.'
+            back: Retour à l'accueil
+            explore: Direction l'Académie
+            countdown: 'Redirection automatique dans %count% secondes.'
+        '403':
+            title: Accès réservé
+            description: Tu n'as pas les droits nécessaires pour consulter cette page. Connecte-toi ou retourne à l'accueil.
+            back: Retour à l'accueil
+            countdown: 'Redirection automatique dans %count% secondes.'
     security:
         password: Mot de passe
         password_text: Modifie ton mot de passe ci-dessous.

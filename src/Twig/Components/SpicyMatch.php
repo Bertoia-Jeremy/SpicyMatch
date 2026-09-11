@@ -8,11 +8,14 @@ use App\Entity\Spices;
 use App\Entity\Users;
 use App\Enum\DataConfidence;
 use App\Enum\OdtMatrix;
+use App\Enum\ScoringMode;
 use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpiceActiveCompoundRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
 use App\Service\Match\CompatibleSpiceFinder;
+use App\Service\Match\FlavorGraphHybridizer;
+use App\Service\Match\FlavorGraphHybridizerInterface;
 use App\Service\Match\MatchConfidenceAssessorInterface;
 use App\Service\SpicyMatchService;
 use App\ValueObject\Match\CulinaryContext;
@@ -103,6 +106,10 @@ class SpicyMatch extends AbstractController
 
     private ?string $resolvedStSlug = null;
 
+    private ?bool $oavScoringAvailableCache = null;
+
+    private ?string $oavScoringAvailableKey = null;
+
     public function __construct(
         private readonly SpicesRepository $spicesRepository,
         private readonly CompatibleSpiceFinder $compatibleSpiceFinder,
@@ -112,6 +119,7 @@ class SpicyMatch extends AbstractController
         private readonly MatchConfidenceAssessorInterface $confidenceAssessor,
         private readonly SpiceActiveCompoundRepository $spiceActiveCompoundRepository,
         private readonly RequestStack $requestStack,
+        private readonly FlavorGraphHybridizerInterface $hybridizer,
     ) {
         $this->spices = [
             'selectedSpices' => [],
@@ -373,10 +381,6 @@ class SpicyMatch extends AbstractController
         ));
     }
 
-    /**
-     * Vrai si le mortier sélectionné a des données OAV dans la matrice courante
-     * → score quantitatif réel. Faux → repli présence (à libeller comme tel, pas un score OAV).
-     */
     public function isOavScoringAvailable(): bool
     {
         $ids = array_values(array_filter(
@@ -384,7 +388,27 @@ class SpicyMatch extends AbstractController
             static fn (int $id): bool => $id > 0,
         ));
 
-        return $this->spiceActiveCompoundRepository->hasDataForSpices($ids, $this->buildCulinaryContext()->matrix);
+        $matrix = $this->buildCulinaryContext()
+            ->matrix;
+        $key = $matrix->value.'|'.implode(',', $ids);
+
+        if ($this->oavScoringAvailableKey === $key && null !== $this->oavScoringAvailableCache) {
+            return $this->oavScoringAvailableCache;
+        }
+
+        $this->oavScoringAvailableKey = $key;
+
+        return $this->oavScoringAvailableCache = $this->spiceActiveCompoundRepository->hasDataForSpices($ids, $matrix);
+    }
+
+    public function getScoringMode(): ScoringMode
+    {
+        return ScoringMode::resolve($this->isOavScoringAvailable(), $this->hybridizer->isActive());
+    }
+
+    public function getDegradedScoreMax(): int
+    {
+        return (int) round(100 * FlavorGraphHybridizer::DEGRADED_SCORE_SCALE);
     }
 
     #[LiveAction]

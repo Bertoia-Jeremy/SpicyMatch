@@ -12,7 +12,7 @@ use App\ValueObject\Match\MortarIds;
 
 /**
  * Pipeline OAV : profil mortier → veto → hydratation → correction (si ctx non neutre) → Tanimoto.
- * Mode dégradé : aucune donnée OAV pour la matrice → veto présence + score 0.
+ * Mode dégradé : aucune donnée OAV pour la matrice → veto présence + score FlavorGraph compressé.
  *
  * @see ARCHITECTURE_MOTEUR_COMPATIBILITE.md §4
  */

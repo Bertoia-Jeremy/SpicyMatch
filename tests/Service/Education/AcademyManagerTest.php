@@ -361,84 +361,271 @@ class AcademyManagerTest extends TestCase
         self::assertNull($result);
     }
 
-    public function testGenerateIntrusQuestionReturnsExpectedStructureWhenDataSufficient(): void
+    public function testGenerateIntrusQuestionPicksTheLowestScoringSurvivorAsIntruder(): void
     {
-        // Build 10 mock spices with unique IDs; spice 1 has 5+ compatibles + 1 intruder.
-        $spices = [];
-        for ($i = 1; $i <= 10; ++$i) {
-            $spice = $this->createMock(Spices::class);
-            $spice->method('getId')
-                ->willReturn($i);
-            $spice->method('getAromaticGroups')
-                ->willReturn(null);
-            $spice->method('getName')
-                ->willReturn('Épice '.$i);
-            $spices[] = $spice;
-        }
-
         $this->spicesRepo->method('findAll')
-            ->willReturn($spices);
+            ->willReturn($this->makeBaseSpices());
         $this->spicesRepo->method('findIncompatibleWith')
-            ->willReturn([$spices[8]]); // 1 intruder
-
-        // findCompatibleSpices → findCompatible via CompatibleSpiceFinder
+            ->willReturn([]);
         $this->finder->method('findCompatible')
-            ->willReturn([
-                [
-                    'id' => 2,
-                    'name' => 'Épice 2',
-                    'score' => 80,
-                    'file' => null,
-                    'agId' => null,
-                    'color' => null,
-                    'groupName' => null,
-                    'stId' => null,
-                    'typeName' => null,
-                ],
-                [
-                    'id' => 3,
-                    'name' => 'Épice 3',
-                    'score' => 70,
-                    'file' => null,
-                    'agId' => null,
-                    'color' => null,
-                    'groupName' => null,
-                    'stId' => null,
-                    'typeName' => null,
-                ],
-                [
-                    'id' => 4,
-                    'name' => 'Épice 4',
-                    'score' => 60,
-                    'file' => null,
-                    'agId' => null,
-                    'color' => null,
-                    'groupName' => null,
-                    'stId' => null,
-                    'typeName' => null,
-                ],
-            ]);
+            ->willReturn($this->makeScoredPool([90, 80, 70, 60]));
 
         $result = $this->manager->generateIntrusQuestion(GameDifficulty::EASY, [], false);
 
-        // May be null if random branching produces insufficient data — only validate structure when non-null
-        if (null !== $result) {
-            self::assertArrayHasKey('type', $result);
-            self::assertArrayHasKey('prompt', $result);
-            self::assertArrayHasKey('baseSpice', $result);
-            self::assertArrayHasKey('options', $result);
-            self::assertArrayHasKey('correctAnswerId', $result);
-            self::assertArrayHasKey('isInverted', $result);
-            self::assertCount(4, $result['options']);
-        } else {
-            // If null, it simply means no candidate satisfied the constraint — not a bug.
-            self::assertNull($result);
-        }
+        self::assertNotNull($result);
+        self::assertCount(4, $result['options']);
+        self::assertCount(4, array_unique(array_column($result['options'], 'id')));
+        self::assertSame(14, $result['correctAnswerId']);
     }
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // Helpers
-    // ──────────────────────────────────────────────────────────────────────────
+    public function testGenerateIntrusQuestionReturnsNullWhenEveryCompatibleSharesTheSameScore(): void
+    {
+        $this->spicesRepo->method('findAll')
+            ->willReturn($this->makeBaseSpices());
+        $this->spicesRepo->method('findIncompatibleWith')
+            ->willReturn([]);
+        $this->finder->method('findCompatible')
+            ->willReturn($this->makeScoredPool([50, 50, 50, 50]));
+
+        self::assertNull($this->manager->generateIntrusQuestion(GameDifficulty::HARD, [], false));
+    }
+
+    public function testGenerateIntrusQuestionLocalizesEveryOptionInNonFrenchLocale(): void
+    {
+        $intruder = $this->makeSpice(99);
+        $intruder->setName('Poivre');
+
+        $this->spicesRepo->method('findAll')
+            ->willReturn($this->makeBaseSpices());
+        $this->spicesRepo->method('findIncompatibleWith')
+            ->willReturn([$intruder]);
+        $this->spicesRepo->method('findEnrichedByIds')
+            ->willReturn($this->makeEnrichedRows([
+                11 => 'Cinnamon',
+                12 => 'Nutmeg',
+                13 => 'Clove',
+                99 => 'Pepper',
+            ]));
+        $this->finder->method('findCompatible')
+            ->willReturn($this->makeScoredPool([90, 80, 70, 60]));
+
+        $translator = new IdentityTranslator();
+        $translator->setLocale('en');
+
+        $manager = new AcademyManager(
+            $this->spicesRepo,
+            $this->finder,
+            new ArrayAdapter(),
+            $translator,
+        );
+
+        $result = $manager->generateIntrusQuestion(GameDifficulty::EASY, [], false);
+
+        self::assertNotNull($result);
+        self::assertSame(99, $result['correctAnswerId']);
+
+        $names = array_column($result['options'], 'name', 'id');
+        self::assertSame('Pepper', $names[99]);
+        self::assertSame(['Cinnamon', 'Nutmeg', 'Clove'], [$names[11], $names[12], $names[13]]);
+    }
+
+    public function testGenerateSurvivalOptionsLocalizesTrapsAndCompatiblesInOneBatch(): void
+    {
+        $trap = $this->makeSpice(99);
+        $trap->setName('Poivre');
+
+        $this->spicesRepo->method('findIncompatibleWith')
+            ->willReturn([$trap]);
+        $this->finder->method('findCompatible')
+            ->willReturn($this->makeScoredPool([90, 80, 70]));
+
+        $capturedIds = [];
+        $this->spicesRepo->expects(self::once())
+            ->method('findEnrichedByIds')
+            ->with(self::anything(), 'en')
+            ->willReturnCallback(function (array $ids) use (&$capturedIds): array {
+                $capturedIds = $ids;
+
+                return $this->makeEnrichedRows([
+                    11 => 'Cinnamon',
+                    12 => 'Nutmeg',
+                    13 => 'Clove',
+                    99 => 'Pepper',
+                ]);
+            });
+
+        $translator = new IdentityTranslator();
+        $translator->setLocale('en');
+
+        $manager = new AcademyManager(
+            $this->spicesRepo,
+            $this->finder,
+            new ArrayAdapter(),
+            $translator,
+        );
+
+        $options = $manager->generateSurvivalOptions($this->makeSpice(1), GameDifficulty::HARD);
+
+        sort($capturedIds);
+        self::assertSame([11, 12, 13, 99], $capturedIds);
+
+        $names = array_column($options, 'name', 'id');
+        self::assertSame('Pepper', $names[99]);
+        self::assertSame(['Cinnamon', 'Nutmeg', 'Clove'], [$names[11], $names[12], $names[13]]);
+
+        $flags = array_column($options, 'isCompatible', 'id');
+        self::assertFalse($flags[99]);
+        self::assertSame([true, true, true], [$flags[11], $flags[12], $flags[13]]);
+    }
+
+    public function testGenerateSurvivalOptionsIssuesNoEnrichmentQueryInFrench(): void
+    {
+        $trap = $this->makeSpice(99);
+        $trap->setName('Poivre');
+
+        $this->spicesRepo->method('findIncompatibleWith')
+            ->willReturn([$trap]);
+        $this->finder->method('findCompatible')
+            ->willReturn($this->makeScoredPool([90, 80, 70]));
+        $this->spicesRepo->expects(self::never())
+            ->method('findEnrichedByIds');
+
+        $translator = new IdentityTranslator();
+        $translator->setLocale('fr');
+
+        $manager = new AcademyManager(
+            $this->spicesRepo,
+            $this->finder,
+            new ArrayAdapter(),
+            $translator,
+        );
+
+        $options = $manager->generateSurvivalOptions($this->makeSpice(1), GameDifficulty::HARD);
+
+        $names = array_column($options, 'name', 'id');
+        self::assertSame('Poivre', $names[99]);
+        self::assertSame('Épice 11', $names[11]);
+    }
+
+    public function testLocalizeSpiceSummariesRewritesNameAndGroupInOneBatch(): void
+    {
+        $capturedIds = [];
+        $this->spicesRepo->expects(self::once())
+            ->method('findEnrichedByIds')
+            ->with(self::anything(), 'en')
+            ->willReturnCallback(function (array $ids) use (&$capturedIds): array {
+                $capturedIds = $ids;
+
+                return [
+                    [
+                        'id' => 11,
+                        'name' => 'Cinnamon',
+                        'file' => null,
+                        'color' => null,
+                        'groupName' => 'Phenylpropanoids',
+                    ],
+                    [
+                        'id' => 12,
+                        'name' => 'Nutmeg',
+                        'file' => null,
+                        'color' => null,
+                        'groupName' => null,
+                    ],
+                ];
+            });
+
+        $manager = $this->makeManagerForLocale('en');
+        $summaries = $manager->localizeSpiceSummaries([
+            $this->makeSummary(11, 'Cannelle', 'Phénylpropanoïdes'),
+            $this->makeSummary(12, 'Muscade', 'Terpènes'),
+        ]);
+
+        self::assertSame([11, 12], $capturedIds);
+        self::assertSame(['Cinnamon', 'Nutmeg'], array_column($summaries, 'name'));
+        self::assertSame(['Phenylpropanoids', null], array_column($summaries, 'groupName'));
+    }
+
+    public function testLocalizeSpiceSummariesIssuesNoEnrichmentQueryInFrench(): void
+    {
+        $this->spicesRepo->expects(self::never())
+            ->method('findEnrichedByIds');
+
+        $manager = $this->makeManagerForLocale('fr');
+        $summaries = $manager->localizeSpiceSummaries([
+            $this->makeSummary(11, 'Cannelle', 'Phénylpropanoïdes'),
+        ]);
+
+        self::assertSame('Cannelle', $summaries[0]['name']);
+        self::assertSame('Phénylpropanoïdes', $summaries[0]['groupName']);
+    }
+
+    private function makeManagerForLocale(string $locale): AcademyManager
+    {
+        $translator = new IdentityTranslator();
+        $translator->setLocale($locale);
+
+        return new AcademyManager($this->spicesRepo, $this->finder, new ArrayAdapter(), $translator);
+    }
+
+    /**
+     * @return array{id: int, name: string, file: ?string, color: ?string, groupName: ?string}
+     */
+    private function makeSummary(int $id, string $name, ?string $groupName): array
+    {
+        return [
+            'id' => $id,
+            'name' => $name,
+            'file' => null,
+            'color' => null,
+            'groupName' => $groupName,
+        ];
+    }
+
+    /**
+     * @return list<Spices>
+     */
+    private function makeBaseSpices(): array
+    {
+        $spices = [];
+        for ($id = 1; $id <= 6; ++$id) {
+            $spices[] = $this->makeSpice($id);
+        }
+
+        return $spices;
+    }
+
+    private function makeSpice(int $id): Spices
+    {
+        $spice = new Spices();
+        new \ReflectionProperty(Spices::class, 'id')->setValue($spice, $id);
+
+        return $spice;
+    }
+
+    /**
+     * @param list<int> $scores
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function makeScoredPool(array $scores, int $firstId = 11): array
+    {
+        $pool = [];
+        foreach ($scores as $offset => $score) {
+            $pool[] = [
+                'id' => $firstId + $offset,
+                'name' => 'Épice '.($firstId + $offset),
+                'score' => $score,
+                'file' => null,
+                'agId' => null,
+                'color' => null,
+                'groupName' => null,
+                'stId' => null,
+                'typeName' => null,
+            ];
+        }
+
+        return $pool;
+    }
 
     /**
      * @return array<string, mixed>
@@ -457,5 +644,30 @@ class AcademyManagerTest extends TestCase
                 'title' => 'Infuser hors du feu',
             ]],
         ];
+    }
+
+    /**
+     * @param array<int, string> $namesById
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function makeEnrichedRows(array $namesById): array
+    {
+        $rows = [];
+        foreach ($namesById as $id => $name) {
+            $rows[] = [
+                'id' => $id,
+                'name' => $name,
+                'slug' => null,
+                'file' => null,
+                'agId' => null,
+                'color' => null,
+                'groupName' => null,
+                'stId' => null,
+                'typeName' => null,
+            ];
+        }
+
+        return $rows;
     }
 }

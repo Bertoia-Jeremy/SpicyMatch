@@ -6,6 +6,8 @@ namespace App\EventSubscriber;
 
 use App\Entity\Users;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -41,6 +43,7 @@ final class LocaleSubscriber implements EventSubscriberInterface
         // mais on garde la main pour appliquer user/session/Accept-Language quand _locale est absent.
         return [
             KernelEvents::REQUEST => ['onKernelRequest', 15],
+            KernelEvents::EXCEPTION => ['onKernelException', 256],
         ];
     }
 
@@ -94,6 +97,52 @@ final class LocaleSubscriber implements EventSubscriberInterface
             $request->getSession()
                 ->set('_locale', $preferred);
         }
+    }
+
+    public function onKernelException(ExceptionEvent $event): void
+    {
+        if (! $event->isMainRequest()) {
+            return;
+        }
+
+        $request = $event->getRequest();
+
+        $routeLocale = $request->attributes->get('_locale');
+        if (is_string($routeLocale) && $this->isSupported($routeLocale)) {
+            return;
+        }
+
+        $request->setLocale($this->resolveReadOnly($request));
+    }
+
+    private function resolveReadOnly(Request $request): string
+    {
+        $pathLocale = $this->localeFromPath($request->getPathInfo());
+        if ($pathLocale !== null) {
+            return $pathLocale;
+        }
+
+        $user = $this->tokenStorage->getToken()?->getUser();
+        if ($user instanceof Users && $this->isSupported($user->getLocale())) {
+            return $user->getLocale();
+        }
+
+        if ($request->hasSession() && $request->getSession()->isStarted()) {
+            $sessionLocale = $request->getSession()
+                ->get('_locale');
+            if (is_string($sessionLocale) && $this->isSupported($sessionLocale)) {
+                return $sessionLocale;
+            }
+        }
+
+        return $request->getPreferredLanguage(self::SUPPORTED_LOCALES) ?? $this->defaultLocale;
+    }
+
+    private function localeFromPath(string $pathInfo): ?string
+    {
+        $segment = explode('/', trim($pathInfo, '/'), 2)[0];
+
+        return $this->isSupported($segment) ? $segment : null;
     }
 
     private function isSupported(string $locale): bool

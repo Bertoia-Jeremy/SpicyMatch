@@ -317,6 +317,16 @@ ui:
         is_correct_answer: es la respuesta correcta.
         you_answered: Has respondido
         correct_was: La respuesta correcta era
+        level_label: 'Nivel %level%'
+        next_level: Siguiente nivel
+        level_progress: Progreso de nivel
+        games_played: partidas jugadas
+        achievements_stat: logros
+        record_label: 'Récord: %score%'
+        record_none: Por desbloquear
+        daily_challenge: Desafío del día
+        locked_hint: Vuelve mañana para volver a jugar
+        lesson: 'Lección %numeral%'
         gate:
             title: Inicia sesión para jugar
             subtitle: Un último paso antes de la partida.
@@ -1064,21 +1074,6 @@ ui:
         chapter: Capítulo IV · La Academia
         title_html: 'El teatro de los <em class="not-italic italic" style="color: var(--color-turmeric-700)">sentidos.</em>'
         blurb: Seis minijuegos. Las especias como terreno de juego. Cada partida revela un ángulo nuevo — el intruso, la supervivencia, el ahorcado, la velocidad.
-        play_scoville: Jugar al Desafío Scoville
-        play_choice: Jugar a La Elección del Chef
-        play_overcooked: Jugar a Demasiado Hecho
-        act1: Acto I
-        act2: Acto II
-        act3: Acto III
-        scoville_title_html: 'Desafío <span class="ital">Scoville.</span>'
-        scoville_tag: juego de supervivencia al picante
-        scoville_footer: Partidas ilimitadas
-        choice_title_html: 'La Elección <span class="ital">del Chef.</span>'
-        choice_tag: encontrar el intruso en la cocina
-        choice_footer: 5 preguntas
-        overcooked_title_html: '<span class="ital">¡Demasiado Hecho!</span>'
-        overcooked_tag: el ahorcado de las especias olvidadas
-        overcooked_footer: 8 palabras por adivinar
         cta_sub: 6 modos disponibles · XP · Logros · Clasificaciones
         cta: Unirse a la Academia
     hero:
@@ -1143,21 +1138,39 @@ enum:
         qcm:
             label: La Elección del Chef
             desc: 'Encuentra la especia más compatible entre 4 opciones.'
+            title_top: 'La Elección'
+            title_bottom: 'del Chef.'
+            tagline: 'encuentra la especia más compatible entre 4 opciones'
         survival:
             label: Desafío Scoville
             desc: 'Encadena especias compatibles sin fallar.'
+            title_top: 'Desafío'
+            title_bottom: 'Scoville.'
+            tagline: 'encadena especias compatibles sin fallar'
         guess_who:
             label: Paladar Fino
             desc: 'Adivina la especia a partir de pistas progresivas.'
+            title_top: 'Paladar'
+            title_bottom: 'Fino.'
+            tagline: 'adivina la especia a partir de pistas progresivas'
         intrus:
             label: Fuera de Temporada
             desc: 'Encuentra el intruso entre las especias compatibles.'
+            title_top: 'Fuera de'
+            title_bottom: 'Temporada.'
+            tagline: 'encuentra el intruso entre las especias compatibles'
         hangman:
             label: Cocinando
             desc: 'Adivina el nombre de la especia letra a letra.'
+            title_top: 'Cocción'
+            title_bottom: 'en Curso.'
+            tagline: 'adivina el nombre de la especia letra a letra'
         chrono:
             label: A Fuego Vivo
             desc: 'Identifica las especias lo más rápido posible.'
+            title_top: 'A Fuego'
+            title_bottom: 'Vivo.'
+            tagline: 'identifica las especias lo más rápido posible'
     difficulty:
         easy: Fácil
         medium: Medio

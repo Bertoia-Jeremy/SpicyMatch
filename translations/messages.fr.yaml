@@ -317,6 +317,16 @@ ui:
         is_correct_answer: est la bonne réponse.
         you_answered: Tu as répondu
         correct_was: La bonne réponse était
+        level_label: 'Niveau %level%'
+        next_level: Prochain niveau
+        level_progress: Progression de niveau
+        games_played: parties jouées
+        achievements_stat: succès
+        record_label: 'Record : %score%'
+        record_none: À débloquer
+        daily_challenge: Défi du jour
+        locked_hint: Reviens demain pour rejouer
+        lesson: 'Leçon %numeral%'
         gate:
             title: Connecte-toi pour jouer
             subtitle: Une dernière étape avant la partie.
@@ -1064,21 +1074,6 @@ ui:
         chapter: Chapitre IV · L'Académie
         title_html: 'Le théâtre des <em class="not-italic italic" style="color: var(--color-turmeric-700)">sens.</em>'
         blurb: Six mini-jeux. Des épices comme terrain de jeu. Chaque partie révèle un angle nouveau — l'intrus, la survie, le pendu, la vitesse.
-        play_scoville: Jouer au Défi de Scoville
-        play_choice: Jouer au Choix du Chef
-        play_overcooked: Jouer à Trop Cuit
-        act1: Acte I
-        act2: Acte II
-        act3: Acte III
-        scoville_title_html: 'Défi de <span class="ital">Scoville.</span>'
-        scoville_tag: jeu de survie au piment
-        scoville_footer: Parties illimitées
-        choice_title_html: 'Le Choix <span class="ital">du Chef.</span>'
-        choice_tag: trouver l'intrus en cuisine
-        choice_footer: 5 questions
-        overcooked_title_html: 'Trop <span class="ital">Cuit!</span>'
-        overcooked_tag: le pendu des épices oubliées
-        overcooked_footer: 8 mots à deviner
         cta_sub: 6 modes disponibles · XP · Succès · Classements
         cta: Rejoindre l'Académie
     hero:
@@ -1143,21 +1138,39 @@ enum:
         qcm:
             label: Le Choix du Chef
             desc: 'Trouve l''épice la plus compatible parmi 4 choix.'
+            title_top: 'Le Choix'
+            title_bottom: 'du Chef.'
+            tagline: "trouver l'épice la plus compatible parmi 4 choix"
         survival:
             label: Défi de Scoville
             desc: 'Enchaîne les épices compatibles sans erreur.'
+            title_top: 'Défi de'
+            title_bottom: 'Scoville.'
+            tagline: 'enchaîner les épices compatibles sans erreur'
         guess_who:
             label: Palais Fin
             desc: 'Devine l''épice à partir d''indices progressifs.'
+            title_top: 'Palais'
+            title_bottom: 'Fin.'
+            tagline: "deviner l'épice à partir d'indices progressifs"
         intrus:
             label: Hors Saison
             desc: 'Trouve l''intrus parmi les épices compatibles.'
+            title_top: 'Hors'
+            title_bottom: 'Saison.'
+            tagline: "trouver l'intrus parmi les épices compatibles"
         hangman:
             label: Cuisson en Cours
             desc: 'Devine le nom de l''épice lettre par lettre.'
+            title_top: 'Cuisson'
+            title_bottom: 'en Cours.'
+            tagline: "deviner le nom de l'épice lettre par lettre"
         chrono:
             label: À Feu Vif
             desc: 'Identifie les épices le plus vite possible.'
+            title_top: 'À Feu'
+            title_bottom: 'Vif.'
+            tagline: 'identifier les épices le plus vite possible'
     difficulty:
         easy: Facile
         medium: Moyen

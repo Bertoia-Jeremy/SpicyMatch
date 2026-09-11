@@ -18,6 +18,7 @@
 @import "./components/spice-view.css";
 @import "./components/navbar.css";
 @import "./components/home.css";
+@import "./components/academie.css";
 
 /* L'Étamine — finalisation du mélange + recette */
 @import "./components/etamine.css";

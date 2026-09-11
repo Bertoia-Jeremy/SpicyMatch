@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Entity\Users;
 use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
+use App\Repository\AchievementRepository;
 use App\Repository\GameSessionRepository;
 use App\Repository\SpicesRepository;
 use App\Service\Education\AcademyManager;
@@ -29,6 +30,7 @@ class EducationController extends AbstractController
         private readonly GameSessionRepository $sessionRepository,
         private readonly AcademyManager $academyManager,
         private readonly SpicesRepository $spicesRepository,
+        private readonly AchievementRepository $achievementRepository,
         private readonly EntityManagerInterface $em,
         private readonly TranslatorInterface $translator,
     ) {
@@ -47,26 +49,42 @@ class EducationController extends AbstractController
             $dailyCounts[$mode->value] = 0;
         }
         $recentSessions = [];
+        $bestScores = [];
         $userDifficulty = GameDifficulty::EASY->value;
+        $progression = null;
+        $gamesPlayed = 0;
+        $achievementsUnlocked = 0;
 
         if (null !== $user) {
             $grouped = $this->sessionRepository->countTodayByUserGrouped($user);
             foreach ($modes as $mode) {
                 $dailyCounts[$mode->value] = $grouped[$mode->value] ?? 0;
             }
+            $bestScores = $this->sessionRepository->findBestScoreByUserGrouped($user);
             $recentSessions = $this->sessionRepository->findByUser($user, 5);
             $userDifficulty = $user->getPreferredDifficulty()
                 ->value;
+            $progression = $user->getProgression();
+            $gamesPlayed = $this->sessionRepository->countFinishedByUser($user);
+            $achievementsUnlocked = $progression?->getUserAchievements()->count() ?? 0;
         }
+
+        $dailyFeaturedMode = GameMode::dailyFeatured($modes);
 
         return $this->render('education/index.html.twig', [
             'modes' => $modes,
             'difficulties' => GameDifficulty::cases(),
             'recentSessions' => $recentSessions,
             'dailyCounts' => $dailyCounts,
+            'bestScores' => $bestScores,
             'maxDailySessions' => $this->sessionManager->maxDailySessions($user),
             'reducedXpThreshold' => 3,
             'userDifficulty' => $userDifficulty,
+            'progression' => $progression,
+            'gamesPlayed' => $gamesPlayed,
+            'achievementsUnlocked' => $achievementsUnlocked,
+            'achievementsTotal' => $this->achievementRepository->count(['enabled' => true]),
+            'dailyFeaturedMode' => $dailyFeaturedMode,
         ]);
     }
 

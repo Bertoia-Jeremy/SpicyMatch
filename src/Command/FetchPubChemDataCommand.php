@@ -36,6 +36,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * Usage :
  *   bin/console app:fetch:pubchem              # composés incomplets (CAS présent)
  *   bin/console app:fetch:pubchem --all        # tous, force re-fetch
+ *   bin/console app:fetch:pubchem --force      # écrase aussi les valeurs déjà renseignées
+ *                                               # (y compris logP en confidence MEASURED/LITERATURE) — implique --all
  *   bin/console app:fetch:pubchem --dry-run    # simulation
  *
  * Respecte les guidelines PubChem (max 5 req/s — délai 250 ms entre composés).
@@ -68,6 +70,7 @@ final class FetchPubChemDataCommand extends Command
     {
         $this
             ->addOption('all', null, InputOption::VALUE_NONE, 'Re-fetch même si toutes les données sont déjà renseignées.')
+            ->addOption('force', null, InputOption::VALUE_NONE, 'Écrase les valeurs déjà renseignées, y compris logP en confidence MEASURED/LITERATURE (implique --all).')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Simulation sans écriture en BDD.');
     }
 
@@ -92,11 +95,16 @@ final class FetchPubChemDataCommand extends Command
 
     private function doExecute(InputInterface $input, SymfonyStyle $io): int
     {
-        $forceAll = (bool) $input->getOption('all');
+        $force = (bool) $input->getOption('force');
+        $forceAll = $force || (bool) $input->getOption('all');
         $dryRun = (bool) $input->getOption('dry-run');
 
         if ($dryRun) {
             $io->warning('Mode DRY-RUN : aucune écriture en BDD.');
+        }
+
+        if ($force) {
+            $io->warning('Mode FORCE : écrase les données existantes, y compris logP en confidence MEASURED/LITERATURE.');
         }
 
         $compounds = $this->aromaticCompoundRepository->findAll();
@@ -148,7 +156,7 @@ final class FetchPubChemDataCommand extends Command
                     $properties->inchiKey ?? '—',
                 ));
             } else {
-                $this->applyProperties($compound, $existingPhysical, $properties, $cas, $io);
+                $this->applyProperties($compound, $existingPhysical, $properties, $cas, $force, $io);
                 $this->em->flush();
 
                 $persistedLogP = $existingPhysical?->getLogP()
@@ -184,14 +192,16 @@ final class FetchPubChemDataCommand extends Command
         ?CompoundPhysical $existingPhysical,
         PubChemCompoundProperties $properties,
         string $cas,
+        bool $force,
         SymfonyStyle $io,
     ): void {
-        if (null !== $properties->formula && null === $compound->getFormula()) {
+        if (null !== $properties->formula && ($force || null === $compound->getFormula())) {
             $compound->setFormula($properties->formula);
         }
 
         $protectedTiers = [DataConfidence::MEASURED, DataConfidence::LITERATURE];
-        $hasProtectedLogP = null !== $existingPhysical
+        $hasProtectedLogP = ! $force
+            && null !== $existingPhysical
             && null !== $existingPhysical->getLogP()
             && \in_array($existingPhysical->getConfidence(), $protectedTiers, true);
 
@@ -199,7 +209,7 @@ final class FetchPubChemDataCommand extends Command
             $target = $existingPhysical ?? new CompoundPhysical($compound);
             $target->setLogP($properties->logP);
             $target->setSource(\sprintf('PubChem XLogP3 (auto-fetch via CAS %s)', $cas));
-            if (null === $existingPhysical || DataConfidence::PLACEHOLDER === $existingPhysical->getConfidence()) {
+            if (null === $existingPhysical || DataConfidence::PLACEHOLDER === $existingPhysical->getConfidence() || $force) {
                 $target->setConfidence(DataConfidence::ESTIMATED);
             }
             if (null === $existingPhysical) {
@@ -207,7 +217,7 @@ final class FetchPubChemDataCommand extends Command
             }
         }
 
-        if (null !== $properties->cid && null === $compound->getPubchemCid()) {
+        if (null !== $properties->cid && ($force || null === $compound->getPubchemCid())) {
             $collision = $this->aromaticCompoundRepository->findOneBy(['pubchemCid' => $properties->cid]);
             if (null !== $collision && $collision !== $compound) {
                 $io->warning(\sprintf(
@@ -221,7 +231,7 @@ final class FetchPubChemDataCommand extends Command
             }
         }
 
-        if (null !== $properties->inchiKey && null === $compound->getInchiKey()) {
+        if (null !== $properties->inchiKey && ($force || null === $compound->getInchiKey())) {
             $collision = $this->aromaticCompoundRepository->findOneBy(['inchiKey' => $properties->inchiKey]);
             if (null !== $collision && $collision !== $compound) {
                 $io->warning(\sprintf(

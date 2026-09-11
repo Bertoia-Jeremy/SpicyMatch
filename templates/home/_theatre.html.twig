@@ -1,6 +1,6 @@
 {# ═══════════════════════════════════════════════════════
    Chapitre IV — Le Théâtre des Sens
-   3 affiches apothicaire + CTA Académie
+   Aperçu carrousel des 6 modes de l'Académie + CTA
    ═══════════════════════════════════════════════════════ #}
 
 <section id="theatre" class="home-section"
@@ -20,66 +20,49 @@
         </p>
     </div>
 
-    {# Grille affiches #}
-    <div class="poster-grid">
+    {# Aperçu des 6 affiches #}
+    <div class="academie-teaser">
+        <div class="embla" data-controller="carousel"
+             role="group" aria-roledescription="{{ 'ui.carousel.roledescription'|trans }}"
+             aria-label="{{ 'ui.carousel.label'|trans }}">
+            <div class="embla__viewport" data-carousel-target="viewport">
+                <div class="embla__container">
+                    {% for mode in gameModes %}
+                        <div class="embla__slide">
+                            <a href="{{ path('education_index') }}" class="poster"
+                               style="background:{{ mode.posterGradient }}"
+                               aria-label="{{ mode.label|trans }} — {{ mode.tagline|trans }}">
+                                {% if mode == dailyFeaturedMode %}<span class="poster-ribbon">{{ 'ui.edu.daily_challenge'|trans }}</span>{% endif %}
+                                <div class="poster-top">
+                                    <div class="poster-num">{{ 'ui.edu.lesson'|trans({'%numeral%': ['I', 'II', 'III', 'IV', 'V', 'VI'][loop.index0]}) }}</div>
+                                    <div class="poster-ornament" aria-hidden="true">✦</div>
+                                </div>
+                                <div class="poster-mid">
+                                    <h3>{{ mode.titleTop|trans }}<span class="ital">{{ mode.titleBottom|trans }}</span></h3>
+                                    <div class="poster-dash" aria-hidden="true"></div>
+                                    <div class="poster-tag">{{ mode.tagline|trans }}</div>
+                                </div>
+                                <div class="poster-bot">
+                                    <span>{{ mode.label|trans }}</span>
+                                </div>
+                                <span class="poster-play">{{ 'ui.edu.play'|trans }}</span>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
 
-        {# ── Affiche I : Défi de Scoville (Survie) ── #}
-        <a href="{{ path('education_index') }}" class="poster p1"
-           style="background: radial-gradient(ellipse at 50% 0%, #C04020 0%, #7a1a1a 60%, #3a0a0a 100%)"
-           aria-label="{{ 'ui.theatre.play_scoville'|trans }}">
-            <div class="poster-top">
-                <div class="poster-num">{{ 'ui.theatre.act1'|trans }}</div>
-                <div class="poster-ornament" aria-hidden="true">✦</div>
+            <div class="flex justify-end gap-2 mt-6">
+                <button type="button" class="embla__button" data-carousel-target="prev" data-action="carousel#prev"
+                        aria-label="{{ 'ui.carousel.prev'|trans }}">
+                    <i class="fa-solid fa-chevron-left text-xs" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="embla__button" data-carousel-target="next" data-action="carousel#next"
+                        aria-label="{{ 'ui.carousel.next'|trans }}">
+                    <i class="fa-solid fa-chevron-right text-xs" aria-hidden="true"></i>
+                </button>
             </div>
-            <div class="poster-mid">
-                <h3>{{ 'ui.theatre.scoville_title_html'|trans|raw }}</h3>
-                <div class="poster-dash" aria-hidden="true"></div>
-                <div class="poster-tag">{{ 'ui.theatre.scoville_tag'|trans }}</div>
-            </div>
-            <div class="poster-bot">
-                <span>SURVIVAL</span>
-                <span class="right">{{ 'ui.theatre.scoville_footer'|trans }}</span>
-            </div>
-        </a>
-
-        {# ── Affiche II : Le Choix du Chef (L'Intrus) ── #}
-        <a href="{{ path('education_index') }}" class="poster p2"
-           style="background: radial-gradient(ellipse at 50% 0%, #4D7C0F 0%, #2d4a08 60%, #1a2a04 100%)"
-           aria-label="{{ 'ui.theatre.play_choice'|trans }}">
-            <div class="poster-top">
-                <div class="poster-num">{{ 'ui.theatre.act2'|trans }}</div>
-                <div class="poster-ornament" aria-hidden="true">✦</div>
-            </div>
-            <div class="poster-mid">
-                <h3>{{ 'ui.theatre.choice_title_html'|trans|raw }}</h3>
-                <div class="poster-dash" aria-hidden="true"></div>
-                <div class="poster-tag">{{ 'ui.theatre.choice_tag'|trans }}</div>
-            </div>
-            <div class="poster-bot">
-                <span>INTRUS</span>
-                <span class="right">{{ 'ui.theatre.choice_footer'|trans }}</span>
-            </div>
-        </a>
-
-        {# ── Affiche III : Trop Cuit! (Pendu) ── #}
-        <a href="{{ path('education_index') }}" class="poster p3"
-           style="background: radial-gradient(ellipse at 50% 0%, #D97706 0%, #7c3a04 60%, #3a1c02 100%)"
-           aria-label="{{ 'ui.theatre.play_overcooked'|trans }}">
-            <div class="poster-top">
-                <div class="poster-num">{{ 'ui.theatre.act3'|trans }}</div>
-                <div class="poster-ornament" aria-hidden="true">✦</div>
-            </div>
-            <div class="poster-mid">
-                <h3>{{ 'ui.theatre.overcooked_title_html'|trans|raw }}</h3>
-                <div class="poster-dash" aria-hidden="true"></div>
-                <div class="poster-tag">{{ 'ui.theatre.overcooked_tag'|trans }}</div>
-            </div>
-            <div class="poster-bot">
-                <span>HANGMAN</span>
-                <span class="right">{{ 'ui.theatre.overcooked_footer'|trans }}</span>
-            </div>
-        </a>
-
+        </div>
     </div>
 
     {# CTA Académie #}

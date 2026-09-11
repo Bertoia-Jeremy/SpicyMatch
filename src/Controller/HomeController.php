@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Users;
+use App\Enum\GameMode;
 use App\Repository\AchievementProgressRepository;
 use App\Repository\AromaticCompoundRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\UsersRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/{_locale}', defaults: [
@@ -53,11 +54,15 @@ class HomeController extends AbstractController
             $nextAchievementProgress = $this->achievementProgressRepository->findMostAdvancedNotCompleted($user);
         }
 
+        $gameModes = array_filter(GameMode::cases(), fn (GameMode $m) => $m->isEnabled());
+
         return $this->render('home/index.html.twig', [
             'nextAchievementProgress' => $nextAchievementProgress,
             'spicesCount' => $this->spicesRepository->countTotal(),
             'compoundsCount' => $this->aromaticCompoundRepository->countTotal(),
             'usersCount' => $this->usersRepository->countActive(),
+            'gameModes' => $gameModes,
+            'dailyFeaturedMode' => GameMode::dailyFeatured($gameModes),
         ]);
     }
 }

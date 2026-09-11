@@ -3,11 +3,14 @@
 {% block title %}{{ 'ui.edu.academy_title'|trans }}{% endblock %}
 
 {% block body %}
-<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-  <h1 class="text-3xl font-bold text-stone-800 mb-2">{{ 'ui.edu.academy_title'|trans }}</h1>
-  <p class="text-stone-600 mb-8">{{ 'ui.edu.academy_intro'|trans }}</p>
+<div class="max-w-[1360px] mx-auto px-6 sm:px-10 lg:px-14 py-10 md:py-14">
+  <div class="section-head" style="margin-bottom: 44px">
+    <h1 class="font-display font-medium leading-none tracking-[-0.015em] m-0" style="font-size: clamp(40px, 5vw, 80px); color: var(--color-ink-900)">
+      {{ 'ui.edu.academy_title'|trans }}
+    </h1>
+    <p class="section-blurb">{{ 'ui.edu.academy_intro'|trans }}</p>
+  </div>
 
-  {# Flash messages #}
   {% for label, messages in app.flashes %}
     {% for message in messages %}
       <div class="mb-4 px-4 py-3 rounded-lg text-sm
@@ -19,66 +22,98 @@
     {% endfor %}
   {% endfor %}
 
-  {# Mode selection cards #}
-  <div data-tour="game-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+  {% if progression is not null %}
+    <div class="academie-rail">
+      <div class="academie-rank">
+        <div class="academie-seal">{{ progression.level }}</div>
+        <div>
+          <div class="who">{{ 'ui.edu.level_label'|trans({'%level%': progression.level}) }}</div>
+          <div class="lvl">{{ progression.xp|number_format(0, ',', ' ') }} XP</div>
+        </div>
+      </div>
+      <div class="academie-xp">
+        <div class="academie-xp-top">
+          <span>{{ 'ui.edu.next_level'|trans }}</span>
+          <span>{{ progression.xpToNextLevel }} XP</span>
+        </div>
+        <div class="academie-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+             aria-valuenow="{{ progression.progressPercent }}" aria-label="{{ 'ui.edu.level_progress'|trans }}">
+          <i style="width:{{ progression.progressPercent }}%"></i>
+        </div>
+      </div>
+      <div class="academie-stat"><b>{{ gamesPlayed }}</b><span>{{ 'ui.edu.games_played'|trans }}</span></div>
+      <div class="academie-stat flame">
+        <b>{{ achievementsUnlocked }}<span style="font-size:16px;opacity:.5">/{{ achievementsTotal }}</span></b>
+        <span>{{ 'ui.edu.achievements_stat'|trans }}</span>
+      </div>
+    </div>
+  {% endif %}
+
+  {% set romans = ['I', 'II', 'III', 'IV', 'V', 'VI'] %}
+  <div data-tour="game-grid" class="poster-grid">
     {% for mode in modes %}
       {% set count = dailyCounts[mode.value] ?? 0 %}
       {% set remaining = maxDailySessions - count %}
+      {% set locked = is_granted('ROLE_USER') and remaining <= 0 %}
       {% set cardUrl = path('education_briefing', { mode: mode.value, difficulty: userDifficulty }) %}
-      {% if remaining <= 0 %}
-      <a href="{{ cardUrl }}"
-         aria-disabled="true"
-         tabindex="-1"
-         class="relative block p-5 rounded-2xl border shadow-sm opacity-60 pointer-events-none bg-white border-stone-200">
-      {% elseif is_granted('ROLE_USER') %}
-      <a href="{{ cardUrl }}"
-         class="relative block p-5 rounded-2xl border shadow-sm transition-all cursor-pointer group hover:border-saffron-300 hover:shadow-md hover:bg-cream bg-white border-stone-200">
-      {% else %}
-      <a href="{{ cardUrl }}"
-         x-data="gateTrigger('{{ cardUrl|e('js') }}')"
-         @click="trigger($event)"
-         class="relative block p-5 rounded-2xl border shadow-sm transition-all cursor-pointer group hover:border-saffron-300 hover:shadow-md hover:bg-cream bg-white border-stone-200">
-      {% endif %}
-        <div class="flex items-center gap-3 mb-3">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600 group-hover:bg-saffron-200 transition-colors">
-            <i class="{{ mode.icon }}" aria-hidden="true"></i>
+      {% set best = bestScores[mode.value] ?? null %}
+      {% set isDaily = mode == dailyFeaturedMode and not locked %}
+      <div>
+        {% if locked %}
+        <a href="{{ cardUrl }}" aria-disabled="true" tabindex="-1" class="poster is-locked"
+           style="background:{{ mode.posterGradient }}"
+           aria-label="{{ mode.label|trans }} — {{ mode.tagline|trans }} — {{ 'ui.edu.locked_hint'|trans }}">
+        {% elseif is_granted('ROLE_USER') %}
+        <a href="{{ cardUrl }}" class="poster" style="background:{{ mode.posterGradient }}"
+           aria-label="{{ mode.label|trans }} — {{ mode.tagline|trans }}">
+        {% else %}
+        <a href="{{ cardUrl }}" x-data="gateTrigger('{{ cardUrl|e('js') }}')" @click="trigger($event)"
+           class="poster" style="background:{{ mode.posterGradient }}"
+           aria-label="{{ mode.label|trans }} — {{ mode.tagline|trans }}">
+        {% endif %}
+          {% if isDaily %}<span class="poster-ribbon">{{ 'ui.edu.daily_challenge'|trans }}</span>{% endif %}
+          <div class="poster-top">
+            <div class="poster-num">{{ 'ui.edu.lesson'|trans({'%numeral%': romans[loop.index0]}) }}</div>
+            <div class="poster-ornament" aria-hidden="true">✦</div>
           </div>
-          <h2 class="font-semibold text-stone-800 pr-6">{{ mode.label|trans }}</h2>
-        </div>
-        <p class="text-sm text-stone-600 leading-relaxed">{{ mode.description|trans }}</p>
-        <div class="mt-3 flex items-center gap-2 text-xs text-stone-500 flex-wrap">
-          <span class="tag-secondary">{{ 'ui.edu.xp_per_correct'|trans({'%xp%': mode.xpPerCorrect}) }}</span>
-          {% if mode.totalQuestions %}
-            <span class="tag-secondary">{{ 'ui.edu.questions'|trans({'%count%': mode.totalQuestions}) }}</span>
-          {% elseif mode.value == 'chrono' %}
-            <span class="tag-secondary"><i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>{{ 'ui.edu.timed_mode'|trans }}</span>
-          {% elseif mode.value == 'survival' %}
-            <span class="tag-secondary"><i class="fa-solid fa-link mr-1" aria-hidden="true"></i>{{ 'ui.edu.survival_mode'|trans }}</span>
-          {% else %}
-            <span class="tag-secondary">{{ 'ui.edu.unlimited_questions'|trans }}</span>
-          {% endif %}
-          {% if is_granted('ROLE_USER') %}
+          <div class="poster-mid">
+            <h3>{{ mode.titleTop|trans }}<span class="ital">{{ mode.titleBottom|trans }}</span></h3>
+            <div class="poster-dash" aria-hidden="true"></div>
+            <div class="poster-tag">{{ mode.tagline|trans }}</div>
+          </div>
+          <div class="poster-bot">
+            <span>
+              {% if mode.totalQuestions %}
+                {{ 'ui.edu.questions'|trans({'%count%': mode.totalQuestions}) }}
+              {% elseif mode.value == 'chrono' %}
+                {{ 'ui.edu.timed_mode'|trans }}
+              {% elseif mode.value == 'survival' %}
+                {{ 'ui.edu.survival_mode'|trans }}
+              {% else %}
+                {{ 'ui.edu.unlimited_questions'|trans }}
+              {% endif %}
+            </span>
+            <span class="right">{{ best is not null ? 'ui.edu.record_label'|trans({'%score%': best}) : 'ui.edu.record_none'|trans }}</span>
+          </div>
+          <span class="poster-play">{{ 'ui.edu.play'|trans }}</span>
+        </a>
+        {% if is_granted('ROLE_USER') %}
+          <p class="mt-2 text-center text-xs text-stone-500">
             {% if remaining <= 0 %}
-              <span class="tag-secondary bg-paprika-100 text-paprika-700 border-paprika-300 font-medium">
-                  <i class="fa-solid fa-clock-rotate-left mr-1" aria-hidden="true"></i>{{ 'ui.edu.come_back_tomorrow'|trans }}
-              </span>
+              <span class="text-paprika-700 font-medium"><i class="fa-solid fa-clock-rotate-left mr-1" aria-hidden="true"></i>{{ 'ui.edu.come_back_tomorrow'|trans }}</span>
             {% elseif count >= reducedXpThreshold %}
-              <span class="tag-secondary bg-turmeric-100 text-turmeric-700 border-turmeric-300"
-                    title="{{ 'ui.edu.reduced_xp_tooltip'|trans({'%threshold%': reducedXpThreshold}) }}">
-                {{ 'ui.edu.remaining_xp'|trans({'%count%': remaining}) }}
-              </span>
+              <span class="text-turmeric-700" title="{{ 'ui.edu.reduced_xp_tooltip'|trans({'%threshold%': reducedXpThreshold}) }}">{{ 'ui.edu.remaining_xp'|trans({'%count%': remaining}) }}</span>
             {% else %}
-              <span class="tag-secondary">{{ 'ui.edu.remaining_today'|trans({'%remaining%': remaining, '%max%': maxDailySessions}) }}</span>
+              {{ 'ui.edu.remaining_today'|trans({'%remaining%': remaining, '%max%': maxDailySessions}) }}
             {% endif %}
-          {% endif %}
-        </div>
-      </a>
+          </p>
+        {% endif %}
+      </div>
     {% endfor %}
   </div>
 
-  {# Recent sessions #}
   {% if recentSessions is not empty %}
-    <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6">
+    <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6 mt-12">
       <h2 class="text-xl font-semibold text-stone-800 mb-4">{{ 'ui.edu.recent_games'|trans }}</h2>
       <div class="space-y-3">
         {% for session in recentSessions %}

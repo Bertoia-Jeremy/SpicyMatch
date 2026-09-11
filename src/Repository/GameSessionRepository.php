@@ -68,6 +68,32 @@ class GameSessionRepository extends ServiceEntityRepository
     }
 
     /**
+     * Best score achieved by this user in each mode, across finished sessions.
+     * Modes never played are absent from the result — callers should use ?? null.
+     *
+     * @return array<string, int> Keyed by GameMode::value
+     */
+    public function findBestScoreByUserGrouped(Users $user): array
+    {
+        $rows = $this->createQueryBuilder('gs')
+            ->select('gs.gameMode, MAX(gs.score) AS best')
+            ->where('gs.user = :user')
+            ->andWhere('gs.finishedAt IS NOT NULL')
+            ->groupBy('gs.gameMode')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getArrayResult();
+
+        $result = [];
+        foreach ($rows as $row) {
+            $mode = $row['gameMode'] instanceof GameMode ? $row['gameMode']->value : (string) $row['gameMode'];
+            $result[$mode] = (int) $row['best'];
+        }
+
+        return $result;
+    }
+
+    /**
      * @return GameSession[]
      */
     public function findByUser(Users $user, int $limit = 10): array

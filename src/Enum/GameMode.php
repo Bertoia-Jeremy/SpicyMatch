@@ -72,4 +72,48 @@ enum GameMode: string
             self::SURVIVAL, self::CHRONO => null,
         };
     }
+
+    /**
+     * Clé de traduction (domaine messages) — traduire à l'affichage via |trans.
+     */
+    public function titleTop(): string
+    {
+        return 'enum.game_mode.'.$this->value.'.title_top';
+    }
+
+    /**
+     * Clé de traduction (domaine messages) — traduire à l'affichage via |trans.
+     */
+    public function titleBottom(): string
+    {
+        return 'enum.game_mode.'.$this->value.'.title_bottom';
+    }
+
+    /**
+     * Clé de traduction (domaine messages) — traduire à l'affichage via |trans.
+     */
+    public function tagline(): string
+    {
+        return 'enum.game_mode.'.$this->value.'.tagline';
+    }
+
+    /**
+     * @param list<self> $modes
+     */
+    public static function dailyFeatured(array $modes): self
+    {
+        return $modes[(int) (new \DateTimeImmutable('today'))->format('z') % \count($modes)];
+    }
+
+    public function posterGradient(): string
+    {
+        return match ($this) {
+            self::QCM => 'radial-gradient(ellipse at 50% 0%, #4D7C0F 0%, #2d4a08 60%, #1a2a04 100%)',
+            self::SURVIVAL => 'radial-gradient(ellipse at 50% 0%, #C04020 0%, #7a1a1a 60%, #3a0a0a 100%)',
+            self::GUESS_WHO => 'radial-gradient(ellipse at 50% 0%, #C98A4B 0%, #7d4a1c 60%, #331a06 100%)',
+            self::INTRUS => 'radial-gradient(ellipse at 50% 0%, #5B4636 0%, #33241a 60%, #160e09 100%)',
+            self::HANGMAN => 'radial-gradient(ellipse at 50% 0%, #D97706 0%, #7c3a04 60%, #3a1c02 100%)',
+            self::CHRONO => 'radial-gradient(ellipse at 50% 0%, #A3324C 0%, #5e1428 60%, #280611 100%)',
+        };
+    }
 }

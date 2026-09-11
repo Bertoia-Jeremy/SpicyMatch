@@ -317,6 +317,16 @@ ui:
         is_correct_answer: is the correct answer.
         you_answered: You answered
         correct_was: The correct answer was
+        level_label: 'Level %level%'
+        next_level: Next level
+        level_progress: Level progress
+        games_played: games played
+        achievements_stat: achievements
+        record_label: 'Record: %score%'
+        record_none: To unlock
+        daily_challenge: Daily challenge
+        locked_hint: Come back tomorrow to replay
+        lesson: 'Lesson %numeral%'
         gate:
             title: Log in to play
             subtitle: One last step before the game.
@@ -1064,21 +1074,6 @@ ui:
         chapter: Chapter IV · The Academy
         title_html: 'The theater of <em class="not-italic italic" style="color: var(--color-turmeric-700)">the senses.</em>'
         blurb: Six mini-games. Spices as a playground. Each round reveals a new angle — the odd one out, survival, hangman, speed.
-        play_scoville: Play the Scoville Challenge
-        play_choice: Play the Chef's Choice
-        play_overcooked: Play Overcooked
-        act1: Act I
-        act2: Act II
-        act3: Act III
-        scoville_title_html: 'Scoville <span class="ital">Challenge.</span>'
-        scoville_tag: chili survival game
-        scoville_footer: Unlimited games
-        choice_title_html: "The Chef's <span class=\"ital\">Choice.</span>"
-        choice_tag: spot the odd one out
-        choice_footer: 5 questions
-        overcooked_title_html: '<span class="ital">Overcooked!</span>'
-        overcooked_tag: hangman of forgotten spices
-        overcooked_footer: 8 words to guess
         cta_sub: 6 modes available · XP · Achievements · Leaderboards
         cta: Join the Academy
     hero:
@@ -1143,21 +1138,39 @@ enum:
         qcm:
             label: The Chef's Choice
             desc: 'Find the most compatible spice among 4 options.'
+            title_top: "The Chef's"
+            title_bottom: 'Choice.'
+            tagline: 'find the most compatible spice among 4 options'
         survival:
             label: Scoville Challenge
             desc: 'Chain compatible spices without a mistake.'
+            title_top: 'Scoville'
+            title_bottom: 'Challenge.'
+            tagline: 'chain compatible spices without a mistake'
         guess_who:
             label: Fine Palate
             desc: 'Guess the spice from progressive clues.'
+            title_top: 'Fine'
+            title_bottom: 'Palate.'
+            tagline: 'guess the spice from progressive clues'
         intrus:
             label: Out of Season
             desc: 'Find the odd one out among compatible spices.'
+            title_top: 'Out of'
+            title_bottom: 'Season.'
+            tagline: 'find the odd one out among compatible spices'
         hangman:
             label: Now Cooking
             desc: 'Guess the spice name letter by letter.'
+            title_top: 'Now'
+            title_bottom: 'Cooking.'
+            tagline: 'guess the spice name letter by letter'
         chrono:
             label: On High Heat
             desc: 'Identify the spices as fast as possible.'
+            title_top: 'On High'
+            title_bottom: 'Heat.'
+            tagline: 'identify the spices as fast as possible'
     difficulty:
         easy: Easy
         medium: Medium

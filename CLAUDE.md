@@ -180,7 +180,7 @@ architecture:
     commands:
       - "app:import:odt — odt_ppm OU odt_min/max (→ geomean), lit confidence"
       - "app:import:acquisition-csv — data/acquisition/*.csv (gitignoré), SEULE commande créant les composés, upsert, dry-run, idempotent"
-      - "app:fetch:pubchem [--all] — PubChem XLogP3 + formule + CID + InChIKey par CAS (confidence ESTIMATED sur logP ; CID/InChIKey = identifiants, sans confidence). Verrou GET_LOCK non bloquant, flush par composé, collision CID/InChIKey → warning + skip"
+      - "app:fetch:pubchem [--all] [--force] — PubChem XLogP3 + formule + CID + InChIKey par CAS (confidence ESTIMATED sur logP ; CID/InChIKey = identifiants, sans confidence). --all = re-fetch même si déjà complet ; --force = écrase aussi les valeurs déjà renseignées (y compris logP MEASURED/LITERATURE, alors rétrogradé ESTIMATED), implique --all — dangereux, dataset actuel 100% fictif donc sans risque, à éviter dès données réelles. Verrou GET_LOCK non bloquant, flush par composé, collision CID/InChIKey → warning + skip (même sous --force)"
       - "app:check:compounds / app:check:data / app:validate:compounds [--apply] / app:recompute:oav [--sync]"
     qualite_donnees:
       - "DataConfidence enum MEASURED(A)/LITERATURE(B)/ESTIMATED(C)/PLACEHOLDER(D), colonne confidence sur les 3 tables data. CasNumber VO (checksum). Badge qualité UI dans le Lab. GoldenPairingsTest = ancres anti-régression chimie."

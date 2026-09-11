@@ -32,7 +32,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  * odt_confidence, odt_source, notes.
  *
  * Matching épice/composé par nom exact. Idempotent (upsert). La couche physico-chimique
- * (logP/bp/vp) reste déléguée à app:fetch:physical (PubChem) : ignorée ici.
+ * (logP/bp/vp) reste déléguée à app:fetch:pubchem (PubChem) : ignorée ici.
  */
 #[AsCommand(
     name: 'app:import:acquisition-csv',
@@ -169,7 +169,7 @@ final class ImportAcquisitionCsvCommand extends Command
             $stats['skipped'],
             $dryRun ? ' (dry-run)' : '',
         ));
-        $io->note('Penser à : app:fetch:physical (logP) puis app:recompute:oav --sync.');
+        $io->note('Penser à : app:fetch:pubchem (logP) puis app:recompute:oav --sync.');
 
         return Command::SUCCESS;
     }

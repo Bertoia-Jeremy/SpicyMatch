@@ -180,7 +180,7 @@ architecture:
     commands:
       - "app:import:odt — odt_ppm OU odt_min/max (→ geomean), lit confidence"
       - "app:import:acquisition-csv — data/acquisition/*.csv (gitignoré), SEULE commande créant les composés, upsert, dry-run, idempotent"
-      - "app:fetch:physical [--all] — PubChem XLogP3 + formule par CAS, confidence ESTIMATED"
+      - "app:fetch:pubchem [--all] — PubChem XLogP3 + formule + CID + InChIKey par CAS (confidence ESTIMATED sur logP ; CID/InChIKey = identifiants, sans confidence). Verrou GET_LOCK non bloquant, flush par composé, collision CID/InChIKey → warning + skip"
       - "app:check:compounds / app:check:data / app:validate:compounds [--apply] / app:recompute:oav [--sync]"
     qualite_donnees:
       - "DataConfidence enum MEASURED(A)/LITERATURE(B)/ESTIMATED(C)/PLACEHOLDER(D), colonne confidence sur les 3 tables data. CasNumber VO (checksum). Badge qualité UI dans le Lab. GoldenPairingsTest = ancres anti-régression chimie."
@@ -194,6 +194,8 @@ architecture:
       - "⚠️ COLONNES JOINTURE : tables ManyToMany = spices_id (PLURIEL) ; shadow spice_active_compound = spice_id (SINGULIER). findSurvivorsWithPresence doit projeter spices_id AS spice_id."
       - "Messenger Doctrine + MariaDB : use_notify ignoré → polling 60s, rebuild OAV pas instantané."
       - "CompatibilityScoreService SUPPRIMÉ (remplacé par le moteur OAV)."
+      - "Appel PubChem PUG REST + toArray() : catch ExceptionInterface (base), PAS seulement TransportExceptionInterface — JsonException (décodage, ex réponse HTML 200) est un SIBLING, pas un enfant, donc non intercepté par le catch transport seul."
+      - "app:fetch:pubchem n'écrase JAMAIS un logP existant en confidence MEASURED/LITERATURE (protection par tier, PubChem = ESTIMATED seulement) — cf FetchPubChemDataCommand::applyProperties()."
     data_status: "⚠️ DONNÉES FICTIVES (tier D) : 15 composés, 105 concentrations. Plan réel : docs/PLAN_ACQUISITION_DONNEES.md"
 
   i18n:

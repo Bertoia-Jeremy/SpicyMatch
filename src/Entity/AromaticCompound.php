@@ -15,6 +15,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'aromatic_compound')]
 // CAS unique. Multiple NULL toléré par MariaDB → composés sans CAS non bloquants.
 #[ORM\UniqueConstraint(name: 'uniq_aromatic_compound_cas', columns: ['cas_number'])]
+#[ORM\UniqueConstraint(name: 'uniq_aromatic_compound_pubchem_cid', columns: ['pubchem_cid'])]
+#[ORM\UniqueConstraint(name: 'uniq_aromatic_compound_inchi_key', columns: ['inchi_key'])]
 class AromaticCompound implements TranslatableInterface, Sluggable
 {
     #[ORM\Id]
@@ -42,6 +44,19 @@ class AromaticCompound implements TranslatableInterface, Sluggable
      */
     #[ORM\Column(name: 'formula', type: 'string', length: 30, nullable: true)]
     private ?string $formula = null;
+
+    /**
+     * PubChem CID (Compound ID) — identifiant canonique stable, résolu via PUG REST.
+     */
+    #[ORM\Column(name: 'pubchem_cid', type: 'integer', nullable: true)]
+    private ?int $pubchemCid = null;
+
+    /**
+     * InChIKey (27 caractères) — encode la stéréochimie exacte, résout l'ambiguïté
+     * des composés isomères (carvone R/S, anéthol cis/trans...) que le seul nom ne lève pas.
+     */
+    #[ORM\Column(name: 'inchi_key', type: 'string', length: 27, nullable: true)]
+    private ?string $inchiKey = null;
 
     #[ORM\Column(name: 'description', type: 'text', nullable: true)]
     private ?string $description = null;
@@ -212,6 +227,30 @@ class AromaticCompound implements TranslatableInterface, Sluggable
     public function setFormula(?string $formula): self
     {
         $this->formula = $formula;
+
+        return $this;
+    }
+
+    public function getPubchemCid(): ?int
+    {
+        return $this->pubchemCid;
+    }
+
+    public function setPubchemCid(?int $pubchemCid): self
+    {
+        $this->pubchemCid = $pubchemCid;
+
+        return $this;
+    }
+
+    public function getInchiKey(): ?string
+    {
+        return $this->inchiKey;
+    }
+
+    public function setInchiKey(?string $inchiKey): self
+    {
+        $this->inchiKey = $inchiKey;
 
         return $this;
     }

@@ -26,7 +26,9 @@ use Symfony\Component\Translation\IdentityTranslator;
 class AcademyManagerTest extends TestCase
 {
     private AcademyManager $manager;
+
     private SpicesRepository&MockObject $spicesRepo;
+
     private CompatibleSpiceFinder&MockObject $finder;
 
     protected function setUp(): void
@@ -332,7 +334,7 @@ class AcademyManagerTest extends TestCase
             $spices[] = $spice;
         }
 
-        $this->spicesRepo->method('findAll')
+        $this->spicesRepo->method('findAllActive')
             ->willReturn($spices);
 
         $result = $this->manager->generateIntrusQuestion(GameDifficulty::EASY, []);
@@ -353,7 +355,7 @@ class AcademyManagerTest extends TestCase
             $spices[] = $spice;
         }
 
-        $this->spicesRepo->method('findAll')
+        $this->spicesRepo->method('findAllActive')
             ->willReturn($spices);
 
         $result = $this->manager->generateIntrusQuestion(GameDifficulty::EASY, [1, 2, 3, 4]);
@@ -363,7 +365,7 @@ class AcademyManagerTest extends TestCase
 
     public function testGenerateIntrusQuestionPicksTheLowestScoringSurvivorAsIntruder(): void
     {
-        $this->spicesRepo->method('findAll')
+        $this->spicesRepo->method('findAllActive')
             ->willReturn($this->makeBaseSpices());
         $this->spicesRepo->method('findIncompatibleWith')
             ->willReturn([]);
@@ -380,7 +382,7 @@ class AcademyManagerTest extends TestCase
 
     public function testGenerateIntrusQuestionReturnsNullWhenEveryCompatibleSharesTheSameScore(): void
     {
-        $this->spicesRepo->method('findAll')
+        $this->spicesRepo->method('findAllActive')
             ->willReturn($this->makeBaseSpices());
         $this->spicesRepo->method('findIncompatibleWith')
             ->willReturn([]);
@@ -395,7 +397,7 @@ class AcademyManagerTest extends TestCase
         $intruder = $this->makeSpice(99);
         $intruder->setName('Poivre');
 
-        $this->spicesRepo->method('findAll')
+        $this->spicesRepo->method('findAllActive')
             ->willReturn($this->makeBaseSpices());
         $this->spicesRepo->method('findIncompatibleWith')
             ->willReturn([$intruder]);
@@ -613,7 +615,7 @@ class AcademyManagerTest extends TestCase
         foreach ($scores as $offset => $score) {
             $pool[] = [
                 'id' => $firstId + $offset,
-                'name' => 'Épice '.($firstId + $offset),
+                'name' => 'Épice ' . ($firstId + $offset),
                 'score' => $score,
                 'file' => null,
                 'agId' => null,

@@ -19,9 +19,13 @@ use Symfony\Component\Translation\IdentityTranslator;
 final class IntrusSelectionPropertyTest extends TestCase
 {
     private const int MAX_POOL_SIZE = 30;
+
     private const int SEEDS_PER_SIZE = 3;
+
     private const int BASE_SPICE_COUNT = 6;
+
     private const int FIRST_COMPATIBLE_ID = 100;
+
     private const int FIRST_INTRUDER_ID = 1000;
 
     /**
@@ -35,7 +39,7 @@ final class IntrusSelectionPropertyTest extends TestCase
     ): void {
         for ($size = 0; $size <= self::MAX_POOL_SIZE; ++$size) {
             for ($run = 0; $run < self::SEEDS_PER_SIZE; ++$run) {
-                $seed = crc32($shape.'|'.$difficulty->value.'|'.$size.'|'.$run);
+                $seed = crc32($shape . '|' . $difficulty->value . '|' . $size . '|' . $run);
 
                 foreach (self::ORDINAL_SCALES as $scaleName => $scale) {
                     mt_srand($seed);
@@ -105,23 +109,23 @@ final class IntrusSelectionPropertyTest extends TestCase
     {
         self::assertSame(
             $this->isFeasible($pool, $inverted),
-            null !== $question,
-            'P6 '.$context,
+            $question !== null,
+            'P6 ' . $context,
         );
 
-        if (null === $question) {
+        if ($question === null) {
             return;
         }
 
-        self::assertSame('intrus', $question['type'], 'P0 '.$context);
+        self::assertSame('intrus', $question['type'], 'P0 ' . $context);
 
         /** @var list<array<string, mixed>> $options */
         $options = $question['options'];
 
-        self::assertCount(4, $options, 'P1 '.$context);
+        self::assertCount(4, $options, 'P1 ' . $context);
 
         $ids = array_map(static fn (array $option) => $option['id'], $options);
-        self::assertCount(4, array_unique($ids), 'P2 '.$context);
+        self::assertCount(4, array_unique($ids), 'P2 ' . $context);
 
         $keySets = array_map(
             static function (array $option): string {
@@ -132,10 +136,10 @@ final class IntrusSelectionPropertyTest extends TestCase
             },
             $options,
         );
-        self::assertCount(1, array_unique($keySets), 'P4 '.$context);
+        self::assertCount(1, array_unique($keySets), 'P4 ' . $context);
 
         $correctId = $question['correctAnswerId'];
-        self::assertContains($correctId, $ids, 'P5 '.$context);
+        self::assertContains($correctId, $ids, 'P5 ' . $context);
 
         $scores = $this->scoreIndex($pool);
         $correctScore = $scores[$correctId];
@@ -147,13 +151,13 @@ final class IntrusSelectionPropertyTest extends TestCase
 
             $otherScore = $scores[$option['id']];
 
-            if ($inverted && true === $question['isInverted']) {
-                self::assertGreaterThan($otherScore, $correctScore, 'P3 '.$context);
+            if ($inverted && $question['isInverted'] === true) {
+                self::assertGreaterThan($otherScore, $correctScore, 'P3 ' . $context);
 
                 continue;
             }
 
-            self::assertLessThan($otherScore, $correctScore, 'P3 '.$context);
+            self::assertLessThan($otherScore, $correctScore, 'P3 ' . $context);
         }
     }
 
@@ -202,7 +206,7 @@ final class IntrusSelectionPropertyTest extends TestCase
             return false;
         }
 
-        if ([] !== $this->effectiveIntruders($pool)) {
+        if ($this->effectiveIntruders($pool) !== []) {
             return true;
         }
 
@@ -273,7 +277,7 @@ final class IntrusSelectionPropertyTest extends TestCase
     private function generate(array $pool, GameDifficulty $difficulty, bool $inverted): ?array
     {
         $spicesRepository = $this->createStub(SpicesRepository::class);
-        $spicesRepository->method('findAll')
+        $spicesRepository->method('findAllActive')
             ->willReturn($pool['bases']);
         $spicesRepository->method('findIncompatibleWith')
             ->willReturn($pool['intruders']);
@@ -306,30 +310,30 @@ final class IntrusSelectionPropertyTest extends TestCase
         foreach ($rawScores as $index => $rawScore) {
             $compatibles[] = [
                 'id' => self::FIRST_COMPATIBLE_ID + $index,
-                'name' => 'Compatible '.$index,
+                'name' => 'Compatible ' . $index,
                 'score' => (int) round($rawScore * $factor) + $offset,
                 'file' => null,
                 'agId' => 1 + ($index % 3),
                 'color' => '#123456',
-                'groupName' => 'Groupe '.(1 + ($index % 3)),
+                'groupName' => 'Groupe ' . (1 + ($index % 3)),
                 'stId' => 1 + ($index % 2),
-                'typeName' => 'Type '.(1 + ($index % 2)),
+                'typeName' => 'Type ' . (1 + ($index % 2)),
             ];
         }
 
-        $intruderCount = 0 === $size % 3 ? 0 : 1 + ($seed % 3);
+        $intruderCount = $size % 3 === 0 ? 0 : 1 + ($seed % 3);
         $intruders = [];
         for ($index = 0; $index < $intruderCount; ++$index) {
-            $id = 'overlapping' === $shape && 0 === $index && $size > 0
+            $id = $shape === 'overlapping' && $index === 0 && $size > 0
                 ? self::FIRST_COMPATIBLE_ID
                 : self::FIRST_INTRUDER_ID + $index;
 
-            $intruders[] = $this->makeSpice($id, 'Intrus '.$index, 1 + ($index % 2), 1 + ($index % 2));
+            $intruders[] = $this->makeSpice($id, 'Intrus ' . $index, 1 + ($index % 2), 1 + ($index % 2));
         }
 
         $bases = [];
         for ($index = 0; $index < self::BASE_SPICE_COUNT; ++$index) {
-            $bases[] = $this->makeSpice($index + 1, 'Base '.($index + 1), null, 1);
+            $bases[] = $this->makeSpice($index + 1, 'Base ' . ($index + 1), null, 1);
         }
 
         return [
@@ -364,17 +368,17 @@ final class IntrusSelectionPropertyTest extends TestCase
     {
         $type = new SpicyType();
         new \ReflectionProperty(SpicyType::class, 'id')->setValue($type, $typeId);
-        $type->setName('Type '.$typeId);
+        $type->setName('Type ' . $typeId);
 
         $spice = new Spices();
         new \ReflectionProperty(Spices::class, 'id')->setValue($spice, $id);
         $spice->setName($name);
         $spice->setSpicyType($type);
 
-        if (null !== $groupId) {
+        if ($groupId !== null) {
             $group = new AromaticGroups();
             new \ReflectionProperty(AromaticGroups::class, 'id')->setValue($group, $groupId);
-            $group->setName('Groupe '.$groupId);
+            $group->setName('Groupe ' . $groupId);
             $group->setColor('#abcdef');
 
             $spice->setAromaticGroups($group);

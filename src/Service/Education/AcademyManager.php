@@ -45,7 +45,7 @@ class AcademyManager
             function (ItemInterface $item): array {
                 $item->expiresAfter(3600);
 
-                return $this->spicesRepository->findAll();
+                return $this->spicesRepository->findAllActive();
             },
         );
     }
@@ -54,7 +54,7 @@ class AcademyManager
 
     private function getTransliterator(): \Transliterator
     {
-        if (null === $this->transliterator) {
+        if ($this->transliterator === null) {
             $this->transliterator = \Transliterator::create('NFD; [:Nonspacing Mark:] Remove; NFC');
         }
 
@@ -72,13 +72,13 @@ class AcademyManager
     {
         $id = $spice->getId();
 
-        if (null === $id) {
+        if ($id === null) {
             return [];
         }
 
         $locale = $this->currentLocale();
 
-        return $this->cache->get('academy.compatible.'.$locale.'.'.$id, function (ItemInterface $item) use (
+        return $this->cache->get('academy.compatible.' . $locale . '.' . $id, function (ItemInterface $item) use (
             $id
         ): array {
             $item->expiresAfter(3600);
@@ -96,7 +96,7 @@ class AcademyManager
      */
     public function findIntruders(Spices $baseSpice, array $excludeIds = []): array
     {
-        $cacheKey = 'academy.intruders.'.$baseSpice->getId();
+        $cacheKey = 'academy.intruders.' . $baseSpice->getId();
 
         $allIntruders = $this->cache->get($cacheKey, function (ItemInterface $item) use ($baseSpice): array {
             $item->expiresAfter(3600);
@@ -140,7 +140,7 @@ class AcademyManager
     {
         $total = count($scoredSpices);
 
-        if (0 === $total) {
+        if ($total === 0) {
             return [];
         }
 
@@ -222,7 +222,7 @@ class AcademyManager
         foreach (mb_str_split($name) as $char) {
             $normalized = $this->normalizeChar($char);
 
-            if (' ' === $char || '-' === $char || '\'' === $char) {
+            if ($char === ' ' || $char === '-' || $char === '\'') {
                 $mask .= $char;
             } elseif (isset($guessedFlipped[$normalized])) {
                 $mask .= $char;
@@ -267,9 +267,9 @@ class AcademyManager
         array $excludeBaseIds = [],
         bool $inverted = false,
     ): ?array {
-        if (! $inverted && 0 === random_int(0, 1)) {
+        if (! $inverted && random_int(0, 1) === 0) {
             $groupQuestion = $this->generateGroupIntrusQuestion($difficulty, $excludeBaseIds);
-            if (null !== $groupQuestion) {
+            if ($groupQuestion !== null) {
                 return $groupQuestion;
             }
         }
@@ -297,7 +297,7 @@ class AcademyManager
 
             $question ??= $this->buildClassicIntrusQuestion($baseSpice, $compatibles, $intruders, $difficulty);
 
-            if (null !== $question) {
+            if ($question !== null) {
                 return $question;
             }
         }
@@ -345,7 +345,7 @@ class AcademyManager
         $byGroup = [];
         foreach ($allSpices as $spice) {
             $group = $spice->getAromaticGroups();
-            if (null === $group) {
+            if ($group === null) {
                 continue;
             }
 
@@ -567,7 +567,7 @@ class AcademyManager
             $clues[] = [
                 'type' => 'description',
                 'label' => $this->translator->trans('ui.edu.clue.description'),
-                'value' => mb_substr($spiceCard['description'], 0, 120).'…',
+                'value' => mb_substr($spiceCard['description'], 0, 120) . '…',
             ];
         }
 
@@ -681,7 +681,7 @@ class AcademyManager
             return null;
         }
 
-        if (GameDifficulty::EASY === $difficulty) {
+        if ($difficulty === GameDifficulty::EASY) {
             $short = array_filter($candidates, fn (Spices $s) => mb_strlen($s->getName()) <= 12);
 
             if (! empty($short)) {
@@ -731,7 +731,7 @@ class AcademyManager
      */
     public function pickTargetSpice(GameMode $mode, GameDifficulty $difficulty, Users $user): ?Spices
     {
-        if (GameMode::QCM === $mode || GameMode::INTRUS === $mode) {
+        if ($mode === GameMode::QCM || $mode === GameMode::INTRUS) {
             return null;
         }
 
@@ -742,7 +742,7 @@ class AcademyManager
         $candidates = array_filter($allSpices, fn (Spices $s) => ! isset($excludeFlipped[$s->getId()]));
 
         // For Hangman EASY, prefer shorter names
-        if (GameMode::HANGMAN === $mode && GameDifficulty::EASY === $difficulty) {
+        if ($mode === GameMode::HANGMAN && $difficulty === GameDifficulty::EASY) {
             $short = array_filter($candidates, fn (Spices $s) => mb_strlen($s->getName()) <= 12);
             if (! empty($short)) {
                 $candidates = $short;
@@ -792,7 +792,7 @@ class AcademyManager
     {
         $locale = $this->currentLocale();
 
-        if ([] === $options || 'fr' === $locale) {
+        if ($options === [] || $locale === 'fr') {
             return $options;
         }
 
@@ -806,12 +806,12 @@ class AcademyManager
         return array_map(static function (array $option) use ($byId): array {
             $row = $byId[$option['id']] ?? null;
 
-            if (null === $row) {
+            if ($row === null) {
                 return $option;
             }
 
             $option['name'] = (string) $row['name'];
-            $option['groupName'] = null !== $row['groupName'] ? (string) $row['groupName'] : null;
+            $option['groupName'] = $row['groupName'] !== null ? (string) $row['groupName'] : null;
 
             return $option;
         }, $options);
@@ -947,7 +947,7 @@ class AcademyManager
 
         $eligible = $this->eligibleIntruders($compatibles, $intruders);
 
-        if ([] === $eligible) {
+        if ($eligible === []) {
             return null;
         }
 
@@ -1006,7 +1006,7 @@ class AcademyManager
             }
         }
 
-        if ([] === $eligibleAnswers) {
+        if ($eligibleAnswers === []) {
             return null;
         }
 
@@ -1107,7 +1107,7 @@ class AcademyManager
             $eligible[] = [
                 'option' => $this->toOption($compatibles[$index]),
                 'cut' => $boundaries[$index],
-                'spicyTypeId' => null !== $spicyTypeId ? (int) $spicyTypeId : null,
+                'spicyTypeId' => $spicyTypeId !== null ? (int) $spicyTypeId : null,
             ];
         }
 
@@ -1142,12 +1142,12 @@ class AcademyManager
     {
         $baseTypeId = $baseSpice->getSpicyType()?->getId();
 
-        if (GameDifficulty::HARD !== $difficulty || null === $baseTypeId) {
+        if ($difficulty !== GameDifficulty::HARD || $baseTypeId === null) {
             return $window;
         }
 
         $sameType = array_values(array_filter($window, static fn (array $e) => $e['spicyTypeId'] === $baseTypeId));
 
-        return [] === $sameType ? $window : $sameType;
+        return $sameType === [] ? $window : $sameType;
     }
 }

@@ -54,15 +54,17 @@
     {% for mode in modes %}
       {% set count = dailyCounts[mode.value] ?? 0 %}
       {% set remaining = maxDailySessions - count %}
-      {% set locked = is_granted('ROLE_USER') and remaining <= 0 %}
+      {% set levelLocked = is_granted('ROLE_USER') and not (unlockedByMode[mode.value] ?? true) %}
+      {% set locked = (is_granted('ROLE_USER') and remaining <= 0) or levelLocked %}
       {% set cardUrl = path('education_briefing', { mode: mode.value, difficulty: userDifficulty }) %}
       {% set best = bestScores[mode.value] ?? null %}
       {% set isDaily = mode == dailyFeaturedMode and not locked %}
+      {% set lockedHint = levelLocked ? 'ui.edu.locked_level_hint'|trans({'%mode%': mode.label|trans, '%level%': mode.requiredLevel}) : 'ui.edu.locked_hint'|trans %}
       <div>
         {% if locked %}
         <a href="{{ cardUrl }}" aria-disabled="true" tabindex="-1" class="poster is-locked"
            style="background:{{ mode.posterGradient }}"
-           aria-label="{{ mode.label|trans }} — {{ mode.tagline|trans }} — {{ 'ui.edu.locked_hint'|trans }}">
+           aria-label="{{ mode.label|trans }} — {{ mode.tagline|trans }} — {{ lockedHint }}">
         {% elseif is_granted('ROLE_USER') %}
         <a href="{{ cardUrl }}" class="poster" style="background:{{ mode.posterGradient }}"
            aria-label="{{ mode.label|trans }} — {{ mode.tagline|trans }}">
@@ -71,6 +73,7 @@
            class="poster" style="background:{{ mode.posterGradient }}"
            aria-label="{{ mode.label|trans }} — {{ mode.tagline|trans }}">
         {% endif %}
+          {% if levelLocked %}<i class="fa-solid fa-lock poster-lock" aria-hidden="true"></i>{% endif %}
           {% if isDaily %}<span class="poster-ribbon">{{ 'ui.edu.daily_challenge'|trans }}</span>{% endif %}
           <div class="poster-top">
             <div class="poster-num">{{ 'ui.edu.lesson'|trans({'%numeral%': romans[loop.index0]}) }}</div>
@@ -99,7 +102,9 @@
         </a>
         {% if is_granted('ROLE_USER') %}
           <p class="mt-2 text-center text-xs text-stone-500">
-            {% if remaining <= 0 %}
+            {% if levelLocked %}
+              <span class="text-paprika-700 font-medium"><i class="fa-solid fa-lock mr-1" aria-hidden="true"></i>{{ lockedHint }}</span>
+            {% elseif remaining <= 0 %}
               <span class="text-paprika-700 font-medium"><i class="fa-solid fa-clock-rotate-left mr-1" aria-hidden="true"></i>{{ 'ui.edu.come_back_tomorrow'|trans }}</span>
             {% elseif count >= reducedXpThreshold %}
               <span class="text-turmeric-700" title="{{ 'ui.edu.reduced_xp_tooltip'|trans({'%threshold%': reducedXpThreshold}) }}">{{ 'ui.edu.remaining_xp'|trans({'%count%': remaining}) }}</span>

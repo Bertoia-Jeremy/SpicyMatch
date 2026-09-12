@@ -41,11 +41,11 @@ final class GameScoreThresholdEvaluator implements TriggerEvaluatorInterface, Pr
         $group = $achievement->getContextAromaticGroup();
         $user = $progression->getUser();
 
-        if (null === $user || null === $mode) {
+        if ($user === null || $mode === null) {
             return false;
         }
 
-        if (null !== $group) {
+        if ($group !== null) {
             $maxScore = $this->gameSessionRepository->maxScoreInModeForGroup(
                 $user,
                 $mode,

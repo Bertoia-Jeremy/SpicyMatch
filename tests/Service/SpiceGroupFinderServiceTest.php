@@ -21,6 +21,7 @@ use Symfony\Component\Cache\Adapter\ArrayAdapter;
 class SpiceGroupFinderServiceTest extends TestCase
 {
     private SpicesRepository&MockObject $repository;
+
     private SpiceGroupFinderService $service;
 
     protected function setUp(): void

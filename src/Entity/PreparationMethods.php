@@ -39,7 +39,8 @@ class PreparationMethods implements TranslatableInterface, Sluggable
     #[ORM\OneToMany(
         mappedBy: 'preparationMethod',
         targetEntity: PreparationTips::class,
-        cascade: ['persist', 'remove'])]
+        cascade: ['persist', 'remove']
+    )]
     private Collection $preparationTips;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -103,7 +104,7 @@ class PreparationMethods implements TranslatableInterface, Sluggable
 
     public function getTranslation(string $locale): ?PreparationMethodsTranslation
     {
-        if ('fr' === $locale) {
+        if ($locale === 'fr') {
             return null;
         }
 

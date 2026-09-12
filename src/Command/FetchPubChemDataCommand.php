@@ -80,7 +80,7 @@ final class FetchPubChemDataCommand extends Command
         $connection = $this->em->getConnection();
 
         $acquired = $connection->fetchOne('SELECT GET_LOCK(?, ?)', [self::LOCK_NAME, 0]);
-        if (null === $acquired || '1' !== (string) $acquired) {
+        if ($acquired === null || (string) $acquired !== '1') {
             $io->error('Une autre exécution de app:fetch:pubchem est déjà en cours.');
 
             return Command::FAILURE;
@@ -116,7 +116,7 @@ final class FetchPubChemDataCommand extends Command
             $name = (string) $compound->getName();
             $cas = $compound->getCasNumber();
 
-            if (null === $cas || '' === trim($cas)) {
+            if ($cas === null || trim($cas) === '') {
                 $io->text(\sprintf('  SKIP %s : pas de CAS', $name));
                 ++$skipped;
                 continue;
@@ -127,9 +127,9 @@ final class FetchPubChemDataCommand extends Command
             ]);
 
             if (! $forceAll
-                && null !== $existingPhysical?->getLogP()
-                && null !== $compound->getPubchemCid()
-                && null !== $compound->getInchiKey()
+                && $existingPhysical?->getLogP() !== null
+                && $compound->getPubchemCid() !== null
+                && $compound->getInchiKey() !== null
             ) {
                 $io->text(\sprintf('  SKIP %s : logP/CID/InChIKey déjà renseignés', $name));
                 ++$skipped;
@@ -138,7 +138,7 @@ final class FetchPubChemDataCommand extends Command
 
             $properties = $this->pubChemPropertyFetcher->fetch($cas);
 
-            if (null === $properties->logP && null === $properties->formula && null === $properties->cid && null === $properties->inchiKey) {
+            if ($properties->logP === null && $properties->formula === null && $properties->cid === null && $properties->inchiKey === null) {
                 $io->text(\sprintf('  ❌ Aucune donnée PubChem pour %s (%s)', $name, $cas));
                 ++$failed;
                 usleep(self::REQUEST_DELAY_US);
@@ -160,7 +160,9 @@ final class FetchPubChemDataCommand extends Command
                 $this->em->flush();
 
                 $persistedLogP = $existingPhysical?->getLogP()
-                    ?? $this->compoundPhysicalRepository->findOneBy(['compound' => $compound])?->getLogP();
+                    ?? $this->compoundPhysicalRepository->findOneBy([
+                        'compound' => $compound,
+                    ])?->getLogP();
 
                 $io->text(\sprintf(
                     '  FETCH %s (%s) → XLogP3=%s formule=%s CID=%s InChIKey=%s',
@@ -184,7 +186,7 @@ final class FetchPubChemDataCommand extends Command
             $dryRun ? ' (dry-run)' : '',
         ));
 
-        return 0 === $failed ? Command::SUCCESS : Command::FAILURE;
+        return $failed === 0 ? Command::SUCCESS : Command::FAILURE;
     }
 
     private function applyProperties(
@@ -195,31 +197,33 @@ final class FetchPubChemDataCommand extends Command
         bool $force,
         SymfonyStyle $io,
     ): void {
-        if (null !== $properties->formula && ($force || null === $compound->getFormula())) {
+        if ($properties->formula !== null && ($force || $compound->getFormula() === null)) {
             $compound->setFormula($properties->formula);
         }
 
         $protectedTiers = [DataConfidence::MEASURED, DataConfidence::LITERATURE];
         $hasProtectedLogP = ! $force
-            && null !== $existingPhysical
-            && null !== $existingPhysical->getLogP()
+            && $existingPhysical !== null
+            && $existingPhysical->getLogP() !== null
             && \in_array($existingPhysical->getConfidence(), $protectedTiers, true);
 
-        if (null !== $properties->logP && ! $hasProtectedLogP) {
+        if ($properties->logP !== null && ! $hasProtectedLogP) {
             $target = $existingPhysical ?? new CompoundPhysical($compound);
             $target->setLogP($properties->logP);
             $target->setSource(\sprintf('PubChem XLogP3 (auto-fetch via CAS %s)', $cas));
-            if (null === $existingPhysical || DataConfidence::PLACEHOLDER === $existingPhysical->getConfidence() || $force) {
+            if ($existingPhysical === null || $existingPhysical->getConfidence() === DataConfidence::PLACEHOLDER || $force) {
                 $target->setConfidence(DataConfidence::ESTIMATED);
             }
-            if (null === $existingPhysical) {
+            if ($existingPhysical === null) {
                 $this->em->persist($target);
             }
         }
 
-        if (null !== $properties->cid && ($force || null === $compound->getPubchemCid())) {
-            $collision = $this->aromaticCompoundRepository->findOneBy(['pubchemCid' => $properties->cid]);
-            if (null !== $collision && $collision !== $compound) {
+        if ($properties->cid !== null && ($force || $compound->getPubchemCid() === null)) {
+            $collision = $this->aromaticCompoundRepository->findOneBy([
+                'pubchemCid' => $properties->cid,
+            ]);
+            if ($collision !== null && $collision !== $compound) {
                 $io->warning(\sprintf(
                     'CID %d déjà attribué à "%s" — non assigné à "%s" (collision à investiguer manuellement).',
                     $properties->cid,
@@ -231,9 +235,11 @@ final class FetchPubChemDataCommand extends Command
             }
         }
 
-        if (null !== $properties->inchiKey && ($force || null === $compound->getInchiKey())) {
-            $collision = $this->aromaticCompoundRepository->findOneBy(['inchiKey' => $properties->inchiKey]);
-            if (null !== $collision && $collision !== $compound) {
+        if ($properties->inchiKey !== null && ($force || $compound->getInchiKey() === null)) {
+            $collision = $this->aromaticCompoundRepository->findOneBy([
+                'inchiKey' => $properties->inchiKey,
+            ]);
+            if ($collision !== null && $collision !== $compound) {
                 $io->warning(\sprintf(
                     'InChIKey %s déjà attribué à "%s" — non assigné à "%s" (collision à investiguer manuellement).',
                     $properties->inchiKey,

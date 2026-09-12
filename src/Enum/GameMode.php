@@ -18,7 +18,7 @@ enum GameMode: string
      */
     public function label(): string
     {
-        return 'enum.game_mode.'.$this->value.'.label';
+        return 'enum.game_mode.' . $this->value . '.label';
     }
 
     public function xpPerCorrect(): int
@@ -38,9 +38,26 @@ enum GameMode: string
         return true;
     }
 
+    public function requiredLevel(): int
+    {
+        return match ($this) {
+            self::QCM => 1,
+            self::HANGMAN => 1,
+            self::GUESS_WHO => 2,
+            self::INTRUS => 3,
+            self::SURVIVAL => 5,
+            self::CHRONO => 8,
+        };
+    }
+
+    public function isUnlockedForLevel(int $level): bool
+    {
+        return $level >= $this->requiredLevel();
+    }
+
     public function isLiveComponent(): bool
     {
-        return self::QCM !== $this;
+        return $this !== self::QCM;
     }
 
     /**
@@ -48,7 +65,7 @@ enum GameMode: string
      */
     public function description(): string
     {
-        return 'enum.game_mode.'.$this->value.'.desc';
+        return 'enum.game_mode.' . $this->value . '.desc';
     }
 
     public function icon(): string
@@ -78,7 +95,7 @@ enum GameMode: string
      */
     public function titleTop(): string
     {
-        return 'enum.game_mode.'.$this->value.'.title_top';
+        return 'enum.game_mode.' . $this->value . '.title_top';
     }
 
     /**
@@ -86,7 +103,7 @@ enum GameMode: string
      */
     public function titleBottom(): string
     {
-        return 'enum.game_mode.'.$this->value.'.title_bottom';
+        return 'enum.game_mode.' . $this->value . '.title_bottom';
     }
 
     /**
@@ -94,7 +111,7 @@ enum GameMode: string
      */
     public function tagline(): string
     {
-        return 'enum.game_mode.'.$this->value.'.tagline';
+        return 'enum.game_mode.' . $this->value . '.tagline';
     }
 
     /**

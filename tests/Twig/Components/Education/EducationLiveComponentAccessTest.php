@@ -33,7 +33,7 @@ final class EducationLiveComponentAccessTest extends TestCase
         $reflection = new \ReflectionClass($componentClass);
         $attributes = $reflection->getAttributes(IsGranted::class);
 
-        self::assertNotEmpty($attributes, $componentClass.' must carry #[IsGranted] to close the /_components/ firewall gap');
+        self::assertNotEmpty($attributes, $componentClass . ' must carry #[IsGranted] to close the /_components/ firewall gap');
         self::assertSame('ROLE_USER', $attributes[0]->newInstance()->attribute);
     }
 }

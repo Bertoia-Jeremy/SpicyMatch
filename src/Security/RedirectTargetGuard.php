@@ -8,9 +8,9 @@ final class RedirectTargetGuard
 {
     public function isSafe(?string $target): bool
     {
-        return null !== $target
-            && '' !== $target
-            && 1 !== preg_match('/[\x00-\x20\x7F]/', $target)
+        return $target !== null
+            && $target !== ''
+            && preg_match('/[\x00-\x20\x7F]/', $target) !== 1
             && str_starts_with($target, '/')
             && ! str_starts_with($target, '//')
             && ! str_contains($target, '\\')

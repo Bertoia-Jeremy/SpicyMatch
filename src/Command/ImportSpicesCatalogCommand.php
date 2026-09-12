@@ -23,8 +23,11 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 final class ImportSpicesCatalogCommand extends Command
 {
     private const DEFAULT_FILE = 'data/flavorgraph/selection_100.csv';
+
     private const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
     private const REVIEW_GROUP_NAME = 'À réviser';
+
     private const REVIEW_GROUP_COLOR = '#9ca3af';
 
     /**
@@ -54,14 +57,14 @@ final class ImportSpicesCatalogCommand extends Command
         $dryRun = (bool) $input->getOption('dry-run');
 
         $path = $this->resolvePath((string) $input->getOption('file'));
-        if (null === $path) {
+        if ($path === null) {
             $io->error('Fichier hors périmètre autorisé (data/flavorgraph/) ou introuvable.');
 
             return Command::FAILURE;
         }
 
         $rows = $this->readCsv($path);
-        if (null === $rows) {
+        if ($rows === null) {
             $io->error('CSV illisible ou en-tête invalide.');
 
             return Command::FAILURE;
@@ -73,18 +76,18 @@ final class ImportSpicesCatalogCommand extends Command
         $created = 0;
         $skipped = 0;
         foreach ($rows as $row) {
-            if ('new' !== $row['kind']) {
+            if ($row['kind'] !== 'new') {
                 continue;
             }
 
             $slug = trim($row['slug']);
-            if ('' === $slug || '' === trim($row['spice_fr'])) {
+            if ($slug === '' || trim($row['spice_fr']) === '') {
                 continue;
             }
 
-            if (null !== $this->spicesRepository->findOneBy([
+            if ($this->spicesRepository->findOneBy([
                 'slug' => $slug,
-            ])) {
+            ]) !== null) {
                 ++$skipped;
 
                 continue;
@@ -92,7 +95,7 @@ final class ImportSpicesCatalogCommand extends Command
 
             $group = $reviewGroup;
             $gid = trim($row['aromatic_group_id']);
-            if ('' !== $gid && isset($groupsById[(int) $gid])) {
+            if ($gid !== '' && isset($groupsById[(int) $gid])) {
                 $group = $groupsById[(int) $gid];
             }
 
@@ -128,14 +131,14 @@ final class ImportSpicesCatalogCommand extends Command
 
     private function resolvePath(string $file): ?string
     {
-        $candidate = str_starts_with($file, '/') ? $file : $this->projectDir.'/'.$file;
+        $candidate = str_starts_with($file, '/') ? $file : $this->projectDir . '/' . $file;
         $real = realpath($candidate);
-        if (false === $real || ! is_file($real) || filesize($real) > self::MAX_FILE_SIZE) {
+        if ($real === false || ! is_file($real) || filesize($real) > self::MAX_FILE_SIZE) {
             return null;
         }
 
-        $allowed = realpath($this->projectDir.'/data/flavorgraph');
-        if (false === $allowed || ! str_starts_with($real, $allowed.'/')) {
+        $allowed = realpath($this->projectDir . '/data/flavorgraph');
+        if ($allowed === false || ! str_starts_with($real, $allowed . '/')) {
             return null;
         }
 
@@ -148,12 +151,12 @@ final class ImportSpicesCatalogCommand extends Command
     private function readCsv(string $path): ?array
     {
         $handle = fopen($path, 'rb');
-        if (false === $handle) {
+        if ($handle === false) {
             return null;
         }
 
         $header = fgetcsv($handle, escape: '\\');
-        if (false === $header || ! \in_array('slug', $header, true)) {
+        if ($header === false || ! \in_array('slug', $header, true)) {
             fclose($handle);
 
             return null;
@@ -215,7 +218,7 @@ final class ImportSpicesCatalogCommand extends Command
             $spice = $this->spicesRepository->findOneBy([
                 'slug' => $slug,
             ]);
-            if ($spice instanceof Spices && null === $spice->getDeletedAt()) {
+            if ($spice instanceof Spices && $spice->getDeletedAt() === null) {
                 $spice->setDeletedAt(new \DateTimeImmutable());
                 ++$count;
             }

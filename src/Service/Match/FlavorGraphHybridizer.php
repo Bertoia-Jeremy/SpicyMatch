@@ -26,7 +26,7 @@ final class FlavorGraphHybridizer implements FlavorGraphHybridizerInterface
         OdtMatrix $matrix,
         ?DataConfidence $tier = null,
     ): array {
-        if ([] === $results) {
+        if ($results === []) {
             return $results;
         }
 
@@ -39,7 +39,7 @@ final class FlavorGraphHybridizer implements FlavorGraphHybridizerInterface
 
         foreach ($results as $i => $result) {
             $profile = $profiles[$result['id']] ?? null;
-            if (null === $profile) {
+            if ($profile === null) {
                 continue;
             }
 
@@ -78,7 +78,7 @@ final class FlavorGraphHybridizer implements FlavorGraphHybridizerInterface
      */
     private function meanAffinity(array $profile, array $mortarIds, int $mortarSize): float
     {
-        if (0 === $mortarSize) {
+        if ($mortarSize === 0) {
             return 0.0;
         }
 

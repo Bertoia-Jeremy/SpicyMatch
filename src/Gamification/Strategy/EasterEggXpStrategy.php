@@ -16,6 +16,6 @@ final class EasterEggXpStrategy implements XpStrategyInterface
 
     public function supports(string $eventType): bool
     {
-        return 'easter_egg_found' === $eventType;
+        return $eventType === 'easter_egg_found';
     }
 }

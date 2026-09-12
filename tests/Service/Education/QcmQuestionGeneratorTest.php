@@ -15,6 +15,7 @@ use Symfony\Component\Translation\IdentityTranslator;
 final class QcmQuestionGeneratorTest extends TestCase
 {
     private const int GENERATION_RUNS = 50;
+
     private const int SHUFFLE_RUNS = 100;
 
     /**
@@ -62,7 +63,7 @@ final class QcmQuestionGeneratorTest extends TestCase
 
         foreach ($pools as $label => $scores) {
             foreach (GameDifficulty::cases() as $difficulty) {
-                yield $label.', '.$difficulty->value => [$scores, $difficulty];
+                yield $label . ', ' . $difficulty->value => [$scores, $difficulty];
             }
         }
     }
@@ -166,8 +167,8 @@ final class QcmQuestionGeneratorTest extends TestCase
         for ($id = 1; $id <= 5; ++$id) {
             $spices[] = [
                 'id' => $id,
-                'name' => 'Base '.$id,
-                'groupName' => 'Groupe '.$id,
+                'name' => 'Base ' . $id,
+                'groupName' => 'Groupe ' . $id,
             ];
         }
 
@@ -185,12 +186,12 @@ final class QcmQuestionGeneratorTest extends TestCase
         foreach ($scores as $offset => $score) {
             $pool[] = [
                 'id' => $firstId + $offset,
-                'name' => 'Épice '.($firstId + $offset),
+                'name' => 'Épice ' . ($firstId + $offset),
                 'score' => $score,
                 'file' => null,
                 'agId' => null,
                 'color' => null,
-                'groupName' => 'Groupe '.(($offset % 3) + 1),
+                'groupName' => 'Groupe ' . (($offset % 3) + 1),
                 'stId' => null,
                 'typeName' => null,
             ];

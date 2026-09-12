@@ -21,8 +21,11 @@ use Symfony\Component\Messenger\MessageBusInterface;
 class GameSessionManagerTest extends TestCase
 {
     private EntityManagerInterface&MockObject $em;
+
     private GameSessionRepository&MockObject $sessionRepo;
+
     private MessageBusInterface&MockObject $bus;
+
     private QuestionGeneratorInterface&MockObject $generator;
 
     protected function setUp(): void

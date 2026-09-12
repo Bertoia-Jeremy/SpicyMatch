@@ -36,7 +36,7 @@ class OnboardingController extends AbstractController
 
         $state = $payload['state'] ?? null;
 
-        if (null !== $state) {
+        if ($state !== null) {
             if (! is_string($state)) {
                 return new JsonResponse([
                     'error' => 'Invalid state',
@@ -52,7 +52,7 @@ class OnboardingController extends AbstractController
                 }
             }
 
-            $state = [] === $keys ? null : implode(',', $keys);
+            $state = $keys === [] ? null : implode(',', $keys);
         }
 
         /** @var Users $user */

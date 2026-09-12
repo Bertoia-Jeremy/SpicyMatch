@@ -128,7 +128,7 @@ class IntrusGame extends AbstractController
         $questions = $secret['questions'] ?? [];
 
         // Replay guard: each question (identified by step) can only be answered once.
-        if (null === $currentStep || \in_array($currentStep, $answeredSteps, true)) {
+        if ($currentStep === null || \in_array($currentStep, $answeredSteps, true)) {
             return;
         }
 
@@ -244,7 +244,7 @@ class IntrusGame extends AbstractController
         ++$this->questionNumber;
         $gameDifficulty = GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY;
 
-        $inverted = 1 === random_int(0, 1);
+        $inverted = random_int(0, 1) === 1;
 
         $question = $this->academyManager->generateIntrusQuestion(
             $gameDifficulty,
@@ -252,7 +252,7 @@ class IntrusGame extends AbstractController
             $inverted
         );
 
-        if (null === $question) {
+        if ($question === null) {
             // Not enough data to generate more questions — finish early
             $this->isFinished = true;
             --$this->questionNumber;

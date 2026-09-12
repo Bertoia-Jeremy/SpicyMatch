@@ -56,15 +56,15 @@ final class MatchPipelineTest extends TestCase
 
     private function makePhysical(int $compoundId, ?float $logP = null, ?int $bp = null): CompoundPhysical
     {
-        $compound = (new AromaticCompound())->setName('C'.$compoundId);
+        $compound = (new AromaticCompound())->setName('C' . $compoundId);
         $ref = new \ReflectionProperty(AromaticCompound::class, 'id');
         $ref->setValue($compound, $compoundId);
 
         $physical = new CompoundPhysical($compound);
-        if (null !== $logP) {
+        if ($logP !== null) {
             $physical->setLogP($logP);
         }
-        if (null !== $bp) {
+        if ($bp !== null) {
             $physical->setBoilingPointCelsius($bp);
         }
 
@@ -337,7 +337,7 @@ final class MatchPipelineTest extends TestCase
         // Candidat 10 présent, candidat 99 absent (pas de profil OAV → skipped)
         self::assertCount(1, $results);
         self::assertSame(10, $results[0]['id']);
-        $candidate99 = array_values(array_filter($results, fn ($r) => 99 === $r['id']))[0] ?? null;
+        $candidate99 = array_values(array_filter($results, fn ($r) => $r['id'] === 99))[0] ?? null;
         self::assertNull($candidate99, 'Candidat sans profil OAV doit être ignoré, pas scorer 0');
     }
 

@@ -326,6 +326,7 @@ ui:
         record_none: À débloquer
         daily_challenge: Défi du jour
         locked_hint: Reviens demain pour rejouer
+        locked_level_hint: '%mode% se débloque au niveau %level%'
         lesson: 'Leçon %numeral%'
         gate:
             title: Connecte-toi pour jouer

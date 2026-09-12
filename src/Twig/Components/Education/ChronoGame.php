@@ -117,7 +117,7 @@ class ChronoGame extends AbstractController
         $correctName = $secret['correctName'] ?? '';
         $questionStartedAt = $secret['questionStartedAt'] ?? null;
 
-        if (null === $questionStartedAt) {
+        if ($questionStartedAt === null) {
             return null;
         }
 
@@ -259,12 +259,12 @@ class ChronoGame extends AbstractController
 
         $card = $this->academyManager->getRandomSpiceCard($this->recentIds);
 
-        if (null === $card) {
+        if ($card === null) {
             $this->recentIds = [];
             $card = $this->academyManager->getRandomSpiceCard();
         }
 
-        if (null === $card) {
+        if ($card === null) {
             $this->isFinished = true;
 
             return;
@@ -356,11 +356,11 @@ class ChronoGame extends AbstractController
      */
     public function getCurrentCard(): array
     {
-        if (null !== $this->resolvedCardCache) {
+        if ($this->resolvedCardCache !== null) {
             return $this->resolvedCardCache;
         }
 
-        if (0 === $this->currentCardId) {
+        if ($this->currentCardId === 0) {
             return $this->resolvedCardCache = [];
         }
 
@@ -377,7 +377,7 @@ class ChronoGame extends AbstractController
         $group = $display['aromaticGroup'] ?? null;
         $localizedGroup = $this->nameMap()[$this->currentCardId]['groupName'] ?? null;
 
-        if (\is_array($group) && null !== $localizedGroup) {
+        if (\is_array($group) && $localizedGroup !== null) {
             $group['name'] = $localizedGroup;
             $display['aromaticGroup'] = $group;
         }
@@ -394,7 +394,7 @@ class ChronoGame extends AbstractController
     {
         $display = [];
 
-        if (GameDifficulty::EASY === $difficulty) {
+        if ($difficulty === GameDifficulty::EASY) {
             $display['file'] = $card['file'];
             $display['description'] = $card['description'];
             $display['aromaticGroup'] = $card['aromaticGroup'];
@@ -403,7 +403,7 @@ class ChronoGame extends AbstractController
             $display['secondaryCompounds'] = $card['secondaryCompounds'];
             $display['alchemyFlavors'] = $card['alchemyFlavors'];
             $display['cookingTips'] = $card['cookingTips'];
-        } elseif (GameDifficulty::MEDIUM === $difficulty) {
+        } elseif ($difficulty === GameDifficulty::MEDIUM) {
             $display['file'] = $card['file'];
             $display['aromaticGroup'] = $card['aromaticGroup'];
             $display['mainCompounds'] = $card['mainCompounds'];

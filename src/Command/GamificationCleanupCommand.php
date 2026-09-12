@@ -31,6 +31,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final class GamificationCleanupCommand extends Command
 {
     private const NOTIFICATION_RETENTION_DAYS = 90;
+
     private const LEDGER_RETENTION_DAYS = 180;
 
     public function __construct(
@@ -108,7 +109,7 @@ final class GamificationCleanupCommand extends Command
             'days' => $days,
         ]);
 
-        if ($dryRun || 0 === $count) {
+        if ($dryRun || $count === 0) {
             return $count;
         }
 

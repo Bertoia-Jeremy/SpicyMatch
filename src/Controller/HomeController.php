@@ -50,7 +50,7 @@ class HomeController extends AbstractController
         }
 
         $nextAchievementProgress = null;
-        if (null !== $user) {
+        if ($user !== null) {
             $nextAchievementProgress = $this->achievementProgressRepository->findMostAdvancedNotCompleted($user);
         }
 

@@ -29,6 +29,7 @@ final class IntrusGameTest extends TestCase
     private const string TOKEN = 'intrus_test_tok';
 
     private AcademyManager&MockObject $academyManager;
+
     private GameSessionManager&MockObject $sessionManager;
 
     protected function setUp(): void
@@ -47,7 +48,7 @@ final class IntrusGameTest extends TestCase
     private function makeGame(array $secret = []): array
     {
         $session = new Session(new MockArraySessionStorage());
-        $session->set('game_'.self::TOKEN, $secret);
+        $session->set('game_' . self::TOKEN, $secret);
 
         $request = new Request();
         $request->setSession($session);
@@ -220,7 +221,7 @@ final class IntrusGameTest extends TestCase
 
         $game->answer(42);
 
-        $stored = $session->get('game_'.self::TOKEN);
+        $stored = $session->get('game_' . self::TOKEN);
         self::assertContains(3, $stored['answeredSteps']);
     }
 
@@ -231,7 +232,7 @@ final class IntrusGameTest extends TestCase
 
         $game->answer(42);
 
-        $stored = $session->get('game_'.self::TOKEN);
+        $stored = $session->get('game_' . self::TOKEN);
         self::assertContains(1, $stored['correctSteps']);
     }
 
@@ -242,7 +243,7 @@ final class IntrusGameTest extends TestCase
 
         $game->answer(42);
 
-        $stored = $session->get('game_'.self::TOKEN);
+        $stored = $session->get('game_' . self::TOKEN);
         self::assertCount(1, $stored['questions']);
         self::assertTrue($stored['questions'][0]['isCorrect']);
     }

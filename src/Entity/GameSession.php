@@ -93,7 +93,7 @@ class GameSession
      */
     public float $accuracy {
         get {
-            if (0 === $this->totalQuestions) {
+            if ($this->totalQuestions === 0) {
                 return 0.0;
             }
 
@@ -105,7 +105,7 @@ class GameSession
      * Whether the session has been finished.
      */
     public bool $isFinished {
-        get => null !== $this->finishedAt;
+        get => $this->finishedAt !== null;
     }
 
     public function getId(): ?int
@@ -263,7 +263,7 @@ class GameSession
 
     public function isExpired(): bool
     {
-        return null !== $this->expiresAt && new \DateTimeImmutable() > $this->expiresAt;
+        return $this->expiresAt !== null && new \DateTimeImmutable() > $this->expiresAt;
     }
 
     public function getTargetSpice(): ?Spices

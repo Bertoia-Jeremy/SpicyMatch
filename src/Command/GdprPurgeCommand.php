@@ -54,7 +54,7 @@ class GdprPurgeCommand extends Command
             $this->userAnonymizer->anonymize($user);
         }
 
-        if ([] !== $users) {
+        if ($users !== []) {
             $this->entityManager->flush();
         }
 

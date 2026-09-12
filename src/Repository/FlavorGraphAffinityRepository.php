@@ -27,7 +27,7 @@ class FlavorGraphAffinityRepository extends ServiceEntityRepository
      */
     public function loadPairwiseBatch(array $candidateIds, MortarIds $mortar): array
     {
-        if ([] === $candidateIds) {
+        if ($candidateIds === []) {
             return [];
         }
 

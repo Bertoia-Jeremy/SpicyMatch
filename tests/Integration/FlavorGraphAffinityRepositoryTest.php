@@ -12,6 +12,7 @@ use Doctrine\DBAL\Connection;
 final class FlavorGraphAffinityRepositoryTest extends IntegrationTestCase
 {
     private FlavorGraphAffinityRepository $repo;
+
     private Connection $connection;
 
     protected function setUp(): void

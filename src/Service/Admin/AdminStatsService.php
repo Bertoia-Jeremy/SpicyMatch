@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Service\Admin;
 
+use App\Enum\AchievementRarity;
+use App\Enum\GameMode;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -15,6 +18,11 @@ use Doctrine\DBAL\Connection;
  */
 final class AdminStatsService
 {
+    /**
+     * @var list<string>
+     */
+    private const ONBOARDING_KEYS = ['welcome', 'spices', 'lab', 'academy'];
+
     public function __construct(
         private readonly Connection $connection,
     ) {
@@ -28,7 +36,7 @@ final class AdminStatsService
     public function achievementUnlockRate(): array
     {
         $totalUsers = (int) $this->connection->fetchOne('SELECT COUNT(*) FROM users WHERE deleted_at IS NULL');
-        if (0 === $totalUsers) {
+        if ($totalUsers === 0) {
             return [];
         }
 
@@ -300,6 +308,263 @@ final class AdminStatsService
     }
 
     /**
+     * @return list<array{name: string, views: int}>
+     */
+    public function topViewedSpices(int $days): array
+    {
+        $rows = $this->connection->fetchAllAssociative('
+            SELECT s.name, COUNT(sv.id) AS views
+            FROM spices s
+            JOIN spice_view sv ON sv.spice_id = s.id
+            WHERE sv.viewed_at >= DATE_SUB(CURDATE(), INTERVAL :days DAY)
+            GROUP BY s.id
+            ORDER BY views DESC
+            LIMIT 10
+        ', [
+            'days' => $days,
+        ]);
+
+        return array_map(
+            static fn (array $r): array => [
+                'name' => (string) $r['name'],
+                'views' => (int) $r['views'],
+            ],
+            $rows,
+        );
+    }
+
+    /**
+     * @return list<array{game_mode: string, count: int}>
+     */
+    public function gameModeDistribution(int $days = 30): array
+    {
+        $rows = $this->connection->fetchAllAssociative('
+            SELECT game_mode, COUNT(*) AS count
+            FROM game_session
+            WHERE finished_at IS NOT NULL
+                AND started_at >= DATE_SUB(CURDATE(), INTERVAL :days DAY)
+            GROUP BY game_mode
+            ORDER BY count DESC
+        ', [
+            'days' => $days,
+        ]);
+
+        return array_map(
+            static fn (array $r): array => [
+                'game_mode' => (string) $r['game_mode'],
+                'count' => (int) $r['count'],
+            ],
+            $rows,
+        );
+    }
+
+    /**
+     * @return array{globalAvg: float, perAchievement: list<array{slug: string, name: string, avg_pct: float}>}
+     */
+    public function achievementProgressCompletionRate(): array
+    {
+        $globalAvg = (float) $this->connection->fetchOne('
+            SELECT COALESCE(AVG(LEAST(ap.progress / a.trigger_value, 1) * 100), 0)
+            FROM achievement_progress ap
+            JOIN achievement a ON a.id = ap.achievement_id
+            WHERE a.trigger_value > 0
+        ');
+
+        $rows = $this->connection->fetchAllAssociative('
+            SELECT a.slug, a.name, AVG(LEAST(ap.progress / a.trigger_value, 1) * 100) AS avg_pct
+            FROM achievement_progress ap
+            JOIN achievement a ON a.id = ap.achievement_id
+            WHERE a.trigger_value > 0
+            GROUP BY a.id
+            ORDER BY avg_pct DESC
+        ');
+
+        return [
+            'globalAvg' => round($globalAvg, 1),
+            'perAchievement' => array_map(
+                static fn (array $r): array => [
+                    'slug' => (string) $r['slug'],
+                    'name' => (string) $r['name'],
+                    'avg_pct' => round((float) $r['avg_pct'], 1),
+                ],
+                $rows,
+            ),
+        ];
+    }
+
+    /**
+     * @return array{
+     *     byMode: list<array{game_mode: string, sessions: int, avg_accuracy: float}>,
+     *     byDifficulty: list<array{difficulty: string, sessions: int, avg_accuracy: float}>,
+     *     liveComponentAdoption: array{live_component: int, qcm: int}
+     * }
+     */
+    public function getEducationStatsBreakdown(): array
+    {
+        $byMode = array_map(
+            static fn (array $r): array => [
+                'game_mode' => (string) $r['game_mode'],
+                'sessions' => (int) $r['sessions'],
+                'avg_accuracy' => round((float) $r['avg_accuracy'], 1),
+            ],
+            $this->connection->fetchAllAssociative('
+                SELECT
+                    game_mode,
+                    COUNT(*) AS sessions,
+                    COALESCE(AVG(CASE WHEN total_questions > 0 THEN (correct_answers / total_questions) * 100 ELSE 0 END), 0) AS avg_accuracy
+                FROM game_session
+                WHERE finished_at IS NOT NULL
+                GROUP BY game_mode
+                ORDER BY sessions DESC
+            ')
+        );
+
+        $byDifficulty = array_map(
+            static fn (array $r): array => [
+                'difficulty' => (string) $r['difficulty'],
+                'sessions' => (int) $r['sessions'],
+                'avg_accuracy' => round((float) $r['avg_accuracy'], 1),
+            ],
+            $this->connection->fetchAllAssociative('
+                SELECT
+                    difficulty,
+                    COUNT(*) AS sessions,
+                    COALESCE(AVG(CASE WHEN total_questions > 0 THEN (correct_answers / total_questions) * 100 ELSE 0 END), 0) AS avg_accuracy
+                FROM game_session
+                WHERE finished_at IS NOT NULL
+                GROUP BY difficulty
+                ORDER BY sessions DESC
+            ')
+        );
+
+        $liveComponentModes = array_map(
+            static fn (GameMode $m): string => $m->value,
+            array_filter(GameMode::cases(), static fn (GameMode $m): bool => $m->isLiveComponent()),
+        );
+        $qcmModes = array_map(
+            static fn (GameMode $m): string => $m->value,
+            array_filter(GameMode::cases(), static fn (GameMode $m): bool => ! $m->isLiveComponent()),
+        );
+
+        $adoptionCounts = $this->connection->fetchAssociative('
+            SELECT
+                SUM(CASE WHEN game_mode IN (:liveModes) THEN 1 ELSE 0 END) AS live_component,
+                SUM(CASE WHEN game_mode IN (:qcmModes) THEN 1 ELSE 0 END) AS qcm
+            FROM game_session
+            WHERE finished_at IS NOT NULL
+        ', [
+            'liveModes' => $liveComponentModes,
+            'qcmModes' => $qcmModes,
+        ], [
+            'liveModes' => ArrayParameterType::STRING,
+            'qcmModes' => ArrayParameterType::STRING,
+        ]) ?: [];
+        $liveComponentCount = (int) ($adoptionCounts['live_component'] ?? 0);
+        $qcmCount = (int) ($adoptionCounts['qcm'] ?? 0);
+
+        return [
+            'byMode' => $byMode,
+            'byDifficulty' => $byDifficulty,
+            'liveComponentAdoption' => [
+                'live_component' => $liveComponentCount,
+                'qcm' => $qcmCount,
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, array{seen: int, rate: float}>
+     */
+    public function onboardingCompletionByStep(): array
+    {
+        $totalUsers = (int) $this->connection->fetchOne('SELECT COUNT(*) FROM users WHERE deleted_at IS NULL');
+        if ($totalUsers === 0) {
+            return [];
+        }
+
+        $selects = [];
+        $params = [];
+        foreach (self::ONBOARDING_KEYS as $key) {
+            $selects[] = sprintf(
+                'SUM(CASE WHEN FIND_IN_SET(:%1$s, onboarding_state) > 0 THEN 1 ELSE 0 END) AS %1$s',
+                $key
+            );
+            $params[$key] = $key;
+        }
+
+        $row = $this->connection->fetchAssociative(
+            sprintf('SELECT %s FROM users WHERE deleted_at IS NULL', implode(', ', $selects)),
+            $params
+        ) ?: [];
+
+        $result = [];
+        foreach (self::ONBOARDING_KEYS as $key) {
+            $seen = (int) ($row[$key] ?? 0);
+            $result[$key] = [
+                'seen' => $seen,
+                'rate' => round(($seen / $totalUsers) * 100, 1),
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return array{activeCount: int, top: list<array{username: string, streak: int}>}
+     */
+    public function activeReadingStreaks(): array
+    {
+        $activeCount = (int) $this->connection->fetchOne('
+            SELECT COUNT(*) FROM user_progression WHERE current_reading_streak > 0
+        ');
+
+        $rows = $this->connection->fetchAllAssociative('
+            SELECT u.username, up.current_reading_streak AS streak
+            FROM user_progression up
+            JOIN users u ON u.id = up.user_id
+            WHERE up.current_reading_streak > 0 AND u.deleted_at IS NULL
+            ORDER BY up.current_reading_streak DESC
+            LIMIT 10
+        ');
+
+        return [
+            'activeCount' => $activeCount,
+            'top' => array_map(
+                static fn (array $r): array => [
+                    'username' => (string) $r['username'],
+                    'streak' => (int) $r['streak'],
+                ],
+                $rows,
+            ),
+        ];
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    public function unlockedByRarity(): array
+    {
+        $rows = $this->connection->fetchAllAssociative('
+            SELECT a.rarity, COUNT(ua.id) AS cnt
+            FROM user_achievement ua
+            JOIN achievement a ON a.id = ua.achievement_id
+            GROUP BY a.rarity
+        ');
+
+        $counts = [];
+        foreach ($rows as $r) {
+            $counts[(string) $r['rarity']] = (int) $r['cnt'];
+        }
+
+        $result = [];
+        foreach (AchievementRarity::cases() as $rarity) {
+            $result[$rarity->value] = $counts[$rarity->value] ?? 0;
+        }
+
+        return $result;
+    }
+
+    /**
      * Users with suspicious activity: > threshold sessions in a single day.
      * Simple heuristic — spots bot behavior / exploit attempts.
      *
@@ -330,7 +595,7 @@ final class AdminStatsService
             static fn (array $r): array => [
                 'user_id' => (int) $r['user_id'],
                 'username' => (string) $r['username'],
-                'flagged_day' => null !== $r['flagged_day'] ? (string) $r['flagged_day'] : null,
+                'flagged_day' => $r['flagged_day'] !== null ? (string) $r['flagged_day'] : null,
                 'sessions' => (int) $r['sessions'],
                 'total_xp' => (int) $r['total_xp'],
                 'reason' => sprintf('%d sessions le %s', (int) $r['sessions'], (string) $r['flagged_day']),

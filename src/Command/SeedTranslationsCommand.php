@@ -295,12 +295,12 @@ final class SeedTranslationsCommand extends Command
             $existing = $owner->getTranslation($locale);
 
             // Ne JAMAIS écraser une traduction relue par un humain, même avec --overwrite.
-            if (null !== $existing && $existing->isReviewed()) {
+            if ($existing !== null && $existing->isReviewed()) {
                 ++$skipped;
                 continue;
             }
 
-            if (null !== $existing && ! $overwrite) {
+            if ($existing !== null && ! $overwrite) {
                 ++$skipped;
                 continue;
             }

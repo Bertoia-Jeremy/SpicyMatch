@@ -31,7 +31,7 @@ class GameSessionRepository extends ServiceEntityRepository
             ->setParameter('user', $user)
             ->setParameter('today', new \DateTimeImmutable('today'));
 
-        if (null !== $mode) {
+        if ($mode !== null) {
             $qb->andWhere('gs.gameMode = :mode')
                 ->setParameter('mode', $mode->value);
         }
@@ -153,7 +153,7 @@ class GameSessionRepository extends ServiceEntityRepository
             ->setParameter('mode', $mode->value)
             ->setParameter('group', $group);
 
-        if (null !== $difficulty) {
+        if ($difficulty !== null) {
             $qb->andWhere('gs.difficulty = :difficulty')
                 ->setParameter('difficulty', $difficulty->value);
         }

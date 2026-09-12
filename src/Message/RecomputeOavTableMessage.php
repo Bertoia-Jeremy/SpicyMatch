@@ -24,7 +24,7 @@ final class RecomputeOavTableMessage
         public readonly string $reason = 'manual',
         public readonly int $attempt = 1,
     ) {
-        if ('' === trim($this->reason)) {
+        if (trim($this->reason) === '') {
             throw new \InvalidArgumentException('RecomputeOavTableMessage::$reason must not be empty.');
         }
 

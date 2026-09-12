@@ -86,7 +86,9 @@ final class PubChemPropertyFetcherTest extends TestCase
 
     public function testFetchReturnsAllNullOnNonSuccessStatus(): void
     {
-        $fetcher = new PubChemPropertyFetcher(new MockHttpClient(new MockResponse('', ['http_code' => 404])));
+        $fetcher = new PubChemPropertyFetcher(new MockHttpClient(new MockResponse('', [
+            'http_code' => 404,
+        ])));
         $properties = $fetcher->fetch('unknown-cas');
 
         self::assertNull($properties->logP);

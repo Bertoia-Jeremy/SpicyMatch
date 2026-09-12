@@ -140,9 +140,9 @@
   box-shadow: 0 6px 16px -8px rgba(0,0,0,.7);
 }
 
-/* ─── Limite quotidienne atteinte ─── */
+/* ─── Limite quotidienne atteinte / niveau insuffisant ─── */
 .poster.is-locked {
-  filter: saturate(.35) brightness(.8);
+  filter: brightness(.5);
   cursor: not-allowed;
   pointer-events: none;
 }
@@ -152,6 +152,17 @@
   color: #E8D9BE;
   opacity: 1;
   transform: translate(-50%, 0);
+}
+.poster-lock {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 40px;
+  color: rgba(253,251,247,.92);
+  text-shadow: 0 10px 26px rgba(0,0,0,.65);
+  pointer-events: none;
 }
 
 /* ─── Théâtre / Académie CTA ─── */
@@ -254,7 +265,11 @@
 }
 @media (max-width: 680px) {
   .poster-grid { grid-template-columns: 1fr; }
-  .academie-rail { grid-template-columns: 1fr; }
+  .academie-rail { grid-template-columns: 1fr 1fr; }
+  .academie-rail > :nth-child(1),
+  .academie-rail > :nth-child(2) {
+    grid-column: 1 / -1;
+  }
 }
 @media (max-width: 480px) {
   .poster-grid { gap: 16px; }

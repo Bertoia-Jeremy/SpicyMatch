@@ -26,7 +26,7 @@ class AchievementProgressRepository extends ServiceEntityRepository
             'user' => $user,
             'achievement' => $achievement,
         ]);
-        if (null === $ap) {
+        if ($ap === null) {
             $ap = new AchievementProgress();
             $ap->setUser($user)
                 ->setAchievement($achievement);
@@ -47,13 +47,13 @@ class AchievementProgressRepository extends ServiceEntityRepository
      */
     public function findOrCreateBatchForUser(Users $user, array $achievements): array
     {
-        if ([] === $achievements) {
+        if ($achievements === []) {
             return [];
         }
 
         $ids = array_values(array_filter(array_map(fn (Achievement $a) => $a->getId(), $achievements)));
 
-        $existing = [] !== $ids
+        $existing = $ids !== []
             ? $this->createQueryBuilder('ap')
                 ->where('ap.user = :user')
                 ->andWhere('ap.achievement IN (:ids)')
@@ -66,7 +66,7 @@ class AchievementProgressRepository extends ServiceEntityRepository
         $byAchievementId = [];
         foreach ($existing as $ap) {
             $achievement = $ap->getAchievement();
-            if (null !== $achievement && null !== $achievement->getId()) {
+            if ($achievement !== null && $achievement->getId() !== null) {
                 $byAchievementId[$achievement->getId()] = $ap;
             }
         }
@@ -74,7 +74,7 @@ class AchievementProgressRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         foreach ($achievements as $achievement) {
             $id = $achievement->getId();
-            if (null === $id || isset($byAchievementId[$id])) {
+            if ($id === null || isset($byAchievementId[$id])) {
                 continue;
             }
             $ap = new AchievementProgress();

@@ -36,7 +36,7 @@ final readonly class OavPartitionCalculator
 
     public function correctionFactor(?CompoundPhysical $physical, CulinaryContext $ctx): float
     {
-        if (null === $physical) {
+        if ($physical === null) {
             return 1.0;
         }
 
@@ -60,7 +60,7 @@ final readonly class OavPartitionCalculator
             return 0.0;
         }
 
-        if (null === $physical) {
+        if ($physical === null) {
             return $concentrationPpm / $odtPpm;
         }
 
@@ -70,7 +70,7 @@ final readonly class OavPartitionCalculator
     private function partitionFactor(CompoundPhysical $physical, CulinaryContext $ctx): float
     {
         $kOw = $physical->octanolWaterPartition();
-        if (null === $kOw) {
+        if ($kOw === null) {
             return 1.0;
         }
 
@@ -85,7 +85,7 @@ final readonly class OavPartitionCalculator
         }
 
         $bp = $physical->getBoilingPointCelsius();
-        if (null === $bp || $ctx->temperatureCelsius <= self::T_INERT_CELSIUS) {
+        if ($bp === null || $ctx->temperatureCelsius <= self::T_INERT_CELSIUS) {
             return 1.0;
         }
 

@@ -145,7 +145,7 @@ class AromaticCompound implements TranslatableInterface, Sluggable
 
     public function getTranslation(string $locale): ?AromaticCompoundTranslation
     {
-        if ('fr' === $locale) {
+        if ($locale === 'fr') {
             return null;
         }
 

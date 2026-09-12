@@ -31,7 +31,7 @@ class CompatibleSpiceFinder
     {
         $pipelineResults = $this->matchPipeline->run($mortar, $limit, $ctx);
 
-        if ([] === $pipelineResults) {
+        if ($pipelineResults === []) {
             return [];
         }
 

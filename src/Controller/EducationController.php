@@ -54,8 +54,12 @@ class EducationController extends AbstractController
         $progression = null;
         $gamesPlayed = 0;
         $achievementsUnlocked = 0;
+        $unlockedByMode = [];
+        foreach ($modes as $mode) {
+            $unlockedByMode[$mode->value] = true;
+        }
 
-        if (null !== $user) {
+        if ($user !== null) {
             $grouped = $this->sessionRepository->countTodayByUserGrouped($user);
             foreach ($modes as $mode) {
                 $dailyCounts[$mode->value] = $grouped[$mode->value] ?? 0;
@@ -66,7 +70,12 @@ class EducationController extends AbstractController
                 ->value;
             $progression = $user->getProgression();
             $gamesPlayed = $this->sessionRepository->countFinishedByUser($user);
-            $achievementsUnlocked = $progression?->getUserAchievements()->count() ?? 0;
+            $achievementsUnlocked = $progression?->getUserAchievements()
+                ->count() ?? 0;
+            $userLevel = $progression?->getLevel() ?? 1;
+            foreach ($modes as $mode) {
+                $unlockedByMode[$mode->value] = $mode->isUnlockedForLevel($userLevel);
+            }
         }
 
         $dailyFeaturedMode = GameMode::dailyFeatured($modes);
@@ -81,9 +90,12 @@ class EducationController extends AbstractController
             'reducedXpThreshold' => 3,
             'userDifficulty' => $userDifficulty,
             'progression' => $progression,
+            'unlockedByMode' => $unlockedByMode,
             'gamesPlayed' => $gamesPlayed,
             'achievementsUnlocked' => $achievementsUnlocked,
-            'achievementsTotal' => $this->achievementRepository->count(['enabled' => true]),
+            'achievementsTotal' => $this->achievementRepository->count([
+                'enabled' => true,
+            ]),
             'dailyFeaturedMode' => $dailyFeaturedMode,
         ]);
     }
@@ -125,13 +137,22 @@ class EducationController extends AbstractController
             return $this->redirectToRoute('education_index');
         }
 
+        if (! $mode->isUnlockedForLevel($user->getProgression()?->getLevel() ?? 1)) {
+            $this->addFlash('warning', $this->translator->trans('ui.edu.locked_level_hint', [
+                '%mode%' => $this->translator->trans($mode->label()),
+                '%level%' => $mode->requiredLevel(),
+            ]));
+
+            return $this->redirectToRoute('education_index');
+        }
+
         // Resolve target spice from briefing form
         $targetSpiceId = $request->request->getInt('targetSpiceId') ?: null;
-        $targetSpice = null !== $targetSpiceId ? $this->spicesRepository->find($targetSpiceId) : null;
+        $targetSpice = $targetSpiceId !== null ? $this->spicesRepository->find($targetSpiceId) : null;
 
         // LC modes create their own GameSession via createFinishedSession() at end of game —
         // don't create a stale empty one here or we'd double-count daily sessions.
-        if (GameMode::QCM !== $mode) {
+        if ($mode !== GameMode::QCM) {
             return $this->redirectToRoute('education_play_live', [
                 'mode' => $mode->value,
                 'difficulty' => $difficulty->value,
@@ -164,7 +185,7 @@ class EducationController extends AbstractController
         $user = $this->getUser();
 
         $session = $this->sessionRepository->find($id);
-        if (null === $session || $session->getUser()->getId() !== $user->getId()) {
+        if ($session === null || $session->getUser()->getId() !== $user->getId()) {
             throw $this->createNotFoundException();
         }
 
@@ -175,7 +196,7 @@ class EducationController extends AbstractController
         }
 
         $question = $this->sessionManager->nextQuestion($session);
-        if (null === $question) {
+        if ($question === null) {
             return $this->redirectToRoute('education_result', [
                 'id' => $session->getId(),
             ]);
@@ -185,7 +206,7 @@ class EducationController extends AbstractController
         $request = $this->container->get('request_stack')
             ->getCurrentRequest();
         $request->getSession()
-            ->set('current_question_'.$id, $question);
+            ->set('current_question_' . $id, $question);
 
         return $this->render('education/play.html.twig', [
             'session' => $session,
@@ -202,7 +223,7 @@ class EducationController extends AbstractController
         $user = $this->getUser();
 
         $session = $this->sessionRepository->find($id);
-        if (null === $session || $session->getUser()->getId() !== $user->getId()) {
+        if ($session === null || $session->getUser()->getId() !== $user->getId()) {
             throw $this->createNotFoundException();
         }
 
@@ -214,8 +235,8 @@ class EducationController extends AbstractController
 
         // Retrieve stored question
         $storedQuestion = $request->getSession()
-            ->get('current_question_'.$id);
-        if (null === $storedQuestion) {
+            ->get('current_question_' . $id);
+        if ($storedQuestion === null) {
             return $this->redirectToRoute('education_play', [
                 'id' => $id,
             ]);
@@ -241,14 +262,14 @@ class EducationController extends AbstractController
         // Update question data with full context
         $lastQuestion = $session->getQuestions()
             ->last();
-        if (false !== $lastQuestion) {
+        if ($lastQuestion !== false) {
             $lastQuestion->setQuestionData($questionData);
             $this->em->flush();
         }
 
         // Clear stored question
         $request->getSession()
-            ->remove('current_question_'.$id);
+            ->remove('current_question_' . $id);
 
         if ($result['finished']) {
             return $this->redirectToRoute('education_result', [
@@ -275,7 +296,7 @@ class EducationController extends AbstractController
     {
         $gameMode = GameMode::tryFrom($mode);
 
-        if (null === $gameMode || ! $gameMode->isLiveComponent()) {
+        if ($gameMode === null || ! $gameMode->isLiveComponent()) {
             throw $this->createNotFoundException();
         }
 
@@ -283,6 +304,15 @@ class EducationController extends AbstractController
 
         /** @var Users $user */
         $user = $this->getUser();
+
+        if (! $gameMode->isUnlockedForLevel($user->getProgression()?->getLevel() ?? 1)) {
+            $this->addFlash('warning', $this->translator->trans('ui.edu.locked_level_hint', [
+                '%mode%' => $this->translator->trans($gameMode->label()),
+                '%level%' => $gameMode->requiredLevel(),
+            ]));
+
+            return $this->redirectToRoute('education_index');
+        }
 
         $todayCount = $this->sessionRepository->countTodayByUser($user, $gameMode);
 
@@ -298,7 +328,7 @@ class EducationController extends AbstractController
         // Resolve target spice from query string — LC modes no longer create a
         // placeholder GameSession at briefing time.
         $targetSpiceId = $request->query->getInt('targetSpiceId') ?: null;
-        $targetSpice = null !== $targetSpiceId ? $this->spicesRepository->find($targetSpiceId) : null;
+        $targetSpice = $targetSpiceId !== null ? $this->spicesRepository->find($targetSpiceId) : null;
 
         return $this->render('education/play_live.html.twig', [
             'mode' => $gameMode,
@@ -315,7 +345,7 @@ class EducationController extends AbstractController
         $user = $this->getUser();
 
         $session = $this->sessionRepository->find($id);
-        if (null === $session || $session->getUser()->getId() !== $user->getId()) {
+        if ($session === null || $session->getUser()->getId() !== $user->getId()) {
             throw $this->createNotFoundException();
         }
 

@@ -215,7 +215,7 @@ final class RecomputeOavTableHandler
             self::LOCK_WAIT_SECONDS,
         ]);
 
-        if (null === $acquired) {
+        if ($acquired === null) {
             $this->oavLogger->error('[OAV] Rebuild abandonné — GET_LOCK a renvoyé NULL (erreur serveur MariaDB)', [
                 'reason' => $reason,
                 'lock' => self::REBUILD_LOCK,
@@ -224,7 +224,7 @@ final class RecomputeOavTableHandler
             return false;
         }
 
-        if ('1' !== (string) $acquired) {
+        if ((string) $acquired !== '1') {
             $this->oavLogger->info('[OAV] Rebuild abandonné — verrou détenu par un rebuild concurrent', [
                 'reason' => $reason,
             ]);

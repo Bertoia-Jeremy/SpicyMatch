@@ -47,7 +47,7 @@ final readonly class AltchaManager
     {
         $payload = $this->parsePayload($base64Payload);
 
-        if (null === $payload) {
+        if ($payload === null) {
             return false;
         }
 
@@ -64,7 +64,7 @@ final readonly class AltchaManager
     {
         $json = base64_decode($base64Payload, true);
 
-        if (false === $json) {
+        if ($json === false) {
             return null;
         }
 
@@ -98,7 +98,7 @@ final readonly class AltchaManager
 
     private function isReplay(string $base64Payload): bool
     {
-        $item = $this->cache->getItem('altcha.used.'.hash('sha256', $base64Payload));
+        $item = $this->cache->getItem('altcha.used.' . hash('sha256', $base64Payload));
 
         if ($item->isHit()) {
             return true;

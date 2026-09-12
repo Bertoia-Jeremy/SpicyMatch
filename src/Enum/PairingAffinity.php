@@ -23,6 +23,6 @@ enum PairingAffinity: string
 
     public function label(): string
     {
-        return 'ui.pairing.'.$this->value;
+        return 'ui.pairing.' . $this->value;
     }
 }

@@ -31,7 +31,7 @@ class AlchemyFlavorsController extends AbstractController
     {
         $locale = $request->getLocale();
         $alchemyFlavor = $repository->findOneByLocalizedSlug($slug, $locale);
-        if (null === $alchemyFlavor) {
+        if ($alchemyFlavor === null) {
             throw $this->createNotFoundException();
         }
 

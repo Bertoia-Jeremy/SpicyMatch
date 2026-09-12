@@ -60,7 +60,7 @@ final class AdsExtension extends AbstractExtension
             return self::DEFAULT_PROVIDER;
         }
 
-        if (self::DEV_ONLY_PROVIDER === $this->provider && 'prod' === $this->environment) {
+        if ($this->provider === self::DEV_ONLY_PROVIDER && $this->environment === 'prod') {
             return self::DEFAULT_PROVIDER;
         }
 

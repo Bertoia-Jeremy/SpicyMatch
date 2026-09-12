@@ -39,8 +39,11 @@ use PHPUnit\Framework\TestCase;
 final class AchievementCheckerTest extends TestCase
 {
     private AchievementRepository&MockObject $repo;
+
     private AromaticGroupsRepository&MockObject $aromaticGroupsRepo;
+
     private AchievementChecker $checker;
+
     private UserProgression $progression;
 
     protected function setUp(): void
@@ -469,7 +472,7 @@ final class AchievementCheckerTest extends TestCase
         ?string $easterEggSlug = null,
     ): Achievement {
         return (new Achievement())
-            ->setSlug('test-'.$trigger->value)
+            ->setSlug('test-' . $trigger->value)
             ->setName('Test')
             ->setDescription('Desc')
             ->setTrigger($trigger)

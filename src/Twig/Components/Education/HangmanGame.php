@@ -140,7 +140,7 @@ class HangmanGame extends AbstractController
 
         $word = $secret['word'] ?? '';
 
-        if ('' === $word) {
+        if ($word === '') {
             return;
         }
 
@@ -279,7 +279,7 @@ class HangmanGame extends AbstractController
 
         $spice = $this->academyManager->pickHangmanSpice($gameDifficulty, $this->usedSpiceIds);
 
-        if (null === $spice) {
+        if ($spice === null) {
             $this->isFinished = true;
             --$this->questionNumber;
 

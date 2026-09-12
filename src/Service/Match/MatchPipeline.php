@@ -39,13 +39,13 @@ final class MatchPipeline implements MatchPipelineInterface
         $matrix = $ctx->matrix;
 
         $mortarProfile = $this->mortarProfileBuilder->build($mortar, $matrix);
-        $oavMode = null !== $mortarProfile;
+        $oavMode = $mortarProfile !== null;
 
         $survivorIds = $oavMode
             ? $this->candidateVetoRepository->findSurvivors($mortar, $matrix)
             : $this->candidateVetoRepository->findSurvivorsWithPresence($mortar);
 
-        if ([] === $survivorIds) {
+        if ($survivorIds === []) {
             return [];
         }
 
@@ -65,7 +65,7 @@ final class MatchPipeline implements MatchPipelineInterface
             $results = [];
             foreach ($survivorIds as $spiceId) {
                 $candidateOav = $profiles[$spiceId] ?? null;
-                if (null === $candidateOav) {
+                if ($candidateOav === null) {
                     continue;
                 }
 

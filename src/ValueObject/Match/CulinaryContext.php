@@ -91,10 +91,10 @@ final readonly class CulinaryContext
      */
     public function isCustom(): bool
     {
-        return OdtMatrix::AIR !== $this->matrix
-            || 0.0 !== $this->fatRatio
-            || 0 !== $this->cookingTimeMin
-            || 20 !== $this->temperatureCelsius;
+        return $this->matrix !== OdtMatrix::AIR
+            || $this->fatRatio !== 0.0
+            || $this->cookingTimeMin !== 0
+            || $this->temperatureCelsius !== 20;
     }
 
     public function getLabel(): string

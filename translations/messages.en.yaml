@@ -326,6 +326,7 @@ ui:
         record_none: To unlock
         daily_challenge: Daily challenge
         locked_hint: Come back tomorrow to replay
+        locked_level_hint: '%mode% unlocks at level %level%'
         lesson: 'Lesson %numeral%'
         gate:
             title: Log in to play

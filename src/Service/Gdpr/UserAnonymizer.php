@@ -23,9 +23,9 @@ final readonly class UserAnonymizer
             $this->entityManager->remove($subscription);
         }
 
-        $user->setUsername('anonyme-'.$user->getId());
+        $user->setUsername('anonyme-' . $user->getId());
         $user->setMail(null);
-        $user->setPassword('!'.bin2hex(random_bytes(32)));
+        $user->setPassword('!' . bin2hex(random_bytes(32)));
         $user->setRoles([]);
         $user->setLastLoginAt(null);
     }
@@ -45,10 +45,10 @@ final readonly class UserAnonymizer
 
         $mail = $user->getMail();
 
-        if (null !== $mail) {
+        if ($mail !== null) {
             $byEmail = $this->newsletterRepository->findByEmail($mail);
 
-            if (null !== $byEmail) {
+            if ($byEmail !== null) {
                 $subscriptions[$byEmail->getId()] = $byEmail;
             }
         }

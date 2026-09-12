@@ -31,7 +31,7 @@ class AromaticCompoundController extends AbstractController
     {
         $locale = $request->getLocale();
         $aromaticCompound = $repository->findOneByLocalizedSlug($slug, $locale);
-        if (null === $aromaticCompound) {
+        if ($aromaticCompound === null) {
             throw $this->createNotFoundException();
         }
 

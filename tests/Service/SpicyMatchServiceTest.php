@@ -27,8 +27,11 @@ use PHPUnit\Framework\TestCase;
 class SpicyMatchServiceTest extends TestCase
 {
     private SpicyMatchFactory&MockObject $factory;
+
     private SpicesRepository&MockObject $spicesRepo;
+
     private EntityManagerInterface&MockObject $em;
+
     private SpicyMatchService $service;
 
     protected function setUp(): void

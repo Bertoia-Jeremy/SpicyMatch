@@ -20,7 +20,7 @@ final class LocalizedSpiceNames
             $id = (int) $card['id'];
             $name = (string) $card['name'];
             $groupName = $card['aromaticGroup']['name'] ?? null;
-            $groupName = null !== $groupName ? (string) $groupName : null;
+            $groupName = $groupName !== null ? (string) $groupName : null;
 
             $map[$id] = [
                 'canonical' => $name,
@@ -60,7 +60,7 @@ final class LocalizedSpiceNames
             return true;
         }
 
-        if (0 === $expectedId) {
+        if ($expectedId === 0) {
             return false;
         }
 

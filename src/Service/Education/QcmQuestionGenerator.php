@@ -23,7 +23,7 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
 
     public function supports(GameMode $mode): bool
     {
-        return GameMode::QCM === $mode;
+        return $mode === GameMode::QCM;
     }
 
     public function generate(GameDifficulty $difficulty, array $excludeSpiceIds = []): ?array
@@ -70,7 +70,7 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
                 }
             }
 
-            if (null === $correct) {
+            if ($correct === null) {
                 continue;
             }
 
@@ -139,7 +139,7 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
     {
         $window = OrdinalWindow::select(array_reverse($dominated), $difficulty, 3);
 
-        if (GameDifficulty::EASY === $difficulty) {
+        if ($difficulty === GameDifficulty::EASY) {
             $window = $this->preferDistinctGroup($window, $correct['groupName'] ?? null);
         }
 

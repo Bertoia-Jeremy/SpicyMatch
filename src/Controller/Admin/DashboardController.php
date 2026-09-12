@@ -10,7 +10,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
 use Symfony\UX\Chartjs\Model\Chart;
@@ -37,6 +37,9 @@ class DashboardController extends AbstractDashboardController
         $spiceStats = $this->statsService->getSpiceStats();
         $educationStats = $this->statsService->getEducationStats();
         $matchStats = $this->statsService->getMatchStats();
+        $xpPerDay = $this->statsService->xpPerDay(30);
+        $gameModeDistribution = $this->statsService->gameModeDistribution(30);
+        $unlockedByRarity = $this->statsService->unlockedByRarity();
 
         // Level distribution chart
         $levelChart = $this->chartBuilder->createChart(Chart::TYPE_BAR);
@@ -115,15 +118,51 @@ class DashboardController extends AbstractDashboardController
             ],
         ]);
 
+        $xpChart = $this->chartBuilder->createChart(Chart::TYPE_LINE);
+        $xpChart->setData([
+            'labels' => array_column($xpPerDay, 'day') ?: ['—'],
+            'datasets' => [
+                [
+                    'label' => $this->translator->trans('admin.chart.xp_total', [], self::DOMAIN),
+                    'borderColor' => '#d97706',
+                    'backgroundColor' => 'rgba(217, 119, 6, 0.1)',
+                    'fill' => true,
+                    'tension' => 0.3,
+                    'data' => array_map('intval', array_column($xpPerDay, 'total_xp')) ?: [0],
+                ],
+            ],
+        ]);
+        $xpChart->setOptions([
+            'scales' => [
+                'y' => [
+                    'beginAtZero' => true,
+                ],
+            ],
+        ]);
+
+        $gameModeChart = $this->chartBuilder->createChart(Chart::TYPE_DOUGHNUT);
+        $gameModeChart->setData([
+            'labels' => array_column($gameModeDistribution, 'game_mode') ?: [$noneLabel],
+            'datasets' => [
+                [
+                    'backgroundColor' => ['#f59e0b', '#ef4444', '#eab308', '#84cc16', '#06b6d4', '#a855f7'],
+                    'data' => array_map('intval', array_column($gameModeDistribution, 'count')) ?: [0],
+                ],
+            ],
+        ]);
+
         return $this->render('admin/dashboard.html.twig', [
             'userStats' => $userStats,
             'gamificationStats' => $gamificationStats,
             'spiceStats' => $spiceStats,
             'educationStats' => $educationStats,
             'matchStats' => $matchStats,
+            'unlockedByRarity' => $unlockedByRarity,
             'levelChart' => $levelChart,
             'spiceChart' => $spiceChart,
             'activityChart' => $activityChart,
+            'xpChart' => $xpChart,
+            'gameModeChart' => $gameModeChart,
         ]);
     }
 
@@ -161,6 +200,12 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section('admin.menu.section_gamification');
         yield MenuItem::linkTo(AchievementCrudController::class, 'admin.menu.achievements', 'fa fa-trophy');
         yield MenuItem::linkTo(GameSessionCrudController::class, 'admin.menu.game_sessions', 'fa fa-gamepad');
+
+        yield MenuItem::section('admin.menu.section_stats');
+        yield MenuItem::linkToRoute('admin.menu.gamification_stats', 'fa fa-chart-pie', 'admin_gamification_stats');
+        yield MenuItem::linkToRoute('admin.menu.education_stats', 'fa fa-graduation-cap', 'admin_education_stats');
+        yield MenuItem::linkToRoute('admin.menu.onboarding_stats', 'fa fa-signs-post', 'admin_onboarding_stats');
+        yield MenuItem::linkToRoute('admin.menu.discovery_stats', 'fa fa-compass', 'admin_discovery_stats');
 
         yield MenuItem::section('admin.menu.section_users');
         yield MenuItem::linkTo(UsersCrudController::class, 'admin.menu.users', 'fa fa-users');

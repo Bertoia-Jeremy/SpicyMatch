@@ -32,4 +32,22 @@ final class DashboardControllerTest extends WebTestCase
         $this->client->request('GET', '/admin/gamification/stats');
         self::assertResponseRedirects('/login');
     }
+
+    public function testAdminEducationStatsRedirectsAnonymousToLogin(): void
+    {
+        $this->client->request('GET', '/admin/education/stats');
+        self::assertResponseRedirects('/login');
+    }
+
+    public function testAdminOnboardingStatsRedirectsAnonymousToLogin(): void
+    {
+        $this->client->request('GET', '/admin/onboarding/stats');
+        self::assertResponseRedirects('/login');
+    }
+
+    public function testAdminDiscoveryStatsRedirectsAnonymousToLogin(): void
+    {
+        $this->client->request('GET', '/admin/discovery/stats');
+        self::assertResponseRedirects('/login');
+    }
 }

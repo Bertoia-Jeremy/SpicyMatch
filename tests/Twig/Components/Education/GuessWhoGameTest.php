@@ -26,6 +26,7 @@ final class GuessWhoGameTest extends TestCase
     private const string TOKEN = 'guesswho_test_tok';
 
     private AcademyManager&MockObject $academyManager;
+
     private GameSessionManager&MockObject $sessionManager;
 
     protected function setUp(): void
@@ -58,7 +59,7 @@ final class GuessWhoGameTest extends TestCase
     private function makeGame(array $secret = []): array
     {
         $session = new Session(new MockArraySessionStorage());
-        $session->set('game_'.self::TOKEN, $secret);
+        $session->set('game_' . self::TOKEN, $secret);
 
         $request = new Request();
         $request->setSession($session);
@@ -343,7 +344,7 @@ final class GuessWhoGameTest extends TestCase
 
         $game->guess('Cannelle');
 
-        $stored = $session->get('game_'.self::TOKEN);
+        $stored = $session->get('game_' . self::TOKEN);
         self::assertContains(2, $stored['answeredSteps']);
     }
 
@@ -358,7 +359,7 @@ final class GuessWhoGameTest extends TestCase
 
         $game->guess('Cannelle');
 
-        $stored = $session->get('game_'.self::TOKEN);
+        $stored = $session->get('game_' . self::TOKEN);
         self::assertSame(10, $stored['totalScore']);
     }
 
@@ -471,7 +472,7 @@ final class GuessWhoGameTest extends TestCase
 
         $game->guess('Cinnamon');
 
-        $stored = $session->get('game_'.self::TOKEN);
+        $stored = $session->get('game_' . self::TOKEN);
         self::assertSame('Cannelle', $stored['questions'][0]['answerGiven']);
         self::assertSame('Poivre', $stored['questions'][0]['correctAnswer']);
     }
@@ -587,7 +588,7 @@ final class GuessWhoGameTest extends TestCase
         );
 
         $session = new Session(new MockArraySessionStorage());
-        $session->set('game_'.self::TOKEN, $secret);
+        $session->set('game_' . self::TOKEN, $secret);
 
         $request = new Request();
         $request->setSession($session);

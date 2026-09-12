@@ -120,10 +120,10 @@ final class ContextFilterTest extends TestCase
     private function achievement(?GameMode $mode, ?GameDifficulty $difficulty): Achievement
     {
         $achievement = new Achievement();
-        if (null !== $mode) {
+        if ($mode !== null) {
             $achievement->setContextGameMode($mode);
         }
-        if (null !== $difficulty) {
+        if ($difficulty !== null) {
             $achievement->setContextDifficulty($difficulty);
         }
 

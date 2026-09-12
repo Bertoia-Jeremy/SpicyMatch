@@ -20,7 +20,7 @@ final class RegistrationControllerTest extends WebTestCase
         $client = static::createClient();
         $target = '/fr/education/briefing?mode=survival&difficulty=easy';
 
-        $crawler = $client->request('GET', '/register?target='.urlencode($target));
+        $crawler = $client->request('GET', '/register?target=' . urlencode($target));
 
         self::assertResponseIsSuccessful();
         self::assertSame($target, $crawler->filter('#register-form input[name="_target_path"]')->attr('value'));
@@ -30,7 +30,7 @@ final class RegistrationControllerTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $crawler = $client->request('GET', '/register?target='.urlencode('https://evil.com'));
+        $crawler = $client->request('GET', '/register?target=' . urlencode('https://evil.com'));
 
         self::assertResponseIsSuccessful();
         self::assertSame('', $crawler->filter('#register-form input[name="_target_path"]')->attr('value'));
@@ -48,12 +48,12 @@ final class RegistrationControllerTest extends WebTestCase
 
         $client->request('POST', '/register', [
             $formName => [
-                'username' => 'gatereg'.random_int(1000, 9999),
+                'username' => 'gatereg' . random_int(1000, 9999),
                 'mail' => '',
                 'plainPassword' => 'Password1!',
                 'altcha' => $this->solvedAltchaPayload(),
                 'Valider' => '',
-                '_token' => (string) $form[$formName.'[_token]']->getValue(),
+                '_token' => (string) $form[$formName . '[_token]']->getValue(),
             ],
             '_target_path' => $target,
         ]);

@@ -24,9 +24,13 @@ use Psr\Log\NullLogger;
 final class GamificationHandlerTest extends TestCase
 {
     private SpicyMatchHistoryRepository&MockObject $historyRepo;
+
     private GamificationManagerInterface&MockObject $manager;
+
     private EntityManagerInterface&MockObject $em;
+
     private ProcessedGamificationEventRepository&MockObject $processedEvents;
+
     private GamificationHandler $handler;
 
     protected function setUp(): void

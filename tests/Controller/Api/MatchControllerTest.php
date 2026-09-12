@@ -32,7 +32,7 @@ final class MatchControllerTest extends WebTestCase
         $data = json_decode((string) $client->getResponse()->getContent(), true);
         self::assertArrayHasKey('error', $data);
 
-        if (null !== $expectedError) {
+        if ($expectedError !== null) {
             self::assertStringContainsString($expectedError, $data['error']);
         }
     }

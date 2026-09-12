@@ -22,10 +22,15 @@ use Symfony\Component\Messenger\MessageBusInterface;
 final class EasterEggServiceTest extends TestCase
 {
     private MessageBusInterface $bus;
+
     private SpicesRepository $spicesRepository;
+
     private EntityManagerInterface $em;
+
     private RequestStack $requestStack;
+
     private Session $session;
+
     private EasterEggService $service;
 
     protected function setUp(): void

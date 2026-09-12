@@ -180,7 +180,7 @@ class Spices implements TranslatableInterface, Sluggable
     public function getTranslation(string $locale): ?SpiceTranslation
     {
         // FR = canonique (pas de ligne de traduction) → évite le lazy-load de la collection.
-        if ('fr' === $locale) {
+        if ($locale === 'fr') {
             return null;
         }
 

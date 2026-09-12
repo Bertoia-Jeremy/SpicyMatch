@@ -145,7 +145,7 @@ class EasterEggService
 
         $spice = $this->spicesRepository->find($spiceId);
 
-        return 'poivre_noir' === $spice?->getSlug();
+        return $spice?->getSlug() === 'poivre_noir';
     }
 
     /**
@@ -157,7 +157,7 @@ class EasterEggService
         // Expecting 4 specific keywords (order doesn't matter for this one or specific sequence)
         $expected = ['cannelle', 'cardamome', 'clou_girofle', 'muscade'];
 
-        return 4 === count(array_intersect($expected, $keywords));
+        return count(array_intersect($expected, $keywords)) === 4;
     }
 
     private function validateSecretDuCurry(Users $user): bool
@@ -178,7 +178,7 @@ class EasterEggService
 
         // Fetch IDs by slug (assuming slugs are standard)
         $ids = $this->getSpiceIds(['curcuma', 'cumin', 'gingembre']);
-        if (3 !== count($ids)) {
+        if (count($ids) !== 3) {
             return false; // Spices not found
         }
 

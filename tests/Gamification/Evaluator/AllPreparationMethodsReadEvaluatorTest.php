@@ -20,7 +20,9 @@ use PHPUnit\Framework\TestCase;
 final class AllPreparationMethodsReadEvaluatorTest extends TestCase
 {
     private PreparationMethodsRepository&MockObject $prepRepo;
+
     private SpiceViewRepository&MockObject $spiceViewRepo;
+
     private AllPreparationMethodsReadEvaluator $evaluator;
 
     protected function setUp(): void

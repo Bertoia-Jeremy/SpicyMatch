@@ -16,7 +16,9 @@ final class SpicesIncompatibilityDisjunctionTest extends KernelTestCase
     private const int SAMPLED_BASES = 8;
 
     private Connection $connection;
+
     private SpicesRepository $spicesRepository;
+
     private CandidateVetoRepository $vetoRepository;
 
     protected function setUp(): void
@@ -41,7 +43,7 @@ final class SpicesIncompatibilityDisjunctionTest extends KernelTestCase
             foreach ($bases as $base) {
                 $baseId = $base->getId();
 
-                if (null === $baseId) {
+                if ($baseId === null) {
                     continue;
                 }
 
@@ -54,7 +56,7 @@ final class SpicesIncompatibilityDisjunctionTest extends KernelTestCase
                 self::assertSame(
                     [],
                     array_values(array_intersect($incompatibleIds, $survivorIds)),
-                    'Épice '.$baseId.' : intrus et survivants du veto se recoupent.',
+                    'Épice ' . $baseId . ' : intrus et survivants du veto se recoupent.',
                 );
             }
         } finally {

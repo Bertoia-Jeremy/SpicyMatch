@@ -28,10 +28,10 @@ final class OavPartitionCalculatorTest extends TestCase
         $compound = (new AromaticCompound())->setName('Test');
         $physical = new CompoundPhysical($compound);
 
-        if (null !== $logP) {
+        if ($logP !== null) {
             $physical->setLogP($logP);
         }
-        if (null !== $bp) {
+        if ($bp !== null) {
             $physical->setBoilingPointCelsius($bp);
         }
 

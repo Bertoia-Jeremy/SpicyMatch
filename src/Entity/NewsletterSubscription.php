@@ -38,7 +38,7 @@ class NewsletterSubscription
     private ?string $ipAddress = null;
 
     public bool $isActive {
-        get => null === $this->unsubscribedAt;
+        get => $this->unsubscribedAt === null;
     }
 
     public function __construct()

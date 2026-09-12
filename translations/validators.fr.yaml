@@ -1,6 +1,13 @@
 # Messages de validation (domaine 'validators').
 aromatic_group:
     color_invalid: La couleur doit être un code hexadécimal valide (#RRGGBB).
+achievement:
+    slug_blank: Le slug ne peut pas être vide.
+    slug_too_long: Le slug ne peut pas dépasser {{ limit }} caractères.
+    slug_format: Le slug doit être en minuscules, chiffres et tirets uniquement (ex. premier-match).
+    name_blank: Le nom ne peut pas être vide.
+    name_too_long: Le nom ne peut pas dépasser {{ limit }} caractères.
+    description_blank: La description ne peut pas être vide.
 altcha:
     invalid: La vérification anti-robot a échoué. Cochez la case puis réessayez.
 contact:

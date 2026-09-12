@@ -20,7 +20,9 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 final class ImportFlavorGraphCommand extends Command
 {
     private const DEFAULT_FILE = 'data/flavorgraph/pairing_matrix.csv';
+
     private const MAX_FILE_SIZE = 20 * 1024 * 1024;
+
     private const BATCH = 1000;
 
     public function __construct(
@@ -44,7 +46,7 @@ final class ImportFlavorGraphCommand extends Command
         $dryRun = (bool) $input->getOption('dry-run');
 
         $path = $this->resolvePath((string) $input->getOption('file'));
-        if (null === $path) {
+        if ($path === null) {
             $io->error('Fichier hors périmètre autorisé (data/flavorgraph/) ou introuvable.');
 
             return Command::FAILURE;
@@ -53,14 +55,14 @@ final class ImportFlavorGraphCommand extends Command
         $slugToId = $this->loadSlugToId();
 
         $handle = fopen($path, 'rb');
-        if (false === $handle) {
+        if ($handle === false) {
             $io->error('CSV illisible.');
 
             return Command::FAILURE;
         }
 
         $header = fgetcsv($handle, escape: '\\');
-        if (false === $header || ! \in_array('affinity', $header, true)) {
+        if ($header === false || ! \in_array('affinity', $header, true)) {
             fclose($handle);
             $io->error('En-tête CSV invalide (colonnes attendues : spice_slug_a, spice_slug_b, affinity).');
 
@@ -73,7 +75,7 @@ final class ImportFlavorGraphCommand extends Command
         while (false !== ($cols = fgetcsv($handle, escape: '\\'))) {
             $a = $slugToId[$cols[$idx['spice_slug_a']] ?? ''] ?? null;
             $b = $slugToId[$cols[$idx['spice_slug_b']] ?? ''] ?? null;
-            if (null === $a || null === $b) {
+            if ($a === null || $b === null) {
                 ++$unresolved;
 
                 continue;
@@ -121,7 +123,7 @@ final class ImportFlavorGraphCommand extends Command
                     $chunk,
                 ));
                 $inserted += $this->connection->executeStatement(
-                    'INSERT INTO ingredient_pairing_tmp (spice_a_id, spice_b_id, affinity_score) VALUES '.$values,
+                    'INSERT INTO ingredient_pairing_tmp (spice_a_id, spice_b_id, affinity_score) VALUES ' . $values,
                 );
             }
             $this->connection->commit();
@@ -157,14 +159,14 @@ final class ImportFlavorGraphCommand extends Command
 
     private function resolvePath(string $file): ?string
     {
-        $candidate = str_starts_with($file, '/') ? $file : $this->projectDir.'/'.$file;
+        $candidate = str_starts_with($file, '/') ? $file : $this->projectDir . '/' . $file;
         $real = realpath($candidate);
-        if (false === $real || ! is_file($real) || filesize($real) > self::MAX_FILE_SIZE) {
+        if ($real === false || ! is_file($real) || filesize($real) > self::MAX_FILE_SIZE) {
             return null;
         }
 
-        $allowed = realpath($this->projectDir.'/data/flavorgraph');
-        if (false === $allowed || ! str_starts_with($real, $allowed.'/')) {
+        $allowed = realpath($this->projectDir . '/data/flavorgraph');
+        if ($allowed === false || ! str_starts_with($real, $allowed . '/')) {
             return null;
         }
 

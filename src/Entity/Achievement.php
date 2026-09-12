@@ -13,6 +13,7 @@ use App\Repository\AchievementRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Catalogue of achievements. Populated via fixtures.
@@ -26,12 +27,18 @@ class Achievement implements TranslatableInterface
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\NotBlank(message: 'achievement.slug_blank')]
+    #[Assert\Length(max: 100, maxMessage: 'achievement.slug_too_long')]
+    #[Assert\Regex(pattern: '/^[a-z0-9]+(-[a-z0-9]+)*$/', message: 'achievement.slug_format')]
     #[ORM\Column(length: 100, unique: true)]
     private string $slug = '';
 
+    #[Assert\NotBlank(message: 'achievement.name_blank')]
+    #[Assert\Length(max: 255, maxMessage: 'achievement.name_too_long')]
     #[ORM\Column(length: 255)]
     private string $name = '';
 
+    #[Assert\NotBlank(message: 'achievement.description_blank')]
     #[ORM\Column(type: 'text')]
     private string $description = '';
 
@@ -138,7 +145,7 @@ class Achievement implements TranslatableInterface
 
     public function getTranslation(string $locale): ?AchievementTranslation
     {
-        if ('fr' === $locale) {
+        if ($locale === 'fr') {
             return null;
         }
 

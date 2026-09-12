@@ -20,6 +20,7 @@ use PHPUnit\Framework\TestCase;
 final class GroupMasteryReadEvaluatorTest extends TestCase
 {
     private SpiceViewRepository&MockObject $spiceViewRepo;
+
     private GroupMasteryReadEvaluator $evaluator;
 
     protected function setUp(): void
@@ -83,7 +84,7 @@ final class GroupMasteryReadEvaluatorTest extends TestCase
             ->setTriggerValue($triggerValue)
             ->setXpReward(10)
             ->setRarity(AchievementRarity::RARE);
-        if (null !== $group) {
+        if ($group !== null) {
             $a->setContextAromaticGroup($group);
         }
 

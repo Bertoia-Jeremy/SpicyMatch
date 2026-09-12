@@ -69,7 +69,7 @@ final class RecomputeOavCommand extends Command
             if (! ($this->handler)($message)) {
                 $io->error(sprintf(
                     'Rebuild abandonné — verrou indisponible : la table OAV reste inchangée (%d lignes). '
-                    .'Un rebuild a été re-planifié en asynchrone ; relancer une fois le worker au repos.',
+                    . 'Un rebuild a été re-planifié en asynchrone ; relancer une fois le worker au repos.',
                     $before,
                 ));
 

@@ -37,7 +37,7 @@ class GdprRequest
     private ?\DateTimeImmutable $treatedAt = null;
 
     public bool $isTreated {
-        get => null !== $this->treatedAt;
+        get => $this->treatedAt !== null;
     }
 
     public function __construct()

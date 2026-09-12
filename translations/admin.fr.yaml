@@ -6,6 +6,7 @@ admin:
         section_content: Contenu
         section_preparation: Préparation
         section_gamification: Gamification
+        section_stats: Statistiques
         section_users: Utilisateurs
         spices: Épices
         aromatic_groups: Groupes aromatiques
@@ -20,6 +21,10 @@ admin:
         users: Utilisateurs
         contact: Contact
         gdpr_requests: Demandes RGPD
+        gamification_stats: Stats gamification
+        education_stats: Stats éducation
+        onboarding_stats: Stats onboarding
+        discovery_stats: Stats découverte
         site: Site SpicyMatch
     entity:
         achievement_singular: Succès
@@ -105,6 +110,9 @@ admin:
         popular_groups: Groupes aromatiques populaires
         col_group: Groupe
         col_views: Consultations
+        rarity_breakdown: Répartition par rareté
+        xp_per_day: XP cumulé / jour (30j)
+        game_mode_distribution: Répartition par mode de jeu (30j)
     stats:
         page_title: Stats Gamification · Admin
         title: Stats Gamification
@@ -120,9 +128,33 @@ admin:
         col_reason: Raison
         col_sessions: Sessions
         col_total_xp: XP total
+    education_stats:
+        page_title: Stats Éducation · Admin
+        title: Stats Éducation
+        intro: Répartition des sessions de jeu par mode et par difficulté, adoption Live Component vs QCM.
+        live_component_sessions: Sessions Live Component
+        qcm_sessions: Sessions QCM
+        by_mode_title: Précision moyenne par mode
+        by_difficulty_title: Sessions par difficulté
+    onboarding_stats:
+        page_title: Stats Onboarding · Admin
+        title: Stats Onboarding
+        intro: Taux de complétion par étape du parcours d'accueil.
+        col_step: Étape
+        col_seen: Vue par
+        col_rate: Taux
+    discovery_stats:
+        page_title: Stats Découverte · Admin
+        title: Stats Découverte
+        intro: Épices consultées, groupes aromatiques populaires et streaks de lecture actifs.
+        active_streaks: Streaks actifs
+        col_views: Vues
+        top_streaks_title: Top streaks de lecture
+        col_streak: Streak (jours)
     chart:
         none: Aucun
         players: Joueurs
         views: Vues
         matches_per_day: Mélanges / jour
         level_bucket: 'Niv. %from%-%to%'
+        xp_total: XP total

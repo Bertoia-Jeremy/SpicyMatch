@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 class CookieConsentService
 {
     private const string COOKIE_NAME = 'sm_consent';
+
     public const int CURRENT_VERSION = 1;
 
     public function __construct(
@@ -22,7 +23,7 @@ class CookieConsentService
     public function hasConsented(): bool
     {
         $data = $this->getConsentFromCookie();
-        if (null === $data) {
+        if ($data === null) {
             return false;
         }
 
@@ -59,7 +60,7 @@ class CookieConsentService
     {
         $request = $this->requestStack->getCurrentRequest();
 
-        return '1' === $request?->headers->get('DNT');
+        return $request?->headers->get('DNT') === '1';
     }
 
     public static function getCookieName(): string
@@ -78,12 +79,12 @@ class CookieConsentService
     private function getConsentFromCookie(): ?array
     {
         $request = $this->requestStack->getCurrentRequest();
-        if (null === $request) {
+        if ($request === null) {
             return null;
         }
 
         $cookie = $request->cookies->get(self::COOKIE_NAME);
-        if (null === $cookie) {
+        if ($cookie === null) {
             return null;
         }
 

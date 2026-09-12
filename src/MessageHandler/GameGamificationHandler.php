@@ -29,12 +29,12 @@ class GameGamificationHandler
     public function __invoke(GameCompletedEvent $event): void
     {
         $user = $this->usersRepository->find($event->userId);
-        if (null === $user) {
+        if ($user === null) {
             return;
         }
 
         // Idempotence — each finished GameSession is awarded once.
-        if (! $this->processedEvents->claim($user, 'game_completed', 'session:'.$event->sessionId)) {
+        if (! $this->processedEvents->claim($user, 'game_completed', 'session:' . $event->sessionId)) {
             $this->logger->info('gamification.game_completed.duplicate', [
                 'userId' => $user->getId(),
                 'sessionId' => $event->sessionId,

@@ -21,6 +21,7 @@ use PHPUnit\Framework\TestCase;
 final class GameScoreThresholdEvaluatorTest extends TestCase
 {
     private GameSessionRepository&MockObject $sessionRepo;
+
     private GameScoreThresholdEvaluator $evaluator;
 
     protected function setUp(): void
@@ -107,10 +108,10 @@ final class GameScoreThresholdEvaluatorTest extends TestCase
             ->setTriggerValue($triggerValue)
             ->setXpReward(10)
             ->setRarity(AchievementRarity::COMMON);
-        if (null !== $mode) {
+        if ($mode !== null) {
             $a->setContextGameMode($mode);
         }
-        if (null !== $group) {
+        if ($group !== null) {
             $a->setContextAromaticGroup($group);
         }
 

@@ -46,9 +46,9 @@ final class ProfileTabControllerTest extends WebTestCase
         $this->loginFirstUser($client);
 
         foreach (['dashboard', 'grimoire', 'history', 'lab'] as $tab) {
-            $client->request('GET', '/fr/users/profile/tab/'.$tab);
+            $client->request('GET', '/fr/users/profile/tab/' . $tab);
             self::assertResponseIsSuccessful();
-            self::assertSelectorExists('turbo-frame#frame-'.$tab);
+            self::assertSelectorExists('turbo-frame#frame-' . $tab);
         }
     }
 
@@ -58,7 +58,7 @@ final class ProfileTabControllerTest extends WebTestCase
         $this->loginFirstUser($client);
 
         foreach (['all', 'favorites', 'manual'] as $filter) {
-            $client->request('GET', '/fr/users/profile/tab/history?filter='.$filter);
+            $client->request('GET', '/fr/users/profile/tab/history?filter=' . $filter);
             self::assertResponseIsSuccessful();
             self::assertSelectorExists('turbo-frame#frame-history');
         }

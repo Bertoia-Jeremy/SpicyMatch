@@ -147,7 +147,7 @@ final class LocaleSubscriberTest extends TestCase
     private function dispatch(Request $request, ?Users $user, bool $mainRequest = true): void
     {
         $token = null;
-        if (null !== $user) {
+        if ($user !== null) {
             $token = $this->createStub(TokenInterface::class);
             $token->method('getUser')
                 ->willReturn($user);

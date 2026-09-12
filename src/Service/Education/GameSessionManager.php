@@ -18,12 +18,14 @@ use Symfony\Component\Messenger\MessageBusInterface;
 class GameSessionManager
 {
     private const int MAX_DAILY_SESSIONS_FREE = 2;
+
     private const int MAX_DAILY_SESSIONS_PREMIUM = 5;
+
     private const int REDUCED_XP_THRESHOLD = 3;
 
     public function maxDailySessions(?Users $user): int
     {
-        return null !== $user && $user->isPremium()
+        return $user !== null && $user->isPremium()
             ? self::MAX_DAILY_SESSIONS_PREMIUM
             : self::MAX_DAILY_SESSIONS_FREE;
     }
@@ -57,11 +59,11 @@ class GameSessionManager
         $session->setDifficulty($difficulty);
 
         $modeQuestions = $mode->totalQuestions();
-        if (null !== $modeQuestions) {
+        if ($modeQuestions !== null) {
             $session->setTotalQuestions($modeQuestions);
         }
 
-        if (null !== $targetSpice) {
+        if ($targetSpice !== null) {
             $session->setTargetSpice($targetSpice);
         }
 
@@ -83,7 +85,7 @@ class GameSessionManager
         }
 
         $generator = $this->getGenerator($session->getGameMode());
-        if (null === $generator) {
+        if ($generator === null) {
             return null;
         }
 
@@ -191,7 +193,7 @@ class GameSessionManager
         $session->setDifficulty($difficulty);
         $session->setTotalQuestions($totalQuestions);
 
-        if (null !== $targetSpice) {
+        if ($targetSpice !== null) {
             $session->setTargetSpice($targetSpice);
         }
 
@@ -201,11 +203,11 @@ class GameSessionManager
 
         $session->finish();
 
-        if (null !== $durationSeconds) {
+        if ($durationSeconds !== null) {
             $session->setDurationSeconds($durationSeconds);
         }
 
-        if (null !== $overrideScore) {
+        if ($overrideScore !== null) {
             // Reuse $todayCount from the limit check above (session not yet flushed — count is stable).
             $xpEarned = $todayCount > self::REDUCED_XP_THRESHOLD
                 ? (int) round($overrideScore * 0.5)
@@ -250,7 +252,7 @@ class GameSessionManager
             $this->em->persist($gq);
         }
 
-        if ([] !== $questionsData) {
+        if ($questionsData !== []) {
             $this->em->flush();
         }
     }

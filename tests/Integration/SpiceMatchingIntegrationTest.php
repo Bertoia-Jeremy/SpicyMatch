@@ -27,7 +27,9 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 class SpiceMatchingIntegrationTest extends KernelTestCase
 {
     private SpicesRepository $spicesRepo;
+
     private CompatibleSpiceFinder $compatibleSpiceFinder;
+
     private SpiceGroupFinderService $groupFinder;
 
     protected function setUp(): void
@@ -127,7 +129,7 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         self::assertNotNull($thym);
 
         $results = $this->findCompatibleByIds([$thym->getId()]);
-        $origan = array_filter($results, fn ($r) => 'Origan Méditerranéen' === $r['name']);
+        $origan = array_filter($results, fn ($r) => $r['name'] === 'Origan Méditerranéen');
 
         self::assertNotEmpty($origan, 'Origan should appear as compatible with Thym via OAV');
     }
@@ -282,7 +284,7 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
 
         foreach ($triplets as $triplet) {
             $names = array_column($triplet['spices'], 'name');
-            if (3 === count(array_intersect($expectedNames, $names))) {
+            if (count(array_intersect($expectedNames, $names)) === 3) {
                 $found = true;
                 self::assertGreaterThanOrEqual(6, $triplet['score'], 'Score should reflect 2 shared main compounds');
                 break;

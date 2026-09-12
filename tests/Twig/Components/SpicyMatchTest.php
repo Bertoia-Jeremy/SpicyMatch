@@ -32,11 +32,17 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 class SpicyMatchTest extends TestCase
 {
     private SpicesRepository&MockObject $spicesRepo;
+
     private CompatibleSpiceFinder&MockObject $compatibleSpiceFinder;
+
     private AromaticGroupsRepository&MockObject $aromaticGroupsRepo;
+
     private SpicyTypeRepository&MockObject $spicyTypeRepo;
+
     private SpicyMatchService&MockObject $spicyMatchService;
+
     private MatchConfidenceAssessorInterface&MockObject $confidenceAssessor;
+
     private SpiceActiveCompoundRepository&MockObject $spiceActiveCompoundRepo;
 
     /**

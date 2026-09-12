@@ -21,6 +21,7 @@ use App\Exception\Match\InvalidMortarException;
 final class MortarIds
 {
     private const int MIN_COUNT = 1;
+
     private const int MAX_COUNT = 10;
 
     /**

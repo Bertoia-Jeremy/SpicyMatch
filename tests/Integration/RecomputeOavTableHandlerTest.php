@@ -228,7 +228,7 @@ final class RecomputeOavTableHandlerTest extends IntegrationTestCase
 
     private function rebuildLockIsFree(): bool
     {
-        return '1' === (string) $this->connection->fetchOne('SELECT IS_FREE_LOCK(?)', [self::REBUILD_LOCK]);
+        return (string) $this->connection->fetchOne('SELECT IS_FREE_LOCK(?)', [self::REBUILD_LOCK]) === '1';
     }
 
     private function openSecondConnection(): Connection

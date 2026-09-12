@@ -65,6 +65,44 @@
     </div>
   </div>
 
+  {# Rarity breakdown #}
+  <div class="row g-3 mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-subtitle text-muted mb-3">{{ 'admin.dash.rarity_breakdown'|trans({}, 'admin') }}</h6>
+          <div class="d-flex flex-wrap gap-2">
+            {% for rarity, cnt in unlockedByRarity %}
+              <span class="badge bg-secondary fs-6">{{ rarity }} : {{ cnt }}</span>
+            {% else %}
+              <small class="text-muted">{{ 'admin.stats.no_data'|trans({}, 'admin') }}</small>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# XP / GameMode charts row #}
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-subtitle text-muted mb-3">{{ 'admin.dash.xp_per_day'|trans({}, 'admin') }}</h6>
+          {{ render_chart(xpChart) }}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-subtitle text-muted mb-3">{{ 'admin.dash.game_mode_distribution'|trans({}, 'admin') }}</h6>
+          {{ render_chart(gameModeChart) }}
+        </div>
+      </div>
+    </div>
+  </div>
+
   {# Charts row #}
   <div class="row g-3 mb-4">
     <div class="col-md-6">

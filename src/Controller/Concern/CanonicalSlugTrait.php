@@ -22,7 +22,7 @@ trait CanonicalSlugTrait
         string $locale,
         array $extra = [],
     ): ?RedirectResponse {
-        if (null === $canonicalSlug || '' === $canonicalSlug || $canonicalSlug === $requestedSlug) {
+        if ($canonicalSlug === null || $canonicalSlug === '' || $canonicalSlug === $requestedSlug) {
             return null;
         }
 

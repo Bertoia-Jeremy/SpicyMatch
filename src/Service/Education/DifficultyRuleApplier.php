@@ -23,7 +23,7 @@ final class DifficultyRuleApplier
 
     public function isMonochrome(GameDifficulty $difficulty): bool
     {
-        return GameDifficulty::HARD === $difficulty;
+        return $difficulty === GameDifficulty::HARD;
     }
 
     public function hangmanTimeLimitSeconds(GameDifficulty $difficulty): int

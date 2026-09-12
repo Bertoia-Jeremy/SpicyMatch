@@ -39,10 +39,10 @@ final class CookingTimelineBuilderTest extends TestCase
     private function makePhysical(AromaticCompound $compound, ?float $logP, ?int $bp): CompoundPhysical
     {
         $physical = new CompoundPhysical($compound);
-        if (null !== $logP) {
+        if ($logP !== null) {
             $physical->setLogP($logP);
         }
-        if (null !== $bp) {
+        if ($bp !== null) {
             $physical->setBoilingPointCelsius($bp);
         }
 

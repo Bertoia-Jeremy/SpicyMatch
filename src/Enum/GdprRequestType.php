@@ -14,6 +14,6 @@ enum GdprRequestType: string
 
     public function label(): string
     {
-        return 'enum.gdpr_request_type.'.$this->value;
+        return 'enum.gdpr_request_type.' . $this->value;
     }
 }

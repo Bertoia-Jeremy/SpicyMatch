@@ -23,6 +23,6 @@ enum ScoringMode: string
 
     public function label(): string
     {
-        return 'ui.lab.scoring_mode.'.$this->value;
+        return 'ui.lab.scoring_mode.' . $this->value;
     }
 }

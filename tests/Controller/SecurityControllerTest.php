@@ -13,7 +13,7 @@ final class SecurityControllerTest extends WebTestCase
         $client = static::createClient();
         $target = '/fr/education/briefing?mode=survival&difficulty=easy';
 
-        $crawler = $client->request('GET', '/login?target='.urlencode($target));
+        $crawler = $client->request('GET', '/login?target=' . urlencode($target));
         self::assertResponseIsSuccessful();
 
         $hiddenTarget = $crawler->filter('#login-form input[name="_target_path"]')
@@ -35,7 +35,7 @@ final class SecurityControllerTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $crawler = $client->request('GET', '/login?target='.urlencode('https://evil.com'));
+        $crawler = $client->request('GET', '/login?target=' . urlencode('https://evil.com'));
         self::assertResponseIsSuccessful();
 
         $hiddenTarget = $crawler->filter('#login-form input[name="_target_path"]')

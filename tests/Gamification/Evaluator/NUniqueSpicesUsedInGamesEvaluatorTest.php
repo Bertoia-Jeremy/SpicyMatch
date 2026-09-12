@@ -19,6 +19,7 @@ use PHPUnit\Framework\TestCase;
 final class NUniqueSpicesUsedInGamesEvaluatorTest extends TestCase
 {
     private GameSessionRepository&MockObject $sessionRepo;
+
     private NUniqueSpicesUsedInGamesEvaluator $evaluator;
 
     protected function setUp(): void

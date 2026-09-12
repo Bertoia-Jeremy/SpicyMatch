@@ -25,7 +25,7 @@ final class PubChemPropertyFetcher
 
     public function fetch(string $cas): PubChemCompoundProperties
     {
-        $url = self::PUBCHEM_BASE.'/compound/name/'.urlencode($cas).'/property/XLogP,MolecularFormula,InChIKey/JSON';
+        $url = self::PUBCHEM_BASE . '/compound/name/' . urlencode($cas) . '/property/XLogP,MolecularFormula,InChIKey/JSON';
 
         try {
             $response = $this->httpClient->request('GET', $url, [
@@ -33,7 +33,7 @@ final class PubChemPropertyFetcher
                 'max_duration' => 15,
             ]);
 
-            if (200 !== $response->getStatusCode()) {
+            if ($response->getStatusCode() !== 200) {
                 return new PubChemCompoundProperties(null, null, null, null);
             }
 
@@ -99,6 +99,6 @@ final class PubChemPropertyFetcher
     {
         $raw = $props['InChIKey'] ?? null;
 
-        return is_string($raw) && 1 === preg_match(self::INCHI_KEY_PATTERN, $raw) ? $raw : null;
+        return is_string($raw) && preg_match(self::INCHI_KEY_PATTERN, $raw) === 1 ? $raw : null;
     }
 }

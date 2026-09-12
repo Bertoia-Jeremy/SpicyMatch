@@ -25,9 +25,13 @@ use Twig\Environment;
 final class GamificationNotificationSubscriberTest extends TestCase
 {
     private TokenStorageInterface&MockObject $tokenStorage;
+
     private PendingGamificationNotificationRepository&MockObject $notifRepository;
+
     private EntityManagerInterface&MockObject $em;
+
     private Environment&MockObject $twig;
+
     private GamificationNotificationSubscriber $subscriber;
 
     protected function setUp(): void

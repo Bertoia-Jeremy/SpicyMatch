@@ -30,7 +30,7 @@ class SpiceReadGamificationHandler
     public function __invoke(SpiceReadEvent $event): void
     {
         $user = $this->usersRepository->find($event->userId);
-        if (null === $user) {
+        if ($user === null) {
             return;
         }
 

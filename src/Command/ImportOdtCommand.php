@@ -44,6 +44,7 @@ use Symfony\Component\Yaml\Yaml;
 final class ImportOdtCommand extends Command
 {
     private const DEFAULT_FILE = 'fixtures/compound_odt.yaml';
+
     private const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 Mo
 
     public function __construct(
@@ -84,9 +85,9 @@ final class ImportOdtCommand extends Command
 
         // ── Guard path traversal : le fichier doit être dans fixtures/ ──────────
         $resolvedPath = realpath($file);
-        $allowedDir = realpath($this->projectDir.'/fixtures');
+        $allowedDir = realpath($this->projectDir . '/fixtures');
 
-        if (false === $resolvedPath || false === $allowedDir || ! str_starts_with($resolvedPath, $allowedDir.'/')) {
+        if ($resolvedPath === false || $allowedDir === false || ! str_starts_with($resolvedPath, $allowedDir . '/')) {
             $io->error(sprintf('Le fichier "%s" doit se trouver dans le répertoire fixtures/ du projet.', $file));
 
             return Command::FAILURE;
@@ -94,7 +95,7 @@ final class ImportOdtCommand extends Command
 
         // ── Guard taille ────────────────────────────────────────────────────────
         $fileSize = filesize($resolvedPath);
-        if (false === $fileSize || $fileSize > self::MAX_FILE_SIZE) {
+        if ($fileSize === false || $fileSize > self::MAX_FILE_SIZE) {
             $io->error('Fichier trop volumineux (max 10 Mo).');
 
             return Command::FAILURE;
@@ -128,7 +129,7 @@ final class ImportOdtCommand extends Command
             $matrix = OdtMatrix::tryFrom($matrixStr) ?? $defaultMatrix;
             $confidence = $this->resolveConfidence($entry);
 
-            if (null === $compoundName) {
+            if ($compoundName === null) {
                 $io->warning(sprintf('Entrée ignorée (compound_name manquant) : %s', json_encode($entry)));
                 ++$skipped;
                 continue;
@@ -136,7 +137,7 @@ final class ImportOdtCommand extends Command
 
             // odt_ppm (ponctuel) OU odt_min + odt_max (plage → moyenne géométrique).
             $odtPpm = $this->resolveOdtPpm($entry, $compoundName, $io);
-            if (null === $odtPpm) {
+            if ($odtPpm === null) {
                 ++$skipped;
                 continue;
             }
@@ -146,14 +147,14 @@ final class ImportOdtCommand extends Command
                 'name' => $compoundName,
             ]);
 
-            if (null === $compound) {
+            if ($compound === null) {
                 $io->warning(sprintf('Composé "%s" introuvable en BDD — ignoré.', $compoundName));
                 ++$skipped;
                 continue;
             }
 
             $compoundId = $compound->getId();
-            if (null === $compoundId) {
+            if ($compoundId === null) {
                 ++$skipped;
                 continue;
             }
@@ -161,7 +162,7 @@ final class ImportOdtCommand extends Command
             // Recherche de l'entrée existante (PK composite)
             $existing = $this->compoundOdtRepository->findForCompound($compoundId, $matrix);
 
-            if (null !== $existing) {
+            if ($existing !== null) {
                 $existing->setOdtPpm((string) $odtPpm);
                 $existing->setReferenceSource($source);
                 $existing->setConfidence($confidence);
@@ -239,7 +240,7 @@ final class ImportOdtCommand extends Command
         }
 
         $raw = $entry['odt_ppm'] ?? null;
-        if (null === $raw || ! is_numeric($raw)) {
+        if ($raw === null || ! is_numeric($raw)) {
             $io->warning(sprintf('ODT manquant ou non numérique pour "%s" — ignoré.', $compoundName));
 
             return null;
@@ -264,7 +265,7 @@ final class ImportOdtCommand extends Command
     {
         $raw = isset($entry['confidence']) ? (string) $entry['confidence'] : null;
 
-        return null !== $raw ? (DataConfidence::tryFrom(
+        return $raw !== null ? (DataConfidence::tryFrom(
             $raw
         ) ?? DataConfidence::PLACEHOLDER) : DataConfidence::PLACEHOLDER;
     }

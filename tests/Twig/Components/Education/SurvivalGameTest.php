@@ -29,7 +29,9 @@ final class SurvivalGameTest extends TestCase
     private const string TOKEN = 'survival_test_tok';
 
     private AcademyManager&MockObject $academyManager;
+
     private GameSessionManager&MockObject $sessionManager;
+
     private SpicesRepository&MockObject $spicesRepo;
 
     protected function setUp(): void
@@ -53,7 +55,7 @@ final class SurvivalGameTest extends TestCase
     private function makeGame(array $secret = []): array
     {
         $session = new Session(new MockArraySessionStorage());
-        $session->set('game_'.self::TOKEN, $secret);
+        $session->set('game_' . self::TOKEN, $secret);
 
         $request = new Request();
         $request->setSession($session);

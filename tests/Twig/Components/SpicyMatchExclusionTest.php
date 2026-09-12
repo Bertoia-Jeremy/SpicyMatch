@@ -20,7 +20,7 @@ final class SpicyMatchExclusionTest extends TestCase
 
         $ids = array_values($user->getExcludedSpices()
             ->map(static fn (Spices $s): ?int => $s->getId())
-            ->filter(static fn (?int $id): bool => null !== $id)
+            ->filter(static fn (?int $id): bool => $id !== null)
             ->getValues());
 
         self::assertSame([42], $ids);

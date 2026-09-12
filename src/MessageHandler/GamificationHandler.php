@@ -26,7 +26,7 @@ class GamificationHandler
     public function __invoke(MatchSavedEvent $event): void
     {
         $history = $this->historyRepository->find($event->spicyMatchHistoryId);
-        if (null === $history) {
+        if ($history === null) {
             $this->logger->warning('gamification.match_saved.history_missing', [
                 'historyId' => $event->spicyMatchHistoryId,
             ]);
@@ -35,7 +35,7 @@ class GamificationHandler
         }
 
         $spicyMatch = $history->getSpicyMatch();
-        if (null === $spicyMatch) {
+        if ($spicyMatch === null) {
             $this->logger->warning('gamification.match_saved.spicy_match_missing', [
                 'historyId' => $event->spicyMatchHistoryId,
             ]);
@@ -44,12 +44,12 @@ class GamificationHandler
         }
 
         $user = $spicyMatch->getUser();
-        if (null === $user) {
+        if ($user === null) {
             return;
         }
 
         // Idempotence guard — short-circuit if this exact match has already been processed.
-        if (! $this->processedEvents->claim($user, 'match_saved', 'match:'.$event->spicyMatchHistoryId)) {
+        if (! $this->processedEvents->claim($user, 'match_saved', 'match:' . $event->spicyMatchHistoryId)) {
             $this->logger->info('gamification.match_saved.duplicate', [
                 'userId' => $user->getId(),
                 'historyId' => $event->spicyMatchHistoryId,

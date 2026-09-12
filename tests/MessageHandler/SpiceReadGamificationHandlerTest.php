@@ -26,11 +26,17 @@ use Psr\Log\NullLogger;
 final class SpiceReadGamificationHandlerTest extends TestCase
 {
     private UsersRepository&MockObject $usersRepo;
+
     private SpicesRepository&MockObject $spicesRepo;
+
     private SpiceViewRepository&MockObject $spiceViewRepo;
+
     private GamificationManagerInterface&MockObject $manager;
+
     private EntityManagerInterface&MockObject $em;
+
     private ProcessedGamificationEventRepository&MockObject $processedEvents;
+
     private SpiceReadGamificationHandler $handler;
 
     protected function setUp(): void

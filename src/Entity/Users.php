@@ -351,7 +351,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function isPremium(?\DateTimeImmutable $now = null): bool
     {
-        return null !== $this->premiumUntil && $this->premiumUntil > ($now ?? new \DateTimeImmutable());
+        return $this->premiumUntil !== null && $this->premiumUntil > ($now ?? new \DateTimeImmutable());
     }
 
     public function getOnboardingState(): ?string

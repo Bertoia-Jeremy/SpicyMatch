@@ -79,7 +79,7 @@ final class SitemapSubscriber implements EventSubscriberInterface
 
         foreach (self::DETAIL_ROUTES as $route => $class) {
             foreach ($this->em->getRepository($class)->findAll() as $entity) {
-                if (null !== $entity->getDeletedAt()) {
+                if ($entity->getDeletedAt() !== null) {
                     continue;
                 }
 

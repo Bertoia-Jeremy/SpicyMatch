@@ -72,7 +72,7 @@ final class MatchController extends AbstractController
         // getClientIp() peut retourner null si trusted_proxies n'est pas configuré.
         // Fallback 'unknown' partagerait un seul bucket entre tous les clients → DoS trivial.
         $clientIp = $request->getClientIp();
-        if (null === $clientIp) {
+        if ($clientIp === null) {
             return $this->json(
                 [
                     'error' => 'Impossible de déterminer l\'adresse IP du client.',
@@ -81,7 +81,7 @@ final class MatchController extends AbstractController
             );
         }
 
-        $limiter = $this->matchApiLimiter->create('ip:'.$clientIp);
+        $limiter = $this->matchApiLimiter->create('ip:' . $clientIp);
         $rateLimit = $limiter->consume();
 
         if (! $rateLimit->isAccepted()) {
@@ -89,7 +89,7 @@ final class MatchController extends AbstractController
 
             return $this->json(
                 [
-                    'error' => 'Trop de requêtes. Réessayer dans '.$retryAfter.' secondes.',
+                    'error' => 'Trop de requêtes. Réessayer dans ' . $retryAfter . ' secondes.',
                 ],
                 Response::HTTP_TOO_MANY_REQUESTS,
                 [
@@ -101,7 +101,7 @@ final class MatchController extends AbstractController
         // Validation du paramètre obligatoire
         $spicesParam = trim($request->query->getString('spices'));
 
-        if ('' === $spicesParam) {
+        if ($spicesParam === '') {
             return $this->json([
                 'error' => 'Le paramètre "spices" est requis (IDs virgule-séparés).',
             ], Response::HTTP_BAD_REQUEST);
@@ -205,7 +205,7 @@ final class MatchController extends AbstractController
             $culinaryContext = new CulinaryContext($matrix, $fatRatio, $waterRatio, $cookingTime, $temperature);
         } catch (\InvalidArgumentException $e) {
             return $this->json([
-                'error' => 'Paramètres culinaires invalides : '.$e->getMessage(),
+                'error' => 'Paramètres culinaires invalides : ' . $e->getMessage(),
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -214,12 +214,12 @@ final class MatchController extends AbstractController
             $this->spicesRepository->findBy([
                 'id' => $mortar->toArray(),
             ]),
-            static fn ($s) => null === $s->getDeletedAt(),
+            static fn ($s) => $s->getDeletedAt() === null,
         );
         $foundIds = array_map(static fn ($s) => $s->getId(), $mortarSpices);
         $missingIds = array_diff($mortar->toArray(), $foundIds);
 
-        if ([] !== $missingIds) {
+        if ($missingIds !== []) {
             // Message générique — ne pas exposer quels IDs existent ou non (info disclosure)
             return $this->json([
                 'error' => 'Une ou plusieurs épices sont introuvables.',
@@ -247,7 +247,7 @@ final class MatchController extends AbstractController
             $pipelineResults
         );
 
-        $oavMode = [] !== $pipelineResults && $pipelineResults[0]['oav_mode'];
+        $oavMode = $pipelineResults !== [] && $pipelineResults[0]['oav_mode'];
         $scoringMode = ScoringMode::resolve($oavMode, $this->hybridizer->isActive());
 
         return $this->json([

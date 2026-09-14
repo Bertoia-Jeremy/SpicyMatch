@@ -22,7 +22,6 @@ class FlavorGraphAffinityRepository extends ServiceEntityRepository
 
     /**
      * @param list<int> $candidateIds
-     *
      * @return array<int, array<int, float>> candidate_id => [mortar_id => affinity_score]
      */
     public function loadPairwiseBatch(array $candidateIds, MortarIds $mortar): array

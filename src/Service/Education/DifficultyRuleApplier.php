@@ -6,17 +6,6 @@ namespace App\Service\Education;
 
 use App\Enum\GameDifficulty;
 
-/**
- * Définit les règles transverses associées à chaque niveau de difficulté.
- *
- * - Commis (EASY)         : aides visuelles complètes, chrono confortable, intrus faciles.
- * - Cuisinier (MEDIUM)    : comportement par défaut.
- * - Chef de Partie (HARD) : rendu monochrome, chrono Hangman -30 %.
- *
- * Ce service ne fait que définir les règles. La propagation est garantie via :
- *  - une variable Twig globale (DifficultyExtension) pour le rendu,
- *  - une validation serveur des timers (GameSession::$expiresAt).
- */
 final class DifficultyRuleApplier
 {
     private const int HANGMAN_BASE_SECONDS = 60;
@@ -31,13 +20,10 @@ final class DifficultyRuleApplier
         return match ($difficulty) {
             GameDifficulty::EASY => 90,
             GameDifficulty::MEDIUM => self::HANGMAN_BASE_SECONDS,
-            GameDifficulty::HARD => (int) round(self::HANGMAN_BASE_SECONDS * 0.7), // 42s
+            GameDifficulty::HARD => (int) round(self::HANGMAN_BASE_SECONDS * 0.7),
         };
     }
 
-    /**
-     * Label "métier" affiché côté UX.
-     */
     public function label(GameDifficulty $difficulty): string
     {
         return match ($difficulty) {

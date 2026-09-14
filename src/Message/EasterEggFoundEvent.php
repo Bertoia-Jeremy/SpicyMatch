@@ -9,7 +9,6 @@ final readonly class EasterEggFoundEvent
     public function __construct(
         public int $userId,
         public string $easterEggSlug,
-        public int $xpAmount = 75,
     ) {
     }
 }

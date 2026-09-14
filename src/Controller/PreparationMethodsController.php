@@ -42,9 +42,6 @@ class PreparationMethodsController extends AbstractController
             return $redirect;
         }
 
-        // Seed the server-side timestamp for the "temps_de_l_infusion" easter egg
-        // (stay ≥ 260s on the infusion page). Client cannot forge this value —
-        // the EasterEggService reads it from session on validation.
         if (mb_strtolower((string) $preparationMethod->getName()) === 'infusion') {
             $session = $request->getSession();
             if (! \is_int($session->get('easter_egg.infusion_started_at'))) {

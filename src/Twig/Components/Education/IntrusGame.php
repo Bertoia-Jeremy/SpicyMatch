@@ -13,6 +13,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
@@ -34,9 +35,6 @@ class IntrusGame extends AbstractController
 
     #[LiveProp]
     public int $questionNumber = 0;
-
-    #[LiveProp]
-    public int $totalQuestions = 5;
 
     #[LiveProp]
     public int $correctCount = 0;
@@ -68,9 +66,6 @@ class IntrusGame extends AbstractController
     #[LiveProp]
     public string $lastCorrectAnswerName = '';
 
-    /**
-     * ID of the option the user clicked — used to highlight red in feedback mode.
-     */
     #[LiveProp]
     public int $lastSelectedId = 0;
 
@@ -102,6 +97,7 @@ class IntrusGame extends AbstractController
         private readonly AcademyManager $academyManager,
         private readonly GameSessionManager $sessionManager,
         private readonly RequestStack $requestStack,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -111,6 +107,11 @@ class IntrusGame extends AbstractController
         $this->gameToken = bin2hex(random_bytes(8));
         $this->startedAt = time();
         $this->generateQuestion();
+    }
+
+    public function getTotalQuestions(): int
+    {
+        return GameMode::INTRUS->totalQuestions() ?? 0;
     }
 
     #[LiveAction]
@@ -127,7 +128,6 @@ class IntrusGame extends AbstractController
         $correctSteps = $secret['correctSteps'] ?? [];
         $questions = $secret['questions'] ?? [];
 
-        // Replay guard: each question (identified by step) can only be answered once.
         if ($currentStep === null || \in_array($currentStep, $answeredSteps, true)) {
             return;
         }
@@ -139,7 +139,6 @@ class IntrusGame extends AbstractController
             $correctSteps[] = $currentStep;
         }
 
-        // Find names for feedback display and history
         $correctName = '';
         $selectedName = '';
 
@@ -153,7 +152,6 @@ class IntrusGame extends AbstractController
             }
         }
 
-        // Store per-question data for answer history on result page
         $questions[] = [
             'questionIndex' => $this->questionNumber - 1,
             'prompt' => $this->prompt,
@@ -167,7 +165,6 @@ class IntrusGame extends AbstractController
         $secret['questions'] = $questions;
         $this->writeSecret($secret);
 
-        // Mirror to LiveProp for UI only — server-side source of truth is the session.
         if ($isCorrect) {
             ++$this->correctCount;
         } else {
@@ -191,7 +188,7 @@ class IntrusGame extends AbstractController
         $this->lastCorrectAnswerName = '';
         $this->lastSelectedId = 0;
 
-        if ($this->questionNumber >= $this->totalQuestions) {
+        if ($this->questionNumber >= $this->getTotalQuestions()) {
             return $this->doFinish();
         }
 
@@ -211,27 +208,40 @@ class IntrusGame extends AbstractController
         /** @var Users $user */
         $user = $this->getUser();
 
-        // Authoritative counts come from session — NOT from LiveProps (client-tamperable).
         $secret = $this->readSecret();
         $answeredSteps = $secret['answeredSteps'] ?? [];
         $correctSteps = $secret['correctSteps'] ?? [];
         $questionHistory = $secret['questions'] ?? [];
 
+        if ($answeredSteps === []) {
+            $this->removeSecret();
+
+            return $this->redirectToRoute('education_index');
+        }
+
         $durationSeconds = time() - $this->startedAt;
 
-        $gameSession = $this->sessionManager->createFinishedSession(
-            $user,
-            GameMode::INTRUS,
-            GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY,
-            \count($correctSteps),
-            \count($answeredSteps),
-            $durationSeconds,
-        );
+        try {
+            $gameSession = $this->sessionManager->createFinishedSession(
+                $user,
+                GameMode::INTRUS,
+                GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY,
+                \count($correctSteps),
+                \count($answeredSteps),
+                $durationSeconds,
+            );
+        } catch (\RuntimeException) {
+            $this->removeSecret();
+            $this->addFlash('warning', $this->translator->trans('flash.daily_limit_reached', [
+                '%mode%' => $this->translator->trans(GameMode::INTRUS->label()),
+                '%max%' => $this->sessionManager->maxDailySessions($user),
+            ]));
 
-        // Persist per-question history so result page can display it
+            return $this->redirectToRoute('education_index');
+        }
+
         $this->sessionManager->addQuestionsToSession($gameSession, $questionHistory);
 
-        // Cleanup session secrets
         $this->removeSecret();
 
         return $this->redirectToRoute('education_result', [
@@ -253,7 +263,6 @@ class IntrusGame extends AbstractController
         );
 
         if ($question === null) {
-            // Not enough data to generate more questions — finish early
             $this->isFinished = true;
             --$this->questionNumber;
 
@@ -266,7 +275,6 @@ class IntrusGame extends AbstractController
         $this->prompt = $question['prompt'];
         $this->options = $question['options'];
 
-        // Derive majority aromatic family for the family chip
         $this->familyName = '';
         $this->familyColor = '';
         $groupTally = [];
@@ -286,8 +294,6 @@ class IntrusGame extends AbstractController
             }
         }
 
-        // Store correct answer + step nonce in session (not in LiveProp).
-        // Preserve correctSteps and questions accumulated across previous questions.
         $previous = $this->readSecret();
         $this->writeSecret([
             'correctAnswerId' => $question['correctAnswerId'],

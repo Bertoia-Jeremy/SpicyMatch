@@ -29,9 +29,6 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * Fetch at most $limit histories for $user — avoids loading the full collection
-     * when only a preview is needed (e.g., profile page).
-     *
      * @return SpicyMatchHistory[]
      */
     public function findByUserWithLimit(Users $user, int $limit): array
@@ -123,6 +120,55 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    public function countGroupedByUser(): array
+    {
+        return $this->mapGroupedByUser(
+            $this->createQueryBuilder('smh')
+                ->select('IDENTITY(sm.user) AS uid', 'COUNT(smh.id) AS total')
+                ->join('smh.spicyMatch', 'sm')
+                ->where('smh.deletedAt IS NULL')
+                ->andWhere('sm.user IS NOT NULL')
+                ->groupBy('sm.user')
+                ->getQuery()
+                ->getArrayResult()
+        );
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    public function countDistinctSpicesGroupedByUser(): array
+    {
+        return $this->mapGroupedByUser(
+            $this->createQueryBuilder('smh')
+                ->select('IDENTITY(sm.user) AS uid', 'COUNT(DISTINCT s.id) AS total')
+                ->join('smh.spicyMatch', 'sm')
+                ->join('sm.spices', 's')
+                ->where('smh.deletedAt IS NULL')
+                ->andWhere('sm.user IS NOT NULL')
+                ->groupBy('sm.user')
+                ->getQuery()
+                ->getArrayResult()
+        );
+    }
+
+    /**
+     * @param list<array<string, mixed>> $rows
+     * @return array<int, int>
+     */
+    private function mapGroupedByUser(array $rows): array
+    {
+        $result = [];
+        foreach ($rows as $row) {
+            $result[(int) $row['uid']] = (int) $row['total'];
+        }
+
+        return $result;
     }
 
     public function countDistinctSpicesByUser(Users $user): int

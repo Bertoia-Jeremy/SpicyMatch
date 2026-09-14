@@ -46,10 +46,6 @@ class NewsletterController extends AbstractController
         return $this->redirect($this->safeReferer($request));
     }
 
-    /**
-     * Referer interne uniquement (host exact), sinon `/` — empêche l'open redirect
-     * via en-tête `Referer` forgé.
-     */
     private function safeReferer(Request $request): string
     {
         $referer = $request->headers->get('referer');

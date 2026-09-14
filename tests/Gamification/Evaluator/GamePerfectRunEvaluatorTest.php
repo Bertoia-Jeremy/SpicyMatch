@@ -50,7 +50,6 @@ final class GamePerfectRunEvaluatorTest extends TestCase
 
         $this->sessionRepo->method('countPerfectRunsByMode')
             ->willReturn(3);
-        // Achievement declares mode filter → ContextFilter rejects if context mode missing.
         self::assertTrue($this->evaluator->isMet($achievement, $progression, [
             'gameMode' => GameMode::INTRUS,
         ]));

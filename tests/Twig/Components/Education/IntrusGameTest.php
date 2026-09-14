@@ -14,15 +14,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
+use Symfony\Component\Translation\IdentityTranslator;
 
-/**
- * Unit tests for IntrusGame::answer() and IntrusGame::next().
- *
- * Only methods that do NOT call AbstractController::getUser() / redirectToRoute()
- * are covered here. The doFinish() path requires a kernel (integration suite).
- *
- * Security focus: replay guards, session-side truth, idempotency.
- */
 #[AllowMockObjectsWithoutExpectations]
 final class IntrusGameTest extends TestCase
 {
@@ -38,11 +31,8 @@ final class IntrusGameTest extends TestCase
         $this->sessionManager = $this->createMock(GameSessionManager::class);
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
-
     /**
      * @param array<string, mixed> $secret
-     *
      * @return array{IntrusGame, Session}
      */
     private function makeGame(array $secret = []): array
@@ -60,10 +50,10 @@ final class IntrusGameTest extends TestCase
             $this->academyManager,
             $this->sessionManager,
             $requestStack,
+            new IdentityTranslator(),
         );
         $game->gameToken = self::TOKEN;
         $game->questionNumber = 1;
-        $game->totalQuestions = 10;
 
         return [$game, $session];
     }
@@ -101,8 +91,6 @@ final class IntrusGameTest extends TestCase
         $game->prompt = 'Quel est l\'intrus ?';
     }
 
-    // ── answer() — idempotency guards ────────────────────────────────────────
-
     public function testAnswerDoesNothingWhenShowFeedbackIsTrue(): void
     {
         [$game] = $this->makeGame($this->baseSecret());
@@ -126,13 +114,10 @@ final class IntrusGameTest extends TestCase
         self::assertSame(0, $game->correctCount);
     }
 
-    /**
-     * Security: replay attack — same step answered twice must be rejected.
-     */
     public function testAnswerReplayGuardBlocksAlreadyAnsweredStep(): void
     {
         $secret = $this->baseSecret(correctId: 42, step: 1);
-        $secret['answeredSteps'] = [1]; // step 1 already consumed
+        $secret['answeredSteps'] = [1];
 
         [$game] = $this->makeGame($secret);
         $this->setOptions($game);
@@ -142,8 +127,6 @@ final class IntrusGameTest extends TestCase
         self::assertSame(0, $game->correctCount);
         self::assertFalse($game->showFeedback);
     }
-
-    // ── answer() — correct pick ───────────────────────────────────────────────
 
     public function testAnswerCorrectPickIncrementsCorrectCount(): void
     {
@@ -187,8 +170,6 @@ final class IntrusGameTest extends TestCase
         self::assertSame(42, $game->lastSelectedId);
     }
 
-    // ── answer() — wrong pick ─────────────────────────────────────────────────
-
     public function testAnswerWrongPickIncrementsIncorrectCount(): void
     {
         [$game] = $this->makeGame($this->baseSecret(correctId: 42));
@@ -210,8 +191,6 @@ final class IntrusGameTest extends TestCase
         self::assertFalse($game->lastAnswerCorrect);
         self::assertTrue($game->showFeedback);
     }
-
-    // ── answer() — session persistence ───────────────────────────────────────
 
     public function testAnswerPersistsAnsweredStepInSession(): void
     {
@@ -248,12 +227,8 @@ final class IntrusGameTest extends TestCase
         self::assertTrue($stored['questions'][0]['isCorrect']);
     }
 
-    // ── next() ───────────────────────────────────────────────────────────────
-
     public function testNextResetsFeedbackState(): void
     {
-        // generateQuestion() → generateIntrusQuestion() → null (mock default) → isFinished=true
-        // No AbstractController call → safe.
         [$game] = $this->makeGame([
             'answeredSteps' => [],
             'correctSteps' => [],
@@ -264,7 +239,6 @@ final class IntrusGameTest extends TestCase
         $game->lastCorrectAnswerName = 'Cumin';
         $game->lastSelectedId = 7;
         $game->questionNumber = 2;
-        $game->totalQuestions = 10;
 
         $game->next();
 

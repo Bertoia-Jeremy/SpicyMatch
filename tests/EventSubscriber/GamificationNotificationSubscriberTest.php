@@ -56,8 +56,6 @@ final class GamificationNotificationSubscriberTest extends TestCase
         $response = new Response('<html><body>x</body></html>');
         $response->headers->set('Content-Type', 'text/html');
 
-        // Expect: no notification lookup at all when inside a Turbo Frame — the toast
-        // would otherwise land inside the frame and be lost.
         $this->notifRepository->expects(self::never())->method('findUndeliveredForUser');
 
         $this->subscriber->onKernelResponse($this->makeEvent($request, $response));
@@ -93,7 +91,6 @@ final class GamificationNotificationSubscriberTest extends TestCase
         $this->tokenStorage->method('getToken')
             ->willReturn($token);
 
-        // Opt-out MUST short-circuit BEFORE hitting the notification repo.
         $this->notifRepository->expects(self::never())->method('findUndeliveredForUser');
 
         $this->subscriber->onKernelResponse($this->makeEvent($request, $response));

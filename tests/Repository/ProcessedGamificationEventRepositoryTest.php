@@ -9,11 +9,6 @@ use App\Repository\ProcessedGamificationEventRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-/**
- * Idempotency ledger — core of the handler anti-retry guard. If claim()
- * returns true twice for the same (eventType, eventKey), handlers will
- * double-award XP on Messenger retries.
- */
 final class ProcessedGamificationEventRepositoryTest extends KernelTestCase
 {
     private EntityManagerInterface $em;
@@ -28,7 +23,6 @@ final class ProcessedGamificationEventRepositoryTest extends KernelTestCase
         $this->em = self::getContainer()->get(EntityManagerInterface::class);
         $this->repo = self::getContainer()->get(ProcessedGamificationEventRepository::class);
 
-        // Use the first existing user — test only needs a persisted user for the FK.
         $this->user = $this->em->getRepository(Users::class)->findOneBy([]) ?? $this->createUser();
     }
 

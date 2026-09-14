@@ -8,7 +8,6 @@ final class LocalizedSpiceNames
 {
     /**
      * @param array<int, array<string, mixed>> $cards
-     *
      * @return array<int, array{canonical: string, localized: string, groupName: ?string}>
      */
     public static function build(array $cards, AcademyManager $academyManager): array
@@ -69,7 +68,6 @@ final class LocalizedSpiceNames
 
     /**
      * @param array<int, array{canonical: string, localized: string, groupName: ?string}> $nameMap
-     *
      * @return array<string, string>
      */
     public static function labelIndex(array $nameMap): array

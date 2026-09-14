@@ -15,9 +15,6 @@ enum OdtMatrix: string
     case WATER = 'water';
     case OIL = 'oil';
 
-    /**
-     * Clé de traduction.
-     */
     public function label(): string
     {
         return 'enum.matrix.' . $this->value;

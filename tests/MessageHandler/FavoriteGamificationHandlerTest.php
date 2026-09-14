@@ -35,6 +35,8 @@ final class FavoriteGamificationHandlerTest extends TestCase
         $this->historyRepo = $this->createMock(SpicyMatchHistoryRepository::class);
         $this->manager = $this->createMock(GamificationManagerInterface::class);
         $this->em = $this->createMock(EntityManagerInterface::class);
+        $this->em->method('wrapInTransaction')
+            ->willReturnCallback(fn (callable $callback) => $callback($this->em));
         $this->handler = new FavoriteGamificationHandler(
             $this->usersRepo,
             $this->historyRepo,

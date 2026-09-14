@@ -14,6 +14,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class PendingGamificationNotificationRepository extends ServiceEntityRepository
 {
+    public const int MAX_PER_RESPONSE = 20;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, PendingGamificationNotification::class);
@@ -29,6 +31,7 @@ class PendingGamificationNotificationRepository extends ServiceEntityRepository
             ->andWhere('n.deliveredAt IS NULL')
             ->setParameter('user', $user)
             ->orderBy('n.createdAt', 'ASC')
+            ->setMaxResults(self::MAX_PER_RESPONSE)
             ->getQuery()
             ->getResult();
     }

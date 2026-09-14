@@ -14,6 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
@@ -89,6 +90,7 @@ class SurvivalGame extends AbstractController
         private readonly GameSessionManager $sessionManager,
         private readonly RequestStack $requestStack,
         private readonly SpicesRepository $spicesRepository,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -201,14 +203,24 @@ class SurvivalGame extends AbstractController
 
         $durationSeconds = time() - $this->startedAt;
 
-        $gameSession = $this->sessionManager->createFinishedSession(
-            $user,
-            GameMode::SURVIVAL,
-            GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY,
-            $serverChain,
-            max($serverChain, 1),
-            $durationSeconds,
-        );
+        try {
+            $gameSession = $this->sessionManager->createFinishedSession(
+                $user,
+                GameMode::SURVIVAL,
+                GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY,
+                $serverChain,
+                max($serverChain, 1),
+                $durationSeconds,
+            );
+        } catch (\RuntimeException) {
+            $this->removeSecret();
+            $this->addFlash('warning', $this->translator->trans('flash.daily_limit_reached', [
+                '%mode%' => $this->translator->trans(GameMode::SURVIVAL->label()),
+                '%max%' => $this->sessionManager->maxDailySessions($user),
+            ]));
+
+            return $this->redirectToRoute('education_index');
+        }
 
         $this->removeSecret();
 
@@ -295,7 +307,6 @@ class SurvivalGame extends AbstractController
 
     /**
      * @param array<string, mixed> $card
-     *
      * @return array{id: int, name: string, file: ?string, color: ?string, groupName: ?string}
      */
     private function toSummary(array $card): array

@@ -15,7 +15,6 @@
   style="background-color: #F5ECDB;"
 >
 
-  {# ===== TOP BAR ===== #}
   <header class="max-w-[1180px] mx-auto px-6 pt-6 pb-3 flex items-center justify-between">
     <a href="{{ path('index_spicy_match') }}"
        class="flex items-center gap-2 text-sm transition-colors"
@@ -29,7 +28,6 @@
     <span class="smallcaps">{{ 'ui.lab.finalize'|trans }}</span>
   </header>
 
-  {# ===== HERO ===== #}
   <section class="max-w-[1180px] mx-auto px-6 pt-2 pb-8 text-center">
     <span class="relative inline-block mb-4">
       <span class="block hex w-9 h-10" style="background: linear-gradient(180deg, #D2773A, #9A4720);"></span>
@@ -42,7 +40,6 @@
     </h1>
   </section>
 
-  {# ===== STATIONS ===== #}
   <section class="max-w-[1180px] mx-auto px-6 mb-10">
     <div class="stepper">
       {% for spice in spices %}
@@ -68,7 +65,6 @@
     </div>
   </section>
 
-  {# ===== ÉTAPES PAR ÉPICE ===== #}
   <main class="max-w-[1180px] mx-auto px-6 pb-48">
     {% for spice in spices %}
       {% set cookingTips = spice.cookingTips|sort((a, b) => a.step <=> b.step) %}
@@ -81,7 +77,6 @@
            x-transition:leave-start="opacity-100"
            x-transition:leave-end="opacity-0">
 
-        {# ÉTAPE I — LE TEMPS (moment d'insertion) #}
         <section class="step-block">
           <div class="smallcaps mb-2">{{ 'ui.lab.step_time'|trans }}</div>
           <h2 class="font-display leading-tight" style="font-size: clamp(22px, 4vw, 34px); color: #2A1F14;">
@@ -107,7 +102,6 @@
           </div>
         </section>
 
-        {# ÉTAPE II — LA MAIN (méthode de préparation) #}
         <section class="step-block" data-step-method-spice="{{ spice.id }}">
           <div class="smallcaps mb-2">{{ 'ui.lab.step_hand'|trans }}</div>
           <h2 class="font-display leading-tight" style="font-size: clamp(22px, 4vw, 34px); color: #2A1F14;">
@@ -139,7 +133,6 @@
     {% endfor %}
   </main>
 
-  {# ===== TOAST ===== #}
   <div class="toast"
        x-show="toast.visible"
        x-cloak
@@ -159,7 +152,6 @@
     <span x-text="toast.text"></span>
   </div>
 
-  {# ===== STICKY CTA ===== #}
   <div class="fixed inset-x-0 bottom-0 cta-bar pt-7 sm:pt-10 pb-4 sm:pb-6 pointer-events-none"
        style="z-index: 30;">
     <div class="max-w-[1180px] mx-auto px-6 flex flex-col items-center gap-2">

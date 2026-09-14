@@ -32,9 +32,6 @@ class AchievementProgress
     #[ORM\Column]
     private \DateTimeImmutable $updatedAt;
 
-    /**
-     * Virtual property using PHP 8.4 Property Hooks.
-     */
     public bool $isCompleted {
         get => $this->progress >= ($this->achievement?->getTriggerValue() ?? 1);
     }

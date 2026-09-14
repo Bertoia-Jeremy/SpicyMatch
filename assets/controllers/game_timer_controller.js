@@ -1,35 +1,12 @@
 import { Controller } from '@hotwired/stimulus';
 import { t } from '../i18n.js';
 
-/**
- * Wall-clock countdown timer for Live Component games.
- * Replaces the inline `x-data` timer in ChronoGame and HangmanGame templates,
- * eliminating one of the main obstacles to a CSP without `script-src 'unsafe-inline'`.
- *
- * Usage:
- *   <div data-controller="game-timer"
- *        data-game-timer-expires-at-value="{{ this.expiresAt }}"
- *        data-game-timer-total-seconds-value="{{ this.timeLimit }}"
- *        data-game-timer-timeout-action-value="timeout">
- *     <span data-game-timer-target="label"></span>
- *     <div data-game-timer-target="bar"></div>
- *     <button data-game-timer-target="timeoutButton" class="hidden"
- *             data-action="live#action"
- *             data-live-action-param="timeout"></button>
- *   </div>
- *
- * The controller never mutates the DOM beyond its targets — safe under morphdom
- * re-renders as long as the containing element has `data-live-ignore`.
- */
 export default class extends Controller {
     static targets = ['label', 'bar', 'timeoutButton', 'announcer'];
 
     static values = {
-        // Unix timestamp (seconds) at which the game expires.
         expiresAt: Number,
-        // Total countdown duration (seconds) — used to compute the progress bar %.
         totalSeconds: Number,
-        // CSS class thresholds (optional overrides).
         dangerThreshold: { type: Number, default: 5 },
         warningThreshold: { type: Number, default: 15 },
     };
@@ -62,7 +39,6 @@ export default class extends Controller {
             this.labelTarget.classList.toggle('text-stone-700', remaining > this.dangerThresholdValue);
         }
 
-        // Annonce SR toutes les 10 s (par décade : insensible aux ticks sautés)
         const decade = Math.floor(remaining / 10);
         if (this.hasAnnouncerTarget && remaining > 0 && decade !== this.lastAnnounced) {
             this.lastAnnounced = decade;

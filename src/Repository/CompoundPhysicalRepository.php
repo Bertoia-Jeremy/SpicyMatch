@@ -19,11 +19,7 @@ final class CompoundPhysicalRepository extends ServiceEntityRepository implement
     }
 
     /**
-     * Charge les propriétés physiques pour une liste de composés, indexées par compoundId.
-     * Single query, pas de N+1.
-     *
      * @param int[] $compoundIds
-     *
      * @return array<int, CompoundPhysical>
      */
     public function loadByCompoundIds(array $compoundIds): array
@@ -32,7 +28,6 @@ final class CompoundPhysicalRepository extends ServiceEntityRepository implement
             return [];
         }
 
-        // JOIN explicite : utilise l'index FK aromatic_compound_id directement.
         $rows = $this->createQueryBuilder('cp')
             ->join('cp.compound', 'c')
             ->where('c.id IN (:ids)')

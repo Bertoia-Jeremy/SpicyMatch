@@ -1,13 +1,3 @@
-{#
-  Composant avatar — l'avatar EST le badge équipé (rareté + icône).
-  Variables :
-    - equippedBadge (UserAchievement|null) : badge équipé, null → avatar par défaut
-    - sizeClass     (string)               : classes Tailwind taille/texte (défaut : 'w-16 h-16 text-2xl')
-    - borderClass   (string)               : classes de bordure (défaut : 'border-2 border-saffron-400/30')
-    - level         (int|null)             : niveau à afficher en badge overlay (défaut : null — pas de badge)
-  Usage :
-    {% include 'components/_avatar.html.twig' with { equippedBadge: progression.equippedBadge, level: progression.level } %}
-#}
 {% set sizeClass = sizeClass ?? 'w-16 h-16 text-2xl' %}
 {% set borderClass = borderClass ?? 'border-2 border-saffron-400/30' %}
 {% set level = level ?? null %}

@@ -10,10 +10,6 @@ use App\Repository\AromaticCompoundTranslationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * Traduction localisée d'un composé aromatique. Une ligne par (composé, locale).
- * cas_number / formula restent invariants sur AromaticCompound (jamais traduits).
- */
 #[ORM\Entity(repositoryClass: AromaticCompoundTranslationRepository::class)]
 #[ORM\Table(name: 'aromatic_compound_translation')]
 #[ORM\UniqueConstraint(name: 'uniq_aromatic_compound_locale', columns: ['aromatic_compound_id', 'locale'])]

@@ -7,12 +7,9 @@ namespace App\Entity;
 use App\Repository\PendingGamificationNotificationRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * Stores gamification notifications (achievement_unlocked, level_up) pending delivery.
- * Consumed by GamificationNotificationSubscriber on the next HTML response.
- */
 #[ORM\Entity(repositoryClass: PendingGamificationNotificationRepository::class)]
 #[ORM\Table(name: 'pending_gamification_notification')]
+#[ORM\Index(name: 'idx_pgn_user_delivered', columns: ['user_id', 'delivered_at'])]
 class PendingGamificationNotification
 {
     #[ORM\Id]
@@ -24,15 +21,10 @@ class PendingGamificationNotification
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Users $user;
 
-    /**
-     * 'achievement_unlocked' | 'level_up'.
-     */
     #[ORM\Column(length: 50)]
     private string $type;
 
     /**
-     * JSON payload: achievement slug, name, icon, rarity, xpReward or level.
-     *
      * @var array<string, mixed>
      */
     #[ORM\Column(type: 'json')]

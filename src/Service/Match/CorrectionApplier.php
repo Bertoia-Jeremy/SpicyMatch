@@ -7,10 +7,6 @@ namespace App\Service\Match;
 use App\Repository\CompoundPhysicalRepositoryInterface;
 use App\ValueObject\Match\CulinaryContext;
 
-/**
- * Applique la correction physico-chimique aux profils OAV.
- * L'appelant garantit que la correction est requise (cf. OavPartitionCalculator::needsCorrection()).
- */
 final readonly class CorrectionApplier
 {
     public function __construct(
@@ -37,7 +33,6 @@ final readonly class CorrectionApplier
     /**
      * @param int[]                         $mortarCompoundIds
      * @param array<int, array<int, float>> $candidateProfiles
-     *
      * @return array<int, float>
      */
     private function buildCorrectionFactors(

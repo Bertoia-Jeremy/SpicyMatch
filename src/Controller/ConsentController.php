@@ -39,7 +39,6 @@ class ConsentController extends AbstractController
         $analytics = (bool) ($data['analytics'] ?? false);
         $functional = (bool) ($data['functional'] ?? false);
 
-        // Respect DNT: override analytics to false
         if ($this->consentService->respectsDnt()) {
             $analytics = false;
         }

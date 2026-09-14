@@ -16,18 +16,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Messenger\MessageBusInterface;
 
-/**
- * Déclenche le recalcul de la table spice_active_compound (vue matérialisée OAV).
- *
- * Le handler reconstruit toujours les 3 matrices (air, water, oil) en une seule passe.
- * Transaction InnoDB unique sur les 3 INSERT — atomique, zéro downtime.
- *
- * Usage :
- *   bin/console app:recompute:oav         # dispatch async (Messenger)
- *   bin/console app:recompute:oav --sync  # exécution synchrone directe
- *
- * @see ARCHITECTURE_MOTEUR_COMPATIBILITE.md §6.6
- */
 #[AsCommand(
     name: 'app:recompute:oav',
     description: 'Recalcule la table spice_active_compound (vue matérialisée OAV — toutes matrices)'

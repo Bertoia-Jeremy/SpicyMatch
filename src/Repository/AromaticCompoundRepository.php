@@ -70,12 +70,8 @@ class AromaticCompoundRepository extends ServiceEntityRepository
     }
 
     /**
-     * Hydratation batch id → name localisé (LEFT JOIN locale + COALESCE FR) pour
-     * éviter le N+1 sur les listes.
-     *
      * @param int[]       $ids
      * @param string|null $locale null ou 'fr' → noms canoniques directs
-     *
      * @return array<int, string> compound_id => name
      */
     public function findNamesById(array $ids, ?string $locale = null): array

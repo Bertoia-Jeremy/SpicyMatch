@@ -6,7 +6,6 @@
         <meta name="description" content="{% block meta_description %}{{ 'ui.meta.description'|trans }}{% endblock %}">
         <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
 
-        {# SEO i18n : canonical + alternates hreflang (uniquement sur les routes localisées /{_locale}) #}
         {% set _route = app.request.attributes.get('_route') %}
         {% set _params = app.request.attributes.get('_route_params')|default({}) %}
         {% if _route and _params._locale is defined %}
@@ -42,9 +41,6 @@
             <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}">
         {% endblock %}
 
-        {# Dictionnaire i18n pour le JavaScript (lu par assets/i18n.js). JSON inerte = pas de nonce CSP requis. #}
-        {# Tout le domaine `js` exposé en un bloc (lu par assets/i18n.js). Pas de
-           liste manuelle = pas de drift ; JSON durci (HEX) = pas de breakout <script>. #}
         <script type="application/json" id="js-i18n">{{ js_i18n_json() }}</script>
 
         {% block javascripts %}
@@ -52,25 +48,21 @@
         {% endblock %}
     </head>
 
-    <body class="bg-cream text-stone-900 font-sans selection:bg-saffron-200 selection:text-saffron-900 overflow-x-hidden">
+    <body class="bg-cream text-stone-900 font-sans selection:bg-saffron-200 selection:text-saffron-900 overflow-x-hidden {% block body_class %}{% endblock %}">
 
-        {# Skip link — accessibilité clavier / lecteurs d'écran #}
         <a href="#main-content"
            class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-200 focus:px-4 focus:py-2 focus:bg-saffron-700 focus:text-cream focus:rounded-full focus:text-sm focus:font-semibold focus:shadow-lg">
             {{ 'ui.common.skip_to_content'|trans }}
         </a>
 
-        {% include 'components/_navbar.html.twig' %}
+        {% block navbar %}{% include 'components/_navbar.html.twig' %}{% endblock %}
 
         <main id="main-content" class="min-h-screen">
             {% block body %}{% endblock %}
         </main>
 
-        {% include 'components/_footer.html.twig' %}
+        {% block footer %}{% include 'components/_footer.html.twig' %}{% endblock %}
 
-        {# {% include 'components/_cookie_consent.html.twig' %} #}
-
-        {# Toast flash global — écoute l'événement "toast" sur window #}
         <div x-data="notificationHost"
              @toast.window="onToast($event)"
              class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none"
@@ -89,7 +81,6 @@
             </template>
         </div>
 
-        {# Gamification toast container — Turbo Streams prepend here #}
         <div id="gamification-toasts"
              class="fixed bottom-6 right-6 z-50 flex flex-col-reverse pointer-events-none w-80"
              aria-live="polite" aria-atomic="false" role="status">
@@ -97,7 +88,6 @@
 
         {% include 'components/_account_created_modal.html.twig' %}
 
-        {# Onboarding — nouveaux utilisateurs uniquement (géré côté client via localStorage) #}
         {% include 'components/_onboarding.html.twig' %}
         {% if not is_granted('ROLE_USER') and app.request.attributes.get('_route') not in ['app_login', 'index_register'] %}
             {% include 'components/_gate_login_modal.html.twig' %}

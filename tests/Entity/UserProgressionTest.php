@@ -20,8 +20,6 @@ final class UserProgressionTest extends TestCase
         $this->progression = new UserProgression();
     }
 
-    // ── Level formula ─────────────────────────────────────────────────────────
-
     #[DataProvider('levelFormulaProvider')]
     public function testLevelFromXp(int $xp, int $expectedLevel): void
     {
@@ -41,30 +39,22 @@ final class UserProgressionTest extends TestCase
         yield 'level 203 at 99999 xp (no cap)' => [99999, 203];
     }
 
-    // ── XP to next level ─────────────────────────────────────────────────────
-
     public function testXpToNextLevelAtZeroXp(): void
     {
-        // level 1 → 2 : 100 * 2^1.3 = 246.22 => 247 XP required
         self::assertSame(247, $this->progression->xpToNextLevel);
     }
 
     public function testXpToNextLevelAt418Xp(): void
     {
-        $this->progression->addXp(418); // level 3
-        // level 3 → 4 : 100 * 4^1.3 = 606.28 => 607 XP required
-        // 607 - 418 = 189
+        $this->progression->addXp(418);
         self::assertSame(189, $this->progression->xpToNextLevel);
     }
 
     public function testXpToNextLevelIsAlwaysPositive(): void
     {
-        // level 58 at 20000 XP → next level 59 requires 20050 XP → 50 remaining
         $this->progression->addXp(20000);
         self::assertSame(50, $this->progression->xpToNextLevel);
     }
-
-    // ── addXp ─────────────────────────────────────────────────────────────────
 
     public function testAddXpAccumulates(): void
     {
@@ -85,41 +75,30 @@ final class UserProgressionTest extends TestCase
         self::assertSame(0, $this->progression->getXp());
     }
 
-    // ── progressPercent ──────────────────────────────────────────────────────
-
     public function testProgressPercentAtZeroXp(): void
     {
-        // Level 1, xpForCurrent=0, xpForNext=247
-        // (0 - 0) / 247 * 100 = 0
         self::assertSame(0.0, $this->progression->progressPercent);
     }
 
     public function testProgressPercentMidLevel(): void
     {
         $this->progression->addXp(100);
-        // Level 1, range = 247-0 = 247
-        // 100/247*100 = 40.5
         self::assertSame(40.5, $this->progression->progressPercent);
     }
 
     public function testProgressPercentAtExactLevelBoundary(): void
     {
         $this->progression->addXp(247);
-        // Level 2, xpForCurrent=247, xpForNext=418
-        // (247-247)/(418-247)*100 = 0.0
         self::assertSame(0.0, $this->progression->progressPercent);
     }
 
     public function testProgressPercentNeverExceedsHundred(): void
     {
-        // Even with very high XP, progressPercent should stay in 0-100 range
         $this->progression->addXp(99999);
         $percent = $this->progression->progressPercent;
         self::assertGreaterThanOrEqual(0.0, $percent);
         self::assertLessThanOrEqual(100.0, $percent);
     }
-
-    // ── incrementers ────────────────────────────────────────────────────────
 
     public function testIncrementDiscoveries(): void
     {
@@ -134,8 +113,6 @@ final class UserProgressionTest extends TestCase
         self::assertSame(1, $this->progression->getTotalMatches());
     }
 
-    // ── incrementSpicesRead ───────────────────────────────────────────────────
-
     public function testIncrementSpicesRead(): void
     {
         self::assertSame(0, $this->progression->getTotalSpicesRead());
@@ -143,8 +120,6 @@ final class UserProgressionTest extends TestCase
             ->incrementSpicesRead();
         self::assertSame(2, $this->progression->getTotalSpicesRead());
     }
-
-    // ── recordReadingStreak ───────────────────────────────────────────────────
 
     public function testFirstReadSetsStreakToOne(): void
     {
@@ -155,8 +130,8 @@ final class UserProgressionTest extends TestCase
 
     public function testReadSameDayDoesNotChangeStreak(): void
     {
-        $this->progression->recordReadingStreak(); // lastReadDate = today, streak = 1
-        $this->progression->recordReadingStreak(); // diff=0 → no change
+        $this->progression->recordReadingStreak();
+        $this->progression->recordReadingStreak();
         self::assertSame(1, $this->progression->getCurrentReadingStreak());
     }
 
@@ -202,7 +177,7 @@ final class UserProgressionTest extends TestCase
         $this->progression->recordReadingStreak();
 
         self::assertSame(1, $this->progression->getCurrentReadingStreak());
-        self::assertSame(7, $this->progression->getLongestReadingStreak()); // unchanged
+        self::assertSame(7, $this->progression->getLongestReadingStreak());
     }
 
     public function testLongestStreakUpdatesWhenCurrentExceedsIt(): void
@@ -215,12 +190,10 @@ final class UserProgressionTest extends TestCase
         $refStreak->setValue($this->progression, 9);
         $refLongest->setValue($this->progression, 9);
 
-        $this->progression->recordReadingStreak(); // current = 10, longest = 10
+        $this->progression->recordReadingStreak();
 
         self::assertSame(10, $this->progression->getLongestReadingStreak());
     }
-
-    // ── Gamification opt-out ─────────────────────────────────────────────────
 
     public function testGamificationEnabledByDefault(): void
     {
@@ -253,8 +226,6 @@ final class UserProgressionTest extends TestCase
         self::assertNull($this->progression->getEquippedBadge());
     }
 
-    // ── equipBadge ────────────────────────────────────────────────────────────
-
     public function testEquipBadgeSetsEquippedBadge(): void
     {
         $ua = $this->progression->unlockAchievement($this->makeAchievement());
@@ -281,8 +252,6 @@ final class UserProgressionTest extends TestCase
         $this->progression->equipBadge($ua);
     }
 
-    // ── hasAchievement / unlockAchievement ────────────────────────────────────
-
     public function testHasAchievementReturnsFalseByDefault(): void
     {
         self::assertFalse($this->progression->hasAchievement($this->makeAchievement()));
@@ -302,8 +271,6 @@ final class UserProgressionTest extends TestCase
 
         self::assertCount(1, $this->progression->getUserAchievements());
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private function makeAchievement(): Achievement
     {

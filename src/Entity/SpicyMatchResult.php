@@ -7,10 +7,6 @@ namespace App\Entity;
 use App\Repository\SpicyMatchResultRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * Stores a compatible spice suggestion with its compatibility score for a given SpicyMatch session.
- * Score breakdown: main compounds ×3, secondary ×1, shared AlchemyFlavors ×5, same group bonus +10.
- */
 #[ORM\Entity(repositoryClass: SpicyMatchResultRepository::class)]
 class SpicyMatchResult
 {
@@ -27,9 +23,6 @@ class SpicyMatchResult
     #[ORM\JoinColumn(nullable: false)]
     private ?Spices $spice = null;
 
-    /**
-     * Normalized score 0–100.
-     */
     #[ORM\Column]
     private int $score = 0;
 

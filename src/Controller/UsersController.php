@@ -55,10 +55,6 @@ class UsersController extends AbstractController
         ]);
     }
 
-    /**
-     * RGPD article 20 — data portability.
-     * Returns a JSON download of everything we hold on the current user.
-     */
     #[Route('/export', name: 'export_user_data', methods: ['GET'])]
     public function exportData(): JsonResponse
     {

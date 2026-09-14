@@ -1,10 +1,4 @@
-{# ═══════════════════════════════════════════════════════
-   Chapitre II — La Toile des Arômes
-   Système solaire moléculaire interactif (Alpine.js)
-   ═══════════════════════════════════════════════════════ #}
 
-{# Données des molécules : géométrie/couleurs inline, contenu (name/badge/descr) traduit.
-   Les listes `shared` (noms d'épices) restent FR — deviendront DB-driven (Batch I). #}
 {% set _molecules = [
     { id: 'm1', x: -100, y: -120, accent: '#D97706', grad: 'radial-gradient(circle at 35% 30%,#E8B547,#8a5a0c)', delay: '0s', formula: 'C₁₀H₁₈O', name: 'ui.toile.m1_name'|trans, badge: 'ui.toile.m1_badge'|trans, descr: 'ui.toile.m1_descr'|trans, shared: ['Coriandre', 'Basilic', 'Cardamome', 'Thym', '+ 14'] },
     { id: 'm2', x: 112, y: -108, accent: '#991B1B', grad: 'radial-gradient(circle at 35% 30%,#C04020,#5a0e0e)', delay: '1.2s', formula: 'C₁₇H₁₉NO₃', name: 'ui.toile.m2_name'|trans, badge: 'ui.toile.m2_badge'|trans, descr: 'ui.toile.m2_descr'|trans, shared: ['Poivre noir', 'Poivre long', 'Cubèbe', '+ 6'] },
@@ -17,7 +11,6 @@
          data-molecules="{{ _molecules|json_encode|e('html_attr') }}"
          style="background: linear-gradient(180deg, var(--color-cream) 0%, var(--color-cream-dark) 100%)">
 
-    {# Section header #}
     <div class="section-head">
         <div>
             <div class="section-label">{{ 'ui.toile.chapter'|trans }}</div>
@@ -33,7 +26,6 @@
 
     <div class="solar-wrap">
 
-        {# ── Canvas système solaire ── #}
         <div class="solar" id="solar">
             <div class="solar-grid" aria-hidden="true"></div>
 
@@ -42,7 +34,6 @@
                 <span>{{ 'ui.toile.hud_stats'|trans }}</span>
             </div>
 
-            {# Lignes SVG connecteurs (statiques, centre du canvas 600×680) #}
             <svg class="absolute inset-0 w-full h-full pointer-events-none z-[1]"
                  viewBox="0 0 600 680" preserveAspectRatio="none" aria-hidden="true">
                 <line x1="300" y1="340" x2="412" y2="232" stroke="#2A1810" stroke-width="1" stroke-dasharray="2 4" opacity=".18"/>
@@ -53,12 +44,10 @@
                 <line x1="300" y1="340" x2="488" y2="332" stroke="#2A1810" stroke-width="1" stroke-dasharray="2 4" opacity=".18"/>
             </svg>
 
-            {# Orbites #}
             <div class="orbit o1" aria-hidden="true"></div>
             <div class="orbit o2" aria-hidden="true"></div>
             <div class="orbit o3" aria-hidden="true"></div>
 
-            {# Soleil central — Cardamome #}
             <div class="sun" aria-hidden="true">
                 <div class="sun-label">
                     Cardamome
@@ -66,7 +55,6 @@
                 </div>
             </div>
 
-            {# Molécules orbitantes — Alpine x-for #}
             <template x-for="m in molecules" :key="m.id">
                 <div class="molecule"
                      :style="m.molStyle"
@@ -85,7 +73,6 @@
 
         </div>
 
-        {# ── Sidebar droite ── #}
         <div class="solar-side">
             <h3 class="font-display font-medium leading-[1.05] mb-[18px] tracking-[-0.01em] solar-side-title">
                 {{ 'ui.toile.side_title_html'|trans|raw }}
@@ -94,7 +81,6 @@
                 {{ 'ui.toile.side_blurb'|trans }}
             </p>
 
-            {# Carte composé actif #}
             <div class="compound-card" :style="cardStyle()">
                 <div class="flex items-center justify-between gap-4 mb-3">
                     <div class="cname" x-text="active.name"></div>
@@ -109,7 +95,6 @@
                 </div>
             </div>
 
-            {# Légende #}
             <div class="solar-legend">
                 <div class="leg-item">
                     <span class="leg-sw" style="background: var(--color-turmeric-600)"></span>{{ 'ui.toile.legend_terpenic'|trans }}

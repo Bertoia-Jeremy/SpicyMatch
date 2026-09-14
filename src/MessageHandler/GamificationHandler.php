@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
+use App\Gamification\GamificationManagerInterface;
 use App\Message\MatchSavedEvent;
 use App\Repository\ProcessedGamificationEventRepository;
 use App\Repository\SpicyMatchHistoryRepository;
@@ -16,7 +17,7 @@ class GamificationHandler
 {
     public function __construct(
         private readonly SpicyMatchHistoryRepository $historyRepository,
-        private readonly \App\Gamification\GamificationManagerInterface $manager,
+        private readonly GamificationManagerInterface $manager,
         private readonly EntityManagerInterface $em,
         private readonly LoggerInterface $logger,
         private readonly ProcessedGamificationEventRepository $processedEvents,
@@ -48,29 +49,30 @@ class GamificationHandler
             return;
         }
 
-        // Idempotence guard — short-circuit if this exact match has already been processed.
-        if (! $this->processedEvents->claim($user, 'match_saved', 'match:' . $event->spicyMatchHistoryId)) {
-            $this->logger->info('gamification.match_saved.duplicate', [
-                'userId' => $user->getId(),
-                'historyId' => $event->spicyMatchHistoryId,
-            ]);
+        $progression = $this->manager->getOrCreateProgression($user);
 
+        if (! $progression->isGamificationEnabled()) {
             return;
         }
 
-        $progression = $this->manager->getOrCreateProgression($user);
+        $this->em->wrapInTransaction(function () use ($event, $user, $progression): void {
+            $this->manager->lockForUpdate($progression);
 
-        if ($progression->isGamificationEnabled()) {
-            // Recount from DB (keeps totals in sync even if ledger gets pruned).
-            $matchCount = $this->historyRepository->countByUser($user);
-            $progression->setTotalMatches($matchCount);
+            if (! $this->processedEvents->claim($user, 'match_saved', 'match:' . $event->spicyMatchHistoryId)) {
+                $this->logger->info('gamification.match_saved.duplicate', [
+                    'userId' => $user->getId(),
+                    'historyId' => $event->spicyMatchHistoryId,
+                ]);
 
-            $uniqueSpiceCount = $this->historyRepository->countDistinctSpicesByUser($user);
-            $progression->setUniqueSpicesUsed($uniqueSpiceCount);
-        }
+                return;
+            }
 
-        $this->manager->process($progression, 'match_saved');
+            $progression->setTotalMatches($this->historyRepository->countByUser($user));
+            $progression->setUniqueSpicesUsed($this->historyRepository->countDistinctSpicesByUser($user));
 
-        $this->em->flush();
+            $this->manager->process($progression, 'match_saved');
+
+            $this->em->flush();
+        });
     }
 }

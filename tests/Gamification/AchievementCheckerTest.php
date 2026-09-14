@@ -22,7 +22,6 @@ use App\Gamification\Evaluator\NFavoritesEvaluator;
 use App\Gamification\Evaluator\NGamesCompletedEvaluator;
 use App\Gamification\Evaluator\NMatchesEvaluator;
 use App\Gamification\Evaluator\NSpicesUsedEvaluator;
-use App\Gamification\Evaluator\NUniqueSpicesUsedInGamesEvaluator;
 use App\Gamification\Evaluator\ReadingStreakEvaluator;
 use App\Gamification\Evaluator\SpiceReadEvaluator;
 use App\Gamification\Evaluator\TriggerEvaluatorRegistry;
@@ -66,18 +65,15 @@ final class AchievementCheckerTest extends TestCase
             new NGamesCompletedEvaluator(),
             new EasterEggFoundEvaluator(),
             new AllTerpenesVisitedEvaluator($this->aromaticGroupsRepo),
-            new GameScoreThresholdEvaluator($gameSessionRepo),
+            new GameScoreThresholdEvaluator(),
             new GamePerfectRunEvaluator($gameSessionRepo),
             new GroupMasteryReadEvaluator($spiceViewRepo),
-            new NUniqueSpicesUsedInGamesEvaluator($gameSessionRepo),
             new AllPreparationMethodsReadEvaluator($prepMethodsRepo, $spiceViewRepo),
         ]);
 
         $this->checker = new AchievementChecker($this->repo, $registry);
         $this->progression = new UserProgression();
     }
-
-    // ── Event → trigger mapping ───────────────────────────────────────────────
 
     public function testUnknownEventReturnsEmpty(): void
     {
@@ -92,8 +88,6 @@ final class AchievementCheckerTest extends TestCase
 
         self::assertSame([], $this->checker->check($this->progression, '', []));
     }
-
-    // ── FIRST_MATCH ───────────────────────────────────────────────────────────
 
     public function testUnlocksFirstMatchWhenTotalMatchesIsOne(): void
     {
@@ -118,8 +112,6 @@ final class AchievementCheckerTest extends TestCase
         self::assertSame([], $result);
     }
 
-    // ── N_MATCHES ─────────────────────────────────────────────────────────────
-
     public function testUnlocksNMatchesWhenThresholdReached(): void
     {
         $achievement = $this->makeAchievement(AchievementTrigger::N_MATCHES, 10);
@@ -142,8 +134,6 @@ final class AchievementCheckerTest extends TestCase
         self::assertSame([], $this->checker->check($this->progression, 'match_saved', []));
     }
 
-    // ── N_SPICES_USED ─────────────────────────────────────────────────────────
-
     public function testUnlocksNSpicesUsedWhenThresholdReached(): void
     {
         $achievement = $this->makeAchievement(AchievementTrigger::N_SPICES_USED, 5);
@@ -155,8 +145,6 @@ final class AchievementCheckerTest extends TestCase
 
         self::assertCount(1, $result);
     }
-
-    // ── SPICE_READ ────────────────────────────────────────────────────────────
 
     public function testUnlocksSpiceReadWhenThresholdReached(): void
     {
@@ -180,8 +168,6 @@ final class AchievementCheckerTest extends TestCase
         self::assertSame([], $this->checker->check($this->progression, 'spice_read', []));
     }
 
-    // ── READING_STREAK ────────────────────────────────────────────────────────
-
     public function testUnlocksReadingStreakWhenLongestStreakReachesThreshold(): void
     {
         $achievement = $this->makeAchievement(AchievementTrigger::READING_STREAK, 7);
@@ -203,8 +189,6 @@ final class AchievementCheckerTest extends TestCase
 
         self::assertSame([], $this->checker->check($this->progression, 'spice_read', []));
     }
-
-    // ── N_FAVORITES ───────────────────────────────────────────────────────────
 
     public function testUnlocksNFavoritesWhenContextCountReachesThreshold(): void
     {
@@ -239,8 +223,6 @@ final class AchievementCheckerTest extends TestCase
         self::assertSame([], $this->checker->check($this->progression, 'favorite_toggled', []));
     }
 
-    // ── EASTER_EGG_FOUND ──────────────────────────────────────────────────────
-
     public function testUnlocksEasterEggWhenSlugMatches(): void
     {
         $achievement = $this->makeAchievement(AchievementTrigger::EASTER_EGG_FOUND, 0, 'first_egg');
@@ -274,8 +256,6 @@ final class AchievementCheckerTest extends TestCase
         self::assertSame([], $this->checker->check($this->progression, 'easter_egg_found', []));
     }
 
-    // ── FIRST_GAME ──────────────────────────────────────────────────────────
-
     public function testUnlocksFirstGameWhenGamesCompletedIsOne(): void
     {
         $achievement = $this->makeAchievement(AchievementTrigger::FIRST_GAME, 1);
@@ -287,8 +267,6 @@ final class AchievementCheckerTest extends TestCase
 
         self::assertCount(1, $result);
     }
-
-    // ── N_GAMES_COMPLETED ──────────────────────────────────────────────────
 
     public function testUnlocksNGamesCompletedWhenThresholdReached(): void
     {
@@ -315,8 +293,6 @@ final class AchievementCheckerTest extends TestCase
         );
     }
 
-    // ── FIRST_DISCOVERY ──────────────────────────────────────────────────────
-
     public function testUnlocksFirstDiscoveryWhenDiscoveriesReachThreshold(): void
     {
         $achievement = $this->makeAchievement(AchievementTrigger::FIRST_DISCOVERY, 1);
@@ -339,14 +315,11 @@ final class AchievementCheckerTest extends TestCase
         self::assertSame([], $this->checker->check($this->progression, 'spice_read', []));
     }
 
-    // ── ALL_TERPENES_VISITED ───────────────────────────────────────────────
-
     public function testAllTerpenesVisitedReturnsFalseWhenStatsNull(): void
     {
         $achievement = $this->makeAchievement(AchievementTrigger::ALL_TERPENES_VISITED, 1);
         $this->stubRepo(AchievementTrigger::ALL_TERPENES_VISITED, [$achievement]);
 
-        // progression has no user → getUser() returns null → stats null
         self::assertSame([], $this->checker->check($this->progression, 'spice_read', []));
     }
 
@@ -410,8 +383,6 @@ final class AchievementCheckerTest extends TestCase
         self::assertSame([], $this->checker->check($this->progression, 'spice_read', []));
     }
 
-    // ── Multiple triggers for same event ────────────────────────────────────
-
     public function testMatchSavedChecksAllThreeTriggers(): void
     {
         $firstMatch = $this->makeAchievement(AchievementTrigger::FIRST_MATCH, 1);
@@ -431,17 +402,14 @@ final class AchievementCheckerTest extends TestCase
 
         $result = $this->checker->check($this->progression, 'match_saved', []);
 
-        // All 3 should unlock
         self::assertCount(3, $result);
     }
-
-    // ── Already owned ─────────────────────────────────────────────────────────
 
     public function testAlreadyOwnedAchievementIsNotReturnedAgain(): void
     {
         $achievement = $this->makeAchievement(AchievementTrigger::FIRST_MATCH, 1);
         $this->stubRepo(AchievementTrigger::FIRST_MATCH, [$achievement]);
-        $this->progression->unlockAchievement($achievement); // already owned
+        $this->progression->unlockAchievement($achievement);
 
         $this->setField('totalMatches', 5);
 
@@ -449,8 +417,6 @@ final class AchievementCheckerTest extends TestCase
 
         self::assertSame([], $result);
     }
-
-    // ── unlockAchievement side-effect ─────────────────────────────────────────
 
     public function testCheckMutatesProgressionByAddingUnlockedAchievement(): void
     {
@@ -463,8 +429,6 @@ final class AchievementCheckerTest extends TestCase
 
         self::assertTrue($this->progression->hasAchievement($achievement));
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private function makeAchievement(
         AchievementTrigger $trigger,
@@ -483,9 +447,6 @@ final class AchievementCheckerTest extends TestCase
     }
 
     /**
-     * Configures the repo mock to return $achievements only for $trigger,
-     * and an empty array for all other triggers.
-     *
      * @param Achievement[] $achievements
      */
     private function stubRepo(AchievementTrigger $trigger, array $achievements): void

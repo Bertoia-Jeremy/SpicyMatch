@@ -12,7 +12,6 @@ interface MatchPipelineInterface
 {
     /**
      * @param int $limit ≥ 1, ≤ 100
-     *
      * @return list<array{id: int, score: int, oav_mode: bool}>
      */
     public function run(MortarIds $mortar, int $limit, CulinaryContext $ctx, ?DataConfidence $confidence = null): array;

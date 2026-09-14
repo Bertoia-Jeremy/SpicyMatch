@@ -45,7 +45,6 @@ export default class extends Controller
         }
 
         if (isDeselecting) {
-            // Deselect: show all cards again
             this.cookingIdValue = 0;
             this.cookingTargets.forEach(t => {
                 t.classList.remove('hidden');
@@ -57,7 +56,6 @@ export default class extends Controller
                 }
             });
         } else {
-            // Select: hide others, highlight selected
             this.cookingIdValue = clickedId;
             this.cookingTargets.forEach(t => {
                 const inner = t.querySelector(':scope > button');

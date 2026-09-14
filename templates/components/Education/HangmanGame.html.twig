@@ -1,5 +1,25 @@
-{% import 'components/Education/_game_header.html.twig' as game_header %}
-<div {{ attributes }}>
+{% set quitUrl = path('education_briefing', { mode: 'hangman', difficulty: this.difficulty }) %}
+
+{% set heat = min(this.errorsCount, this.maxErrors) %}
+{% set rest = this.maxErrors - heat %}
+{% set r = this.maxErrors > 0 ? (heat / this.maxErrors) : 0 %}
+{% set tier = r <= (1/6) ? 1 : (r <= 0.5 ? 2 : 3) %}
+
+{% set scaledHeat = r * 6 %}
+{% set mcol = r >= 0.833 ? '#991B1B' : (r >= 0.5 ? '#C2410C' : '#D97706') %}
+{% set dark = r >= 0.833 ? '#3d0f0f' : (r >= 0.5 ? '#2a1608' : '#15100c') %}
+{% set found = this.maskedChars|length > 0 ? (1 - (this.maskedChars|filter(c => c == '_')|length / this.maskedChars|length)) : 0 %}
+{% set glow = r >= 0.833
+    ? 'rgba(153,27,27,' ~ (0.30 + r * 0.45)|number_format(2) ~ ')'
+    : 'rgba(217,119,6,' ~ (0.10 + found * 0.34 + r * 0.30)|number_format(2) ~ ')' %}
+{% set dish = ['#E8D9BC', '#DFC391', '#CFA463', '#B4772F', '#8A501B', '#4A2A11', '#1F1712'][min(scaledHeat|round, 6)] %}
+{% set wave = max(0, (scaledHeat - 1) / 5)|number_format(2) %}
+{% set merc = 10 + r * 70 %}
+{% set my = 172 - merc %}
+
+{% set lettersLeft = this.maskedChars|filter(c => c == '_')|length %}
+
+<div {{ attributes.defaults({class: 'cc'}) }} x-data="{ rulesOpen: false }">
   <div aria-live="polite" class="sr-only">
     {%- if this.isFinished %}{{ 'ui.game.a11y_finished'|trans }}
     {%- elseif this.showFeedback %}
@@ -12,352 +32,155 @@
     {%- endif %}
   </div>
 
-  {{ game_header.header(
-      icon = 'fa-solid fa-temperature-three-quarters',
-      title = 'enum.game_mode.hangman.label'|trans,
-      subtitle = 'ui.game.hangman_subtitle'|trans,
-      current = this.questionNumber,
-      total = this.totalQuestions,
-      scoreLabel = this.correctCount ~ ' <i class="fa-solid fa-check text-xs text-green-600" aria-hidden="true"></i>  ' ~ this.incorrectCount ~ ' <i class="fa-solid fa-xmark text-xs text-paprika-500" aria-hidden="true"></i>',
-      quitUrl = path('education_briefing', { mode: 'hangman', difficulty: this.difficulty }),
-  ) }}
-
-
-  <div id="hangman-game-area" class="flex flex-col lg:flex-row gap-8 items-center">
-    {# Four Pendu — picto 08 L'Herbier Solaire #}
-    <div class="flex-shrink-0">
-      {# ── Variables d'état ──────────────────────────────────────────── #}
-      {% set e = this.errorsCount %}
-      {% set m = this.maxErrors %}
-      {% set igo = e >= m %}
-
-      {# Couleur accent : safran normal → brûlé au game-over #}
-      {% set ac = igo ? '#A33D1F' : '#C46E1F' %}
-      {# Couleur contour four #}
-      {% set os = igo ? '#A33D1F' : '#0A0907' %}
-
-      {# Label de statut #}
-      {% if igo %}
-        {% set stLbl = 'BRÛLÉ' %}{% set stClr = '#A33D1F' %}
-      {% elseif e >= 3 %}
-        {% set stLbl = 'EN CUISSON' %}{% set stClr = '#C46E1F' %}
-      {% else %}
-        {% set stLbl = 'EN CUISSON' %}{% set stClr = '#0A0907' %}
-      {% endif %}
-
-      {# Thermomètre : tube y=200 (bas) → y=50 (haut), hauteur totale 150 #}
-      {% set fh = igo ? 150 : ((e / m * 150)|round) %}
-      {% set fy = 200 - fh %}
-
-      {# Label température #}
-      {% if e == 0 %}{% set tmp = '60°' %}
-      {% elseif e == 1 %}{% set tmp = '110°' %}
-      {% elseif e == 2 %}{% set tmp = '160°' %}
-      {% elseif e == 3 %}{% set tmp = '200°' %}
-      {% elseif e == 4 %}{% set tmp = '240°' %}
-      {% elseif e == 5 %}{% set tmp = '280°' %}
-      {% else %}{% set tmp = '340°' %}{% endif %}
-
-      {# Aiguille molette : 0° → 150° sur 6 pas (r=8), valeurs précalculées #}
-      {% if e == 0 %}{% set dx = '0' %}{% set dy = '-8.0' %}
-      {% elseif e == 1 %}{% set dx = '3.4' %}{% set dy = '-7.3' %}
-      {% elseif e == 2 %}{% set dx = '6.1' %}{% set dy = '-5.1' %}
-      {% elseif e == 3 %}{% set dx = '7.7' %}{% set dy = '-2.1' %}
-      {% elseif e == 4 %}{% set dx = '7.9' %}{% set dy = '1.4' %}
-      {% elseif e == 5 %}{% set dx = '6.6' %}{% set dy = '4.6' %}
-      {% else %}{% set dx = '4.0' %}{% set dy = '6.9' %}{% endif %}
-
-      {# Résistance : couleur + opacité progressive #}
-      {% if e == 0 %}{% set heC = '#0A0907' %}{% set heO = '0.45' %}
-      {% elseif e == 1 %}{% set heC = '#C46E1F' %}{% set heO = '0.50' %}
-      {% elseif e == 2 %}{% set heC = '#C46E1F' %}{% set heO = '0.60' %}
-      {% elseif e == 3 %}{% set heC = '#C46E1F' %}{% set heO = '0.70' %}
-      {% elseif e == 4 %}{% set heC = '#C46E1F' %}{% set heO = '0.85' %}
-      {% elseif e == 5 %}{% set heC = '#C46E1F' %}{% set heO = '0.95' %}
-      {% else %}{% set heC = '#A33D1F' %}{% set heO = '1.0' %}{% endif %}
-
-      {# Flammes : baseY croît avec les erreurs (apparaissent à ≥ 2) #}
-      {% if e == 2 %}{% set fBy = 106 %}{% set fMy = 104 %}{% set fPy = 102.8 %}
-      {% elseif e == 3 %}{% set fBy = 110 %}{% set fMy = 106 %}{% set fPy = 105.6 %}
-      {% elseif e == 4 %}{% set fBy = 118 %}{% set fMy = 112 %}{% set fPy = 103.5 %}
-      {% elseif e == 5 %}{% set fBy = 126 %}{% set fMy = 116 %}{% set fPy = 100.5 %}
-      {% else %}{% set fBy = 134 %}{% set fMy = 118 %}{% set fPy = 98.4 %}{% endif %}
-
-      {# Volutes de chaleur latérales : 0 → 4 paires #}
-      {% if e <= 1 %}{% set wc = 0 %}
-      {% elseif e == 2 %}{% set wc = 1 %}
-      {% elseif e == 3 %}{% set wc = 2 %}
-      {% elseif not igo %}{% set wc = 3 %}
-      {% else %}{% set wc = 4 %}{% endif %}
-
-      {# Nourriture + plateau #}
-      {% set foodC = igo ? '#A33D1F' : '#C46E1F' %}
-
-      {# Hexagones de score (5 total) #}
-      {% set hexN = e < 5 ? e : 5 %}
-      {% set hexC = igo ? '#A33D1F' : '#C46E1F' %}
-
-      {# Texte bas de page #}
-      {% if igo %}
-        {% set footTxt = '— LE PLAT EST PERDU —' %}{% set footC = '#A33D1F' %}
-      {% else %}
-        {% set footTxt = 'ÉTAT ' ~ e ~ ' / ' ~ m %}{% set footC = '#75706A' %}
-      {% endif %}
-
-      <svg viewBox="0 0 220 290" class="w-40 h-52" aria-hidden="true">
-
-        {# ── 1. Bandeau texte haut ────────────────────────────────────── #}
-        <g font-family="JetBrains Mono, monospace">
-          <text x="14" y="20" font-size="6.5" letter-spacing="0.18em" fill="{{ stClr }}" font-weight="500">{{ stLbl }}</text>
-          <text x="206" y="20" font-size="6.5" letter-spacing="0.18em" fill="#75706A" text-anchor="end">{{ e }} / {{ m }} ERREURS</text>
-          <line x1="14" y1="26" x2="206" y2="26" stroke="{{ igo ? '#A33D1F' : '#75706A' }}" stroke-width="0.4" opacity="0.6"/>
-        </g>
-
-        {# ── 2. Thermomètre ──────────────────────────────────────────── #}
-        <g stroke="{{ os }}" stroke-width="0.8" fill="#F4ECDA" stroke-linejoin="round" stroke-linecap="round">
-          <path d="M 10 50 Q 10 46 14 46 Q 18 46 18 50 L 18 196
-                   Q 26 204 26 214
-                   Q 26 224 14 224
-                   Q 2 224 2 214
-                   Q 2 204 10 196
-                   Z"/>
-        </g>
-        <g>
-          <rect x="11" y="51" width="6" height="51" fill="#F4ECDA"/>
-          <rect x="11" y="101" width="6" height="-36" fill="#C46E1F" opacity="0.15"/>
-          <rect x="11" y="65" width="6" height="135" fill="#A33D1F" opacity="0.18"/>
-        </g>
-        <rect x="11.5" y="{{ fy }}" width="5" height="{{ fh }}" fill="{{ ac }}"/>
-        <circle cx="14" cy="214" r="9" fill="{{ ac }}"/>
-        <g stroke="{{ os }}" stroke-width="0.6">
-          <line x1="18" y1="200" x2="22" y2="200"/>
-          <line x1="18" y1="162.5" x2="22" y2="162.5"/>
-          <line x1="18" y1="125" x2="22" y2="125"/>
-          <line x1="18" y1="87.5" x2="22" y2="87.5"/>
-          <line x1="18" y1="50" x2="22" y2="50"/>
-        </g>
-        <text x="14" y="44" font-family="JetBrains Mono, monospace" font-size="7" font-weight="500" text-anchor="middle" fill="{{ igo ? '#A33D1F' : '#0A0907' }}">{{ tmp }}</text>
-
-        {# ── 3. Volutes de chaleur latérales ─────────────────────────── #}
-        {% if wc > 0 %}
-          <path d="M 33 100 Q 28 112 33 124 Q 38 136 33 148" stroke="{{ ac }}" stroke-width="0.8" fill="none" stroke-dasharray="2 2.5" opacity="0.65"/>
-          <path d="M 197 100 Q 202 112 197 124 Q 192 136 197 148" stroke="{{ ac }}" stroke-width="0.8" fill="none" stroke-dasharray="2 2.5" opacity="0.65"/>
-        {% endif %}
-        {% if wc > 1 %}
-          <path d="M 25 120 Q 20 132 25 144 Q 30 156 25 168" stroke="{{ ac }}" stroke-width="0.8" fill="none" stroke-dasharray="2 2.5" opacity="0.55"/>
-          <path d="M 205 120 Q 210 132 205 144 Q 200 156 205 168" stroke="{{ ac }}" stroke-width="0.8" fill="none" stroke-dasharray="2 2.5" opacity="0.55"/>
-        {% endif %}
-        {% if wc > 2 %}
-          <path d="M 17 140 Q 12 152 17 164 Q 22 176 17 188" stroke="{{ ac }}" stroke-width="0.8" fill="none" stroke-dasharray="2 2.5" opacity="0.45"/>
-          <path d="M 213 140 Q 218 152 213 164 Q 208 176 213 188" stroke="{{ ac }}" stroke-width="0.8" fill="none" stroke-dasharray="2 2.5" opacity="0.45"/>
-        {% endif %}
-        {% if wc > 3 %}
-          <path d="M 9 160 Q 4 172 9 184 Q 14 196 9 208" stroke="{{ ac }}" stroke-width="0.8" fill="none" stroke-dasharray="2 2.5" opacity="0.35"/>
-          <path d="M 221 160 Q 226 172 221 184 Q 216 196 221 208" stroke="{{ ac }}" stroke-width="0.8" fill="none" stroke-dasharray="2 2.5" opacity="0.35"/>
-        {% endif %}
-
-        {# ── Fumée au-dessus du four (game over) ──────────────────────── #}
-        {% if igo %}
-          <g stroke="#A33D1F" stroke-width="1.1" fill="none" stroke-linecap="round" opacity="0.85">
-            <path d="M 75 38 C 70 30 80 24 75 16 C 72 10 80 8 78 2"/>
-            <path d="M 115 38 C 110 28 120 22 115 12 C 112 6 120 4 118 0"/>
-            <path d="M 155 38 C 150 30 160 24 155 16 C 152 10 160 8 158 2"/>
-          </g>
-        {% endif %}
-
-        {# ── 4. Corps du four ─────────────────────────────────────────── #}
-        <g stroke="{{ os }}" stroke-width="1.4" fill="none" stroke-linejoin="round" stroke-linecap="round">
-          <rect x="35" y="42" width="160" height="183"/>
-          <rect x="35" y="42" width="160" height="38"/>
-          <rect x="46" y="86" width="138" height="118"/>
-          <line x1="46" y1="212" x2="184" y2="212"/>
-          <line x1="46" y1="225" x2="46" y2="234"/>
-          <line x1="184" y1="225" x2="184" y2="234"/>
-          <line x1="40" y1="234" x2="52" y2="234"/>
-          <line x1="178" y1="234" x2="190" y2="234"/>
-        </g>
-
-        {# Fond sombre de la chambre #}
-        <rect x="47" y="87" width="136" height="116" fill="#1a1512"/>
-
-        {# Logo hexagone dans le bandeau #}
-        <g transform="translate(58 50) scale(0.12)" opacity="0.85">
-          <g stroke="{{ os }}" stroke-width="20" fill="none">
-            <line x1="200" y1="150" x2="243" y2="175"/>
-            <line x1="243" y1="175" x2="243" y2="225"/>
-            <line x1="243" y1="225" x2="200" y2="250"/>
-            <line x1="200" y1="250" x2="157" y2="225"/>
-            <line x1="157" y1="225" x2="157" y2="175"/>
-            <line x1="157" y1="175" x2="200" y2="150"/>
-          </g>
-        </g>
-
-        {# Mini molette de température (bandeau haut droit) #}
-        <g transform="translate(172 61)">
-          <circle r="10" stroke="{{ os }}" stroke-width="0.9" fill="none"/>
-          <line x1="0" y1="0" x2="{{ dx }}" y2="{{ dy }}" stroke="{{ ac }}" stroke-width="1.4" stroke-linecap="round"/>
-          <circle r="1.4" fill="{{ ac }}"/>
-          {% if igo %}
-            <g stroke="#A33D1F" stroke-width="1.5" stroke-linecap="round">
-              <line x1="-5" y1="-5" x2="5" y2="5"/>
-              <line x1="5" y1="-5" x2="-5" y2="5"/>
-            </g>
-          {% endif %}
-        </g>
-
-        {# Résistance chauffante (en haut de la chambre) #}
-        <g stroke="{{ heC }}" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="{{ heO }}">
-          <path d="M 56 96 L 72 96 L 76 102 L 88 96 L 100 102 L 116 96 L 132 102 L 148 96 L 164 102 L 172 96"/>
-        </g>
-
-        {# Plateau + nourriture (à partir de 2 erreurs) #}
-        {% if e >= 2 %}
-          <g stroke="{{ igo ? '#A33D1F' : '#a8a29e' }}" stroke-width="1" fill="none">
-            <line x1="55" y1="165" x2="175" y2="165"/>
-            <line x1="55" y1="165" x2="55" y2="172"/>
-            <line x1="175" y1="165" x2="175" y2="172"/>
-            <line x1="65" y1="165" x2="65" y2="161" opacity="0.55"/>
-            <line x1="82" y1="165" x2="82" y2="161" opacity="0.55"/>
-            <line x1="99" y1="165" x2="99" y2="161" opacity="0.55"/>
-            <line x1="116" y1="165" x2="116" y2="161" opacity="0.55"/>
-            <line x1="133" y1="165" x2="133" y2="161" opacity="0.55"/>
-            <line x1="150" y1="165" x2="150" y2="161" opacity="0.55"/>
-            <line x1="167" y1="165" x2="167" y2="161" opacity="0.55"/>
-          </g>
-          <g fill="{{ foodC }}">
-            <circle cx="65" cy="158" r="3"/>
-            <circle cx="78" cy="160" r="3.2"/>
-            <circle cx="92" cy="158" r="3"/>
-            <circle cx="108" cy="160" r="3.4"/>
-            <circle cx="124" cy="158" r="2.8"/>
-            <circle cx="140" cy="160" r="3.2"/>
-            <circle cx="158" cy="158" r="3"/>
-          </g>
-          <g fill="{{ foodC }}" opacity="0.85">
-            <circle cx="72" cy="155" r="1.4"/>
-            <circle cx="104" cy="155" r="1.4"/>
-            <circle cx="140" cy="155" r="1.4"/>
-          </g>
-        {% endif %}
-
-        {# Flammes (à partir de 2 erreurs) #}
-        {% if e >= 2 %}
-          <g fill="{{ ac }}" opacity="0.9">
-            <path d="M 78 {{ fBy }} Q 73 {{ fMy }}, 76 102 Q 78 {{ fPy }}, 81 102 Q 83 {{ fMy }}, 78 {{ fBy }} Z"/>
-            <path d="M 115 {{ fBy }} Q 108 {{ fMy }}, 112.2 102 Q 115 {{ fPy }}, 119.2 102 Q 122 {{ fMy }}, 115 {{ fBy }} Z"/>
-            <path d="M 152 {{ fBy }} Q 147 {{ fMy }}, 150 102 Q 152 {{ fPy }}, 155 102 Q 157 {{ fMy }}, 152 {{ fBy }} Z"/>
-          </g>
-        {% endif %}
-
-        {# Game over : volutes dans la chambre + fissures + voile rouge #}
-        {% if igo %}
-          <g stroke="#A33D1F" stroke-width="0.9" fill="none" stroke-linecap="round" opacity="0.55">
-            <path d="M 70 148 C 66 138 74 132 70 122"/>
-            <path d="M 115 148 C 111 136 119 128 115 116"/>
-            <path d="M 160 148 C 156 138 164 132 160 122"/>
-          </g>
-          <g stroke="#A33D1F" stroke-width="0.7" fill="none" opacity="0.65">
-            <path d="M 55 188 L 62 196 L 58 204"/>
-            <path d="M 175 90 L 168 96"/>
-          </g>
-          <rect x="46" y="86" width="138" height="118" fill="#A33D1F" opacity="0.16"/>
-          <g stroke="#A33D1F" stroke-width="0.8" fill="none" opacity="0.4">
-            <path d="M 80 92 L 88 100 L 84 108 L 92 116"/>
-            <path d="M 160 92 L 152 100 L 156 108 L 148 116"/>
-          </g>
-        {% endif %}
-
-        {# ── 5. Hexagones de score (5 au total) ──────────────────────── #}
-        {% for i in 0..4 %}
-          {% set hx = 55 + i * 28 %}
-          {% if i < hexN %}
-            <polygon points="{{ hx }},251 {{ hx + 8 }},255.5 {{ hx + 8 }},260.5 {{ hx }},265 {{ hx - 8 }},260.5 {{ hx - 8 }},255.5"
-              fill="{{ hexC }}" stroke="{{ hexC }}" stroke-width="0"/>
-          {% else %}
-            <polygon points="{{ hx }},251 {{ hx + 8 }},255.5 {{ hx + 8 }},260.5 {{ hx }},265 {{ hx - 8 }},260.5 {{ hx - 8 }},255.5"
-              fill="none" stroke="#75706A" stroke-width="0.8"/>
-          {% endif %}
-        {% endfor %}
-
-        {# ── 6. Texte bas ────────────────────────────────────────────── #}
-        <text x="115" y="280" font-family="JetBrains Mono, monospace" font-size="7" letter-spacing="0.22em" text-anchor="middle" font-weight="500" fill="{{ footC }}">{{ footTxt }}</text>
-
+  <div class="cc-bar">
+    <button type="button" class="cc-icb" x-data="confirmQuit('{{ quitUrl }}')" @click="quit()" aria-label="{{ 'ui.game.quit'|trans }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M15 5l-7 7 7 7"/>
       </svg>
+    </button>
+    <div class="cc-bar-mid">
+      <p class="cc-t">{{ 'enum.game_mode.hangman.label'|trans }}</p>
+      <p class="cc-s cc-mono">{{ this.questionNumber }}/{{ this.totalQuestions }} · {{ this.correctCount }}<i class="fa-solid fa-check text-[8px] mx-0.5" aria-hidden="true"></i>{{ this.incorrectCount }}<i class="fa-solid fa-xmark text-[8px] mx-0.5" aria-hidden="true"></i></p>
+    </div>
+    <button type="button" class="cc-rules" @click="rulesOpen = !rulesOpen" :aria-expanded="rulesOpen.toString()" aria-label="{{ 'ui.edu.rules'|trans }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8.5v.01"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="cc-rules-panel" x-show="rulesOpen" x-cloak x-transition>
+    <ul>
+      {% for rule in this.rules %}
+        <li>{{ rule }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="cc-steps">
+    {% for i in 1..this.totalQuestions %}
+      <span class="{{ i < this.questionNumber ? 'cc-on' : '' }}{{ i == this.questionNumber ? ' cc-cur' : '' }}"></span>
+    {% endfor %}
+  </div>
+
+  <div class="cc-split">
+    <div class="cc-pane-l">
+      <div class="cc-stage">
+        <div class="cc-heat">
+          <span class="cc-lbl{{ tier == 2 ? ' cc-t2' : (tier == 3 ? ' cc-t3' : '') }}">
+            {%- if rest > 1 %}{{ 'ui.game.hangman_attempts_left'|trans({'%count%': rest}) }}
+            {%- elseif rest == 1 %}{{ 'ui.game.hangman_last_attempt'|trans }}
+            {%- else %}{{ 'ui.game.hangman_overcooked'|trans }}
+            {%- endif %}
+          </span>
+          <span class="cc-pips{{ tier == 2 ? ' cc-t2' : (tier == 3 ? ' cc-t3' : '') }}">
+            {% for i in 0..(this.maxErrors - 1) %}
+              <i class="{{ i >= rest ? 'cc-lost' : '' }}"></i>
+            {% endfor %}
+          </span>
+        </div>
+        <div class="cc-oven">
+          <div class="cc-smoke{{ heat >= 2 ? ' cc-show' : '' }}" style="opacity:{{ heat >= 2 ? min(1, 0.35 + (heat - 2) * 0.22) : 0 }}">
+            <i style="width:12px;height:12px"></i><i style="width:20px;height:20px"></i><i style="width:15px;height:15px"></i>
+          </div>
+          <svg viewBox="0 0 200 210" fill="none" aria-hidden="true">
+            <rect x="26" y="30" width="148" height="150" rx="7" fill="#FDFBF7" stroke="#3a2e25" stroke-width="2.5"/>
+            <line x1="26" y1="64" x2="174" y2="64" stroke="#3a2e25" stroke-width="2.5"/>
+            <circle cx="52" cy="47" r="5.5" fill="none" stroke="#3a2e25" stroke-width="2"/>
+            <circle cx="148" cy="47" r="9" fill="none" stroke="#3a2e25" stroke-width="2"/>
+            <line x1="148" y1="47" x2="148" y2="41" stroke="#3a2e25" stroke-width="2"/>
+            <rect x="70" y="41" width="60" height="6" rx="3" fill="none" stroke="#3a2e25" stroke-width="1.2" opacity=".4"/>
+            <rect x="70" y="41" width="{{ 6 + scaledHeat * 9 }}" height="6" rx="3" fill="{{ mcol }}" opacity=".9"/>
+            <rect x="40" y="78" width="120" height="88" rx="4" fill="{{ dark }}" stroke="#3a2e25" stroke-width="2.5"/>
+            <rect x="48" y="86" width="104" height="72" rx="2" fill="{{ glow }}"/>
+            <g opacity="{{ wave }}" stroke="#FDFBF7" stroke-width="1.4" stroke-linecap="round" fill="none">
+              <path d="M66 114c5-5 10 5 15 0s10 5 15 0"/><path d="M104 104c5-5 10 5 15 0"/><path d="M62 96c5-5 10 5 15 0"/>
+            </g>
+            <line x1="58" y1="147" x2="142" y2="147" stroke="#FDFBF7" stroke-width="1.4" opacity=".28"/>
+            <ellipse cx="100" cy="140" rx="{{ 30 - scaledHeat }}" ry="{{ 9.5 - scaledHeat * 0.35 }}" fill="{{ dish }}"/>
+            <ellipse cx="{{ 92 - scaledHeat * 0.4 }}" cy="137.5" rx="{{ 8 - scaledHeat * 0.5 }}" ry="{{ 2.4 - scaledHeat * 0.1 }}" fill="#FDFBF7" opacity="{{ max(0, 0.34 - scaledHeat * 0.055)|number_format(2) }}"/>
+            <line x1="46" y1="180" x2="46" y2="196" stroke="#3a2e25" stroke-width="2.5"/>
+            <line x1="154" y1="180" x2="154" y2="196" stroke="#3a2e25" stroke-width="2.5"/>
+            <rect x="6" y="82" width="11" height="90" rx="5.5" fill="#FDFBF7" stroke="#3a2e25" stroke-width="2"/>
+            <rect x="9" y="{{ my|number_format(1) }}" width="5" height="{{ merc|number_format(1) }}" rx="2.5" fill="{{ mcol }}"/>
+            <g stroke="#3a2e25" stroke-width="1.4" opacity=".45"><line x1="19" y1="96" x2="24" y2="96"/><line x1="19" y1="127" x2="24" y2="127"/><line x1="19" y1="158" x2="24" y2="158"/></g>
+            <circle cx="11.5" cy="180" r="9" fill="{{ mcol }}"/>
+          </svg>
+        </div>
+      </div>
     </div>
 
-    <div class="flex-1 w-full">
-      {# Errors counter + hint #}
-      <div class="flex items-center justify-between mb-4">
-        <p class="text-sm text-stone-500">
-          {{ 'ui.game.errors'|trans }} <span class="{{ this.errorsCount > this.maxErrors * 0.6 ? 'text-paprika-600 font-semibold' : 'text-stone-700' }}">{{ this.errorsCount }}/{{ this.maxErrors }}</span>
+    <div class="cc-pane-r">
+      <div>
+        <div class="cc-word" style="--n:{{ this.maskedChars|length }}">
+          {% for char in this.maskedChars %}
+            {% if char == ' ' %}
+              <b style="max-width:16px;height:16px;border:none;background:none" aria-hidden="true">&nbsp;</b>
+            {% elseif char == '_' %}
+              <b class="cc-hid">_</b>
+            {% else %}
+              <b>{{ char }}</b>
+            {% endif %}
+          {% endfor %}
+        </div>
+        <p class="cc-wmeta cc-mono">
+          {%- if this.showFeedback %}
+            {{ this.wordSolved ? 'ui.game.found'|trans : 'ui.game.lost'|trans }}
+          {%- elseif lettersLeft > 1 %}{{ 'ui.game.hangman_letters_left'|trans({'%count%': lettersLeft}) }}
+          {%- elseif lettersLeft == 1 %}{{ 'ui.game.hangman_letter_left'|trans }}
+          {%- else %}{{ 'ui.game.hangman_served'|trans }}
+          {%- endif %}
         </p>
-        {% if this.hint %}
-          <p class="text-sm text-saffron-700"><i class="fa-solid fa-lightbulb mr-1" aria-hidden="true"></i>{{ this.hint }}</p>
-        {% endif %}
       </div>
 
-      {# Word display — masked during play, revealed with color on feedback #}
-      <div class="text-center mb-6">
-        {% if this.showFeedback %}
-          <p class="text-3xl font-mono tracking-[0.5em] font-bold mb-3
-            {{ this.wordSolved ? 'text-green-700' : 'text-paprika-700' }} break-all">
-            {{ this.revealedWord }}
-          </p>
-          <div class="py-2 px-4 rounded-xl inline-block text-sm
-            {{ this.wordSolved ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">
-            <i class="fa-solid {{ this.wordSolved ? 'fa-circle-check' : 'fa-circle-xmark' }} mr-2" aria-hidden="true"></i>
-            <span class="font-semibold">
-              {{ this.wordSolved ? 'ui.game.found'|trans : 'ui.game.lost'|trans }}
+      {% if this.hint %}
+        <div class="cc-hint" x-data="{open:false}" :class="open ? 'cc-open' : ''">
+          <button type="button" @click="open = !open" :aria-expanded="open.toString()">
+            <span class="cc-bulb">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#A85A05" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9V18h7v-4.1A6 6 0 0 0 12 3z"/>
+              </svg>
             </span>
-          </div>
-        {% else %}
-          <p class="text-3xl font-mono tracking-[0.5em] font-bold text-stone-800 break-all">
-            {% for char in this.maskedChars %}
-              {% if char == '_' %}
-                <span class="inline-block w-6 border-b-2 border-stone-400 mx-0.5">&nbsp;</span>
-              {% elseif char == ' ' %}
-                <span class="inline-block w-4">&nbsp;</span>
-              {% else %}
-                <span class="inline-block mx-0.5">{{ char }}</span>
-              {% endif %}
-            {% endfor %}
-          </p>
-        {% endif %}
-      </div>
-
-      {# Keyboard — optimistic UI: pending tracked in Alpine state, reset via MutationObserver on data-word-num change #}
-      <div class="flex flex-wrap justify-center gap-2 mb-4"
-           x-data="hangmanKeyboard()"
-           data-word-num="{{ this.questionNumber }}">
-        {% set alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' %}
-        {% for letter in alphabet|split('') %}
-          {% set isGuessed = letter in this.guessedLetters %}
-          {% set isDisabled = isGuessed or this.showFeedback %}
-          <button type="button"
-                  {% if not this.showFeedback %}
-                    data-action="live#action"
-                    data-live-action-param="guessLetter"
-                    data-live-letter-param="{{ letter }}"
-                    @click="guess('{{ letter }}')"
-                  {% endif %}
-                  {{ isDisabled ? 'disabled' : '' }}
-                  :class="isPending('{{ letter }}') ? 'opacity-40 pointer-events-none' : ''"
-                  class="w-10 h-10 sm:w-12 sm:h-12 rounded-lg text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30
-                    {{ isDisabled ? 'bg-stone-200 text-stone-400 cursor-not-allowed' : 'bg-white border border-stone-300 text-stone-700 hover:bg-saffron-100 hover:border-saffron-400 hover:text-saffron-700' }}">
-            {{ letter }}
+            <span class="cc-ht">{{ 'ui.game.hangman_hint_label'|trans }}</span>
+            <span class="cc-cost">{{ 'ui.game.hangman_hint_cta'|trans }}</span>
           </button>
+          <div class="cc-body">{{ this.hint }}</div>
+        </div>
+      {% endif %}
+
+      <div class="cc-kb" x-data="hangmanKeyboard()" data-word-num="{{ this.questionNumber }}">
+        {% for row in ['AZERTYUIOP', 'QSDFGHJKLM', 'WXCVBN'] %}
+          <div class="cc-krow">
+            {% for letter in row|split('') %}
+              {% set isCorrect = letter in this.correctGuesses %}
+              {% set isGuessed = letter in this.guessedLetters %}
+              <button type="button"
+                      class="cc-k{{ isCorrect ? ' cc-good' : (isGuessed ? ' cc-bad' : '') }}"
+                      data-letter="{{ letter }}"
+                      {% if not this.showFeedback %}
+                        data-action="live#action"
+                        data-live-action-param="guessLetter"
+                        data-live-letter-param="{{ letter }}"
+                        @click="guess('{{ letter }}')"
+                      {% endif %}
+                      {{ (isGuessed or this.showFeedback) ? 'disabled' : '' }}
+                      :class="isPending('{{ letter }}') ? 'opacity-40 pointer-events-none' : ''">
+                {{ letter }}
+              </button>
+            {% endfor %}
+          </div>
         {% endfor %}
+        <div class="cc-kbnote cc-mono">{{ 'ui.game.keyboard_note'|trans }}</div>
       </div>
 
-      {# Next word button — only visible during feedback #}
       {% if this.showFeedback %}
         <twig:Button
             label="{{ this.questionNumber >= this.totalQuestions ? 'ui.game.finish'|trans : 'ui.game.next_word'|trans }}"
-            variant="primary"
+            variant="{{ this.wordSolved ? 'primary' : 'secondary' }}"
             icon="{{ this.questionNumber >= this.totalQuestions ? 'fa-solid fa-flag-checkered' : 'fa-solid fa-arrow-right' }}"
             data-action="live#action"
             data-live-action-param="nextWord"
-            extra="w-full" />
+            extra="w-full mt-3" />
       {% endif %}
     </div>
   </div>

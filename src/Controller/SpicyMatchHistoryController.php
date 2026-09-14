@@ -94,7 +94,6 @@ class SpicyMatchHistoryController extends AbstractController
             $cookingsByStep[$step][] = $cooking;
         }
 
-        // Calcul des composés aromatiques partagés entre toutes les épices du mélange
         $sharedCompounds = null;
         foreach ($spicyMatchHistory->getSpicyMatch()->getSpices() as $spice) {
             $compounds = $spice->getAromaticsCompounds()
@@ -110,7 +109,6 @@ class SpicyMatchHistoryController extends AbstractController
             }
         }
 
-        // ── Insights physico-chimiques (page recette) ─────────────────────────
         $spicyMatch = $spicyMatchHistory->getSpicyMatch();
         $culinaryContext = $spicyMatch->getCulinaryContext();
         $mortarSpiceIds = $spicyMatch->getSpices()
@@ -118,8 +116,6 @@ class SpicyMatchHistoryController extends AbstractController
             ->filter(static fn (?int $id): bool => $id !== null)
             ->toArray();
 
-        // Comparateur multi-matrice : "et si on cuisinait autrement ?"
-        // MortarIds borne le nombre d'épices ∈ [1, 10]. Slice si data legacy > 10.
         $matrixGrid = [];
         $boundedIds = array_slice(array_values($mortarSpiceIds), 0, 10);
         if ($boundedIds !== []) {
@@ -132,12 +128,10 @@ class SpicyMatchHistoryController extends AbstractController
                 );
                 $matrixGrid = $matrixComparator->buildGrid($matrixRankings);
             } catch (\App\Exception\Match\InvalidMortarException) {
-                // Données legacy aberrantes — on omet le comparateur, sans casser la page.
                 $matrixGrid = [];
             }
         }
 
-        // Timeline cinétique : tête/cœur/fond + rétention sous cuisson
         $mortarCompounds = [];
         $seenCompoundIds = [];
         foreach ($spicyMatch->getSpices() as $spice) {
@@ -185,7 +179,6 @@ class SpicyMatchHistoryController extends AbstractController
 
         $spiceId = (int) $request->request->get('spiceId');
 
-        // Verify the requested spice belongs to this match
         $matchSpiceIds = $spicyMatchHistory->getSpicyMatch()
             ->getSpices()
             ->map(fn (Spices $s) => $s->getId())
@@ -266,7 +259,6 @@ class SpicyMatchHistoryController extends AbstractController
         $spicyMatchHistory->setUpdatedAt(new \DateTimeImmutable());
         $entityManager->flush();
 
-        // Dispatch async gamification event uniquement quand on ajoute aux favoris
         if ($spicyMatchHistory->isFavorite()) {
             $this->bus->dispatch(new FavoriteToggledEvent($currentUser->getId()));
         }
@@ -282,7 +274,6 @@ class SpicyMatchHistoryController extends AbstractController
         int $cookingTipId,
         EntityManagerInterface $em,
     ): Response {
-        // Find the currently selected cooking tip for this spice (at most one per spice)
         $existing = null;
         foreach ($history->getCookingTips()->toArray() as $tip) {
             /** @var CookingTips $tip */
@@ -293,13 +284,11 @@ class SpicyMatchHistoryController extends AbstractController
         }
 
         if ($existing?->getId() === $cookingTipId) {
-            // Toggle OFF: remove and return all tips for this spice
             $history->removeCookingTip($existing);
             $cookings = $this->cookingTipsRepository->findBy([
                 'spice' => $spiceId,
             ]);
         } else {
-            // Toggle ON: replace existing (if any) with the new tip
             if ($existing) {
                 $history->removeCookingTip($existing);
             }
@@ -332,7 +321,6 @@ class SpicyMatchHistoryController extends AbstractController
         int $preparationTipId,
         EntityManagerInterface $em,
     ): Response {
-        // Find the currently selected preparation tip for this spice (at most one per spice)
         $existing = null;
         foreach ($history->getPreparationTips()->toArray() as $tip) {
             /** @var PreparationTips $tip */
@@ -343,13 +331,11 @@ class SpicyMatchHistoryController extends AbstractController
         }
 
         if ($existing?->getId() === $preparationTipId) {
-            // Toggle OFF: remove and return all tips for this spice
             $history->removePreparationTip($existing);
             $preparations = $this->preparationTipsRepository->findBy([
                 'spice' => $spiceId,
             ]);
         } else {
-            // Toggle ON: replace existing (if any) with the new tip
             if ($existing) {
                 $history->removePreparationTip($existing);
             }

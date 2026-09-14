@@ -45,8 +45,6 @@ class SpicesController extends AbstractController
         $aromaticGroup = $agSlug !== null ? $aromaticGroupsRepository->findOneByLocalizedSlug($agSlug, $locale) : null;
         $spicyType = $stSlug !== null ? $spicyTypeRepository->findOneByLocalizedSlug($stSlug, $locale) : null;
 
-        // findFiltered(null, null, null) retourne toutes les épices avec eager-load des relations.
-        // Remplace findAll() qui déclenchait du N+1 en Twig sur aromaticGroups / spicyType.
         $query = $this->spicesRepository->findFiltered($aromaticGroup?->getId(), $spicyType?->getId(), $search);
 
         $limit = $request->query->getInt('limit', 12);

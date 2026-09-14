@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Service\Math;
 
-/**
- * Moyenne géométrique — correcte pour grandeurs log-normales (ODT, concentrations).
- * geomean = exp(Σ ln(x_i) / n) — passage par les logs évite l'overflow du produit.
- */
 final class GeometricMean
 {
     /**

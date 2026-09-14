@@ -25,7 +25,6 @@ use App\Gamification\Evaluator\NFavoritesEvaluator;
 use App\Gamification\Evaluator\NGamesCompletedEvaluator;
 use App\Gamification\Evaluator\NMatchesEvaluator;
 use App\Gamification\Evaluator\NSpicesUsedEvaluator;
-use App\Gamification\Evaluator\NUniqueSpicesUsedInGamesEvaluator;
 use App\Gamification\Evaluator\ReadingStreakEvaluator;
 use App\Gamification\Evaluator\SpiceReadEvaluator;
 use App\Gamification\Evaluator\TriggerEvaluatorRegistry;
@@ -43,10 +42,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
-/**
- * AchievementChecker is final — we use a real instance backed by a mocked
- * AchievementRepository rather than mocking the checker directly.
- */
 #[AllowMockObjectsWithoutExpectations]
 final class GamificationManagerTest extends TestCase
 {
@@ -75,8 +70,6 @@ final class GamificationManagerTest extends TestCase
         $this->progression->setUser($user);
     }
 
-    // ── Guards ────────────────────────────────────────────────────────────────
-
     public function testDoesNothingWhenGamificationIsDisabled(): void
     {
         $this->progression->disableGamification();
@@ -92,7 +85,7 @@ final class GamificationManagerTest extends TestCase
 
     public function testDoesNothingWhenUserIsNull(): void
     {
-        $progression = new UserProgression(); // no user set
+        $progression = new UserProgression();
 
         $this->achievementRepo->expects(self::never())->method('findByTrigger');
         $this->em->expects(self::never())->method('persist');
@@ -100,8 +93,6 @@ final class GamificationManagerTest extends TestCase
         $this->makeEngine()
             ->process($progression, 'match_saved');
     }
-
-    // ── XP strategies ─────────────────────────────────────────────────────────
 
     public function testAppliesXpFromMatchingStrategy(): void
     {
@@ -153,8 +144,6 @@ final class GamificationManagerTest extends TestCase
         self::assertSame(15, $this->progression->getXp());
     }
 
-    // ── Achievement unlocking ─────────────────────────────────────────────────
-
     public function testAddsXpRewardWhenAchievementIsUnlocked(): void
     {
         $achievement = $this->makeAchievement(AchievementTrigger::FIRST_MATCH, 30);
@@ -196,7 +185,6 @@ final class GamificationManagerTest extends TestCase
         $this->achievementRepo->method('findByTrigger')
             ->willReturn([]);
 
-        // 5 XP — not enough to leave level 1 (needs 40)
         $strategy = $this->stubStrategy('match_saved', 5);
 
         $persisted = [];
@@ -214,14 +202,11 @@ final class GamificationManagerTest extends TestCase
         self::assertSame(5, $notif->getPayload()['amount']);
     }
 
-    // ── Level-up notification ─────────────────────────────────────────────────
-
     public function testPersistsLevelUpNotificationWhenLevelIncreases(): void
     {
         $this->achievementRepo->method('findByTrigger')
             ->willReturn([]);
 
-        // 247 XP → level 2 (formula: level = floor((xp/100)^(1/1.3)), 247 → floor(2.47^0.769) = floor(2.03) = 2)
         $strategy = $this->stubStrategy('match_saved', 247);
 
         $persisted = [];
@@ -240,7 +225,6 @@ final class GamificationManagerTest extends TestCase
         $this->achievementRepo->method('findByTrigger')
             ->willReturn([]);
 
-        // 5 XP — level stays at 1 (still persists an xp_gained toast, but no level_up)
         $strategy = $this->stubStrategy('match_saved', 5);
 
         $persisted = [];
@@ -257,8 +241,6 @@ final class GamificationManagerTest extends TestCase
         );
         self::assertCount(0, $levelUps);
     }
-
-    // ── Context forwarding ────────────────────────────────────────────────────
 
     public function testContextIsForwardedToStrategyCalculate(): void
     {
@@ -285,7 +267,6 @@ final class GamificationManagerTest extends TestCase
         $this->achievementRepo->method('findByTrigger')
             ->willReturn([]);
 
-        // 0 XP, no achievements, no level-up → no persist
         $this->em->expects(self::never())->method('persist');
 
         $this->makeEngine()
@@ -294,8 +275,6 @@ final class GamificationManagerTest extends TestCase
                 'xpAmount' => 75,
             ]);
     }
-
-    // ── getOrCreateStats ────────────────────────────────────────────────────
 
     public function testGetOrCreateStatsCreatesNewUserStatIfNull(): void
     {
@@ -325,12 +304,8 @@ final class GamificationManagerTest extends TestCase
         self::assertSame($existing, $stats);
     }
 
-    // ── updateAchievementProgress ──────────────────────────────────────────
-
     public function testUpdateAchievementProgressUpsertsProgress(): void
     {
-        // triggerValue=20 so achievement is NOT unlocked (totalMatches=7 < 20)
-        // but progress bar should still be updated
         $achievement = (new Achievement())
             ->setSlug('test-progress')
             ->setName('Many Matches')
@@ -350,7 +325,6 @@ final class GamificationManagerTest extends TestCase
 
         $progress = new \App\Entity\AchievementProgress();
         $progress->setAchievement($achievement);
-        // Achievement id 99 — matched against `findOrCreateBatchForUser` keyed by achievement id.
         (new \ReflectionProperty(Achievement::class, 'id'))->setValue($achievement, 99);
         $this->achievementProgressRepo->method('findOrCreateBatchForUser')
             ->willReturn([
@@ -371,11 +345,9 @@ final class GamificationManagerTest extends TestCase
                 fn (AchievementTrigger $t) => $t === AchievementTrigger::FIRST_MATCH ? [$achievement] : []
             );
 
-        // Already owned
         $this->progression->unlockAchievement($achievement);
         $this->setProgressionField('totalMatches', 5);
 
-        // findOrCreateForUser should never be called for already unlocked achievements
         $this->achievementProgressRepo->expects(self::never())
             ->method('findOrCreateForUser');
 
@@ -391,8 +363,6 @@ final class GamificationManagerTest extends TestCase
         $this->makeEngine()
             ->process($this->progression, 'completely_unknown_event');
     }
-
-    // ── Does not duplicate achievement ─────────────────────────────────────
 
     public function testDoesNotDuplicateAlreadyUnlockedAchievement(): void
     {
@@ -412,12 +382,9 @@ final class GamificationManagerTest extends TestCase
         $this->makeEngine()
             ->process($this->progression, 'match_saved');
 
-        // Achievement XP reward should NOT be added again
         self::assertSame($xpBefore, $this->progression->getXp());
         self::assertSame($countBefore, $this->progression->getUserAchievements()->count());
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private function makeEngine(array $strategies = []): GamificationManager
     {
@@ -437,10 +404,9 @@ final class GamificationManagerTest extends TestCase
             new NGamesCompletedEvaluator(),
             new EasterEggFoundEvaluator(),
             new AllTerpenesVisitedEvaluator($this->aromaticGroupsRepo),
-            new GameScoreThresholdEvaluator($gameSessionRepo),
+            new GameScoreThresholdEvaluator(),
             new GamePerfectRunEvaluator($gameSessionRepo),
             new GroupMasteryReadEvaluator($spiceViewRepo),
-            new NUniqueSpicesUsedInGamesEvaluator($gameSessionRepo),
             new AllPreparationMethodsReadEvaluator($prepMethodsRepo, $spiceViewRepo),
         ];
         $registry = new TriggerEvaluatorRegistry($evaluators);

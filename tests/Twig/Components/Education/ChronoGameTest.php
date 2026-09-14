@@ -37,7 +37,6 @@ final class ChronoGameTest extends TestCase
 
     /**
      * @param array<string, mixed> $secret
-     *
      * @return array{ChronoGame, Session}
      */
     private function makeGame(array $secret = []): array
@@ -51,7 +50,7 @@ final class ChronoGameTest extends TestCase
         $requestStack = new RequestStack();
         $requestStack->push($request);
 
-        $game = new ChronoGame($this->academyManager, $this->sessionManager, $requestStack);
+        $game = new ChronoGame($this->academyManager, $this->sessionManager, $requestStack, new IdentityTranslator());
         $game->gameToken = self::TOKEN;
         $game->difficulty = 'easy';
         $game->timeLimit = 90;
@@ -579,7 +578,7 @@ final class ChronoGameTest extends TestCase
         $requestStack = new RequestStack();
         $requestStack->push($request);
 
-        $game = new ChronoGame($manager, $this->sessionManager, $requestStack);
+        $game = new ChronoGame($manager, $this->sessionManager, $requestStack, new IdentityTranslator());
         $game->gameToken = self::TOKEN;
         $game->difficulty = 'easy';
 

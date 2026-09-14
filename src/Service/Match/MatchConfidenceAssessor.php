@@ -9,10 +9,6 @@ use App\Enum\OdtMatrix;
 use App\ValueObject\Match\MortarIds;
 use Doctrine\DBAL\Connection;
 
-/**
- * Confiance = maillon le plus faible (weakest tier) parmi les concentrations du
- * mortier et les ODT de la matrice. 2 requêtes DISTINCT, hors hot-path scoring.
- */
 final readonly class MatchConfidenceAssessor implements MatchConfidenceAssessorInterface
 {
     public function __construct(
@@ -38,7 +34,6 @@ final readonly class MatchConfidenceAssessor implements MatchConfidenceAssessorI
 
     /**
      * @param list<int> $spiceIds
-     *
      * @return list<DataConfidence>
      */
     private function concentrationTiers(array $spiceIds): array
@@ -58,7 +53,6 @@ final readonly class MatchConfidenceAssessor implements MatchConfidenceAssessorI
 
     /**
      * @param list<int> $spiceIds
-     *
      * @return list<DataConfidence>
      */
     private function odtTiers(array $spiceIds, OdtMatrix $matrix): array
@@ -87,7 +81,6 @@ final readonly class MatchConfidenceAssessor implements MatchConfidenceAssessorI
 
     /**
      * @param list<mixed> $rawValues
-     *
      * @return list<DataConfidence>
      */
     private function mapTiers(array $rawValues): array

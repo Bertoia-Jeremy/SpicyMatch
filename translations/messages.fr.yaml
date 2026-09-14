@@ -237,6 +237,15 @@ ui:
         validate: Valider
         same_family_one: 'appartient à la même famille aromatique'
         same_family_many: 'appartiennent à la même famille aromatique'
+        hangman_attempts_left: '%count% essais restants'
+        hangman_last_attempt: Dernier essai !
+        hangman_overcooked: Trop cuit
+        hangman_letters_left: '%count% lettres à trouver'
+        hangman_letter_left: 1 lettre à trouver
+        hangman_served: Servi !
+        hangman_hint_label: Indice
+        hangman_hint_cta: Toucher pour révéler
+        keyboard_note: ou tapez au clavier
     edu:
         prompt:
             qcm_best_match: 'Quelle épice se marie le mieux avec %spice% ?'
@@ -273,6 +282,12 @@ ui:
             chrono_0: Identifie chaque épice le plus vite possible.
             chrono_1: Tu vois la photo et les caractéristiques, mais pas le nom.
             chrono_2: Le temps est compté — chaque seconde compte.
+        skill:
+            up_title: Tu maîtrises ce niveau
+            up_text: '%rate%% de réussite sur tes %count% dernières parties en %from%. Prêt pour %to% ?'
+            down_title: Un cran en dessous ?
+            down_text: '%rate%% de réussite sur tes %count% dernières parties en %from%. Essaie %to% pour retrouver le rythme.'
+            cta: 'Essayer en %to%'
         academy_title: Académie des Épices
         academy_intro: Teste tes connaissances sur les épices et leurs compatibilités aromatiques.
         xp_per_correct: '%xp% XP/correct'
@@ -281,8 +296,7 @@ ui:
         timed_mode: Chrono
         survival_mode: Survie
         come_back_tomorrow: Reviens demain
-        reduced_xp_tooltip: 'XP réduit de 50%% au-delà de %threshold% parties/jour'
-        remaining_xp: '%count% restantes · ×0.5 XP'
+        result_title: '%mode% — Résultats'
         remaining_today: '%remaining%/%max% aujourd''hui'
         recent_games: Parties récentes
         correct_count: '%correct%/%total% correct'

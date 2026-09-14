@@ -55,20 +55,8 @@ class GameSession
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $finishedAt = null;
 
-    /**
-     * Server-side timeout for time-limited games (e.g. Hangman in Chef de Partie mode).
-     * Validated on every LiveAction to prevent client-side timer tampering.
-     */
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $expiresAt = null;
-
-    /**
-     * Spice cible présentée dans le briefing pour les modes qui en ont une
-     * (Survival, GuessWho, Hangman, Chrono). Null pour QCM/Intrus.
-     */
-    #[ORM\ManyToOne(targetEntity: Spices::class)]
-    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    private ?Spices $targetSpice = null;
 
     /**
      * @var Collection<int, GameQuestion>
@@ -88,9 +76,6 @@ class GameSession
         $this->startedAt = new \DateTimeImmutable();
     }
 
-    /**
-     * Accuracy percentage (0.0–100.0).
-     */
     public float $accuracy {
         get {
             if ($this->totalQuestions === 0) {
@@ -101,9 +86,6 @@ class GameSession
         }
     }
 
-    /**
-     * Whether the session has been finished.
-     */
     public bool $isFinished {
         get => $this->finishedAt !== null;
     }
@@ -264,17 +246,5 @@ class GameSession
     public function isExpired(): bool
     {
         return $this->expiresAt !== null && new \DateTimeImmutable() > $this->expiresAt;
-    }
-
-    public function getTargetSpice(): ?Spices
-    {
-        return $this->targetSpice;
-    }
-
-    public function setTargetSpice(?Spices $targetSpice): static
-    {
-        $this->targetSpice = $targetSpice;
-
-        return $this;
     }
 }

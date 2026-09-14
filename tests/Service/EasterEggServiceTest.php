@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Service;
 
+use App\Entity\AromaticGroups;
 use App\Entity\Spices;
 use App\Entity\Users;
 use App\Repository\SpicesRepository;
@@ -41,7 +42,6 @@ final class EasterEggServiceTest extends TestCase
 
         $this->session = new Session(new MockArraySessionStorage());
         $this->requestStack = new RequestStack();
-        // Push a request so getSession() resolves to our mock session
         $request = new \Symfony\Component\HttpFoundation\Request();
         $request->setSession($this->session);
         $this->requestStack->push($request);
@@ -54,7 +54,6 @@ final class EasterEggServiceTest extends TestCase
             new NullLogger(),
         );
 
-        // Default mock for bus dispatch
         $this->bus->method('dispatch')
             ->willReturn(new Envelope(new \stdClass()));
     }
@@ -70,7 +69,6 @@ final class EasterEggServiceTest extends TestCase
     {
         $user = $this->makeUser(123);
 
-        // Client payload is ignored — session counter is the source of truth.
         $this->session->set('easter_egg.alchimiste_count', 4);
         self::assertFalse($this->service->handleEgg($user, 'alchimiste_de_l_ombre'));
 
@@ -82,11 +80,9 @@ final class EasterEggServiceTest extends TestCase
     {
         $user = $this->makeUser(123);
 
-        // Duration is derived from a server-issued timestamp in session, not from client payload.
         $this->session->set('easter_egg.infusion_started_at', time() - 259);
         self::assertFalse($this->service->handleEgg($user, 'temps_de_l_infusion'));
 
-        // Rebuild the service so the UserStat idempotence guard starts fresh between two asserts
         $user2 = $this->makeUser(124);
         $this->session->set('easter_egg.infusion_started_at', time() - 260);
         self::assertTrue($this->service->handleEgg($user2, 'temps_de_l_infusion'));
@@ -115,7 +111,7 @@ final class EasterEggServiceTest extends TestCase
             'keywords' => $keywords,
         ]));
 
-        self::assertFalse($this->service->handleEgg($user, 'la_recette_perdue', [
+        self::assertFalse($this->service->handleEgg($this->makeUser(124), 'la_recette_perdue', [
             'keywords' => ['cannelle'],
         ]));
     }
@@ -126,30 +122,10 @@ final class EasterEggServiceTest extends TestCase
         self::assertFalse($this->service->handleEgg($user, 'this_slug_does_not_exist'));
     }
 
-    public function testValidateEquilibreWithDouceAndBrulante(): void
+    public function testValidateEquilibreWithOpposingGroups(): void
     {
         $user = $this->makeUser(123);
-
-        $spice1 = $this->createMock(Spices::class);
-        $type1 = $this->createMock(\App\Entity\SpicyType::class);
-        $type1->method('getName')
-            ->willReturn('Douce');
-        $spice1->method('getSpicyType')
-            ->willReturn($type1);
-
-        $spice2 = $this->createMock(Spices::class);
-        $type2 = $this->createMock(\App\Entity\SpicyType::class);
-        $type2->method('getName')
-            ->willReturn('Brulante');
-        $spice2->method('getSpicyType')
-            ->willReturn($type2);
-
-        $this->spicesRepository->method('find')
-            ->willReturnCallback(fn (int $id) => match ($id) {
-                1 => $spice1,
-                2 => $spice2,
-                default => null,
-            });
+        $this->stubSpicesByGroup('capsaicinoides-alcaloides', 'terpenes-oxygenes');
 
         self::assertTrue($this->service->handleEgg($user, 'equilibre_des_contraires', [
             'spice1' => 1,
@@ -157,23 +133,54 @@ final class EasterEggServiceTest extends TestCase
         ]));
     }
 
-    public function testValidateEquilibreFailsWithSameTypes(): void
+    public function testValidateEquilibreFailsWithSameGroup(): void
     {
         $user = $this->makeUser(123);
+        $this->stubSpicesByGroup('capsaicinoides-alcaloides', 'capsaicinoides-alcaloides');
 
-        $spice1 = $this->createMock(Spices::class);
-        $type1 = $this->createMock(\App\Entity\SpicyType::class);
-        $type1->method('getName')
-            ->willReturn('Douce');
-        $spice1->method('getSpicyType')
-            ->willReturn($type1);
+        self::assertFalse($this->service->handleEgg($user, 'equilibre_des_contraires', [
+            'spice1' => 1,
+            'spice2' => 2,
+        ]));
+    }
 
-        $spice2 = $this->createMock(Spices::class);
-        $type2 = $this->createMock(\App\Entity\SpicyType::class);
-        $type2->method('getName')
-            ->willReturn('Douce');
-        $spice2->method('getSpicyType')
-            ->willReturn($type2);
+    public function testValidateEquilibreFailsWithoutBurningGroup(): void
+    {
+        $user = $this->makeUser(123);
+        $this->stubSpicesByGroup('phenylpropanoides', 'terpenes-oxygenes');
+
+        self::assertFalse($this->service->handleEgg($user, 'equilibre_des_contraires', [
+            'spice1' => 1,
+            'spice2' => 2,
+        ]));
+    }
+
+    public function testValidateEquilibreFailsWithUnclassifiedGroup(): void
+    {
+        $user = $this->makeUser(123);
+        $this->stubSpicesByGroup('capsaicinoides-alcaloides', 'a-reviser');
+
+        self::assertFalse($this->service->handleEgg($user, 'equilibre_des_contraires', [
+            'spice1' => 1,
+            'spice2' => 2,
+        ]));
+    }
+
+    private function stubSpicesByGroup(string $slug1, string $slug2): void
+    {
+        $make = function (string $groupSlug): Spices {
+            $group = $this->createMock(AromaticGroups::class);
+            $group->method('getSlug')
+                ->willReturn($groupSlug);
+            $spice = $this->createMock(Spices::class);
+            $spice->method('getAromaticGroups')
+                ->willReturn($group);
+
+            return $spice;
+        };
+
+        $spice1 = $make($slug1);
+        $spice2 = $make($slug2);
 
         $this->spicesRepository->method('find')
             ->willReturnCallback(fn (int $id) => match ($id) {
@@ -181,11 +188,6 @@ final class EasterEggServiceTest extends TestCase
                 2 => $spice2,
                 default => null,
             });
-
-        self::assertFalse($this->service->handleEgg($user, 'equilibre_des_contraires', [
-            'spice1' => 1,
-            'spice2' => 2,
-        ]));
     }
 
     public function testValidateEquilibreFailsMissingSpiceIds(): void
@@ -210,26 +212,12 @@ final class EasterEggServiceTest extends TestCase
     {
         $user = $this->makeUser(123);
         $stats = new \App\Entity\UserStat();
-        // Record the sequence: curcuma(10), cumin(20), gingembre(30)
         $stats->recordVisitedSpice(10);
         $stats->recordVisitedSpice(20);
         $stats->recordVisitedSpice(30);
         $user->setStats($stats);
 
-        $this->spicesRepository->method('findOneBy')
-            ->willReturnCallback(function (array $criteria) {
-                $spice = $this->createMock(Spices::class);
-                $id = match ($criteria['slug']) {
-                    'curcuma' => 10,
-                    'cumin' => 20,
-                    'gingembre' => 30,
-                    default => null,
-                };
-                $spice->method('getId')
-                    ->willReturn($id);
-
-                return $spice;
-            });
+        $this->stubCurrySpices();
 
         self::assertTrue($this->service->handleEgg($user, 'secret_du_curry'));
     }
@@ -238,26 +226,12 @@ final class EasterEggServiceTest extends TestCase
     {
         $user = $this->makeUser(123);
         $stats = new \App\Entity\UserStat();
-        // Wrong order: gingembre, cumin, curcuma
         $stats->recordVisitedSpice(30);
         $stats->recordVisitedSpice(20);
         $stats->recordVisitedSpice(10);
         $user->setStats($stats);
 
-        $this->spicesRepository->method('findOneBy')
-            ->willReturnCallback(function (array $criteria) {
-                $spice = $this->createMock(Spices::class);
-                $id = match ($criteria['slug']) {
-                    'curcuma' => 10,
-                    'cumin' => 20,
-                    'gingembre' => 30,
-                    default => null,
-                };
-                $spice->method('getId')
-                    ->willReturn($id);
-
-                return $spice;
-            });
+        $this->stubCurrySpices();
 
         self::assertFalse($this->service->handleEgg($user, 'secret_du_curry'));
     }
@@ -268,16 +242,34 @@ final class EasterEggServiceTest extends TestCase
         $stats = new \App\Entity\UserStat();
         $stats->recordVisitedSpice(10);
         $stats->recordVisitedSpice(20);
-        // Only 2 visits, need 3
         $user->setStats($stats);
 
         self::assertFalse($this->service->handleEgg($user, 'secret_du_curry'));
     }
 
+    private function stubCurrySpices(): void
+    {
+        $spices = [];
+        foreach ([
+            'curcuma' => 10,
+            'cumin' => 20,
+            'gingembre' => 30,
+        ] as $slug => $id) {
+            $spice = $this->createMock(Spices::class);
+            $spice->method('getSlug')
+                ->willReturn($slug);
+            $spice->method('getId')
+                ->willReturn($id);
+            $spices[] = $spice;
+        }
+
+        $this->spicesRepository->method('findBy')
+            ->willReturn($spices);
+    }
+
     public function testValidateSecretDuCurryFailsWithoutStats(): void
     {
         $user = $this->makeUser(123);
-        // No stats set → getStats() returns null
         self::assertFalse($this->service->handleEgg($user, 'secret_du_curry'));
     }
 

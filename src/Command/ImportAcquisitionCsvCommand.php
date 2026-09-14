@@ -21,19 +21,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
-/**
- * Ingère la feuille maître d'acquisition (CSV consolidé, 1 ligne par épice × composé)
- * directement en base. Contrairement aux imports YAML, cette commande CRÉE les composés
- * manquants (nom + CAS + formule) — la donnée reste privée dans data/acquisition/ (gitignoré).
- *
- * Colonnes : spice_name, compound_name, cas_number, formula, concentration_ppm,
- * concentration_source, concentration_confidence, log_p, boiling_point_celsius,
- * vapor_pressure_pa, physical_source, odt_air_ppm, odt_water_ppm, odt_oil_ppm,
- * odt_confidence, odt_source, notes.
- *
- * Matching épice/composé par nom exact. Idempotent (upsert). La couche physico-chimique
- * (logP/bp/vp) reste déléguée à app:fetch:pubchem (PubChem) : ignorée ici.
- */
 #[AsCommand(
     name: 'app:import:acquisition-csv',
     description: 'Ingère data/acquisition/*.csv en base (crée composés + concentrations + ODT).',
@@ -116,7 +103,7 @@ final class ImportAcquisitionCsvCommand extends Command
 
         $header = fgetcsv($handle, escape: '\\');
         if (\is_array($header) && isset($header[0])) {
-            $header[0] = str_replace("\u{FEFF}", '', (string) $header[0]); // strip BOM
+            $header[0] = str_replace("\u{FEFF}", '', (string) $header[0]);
         }
 
         while (($row = fgetcsv($handle, escape: '\\')) !== false) {

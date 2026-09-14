@@ -138,15 +138,8 @@ class SpicesRepository extends ServiceEntityRepository
     }
 
     /**
-     * Enrichissement batch pour le moteur OAV : charge les données d'affichage
-     * d'un ensemble d'IDs en une seule requête (pas de N+1 sur relations).
-     *
-     * Utilisé par CompatibleSpiceFinder après un appel à MatchPipeline::run().
-     * Nom épice + groupe localisés (COALESCE FR) si $locale ≠ fr ; le type n'est pas traduisible.
-     *
      * @param list<int>   $ids
      * @param string|null $locale null ou 'fr' → noms canoniques directs
-     *
      * @return list<array{id: int, name: string, slug: ?string, file: ?string, agId: ?int, color: ?string, groupName: ?string, stId: ?int, typeName: ?string}>
      */
     public function findEnrichedByIds(array $ids, ?string $locale = null): array
@@ -284,10 +277,6 @@ class SpicesRepository extends ServiceEntityRepository
     }
 
     /**
-     * Filter spices by aromatic group, spicy type and/or name prefix.
-     * Eager-loads aromaticGroups and spicyType to prevent N+1 in templates.
-     * Passing all nulls returns all non-deleted spices (replaces findAll() on the catalog page).
-     *
      * @return list<Spices>
      */
     public function findFiltered(?int $aromaticGroupId, ?int $spicyTypeId, ?string $search = null): array
@@ -319,15 +308,8 @@ class SpicesRepository extends ServiceEntityRepository
     }
 
     /**
-     * Load candidate spices for compatibility scoring.
-     *
-     * Returns Spices that have at least one of the given shared compound IDs
-     * (main or secondary), excluding already-selected spice IDs.
-     * Compounds and AlchemyFlavors are eagerly loaded to avoid N+1 during scoring.
-     *
      * @param list<int> $sharedCompoundIds
      * @param list<int> $excludedSpiceIds
-     *
      * @return list<Spices>
      */
     public function findCandidatesForScoring(array $sharedCompoundIds, array $excludedSpiceIds): array
@@ -336,7 +318,6 @@ class SpicesRepository extends ServiceEntityRepository
             return [];
         }
 
-        // Step 1: Get distinct candidate IDs (spices having ≥1 shared compound)
         $candidateIds = $this->createQueryBuilder('s')
             ->select('s.id')
             ->distinct()
@@ -353,8 +334,6 @@ class SpicesRepository extends ServiceEntityRepository
             return [];
         }
 
-        // Step 2: Load with compound relations eagerly to avoid N+1.
-        // AlchemyFlavors are NOT loaded — they are excluded from scoring.
         return $this->createQueryBuilder('s')
             ->addSelect('mainAc', 'secAc', 'ag', 'st')
             ->leftJoin('s.aromaticsCompounds', 'mainAc')
@@ -368,12 +347,7 @@ class SpicesRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find spices that share ZERO aromatic compounds (main or secondary) with the given spice.
-     *
-     * Uses NOT EXISTS subqueries for efficiency — no PHP scoring needed.
-     *
      * @param list<int> $excludeIds
-     *
      * @return list<Spices>
      */
     public function findIncompatibleWith(Spices $spice, array $excludeIds = []): array
@@ -448,11 +422,6 @@ class SpicesRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find the top compatible spice pairs based on shared aromatic compounds.
-     *
-     * Uses raw SQL self-join on pivot tables for performance.
-     * Score = sharedMain×3 + sharedSecondary×1 (no group bonus, no alchemy).
-     *
      * @return array<array{s1_id: int, s1_name: string, s1_file: ?string, s1_color: ?string, s1_group: ?string, s2_id: int, s2_name: string, s2_file: ?string, s2_color: ?string, s2_group: ?string, score: int}>
      */
     public function findTopCompatiblePairs(int $limit = 20): array
@@ -496,11 +465,6 @@ class SpicesRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find the top compatible spice triplets sharing at least one aromatic compound across all 3.
-     *
-     * Strict intersection: the compound must be present in all 3 spices.
-     * Score = sharedMain×3 + sharedSecondary×1.
-     *
      * @return array<array{s1_id: int, s1_name: string, s1_file: ?string, s2_id: int, s2_name: string, s2_file: ?string, s3_id: int, s3_name: string, s3_file: ?string, score: int, shared_main: int, shared_secondary: int}>
      */
     public function findTopCompatibleTriplets(int $limit = 10): array
@@ -575,16 +539,8 @@ class SpicesRepository extends ServiceEntityRepository
     }
 
     /**
-     * Retourne un mapping id → name (localisé) pour une liste d'IDs.
-     *
-     * Hydratation BATCH (i18n) : un seul LEFT JOIN filtré par locale + COALESCE
-     * vers le FR canonique. Zéro N+1 — c'est le SEUL point i18n du hot-path du
-     * moteur OAV (le pipeline lui-même reste agnostique de la langue). Requête
-     * DQL scalaire (pas d'hydratation entité).
-     *
      * @param int[]       $ids
      * @param string|null $locale locale cible ; null ou 'fr' → noms canoniques directs
-     *
      * @return array<int, string> spice_id => name
      */
     public function findNamesById(array $ids, ?string $locale = null): array
@@ -593,7 +549,6 @@ class SpicesRepository extends ServiceEntityRepository
             return [];
         }
 
-        // FR (défaut) : pas de JOIN, le nom canonique vit sur l'entité.
         if ($locale === null || $locale === 'fr') {
             $rows = $this->createQueryBuilder('s')
                 ->select('s.id', 's.name')

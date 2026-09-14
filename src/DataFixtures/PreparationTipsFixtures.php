@@ -12,10 +12,6 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 
-/**
- * 2 preparation tips per spice (60 total).
- * Run: php bin/console doctrine:fixtures:load --append --group=PreparationTipsFixtures.
- */
 class PreparationTipsFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     /**

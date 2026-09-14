@@ -33,10 +33,6 @@ class SpicyMatch extends AbstractController
 {
     use DefaultActionTrait;
 
-    /**
-     * Presets prédéfinis exposés via setCookingPreset() — un seul clic suffit pour
-     * basculer entre les trois grands modes culinaires sans toucher aux sliders.
-     */
     private const array PRESETS = [
         'dry' => [
             'matrix' => 'air',
@@ -78,8 +74,6 @@ class SpicyMatch extends AbstractController
 
     #[LiveProp(writable: true)]
     public string $mode = 'auto';
-
-    // ── Contexte culinaire ──────────────────────────────────────────────────────
 
     #[LiveProp(writable: true)]
     public string $matrix = 'air';
@@ -304,15 +298,8 @@ class SpicyMatch extends AbstractController
         ];
     }
 
-    /**
-     * Construit un CulinaryContext valide depuis les LiveProps (sanitization défensive).
-     *
-     * Les LiveProps sont writable côté client : on coerce/clamp avant d'instancier
-     * pour garantir qu'aucune valeur hors-bornes ne lève d'InvalidArgumentException.
-     */
     public function buildCulinaryContext(): CulinaryContext
     {
-        // Bornes source de vérité : constantes publiques de CulinaryContext.
         $matrix = OdtMatrix::tryFrom(strtolower(trim($this->matrix))) ?? OdtMatrix::AIR;
         $fat = max(CulinaryContext::FAT_RATIO_MIN, min(CulinaryContext::FAT_RATIO_MAX, $this->fatRatio));
         $water = max(0.0, 1.0 - $fat);
@@ -322,14 +309,10 @@ class SpicyMatch extends AbstractController
         try {
             return new CulinaryContext($matrix, $fat, $water, $time, $temp);
         } catch (\InvalidArgumentException) {
-            // Garde-fou — ne devrait pas se produire après clamp ci-dessus.
             return new CulinaryContext();
         }
     }
 
-    /**
-     * Null tant qu'aucune épice n'est sélectionnée.
-     */
     public function getDataConfidence(): ?DataConfidence
     {
         $selected = $this->spices['selectedSpices'];
@@ -345,20 +328,12 @@ class SpicyMatch extends AbstractController
         return $this->confidenceAssessor->assess(new MortarIds($ids), $this->buildCulinaryContext()->matrix);
     }
 
-    /**
-     * Vrai si l'utilisateur a quitté le contexte par défaut.
-     * Délégué au VO — source de vérité unique partagée avec l'entité.
-     */
     public function hasCustomCulinaryContext(): bool
     {
         return $this->buildCulinaryContext()
             ->isCustom();
     }
 
-    /**
-     * Libellé court du mode culinaire courant pour l'affichage UI.
-     * Délégué au VO.
-     */
     public function getCulinaryLabel(): string
     {
         return $this->buildCulinaryContext()
@@ -366,9 +341,6 @@ class SpicyMatch extends AbstractController
     }
 
     /**
-     * Matrices proposables = celles ayant des données OAV réelles (véracité par omission).
-     * Une matrice sans données n'apparaît pas dans le sélecteur.
-     *
      * @return list<string>
      */
     public function getAvailableMatrices(): array
@@ -425,10 +397,6 @@ class SpicyMatch extends AbstractController
         $this->search = '';
     }
 
-    /**
-     * Bascule rapide entre les 3 modes culinaires types.
-     * Whitelist stricte → toute valeur inconnue est ignorée.
-     */
     #[LiveAction]
     public function setCookingPreset(#[LiveArg] string $preset): void
     {
@@ -443,9 +411,6 @@ class SpicyMatch extends AbstractController
         $this->temperatureCelsius = $config['temp'];
     }
 
-    /**
-     * Restaure le contexte culinaire par défaut (mode "À sec").
-     */
     #[LiveAction]
     public function resetCulinaryContext(): void
     {

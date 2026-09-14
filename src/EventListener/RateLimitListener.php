@@ -15,22 +15,6 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
-/**
- * Applies per-user rate limiting to Live Component actions and user-mutation routes.
- *
- * Listens on kernel.request (priority 10) — BEFORE the firewall, so authenticated
- * users are keyed by their own token-storage user; anonymous hits use the IP.
- *
- * Scope:
- *   - POST /_components/... → lc_actions (60/min)
- *   - POST /users/gamification/toggle → user_actions (30/min)
- *   - POST /users/badge/equip/... → user_actions (30/min)
- *   - POST /spicymatch/history/.../rename, /.../favorite/toggle → user_actions (30/min)
- *
- * Out of scope:
- *   - GET routes (no mutation)
- *   - /api/gamification/egg/... → already limited inline in EasterEggController
- */
 #[AsEventListener(event: KernelEvents::REQUEST, priority: 10)]
 final class RateLimitListener
 {
@@ -96,7 +80,6 @@ final class RateLimitListener
             return $this->lcActionsLimiter;
         }
 
-        // User mutation routes — POST-only, matched by suffix patterns.
         if (preg_match('#^/users/(gamification/toggle|badge/equip/\d+|difficulty/update)$#', $path) === 1) {
             return $this->userActionsLimiter;
         }
@@ -108,9 +91,6 @@ final class RateLimitListener
         return null;
     }
 
-    /**
-     * Prefer user id as the rate-limit key; fall back to client IP for anonymous hits.
-     */
     private function limiterKey(string $clientIp): string
     {
         $token = $this->tokenStorage->getToken();

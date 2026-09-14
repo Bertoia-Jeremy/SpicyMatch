@@ -6,18 +6,6 @@ namespace App\ValueObject\Match;
 
 use App\Exception\Match\InvalidMortarException;
 
-/**
- * Value Object immuable représentant le mortier (ensemble d'IDs d'épices).
- *
- * Invariants garantis à la construction :
- *   - count ∈ [1, 10]
- *   - tous les IDs résultants sont > 0 (les IDs ≤ 0 sont silencieusement écartés
- *     pour rester cohérent avec le parsing HTTP existant)
- *   - doublons dédupliqués automatiquement
- *
- * Centralise la validation auparavant dispersée entre MatchController (count check),
- * CandidateVetoRepository (guard mortarSize === 0) et MortarProfileBuilder.
- */
 final class MortarIds
 {
     private const int MIN_COUNT = 1;
@@ -34,8 +22,6 @@ final class MortarIds
      */
     public function __construct(array $ids)
     {
-        // Les IDs ≤ 0 sont écartés silencieusement (cohérence avec le parsing HTTP).
-        // La déduplication est une normalisation, pas un filtrage silencieux.
         $filtered = array_values(array_unique(array_filter($ids, static fn (int $id) => $id > 0)));
 
         $count = count($filtered);

@@ -17,9 +17,6 @@ use Symfony\UX\Chartjs\Model\Chart;
 
 class DashboardController extends AbstractDashboardController
 {
-    /**
-     * Domaine de traduction du back-office.
-     */
     private const DOMAIN = 'admin';
 
     public function __construct(
@@ -41,7 +38,6 @@ class DashboardController extends AbstractDashboardController
         $gameModeDistribution = $this->statsService->gameModeDistribution(30);
         $unlockedByRarity = $this->statsService->unlockedByRarity();
 
-        // Level distribution chart
         $levelChart = $this->chartBuilder->createChart(Chart::TYPE_BAR);
         $levelLabels = array_map(
             fn (int $b) => $this->translator->trans('admin.chart.level_bucket', [
@@ -74,7 +70,6 @@ class DashboardController extends AbstractDashboardController
             ],
         ]);
 
-        // Top spices chart
         $spiceChart = $this->chartBuilder->createChart(Chart::TYPE_BAR);
         $spiceChart->setData([
             'labels' => array_column($spiceStats['topViewed'], 'name') ?: [$noneLabel],
@@ -95,7 +90,6 @@ class DashboardController extends AbstractDashboardController
             ],
         ]);
 
-        // Activity timeline chart
         $activityChart = $this->chartBuilder->createChart(Chart::TYPE_LINE);
         $activityChart->setData([
             'labels' => array_column($matchStats['recentActivity'], 'date') ?: ['—'],
@@ -218,8 +212,6 @@ class DashboardController extends AbstractDashboardController
 
     public function configureCrud(): Crud
     {
-        // Le domaine de traduction est défini globalement via Dashboard::setTranslationDomain()
-        // (Crud::setTranslationDomain() n'existe pas dans cette version d'EasyAdmin).
         return Crud::new()
             ->setDefaultSort([
                 'created_at' => 'DESC',

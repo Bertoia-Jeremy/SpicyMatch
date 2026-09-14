@@ -10,10 +10,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * Entrée racine non préfixée : redirige "/" vers "/{locale}/" (home) selon la
- * langue préférée du visiteur. Seul point d'entrée sans locale.
- */
 final class RootController extends AbstractController
 {
     #[Route('/', name: 'root')]

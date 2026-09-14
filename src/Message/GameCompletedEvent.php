@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Message;
 
-/**
- * Dispatched when a GameSession is finished.
- * Handled by GameGamificationHandler to update XP and unlock achievements.
- */
 final class GameCompletedEvent
 {
     public function __construct(

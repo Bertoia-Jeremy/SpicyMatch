@@ -6,12 +6,12 @@ namespace App\Service\Education;
 
 use App\Entity\GameQuestion;
 use App\Entity\GameSession;
-use App\Entity\Spices;
 use App\Entity\Users;
 use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use App\Message\GameCompletedEvent;
 use App\Repository\GameSessionRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
@@ -21,7 +21,7 @@ class GameSessionManager
 
     private const int MAX_DAILY_SESSIONS_PREMIUM = 5;
 
-    private const int REDUCED_XP_THRESHOLD = 3;
+    public const int MAX_XP_PER_SESSION = 60;
 
     public function maxDailySessions(?Users $user): int
     {
@@ -45,38 +45,49 @@ class GameSessionManager
         Users $user,
         GameMode $mode,
         GameDifficulty $difficulty,
-        ?Spices $targetSpice = null,
     ): GameSession {
-        $maxDaily = $this->maxDailySessions($user);
-        $todayCount = $this->sessionRepository->countTodayByUser($user, $mode);
-        if ($todayCount >= $maxDaily) {
-            throw new \RuntimeException(sprintf('Limite quotidienne atteinte (%d sessions par jour).', $maxDaily));
-        }
+        return $this->withDailyQuota($user, $mode, function () use ($user, $mode, $difficulty): GameSession {
+            $session = new GameSession();
+            $session->setUser($user);
+            $session->setGameMode($mode);
+            $session->setDifficulty($difficulty);
 
-        $session = new GameSession();
-        $session->setUser($user);
-        $session->setGameMode($mode);
-        $session->setDifficulty($difficulty);
+            $modeQuestions = $mode->totalQuestions();
+            if ($modeQuestions !== null) {
+                $session->setTotalQuestions($modeQuestions);
+            }
 
-        $modeQuestions = $mode->totalQuestions();
-        if ($modeQuestions !== null) {
-            $session->setTotalQuestions($modeQuestions);
-        }
+            $this->em->persist($session);
 
-        if ($targetSpice !== null) {
-            $session->setTargetSpice($targetSpice);
-        }
-
-        $this->em->persist($session);
-        $this->em->flush();
-
-        return $session;
+            return $session;
+        });
     }
 
     /**
-     * Generate the next question for a session.
-     *
-     * @return array<string, mixed>|null null if session is finished or generation fails
+     * @template T
+     * @param \Closure(): T $create
+     * @return T
+     * @throws \RuntimeException
+     */
+    private function withDailyQuota(Users $user, GameMode $mode, \Closure $create): mixed
+    {
+        $maxDaily = $this->maxDailySessions($user);
+
+        return $this->em->wrapInTransaction(function () use ($user, $mode, $maxDaily, $create): mixed {
+            if ($this->em->contains($user)) {
+                $this->em->lock($user, LockMode::PESSIMISTIC_WRITE);
+            }
+
+            if ($this->sessionRepository->countTodayByUser($user, $mode) >= $maxDaily) {
+                throw new \RuntimeException(sprintf('Limite quotidienne atteinte (%d sessions par jour).', $maxDaily));
+            }
+
+            return $create();
+        });
+    }
+
+    /**
+     * @return array<string, mixed>|null
      */
     public function nextQuestion(GameSession $session): ?array
     {
@@ -89,7 +100,6 @@ class GameSessionManager
             return null;
         }
 
-        // Collect already-used base spice IDs to avoid repeats
         $excludeIds = [];
         foreach ($session->getQuestions() as $q) {
             $data = $q->getQuestionData();
@@ -102,8 +112,6 @@ class GameSessionManager
     }
 
     /**
-     * Record an answer and return whether it was correct.
-     *
      * @return array{correct: bool, finished: bool, xpEarned: int|null}
      */
     public function answerQuestion(
@@ -167,10 +175,6 @@ class GameSessionManager
         return $xpEarned;
     }
 
-    /**
-     * Create and immediately finish a GameSession from Live Component data.
-     * No GameQuestion rows — only the session summary is persisted.
-     */
     public function createFinishedSession(
         Users $user,
         GameMode $mode,
@@ -178,48 +182,44 @@ class GameSessionManager
         int $correctAnswers,
         int $totalQuestions,
         ?int $durationSeconds = null,
-        ?Spices $targetSpice = null,
         ?int $overrideScore = null,
     ): GameSession {
-        $maxDaily = $this->maxDailySessions($user);
-        $todayCount = $this->sessionRepository->countTodayByUser($user, $mode);
-        if ($todayCount >= $maxDaily) {
-            throw new \RuntimeException(sprintf('Limite quotidienne atteinte (%d sessions par jour).', $maxDaily));
-        }
+        $correctAnswers = max(0, $correctAnswers);
+        $totalQuestions = max(0, $totalQuestions);
 
-        $session = new GameSession();
-        $session->setUser($user);
-        $session->setGameMode($mode);
-        $session->setDifficulty($difficulty);
-        $session->setTotalQuestions($totalQuestions);
+        $session = $this->withDailyQuota($user, $mode, function () use (
+            $user,
+            $mode,
+            $difficulty,
+            $correctAnswers,
+            $totalQuestions,
+            $durationSeconds,
+            $overrideScore,
+        ): GameSession {
+            $session = new GameSession();
+            $session->setUser($user);
+            $session->setGameMode($mode);
+            $session->setDifficulty($difficulty);
+            $session->setTotalQuestions($totalQuestions);
 
-        if ($targetSpice !== null) {
-            $session->setTargetSpice($targetSpice);
-        }
+            for ($i = 0; $i < $correctAnswers; ++$i) {
+                $session->incrementCorrectAnswers();
+            }
 
-        for ($i = 0; $i < $correctAnswers; ++$i) {
-            $session->incrementCorrectAnswers();
-        }
+            $session->finish();
 
-        $session->finish();
+            if ($durationSeconds !== null) {
+                $session->setDurationSeconds(max(0, $durationSeconds));
+            }
 
-        if ($durationSeconds !== null) {
-            $session->setDurationSeconds($durationSeconds);
-        }
+            $session->setScore($overrideScore !== null
+                ? $this->convertGamePoints($overrideScore, $difficulty)
+                : $this->calculateXp($session));
 
-        if ($overrideScore !== null) {
-            // Reuse $todayCount from the limit check above (session not yet flushed — count is stable).
-            $xpEarned = $todayCount > self::REDUCED_XP_THRESHOLD
-                ? (int) round($overrideScore * 0.5)
-                : $overrideScore;
-        } else {
-            $xpEarned = $this->calculateXp($session);
-        }
+            $this->em->persist($session);
 
-        $session->setScore($xpEarned);
-
-        $this->em->persist($session);
-        $this->em->flush();
+            return $session;
+        });
 
         $this->bus->dispatch(new GameCompletedEvent(
             userId: $user->getId(),
@@ -227,15 +227,13 @@ class GameSessionManager
             gameMode: $mode->value,
             correctAnswers: $correctAnswers,
             totalQuestions: $totalQuestions,
-            xpEarned: $xpEarned,
+            xpEarned: $session->getScore(),
         ));
 
         return $session;
     }
 
     /**
-     * Persists per-question answer history for LC game modes that use createFinishedSession().
-     *
      * @param list<array{questionIndex: int, prompt: string, correctAnswer: string, answerGiven: string, isCorrect: bool}> $questionsData
      */
     public function addQuestionsToSession(GameSession $gameSession, array $questionsData): void
@@ -265,14 +263,12 @@ class GameSessionManager
             * $session->getDifficulty()
                 ->xpMultiplier();
 
-        // Reduce XP for sessions beyond the daily threshold
-        $todayCount = $this->sessionRepository->countTodayByUser($session->getUser(), $session->getGameMode());
+        return max(0, min((int) round($base), self::MAX_XP_PER_SESSION));
+    }
 
-        if ($todayCount > self::REDUCED_XP_THRESHOLD) {
-            $base *= 0.5;
-        }
-
-        return (int) round($base);
+    public function convertGamePoints(int $points, GameDifficulty $difficulty): int
+    {
+        return max(0, min((int) round($points * $difficulty->xpMultiplier()), self::MAX_XP_PER_SESSION));
     }
 
     private function getGenerator(GameMode $mode): ?QuestionGeneratorInterface

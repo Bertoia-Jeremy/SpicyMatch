@@ -273,6 +273,12 @@ ui:
             chrono_0: Identify each spice as fast as possible.
             chrono_1: You see the photo and characteristics, but not the name.
             chrono_2: Time is ticking — every second counts.
+        skill:
+            up_title: You have this level down
+            up_text: '%rate%% accuracy over your last %count% runs on %from%. Ready for %to%?'
+            down_title: One notch down?
+            down_text: '%rate%% accuracy over your last %count% runs on %from%. Try %to% to get back in the groove.'
+            cta: 'Try %to%'
         academy_title: Spice Academy
         academy_intro: Test your knowledge of spices and their aromatic compatibilities.
         xp_per_correct: '%xp% XP/correct'
@@ -281,8 +287,7 @@ ui:
         timed_mode: Timed
         survival_mode: Survival
         come_back_tomorrow: Come back tomorrow
-        reduced_xp_tooltip: 'XP reduced by 50%% beyond %threshold% games/day'
-        remaining_xp: '%count% left · ×0.5 XP'
+        result_title: '%mode% — Results'
         remaining_today: '%remaining%/%max% today'
         recent_games: Recent games
         correct_count: '%correct%/%total% correct'

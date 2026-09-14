@@ -13,7 +13,6 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AromaticCompoundRepository::class)]
 #[ORM\Table(name: 'aromatic_compound')]
-// CAS unique. Multiple NULL toléré par MariaDB → composés sans CAS non bloquants.
 #[ORM\UniqueConstraint(name: 'uniq_aromatic_compound_cas', columns: ['cas_number'])]
 #[ORM\UniqueConstraint(name: 'uniq_aromatic_compound_pubchem_cid', columns: ['pubchem_cid'])]
 #[ORM\UniqueConstraint(name: 'uniq_aromatic_compound_inchi_key', columns: ['inchi_key'])]
@@ -30,31 +29,15 @@ class AromaticCompound implements TranslatableInterface, Sluggable
     #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
     private ?string $slug = null;
 
-    /**
-     * Numéro CAS — identifiant universel cross-sources (PubChem, van Gemert, FlavorDB, Flavornet).
-     * Format : XXXXXXX-YY-Z (ex: "97-53-0" pour l'eugénol).
-     * Nullable : non renseigné tant que la validation PubChem n'est pas effectuée.
-     */
     #[ORM\Column(name: 'cas_number', type: 'string', length: 50, nullable: true)]
     private ?string $casNumber = null;
 
-    /**
-     * Formule brute (ex: "C10H12O2").
-     * Source : PubChem — validé via NIST WebBook.
-     */
     #[ORM\Column(name: 'formula', type: 'string', length: 30, nullable: true)]
     private ?string $formula = null;
 
-    /**
-     * PubChem CID (Compound ID) — identifiant canonique stable, résolu via PUG REST.
-     */
     #[ORM\Column(name: 'pubchem_cid', type: 'integer', nullable: true)]
     private ?int $pubchemCid = null;
 
-    /**
-     * InChIKey (27 caractères) — encode la stéréochimie exacte, résout l'ambiguïté
-     * des composés isomères (carvone R/S, anéthol cis/trans...) que le seul nom ne lève pas.
-     */
     #[ORM\Column(name: 'inchi_key', type: 'string', length: 27, nullable: true)]
     private ?string $inchiKey = null;
 

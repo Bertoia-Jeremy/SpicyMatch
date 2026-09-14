@@ -53,7 +53,6 @@ class RegistrationController extends AbstractController
             $user->setPassword($userPasswordHasher->hashPassword($user, $form->get('plainPassword')->getData()));
             $this->usersRepository->addOrUpdate($user);
 
-            // Init gamification entities
             $progression = new UserProgression();
             $progression->setUser($user);
             $user->setProgression($progression);

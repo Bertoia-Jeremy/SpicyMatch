@@ -4,12 +4,6 @@ declare(strict_types=1);
 
 namespace App\ValueObject;
 
-/**
- * Numéro CAS au format XXXXXXX-YY-Z (2-7 / 2 / 1 chiffre de contrôle).
- *
- * Le checksum détecte les fautes de frappe : sum(digit_i × position_i) mod 10 = check.
- * Ex. eugénol 97-53-0 → 3×1+5×2+7×3+9×4 = 70 mod 10 = 0 ✓.
- */
 final readonly class CasNumber
 {
     private const string PATTERN = '/^(\d{2,7})-(\d{2})-(\d)$/';

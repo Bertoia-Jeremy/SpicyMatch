@@ -33,19 +33,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-/**
- * Amorce les lignes de traduction de TOUTES les entités traduisibles (pattern
- * Translation Table) pour une locale cible, en copiant le contenu FR canonique
- * comme point de départ (à retravailler ensuite par un traducteur).
- *
- * Idempotent : ne touche pas une traduction déjà existante (sauf --overwrite,
- * qui met à jour la ligne en place — pas de delete/insert → pas de collision
- * sur l'unique (owner, locale)).
- * Le FR n'a JAMAIS besoin de ligne (il vit sur l'entité et sert de fallback COALESCE).
- *
- *   app:i18n:seed-translations en
- *   app:i18n:seed-translations es --overwrite
- */
 #[AsCommand(
     name: 'app:i18n:seed-translations',
     description: 'Amorce les traductions de toutes les entités pour une locale (copie du FR canonique).',
@@ -283,7 +270,6 @@ final class SeedTranslationsCommand extends Command
     /**
      * @param list<TranslatableInterface>                                  $owners
      * @param callable(TranslatableInterface, ?TranslationInterface): void $upsert
-     *
      * @return array{int, int} [écrites, conservées]
      */
     private function seedEach(array $owners, string $locale, bool $overwrite, callable $upsert): array
@@ -294,7 +280,6 @@ final class SeedTranslationsCommand extends Command
         foreach ($owners as $owner) {
             $existing = $owner->getTranslation($locale);
 
-            // Ne JAMAIS écraser une traduction relue par un humain, même avec --overwrite.
             if ($existing !== null && $existing->isReviewed()) {
                 ++$skipped;
                 continue;

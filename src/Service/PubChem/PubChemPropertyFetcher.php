@@ -13,9 +13,6 @@ final class PubChemPropertyFetcher
 
     private const string INCHI_KEY_PATTERN = '/^[A-Z]{14}-[A-Z]{10}-[A-Z]$/';
 
-    /**
-     * Doit correspondre à AromaticCompound::$formula (`length: 30`).
-     */
     private const int FORMULA_MAX_LENGTH = 30;
 
     public function __construct(

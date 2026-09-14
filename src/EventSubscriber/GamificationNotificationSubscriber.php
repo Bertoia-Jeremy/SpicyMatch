@@ -13,11 +13,6 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Twig\Environment;
 
-/**
- * Injects pending gamification Turbo Streams into HTML responses.
- * Runs after the main response is built (priority -10).
- * Notifications are marked as delivered after injection.
- */
 class GamificationNotificationSubscriber implements EventSubscriberInterface
 {
     public function __construct(
@@ -43,15 +38,12 @@ class GamificationNotificationSubscriber implements EventSubscriberInterface
 
         $request = $event->getRequest();
 
-        // Skip Turbo Frame requests — their partial HTML is swapped into an existing frame,
-        // any toast injected here would land inside the frame and be lost.
         if ($request->headers->get('Turbo-Frame') !== null) {
             return;
         }
 
         $response = $event->getResponse();
 
-        // Only inject into HTML responses
         $contentType = $response->headers->get('Content-Type', '');
         if (! str_contains($contentType, 'text/html')) {
             return;
@@ -62,7 +54,6 @@ class GamificationNotificationSubscriber implements EventSubscriberInterface
             return;
         }
 
-        // Must have a closing </body> to inject — abort silently otherwise, keep notifications pending.
         $bodyPos = strrpos($content, '</body>');
         if ($bodyPos === false) {
             return;
@@ -74,9 +65,6 @@ class GamificationNotificationSubscriber implements EventSubscriberInterface
             return;
         }
 
-        // Opt-out respected end-to-end: if the user has disabled gamification
-        // we skip injection — pending notifications stay undelivered until
-        // they re-enable it (or get pruned by cleanup command).
         if ($user->getProgression()?->isGamificationEnabled() === false) {
             return;
         }

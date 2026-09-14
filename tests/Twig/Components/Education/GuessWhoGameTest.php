@@ -53,7 +53,6 @@ final class GuessWhoGameTest extends TestCase
 
     /**
      * @param array<string, mixed> $secret
-     *
      * @return array{GuessWhoGame, Session}
      */
     private function makeGame(array $secret = []): array
@@ -70,14 +69,12 @@ final class GuessWhoGameTest extends TestCase
         $game = new GuessWhoGame($this->academyManager, $this->sessionManager, $requestStack, new IdentityTranslator());
         $game->gameToken = self::TOKEN;
         $game->questionNumber = 1;
-        $game->totalQuestions = 10;
 
         return [$game, $session];
     }
 
     /**
      * @param array<array{type: string, label: string, value: string}> $allClues
-     *
      * @return array<string, mixed>
      */
     private function baseSecret(string $correctName = 'Cannelle', int $step = 1, array $allClues = []): array
@@ -376,7 +373,6 @@ final class GuessWhoGameTest extends TestCase
         $game->lastPointsEarned = 8;
         $game->lastCorrectName = 'Cannelle';
         $game->questionNumber = 2;
-        $game->totalQuestions = 10;
 
         $this->academyManager->method('generateGuessWhoClues')
             ->willReturn([[
@@ -598,7 +594,6 @@ final class GuessWhoGameTest extends TestCase
         $game = new GuessWhoGame($manager, $this->sessionManager, $requestStack, $translator);
         $game->gameToken = self::TOKEN;
         $game->questionNumber = 1;
-        $game->totalQuestions = 10;
         $game->revealedClues = [[
             'type' => 'description',
             'label' => 'D',

@@ -12,17 +12,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-/**
- * Exporte toutes les entités épices en CSV.
- *
- * CSV = source de vérité éditoriale. À exécuter :
- *   - AVANT un vidage DB (snapshot de sauvegarde)
- *   - APRÈS un import (snapshot post-import daté)
- *
- * Usage :
- *   php bin/console app:export:spices-csv
- *   php bin/console app:export:spices-csv --output-dir=data/exports
- */
 #[AsCommand(
     name: 'app:export:spices-csv',
     description: 'Export all spice entities to dated CSV files in data/exports/',
@@ -150,7 +139,6 @@ final class ExportSpicesCsvCommand extends Command
      */
     private function exportAromaticCompounds(string $dir, string $date): array
     {
-        // cas_number et formula peuvent ne pas exister encore en DB — gestion gracieuse
         try {
             $rows = $this->connection->fetchAllAssociative(
                 'SELECT id, name, cas_number, formula, description, cooking, informations
@@ -160,7 +148,6 @@ final class ExportSpicesCsvCommand extends Command
             );
             $headers = ['id', 'name', 'cas_number', 'formula', 'description', 'cooking', 'informations'];
         } catch (\Doctrine\DBAL\Exception) {
-            // Colonnes cas_number/formula absentes (avant schema:update)
             $rows = $this->connection->fetchAllAssociative(
                 'SELECT id, name, description, cooking, informations
                  FROM aromatic_compound
@@ -178,7 +165,6 @@ final class ExportSpicesCsvCommand extends Command
      */
     private function exportSpices(string $dir, string $date): array
     {
-        // origin et botanical_family peuvent ne pas exister encore
         try {
             $rows = $this->connection->fetchAllAssociative(
                 'SELECT s.id, s.name, s.slug, ag.name AS aromatic_group, st.name AS spicy_type,
@@ -331,7 +317,6 @@ final class ExportSpicesCsvCommand extends Command
     /**
      * @param string[]                         $headers
      * @param array<int, array<string, mixed>> $rows
-     *
      * @return array{file: string, rows: int}
      */
     private function writeCsv(string $filePath, array $headers, array $rows): array
@@ -341,20 +326,16 @@ final class ExportSpicesCsvCommand extends Command
             throw new \RuntimeException("Impossible d'ouvrir le fichier en écriture : {$filePath}");
         }
 
-        // BOM UTF-8 pour compatibilité Excel
         fwrite($handle, "\xEF\xBB\xBF");
 
-        // En-têtes
         fputcsv($handle, $headers, separator: ',', enclosure: '"', escape: '\\');
 
-        // Données
         foreach ($rows as $row) {
             $line = array_map(static function (mixed $value): string {
                 if ($value === null) {
                     return '';
                 }
 
-                // Sanitize : supprimer les retours à la ligne internes qui casseraient le CSV
                 return str_replace(["\r\n", "\r", "\n"], ' ', (string) $value);
             }, $row);
 

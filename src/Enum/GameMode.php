@@ -13,9 +13,6 @@ enum GameMode: string
     case HANGMAN = 'hangman';
     case CHRONO = 'chrono';
 
-    /**
-     * Clé de traduction (domaine messages) — traduire à l'affichage via |trans.
-     */
     public function label(): string
     {
         return 'enum.game_mode.' . $this->value . '.label';
@@ -28,7 +25,7 @@ enum GameMode: string
             self::SURVIVAL => 5,
             self::GUESS_WHO => 4,
             self::INTRUS => 3,
-            self::HANGMAN => 4,
+            self::HANGMAN => 8,
             self::CHRONO => 3,
         };
     }
@@ -60,9 +57,11 @@ enum GameMode: string
         return $this !== self::QCM;
     }
 
-    /**
-     * Clé de traduction (domaine messages) — traduire à l'affichage via |trans.
-     */
+    public function tracksAccuracy(): bool
+    {
+        return $this !== self::SURVIVAL;
+    }
+
     public function description(): string
     {
         return 'enum.game_mode.' . $this->value . '.desc';
@@ -90,25 +89,16 @@ enum GameMode: string
         };
     }
 
-    /**
-     * Clé de traduction (domaine messages) — traduire à l'affichage via |trans.
-     */
     public function titleTop(): string
     {
         return 'enum.game_mode.' . $this->value . '.title_top';
     }
 
-    /**
-     * Clé de traduction (domaine messages) — traduire à l'affichage via |trans.
-     */
     public function titleBottom(): string
     {
         return 'enum.game_mode.' . $this->value . '.title_bottom';
     }
 
-    /**
-     * Clé de traduction (domaine messages) — traduire à l'affichage via |trans.
-     */
     public function tagline(): string
     {
         return 'enum.game_mode.' . $this->value . '.tagline';

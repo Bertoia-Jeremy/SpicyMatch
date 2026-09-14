@@ -21,13 +21,11 @@ final class GeometricMeanTest extends TestCase
 
     public function testRangeIsSqrtOfProduct(): void
     {
-        // geomean(2, 8) = √16 = 4 (vs moyenne arithmétique = 5, biaisée haut)
         self::assertEqualsWithDelta(4.0, GeometricMean::ofRange(2.0, 8.0), 1e-9);
     }
 
     public function testGeomeanLowerThanArithmeticForSpread(): void
     {
-        // ODT plage typique [0.001, 0.1] (×100) : geomean = 0.01, arithmétique = 0.0505
         $geo = GeometricMean::ofRange(0.001, 0.1);
         self::assertEqualsWithDelta(0.01, $geo, 1e-9);
         self::assertLessThan((0.001 + 0.1) / 2, $geo);
@@ -35,14 +33,12 @@ final class GeometricMeanTest extends TestCase
 
     public function testHandlesLargeMagnitudeWithoutOverflow(): void
     {
-        // Produit direct overflowerait ; le passage par les logs tient.
         $geo = GeometricMean::of([1e8, 1e8, 1e8]);
         self::assertEqualsWithDelta(1e8, $geo, 1.0);
     }
 
     public function testThreeValues(): void
     {
-        // geomean(1, 10, 100) = (1000)^(1/3) = 10
         self::assertEqualsWithDelta(10.0, GeometricMean::of([1.0, 10.0, 100.0]), 1e-9);
     }
 

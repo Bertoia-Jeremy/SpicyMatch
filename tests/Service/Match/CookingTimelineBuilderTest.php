@@ -49,8 +49,6 @@ final class CookingTimelineBuilderTest extends TestCase
         return $physical;
     }
 
-    // ── Buckets vides ──────────────────────────────────────────────────────────
-
     public function testEmptyInputReturnsAllEmptyBuckets(): void
     {
         $buckets = $this->makeBuilder()
@@ -69,7 +67,7 @@ final class CookingTimelineBuilderTest extends TestCase
 
         $repo = $this->createStub(CompoundPhysicalRepositoryInterface::class);
         $repo->method('loadByCompoundIds')
-            ->willReturn([]); // aucune donnée
+            ->willReturn([]);
 
         $buckets = $this->makeBuilder($repo)
             ->build([$c1, $c2], new CulinaryContext());
@@ -80,13 +78,8 @@ final class CookingTimelineBuilderTest extends TestCase
         self::assertCount(0, $buckets['base']);
     }
 
-    // ── Classification correcte ───────────────────────────────────────────────
-
     public function testClassifiesByBoilingPoint(): void
     {
-        // HEAD : bp=100 (limonène-like)
-        // HEART : bp=200 (linalol-like)
-        // BASE : bp=300 (eugenol-like)
         $head = $this->makeCompound(1, 'Limonene');
         $heart = $this->makeCompound(2, 'Linalol');
         $base = $this->makeCompound(3, 'Eugenol');
@@ -125,11 +118,8 @@ final class CookingTimelineBuilderTest extends TestCase
         self::assertSame('head', $buckets['head'][0]->kinetics);
     }
 
-    // ── Rétention ──────────────────────────────────────────────────────────────
-
     public function testRetentionIsOneInNeutralContext(): void
     {
-        // Contexte par défaut (pas de gras, pas de cuisson) → factor = 1
         $c = $this->makeCompound(1, 'X');
         $repo = $this->createStub(CompoundPhysicalRepositoryInterface::class);
         $repo->method('loadByCompoundIds')
@@ -145,7 +135,6 @@ final class CookingTimelineBuilderTest extends TestCase
 
     public function testRetentionDecreasesUnderCooking(): void
     {
-        // HEAD compound (bp=100) bouilli 30 min → rétention ≈ exp(-3) ≈ 0.05
         $c = $this->makeCompound(1, 'Volatile');
         $repo = $this->createStub(CompoundPhysicalRepositoryInterface::class);
         $repo->method('loadByCompoundIds')
@@ -175,14 +164,11 @@ final class CookingTimelineBuilderTest extends TestCase
         self::assertNull($buckets['unknown'][0]->kinetics);
     }
 
-    // ── Tri intra-bucket ──────────────────────────────────────────────────────
-
     public function testIntraBucketSortedByRetentionDesc(): void
     {
-        // Trois HEAD compounds avec bp différents → différentes rétentions sous cuisson
-        $a = $this->makeCompound(1, 'A_bp100'); // perd le plus
-        $b = $this->makeCompound(2, 'B_bp140'); // intermédiaire
-        $c = $this->makeCompound(3, 'C_bp148'); // perd le moins (proche de la limite HEAD)
+        $a = $this->makeCompound(1, 'A_bp100');
+        $b = $this->makeCompound(2, 'B_bp140');
+        $c = $this->makeCompound(3, 'C_bp148');
 
         $repo = $this->createStub(CompoundPhysicalRepositoryInterface::class);
         $repo->method('loadByCompoundIds')
@@ -196,18 +182,15 @@ final class CookingTimelineBuilderTest extends TestCase
         $buckets = $this->makeBuilder($repo)
             ->build([$a, $b, $c], $ctx);
 
-        // Rétention décroissante : C > B > A (bp plus haut = moins de perte)
         $names = array_column($buckets['head'], 'name');
         self::assertSame(['C_bp148', 'B_bp140', 'A_bp100'], $names);
     }
-
-    // ── Cache ──────────────────────────────────────────────────────────────────
 
     public function testBuildCachesResultsAcrossCalls(): void
     {
         $c = $this->makeCompound(1, 'X');
         $repo = $this->createMock(CompoundPhysicalRepositoryInterface::class);
-        $repo->expects(self::once()) // 1 seul fetch malgré 2 appels build()
+        $repo->expects(self::once())
             ->method('loadByCompoundIds')
             ->willReturn([
                 1 => $this->makePhysical($c, logP: 0.0, bp: 100),
@@ -219,7 +202,6 @@ final class CookingTimelineBuilderTest extends TestCase
         $first = $builder->build([$c], $ctx);
         $second = $builder->build([$c], $ctx);
 
-        // DTO comparison by value (assertSame compare l'identité d'objet PHP).
         self::assertEquals($first, $second);
     }
 
@@ -227,7 +209,7 @@ final class CookingTimelineBuilderTest extends TestCase
     {
         $c = $this->makeCompound(1, 'X');
         $repo = $this->createMock(CompoundPhysicalRepositoryInterface::class);
-        $repo->expects(self::exactly(2)) // 2 fetches : ctx différent
+        $repo->expects(self::exactly(2))
             ->method('loadByCompoundIds')
             ->willReturn([
                 1 => $this->makePhysical($c, logP: 0.0, bp: 100),
@@ -241,7 +223,6 @@ final class CookingTimelineBuilderTest extends TestCase
 
     public function testCompoundsWithoutIdAreSilentlyIgnored(): void
     {
-        // Composé sans ID (jamais persisté) — ne doit pas crash la méthode
         $c = new AromaticCompound();
         $c->setName('Orphelin');
 

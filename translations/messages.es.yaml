@@ -273,6 +273,12 @@ ui:
             chrono_0: Identifica cada especia lo más rápido posible.
             chrono_1: Ves la foto y las características, pero no el nombre.
             chrono_2: El tiempo corre — cada segundo cuenta.
+        skill:
+            up_title: Dominas este nivel
+            up_text: '%rate%% de aciertos en tus últimas %count% partidas en %from%. ¿Listo para %to%?'
+            down_title: ¿Un nivel por debajo?
+            down_text: '%rate%% de aciertos en tus últimas %count% partidas en %from%. Prueba %to% para recuperar el ritmo.'
+            cta: 'Probar en %to%'
         academy_title: Academia de las Especias
         academy_intro: Pon a prueba tus conocimientos sobre las especias y sus compatibilidades aromáticas.
         xp_per_correct: '%xp% XP/correcta'
@@ -281,8 +287,7 @@ ui:
         timed_mode: Contrarreloj
         survival_mode: Supervivencia
         come_back_tomorrow: Vuelve mañana
-        reduced_xp_tooltip: 'XP reducido un 50%% más allá de %threshold% partidas/día'
-        remaining_xp: '%count% restantes · ×0.5 XP'
+        result_title: '%mode% — Resultados'
         remaining_today: '%remaining%/%max% hoy'
         recent_games: Partidas recientes
         correct_count: '%correct%/%total% correctas'

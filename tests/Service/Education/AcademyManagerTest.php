@@ -10,18 +10,12 @@ use App\Repository\SpicesRepository;
 use App\Service\Education\AcademyManager;
 use App\Service\Match\CompatibleSpiceFinder;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Translation\IdentityTranslator;
 
-/**
- * Unit tests for the pure/stateless methods of AcademyManager.
- *
- * Methods that depend on the DB (getAllSpices, findCompatibleSpices, …)
- * are covered by Integration tests. Only pure logic is tested here.
- * generateIntrusQuestion() guard cases are tested here (null returns).
- */
 #[AllowMockObjectsWithoutExpectations]
 class AcademyManagerTest extends TestCase
 {
@@ -42,10 +36,6 @@ class AcademyManagerTest extends TestCase
             new IdentityTranslator()
         );
     }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // countAvailableClues
-    // ──────────────────────────────────────────────────────────────────────────
 
     public function testCountAvailableCluesReturnsZeroForEmptyCard(): void
     {
@@ -70,7 +60,7 @@ class AcademyManagerTest extends TestCase
     public function testCountAvailableCluesIgnoresEmptyArrayFields(): void
     {
         $card = [
-            'alchemyFlavors' => [],      // empty array → not counted
+            'alchemyFlavors' => [],
             'mainCompounds' => ['Thymol'],
         ];
 
@@ -80,7 +70,7 @@ class AcademyManagerTest extends TestCase
     public function testCountAvailableCluesIgnoresEmptyStringDescription(): void
     {
         $card = [
-            'description' => '',         // empty string → not counted
+            'description' => '',
             'mainCompounds' => ['Thymol'],
         ];
 
@@ -92,16 +82,12 @@ class AcademyManagerTest extends TestCase
         $card = [
             'aromaticGroup' => [
                 'name' => '',
-            ], // empty → not counted
+            ],
             'mainCompounds' => ['Thymol'],
         ];
 
         self::assertSame(1, $this->manager->countAvailableClues($card));
     }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // buildMask
-    // ──────────────────────────────────────────────────────────────────────────
 
     public function testBuildMaskHidesAllLettersWithNoGuesses(): void
     {
@@ -110,7 +96,6 @@ class AcademyManagerTest extends TestCase
 
     public function testBuildMaskRevealsGuessedLetters(): void
     {
-        // T and H guessed → Th revealed, y and m hidden
         self::assertSame('Th__', $this->manager->buildMask('Thym', ['T', 'H']));
     }
 
@@ -121,19 +106,16 @@ class AcademyManagerTest extends TestCase
 
     public function testBuildMaskPreservesHyphens(): void
     {
-        // "Miel-épice" → ____-_____
         self::assertSame('____-_____', $this->manager->buildMask('Miel-épice', []));
     }
 
     public function testBuildMaskPreservesApostrophes(): void
     {
-        // "Cumin d'Égypte" → _____ _'______
         self::assertSame("_____ _'______", $this->manager->buildMask("Cumin d'Égypte", []));
     }
 
     public function testBuildMaskIsAccentInsensitiveForAccentedChars(): void
     {
-        // Guessing 'E' should reveal both 'É' (accented) and 'e' (plain)
         self::assertSame('É___e', $this->manager->buildMask('Épice', ['E']));
     }
 
@@ -143,10 +125,6 @@ class AcademyManagerTest extends TestCase
         $guessed = ['C', 'U', 'M', 'I', 'N'];
         self::assertSame($name, $this->manager->buildMask($name, $guessed));
     }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // letterInWord
-    // ──────────────────────────────────────────────────────────────────────────
 
     public function testLetterInWordReturnsTrueForPresentLetter(): void
     {
@@ -166,20 +144,14 @@ class AcademyManagerTest extends TestCase
 
     public function testLetterInWordIsAccentInsensitiveOnWord(): void
     {
-        // 'E' matches 'é' in 'Épice'
         self::assertTrue($this->manager->letterInWord('E', 'Épice'));
         self::assertTrue($this->manager->letterInWord('e', 'Épice'));
     }
 
     public function testLetterInWordIsAccentInsensitiveOnLetter(): void
     {
-        // Accented guess 'É' should match plain 'e'
         self::assertTrue($this->manager->letterInWord('É', 'epicerie'));
     }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // filterByDifficulty
-    // ──────────────────────────────────────────────────────────────────────────
 
     public function testFilterByDifficultyReturnsEmptyForEmptyInput(): void
     {
@@ -212,7 +184,6 @@ class AcademyManagerTest extends TestCase
 
     public function testFilterByDifficultyPreservesOrderFromHighestScore(): void
     {
-        // Input is sorted desc by score (as returned by findCompatible)
         $input = [
             [
                 'score' => 90,
@@ -230,15 +201,10 @@ class AcademyManagerTest extends TestCase
 
         $result = $this->manager->filterByDifficulty($input, GameDifficulty::EASY);
 
-        // EASY → ceil(4 * 0.5) = 2 → keeps the top 2
         self::assertCount(2, $result);
         self::assertSame(90, $result[0]['score']);
         self::assertSame(70, $result[1]['score']);
     }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // generateGuessWhoClues
-    // ──────────────────────────────────────────────────────────────────────────
 
     public function testGenerateGuessWhoCluesReturnsEmptyForEmptyCard(): void
     {
@@ -276,7 +242,6 @@ class AcademyManagerTest extends TestCase
 
     public function testGenerateGuessWhoCluesDoesNotExceedAvailableClues(): void
     {
-        // Card with only 1 clue — even EASY should return at most 1
         $card = [
             'alchemyFlavors' => ['Épicé'],
         ];
@@ -284,10 +249,6 @@ class AcademyManagerTest extends TestCase
         $clues = $this->manager->generateGuessWhoClues($card, GameDifficulty::EASY);
         self::assertCount(1, $clues);
     }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // Difficulty getter methods
-    // ──────────────────────────────────────────────────────────────────────────
 
     public function testGetGuessWhoOptionsCount(): void
     {
@@ -317,13 +278,8 @@ class AcademyManagerTest extends TestCase
         self::assertSame(8, $this->manager->getChronoOptionsCount(GameDifficulty::HARD));
     }
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // generateIntrusQuestion — guard cases
-    // ──────────────────────────────────────────────────────────────────────────
-
     public function testGenerateIntrusQuestionReturnsNullWithFewerThanFiveCandidates(): void
     {
-        // 4 spices total → candidates < 5 → null (both branches)
         $spices = [];
         for ($i = 1; $i <= 4; ++$i) {
             $spice = $this->createMock(Spices::class);
@@ -344,7 +300,6 @@ class AcademyManagerTest extends TestCase
 
     public function testGenerateIntrusQuestionReturnsNullWhenAllCandidatesExcluded(): void
     {
-        // 5 spices, but 4 excluded → 1 remaining → count < 5 → null
         $spices = [];
         for ($i = 1; $i <= 5; ++$i) {
             $spice = $this->createMock(Spices::class);
@@ -433,13 +388,15 @@ class AcademyManagerTest extends TestCase
 
     public function testGenerateSurvivalOptionsLocalizesTrapsAndCompatiblesInOneBatch(): void
     {
-        $trap = $this->makeSpice(99);
-        $trap->setName('Poivre');
+        $firstTrap = $this->makeSpice(98);
+        $firstTrap->setName('Poivre');
+        $secondTrap = $this->makeSpice(99);
+        $secondTrap->setName('Clou de girofle');
 
         $this->spicesRepo->method('findIncompatibleWith')
-            ->willReturn([$trap]);
+            ->willReturn([$firstTrap, $secondTrap]);
         $this->finder->method('findCompatible')
-            ->willReturn($this->makeScoredPool([90, 80, 70]));
+            ->willReturn($this->makeScoredPool([90, 80]));
 
         $capturedIds = [];
         $this->spicesRepo->expects(self::once())
@@ -451,8 +408,8 @@ class AcademyManagerTest extends TestCase
                 return $this->makeEnrichedRows([
                     11 => 'Cinnamon',
                     12 => 'Nutmeg',
-                    13 => 'Clove',
-                    99 => 'Pepper',
+                    98 => 'Pepper',
+                    99 => 'Clove',
                 ]);
             });
 
@@ -469,15 +426,60 @@ class AcademyManagerTest extends TestCase
         $options = $manager->generateSurvivalOptions($this->makeSpice(1), GameDifficulty::HARD);
 
         sort($capturedIds);
-        self::assertSame([11, 12, 13, 99], $capturedIds);
+        self::assertSame([11, 12, 98, 99], $capturedIds);
 
         $names = array_column($options, 'name', 'id');
-        self::assertSame('Pepper', $names[99]);
-        self::assertSame(['Cinnamon', 'Nutmeg', 'Clove'], [$names[11], $names[12], $names[13]]);
+        self::assertSame(['Cinnamon', 'Nutmeg', 'Pepper', 'Clove'], [
+            $names[11],
+            $names[12],
+            $names[98],
+            $names[99],
+        ]);
 
         $flags = array_column($options, 'isCompatible', 'id');
-        self::assertFalse($flags[99]);
-        self::assertSame([true, true, true], [$flags[11], $flags[12], $flags[13]]);
+        self::assertSame([true, true, false, false], [$flags[11], $flags[12], $flags[98], $flags[99]]);
+    }
+
+    #[DataProvider('survivalCompositionProvider')]
+    public function testGenerateSurvivalOptionsKeepsAMonotoneCompatibleRatio(
+        GameDifficulty $difficulty,
+        int $expectedOptions,
+        int $expectedCompatibles,
+    ): void {
+        $traps = [];
+        for ($id = 90; $id < 96; ++$id) {
+            $traps[] = $this->makeSpice($id);
+        }
+
+        $this->spicesRepo->method('findIncompatibleWith')
+            ->willReturn($traps);
+        $this->finder->method('findCompatible')
+            ->willReturn($this->makeScoredPool([90, 85, 80, 75, 70, 65, 60, 55]));
+
+        $manager = new AcademyManager(
+            $this->spicesRepo,
+            $this->finder,
+            new ArrayAdapter(),
+            new IdentityTranslator(),
+        );
+
+        $options = $manager->generateSurvivalOptions($this->makeSpice(1), $difficulty);
+
+        self::assertCount($expectedOptions, $options);
+        self::assertSame(
+            $expectedCompatibles,
+            \count(array_filter($options, static fn (array $o): bool => $o['isCompatible'])),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{GameDifficulty, int, int}>
+     */
+    public static function survivalCompositionProvider(): iterable
+    {
+        yield 'facile, 4 compatibles sur 6' => [GameDifficulty::EASY, 6, 4];
+        yield 'moyen, 3 compatibles sur 5' => [GameDifficulty::MEDIUM, 5, 3];
+        yield 'difficile, 2 compatibles sur 4' => [GameDifficulty::HARD, 4, 2];
     }
 
     public function testGenerateSurvivalOptionsIssuesNoEnrichmentQueryInFrench(): void
@@ -488,7 +490,7 @@ class AcademyManagerTest extends TestCase
         $this->spicesRepo->method('findIncompatibleWith')
             ->willReturn([$trap]);
         $this->finder->method('findCompatible')
-            ->willReturn($this->makeScoredPool([90, 80, 70]));
+            ->willReturn($this->makeScoredPool([90, 80]));
         $this->spicesRepo->expects(self::never())
             ->method('findEnrichedByIds');
 
@@ -507,6 +509,7 @@ class AcademyManagerTest extends TestCase
         $names = array_column($options, 'name', 'id');
         self::assertSame('Poivre', $names[99]);
         self::assertSame('Épice 11', $names[11]);
+        self::assertSame('Épice 12', $names[12]);
     }
 
     public function testLocalizeSpiceSummariesRewritesNameAndGroupInOneBatch(): void
@@ -606,7 +609,6 @@ class AcademyManagerTest extends TestCase
 
     /**
      * @param list<int> $scores
-     *
      * @return list<array<string, mixed>>
      */
     private function makeScoredPool(array $scores, int $firstId = 11): array
@@ -650,7 +652,6 @@ class AcademyManagerTest extends TestCase
 
     /**
      * @param array<int, string> $namesById
-     *
      * @return list<array<string, mixed>>
      */
     private function makeEnrichedRows(array $namesById): array

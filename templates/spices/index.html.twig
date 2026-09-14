@@ -4,12 +4,10 @@
 {% block title %}{{ 'ui.catalog.spices_page_title'|trans }}{% endblock %}
 
 {% block body %}
-{# Modale Quick View — doit être en dehors du Turbo Frame pour survivre aux navigations #}
 {% include 'components/_spice_modal.html.twig' %}
 
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-    {# ── En-tête ── #}
     <div class="mb-10">
         <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
@@ -30,13 +28,10 @@
         </div>
     </div>
 
-    {# ── Turbo Frame (filtres + grille) ── #}
     <turbo-frame id="spices_frame_id">
 
-        {# Filtres #}
         {% include "/components/_spices_filters.html.twig" %}
 
-        {# Skeleton affiché par .skeleton-pulse pendant aria-busy="true" #}
         <template data-turbo-frame-loading>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                 {% for i in 1..8 %}
@@ -51,7 +46,6 @@
             </div>
         </template>
 
-        {# ── Grille de cartes ── #}
         {% if spices|length > 0 %}
             <h2 class="sr-only">{{ 'ui.footer.catalog'|trans }}</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
@@ -61,7 +55,6 @@
             </div>
 
         {% else %}
-            {# ── Empty state ── #}
             <div class="flex flex-col items-center justify-center py-24 text-center">
                 <div class="w-20 h-20 rounded-full bg-spice-surface flex items-center justify-center mb-5">
                     <i class="fa-solid fa-mortar-pestle text-3xl text-saffron-400" aria-hidden="true"></i>
@@ -80,7 +73,6 @@
             </div>
         {% endif %}
 
-        {# ── Pagination ── #}
         {% if spices.getTotalItemCount() > 12 %}
             <div class="mt-12 flex justify-center">
                 {{ knp_pagination_render(spices) }}

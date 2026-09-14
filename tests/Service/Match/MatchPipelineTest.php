@@ -27,8 +27,6 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(MatchPipeline::class)]
 final class MatchPipelineTest extends TestCase
 {
-    // ── Helpers ────────────────────────────────────────────────────────────────
-
     private function makePipeline(
         ?MortarProfileBuilder $builder = null,
         ?CandidateVetoRepository $veto = null,
@@ -47,8 +45,6 @@ final class MatchPipelineTest extends TestCase
             $repo ?? $this->createStub(SpiceActiveCompoundRepository::class),
             $scorer ?? new OavTanimotoScorer(),
             $calculator,
-            // L'applier réutilise les mocks injectés pour préserver les expects() des tests
-            // (e.g. testExtendedContextTriggersCompoundPhysicalLookup vérifie loadByCompoundIds).
             new CorrectionApplier($physicalRepo, $calculator),
             $hybridizer ?? new NullFlavorGraphHybridizer(),
         );
@@ -70,8 +66,6 @@ final class MatchPipelineTest extends TestCase
 
         return $physical;
     }
-
-    // ── Mode OAV ───────────────────────────────────────────────────────────────
 
     public function testOavModeUsesOavVetoAndScores(): void
     {
@@ -105,12 +99,10 @@ final class MatchPipelineTest extends TestCase
 
         self::assertCount(2, $results);
 
-        // Candidat 10 (log) : (ln90+ln40)/(ln100+ln50) = 8.18869/8.51719 ≈ 0.9614 → 96
         self::assertSame(10, $results[0]['id']);
         self::assertSame(96, $results[0]['score']);
         self::assertTrue($results[0]['oav_mode']);
 
-        // Candidat 11 (log) : ln10/(ln100+ln50) = 2.30259/8.51719 ≈ 0.2703 → 27
         self::assertSame(11, $results[1]['id']);
         self::assertSame(27, $results[1]['score']);
     }
@@ -122,13 +114,13 @@ final class MatchPipelineTest extends TestCase
             ->willReturn([
                 20 => [
                     1 => 2.0,
-                ],   // score faible
+                ],
                 21 => [
                     1 => 9.0,
-                ],   // score élevé
+                ],
                 22 => [
                     1 => 5.0,
-                ],   // score moyen
+                ],
             ]);
 
         $builder = $this->createStub(MortarProfileBuilder::class);
@@ -219,13 +211,10 @@ final class MatchPipelineTest extends TestCase
         self::assertSame(10, $results[0]['id'], 'Le meilleur scorer doit être retourné avec limit:1');
     }
 
-    // ── Mode fallback présence ─────────────────────────────────────────────────
-
     public function testFallbackModeUsesPresenceVetoAndScoreZero(): void
     {
         $repo = $this->createStub(SpiceActiveCompoundRepository::class);
 
-        // findSurvivorsWithPresence appelé (pas findSurvivors) — build() retourne null → mode dégradé
         $veto = $this->createMock(CandidateVetoRepository::class);
         $veto->expects(self::once())
             ->method('findSurvivorsWithPresence')
@@ -233,7 +222,6 @@ final class MatchPipelineTest extends TestCase
         $veto->expects(self::never())
             ->method('findSurvivors');
 
-        // build() retourne null → oavMode = false → fallback présence
         $builder = $this->createStub(MortarProfileBuilder::class);
         $builder->method('build')
             ->willReturn(null);
@@ -265,8 +253,6 @@ final class MatchPipelineTest extends TestCase
 
         self::assertCount(2, $results);
     }
-
-    // ── Survivants vides ───────────────────────────────────────────────────────
 
     public function testReturnsEmptyWhenNoSurvivors(): void
     {
@@ -306,19 +292,14 @@ final class MatchPipelineTest extends TestCase
         self::assertSame([], $results);
     }
 
-    // ── Profil candidat absent de spice_active_compound ───────────────────────
-
     public function testMissingSurvivorProfileIsSkipped(): void
     {
-        // Le veto retourne l'ID 99 mais loadOavProfilesBatch ne l'a pas (race condition rebuild).
-        // Nouveau comportement : candidat 99 ignoré (score 0 avec oav_mode:true serait trompeur).
         $repo = $this->createStub(SpiceActiveCompoundRepository::class);
         $repo->method('loadOavProfilesBatch')
             ->willReturn([
                 10 => [
                     1 => 5.0,
                 ],
-                // 99 absent
             ]);
 
         $builder = $this->createStub(MortarProfileBuilder::class);
@@ -334,14 +315,11 @@ final class MatchPipelineTest extends TestCase
         $pipeline = $this->makePipeline($builder, $veto, $repo);
         $results = $pipeline->run(new MortarIds([1]), limit: 20, ctx: new CulinaryContext());
 
-        // Candidat 10 présent, candidat 99 absent (pas de profil OAV → skipped)
         self::assertCount(1, $results);
         self::assertSame(10, $results[0]['id']);
         $candidate99 = array_values(array_filter($results, fn ($r) => $r['id'] === 99))[0] ?? null;
         self::assertNull($candidate99, 'Candidat sans profil OAV doit être ignoré, pas scorer 0');
     }
-
-    // ── Propagation de CulinaryContext (matrice) ───────────────────────────────
 
     public function testRunPassesMatrixToMortarProfileBuilder(): void
     {
@@ -349,7 +327,7 @@ final class MatchPipelineTest extends TestCase
         $builder->expects(self::once())
             ->method('build')
             ->with(self::anything(), OdtMatrix::WATER)
-            ->willReturn(null); // mode dégradé — pas besoin de veto/scorer
+            ->willReturn(null);
 
         $veto = $this->createStub(CandidateVetoRepository::class);
         $veto->method('findSurvivorsWithPresence')
@@ -361,7 +339,6 @@ final class MatchPipelineTest extends TestCase
 
     public function testRunWithNeutralContextUsesAirMatrix(): void
     {
-        // CulinaryContext sans argument → matrix = AIR (sémantique neutre du VO).
         $builder = $this->createMock(MortarProfileBuilder::class);
         $builder->expects(self::once())
             ->method('build')
@@ -420,8 +397,6 @@ final class MatchPipelineTest extends TestCase
         $pipeline->run(new MortarIds([1]), limit: 20, ctx: new CulinaryContext(OdtMatrix::WATER));
     }
 
-    // ── Flag oav_mode ──────────────────────────────────────────────────────────
-
     public function testOavModeFlag(): void
     {
         $repo = $this->createStub(SpiceActiveCompoundRepository::class);
@@ -448,12 +423,8 @@ final class MatchPipelineTest extends TestCase
         self::assertTrue($results[0]['oav_mode']);
     }
 
-    // ── Correction physico-chimique ──────────────────────────────────────────
-
     public function testNeutralContextSkipsCompoundPhysicalLookup(): void
     {
-        // Contexte par défaut (fat=0, cookingTime=0) → needsCorrection() = false
-        // → CompoundPhysicalRepository::loadByCompoundIds() ne doit JAMAIS être appelé
         $physicalRepo = $this->createMock(CompoundPhysicalRepositoryInterface::class);
         $physicalRepo->expects(self::never())
             ->method('loadByCompoundIds');
@@ -477,12 +448,11 @@ final class MatchPipelineTest extends TestCase
             ->willReturn([10]);
 
         $pipeline = $this->makePipeline($builder, $veto, $repo, physicalRepo: $physicalRepo);
-        $pipeline->run(new MortarIds([1]), limit: 20, ctx: new CulinaryContext()); // ctx neutre
+        $pipeline->run(new MortarIds([1]), limit: 20, ctx: new CulinaryContext());
     }
 
     public function testExtendedContextTriggersCompoundPhysicalLookup(): void
     {
-        // ctx avec fatRatio > 0 → needsCorrection() = true → batch lookup déclenché
         $physicalRepo = $this->createMock(CompoundPhysicalRepositoryInterface::class);
         $physicalRepo->expects(self::once())
             ->method('loadByCompoundIds')
@@ -514,20 +484,12 @@ final class MatchPipelineTest extends TestCase
 
     public function testCorrectionModifiesScoreForHydrophobicCompound(): void
     {
-        // Compound 1 = limonène-like (logP=4 → K_ow=10000), Compound 2 = polaire (logP=0 → K_ow=1).
-        // Mortier OAV uniforme : {1: 10, 2: 10}, candidat {1: 10, 2: 10}.
-        // En matrix=WATER pure : factor=1 partout → Tanimoto = 1.0 (score 100).
-        // En matrix=WATER + fat=0.5 :
-        //   compound 1 factor = 1/(10000×0.5+0.5) ≈ 0.0002 (limonène disparaît)
-        //   compound 2 factor = 1/(1×0.5+0.5) = 1.0 (polaire reste)
-        //   → profil corrigé {1: 0.002, 2: 10} pour mortier ET candidat → Tanimoto reste 1.0
-        // Mais si candidat n'a QUE le compound 1 (volatil) : il s'éteint avec correction.
         $builder = $this->createStub(MortarProfileBuilder::class);
         $builder->method('build')
             ->willReturn([
                 1 => 10.0,
                 2 => 10.0,
-            ]); // mortier équilibré
+            ]);
 
         $repo = $this->createStub(SpiceActiveCompoundRepository::class);
         $repo->method('loadOavProfilesBatch')
@@ -535,10 +497,10 @@ final class MatchPipelineTest extends TestCase
                 10 => [
                     1 => 10.0,
                     2 => 10.0,
-                ], // candidat équilibré → match parfait baseline
+                ],
                 11 => [
                     1 => 10.0,
-                ], // candidat ne contenant que le composé volatil
+                ],
             ]);
 
         $veto = $this->createStub(CandidateVetoRepository::class);
@@ -548,8 +510,8 @@ final class MatchPipelineTest extends TestCase
         $physicalRepo = $this->createStub(CompoundPhysicalRepositoryInterface::class);
         $physicalRepo->method('loadByCompoundIds')
             ->willReturn([
-                1 => $this->makePhysical(1, logP: 4.0), // hydrophobe (K_ow = 10 000)
-                2 => $this->makePhysical(2, logP: 0.0), // neutre (K_ow = 1)
+                1 => $this->makePhysical(1, logP: 4.0),
+                2 => $this->makePhysical(2, logP: 0.0),
             ]);
 
         $ctx = new CulinaryContext(OdtMatrix::WATER, fatRatio: 0.5, waterRatio: 0.5);
@@ -557,18 +519,12 @@ final class MatchPipelineTest extends TestCase
         $pipeline = $this->makePipeline(builder: $builder, veto: $veto, repo: $repo, physicalRepo: $physicalRepo);
         $results = $pipeline->run(new MortarIds([99]), limit: 20, ctx: $ctx);
 
-        // Candidat 10 (équilibré) bat candidat 11 (composé volatil seul)
         self::assertSame(10, $results[0]['id'], 'Le candidat équilibré doit l\'emporter dans une vinaigrette');
         self::assertGreaterThan($results[1]['score'], $results[0]['score']);
     }
 
     public function testCorrectionAppliesDecayAfterCooking(): void
     {
-        // Compound 1 = HEAD (bp=100), Compound 2 = BASE (bp=400).
-        // Cuisson 60 min à 100°C → HEAD perd 99 % (exp(-0.1×60)≈0.0025), BASE garde ~98 %.
-        // Mortier {1: 10, 2: 10}, candidat A = {1: 10} (HEAD only), candidat B = {2: 10} (BASE only).
-        // Sans correction : Tanimoto identique pour A et B (= 1/2).
-        // Avec correction : A s'éteint (compound 1 négligeable), B conserve une grande partie.
         $builder = $this->createStub(MortarProfileBuilder::class);
         $builder->method('build')
             ->willReturn([
@@ -581,10 +537,10 @@ final class MatchPipelineTest extends TestCase
             ->willReturn([
                 10 => [
                     1 => 10.0,
-                ], // HEAD only
+                ],
                 11 => [
                     2 => 10.0,
-                ], // BASE only
+                ],
             ]);
 
         $veto = $this->createStub(CandidateVetoRepository::class);
@@ -603,14 +559,12 @@ final class MatchPipelineTest extends TestCase
         $pipeline = $this->makePipeline(builder: $builder, veto: $veto, repo: $repo, physicalRepo: $physicalRepo);
         $results = $pipeline->run(new MortarIds([99]), limit: 20, ctx: $ctx);
 
-        // Le candidat BASE-only survit mieux à 60 min d'ébullition
         $resultsById = array_column($results, null, 'id');
         self::assertGreaterThan($resultsById[10]['score'], $resultsById[11]['score'], 'BASE survit > HEAD');
     }
 
     public function testCorrectionFallsBackGracefullyWhenPhysicalDataMissing(): void
     {
-        // Aucun CompoundPhysical en BDD → factor=1 partout → score identique au baseline
         $mortar = [
             1 => 10.0,
             2 => 5.0,
@@ -636,7 +590,7 @@ final class MatchPipelineTest extends TestCase
 
         $physicalRepo = $this->createStub(CompoundPhysicalRepositoryInterface::class);
         $physicalRepo->method('loadByCompoundIds')
-            ->willReturn([]); // aucune donnée physique
+            ->willReturn([]);
 
         $ctx = new CulinaryContext(OdtMatrix::WATER, fatRatio: 0.3, waterRatio: 0.7);
 

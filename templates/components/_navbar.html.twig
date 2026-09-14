@@ -1,15 +1,11 @@
-{# ─── SVG Macros ──────────────────────────────────────────────────────────── #}
 
 {% macro herbierLogo(sizeClass) %}
     {% set sizeClass = sizeClass|default('size-10') %}
     <svg class="{{ sizeClass }}" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        {# Halo pointillé de fond #}
         <circle cx="200" cy="200" r="150" fill="none" stroke="#C46E1F" stroke-width="2.4" stroke-dasharray="2 9" stroke-linecap="round" opacity="0.85"/>
-        {# Arc fixe à 60% (565.49 = 0.6 × 2π × 150) #}
         <circle cx="200" cy="200" r="150" fill="none" stroke="#C46E1F" stroke-width="6"
                 stroke-dasharray="518.36 9999" stroke-linecap="round"
                 transform="rotate(-90 200 200)"/>
-        {# Hexagone moléculaire #}
         <g stroke="#0A0907" stroke-width="4" fill="none">
             <line x1="200" y1="150" x2="243" y2="175"/>
             <line x1="243" y1="175" x2="243" y2="225"/>
@@ -18,19 +14,16 @@
             <line x1="157" y1="225" x2="157" y2="175"/>
             <line x1="157" y1="175" x2="200" y2="150"/>
         </g>
-        {# Étamines — branches courbées #}
         <g stroke="#C46E1F" stroke-width="6" fill="none" stroke-linecap="round">
             <path d="M 200 150 Q 210 100 200 50"/>
             <path d="M 243 225 Q 295 245 330 275"/>
             <path d="M 157 225 Q 105 245 70 275"/>
         </g>
-        {# Anthères — extrémités des étamines #}
         <g fill="#C46E1F">
             <circle cx="200" cy="50" r="11"/>
             <circle cx="330" cy="275" r="11"/>
             <circle cx="70" cy="275" r="11"/>
         </g>
-        {# Sommets hexagonaux #}
         <g fill="#0A0907">
             <circle cx="243" cy="175" r="5"/>
             <circle cx="200" cy="250" r="5"/>
@@ -55,7 +48,6 @@
     </svg>
 {% endmacro %}
 
-{# XP gauge — calculé une seule fois, réutilisé par le chip desktop et la grade card mobile #}
 {% if is_granted('ROLE_USER') and app.user.progression %}
     {% set _lvl      = app.user.progression.level %}
     {% set _grade    = _lvl < 20 ? 'ui.grade.commis'|trans : (_lvl < 50 ? 'ui.grade.chef_partie'|trans : (_lvl < 80 ? 'ui.grade.saucier'|trans : 'ui.grade.chef_executif'|trans)) %}
@@ -69,15 +61,9 @@
 
 <div x-data="navMenu">
 
-{# ════════════════════════════════════════════════════════════════════
-   BARRE PRINCIPALE (sticky h-20 z-50)
-   ════════════════════════════════════════════════════════════════════ #}
 <nav class="nav-bar h-20 sticky top-0 z-50" aria-label="{{ 'ui.navbar.main_nav'|trans }}">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-3">
 
-        {# ── LEFT : Toque ──────────────────────────────────────────────── #}
-
-        {# Desktop (≥ lg) : toque + label #}
         <button type="button"
                 @click="toggle()"
                 :class="toqueClass()"
@@ -96,7 +82,6 @@
             </div>
         </button>
 
-        {# Mobile (< lg) : toque compact #}
         <button type="button"
                 data-tour="nav-profile"
                 @click="mobileToggle()"
@@ -112,7 +97,6 @@
                   style="color: var(--color-ink-deep)">{{ 'nav.menu_open'|trans({}, 'js') }}</span>
         </button>
 
-        {# ── CENTER : Wax Seal + Wordmark ──────────────────────────────── #}
         <a href="{{ path('home') }}"
            class="flex items-center gap-3 group transition-transform duration-300 hover:scale-[1.02] mx-auto lg:mx-0">
             {{ _self.herbierLogo('size-9 lg:size-12') }}
@@ -124,10 +108,8 @@
             </div>
         </a>
 
-        {# ── RIGHT : Cluster utilitaires ───────────────────────────────── #}
         <div class="flex items-center gap-2 shrink-0">
 
-            {# Mortar → Le Lab #}
             <a href="{{ path('index_spicy_match') }}"
                class="mortar-btn size-11 rounded-full flex items-center justify-center"
                aria-label="{{ 'ui.navbar.create_blend'|trans }}"
@@ -135,10 +117,8 @@
                 <i class="fa-solid fa-mortar-pestle text-sm" style="color: var(--color-ink-deep)" aria-hidden="true"></i>
             </a>
 
-            {# Grade chip / avatar / login ───────────────────────────── #}
             {% if is_granted('ROLE_USER') and app.user.progression %}
 
-                {# Desktop : grade chip complet #}
                 <div class="hidden lg:block">
                     {% include 'components/_profile_menu.html.twig' %}
                 </div>
@@ -169,9 +149,6 @@
     </div>
 </nav>
 
-{# ════════════════════════════════════════════════════════════════════
-   DESKTOP BACKDROP (z-48 — clique en dehors → ferme l'overlay)
-   ════════════════════════════════════════════════════════════════════ #}
 <div x-show="open"
      x-cloak
      x-transition:enter="transition ease-out duration-200"
@@ -184,9 +161,6 @@
      class="nav-backdrop hidden lg:block"
      aria-hidden="true"></div>
 
-{# ════════════════════════════════════════════════════════════════════
-   DESKTOP OVERLAY (fixed top-20, z-49 — hidden on mobile via CSS)
-   ════════════════════════════════════════════════════════════════════ #}
 <div id="nav-overlay"
      x-show="open"
      x-cloak
@@ -201,15 +175,12 @@
      aria-label="{{ 'ui.navbar.main_menu'|trans }}">
 
     <div class="max-w-7xl mx-auto px-8 lg:px-16 py-12">
-        {# Hero Search #}
         <div class="max-w-xl mx-auto mb-12">
             {{ component('Search') }}
         </div>
 
-        {# 3 Pôles ─────────────────────────────────────────────────── #}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 max-w-5xl mx-auto">
 
-            {# ── I · Exploration ── #}
             <div>
                 <div class="flex items-center gap-3 mb-2">
                     <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
@@ -249,7 +220,6 @@
                 </ul>
             </div>
 
-            {# ── II · Apprentissage ── #}
             <div>
                 <div class="flex items-center gap-3 mb-2">
                     <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
@@ -302,7 +272,6 @@
                 </ul>
             </div>
 
-            {# ── III · Atelier ── #}
             <div>
                 <div class="flex items-center gap-3 mb-2">
                     <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
@@ -367,9 +336,8 @@
                 {% endif %}
             </div>
 
-        </div>{# fin grid #}
+        </div>
 
-        {# Footer Menu ─────────────────────────────────── #}
         <div class="mt-12 pt-8 flex items-center justify-between"
              style="border-top: 1px solid rgba(184,134,74,0.35)">
             <div class="flex items-center gap-6 font-mono text-[11px]"
@@ -386,14 +354,12 @@
                 {% endif %}
             </div>
 
-            {# Sélecteur de langue (i18n) #}
             <div class="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.15em]">
                 {% for loc in ['fr', 'en', 'es'] %}
                     <a href="{{ path('switch_locale', {'locale': loc}) }}"
                        hreflang="{{ loc }}"
                        lang="{{ loc }}"
                        aria-label="{{ {'fr': 'Français', 'en': 'English', 'es': 'Español'}[loc] }}"
-                       {# full reload volontaire : Turbo ne réévalue pas les modules JS → sinon libellés JS figés sur l'ancienne langue #}
                        data-turbo="false"
                        class="px-1.5 py-0.5 rounded transition-colors {{ app.request.locale == loc ? 'text-paprika-700 font-semibold' : 'hover:text-paprika-700' }}"
                        style="{{ app.request.locale == loc ? '' : 'color: rgba(74,50,37,0.75)' }}"
@@ -405,9 +371,6 @@
     </div>
 </div>
 
-{# ════════════════════════════════════════════════════════════════════
-   MOBILE BACKDROP (z-48 — visible sous le sheet)
-   ════════════════════════════════════════════════════════════════════ #}
 <div x-show="mobileOpen"
      x-cloak
      x-transition:enter="transition ease-out duration-200"
@@ -420,9 +383,6 @@
      class="nav-backdrop lg:hidden"
      aria-hidden="true"></div>
 
-{# ════════════════════════════════════════════════════════════════════
-   MOBILE SHEET (slide from bottom, z-49)
-   ════════════════════════════════════════════════════════════════════ #}
 <div id="nav-sheet"
      x-show="mobileOpen"
      x-cloak
@@ -438,10 +398,8 @@
 
     <div class="p-6">
 
-        {# Hero search #}
         <div class="mb-6">{{ component('Search') }}</div>
 
-        {# Grade card si connecté #}
         {% if is_granted('ROLE_USER') and app.user.progression %}
             <div class="flex items-center gap-3 p-4 rounded-2xl mb-6"
                  style="border: 1px solid rgba(184,134,74,0.3); background: rgba(255,250,235,0.5)">
@@ -469,10 +427,8 @@
             </div>
         {% endif %}
 
-        {# 3 Pôles empilés ──────────────────────────────────────── #}
         <div class="space-y-6">
 
-            {# Pôle I — Exploration #}
             <div>
                 <div class="flex items-center gap-2 mb-3">
                     <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
@@ -502,7 +458,6 @@
                 </ul>
             </div>
 
-            {# Pôle II — Apprentissage #}
             <div>
                 <div class="flex items-center gap-2 mb-3">
                     <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
@@ -541,7 +496,6 @@
                 </ul>
             </div>
 
-            {# Pôle III — Atelier #}
             <div>
                 <div class="flex items-center gap-2 mb-3">
                     <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
@@ -600,7 +554,6 @@
 
         </div>
 
-        {# Footer sheet #}
         <div class="mt-8 pt-6 flex items-center justify-between"
              style="border-top: 1px solid rgba(184,134,74,0.3)">
             <a href="{{ path('new_contact') }}" @click="mobileClose()"
@@ -617,14 +570,12 @@
                    style="color: rgba(74,50,37,0.75)">{{ 'ui.common.login'|trans }}</a>
             {% endif %}
 
-            {# Sélecteur de langue (i18n) #}
             <div class="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.15em]">
                 {% for loc in ['fr', 'en', 'es'] %}
                     <a href="{{ path('switch_locale', {'locale': loc}) }}"
                        hreflang="{{ loc }}"
                        lang="{{ loc }}"
                        aria-label="{{ {'fr': 'Français', 'en': 'English', 'es': 'Español'}[loc] }}"
-                       {# full reload volontaire : Turbo ne réévalue pas les modules JS → sinon libellés JS figés sur l'ancienne langue #}
                        data-turbo="false"
                        class="px-1.5 py-0.5 rounded transition-colors {{ app.request.locale == loc ? 'text-paprika-700 font-semibold' : 'hover:text-paprika-700' }}"
                        style="{{ app.request.locale == loc ? '' : 'color: rgba(74,50,37,0.75)' }}"
@@ -636,4 +587,4 @@
     </div>
 </div>
 
-</div>{# end x-data="navMenu" #}
+</div>

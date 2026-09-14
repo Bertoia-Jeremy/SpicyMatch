@@ -31,7 +31,6 @@ final class SecurityHeadersTest extends WebTestCase
 
         self::assertTrue($headers->has('Referrer-Policy'), "Missing Referrer-Policy on {$path}");
 
-        // CSP — enforced only when bundle is enabled (test env has a relaxed policy).
         self::assertTrue($headers->has('Content-Security-Policy'), "Missing Content-Security-Policy on {$path}");
     }
 

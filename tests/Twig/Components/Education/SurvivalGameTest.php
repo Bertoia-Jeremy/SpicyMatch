@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Translation\IdentityTranslator;
 
 #[AllowMockObjectsWithoutExpectations]
 final class SurvivalGameTest extends TestCase
@@ -49,7 +50,6 @@ final class SurvivalGameTest extends TestCase
 
     /**
      * @param array<string, mixed> $secret
-     *
      * @return array{SurvivalGame, Session}
      */
     private function makeGame(array $secret = []): array
@@ -63,7 +63,7 @@ final class SurvivalGameTest extends TestCase
         $requestStack = new RequestStack();
         $requestStack->push($request);
 
-        $game = new SurvivalGame($this->academyManager, $this->sessionManager, $requestStack, $this->spicesRepo);
+        $game = new SurvivalGame($this->academyManager, $this->sessionManager, $requestStack, $this->spicesRepo, new IdentityTranslator());
         $game->setContainer($this->makeContainer());
         $game->gameToken = self::TOKEN;
         $game->isStarted = true;
@@ -96,7 +96,6 @@ final class SurvivalGameTest extends TestCase
 
     /**
      * @param int[] $compatibleIds
-     *
      * @return array<string, mixed>
      */
     private function withSecret(int $currentSpiceId = 1, array $compatibleIds = []): array

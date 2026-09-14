@@ -35,7 +35,7 @@ stack:
 
 database:
   - MariaDB 10.4 (Docker, DSN: mysql://root:root@mysql:3306/spicymatch)
-  - trigger = mot réservé MariaDB → name: 'trigger_type' dans #[ORM\Column]
+  - "trigger = mot réservé MariaDB → name: 'trigger_type' dans #[ORM\\Column]"
 
 package_managers: Composer (composer.lock) + Yarn (yarn.lock)
 
@@ -46,13 +46,13 @@ tooling:
 
 scripts:
   php:
-    - docker exec -w /var/www/html/spicymatch p8.4 composer ci              # ⭐ check-cs + phpstan + test-unit + schema-test + test-integration + test-controller + check-data — OBLIGATOIRE avant commit
-    - docker exec -w /var/www/html/spicymatch p8.4 composer fix-cs
-    - docker exec -w /var/www/html/spicymatch p8.4 composer rector-dry / rector
-    - docker exec -w /var/www/html/spicymatch p8.4 composer phpstan
-    - docker exec -w /var/www/html/spicymatch p8.4 composer test-unit         # rapide, sans DB
-    - docker exec -w /var/www/html/spicymatch p8.4 composer test-integration  # DB spicymatch_test requise
-    - docker exec -w /var/www/html/spicymatch p8.4 composer test-controller   # DB spicymatch_test requise
+    - docker exec -w /var/www/html/spicymatch p8.5 composer ci              # ⭐ check-cs + phpstan + test-unit + schema-test + test-integration + test-controller + check-data — OBLIGATOIRE avant commit
+    - docker exec -w /var/www/html/spicymatch p8.5 composer fix-cs
+    - docker exec -w /var/www/html/spicymatch p8.5 composer rector-dry / rector
+    - docker exec -w /var/www/html/spicymatch p8.5 composer phpstan
+    - docker exec -w /var/www/html/spicymatch p8.5 composer test-unit         # rapide, sans DB
+    - docker exec -w /var/www/html/spicymatch p8.5 composer test-integration  # DB spicymatch_test requise
+    - docker exec -w /var/www/html/spicymatch p8.5 composer test-controller   # DB spicymatch_test requise
     # ⚠️ Pré-requis env frais : DB spicymatch_test seedée (fixtures 30 épices + app:recompute:oav --sync --env=test), sinon test-integration/test-controller rouges
     # Config PHPUnit versionnée = phpunit.dist.xml (phpunit.xml local gitignoré prime s'il existe)
     # Baseline après vrai fix : phpstan analyze --generate-baseline=phpstan-baseline.neon
@@ -60,17 +60,17 @@ scripts:
     - yarn dev    # watch Tailwind
     - yarn build  # build minifié — à relancer après tout changement de classes
   moteur_oav:
-    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console app:import:odt
-    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console app:import:flavordb
-    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console app:import:physical
-    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console app:check:compounds [--strict]
-    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console app:check:data [--strict]
-    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console app:validate:compounds [--apply]  # ONLINE PubChem
-    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console app:recompute:oav --sync          # après TOUT import
+    - docker exec -w /var/www/html/spicymatch p8.5 php bin/console app:import:odt
+    - docker exec -w /var/www/html/spicymatch p8.5 php bin/console app:import:flavordb
+    - docker exec -w /var/www/html/spicymatch p8.5 php bin/console app:import:physical
+    - docker exec -w /var/www/html/spicymatch p8.5 php bin/console app:check:compounds [--strict]
+    - docker exec -w /var/www/html/spicymatch p8.5 php bin/console app:check:data [--strict]
+    - docker exec -w /var/www/html/spicymatch p8.5 php bin/console app:validate:compounds [--apply]  # ONLINE PubChem
+    - docker exec -w /var/www/html/spicymatch p8.5 php bin/console app:recompute:oav --sync          # après TOUT import
     # Séquence import : check:compounds → import:* → check:data → recompute:oav --sync
   doctrine:
-    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console doctrine:schema:update --force
-    - docker exec -w /var/www/html/spicymatch p8.4 php bin/console doctrine:fixtures:load --append --group=GroupName
+    - docker exec -w /var/www/html/spicymatch p8.5 php bin/console doctrine:schema:update --force
+    - docker exec -w /var/www/html/spicymatch p8.5 php bin/console doctrine:fixtures:load --append --group=GroupName
 
 conventions:
   commits: Conventional Commits (feat/fix/chore/refactor + scope optionnel)
@@ -90,6 +90,7 @@ conventions:
       - PHPUnit 13 first-wins : willReturn() dans setUp() prime sur willReturnCallback() du test → pas de stubs globaux en setUp() si override nécessaire
       - Propriétés private en test Entity : new \ReflectionProperty(Cls::class, 'field')->setValue($obj, $val)
       - "Integration DB sans polluer : $connection->beginTransaction() → insert → assert → rollBack() en finally (ex FlavorGraphAffinityRepositoryTest). QueryCountTrait cassé (DebugStack retiré en DBAL 4)."
+      - "Users : created_at / updated_at sont NOT NULL avec des propriétés PHP nullables. Users::initializeTimestamps() (#[ORM\\PrePersist], entité #[ORM\\HasLifecycleCallbacks]) les renseigne — inutile de les setter à la main dans les tests. ⚠️ Ne PAS tenter un #[ORM\\PreUpdate] pour rafraîchir updated_at : Doctrine a déjà calculé le changeset, une écriture de champ dans un callback PreUpdate est silencieusement ignorée."
 
 architecture:
   pattern: MVC Symfony (Controller > Service > Repository > Entity), REST via controllers (pas d'API Platform), admin EasyAdmin
@@ -97,30 +98,39 @@ architecture:
   gamification:
     entities:
       - UserProgression (xp, level computed infini, OneToOne Users, gamificationEnabled, equippedBadge, totalSpicesRead, streaks, lastReadDate, discoveries)
-      - Achievement (slug, trigger_type enum, triggerValue, xpReward, rarity enum, easterEggSlug nullable)
+      - "Achievement (slug, name, description, icon, trigger_type enum, triggerValue, xpReward, rarity enum, easterEggSlug nullable, enabled bool default true, contextGameMode/contextDifficulty/contextAromaticGroup nullables = filtre de contexte, translations)"
       - UserAchievement (UserProgression <-> Achievement, unlockedAt)
       - AchievementProgress (user, achievement, progress, isCompleted property hook)
-      - PendingGamificationNotification (user, type, payload json, deliveredAt nullable) — file Turbo Streams
+      - "PendingGamificationNotification (user, type, payload json, deliveredAt nullable) — file Turbo Streams. Index composite idx_pgn_user_delivered (user_id, delivered_at) OBLIGATOIRE : GamificationNotificationSubscriber interroge cette table à CHAQUE réponse HTML authentifiée."
+      - "ProcessedGamificationEvent (user, eventType, eventKey) — registre d'idempotence, claim() = INSERT DBAL + catch UniqueConstraintViolationException"
       - SpiceView (user, spice, viewedDay — unique/jour)
       - UserStat (OneToOne Users — compteurs, visitedAromaticGroups json, lastVisitedSpices json FIFO 10)
       - GameSession (gameMode/difficulty enums, score, correctAnswers, totalQuestions, durationSeconds, accuracy/isFinished computed)
       - GameQuestion (session, questionIndex, questionData json, answerGiven, isCorrect, timeSpentMs)
     enums:
-      - AchievementTrigger (FIRST_MATCH, N_MATCHES, N_SPICES_USED, FIRST_DISCOVERY, N_FAVORITES, SPICE_READ, READING_STREAK, EASTER_EGG_FOUND, ALL_TERPENES_VISITED, FIRST_GAME, N_GAMES_COMPLETED)
+      - "AchievementTrigger (FIRST_MATCH, N_MATCHES, N_SPICES_USED, FIRST_DISCOVERY, N_FAVORITES, SPICE_READ, READING_STREAK, EASTER_EGG_FOUND, ALL_TERPENES_VISITED, FIRST_GAME, N_GAMES_COMPLETED, GAME_SCORE_THRESHOLD, GAME_PERFECT_RUN, GROUP_MASTERY_READ, ALL_PREPARATION_METHODS_READ) — 1 trigger = 1 evaluator (App\\Gamification\\Evaluator\\*), enregistrement par tag + TriggerEvaluatorRegistry qui REFUSE les doublons au compile time"
       - AchievementRarity COMMON/RARE/EPIC/LEGENDARY → labels Graine/Infusion/Extraction/Essence
-      - GameMode QCM/SURVIVAL/GUESS_WHO/INTRUS/HANGMAN/CHRONO — isEnabled(), label(), xpPerCorrect(), isLiveComponent(), totalQuestions(). Section navbar "L'Académie"
-      - GameDifficulty EASY/MEDIUM/HARD — xpMultiplier() 1.0/1.5/2.0
-    level_formula: "level = floor((xp / 100) ** (1 / 1.3)) + 1"
-    xp_sources: "match_saved +10, spice_read +5 (nouvelle vue), easter_egg +75 défaut, game_completed variable, achievement_reward variable"
+      - GameMode QCM/SURVIVAL/GUESS_WHO/INTRUS/HANGMAN/CHRONO — isEnabled(), label(), xpPerCorrect() (qcm 3 / survival 5 / guess_who 4 / intrus 3 / hangman 8 / chrono 3), isLiveComponent(), totalQuestions(), tracksAccuracy() (false pour SURVIVAL : accuracy dégénérée, correctAnswers == totalQuestions par construction → exclure de toute stat de précision). Section navbar "L'Académie"
+      - GameDifficulty EASY/MEDIUM/HARD — xpMultiplier() 1.0/1.5/2.0, rank() 1/2/3, harder()/easier() (null aux bornes)
+    level_formula: "level = max(1, floor((xp / 100) ** (1 / 1.3))) — PAS de +1. XP requise pour le niveau L = 100 * L^1.3. Repères : L2=246, L5=810, L10=1995, L24=6270."
+    xp_sources: "match_saved +10 (MatchXpStrategy::XP_PER_MATCH), spice_read +5 sur nouvelle vue (SpiceReadXpStrategy::XP_PER_NEW_VIEW), game_completed = context xpEarned (≤ MAX_XP_PER_SESSION=60), achievement_reward variable (≤ 200). ⚠️ easter_egg = modèle BADGE-ONLY : ZÉRO XP direct (EasterEggXpStrategy supprimée), l'œuf ne paie que via le badge EASTER_EGG_FOUND qu'il débloque."
+    achievement_xp_scale: "41 badges, 2390 XP au total (common 7/135, rare 18/585, epic 9/620, legendary 7/1050) ≈ niveau 10 si TOUT est débloqué. Ancrage D = journée de jeu engagée free ≈ 200 XP (6 sessions × 30 + 3 lectures × 5 + 2 matchs × 10). R1 plafond dur 200 XP/badge (aucun badge ne vaut plus d'une journée). R2 bandes par rareté = D/8 / D/4 / D/2 / D → common ≤ 25, rare ≤ 50, epic ≤ 100, legendary ≤ 200. R3 valeur = 0,25 × XP direct déjà gagné en atteignant le palier (n_matches 10N, spice_read/first_discovery/reading_streak/n_spices_used 5N, n_games_completed 30N, easter_egg 75, n_favorites et all_terpenes_visited 0), arrondie à 5 et clampée dans la bande. R4 effort identique ⇒ valeur identique (les 8 easter eggs = 30 chacun, tous RARE). R5 en common, un « premier » = 15, un palier = 25. ⚠️ Ajouter un badge = appliquer R1–R5, jamais un chiffre au feeling."
     fixtures:
-      - "21 achievements en DB. ⚠️ INSERT IGNORE SQL direct uniquement (fixtures Doctrine purgent). Colonne trigger_type, valeurs enum en minuscules."
+      - "41 achievements en DB. AchievementFixtures est la source de vérité et est IDEMPOTENT (upsert par slug, jamais de doublon) — il peut être rejoué sans INSERT IGNORE manuel. Colonne trigger_type, valeurs enum en minuscules."
+      - "⚠️ Toute modification d'un badge se fait dans AchievementFixtures ET en base : les deux doivent rester identiques sur (slug, icon, trigger, triggerValue, xpReward, rarity)."
+      - "⚠️ icon doit exister dans FontAwesome 6.7.2 FREE (public/lib/fontawesome/css/all.min.css, syntaxe `.fa-nom{--fa:...}`). Les noms Pro (fa-salt-shaker, fa-books) et FA5 (fa-fire-flame) rendent un <i> vide sans aucune erreur."
     services:
-      - GamificationManager (orchestrateur, Strategy pattern, guard opt-out) + GamificationManagerProxy (anti-injection circulaire) + NullGamificationManager + GamificationManagerInterface (App\Gamification\)
+      - "GamificationManager (orchestrateur, Strategy pattern, guard opt-out) — implémente GamificationManagerInterface (App\\Gamification\\) via #[AsAlias]. ⚠️ GamificationManagerProxy et NullGamificationManager sont SUPPRIMÉS (l'injection circulaire n'existe plus)."
       - AchievementChecker (final — injecter AchievementRepository, pas mocker)
       - EasterEggService
-      - Handlers Messenger async : GamificationHandler (match_saved), FavoriteGamificationHandler (idempotent via SpicyMatchHistoryRepository), SpiceReadGamificationHandler, EasterEggGamificationHandler
-    xp_strategies: MatchXpStrategy / SpiceReadXpStrategy (context isNewView) / EasterEggXpStrategy (context xpAmount) — tag gamification.xp_strategy, !tagged_iterator
-    event_subscriber: GamificationNotificationSubscriber (RESPONSE prio -10) — injecte Turbo Streams avant </body>
+      - "Handlers Messenger async : GamificationHandler (match_saved), FavoriteGamificationHandler (idempotent via SpicyMatchHistoryRepository), SpiceReadGamificationHandler (ClockInterface injectée — streak de lecture testable sans voyager dans le temps), EasterEggGamificationHandler, GameGamificationHandler (game_completed)"
+      - "⚠️ ORDRE DES GARDES dans les handlers : getOrCreateProgression() + isGamificationEnabled() AVANT ProcessedGamificationEventRepository::claim(). Claim d'abord = la ligne du registre est posée alors que process() sort en early-return → XP perdue définitivement si l'utilisateur réactive la gamification ensuite (l'événement ne sera jamais rejoué)."
+      - "⚠️ SÉRIALISATION XP (obligatoire) : addXp() est un read-modify-write, donc deux workers Messenger traitant en parallèle deux événements du même utilisateur perdraient une mise à jour de xp / readingStreak. Chaque handler enveloppe donc son corps utile dans $em->wrapInTransaction() et appelle GamificationManagerInterface::lockForUpdate($progression) EN PREMIER (SELECT … FOR UPDATE sur user_progression ; flush préalable si la progression n'a pas encore d'id). Bénéfice secondaire : claim() est dans la même transaction → il roule back si le traitement échoue, plus d'événement marqué traité sans XP versée. ⚠️ Verrouiller APRÈS avoir écrit en mémoire est un piège : un lock()+refresh() à ce moment-là écrase les setters déjà appliqués. Les compteurs recalculés par COUNT (totalMatches, uniqueSpicesUsed, discoveries, totalSpicesRead) sont auto-réparants, eux."
+    xp_strategies: "MatchXpStrategy (XP_PER_MATCH=10) / SpiceReadXpStrategy (context isNewView, XP_PER_NEW_VIEW=5) / GameXpStrategy (context xpEarned) — tag gamification.xp_strategy, #[AutowireIterator]. EasterEggXpStrategy SUPPRIMÉE (badge-only)."
+    easter_eggs: "⚠️ FONCTIONNALITÉ MORTE CÔTÉ FRONT : 8 slugs (EasterEggService::KNOWN_SLUGS) + 8 badges RARE en fixtures, conditions serveur armées (easter_egg.alchimiste_count via toggle_gamification_user, easter_egg.infusion_started_at via PreparationMethodsController), mais AUCUN template ni asset n'appelle api_gamification_egg → aucun œuf n'est réclamable. Soit câbler les déclencheurs JS, soit retirer la feature ; ne pas la laisser en l'état."
+    cleanup: "app:gamification:cleanup [--dry-run] — purge notifications délivrées > 90 j (--notification-days), notifications JAMAIS délivrées > 180 j (--undelivered-days, sinon fuite sur les comptes dormants) et registre d'idempotence > 180 j (--ledger-days)."
+    backfill: "app:backfill-gamification [--dry-run] [--xp] — recalcule compteurs et, avec --xp, l'XP absolue : matchs × 10 + vues d'épices × 5 + SUM(score des GameSession finies) + SUM(xpReward des badges débloqués). 5 requêtes agrégées groupées par user (repositories *GroupedByUser), zéro N+1."
+    event_subscriber: "GamificationNotificationSubscriber (RESPONSE prio -10) — injecte les Turbo Streams avant </body>. Gardes bon marché AVANT la requête DB (main request, pas de Turbo-Frame, Content-Type text/html, </body> présent, user authentifié, gamification activée). Drip plafonné : PendingGamificationNotificationRepository::MAX_PER_RESPONSE = 20 par réponse, le reste part à la page suivante — sans ce cap, un backlog de worker injecterait des centaines de streams d'un coup."
     routes:
       - POST /api/gamification/egg/{slug} (CSRF easter_egg via X-CSRF-Token)
       - POST /users/gamification/toggle (CSRF toggle_gamification)
@@ -130,19 +140,29 @@ architecture:
   education:
     description: "6 jeux : QCM route-based + 5 Live Components (IntrusGame, SurvivalGame, GuessWhoGame, HangmanGame, ChronoGame)"
     services:
-      - GameSessionManager  # sessions, XP, limite 5/jour/mode, createFinishedSession() pour LC
+      - GameSessionManager  # sessions, XP, cap dur quotidien, createFinishedSession() pour LC, convertGamePoints()
       - AcademyManager      # logique de jeu (compatibilité, intrus ordinaux, cartes, questions), cache pool academy.cache TTL 1h
       - QcmQuestionGenerator (QuestionGeneratorInterface)
+      - SkillAssessor       # logique pure sans DB : fenêtre glissante d'accuracy → SkillAssessment|null
+      - DifficultyAdvisor   # seul point de contact DB (GameSessionRepository::findRecentAccuracies) + garde tracksAccuracy()
+      - SkillAssessment     # VO readonly (current, suggested, winrate, samples), isPromotion()
     event_listener: AcademyCacheInvalidator (Doctrine post* sur Spices → invalide academy.spice_cards + academy.intruders.{id})
     routes:
       - "GET /education/ (index PUBLIC), POST /education/start (CSRF education_start), GET /education/play/{id}, POST /education/answer/{id} (CSRF education_answer) — QCM"
       - "GET /education/play-live/{mode} — LC. GET /education/result/{id} — multi-mode"
-    anti_farming: "5 sessions/jour/mode, XP × 0.5 après la 3e"
+    anti_farming: "CAP DUR quotidien par mode : MAX_DAILY_SESSIONS_FREE = 2, MAX_DAILY_SESSIONS_PREMIUM = 5. PAS de dégressivité XP (REDUCED_XP_THRESHOLD supprimé — il était inatteignable en free et ne touchait que la 5e session en premium). Choix produit assumé : le mur quotidien fait revenir le lendemain, meilleur pour la mémorisation espacée. ⚠️ Le check-then-act du quota est sérialisé : GameSessionManager::withDailyQuota() = wrapInTransaction() + LockMode::PESSIMISTIC_WRITE sur l'utilisateur, donc deux onglets ne peuvent pas franchir le cap ensemble. Dépassement → \\RuntimeException ; TOUT appelant (les 5 LC comme le contrôleur QCM) DOIT l'attraper, purger le secret de session, flasher flash.daily_limit_reached et rediriger sur education_index — sans catch, le joueur perd une partie terminée sur un 500."
+    xp_model: "MAX_XP_PER_SESSION = 60 appliqué aux DEUX branches. Modèle plat : correctAnswers × mode->xpPerCorrect() × difficulty->xpMultiplier(), plafonné. Modèle override (Chrono, GuessWho) : overrideScore = POINTS DE JEU, jamais de l'XP — convertis par GameSessionManager::convertGamePoints(points, difficulty) = min(round(points × xpMultiplier), MAX_XP_PER_SESSION). ⚠️ Un LC qui passe overrideScore ne doit PAS pré-appliquer le multiplicateur."
+    difficulty_suggestion: "SkillAssessor (pur, testable sans DB) : fenêtre glissante WINDOW=5 dernières sessions finies d'un même (user, mode, difficulty), MIN_SAMPLES=3. Promotion si moyenne ≥ 80 ET min ≥ 60 (stabilité) ; rétrogradation si moyenne ≤ 40 ET max ≤ 60. SURVIVAL exclu via tracksAccuracy(). ⚠️ JAMAIS de changement automatique de preferredDifficulty — seulement une suggestion rendue sur education/result.html.twig (clés ui.edu.skill.*) avec CTA optionnel. Principe DDA : on ajuste la PROPOSITION de difficulté, pas la récompense en douce."
     gamification_event: GameCompletedEvent via Messenger
     cache: "pool academy.cache (filesystem, 3600s), clés academy.spice_cards + academy.intruders.{spiceId}, bind services.yaml $cache"
     regles:
-      - "Réponses correctes en session HTTP (game_{token}), JAMAIS en #[LiveProp] (sérialisé client)"
+      - "Réponses correctes en session HTTP (game_{token}), JAMAIS en #[LiveProp] (sérialisé client). Nuance : un LiveProp non-writable EST scellé par checksum HMAC (kernel.secret) → pas de falsification directe, mais un payload valide ANTÉRIEUR reste rejouable (checksum sans nonce) — d'où l'état serveur autoritaire."
+      - "Aucune valeur scoring-critique en #[LiveProp], même en lecture seule : totalQuestions est SUPPRIMÉ des LC et relu côté serveur via GameMode::totalQuestions(). Un LiveProp = de l'état client à re-valider, pas une source de vérité."
+      - "Aucun #[LiveProp(writable: true)] dans les LC Education (seuls Search, EnginePreferences et SpicyMatch en déclarent)."
       - "LC = createFinishedSession(), pas de GameQuestion rows"
+      - "Tout doFinish()/finishSession() de LC DOIT garder la session vide (secret absent OU zéro question répondue) → redirect education_index sans persister. Sinon un finish sur composant fraîchement monté crée une session 0/0 qui consomme le quota, dispatche GameCompletedEvent et débloque first_game gratuitement (cause des 172 lignes intrus 0/10 en base)."
+      - "Survie : composition monotone (optionCount, compatibleCount) = 6/4 EASY, 5/3 MEDIUM, 4/2 HARD → survie au clic aléatoire 66,7 % / 60 % / 50 %. ⚠️ Ne jamais dériver compatibleCount d'un ratio × optionCount : optionCount DÉCROÎT avec la difficulté, donc un ratio fixe rendait HARD plus facile qu'EASY (75 % contre 66,7 %) tout en payant ×2 XP."
+      - "Chrono : seuils de points [t1, t2] = 2 s par option proposée, t2 = t1 × 1,5 → [8,12] EASY (4 options), [12,18] MEDIUM (6), [16,24] HARD (8). Les options se lisent, donc un seuil constant pénalise mécaniquement les difficultés hautes."
       - "SpicesRepository::findIncompatibleWith() : SQL NOT EXISTS 4 subqueries (main/sec × main/sec). N'est PLUS un fallback : c'est le segment permanent en tête de l'ensemble éligible des intrus (servi en EASY, atteint en HARD seulement sur pool pauvre). Disjonction avec findSurvivorsWithPresence() prouvée par SpicesIncompatibilityDisjunctionTest."
       - "Sélection Intrus = ORDINALE PURE (invariants I1..I5) : jamais de seuil absolu ni de ratio sur le score, seulement des rangs et des égalités. L'intrus est tiré EN PREMIER dans l'ensemble éligible ; sa position définit la coupure cut(x) ; les 3 compatibles sont tirées uniquement AU-DESSUS de cette coupure → exclusion mutuelle structurelle, zéro déduplication à l'assemblage. Inversé = symétrique (bonne réponse d'abord)."
       - "La difficulté ne pilote qu'une fenêtre ordinale (OrdinalWindow::select : tiers haut / médian / bas, partagée par AcademyManager et QcmQuestionGenerator) à l'intérieur d'ensembles DÉJÀ admissibles — la justesse vient de la construction, jamais de la fenêtre. Le mode strict binaire (intrusStrictMode / findStrictIntruders / academy.intruders.strict.*) est SUPPRIMÉ : c'était la condition de possibilité du bug des doublons."
@@ -317,7 +337,12 @@ performance_frontend:
 design_system:
   fichier_source: assets/styles/app.css
   palette:
-    saffron: "accent primaire orange" ; paprika: "accent secondaire rouge" ; turmeric: "jaune doré" ; cream: "fonds (#FDFCF0 / #F5F0E0)" ; spice-surface: "#FFF7ED" ; spice-border: "#FED7AA"
+    saffron: accent primaire orange
+    paprika: accent secondaire rouge
+    turmeric: jaune doré
+    cream: "fonds (#FDFCF0 / #F5F0E0)"
+    spice-surface: "#FFF7ED"
+    spice-border: "#FED7AA"
   regles:
     - "JAMAIS orange-*/amber-* natifs → saffron-*/turmeric-*. Cartes → card-warm. Boutons → btn-pill-*. Tags → tag-*. Focus → focus:ring-saffron-600/30."
     - "Inline style UNIQUEMENT pour couleurs dynamiques BDD (aromaticGroups.color)."
@@ -334,5 +359,5 @@ design_system:
     cookie_consent: "_cookie_consent.html.twig — bannière RGPD Alpine + CSRF"
     gate_login_modal: "_gate_login_modal.html.twig — pop-in connexion/inscription à onglets (Alpine gateLoginModal, activeTab login|register), incluse globalement dans base.html.twig si `not is_granted('ROLE_USER')` ET route courante ∉ {app_login, index_register} (évite doublon d'id avec les pages dédiées). Déclenchée par CustomEvent `gate-login` {url, tab} — dispatché par x-data=\"gateTrigger(url='', tab='login')\" : url vide → fallback window.location courante (usage navbar, 6 emplacements desktop/méga-menu/mobile) ; url explicite → jeu ciblé (education/index cartes anonymes). Onglet Connexion = vrai form vers app_login (_target_path POST prioritaire, cf LoginFormAuthenticator). Onglet Inscription = form RegistrationFormType RÉEL (ALTCHA inclus, Web Component s'initialise même x-cloak) construit à la volée par App\\Twig\\Extension\\RegistrationFormExtension::embeddedRegistrationForm() (TwigFunction embedded_registration_form(), nouvelle instance à chaque rendu — jamais d'état partagé entre pages), submit vers index_register avec _target_path POST. navMenu écoute `gate-login` en window pour se fermer (pas de chaînage `;` dans les directives Alpine — pattern CustomEvent découplé, cohérent avec toast/notificationHost)."
     onboarding: "_onboarding.html.twig — modale bienvenue + 3 tours spotlight INDÉPENDANTS (spices 3 / lab 5 / academy 3 étapes ; academy step 'optout' surligne data-tour=nav-profile → désactiver gamification via profil/Labo). Config déclarative : map tourSteps {target, key, position, noClickAdvance} → clés ui.onboarding.tours.{tour}.{key}.title|text ; ajouter une étape = 1 entrée Twig + 2 clés YAML/locale. Moteur spotlightTour (alpine_components.js) : resolveTarget = 1re cible VISIBLE, scrollIntoView auto, prev(), compteur, bottom-sheet <640px, coordonnées VIEWPORT (position:fixed — pas de scrollX/Y), comparaison URL via pathWithoutLocale(). Ancres Lab : lab-context, lab-workspace, lab-compose. ÉTAT EN BASE = SET de tours VUS (plus de chaîne linéaire) : Users.onboardingState (varchar(64) nullable) = CSV de clés vues parmi {welcome,spices,lab,academy}, null = tout à faire. checkTour() itère les tours et lance le 1er dont la clé n'est PAS dans le set ET dont le path matche, puis markSeen(key) EAGER au démarrage → chaque tour se déclenche indépendamment à la 1re visite de SA page. 'Passer' (skip)/skipTransition ferment juste le tour courant (clé déjà marquée) → ne touchent PAS les autres tours. Modale bienvenue : visible si set ne contient pas 'welcome' & path home ; 'commencer' → set 'welcome' (tours de page restent actifs) ; 'passer'/déjà connu → set 'welcome,spices,lab,academy' (skip GLOBAL, seule exception). Écriture POST /api/onboarding/state (CSRF header 'onboarding', payload {state: csv}, validation tokens ∈ ALLOWED_KEYS, fetch keepalive) ; lecture via data-onboarding-state. Inscription : RegistrationController purge le targetPath → atterrissage home ; modale compte créé d'abord (CTA → home), l'onboarding attend sa fermeture. Bouton 'revoir l'intro' (users/tabs/_lab) = onboardingReset → POST null + redirect home. A11Y : tooltip role=dialog + focus programmatique, aria-live=polite, dots/overlay aria-hidden."
-    gamification_notif: "gamification/notification.stream.html.twig — Turbo Streams XP/achievements"
+    gamification_notif: "gamification/_notification_stream.html.twig — Turbo Streams XP/achievements"
 ```

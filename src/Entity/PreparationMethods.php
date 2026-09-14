@@ -232,7 +232,6 @@ class PreparationMethods implements TranslatableInterface, Sluggable
 
     public function removePreparationTip(PreparationTips $preparationTip): static
     {
-        // set the owning side to null (unless already changed)
         if ($this->preparationTips->removeElement(
             $preparationTip
         ) && $preparationTip->getPreparationMethod() === $this) {

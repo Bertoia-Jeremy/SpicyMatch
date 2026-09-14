@@ -106,8 +106,6 @@
               <span class="text-paprika-700 font-medium"><i class="fa-solid fa-lock mr-1" aria-hidden="true"></i>{{ lockedHint }}</span>
             {% elseif remaining <= 0 %}
               <span class="text-paprika-700 font-medium"><i class="fa-solid fa-clock-rotate-left mr-1" aria-hidden="true"></i>{{ 'ui.edu.come_back_tomorrow'|trans }}</span>
-            {% elseif count >= reducedXpThreshold %}
-              <span class="text-turmeric-700" title="{{ 'ui.edu.reduced_xp_tooltip'|trans({'%threshold%': reducedXpThreshold}) }}">{{ 'ui.edu.remaining_xp'|trans({'%count%': remaining}) }}</span>
             {% else %}
               {{ 'ui.edu.remaining_today'|trans({'%remaining%': remaining, '%max%': maxDailySessions}) }}
             {% endif %}

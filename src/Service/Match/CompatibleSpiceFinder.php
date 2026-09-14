@@ -10,11 +10,6 @@ use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 use Symfony\Component\HttpFoundation\RequestStack;
 
-/**
- * Adapter UI/éducation : pipeline + enrichissement (nom, image, groupe, type) en une requête.
- *
- * @see ARCHITECTURE_MOTEUR_COMPATIBILITE.md §3 + §4.1
- */
 class CompatibleSpiceFinder
 {
     public function __construct(

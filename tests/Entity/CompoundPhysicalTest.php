@@ -18,8 +18,6 @@ final class CompoundPhysicalTest extends TestCase
         $this->physical = new CompoundPhysical((new AromaticCompound())->setName('Eugenol'));
     }
 
-    // ── octanolWaterPartition (K_ow = 10^logP) ─────────────────────────────────
-
     public function testOctanolWaterPartitionReturnsNullWhenLogPNull(): void
     {
         self::assertNull($this->physical->octanolWaterPartition());
@@ -45,8 +43,6 @@ final class CompoundPhysicalTest extends TestCase
 
         self::assertSame(1.0, $this->physical->octanolWaterPartition());
     }
-
-    // ── aromaKinetics : délégation vers AromaKinetics::fromBoilingPoint ────────
 
     public function testAromaKineticsReturnsNullWhenBoilingPointMissing(): void
     {

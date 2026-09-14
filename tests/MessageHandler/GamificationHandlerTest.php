@@ -38,8 +38,9 @@ final class GamificationHandlerTest extends TestCase
         $this->historyRepo = $this->createMock(SpicyMatchHistoryRepository::class);
         $this->manager = $this->createMock(GamificationManagerInterface::class);
         $this->em = $this->createMock(EntityManagerInterface::class);
+        $this->em->method('wrapInTransaction')
+            ->willReturnCallback(fn (callable $callback) => $callback($this->em));
         $this->processedEvents = $this->createMock(ProcessedGamificationEventRepository::class);
-        // Default: ledger claim always succeeds — override per-test for idempotency scenarios.
         $this->processedEvents->method('claim')
             ->willReturn(true);
 
@@ -127,14 +128,24 @@ final class GamificationHandlerTest extends TestCase
         $history->method('getSpicyMatch')
             ->willReturn($spicyMatch);
 
+        $processedEvents = $this->createMock(ProcessedGamificationEventRepository::class);
+        $processedEvents->expects(self::never())
+            ->method('claim');
+
+        $handler = new GamificationHandler(
+            $this->historyRepo,
+            $this->manager,
+            $this->em,
+            new NullLogger(),
+            $processedEvents,
+        );
+
         $this->historyRepo->method('find')
             ->willReturn($history);
         $this->historyRepo->expects(self::never())->method('countByUser');
+        $this->manager->expects(self::never())->method('process');
 
-        // process() is still called (manager handles opt-out)
-        $this->manager->expects(self::once())->method('process');
-
-        ($this->handler)(new MatchSavedEvent(1, 1));
+        $handler(new MatchSavedEvent(1, 1));
     }
 
     public function testInvokeCallsManagerProcessWithMatchSaved(): void
@@ -169,11 +180,8 @@ final class GamificationHandlerTest extends TestCase
         ($this->handler)(new MatchSavedEvent(1, 1));
     }
 
-    // ── Messenger retry idempotency ──────────────────────────────────────────
-
     public function testInvokeShortCircuitsOnDuplicateEventWithoutCallingManager(): void
     {
-        // Build a dedicated handler whose ledger rejects the claim → simulates retry.
         $processedEvents = $this->createMock(ProcessedGamificationEventRepository::class);
         $processedEvents->method('claim')
             ->willReturn(false);
@@ -198,7 +206,6 @@ final class GamificationHandlerTest extends TestCase
         $this->historyRepo->method('find')
             ->willReturn($history);
 
-        // Strongest assertion: a duplicate delivery MUST NOT re-invoke the gamification pipeline.
         $this->manager->expects(self::never())->method('process');
         $this->em->expects(self::never())->method('flush');
 

@@ -19,33 +19,12 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Yaml\Yaml;
 
-/**
- * Ingère les seuils olfactifs (ODT) depuis un fichier YAML versionné.
- *
- * Usage :
- *   bin/console app:import:odt
- *   bin/console app:import:odt --file=fixtures/compound_odt.yaml
- *   bin/console app:import:odt --matrix=water
- *   bin/console app:import:odt --dry-run
- *
- * Format YAML attendu (fixtures/compound_odt.yaml) :
- *   - compound_name: eugenol
- *     odt_ppm: 0.0001
- *     matrix: air
- *     source: "van Gemert (2011) p.78"
- *
- * Matching par nom (case-insensitive). Idempotent : UPDATE si l'entrée existe, INSERT sinon.
- *
- * Sécurité : le fichier doit se trouver dans fixtures/ du projet (path traversal guard).
- *
- * @see ARCHITECTURE_MOTEUR_COMPATIBILITE.md §6.6
- */
 #[AsCommand(name: 'app:import:odt', description: 'Ingère les seuils olfactifs (ODT) depuis un fichier YAML')]
 final class ImportOdtCommand extends Command
 {
     private const DEFAULT_FILE = 'fixtures/compound_odt.yaml';
 
-    private const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 Mo
+    private const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
     public function __construct(
         private readonly AromaticCompoundRepository $aromaticCompoundRepository,
@@ -83,7 +62,6 @@ final class ImportOdtCommand extends Command
         $defaultMatrixStr = $input->getOption('matrix');
         $defaultMatrix = OdtMatrix::tryFrom($defaultMatrixStr) ?? OdtMatrix::AIR;
 
-        // ── Guard path traversal : le fichier doit être dans fixtures/ ──────────
         $resolvedPath = realpath($file);
         $allowedDir = realpath($this->projectDir . '/fixtures');
 
@@ -93,7 +71,6 @@ final class ImportOdtCommand extends Command
             return Command::FAILURE;
         }
 
-        // ── Guard taille ────────────────────────────────────────────────────────
         $fileSize = filesize($resolvedPath);
         if ($fileSize === false || $fileSize > self::MAX_FILE_SIZE) {
             $io->error('Fichier trop volumineux (max 10 Mo).');
@@ -104,7 +81,6 @@ final class ImportOdtCommand extends Command
         $io->title(sprintf('Import ODT depuis %s', $resolvedPath));
         $dryRun && $io->warning('Mode DRY-RUN : aucune écriture en BDD.');
 
-        // PARSE_EXCEPTION_ON_INVALID_TYPE : bloque les types YAML dangereux (!!php/object, etc.)
         $entries = Yaml::parseFile($resolvedPath, Yaml::PARSE_EXCEPTION_ON_INVALID_TYPE);
 
         if (! is_array($entries)) {
@@ -135,14 +111,12 @@ final class ImportOdtCommand extends Command
                 continue;
             }
 
-            // odt_ppm (ponctuel) OU odt_min + odt_max (plage → moyenne géométrique).
             $odtPpm = $this->resolveOdtPpm($entry, $compoundName, $io);
             if ($odtPpm === null) {
                 ++$skipped;
                 continue;
             }
 
-            // Matching par nom
             $compound = $this->aromaticCompoundRepository->findOneBy([
                 'name' => $compoundName,
             ]);
@@ -159,7 +133,6 @@ final class ImportOdtCommand extends Command
                 continue;
             }
 
-            // Recherche de l'entrée existante (PK composite)
             $existing = $this->compoundOdtRepository->findForCompound($compoundId, $matrix);
 
             if ($existing !== null) {
@@ -192,8 +165,6 @@ final class ImportOdtCommand extends Command
                 ++$inserted;
             }
 
-            // Batch flush+clear toutes les 500 opérations : évite l'accumulation de l'UnitOfWork
-            // en RAM sur les gros datasets (van Gemert ≈ 6 000 lignes).
             if (! $dryRun && ($inserted + $updated) % 500 === 0 && ($inserted + $updated) > 0) {
                 $this->em->flush();
                 $this->em->clear();
@@ -216,11 +187,7 @@ final class ImportOdtCommand extends Command
     }
 
     /**
-     * Résout l'ODT en ppm depuis une entrée : valeur ponctuelle `odt_ppm`
-     * OU plage `odt_min`/`odt_max` agrégée par moyenne géométrique.
-     *
      * @param array<string, mixed> $entry
-     *
      * @return float|null null si donnée absente/invalide (l'appelant skip)
      */
     private function resolveOdtPpm(array $entry, string $compoundName, SymfonyStyle $io): ?float
@@ -257,8 +224,6 @@ final class ImportOdtCommand extends Command
     }
 
     /**
-     * Niveau de confiance depuis l'entrée YAML (défaut PLACEHOLDER si absent/invalide).
-     *
      * @param array<string, mixed> $entry
      */
     private function resolveConfidence(array $entry): DataConfidence

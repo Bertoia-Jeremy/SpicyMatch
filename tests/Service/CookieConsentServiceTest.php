@@ -156,7 +156,6 @@ class CookieConsentServiceTest extends TestCase
 
     public function testHasConsentedReturnsFalseWithoutRequest(): void
     {
-        // No request pushed to stack
         self::assertFalse($this->service->hasConsented());
     }
 }

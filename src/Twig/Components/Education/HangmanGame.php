@@ -37,9 +37,6 @@ class HangmanGame extends AbstractController
     public int $questionNumber = 0;
 
     #[LiveProp]
-    public int $totalQuestions = 5;
-
-    #[LiveProp]
     public int $correctCount = 0;
 
     #[LiveProp]
@@ -53,6 +50,12 @@ class HangmanGame extends AbstractController
      */
     #[LiveProp]
     public array $guessedLetters = [];
+
+    /**
+     * @var string[] Normalized uppercase letters found in the word
+     */
+    #[LiveProp]
+    public array $correctGuesses = [];
 
     #[LiveProp]
     public int $errorsCount = 0;
@@ -113,6 +116,11 @@ class HangmanGame extends AbstractController
         $this->generateWord();
     }
 
+    public function getTotalQuestions(): int
+    {
+        return GameMode::HANGMAN->totalQuestions() ?? 0;
+    }
+
     #[LiveAction]
     public function guessLetter(#[LiveArg] string $letter): void
     {
@@ -124,7 +132,6 @@ class HangmanGame extends AbstractController
 
         $normalized = $this->academyManager->normalizeChar($letter);
 
-        // Session-side dedup guard (source of truth — LiveProp is tamperable via replay).
         $serverGuessed = $secret['guessedLetters'] ?? [];
 
         if (\in_array($normalized, $serverGuessed, true)) {
@@ -135,7 +142,6 @@ class HangmanGame extends AbstractController
         $secret['guessedLetters'] = $serverGuessed;
         $this->writeSecret($secret);
 
-        // Sync LiveProp from session (source of truth) — avoids stale client state
         $this->guessedLetters = $serverGuessed;
 
         $word = $secret['word'] ?? '';
@@ -146,13 +152,14 @@ class HangmanGame extends AbstractController
 
         $found = $this->academyManager->letterInWord($normalized, $word);
 
-        if (! $found) {
+        if ($found) {
+            $this->correctGuesses[] = $normalized;
+        } else {
             ++$this->errorsCount;
         }
 
         $this->maskedWord = $this->academyManager->buildMask($word, $serverGuessed);
 
-        // Check win: no underscores left
         if (! str_contains($this->maskedWord, '_')) {
             $this->wordSolved = true;
             $this->revealedWord = $word;
@@ -180,7 +187,6 @@ class HangmanGame extends AbstractController
             return;
         }
 
-        // Check lose
         if ($this->errorsCount >= $this->maxErrors) {
             $this->wordFailed = true;
             ++$this->incorrectCount;
@@ -208,9 +214,10 @@ class HangmanGame extends AbstractController
         $this->wordFailed = false;
         $this->revealedWord = '';
         $this->guessedLetters = [];
+        $this->correctGuesses = [];
         $this->errorsCount = 0;
 
-        if ($this->questionNumber >= $this->totalQuestions) {
+        if ($this->questionNumber >= $this->getTotalQuestions()) {
             return $this->doFinish();
         }
 
@@ -237,6 +244,14 @@ class HangmanGame extends AbstractController
         return mb_str_split($this->maskedWord);
     }
 
+    /**
+     * @return string[]
+     */
+    public function getRules(): array
+    {
+        return $this->academyManager->getRulesFor(GameMode::HANGMAN);
+    }
+
     private function doFinish(): RedirectResponse
     {
         /** @var Users $user */
@@ -244,7 +259,6 @@ class HangmanGame extends AbstractController
 
         $secret = $this->readSecret();
 
-        // Guard: orphan token
         if (empty($secret)) {
             return $this->redirectToRoute('education_index');
         }
@@ -254,14 +268,24 @@ class HangmanGame extends AbstractController
 
         $durationSeconds = time() - $this->startedAt;
 
-        $gameSession = $this->sessionManager->createFinishedSession(
-            $user,
-            GameMode::HANGMAN,
-            GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY,
-            $serverCorrect,
-            $this->questionNumber,
-            $durationSeconds,
-        );
+        try {
+            $gameSession = $this->sessionManager->createFinishedSession(
+                $user,
+                GameMode::HANGMAN,
+                GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY,
+                $serverCorrect,
+                $this->questionNumber,
+                $durationSeconds,
+            );
+        } catch (\RuntimeException) {
+            $this->removeSecret();
+            $this->addFlash('warning', $this->translator->trans('flash.daily_limit_reached', [
+                '%mode%' => $this->translator->trans(GameMode::HANGMAN->label()),
+                '%max%' => $this->sessionManager->maxDailySessions($user),
+            ]));
+
+            return $this->redirectToRoute('education_index');
+        }
 
         $this->sessionManager->addQuestionsToSession($gameSession, $questionHistory);
         $this->removeSecret();
@@ -300,9 +324,9 @@ class HangmanGame extends AbstractController
         };
 
         $this->guessedLetters = [];
+        $this->correctGuesses = [];
         $this->maskedWord = $this->academyManager->buildMask($word, $this->guessedLetters);
 
-        // Preserve accumulated session state (correctCount, completedWords, questions).
         $previous = $this->readSecret();
         $this->writeSecret([
             'word' => $word,

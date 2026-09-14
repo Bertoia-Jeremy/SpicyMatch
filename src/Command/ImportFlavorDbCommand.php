@@ -16,27 +16,6 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Yaml\Yaml;
 
-/**
- * Ingère les concentrations de composés aromatiques depuis FlavorDB ou un dump local.
- *
- * Usage :
- *   bin/console app:import:flavordb --file=fixtures/spice_compound_concentration.yaml
- *   bin/console app:import:flavordb --dry-run
- *
- * Format YAML attendu (fixtures/spice_compound_concentration.yaml) :
- *   - spice_name: clou-de-girofle
- *     compound_name: eugenol
- *     concentration_ppm: 850000
- *     source: "FlavorDB ingredient_id=42"
- *
- * Matching épice par nom (exact, case-sensitive — utiliser le nom tel qu'en BDD).
- * Matching composé par nom (exact).
- * Idempotent : UPDATE si (spice_id, aromatic_compound_id) existe, INSERT sinon.
- *
- * Sécurité : le fichier doit se trouver dans fixtures/ du projet (path traversal guard).
- *
- * @see ARCHITECTURE_MOTEUR_COMPATIBILITE.md §6.6
- */
 #[AsCommand(
     name: 'app:import:flavordb',
     description: 'Ingère les concentrations de composés depuis FlavorDB ou un dump YAML'
@@ -45,7 +24,7 @@ final class ImportFlavorDbCommand extends Command
 {
     private const DEFAULT_FILE = 'fixtures/spice_compound_concentration.yaml';
 
-    private const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 Mo
+    private const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
     public function __construct(
         private readonly SpicesRepository $spicesRepository,
@@ -78,7 +57,6 @@ final class ImportFlavorDbCommand extends Command
         $file = $input->getOption('file');
         $dryRun = (bool) $input->getOption('dry-run');
 
-        // ── Guard path traversal : le fichier doit être dans fixtures/ ──────────
         $resolvedPath = realpath($file);
         $allowedDir = realpath($this->projectDir . '/fixtures');
 
@@ -88,7 +66,6 @@ final class ImportFlavorDbCommand extends Command
             return Command::FAILURE;
         }
 
-        // ── Guard taille ────────────────────────────────────────────────────────
         $fileSize = filesize($resolvedPath);
         if ($fileSize === false || $fileSize > self::MAX_FILE_SIZE) {
             $io->error('Fichier trop volumineux (max 10 Mo).');
@@ -99,7 +76,6 @@ final class ImportFlavorDbCommand extends Command
         $io->title(sprintf('Import concentrations FlavorDB depuis %s', $resolvedPath));
         $dryRun && $io->warning('Mode DRY-RUN : aucune écriture en BDD.');
 
-        // PARSE_EXCEPTION_ON_INVALID_TYPE : bloque les types YAML dangereux (!!php/object, etc.)
         $entries = Yaml::parseFile($resolvedPath, Yaml::PARSE_EXCEPTION_ON_INVALID_TYPE);
 
         if (! is_array($entries)) {
@@ -112,7 +88,6 @@ final class ImportFlavorDbCommand extends Command
         $updated = 0;
         $skipped = 0;
 
-        // Cache local pour éviter N+1 sur les noms
         $spiceCache = [];
         $compoundCache = [];
 
@@ -133,7 +108,6 @@ final class ImportFlavorDbCommand extends Command
                 continue;
             }
 
-            // Guard non-numérique : (float)"N/A" = 0.0 mais le message serait trompeur
             if (! is_numeric($concentrationPpmRaw)) {
                 $io->warning(sprintf(
                     'concentration_ppm non numérique pour "%s/%s" : %s — ignorée.',
@@ -145,7 +119,6 @@ final class ImportFlavorDbCommand extends Command
                 continue;
             }
 
-            // Guard concentration invalide
             $concentrationPpm = (float) $concentrationPpmRaw;
             if ($concentrationPpm < 0.0) {
                 $io->warning(
@@ -155,7 +128,6 @@ final class ImportFlavorDbCommand extends Command
                 continue;
             }
 
-            // Matching épice
             $spice = $spiceCache[$spiceName] ??= $this->spicesRepository->findOneBy([
                 'name' => $spiceName,
             ]);
@@ -165,7 +137,6 @@ final class ImportFlavorDbCommand extends Command
                 continue;
             }
 
-            // Matching composé
             $compound = $compoundCache[$compoundName] ??= $this->aromaticCompoundRepository->findOneBy([
                 'name' => $compoundName,
             ]);
@@ -175,7 +146,6 @@ final class ImportFlavorDbCommand extends Command
                 continue;
             }
 
-            // Recherche entrée existante
             $existing = $this->em->find(
                 \App\Entity\SpiceCompoundConcentration::class,
                 [
@@ -201,9 +171,6 @@ final class ImportFlavorDbCommand extends Command
                 ++$inserted;
             }
 
-            // Batch flush+clear toutes les 500 opérations : évite l'accumulation de l'UnitOfWork
-            // en RAM sur les gros datasets (FlavorDB peut dépasser 10 000 lignes).
-            // Reset des caches locaux : après clear(), les entités Doctrine sont détachées.
             if (! $dryRun && ($inserted + $updated) % 500 === 0 && ($inserted + $updated) > 0) {
                 $this->em->flush();
                 $this->em->clear();

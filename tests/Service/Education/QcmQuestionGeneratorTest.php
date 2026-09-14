@@ -115,7 +115,6 @@ final class QcmQuestionGeneratorTest extends TestCase
 
     /**
      * @param array<int, bool> $positions
-     *
      * @return list<int>
      */
     private function sortedKeys(array $positions): array
@@ -144,7 +143,6 @@ final class QcmQuestionGeneratorTest extends TestCase
 
     /**
      * @param list<int> $scores
-     *
      * @return array<int, int>
      */
     private function scoreIndex(array $scores, int $firstId = 11): array
@@ -177,7 +175,6 @@ final class QcmQuestionGeneratorTest extends TestCase
 
     /**
      * @param list<int> $scores
-     *
      * @return list<array<string, mixed>>
      */
     private function makeScoredPool(array $scores, int $firstId = 11): array

@@ -17,12 +17,6 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Unit tests for SpicyMatchService::createFromSelection().
- *
- * Verifies persistence delegation, batch loading, auto/manual mode branching.
- * Entity-level collection assertions (addSpice, addResult) belong to entity tests.
- */
 #[AllowMockObjectsWithoutExpectations]
 class SpicyMatchServiceTest extends TestCase
 {
@@ -42,10 +36,6 @@ class SpicyMatchServiceTest extends TestCase
         $this->service = new SpicyMatchService($this->factory, $this->spicesRepo, $this->em);
     }
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // Persistence contract
-    // ──────────────────────────────────────────────────────────────────────────
-
     public function testPersistsFlushesAndReturnsTheCreatedMatch(): void
     {
         $match = new SpicyMatch();
@@ -61,10 +51,6 @@ class SpicyMatchServiceTest extends TestCase
 
         self::assertSame($match, $result);
     }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // User and manual flag
-    // ──────────────────────────────────────────────────────────────────────────
 
     public function testSetsNullUserOnMatch(): void
     {
@@ -119,10 +105,6 @@ class SpicyMatchServiceTest extends TestCase
         self::assertFalse($match->isManual());
     }
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // Batch loading of selected spices
-    // ──────────────────────────────────────────────────────────────────────────
-
     public function testBatchLoadsSelectedSpicesWithOneQuery(): void
     {
         $match = new SpicyMatch();
@@ -155,10 +137,6 @@ class SpicyMatchServiceTest extends TestCase
         self::assertCount(2, $match->getSpices());
     }
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // Manual mode — no results stored
-    // ──────────────────────────────────────────────────────────────────────────
-
     public function testManualModeDoesNotStoreResults(): void
     {
         $match = new SpicyMatch();
@@ -167,7 +145,6 @@ class SpicyMatchServiceTest extends TestCase
         $this->spicesRepo->method('findBy')
             ->willReturn([]);
 
-        // Even if compatible spices are passed, manual mode must ignore them
         $compatible = [[
             'id' => 99,
             'score' => 80,
@@ -176,10 +153,6 @@ class SpicyMatchServiceTest extends TestCase
 
         self::assertCount(0, $match->getResults());
     }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // Auto mode — results stored
-    // ──────────────────────────────────────────────────────────────────────────
 
     public function testAutoModeStoresCompatibleResults(): void
     {
@@ -191,11 +164,10 @@ class SpicyMatchServiceTest extends TestCase
         $this->factory->method('create')
             ->willReturn($match);
 
-        // First findBy → selected spices (empty); second findBy → compatible
         $this->spicesRepo->method('findBy')
             ->willReturnOnConsecutiveCalls(
-                [],                    // selected spices
-                [$compatibleSpice],    // compatible spices
+                [],
+                [$compatibleSpice],
             );
 
         $compatible = [[
@@ -213,7 +185,6 @@ class SpicyMatchServiceTest extends TestCase
         $this->factory->method('create')
             ->willReturn($match);
 
-        // Only 1 findBy call expected (selected spices); no second call for empty compatible list
         $this->spicesRepo->expects(self::once())
             ->method('findBy')
             ->willReturn([]);
@@ -236,7 +207,6 @@ class SpicyMatchServiceTest extends TestCase
         $this->spicesRepo->method('findBy')
             ->willReturnOnConsecutiveCalls([], [$compatibleSpice]);
 
-        // score passed as string (as returned from DB queries)
         $compatible = [[
             'id' => 7,
             'score' => '82',
@@ -248,10 +218,6 @@ class SpicyMatchServiceTest extends TestCase
         self::assertCount(1, $results);
         self::assertSame(82, $results[0]->getScore());
     }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // Persistance du contexte culinaire
-    // ──────────────────────────────────────────────────────────────────────────
 
     public function testCustomCulinaryContextIsPropagatedToMatch(): void
     {

@@ -12,24 +12,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-/**
- * Intégrité OFFLINE des composés (CAS présent/valide/unique, formule).
- * Complète app:validate:compounds (cross-check PubChem online). Garde CI/import.
- *
- * Règles dures (→ FAILURE) :
- *   - CAS manquant
- *   - CAS de format ou checksum invalide (faute de frappe)
- *   - CAS dupliqué (deux composés au même CAS)
- *   - formule manquante
- *
- * Règles souples (→ warning, n'échoue pas) :
- *   - nom potentiellement ambigu sur la chiralité (isomère) sans préfixe stéréo
- *     (ex: "Carvone" sans R-/S- → R et S ont des odeurs opposées)
- *
- * Usage :
- *   php bin/console app:check:compounds
- *   php bin/console app:check:compounds --strict   # les warnings deviennent bloquants
- */
 #[AsCommand(
     name: 'app:check:compounds',
     description: 'Contrôle intégrité offline des composés (CAS présent/valide/unique, formule).',
@@ -37,19 +19,15 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final class CheckCompoundsIntegrityCommand extends Command
 {
     /**
-     * Racines de noms dont la forme nue masque une ambiguïté d'isomère perceptuellement
-     * significative. Détecté si le nom contient la racine sans marqueur stéréo (R-, S-,
-     * D-, L-, cis-, trans-, (+)-, (-)-, α-, β-, …).
-     *
      * @var list<string>
      */
     private const array ISOMER_SENSITIVE_ROOTS = [
-        'carvone',   // R = carvi/aneth, S = menthe verte
-        'limonène',  // D = orange, L = térébenthine/pin
+        'carvone',
+        'limonène',
         'limonene',
-        'anéthol',   // cis (toxique) vs trans (anisé)
+        'anéthol',
         'anethol',
-        'linalol',   // R vs S nuances florales
+        'linalol',
         'menthol',
         'pinène',
         'pinene',
@@ -148,7 +126,6 @@ final class CheckCompoundsIntegrityCommand extends Command
     {
         $lower = mb_strtolower($name);
 
-        // Présence d'un marqueur stéréo → considéré comme désambiguïsé.
         $hasStereoMarker = preg_match(
             '/(^|[^a-z])(r|s|d|l|cis|trans|\(\+\)|\(-\)|α|β|alpha|beta)[\s\-]/iu',
             $name

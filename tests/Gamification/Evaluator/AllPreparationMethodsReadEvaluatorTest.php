@@ -46,7 +46,6 @@ final class AllPreparationMethodsReadEvaluatorTest extends TestCase
 
     public function testReturnsFalseWhenZeroTotalMethods(): void
     {
-        // Edge case: DB empty → we must not unlock accidentally (0 >= 0 is true!)
         $progression = $this->progressionWithUser();
         $this->prepRepo->method('count')
             ->willReturn(0);

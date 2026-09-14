@@ -9,17 +9,8 @@ use App\Repository\SpiceActiveCompoundRepository;
 use App\ValueObject\Match\MortarIds;
 use Psr\Cache\CacheItemPoolInterface;
 
-/**
- * Profil OAV mortier agrégé par max(OAV) par composé. TTL par matrice (MatrixStrategy).
- * Clé : "match.mortar.{matrix}.{ids sorted}". Invalidation : SpiceConcentrationChangedListener.
- *
- * @see ARCHITECTURE_MOTEUR_COMPATIBILITE.md §3.2 + §4.4
- */
 class MortarProfileBuilder
 {
-    /**
-     * Sentinel "vide" : court-circuit DB 5 min, sans verrouiller un import à venir.
-     */
     private const CACHE_TTL_EMPTY = 300;
 
     public function __construct(
@@ -46,8 +37,6 @@ class MortarProfileBuilder
         $profile = $this->computeProfile($mortar->toArray(), $matrix);
 
         if ($profile === []) {
-            // Cache court de l'état vide : le prochain build pour ce mortier+matrice
-            // n'ira pas en DB pendant 5 min, mais un rebuild OAV invalidera le pool entier.
             $cacheItem->set([]);
             $cacheItem->expiresAfter(self::CACHE_TTL_EMPTY);
             $this->matchMortarProfileCache->save($cacheItem);
@@ -69,9 +58,6 @@ class MortarProfileBuilder
         }
     }
 
-    /**
-     * Appelé après rebuild global de spice_active_compound.
-     */
     public function invalidateAll(): void
     {
         $this->matchMortarProfileCache->clear();
@@ -90,7 +76,6 @@ class MortarProfileBuilder
 
     /**
      * @param list<int> $sortedIds
-     *
      * @return array<int, float>
      */
     private function computeProfile(array $sortedIds, OdtMatrix $matrix): array

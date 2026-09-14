@@ -7,9 +7,6 @@ namespace App\Twig\Components\Education;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
- * Shared session helpers for all game LiveComponents.
- * All LCs must define `$gameToken` (LiveProp string) and `$requestStack` (RequestStack).
- *
  * @property string       $gameToken
  * @property RequestStack $requestStack
  */

@@ -15,10 +15,6 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * Catalogue of achievements. Populated via fixtures.
- * trigger_value is the threshold (e.g., 10 for "10 matches done").
- */
 #[ORM\Entity(repositoryClass: AchievementRepository::class)]
 class Achievement implements TranslatableInterface
 {
@@ -42,9 +38,6 @@ class Achievement implements TranslatableInterface
     #[ORM\Column(type: 'text')]
     private string $description = '';
 
-    /**
-     * FontAwesome class or emoji.
-     */
     #[ORM\Column(length: 100)]
     private string $icon = 'fa-star';
 
@@ -60,40 +53,21 @@ class Achievement implements TranslatableInterface
     #[ORM\Column(enumType: AchievementRarity::class)]
     private AchievementRarity $rarity = AchievementRarity::COMMON;
 
-    /**
-     * Used only for EASTER_EGG_FOUND trigger — identifies the specific secret.
-     */
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $easterEggSlug = null;
 
-    /**
-     * Feature flag to enable/disable an achievement without deleting it.
-     * New achievements are seeded disabled and activated after QA.
-     */
     #[ORM\Column(options: [
         'default' => true,
     ])]
     private bool $enabled = true;
 
-    /**
-     * Optional context: restrict the achievement to a specific game mode.
-     * Null = wildcard (any mode counts).
-     */
     #[ORM\Column(nullable: true, enumType: GameMode::class)]
     private ?GameMode $contextGameMode = null;
 
-    /**
-     * Optional context: restrict the achievement to a specific aromatic group.
-     * Null = wildcard (any group counts).
-     */
     #[ORM\ManyToOne(targetEntity: AromaticGroups::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?AromaticGroups $contextAromaticGroup = null;
 
-    /**
-     * Optional context: restrict the achievement to sessions played at a specific difficulty.
-     * Null = wildcard.
-     */
     #[ORM\Column(nullable: true, enumType: GameDifficulty::class)]
     private ?GameDifficulty $contextDifficulty = null;
 

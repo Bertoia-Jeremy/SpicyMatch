@@ -9,10 +9,11 @@ use App\Gamification\XpStrategyInterface;
 
 final class SpiceReadXpStrategy implements XpStrategyInterface
 {
+    public const int XP_PER_NEW_VIEW = 5;
+
     public function calculate(UserProgression $progression, array $context): int
     {
-        // Only award XP on the first view of a spice for the day
-        return ($context['isNewView'] ?? false) ? 5 : 0;
+        return ($context['isNewView'] ?? false) ? self::XP_PER_NEW_VIEW : 0;
     }
 
     public function supports(string $eventType): bool

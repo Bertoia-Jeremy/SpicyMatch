@@ -13,22 +13,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-/**
- * Cohérence cross-tables des données du moteur OAV.
- *
- * Offline, rapide. Complète app:check:compounds (intégrité par composé) en
- * vérifiant des invariants qui s'étendent sur plusieurs tables :
- *
- *   - OAV matérialisé > 1 (invariant van Gemert) et < plafond plausible
- *   - Σ concentrations par épice ≤ 100 % de la masse
- *   - composé concentré mais sans ODT air (trou OAV silencieux)
- *
- * Exit ≠ 0 si erreur dure → utilisable en garde CI / pré-déploiement.
- *
- * Usage :
- *   php bin/console app:check:data
- *   php bin/console app:check:data --strict   # warnings bloquants
- */
 #[AsCommand(
     name: 'app:check:data',
     description: 'Valide la cohérence cross-tables des données OAV (invariants, sommes, trous).',
@@ -132,8 +116,6 @@ final class CheckDataConsistencyCommand extends Command
     }
 
     /**
-     * Composés référencés en concentration mais sans ligne ODT en matrice air.
-     *
      * @return list<array{id: int, name: string}>
      */
     private function fetchCompoundsWithoutAirOdt(): array

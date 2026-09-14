@@ -6,22 +6,15 @@ namespace App\ValueObject\Match;
 
 use App\Enum\OdtMatrix;
 
-/**
- * Contexte culinaire (matrice ODT + ratios biphasiques + cuisson).
- * Invariants : ratios ∈ [0, 1], fat+water ≈ 1 (±0.001), time ∈ [0, 1440], temp ∈ [-50, 500].
- */
 final readonly class CulinaryContext
 {
-    /**
-     * Bornes publiques — source unique des validations (API, UI, VO).
-     */
     public const float FAT_RATIO_MIN = 0.0;
 
     public const float FAT_RATIO_MAX = 1.0;
 
     public const int COOKING_TIME_MIN = 0;
 
-    public const int COOKING_TIME_MAX = 1440; // 24 h
+    public const int COOKING_TIME_MAX = 1440;
 
     public const int TEMPERATURE_MIN = -50;
 
@@ -57,9 +50,6 @@ final readonly class CulinaryContext
         }
     }
 
-    /**
-     * Signature déterministe pour cache (hors variations volontaires de matrice côté appelant).
-     */
     public function signature(): string
     {
         return \sprintf(
@@ -86,9 +76,6 @@ final readonly class CulinaryContext
         return new self(OdtMatrix::from(strtolower(trim($raw))));
     }
 
-    /**
-     * Vrai si le contexte introduit une physique non triviale (= au-delà du neutre).
-     */
     public function isCustom(): bool
     {
         return $this->matrix !== OdtMatrix::AIR

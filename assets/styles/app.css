@@ -19,6 +19,7 @@
 @import "./components/navbar.css";
 @import "./components/home.css";
 @import "./components/academie.css";
+@import "./components/hangman.css";
 
 /* L'Étamine — finalisation du mélange + recette */
 @import "./components/etamine.css";

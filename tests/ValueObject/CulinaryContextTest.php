@@ -11,8 +11,6 @@ use PHPUnit\Framework\TestCase;
 
 final class CulinaryContextTest extends TestCase
 {
-    // ── Constructeur & valeurs par défaut ──────────────────────────────────────
-
     public function testDefaultsAreNeutralAir(): void
     {
         $ctx = new CulinaryContext();
@@ -37,8 +35,6 @@ final class CulinaryContextTest extends TestCase
         self::assertTrue((new \ReflectionClass(CulinaryContext::class))->isReadOnly());
     }
 
-    // ── fromRequest : valeurs valides ─────────────────────────────────────────
-
     #[DataProvider('validMatrixRequestProvider')]
     public function testFromRequestAcceptsValidMatrix(string $raw, OdtMatrix $expected): void
     {
@@ -56,8 +52,6 @@ final class CulinaryContextTest extends TestCase
         yield 'trimmed whitespace' => ['  water  ', OdtMatrix::WATER];
         yield 'case insensitive' => ['AIR', OdtMatrix::AIR];
     }
-
-    // ── fromRequest : valeurs invalides ──────────────────────────────────────
 
     #[DataProvider('invalidMatrixRequestProvider')]
     public function testFromRequestThrowsOnInvalidMatrix(string $raw): void
@@ -83,8 +77,6 @@ final class CulinaryContextTest extends TestCase
         self::assertSame('oil', $matrix->value);
         self::assertSame('enum.matrix.oil', $matrix->label());
     }
-
-    // ── Ratios / temps / température acceptés ─────────────────────────────────
 
     public function testSingleArgConstructorLeavesOtherFieldsNeutral(): void
     {
@@ -128,8 +120,6 @@ final class CulinaryContextTest extends TestCase
         self::assertSame(0, (new CulinaryContext(cookingTimeMin: 0))->cookingTimeMin);
     }
 
-    // ── Validation : entrées hors plage ──────────────────────────────────────
-
     #[DataProvider('invalidConstructionProvider')]
     public function testThrowsOnInvalidConstruction(string $expectedMessage, callable $factory): void
     {
@@ -165,8 +155,6 @@ final class CulinaryContextTest extends TestCase
         ];
     }
 
-    // ── isCustom() ────────────────────────────────────────────────────────────
-
     #[DataProvider('customContextProvider')]
     public function testIsCustom(bool $expected, CulinaryContext $ctx): void
     {
@@ -184,8 +172,6 @@ final class CulinaryContextTest extends TestCase
         yield 'cooking time is custom' => [true, new CulinaryContext(cookingTimeMin: 10)];
         yield 'temperature change is custom' => [true, new CulinaryContext(temperatureCelsius: 100)];
     }
-
-    // ── getLabel() ────────────────────────────────────────────────────────────
 
     #[DataProvider('labelProvider')]
     public function testGetLabel(string $expected, CulinaryContext $ctx): void
@@ -236,8 +222,6 @@ final class CulinaryContextTest extends TestCase
             ),
         ];
     }
-
-    // ── getIcon() ────────────────────────────────────────────────────────────
 
     #[DataProvider('iconProvider')]
     public function testGetIcon(string $expected, CulinaryContext $ctx): void

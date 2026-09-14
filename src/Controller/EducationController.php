@@ -9,8 +9,8 @@ use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use App\Repository\AchievementRepository;
 use App\Repository\GameSessionRepository;
-use App\Repository\SpicesRepository;
 use App\Service\Education\AcademyManager;
+use App\Service\Education\DifficultyAdvisor;
 use App\Service\Education\GameSessionManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -29,7 +29,7 @@ class EducationController extends AbstractController
         private readonly GameSessionManager $sessionManager,
         private readonly GameSessionRepository $sessionRepository,
         private readonly AcademyManager $academyManager,
-        private readonly SpicesRepository $spicesRepository,
+        private readonly DifficultyAdvisor $difficultyAdvisor,
         private readonly AchievementRepository $achievementRepository,
         private readonly EntityManagerInterface $em,
         private readonly TranslatorInterface $translator,
@@ -87,7 +87,6 @@ class EducationController extends AbstractController
             'dailyCounts' => $dailyCounts,
             'bestScores' => $bestScores,
             'maxDailySessions' => $this->sessionManager->maxDailySessions($user),
-            'reducedXpThreshold' => 3,
             'userDifficulty' => $userDifficulty,
             'progression' => $progression,
             'unlockedByMode' => $unlockedByMode,
@@ -110,13 +109,10 @@ class EducationController extends AbstractController
         $mode = GameMode::tryFrom($request->query->getString('mode')) ?? GameMode::QCM;
         $difficulty = GameDifficulty::tryFrom($request->query->getString('difficulty')) ?? GameDifficulty::EASY;
 
-        $targetSpice = $this->academyManager->pickTargetSpice($mode, $difficulty, $user);
-
         return $this->render('education/briefing.html.twig', [
             'mode' => $mode,
             'difficulty' => $difficulty,
             'difficulties' => GameDifficulty::cases(),
-            'targetSpice' => $targetSpice,
             'rules' => $this->academyManager->getRulesFor($mode),
         ]);
     }
@@ -146,24 +142,16 @@ class EducationController extends AbstractController
             return $this->redirectToRoute('education_index');
         }
 
-        // Resolve target spice from briefing form
-        $targetSpiceId = $request->request->getInt('targetSpiceId') ?: null;
-        $targetSpice = $targetSpiceId !== null ? $this->spicesRepository->find($targetSpiceId) : null;
-
-        // LC modes create their own GameSession via createFinishedSession() at end of game —
-        // don't create a stale empty one here or we'd double-count daily sessions.
         if ($mode !== GameMode::QCM) {
             return $this->redirectToRoute('education_play_live', [
                 'mode' => $mode->value,
                 'difficulty' => $difficulty->value,
-                'targetSpiceId' => $targetSpice?->getId(),
             ]);
         }
 
         try {
-            $session = $this->sessionManager->startSession($user, $mode, $difficulty, $targetSpice);
+            $session = $this->sessionManager->startSession($user, $mode, $difficulty);
         } catch (\RuntimeException) {
-            // Seul cas : limite quotidienne atteinte (cf. GameSessionManager).
             $this->addFlash('warning', $this->translator->trans('flash.daily_limit_reached', [
                 '%mode%' => $this->translator->trans($mode->label()),
             ]));
@@ -171,7 +159,6 @@ class EducationController extends AbstractController
             return $this->redirectToRoute('education_index');
         }
 
-        // QCM uses the route-based flow
         return $this->redirectToRoute('education_play', [
             'id' => $session->getId(),
         ]);
@@ -202,7 +189,6 @@ class EducationController extends AbstractController
             ]);
         }
 
-        // Persist question data in session store for answer validation
         $request = $this->container->get('request_stack')
             ->getCurrentRequest();
         $request->getSession()
@@ -233,7 +219,6 @@ class EducationController extends AbstractController
             ]);
         }
 
-        // Retrieve stored question
         $storedQuestion = $request->getSession()
             ->get('current_question_' . $id);
         if ($storedQuestion === null) {
@@ -254,12 +239,10 @@ class EducationController extends AbstractController
         $correctAnswer = $storedQuestion['correctAnswer'];
         $timeSpentMs = $request->request->getInt('timeSpentMs') ?: null;
 
-        // Store full question data in GameQuestion
         $questionData = $storedQuestion;
 
         $result = $this->sessionManager->answerQuestion($session, $answer, $correctAnswer, $timeSpentMs);
 
-        // Update question data with full context
         $lastQuestion = $session->getQuestions()
             ->last();
         if ($lastQuestion !== false) {
@@ -267,7 +250,6 @@ class EducationController extends AbstractController
             $this->em->flush();
         }
 
-        // Clear stored question
         $request->getSession()
             ->remove('current_question_' . $id);
 
@@ -277,8 +259,6 @@ class EducationController extends AbstractController
             ]);
         }
 
-        // getCurrentQuestionIndex() = questions->count(), already incremented after addQuestion()
-        // so it equals the 1-based number of the question just answered (no +1 needed here)
         return $this->render('education/play.html.twig', [
             'session' => $session,
             'question' => $storedQuestion,
@@ -325,15 +305,9 @@ class EducationController extends AbstractController
             return $this->redirectToRoute('education_index');
         }
 
-        // Resolve target spice from query string — LC modes no longer create a
-        // placeholder GameSession at briefing time.
-        $targetSpiceId = $request->query->getInt('targetSpiceId') ?: null;
-        $targetSpice = $targetSpiceId !== null ? $this->spicesRepository->find($targetSpiceId) : null;
-
         return $this->render('education/play_live.html.twig', [
             'mode' => $gameMode,
             'difficulty' => $difficulty,
-            'targetSpice' => $targetSpice,
         ]);
     }
 
@@ -354,6 +328,7 @@ class EducationController extends AbstractController
         return $this->render('education/result.html.twig', [
             'session' => $session,
             'canReplay' => $todayCount < $this->sessionManager->maxDailySessions($user),
+            'skillAssessment' => $this->difficultyAdvisor->adviseFor($session),
         ]);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
+use App\Gamification\GamificationManagerInterface;
 use App\Message\EasterEggFoundEvent;
 use App\Repository\ProcessedGamificationEventRepository;
 use App\Repository\UsersRepository;
@@ -16,7 +17,7 @@ class EasterEggGamificationHandler
 {
     public function __construct(
         private readonly UsersRepository $usersRepository,
-        private readonly \App\Gamification\GamificationManagerInterface $manager,
+        private readonly GamificationManagerInterface $manager,
         private readonly EntityManagerInterface $em,
         private readonly ProcessedGamificationEventRepository $processedEvents,
         private readonly LoggerInterface $logger,
@@ -30,23 +31,29 @@ class EasterEggGamificationHandler
             return;
         }
 
-        // Idempotence — one award per (user, slug).
-        if (! $this->processedEvents->claim($user, 'easter_egg_found', 'egg:' . $event->easterEggSlug)) {
-            $this->logger->info('gamification.easter_egg.duplicate', [
-                'userId' => $user->getId(),
-                'slug' => $event->easterEggSlug,
-            ]);
+        $progression = $this->manager->getOrCreateProgression($user);
 
+        if (! $progression->isGamificationEnabled()) {
             return;
         }
 
-        $progression = $this->manager->getOrCreateProgression($user);
+        $this->em->wrapInTransaction(function () use ($event, $user, $progression): void {
+            $this->manager->lockForUpdate($progression);
 
-        $this->manager->process($progression, 'easter_egg_found', [
-            'easterEggSlug' => $event->easterEggSlug,
-            'xpAmount' => $event->xpAmount,
-        ]);
+            if (! $this->processedEvents->claim($user, 'easter_egg_found', 'egg:' . $event->easterEggSlug)) {
+                $this->logger->info('gamification.easter_egg.duplicate', [
+                    'userId' => $user->getId(),
+                    'slug' => $event->easterEggSlug,
+                ]);
 
-        $this->em->flush();
+                return;
+            }
+
+            $this->manager->process($progression, 'easter_egg_found', [
+                'easterEggSlug' => $event->easterEggSlug,
+            ]);
+
+            $this->em->flush();
+        });
     }
 }

@@ -10,11 +10,6 @@ use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 use Psr\Cache\CacheItemPoolInterface;
 
-/**
- * Compare le ranking d'un mortier sur les 3 matrices (air/water/oil) à ctx fixe.
- * Cache TTL 1h sur (mortar, ctx, limit, locale) — locale dans la clé car les noms
- * d'épices sont enrichis en sortie.
- */
 final readonly class MatrixComparator
 {
     public function __construct(
@@ -61,10 +56,7 @@ final readonly class MatrixComparator
     }
 
     /**
-     * Vue grille : 1 ligne par épice présente dans au moins un top, scores par matrice (0 si absente).
-     *
      * @param array<string, list<array{id: int, name: string, score: int}>> $rankings
-     *
      * @return list<array{id: int, name: string, scores: array<string, int>}>
      */
     public function buildGrid(array $rankings): array

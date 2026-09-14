@@ -5,13 +5,11 @@
 {% block body %}
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-    {# En-tête #}
     <div class="mb-10">
         <h1 class="text-3xl font-bold text-stone-900 mb-6">
             <i class="fa-solid fa-magnifying-glass text-saffron-600 mr-2" aria-hidden="true"></i>{{ 'ui.search.title'|trans }}
         </h1>
 
-        {# Barre de recherche pleine page #}
         <form action="{{ path('search_results') }}" method="GET" class="flex gap-3">
             <input
                 type="text"
@@ -30,7 +28,6 @@
 
     {% if query is not empty %}
         {% if results is not empty %}
-            {# Résultats #}
             <p class="text-sm text-stone-400 mb-6">
                 {{ 'ui.search.results_count'|trans({'%count%': results|length}) }}
                 <span class="text-stone-700 font-medium">« {{ query }} »</span>
@@ -133,7 +130,6 @@
             {% endif %}
 
         {% else %}
-            {# Aucun résultat #}
             <div class="text-center py-16">
                 <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-stone-100 mb-5">
                     <i class="fa-solid fa-magnifying-glass text-stone-300 text-2xl" aria-hidden="true"></i>
@@ -147,7 +143,6 @@
         {% endif %}
 
     {% else %}
-        {# Pas encore de recherche #}
         <div class="text-center py-16">
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-saffron-50 border border-saffron-200 mb-5">
                 <i class="fa-solid fa-magnifying-glass text-saffron-500 text-2xl" aria-hidden="true"></i>

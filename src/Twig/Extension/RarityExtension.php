@@ -8,10 +8,6 @@ use App\Enum\AchievementRarity;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
-/**
- * Single source of truth for rarity → color mapping.
- * Used by _avatar.html.twig, dashboard, profile, achievements — everywhere a rarity pill renders.
- */
 final class RarityExtension extends AbstractExtension
 {
     /**

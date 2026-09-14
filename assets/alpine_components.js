@@ -1,14 +1,3 @@
-/* Alpine.data() registry — all components used across the SpicyMatch UI.
- *
- * Required for CSP Phase 2 (ADR-007): with the `@alpinejs/csp` build:
- *   - x-data MUST reference a registered Alpine.data() name (no inline literals)
- *   - Directive expressions allow ONLY: identifiers, member access, method calls
- *     (with literal args). NO ternary, NO arrow functions, NO `document.*`,
- *     NO `$watch` callbacks inline.
- *
- * Therefore every conditional class / text uses a helper METHOD on the
- * component, e.g. `:class="chevronClass()"` instead of `:class="open ? 'a' : 'b'"`.
- */
 
 import { t } from './i18n.js';
 
@@ -64,7 +53,6 @@ const loopTab = (e, root) => {
 };
 
 export default function registerAlpineComponents(Alpine) {
-    /* ─── Generic toggles / modals / accordions ──────────────────────── */
     Alpine.data('toggle', (initial = false) => ({
         open: initial,
         show: initial,
@@ -81,7 +69,6 @@ export default function registerAlpineComponents(Alpine) {
         cancel() { this.confirming = false; },
     }));
 
-    /* Navbar — overlay (desktop) + sheet (mobile). */
     Alpine.data('navMenu', () => ({
         open: false,
         mobileOpen: false,
@@ -231,6 +218,13 @@ export default function registerAlpineComponents(Alpine) {
         init() {
             new MutationObserver(() => { this.pending = {}; })
                 .observe(this.$el, { attributes: true, attributeFilter: ['data-word-num'] });
+
+            window.addEventListener('keydown', (e) => {
+                const letter = e.key.toUpperCase();
+                if (!/^[A-Z]$/.test(letter)) return;
+                const btn = this.$el.querySelector(`button[data-letter="${letter}"]`);
+                if (btn && !btn.disabled) btn.click();
+            });
         },
 
         guess(letter) {
@@ -325,7 +319,6 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
-    /* ─── Layout / global ─────────────────────────────────────────────── */
     Alpine.data('scrollTop', () => ({
         visible: false,
         init() {
@@ -349,7 +342,6 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
-    /* ─── Spice catalog widgets ───────────────────────────────────────── */
     Alpine.data('spicesLimit', (total = 9999) => ({
         gridMode: false,
         limit: 8,
@@ -432,7 +424,6 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
-    /* ─── Education ───────────────────────────────────────────────────── */
     Alpine.data('difficultySelector', (initial = 'easy') => ({
         difficulty: initial,
         pick(diff) { this.difficulty = diff; },
@@ -476,7 +467,6 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
-    /* ─── Registration ────────────────────────────────────────────────── */
     Alpine.data('registrationTracker', () => ({
         selected: null,
         submitted: false,
@@ -485,7 +475,6 @@ export default function registerAlpineComponents(Alpine) {
         pick(value) { this.selected = value; },
     }));
 
-    /* ─── Recette finalisée (view_spicy_match_history) ───────────────── */
     Alpine.data('recetteView', (historyId, renameUrl, favUrl, csrfToken, initialTitle, isFavorite) => ({
         favorite: isFavorite,
         title: initialTitle,
@@ -515,7 +504,6 @@ export default function registerAlpineComponents(Alpine) {
 
     }));
 
-    /* ─── SpicyMatchHistory: rename + favorite ────────────────────────── */
     Alpine.data('historyItem', (id, renameUrl, toggleUrl, token, initialTitle = '', initialFavorite = false, fallbackTitle = '') => ({
         id,
         renameUrl,
@@ -594,7 +582,6 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
-    /* ─── Finalisation du mélange L'Étamine (spicy_match/view) ──────────── */
     Alpine.data('finalisationMelange', (spiceIdsCsv, historyUrl, csrf) => ({
         spiceIds: spiceIdsCsv ? spiceIdsCsv.split(',') : [],
         spiceNames: {},
@@ -614,7 +601,6 @@ export default function registerAlpineComponents(Alpine) {
             this.current = this.spiceIds[0] ?? null;
         },
 
-        /* ——— Computed ——— */
         get allSealed() {
             return this.spiceIds.every(id => this.results[id] && this.results[id].cooking && this.results[id].preparation);
         },
@@ -626,7 +612,6 @@ export default function registerAlpineComponents(Alpine) {
             return t('melange.sealed_count', `${done} / ${total}`).replace('%done%', done).replace('%total%', total);
         },
 
-        /* ——— UI helpers (méthodes pour compatibilité CSP Alpine) ——— */
         isCurrentSpice(spiceId) {
             return this.current === spiceId;
         },
@@ -667,7 +652,6 @@ export default function registerAlpineComponents(Alpine) {
             return r && r.preparation === tipId ? 'selected' : '';
         },
 
-        /* ——— Actions ——— */
         toggleCooking(spiceId, tipId) {
             const r = this.results[spiceId];
             r.cooking = (r.cooking === tipId) ? null : tipId;
@@ -684,7 +668,6 @@ export default function registerAlpineComponents(Alpine) {
             if (this.allSealed) window.location.href = url;
         },
 
-        /* ——— Auto-avance + toast ——— */
         maybeAdvance(spiceId) {
             clearTimeout(this._autoT);
             const r = this.results[spiceId];
@@ -714,7 +697,6 @@ export default function registerAlpineComponents(Alpine) {
             this._toastT = setTimeout(() => { this.toast.visible = false; }, 1500);
         },
 
-        /* ——— Persistance (fetch vers edit_spicy_match_history) ——— */
         persist(params) {
             clearTimeout(this._saveT);
             this._saveT = setTimeout(async () => {
@@ -738,7 +720,6 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
-    /* ─── Cooking finalization legacy (spicy_match/view) ─────────────────── */
     Alpine.data('cookingChecklist', (spiceIdsCsv = '') => ({
         spiceStatus: {},
         nextOpenId: null,
@@ -828,7 +809,6 @@ export default function registerAlpineComponents(Alpine) {
         chevronClass() { return this.open ? '' : '-rotate-180'; },
     }));
 
-    /* ─── RGPD / onboarding (inline scripts extracted) ────────────────── */
     Alpine.data('cookieConsent', () => ({
         visible: false,
         analytics: false,
@@ -1138,7 +1118,6 @@ export default function registerAlpineComponents(Alpine) {
             const tooltipW = Math.min(320, vw - margin * 2);
             const tooltipH = 200;
 
-            // Auto-fallback: si position 'left'/'right' ne tient pas, force vertical
             let resolved = position || 'bottom';
             if (resolved === 'left' && rect.left < tooltipW + margin) {
                 resolved = (rect.bottom + tooltipH + margin < vh) ? 'bottom' : 'top';
@@ -1146,7 +1125,6 @@ export default function registerAlpineComponents(Alpine) {
             if (resolved === 'right' && vw - rect.right < tooltipW + margin) {
                 resolved = (rect.bottom + tooltipH + margin < vh) ? 'bottom' : 'top';
             }
-            // Auto-fallback vertical: si pas de place en bas, passe en haut (et vice-versa)
             if (resolved === 'bottom' && rect.bottom + tooltipH + margin > vh && rect.top > tooltipH + margin) {
                 resolved = 'top';
             }
@@ -1270,10 +1248,6 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
-    /* ─── Homepage — Toile des Arômes (système solaire moléculaire) ────
-       Les données (noms/badges/descriptions traduits + géométrie) sont
-       fournies par le template via data-molecules (JSON), pour garder ce
-       fichier JS sans contenu localisé (i18n). */
     Alpine.data('toile', () => ({
         activeId: 'm1',
         molecules: [],

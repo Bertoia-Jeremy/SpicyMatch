@@ -38,9 +38,6 @@ class GuessWhoGame extends AbstractController
     public int $questionNumber = 0;
 
     #[LiveProp]
-    public int $totalQuestions = 5;
-
-    #[LiveProp]
     public int $totalScore = 0;
 
     #[LiveProp]
@@ -202,6 +199,11 @@ class GuessWhoGame extends AbstractController
         return $this->localizedLabel($this->lastCorrectName);
     }
 
+    public function getTotalQuestions(): int
+    {
+        return GameMode::GUESS_WHO->totalQuestions() ?? 0;
+    }
+
     #[LiveAction]
     public function revealClue(): void
     {
@@ -285,7 +287,7 @@ class GuessWhoGame extends AbstractController
         $this->lastPointsEarned = $points;
         $this->lastCorrectName = $correctName;
 
-        if ($this->questionNumber >= $this->totalQuestions) {
+        if ($this->questionNumber >= $this->getTotalQuestions()) {
             return $this->doFinish();
         }
 
@@ -302,7 +304,7 @@ class GuessWhoGame extends AbstractController
         $this->lastPointsEarned = 0;
         $this->lastCorrectName = '';
 
-        if ($this->questionNumber >= $this->totalQuestions) {
+        if ($this->questionNumber >= $this->getTotalQuestions()) {
             return $this->doFinish();
         }
 
@@ -345,15 +347,27 @@ class GuessWhoGame extends AbstractController
         ]));
 
         $durationSeconds = time() - $this->startedAt;
+        $serverScore = (int) ($secret['totalScore'] ?? 0);
 
-        $gameSession = $this->sessionManager->createFinishedSession(
-            $user,
-            GameMode::GUESS_WHO,
-            GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY,
-            \count($correctSteps),
-            \count($answeredSteps),
-            $durationSeconds,
-        );
+        try {
+            $gameSession = $this->sessionManager->createFinishedSession(
+                $user,
+                GameMode::GUESS_WHO,
+                GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY,
+                \count($correctSteps),
+                \count($answeredSteps),
+                $durationSeconds,
+                $serverScore,
+            );
+        } catch (\RuntimeException) {
+            $this->removeSecret();
+            $this->addFlash('warning', $this->translator->trans('flash.daily_limit_reached', [
+                '%mode%' => $this->translator->trans(GameMode::GUESS_WHO->label()),
+                '%max%' => $this->sessionManager->maxDailySessions($user),
+            ]));
+
+            return $this->redirectToRoute('education_index');
+        }
 
         $this->sessionManager->addQuestionsToSession($gameSession, $questionHistory);
         $this->removeSecret();

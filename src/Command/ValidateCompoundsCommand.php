@@ -14,24 +14,6 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-/**
- * Double-vérifie les numéros CAS et formules via l'API PubChem (NCBI).
- *
- * Protocole :
- *   1. Pour chaque composé en DB, requête PubChem par CAS → MolecularFormula + IUPACName
- *   2. Re-validation : le nom DB apparaît dans les synonymes PubChem ?
- *   3. Comparaison formule stockée ↔ formule PubChem
- *   4. Rapport YAML dans data/validation_reports/
- *
- * Sécurité :
- *   - Toutes les données PubChem sont sanitisées avant stockage
- *   - CAS validé par regex avant usage
- *   - Délai 200ms entre requêtes (respecte les guidelines PubChem : max 5 req/s)
- *
- * Usage :
- *   php bin/console app:validate:compounds               # rapport seulement
- *   php bin/console app:validate:compounds --apply       # applique les corrections en DB
- */
 #[AsCommand(
     name: 'app:validate:compounds',
     description: 'Double-vérifie CAS + formules via PubChem API. Génère un rapport YAML.',
@@ -40,14 +22,8 @@ final class ValidateCompoundsCommand extends Command
 {
     private const PUBCHEM_BASE = 'https://pubchem.ncbi.nlm.nih.gov/rest/pug';
 
-    /**
-     * Délai entre requêtes PubChem (μs) — max 5 req/s recommandé.
-     */
     private const REQUEST_DELAY_US = 250_000;
 
-    /**
-     * Seuil de similarité fuzzy pour accepter un nom (0-100, PHP similar_text).
-     */
     private const NAME_SIMILARITY_THRESHOLD = 55;
 
     public function __construct(
@@ -144,7 +120,6 @@ final class ValidateCompoundsCommand extends Command
 
     /**
      * @param array{id: int|string, name: string, cas_number: string, formula: string|null} $compound
-     *
      * @return array<string, mixed>
      */
     private function validateCompound(array $compound, bool $apply, SymfonyStyle $io): array
@@ -153,7 +128,6 @@ final class ValidateCompoundsCommand extends Command
         $storedFormula = $compound['formula'];
         $storedName = $compound['name'];
 
-        // ── Guard CAS format ────────────────────────────────────────────────
         if (! $this->isValidCasFormat($cas)) {
             $io->error("CAS invalide (format inattendu) : {$cas}");
 
@@ -166,7 +140,6 @@ final class ValidateCompoundsCommand extends Command
             ];
         }
 
-        // ── Requête PubChem : propriétés par CAS ────────────────────────────
         $properties = $this->fetchPubChemProperties($cas, $io);
         if ($properties === null) {
             return [
@@ -181,12 +154,10 @@ final class ValidateCompoundsCommand extends Command
         $pubchemFormula = $properties['MolecularFormula'];
         $pubchemIupac = $properties['IUPACName'];
 
-        // ── Requête PubChem : synonymes par CAS ─────────────────────────────
         $synonyms = $this->fetchPubChemSynonyms($cas, $io);
         $nameFound = $this->nameInSynonyms($storedName, $synonyms, $pubchemIupac);
         $nameSimilarity = $this->computeNameSimilarity($storedName, $pubchemIupac);
 
-        // ── Comparaison formule ──────────────────────────────────────────────
         $formulaMatch = $pubchemFormula === $storedFormula;
         $issues = [];
         $status = 'validated';
@@ -215,8 +186,6 @@ final class ValidateCompoundsCommand extends Command
             if ($nameSimilarity < self::NAME_SIMILARITY_THRESHOLD) {
                 $status = 'error';
             } else {
-                // Similarité acceptable mais nom non trouvé en synonymes → warning
-                // ($status est 'validated' ou 'warning' à ce stade, jamais 'error')
                 $status = 'warning';
             }
         }
@@ -272,7 +241,6 @@ final class ValidateCompoundsCommand extends Command
                 return null;
             }
 
-            // ── Sanitisation anti-injection ──────────────────────────────────
             $formula = $this->sanitizeFormula((string) ($props['MolecularFormula'] ?? ''));
             $iupac = $this->sanitizeText((string) ($props['IUPACName'] ?? ''));
 
@@ -306,7 +274,6 @@ final class ValidateCompoundsCommand extends Command
             $data = $response->toArray();
             $synonyms = $data['InformationList']['Information'][0]['Synonym'] ?? [];
 
-            // Sanitisation de chaque synonyme
             return array_map(fn (mixed $s): string => $this->sanitizeText((string) $s), $synonyms);
         } catch (TransportExceptionInterface $e) {
             return [];
@@ -326,7 +293,6 @@ final class ValidateCompoundsCommand extends Command
             }
         }
 
-        // Tolérance diacritiques (ex: "Cinnamaldéhyde" → "Cinnamaldehyde")
         $needleAscii = $this->toAscii($storedName);
 
         foreach ($synonyms as $synonym) {
@@ -335,7 +301,6 @@ final class ValidateCompoundsCommand extends Command
             }
         }
 
-        // Vérification contre IUPAC
         return $this->computeNameSimilarity($storedName, $iupacName) >= self::NAME_SIMILARITY_THRESHOLD;
     }
 
@@ -346,26 +311,15 @@ final class ValidateCompoundsCommand extends Command
         return (int) round($percent);
     }
 
-    // ── Sanitisation ────────────────────────────────────────────────────────
-
-    /**
-     * Valide le format CAS : XXXXXXX-YY-Z (2 à 7 chiffres, tiret, 2 chiffres, tiret, 1 chiffre).
-     */
     private function isValidCasFormat(string $cas): bool
     {
         return (bool) preg_match('/^\d{2,7}-\d{2}-\d$/', $cas);
     }
 
-    /**
-     * Valide et sanitise une formule moléculaire.
-     * Accepte uniquement les éléments chimiques + chiffres (ex: C10H12O2).
-     */
     private function sanitizeFormula(string $raw): string
     {
-        // Ne conserver que les caractères valides d'une formule chimique
         $clean = preg_replace('/[^A-Za-z0-9]/', '', $raw) ?? '';
 
-        // Vérifier que ça ressemble à une formule (commence par majuscule, contient C ou H)
         if (! preg_match('/^[A-Z]/', $clean) || strlen($clean) > 50) {
             throw new \RuntimeException('Formule PubChem suspecte ou trop longue : ' . mb_substr($raw, 0, 100));
         }
@@ -373,26 +327,18 @@ final class ValidateCompoundsCommand extends Command
         return $clean;
     }
 
-    /**
-     * Sanitise un champ texte libre venant d'une API externe.
-     * Anti-injection de prompt + anti-XSS.
-     */
     private function sanitizeText(string $raw): string
     {
-        // Supprimer les balises HTML et caractères de contrôle
         $clean = strip_tags($raw);
         $clean = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $clean) ?? $clean;
 
-        // Normaliser Unicode NFC
         if (class_exists(\Normalizer::class)) {
             $normalized = \Normalizer::normalize($clean, \Normalizer::FORM_C);
             $clean = $normalized !== false ? $normalized : $clean;
         }
 
-        // Cap longueur
         $clean = mb_substr($clean, 0, 500);
 
-        // Patterns prompt-injection connus
         $injectionPatterns = ['/\[INST\]/i', '/###\s*System/i', '/<\|im_start\|>/i', '/Ignore previous instructions/i'];
         foreach ($injectionPatterns as $pattern) {
             if (preg_match($pattern, $clean)) {
@@ -405,7 +351,6 @@ final class ValidateCompoundsCommand extends Command
 
     private function toAscii(string $str): string
     {
-        // Translitère les caractères accentués en ASCII (é→e, è→e, etc.)
         $transliterated = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $str);
 
         return $transliterated !== false ? $transliterated : mb_strtolower($str);

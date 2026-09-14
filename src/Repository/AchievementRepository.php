@@ -15,9 +15,6 @@ use Doctrine\Persistence\ManagerRegistry;
 class AchievementRepository extends ServiceEntityRepository
 {
     /**
-     * Per-request cache: avoids N+1 when the same trigger is fetched multiple times
-     * in one HTTP request (e.g. GamificationManager + AchievementChecker).
-     *
      * @var array<string, Achievement[]>|null
      */
     private ?array $enabledByTrigger = null;
@@ -51,10 +48,6 @@ class AchievementRepository extends ServiceEntityRepository
         return false;
     }
 
-    /**
-     * Prime the per-request cache with all enabled achievements, grouped by trigger.
-     * One SELECT instead of N (one per trigger).
-     */
     private function warmEnabledCache(): void
     {
         $all = $this->createQueryBuilder('a')
@@ -72,9 +65,6 @@ class AchievementRepository extends ServiceEntityRepository
         $this->enabledByTrigger = $byTrigger;
     }
 
-    /**
-     * Force cache invalidation (used after admin mutation via CRUD).
-     */
     public function resetEnabledCache(): void
     {
         $this->enabledByTrigger = null;

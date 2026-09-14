@@ -21,6 +21,7 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use Symfony\Component\Clock\MockClock;
 
 #[AllowMockObjectsWithoutExpectations]
 final class SpiceReadGamificationHandlerTest extends TestCase
@@ -46,6 +47,8 @@ final class SpiceReadGamificationHandlerTest extends TestCase
         $this->spiceViewRepo = $this->createMock(SpiceViewRepository::class);
         $this->manager = $this->createMock(GamificationManagerInterface::class);
         $this->em = $this->createMock(EntityManagerInterface::class);
+        $this->em->method('wrapInTransaction')
+            ->willReturnCallback(fn (callable $callback) => $callback($this->em));
         $this->processedEvents = $this->createMock(ProcessedGamificationEventRepository::class);
         $this->processedEvents->method('claim')
             ->willReturn(true);
@@ -57,6 +60,7 @@ final class SpiceReadGamificationHandlerTest extends TestCase
             $this->manager,
             $this->em,
             $this->processedEvents,
+            new MockClock('2026-09-13'),
             new NullLogger(),
         );
     }
@@ -110,7 +114,6 @@ final class SpiceReadGamificationHandlerTest extends TestCase
             ->willReturn($user);
         $this->spiceViewRepo->method('countDistinctSpicesByUser')
             ->willReturn(1);
-        // countByUser drives totalSpicesRead in the idempotent handler.
         $this->spiceViewRepo->method('countByUser')
             ->willReturn(1);
         $this->spicesRepo->method('find')
@@ -189,7 +192,6 @@ final class SpiceReadGamificationHandlerTest extends TestCase
         $this->manager->method('getOrCreateStats')
             ->willReturn(new UserStat());
 
-        // Progression creation is now delegated to the manager.
         $this->manager->expects(self::once())
             ->method('getOrCreateProgression')
             ->with($user)
@@ -210,11 +212,26 @@ final class SpiceReadGamificationHandlerTest extends TestCase
         $this->usersRepo->method('find')
             ->willReturn($user);
 
+        $processedEvents = $this->createMock(ProcessedGamificationEventRepository::class);
+        $processedEvents->expects(self::never())
+            ->method('claim');
+
+        $handler = new SpiceReadGamificationHandler(
+            $this->usersRepo,
+            $this->spicesRepo,
+            $this->spiceViewRepo,
+            $this->manager,
+            $this->em,
+            $processedEvents,
+            new MockClock('2026-09-13'),
+            new NullLogger(),
+        );
+
         $this->spiceViewRepo->expects(self::never())->method('countDistinctSpicesByUser');
         $this->manager->expects(self::never())->method('getOrCreateStats');
-        $this->manager->expects(self::once())->method('process');
+        $this->manager->expects(self::never())->method('process');
 
-        ($this->handler)(new SpiceReadEvent(1, 42, true));
+        $handler(new SpiceReadEvent(1, 42, true));
     }
 
     public function testInvokeUpdatesAromaticGroupInUserStat(): void

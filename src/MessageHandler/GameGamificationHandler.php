@@ -33,30 +33,34 @@ class GameGamificationHandler
             return;
         }
 
-        // Idempotence — each finished GameSession is awarded once.
-        if (! $this->processedEvents->claim($user, 'game_completed', 'session:' . $event->sessionId)) {
-            $this->logger->info('gamification.game_completed.duplicate', [
-                'userId' => $user->getId(),
-                'sessionId' => $event->sessionId,
-            ]);
+        $progression = $this->manager->getOrCreateProgression($user);
 
+        if (! $progression->isGamificationEnabled()) {
             return;
         }
 
-        $progression = $this->manager->getOrCreateProgression($user);
+        $this->em->wrapInTransaction(function () use ($event, $user, $progression): void {
+            $this->manager->lockForUpdate($progression);
 
-        // Idempotent: count total finished sessions from DB
-        $gamesCompleted = $this->sessionRepository->countFinishedByUser($user);
+            if (! $this->processedEvents->claim($user, 'game_completed', 'session:' . $event->sessionId)) {
+                $this->logger->info('gamification.game_completed.duplicate', [
+                    'userId' => $user->getId(),
+                    'sessionId' => $event->sessionId,
+                ]);
 
-        $this->manager->process($progression, 'game_completed', [
-            'xpEarned' => $event->xpEarned,
-            'gamesCompleted' => $gamesCompleted,
-            'gameMode' => $event->gameMode,
-            'correctAnswers' => $event->correctAnswers,
-            'totalQuestions' => $event->totalQuestions,
-            'score' => $event->xpEarned,
-        ]);
+                return;
+            }
 
-        $this->em->flush();
+            $this->manager->process($progression, 'game_completed', [
+                'xpEarned' => $event->xpEarned,
+                'gamesCompleted' => $this->sessionRepository->countFinishedByUser($user),
+                'gameMode' => $event->gameMode,
+                'correctAnswers' => $event->correctAnswers,
+                'totalQuestions' => $event->totalQuestions,
+                'score' => $event->xpEarned,
+            ]);
+
+            $this->em->flush();
+        });
     }
 }

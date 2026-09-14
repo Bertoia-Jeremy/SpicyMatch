@@ -11,12 +11,6 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 
-/**
- * 12 aromatic flavor profiles linked to real aromatic compounds.
- *
- * AlchemyFlavors are culinary descriptors grouping compounds by perceived taste/smell.
- * They are NOT used in compatibility scoring but enrich the data model for future use.
- */
 class AlchemyFlavorsFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     /**

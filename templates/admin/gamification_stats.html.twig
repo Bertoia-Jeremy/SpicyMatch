@@ -7,7 +7,6 @@
     <h1 class="text-3xl font-bold text-stone-800 mb-2">{{ 'admin.stats.title'|trans({}, 'admin') }}</h1>
     <p class="text-stone-600 mb-8">{{ 'admin.stats.intro'|trans({}, 'admin') }}</p>
 
-    {# Widget 1 — Unlock rate par achievement #}
     <section class="mb-10">
         <h2 class="text-xl font-semibold text-stone-800 mb-4">{{ 'admin.stats.unlock_rate_title'|trans({}, 'admin') }}</h2>
         {% if unlockRates is empty %}
@@ -19,7 +18,6 @@
         {% endif %}
     </section>
 
-    {# Widget 2 — XP / jour #}
     <section class="mb-10">
         <h2 class="text-xl font-semibold text-stone-800 mb-4">{{ 'admin.stats.xp_per_day_title'|trans({}, 'admin') }}</h2>
         <div class="bg-white rounded-2xl border border-stone-200 p-6">
@@ -27,7 +25,6 @@
         </div>
     </section>
 
-    {# Widget 3 — Sessions par mode #}
     <section class="mb-10">
         <h2 class="text-xl font-semibold text-stone-800 mb-4">{{ 'admin.stats.sessions_per_mode_title'|trans({}, 'admin') }}</h2>
         <div class="bg-white rounded-2xl border border-stone-200 p-6">
@@ -35,7 +32,6 @@
         </div>
     </section>
 
-    {# Widget 4 — Anomalies #}
     <section class="mb-10">
         <h2 class="text-xl font-semibold text-stone-800 mb-4">
             {{ 'admin.stats.anomalies_title'|trans({}, 'admin') }}
@@ -70,7 +66,6 @@
     </section>
 </div>
 
-{# Data payloads — picked up by the Stimulus controller (kept small & JSON-safe) #}
 {% set jsonSafeFlags = constant('JSON_HEX_TAG') b-or constant('JSON_HEX_AMP') b-or constant('JSON_HEX_APOS') b-or constant('JSON_HEX_QUOT') %}
 <script type="application/json" id="stats-unlock-rates">{{ unlockRates|json_encode(jsonSafeFlags)|raw }}</script>
 <script type="application/json" id="stats-xp-per-day">{{ xpPerDay|json_encode(jsonSafeFlags)|raw }}</script>

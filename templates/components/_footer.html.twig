@@ -3,7 +3,6 @@
 
     <div class="max-w-7xl mx-auto px-6 py-14 lg:py-20">
 
-        {# Ornement centré #}
         <div class="flex items-center gap-4 mb-14">
             <div class="flex-1 h-px"
                  style="background: linear-gradient(90deg, transparent, rgba(184,134,74,0.35))"></div>
@@ -11,10 +10,8 @@
                  style="background: linear-gradient(270deg, transparent, rgba(184,134,74,0.35))"></div>
         </div>
 
-        {# ── Grille 4 colonnes ────────────────────────────────────────── #}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-16">
 
-            {# Col 1 : Marque #}
             <div class="space-y-6">
                 <a href="{{ path('home') }}" class="group flex items-center gap-3 no-underline">
                     <svg class="size-11 shrink-0 transition-transform group-hover:scale-105" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -62,7 +59,6 @@
                 </p>
             </div>
 
-            {# Col 2 : Navigation #}
             <div>
                 <h2 class="font-display italic text-[14px] mb-7 flex items-center gap-3"
                     style="color: var(--color-copper-text)">
@@ -89,7 +85,6 @@
                 </ul>
             </div>
 
-            {# Col 3 : L'Académie #}
             <div>
                 <h2 class="font-display italic text-[14px] mb-7 flex items-center gap-3"
                     style="color: var(--color-copper-text)">
@@ -116,7 +111,6 @@
                 </ul>
             </div>
 
-            {# Col 4 : L'Atelier #}
             <div>
                 <h2 class="font-display italic text-[14px] mb-7 flex items-center gap-3"
                     style="color: var(--color-copper-text)">
@@ -163,7 +157,6 @@
 
         </div>
 
-        {# ── Barre inférieure ─────────────────────────────────────────── #}
         <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4"
              style="border-top: 1px solid rgba(184,134,74,0.25)">
             <div class="font-mono text-[10px] tracking-[0.2em] uppercase"
@@ -182,7 +175,6 @@
 
     </div>
 
-    {# ── Scroll to top ─────────────────────────────────────────────── #}
     <div x-data="scrollTop" class="fixed bottom-8 right-8 z-40">
         <button x-show="visible" x-cloak
                 x-transition:enter="transition ease-out duration-300"

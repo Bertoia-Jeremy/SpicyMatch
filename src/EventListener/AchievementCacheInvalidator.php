@@ -9,11 +9,6 @@ use App\Repository\AchievementRepository;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Events;
 
-/**
- * Invalidates the per-request Achievement cache when an Achievement row
- * is mutated (typically via EasyAdmin CRUD). Without this listener, an admin
- * toggling `enabled` wouldn't see the effect until the PHP-FPM worker recycles.
- */
 #[AsEntityListener(event: Events::postPersist, entity: Achievement::class)]
 #[AsEntityListener(event: Events::postUpdate, entity: Achievement::class)]
 #[AsEntityListener(event: Events::postRemove, entity: Achievement::class)]

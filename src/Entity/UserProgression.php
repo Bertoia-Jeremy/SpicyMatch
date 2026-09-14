@@ -9,10 +9,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * XP and level tracking per user.
- * Level formula: level = floor((xp / 100)^(1/1.3)), no cap.
- */
 #[ORM\Entity(repositoryClass: UserProgressionRepository::class)]
 class UserProgression
 {
@@ -116,6 +112,14 @@ class UserProgression
         return $this->xp;
     }
 
+    public function setXp(int $xp): static
+    {
+        $this->xp = max(0, $xp);
+        $this->updatedAt = new \DateTimeImmutable();
+
+        return $this;
+    }
+
     public function addXp(int $amount): static
     {
         $this->xp += max(0, $amount);
@@ -124,40 +128,26 @@ class UserProgression
         return $this;
     }
 
-    /**
-     * Level calculation using PHP 8.4 Property Hooks.
-     * Formula: XP = 100 * level^1.3
-     * Inverse: Level = (XP / 100)^(1/1.3)
-     * No cap — levels scale infinitely (level 100 ≈ 100k XP).
-     */
     public int $level {
         get {
             if ($this->xp === 0) {
                 return 1;
             }
-            // level = (xp / 100) ^ (1 / 1.3)
             $calculated = (int) floor(pow($this->xp / 100, 1 / 1.3));
 
             return max(1, $calculated);
         }
     }
 
-    /**
-     * XP needed to reach next level.
-     */
     public int $xpToNextLevel {
         get {
             $nextLevel = $this->level + 1;
-            // XP required for next level = 100 * nextLevel^1.3
             $requiredXp = (int) ceil(100 * pow($nextLevel, 1.3));
 
             return max(0, $requiredXp - $this->xp);
         }
     }
 
-    /**
-     * Progress percentage within current level (0.0–100.0).
-     */
     public float $progressPercent {
         get {
             $currentLevel = $this->level;
@@ -299,10 +289,6 @@ class UserProgression
         return $this->longestReadingStreak;
     }
 
-    /**
-     * Call once per day when a new spice view is recorded.
-     * Increments the streak if last read was yesterday, resets to 1 otherwise.
-     */
     public function recordReadingStreak(): static
     {
         $today = new \DateTimeImmutable('today');
@@ -317,7 +303,6 @@ class UserProgression
             } elseif ($diff > 1) {
                 $this->currentReadingStreak = 1;
             }
-            // diff === 0 : already recorded today, no change
         }
 
         if ($this->currentReadingStreak > $this->longestReadingStreak) {

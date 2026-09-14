@@ -10,9 +10,7 @@ final class OrdinalWindow
 {
     /**
      * @template TEntry of array<string, mixed>
-     *
      * @param list<TEntry> $ordered
-     *
      * @return list<TEntry>
      */
     public static function select(array $ordered, GameDifficulty $difficulty, int $need): array

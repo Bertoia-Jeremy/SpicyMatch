@@ -18,9 +18,6 @@ class SpiceCompoundConcentrationRepository extends ServiceEntityRepository
         parent::__construct($registry, SpiceCompoundConcentration::class);
     }
 
-    /**
-     * Retourne le nombre de concentrations enregistrées.
-     */
     public function countTotal(): int
     {
         return (int) $this->createQueryBuilder('c')
@@ -31,7 +28,6 @@ class SpiceCompoundConcentrationRepository extends ServiceEntityRepository
 
     /**
      * @param int[] $spiceIds
-     *
      * @return array<int, array<int, float>> spice_id => [compound_id => concentration_ppm]
      */
     public function findConcentrationsForSpices(array $spiceIds): array

@@ -1,6 +1,3 @@
-{# Cookie consent banner — include in base.html.twig.
-   Logic lives in assets/alpine_components.js (Alpine.data('cookieConsent')).
-   The component reads data-consent-{url,token,version} on mount. #}
 <div x-data="cookieConsent" x-show="visible" x-cloak
      role="region" aria-label="{{ 'ui.cookie.title'|trans }}"
      data-consent-url="{{ path('consent_save') }}"

@@ -10,11 +10,6 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
-/**
- * AdminStatsService — powers the admin gamification dashboard.
- * Uses raw DBAL queries; we mock the Connection and assert on the
- * shape of the returned arrays (not the exact SQL strings).
- */
 #[AllowMockObjectsWithoutExpectations]
 final class AdminStatsServiceTest extends TestCase
 {
@@ -40,7 +35,7 @@ final class AdminStatsServiceTest extends TestCase
     public function testAchievementUnlockRateShapesRows(): void
     {
         $this->connection->method('fetchOne')
-            ->willReturn(10); // 10 total users
+            ->willReturn(10);
         $this->connection->method('fetchAllAssociative')
             ->willReturn([
                 [
@@ -60,8 +55,8 @@ final class AdminStatsServiceTest extends TestCase
         $result = $this->service->achievementUnlockRate();
         self::assertCount(2, $result);
         self::assertSame('first-match', $result[0]['slug']);
-        self::assertSame(80.0, $result[0]['unlock_rate']); // 8/10 × 100
-        self::assertSame(20.0, $result[1]['unlock_rate']); // 2/10 × 100
+        self::assertSame(80.0, $result[0]['unlock_rate']);
+        self::assertSame(20.0, $result[1]['unlock_rate']);
     }
 
     public function testSessionsPerModePerDayCasts(): void
@@ -104,7 +99,7 @@ final class AdminStatsServiceTest extends TestCase
 
         $result = $this->service->xpPerDay(30);
         self::assertSame(10.0, $result[0]['avg_xp_per_user']);
-        self::assertSame(0.0, $result[1]['avg_xp_per_user']); // division by zero guarded
+        self::assertSame(0.0, $result[1]['avg_xp_per_user']);
     }
 
     public function testAnomaliesReturnsEmptyWhenBelowThreshold(): void
@@ -149,7 +144,7 @@ final class AdminStatsServiceTest extends TestCase
     public function testGetGamificationStatsComputesRate(): void
     {
         $this->connection->method('fetchOne')
-            ->willReturn(50, 10, 5); // 50 unlocks, 10 users, 5 achievements → 50/(10*5)=100%
+            ->willReturn(50, 10, 5);
         $this->connection->method('fetchAllAssociative')
             ->willReturn([
                 [

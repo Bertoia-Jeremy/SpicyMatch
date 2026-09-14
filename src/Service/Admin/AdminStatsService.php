@@ -9,13 +9,6 @@ use App\Enum\GameMode;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 
-/**
- * Read-only service for the admin gamification dashboard.
- * Uses raw DBAL queries for performance — the dashboard aggregates across
- * thousands of rows and the ORM overhead is wasteful here.
- *
- * All queries are scoped by date ranges to keep output bounded.
- */
 final class AdminStatsService
 {
     /**
@@ -29,8 +22,6 @@ final class AdminStatsService
     }
 
     /**
-     * Unlock rate per achievement over the whole user base.
-     *
      * @return list<array{slug: string, name: string, rarity: string, unlocks: int, unlock_rate: float}>
      */
     public function achievementUnlockRate(): array
@@ -66,8 +57,6 @@ final class AdminStatsService
     }
 
     /**
-     * Daily sessions per game mode — last N days.
-     *
      * @return list<array{day: string, game_mode: string, count: int}>
      */
     public function sessionsPerModePerDay(int $days = 30): array
@@ -97,8 +86,6 @@ final class AdminStatsService
     }
 
     /**
-     * Daily XP totals — last N days, summed across all users.
-     *
      * @return list<array{day: string, total_xp: int, avg_xp_per_user: float}>
      */
     public function xpPerDay(int $days = 30): array
@@ -143,7 +130,6 @@ final class AdminStatsService
             FROM game_session
             WHERE started_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
         ');
-        // Level is computed: floor((xp / 100) ** (1 / 1.3)) + 1
         $avgLevel = (float) $this->connection->fetchOne('
             SELECT COALESCE(AVG(FLOOR(POW(GREATEST(xp, 0) / 100, 1 / 1.3)) + 1), 0)
             FROM user_progression
@@ -565,9 +551,6 @@ final class AdminStatsService
     }
 
     /**
-     * Users with suspicious activity: > threshold sessions in a single day.
-     * Simple heuristic — spots bot behavior / exploit attempts.
-     *
      * @return list<array{user_id: int, username: string, flagged_day: ?string, sessions: int, total_xp: int, reason: string}>
      */
     public function anomalies(int $sessionThreshold = 10): array

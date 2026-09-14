@@ -7,28 +7,23 @@
 {% block body %}
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-4">
 
-        {# ── Hero ── #}
         <div class="text-center pb-8">
 
-            {# Eyebrow #}
             <div class="inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.18em] uppercase
                         text-stone-500 px-3 py-1.5 rounded-full bg-stone-100 border border-stone-200 mb-5">
                 <span class="size-1.5 rounded-full bg-saffron-500 flex-none"></span>
                 {{ 'ui.lab.step1_eyebrow'|trans }}
             </div>
 
-            {# Title #}
             <h1 class="font-display font-normal text-[clamp(2.5rem,7vw,4.75rem)]
                        leading-[0.96] tracking-tight text-stone-900 mb-3">
                 {{ 'ui.lab.hero_title_html'|trans|raw }}
             </h1>
 
-            {# Description #}
             <p class="text-base text-stone-500 max-w-lg mx-auto leading-relaxed mb-5">
                 {{ 'ui.lab.hero_desc'|trans }}
             </p>
 
-            {# Stepper #}
             <div class="flex items-center justify-center max-w-xs mx-auto gap-0">
                 <div class="flex items-center gap-2.5">
                     <span class="size-7 rounded-full bg-saffron-600 text-white flex items-center justify-center
@@ -51,9 +46,8 @@
                 </div>
             </div>
 
-        </div>{# fin hero #}
+        </div>
 
-        {# Quick View Modal — hors du LiveComponent pour éviter le reset Alpine au re-render #}
         {% include 'components/_spice_modal.html.twig' %}
 
         {{ component('SpicyMatch') }}

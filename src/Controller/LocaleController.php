@@ -12,11 +12,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * Bascule de langue (i18n). Mémorise la locale choisie en session et,
- * pour un utilisateur connecté, la persiste sur son compte (Users::$locale).
- * Redirige vers la page d'origine (referer interne) sinon l'accueil.
- */
 class LocaleController extends AbstractController
 {
     #[Route('/locale/{locale}', name: 'switch_locale', methods: ['GET'], requirements: [
@@ -37,8 +32,6 @@ class LocaleController extends AbstractController
             }
         }
 
-        // Redirection sûre : referer interne uniquement (host EXACT, slash final
-        // pour éviter `host.evil.com`), sinon accueil.
         $referer = $request->headers->get('referer');
         $base = $request->getSchemeAndHttpHost();
         if (is_string($referer) && ($referer === $base || str_starts_with($referer, $base . '/'))) {
@@ -48,10 +41,6 @@ class LocaleController extends AbstractController
         return $this->redirectToRoute('home');
     }
 
-    /**
-     * Réécrit le préfixe /{locale} du referer (sinon la route _locale, prioritaire
-     * dans LocaleSubscriber, réaffiche l'ancienne langue). URLs non préfixées intactes.
-     */
     private function rewriteLocaleInUrl(string $url, string $base, string $locale): string
     {
         $path = substr($url, strlen($base));

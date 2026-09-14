@@ -22,8 +22,6 @@ final class SpicyMatchTest extends TestCase
         $this->match = new SpicyMatch();
     }
 
-    // ── isManual ────────────────────────────────────────────────────────────
-
     public function testIsManualDefaultsToFalse(): void
     {
         self::assertFalse($this->match->isManual());
@@ -37,8 +35,6 @@ final class SpicyMatchTest extends TestCase
         $this->match->setIsManual(false);
         self::assertFalse($this->match->isManual());
     }
-
-    // ── Spices collection ───────────────────────────────────────────────────
 
     public function testAddSpiceIgnoresDuplicate(): void
     {
@@ -66,8 +62,6 @@ final class SpicyMatchTest extends TestCase
         self::assertSame(2, $this->match->getSpiceCount());
     }
 
-    // ── Results collection ──────────────────────────────────────────────────
-
     public function testAddResultSetsSpicyMatch(): void
     {
         $result = new SpicyMatchResult();
@@ -93,8 +87,6 @@ final class SpicyMatchTest extends TestCase
         self::assertTrue($this->match->isManual());
         self::assertCount(0, $this->match->getResults());
     }
-
-    // ── Contexte culinaire persisté ──────────────────────────────────────────
 
     public function testDefaultMatrixIsAir(): void
     {

@@ -96,9 +96,6 @@ class Spices implements TranslatableInterface, Sluggable
     private ?string $slug = null;
 
     /**
-     * Traductions localisées (pattern Translation Table). Le FR vit sur cette
-     * entité ; cette collection ne contient que les locales non-FR renseignées.
-     *
      * @var Collection<int, SpiceTranslation>
      */
     #[ORM\OneToMany(mappedBy: 'spice', targetEntity: SpiceTranslation::class, cascade: [
@@ -172,14 +169,8 @@ class Spices implements TranslatableInterface, Sluggable
         return $this;
     }
 
-    /**
-     * Retourne la traduction pour une locale, ou null si absente.
-     * Pour le rendu d'UNE entité (page détail) — PAS pour les listes/hot-path
-     * (utiliser l'hydratation batch du repository pour éviter le N+1).
-     */
     public function getTranslation(string $locale): ?SpiceTranslation
     {
-        // FR = canonique (pas de ligne de traduction) → évite le lazy-load de la collection.
         if ($locale === 'fr') {
             return null;
         }
@@ -193,9 +184,6 @@ class Spices implements TranslatableInterface, Sluggable
         return null;
     }
 
-    /**
-     * Nom localisé avec fallback FR (champ canonique de l'entité).
-     */
     public function getLocalizedName(string $locale): ?string
     {
         return $this->getTranslation($locale)?->getName() ?? $this->name;
@@ -330,8 +318,6 @@ class Spices implements TranslatableInterface, Sluggable
         $this->imageFile = $imageFile;
 
         if ($imageFile instanceof File) {
-            // It is required that at least one field changes if you are using doctrine
-            // otherwise the event listeners won't be called and the file is lost
             $this->updated_at = new \DateTimeImmutable('now');
         }
     }
@@ -424,7 +410,6 @@ class Spices implements TranslatableInterface, Sluggable
 
     public function removeCookingTip(CookingTips $cookingTip): static
     {
-        // set the owning side to null (unless already changed)
         if ($this->cookingTips->removeElement($cookingTip) && $cookingTip->getSpice() === $this) {
             $cookingTip->setSpice(null);
         }
@@ -452,7 +437,6 @@ class Spices implements TranslatableInterface, Sluggable
 
     public function removePreparationTip(PreparationTips $preparationTip): static
     {
-        // set the owning side to null (unless already changed)
         if ($this->preparationTips->removeElement($preparationTip) && $preparationTip->getSpice() === $this) {
             $preparationTip->setSpice(null);
         }

@@ -9,12 +9,6 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-/**
- * Test users:
- *   - admin     / admin@spicymatch.local   password: Admin1234!   ROLE_ADMIN + ROLE_USER
- *   - alice     / alice@spicymatch.local   password: Alice1234!   ROLE_USER
- *   - bob       / bob@spicymatch.local     password: Bob1234!     ROLE_USER
- */
 class UsersFixtures extends Fixture
 {
     public function __construct(

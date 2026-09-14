@@ -163,7 +163,6 @@ final class IntrusSelectionPropertyTest extends TestCase
 
     /**
      * @param array{compatibles: list<array<string, mixed>>, intruders: list<Spices>, bases: list<Spices>} $pool
-     *
      * @return array<int, int>
      */
     private function scoreIndex(array $pool): array
@@ -240,7 +239,6 @@ final class IntrusSelectionPropertyTest extends TestCase
 
     /**
      * @param array{compatibles: list<array<string, mixed>>, intruders: list<Spices>, bases: list<Spices>} $pool
-     *
      * @return list<Spices>
      */
     private function effectiveIntruders(array $pool): array
@@ -271,7 +269,6 @@ final class IntrusSelectionPropertyTest extends TestCase
 
     /**
      * @param array{compatibles: list<array<string, mixed>>, intruders: list<Spices>, bases: list<Spices>} $pool
-     *
      * @return array<string, mixed>|null
      */
     private function generate(array $pool, GameDifficulty $difficulty, bool $inverted): ?array
@@ -298,7 +295,6 @@ final class IntrusSelectionPropertyTest extends TestCase
 
     /**
      * @param array{float, int} $scale
-     *
      * @return array{compatibles: list<array<string, mixed>>, intruders: list<Spices>, bases: list<Spices>}
      */
     private function makePool(string $shape, int $size, int $seed, array $scale): array

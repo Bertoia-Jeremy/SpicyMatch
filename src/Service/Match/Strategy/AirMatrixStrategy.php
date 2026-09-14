@@ -8,7 +8,6 @@ final readonly class AirMatrixStrategy implements MatrixStrategy
 {
     public function partitionFactor(float $kOw, float $fatRatio, float $waterRatio): float
     {
-        // Pas de phase solvant explicite en air — Henry simplifié, concentration totale supposée perceptible.
         return 1.0;
     }
 

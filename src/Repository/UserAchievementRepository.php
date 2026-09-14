@@ -20,8 +20,26 @@ class UserAchievementRepository extends ServiceEntityRepository
     }
 
     /**
-     * Charge les UserAchievement d'une progression avec leurs Achievement en une seule requête (évite le N+1).
-     *
+     * @return array<int, int>
+     */
+    public function sumXpRewardGroupedByProgression(): array
+    {
+        $rows = $this->createQueryBuilder('ua')
+            ->select('IDENTITY(ua.userProgression) AS pid', 'SUM(a.xpReward) AS total')
+            ->join('ua.achievement', 'a')
+            ->groupBy('ua.userProgression')
+            ->getQuery()
+            ->getArrayResult();
+
+        $result = [];
+        foreach ($rows as $row) {
+            $result[(int) $row['pid']] = (int) $row['total'];
+        }
+
+        return $result;
+    }
+
+    /**
      * @return UserAchievement[]
      */
     public function findByProgressionWithAchievement(UserProgression $progression): array

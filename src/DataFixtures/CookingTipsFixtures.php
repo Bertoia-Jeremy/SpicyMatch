@@ -11,18 +11,6 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 
-/**
- * 3 cooking insertion moments per spice (90 total).
- *
- * Steps:
- *   0 = En infusion préalable (avant cuisson)
- *   1 = En début de cuisson (dans le corps gras)
- *   2 = En milieu de cuisson
- *   3 = En fin de cuisson / hors du feu
- *   4 = À cru, au moment de servir
- *
- * Run: php bin/console doctrine:fixtures:load --append --group=CookingTipsFixtures
- */
 class CookingTipsFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     /**

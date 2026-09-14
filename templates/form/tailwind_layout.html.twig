@@ -1,6 +1,5 @@
 {% use "form_div_layout.html.twig" %}
 
-{# Row wrapper: label + widget + errors in a flex column #}
 {% block form_row -%}
     <div class="mb-4">
         {{- form_label(form) -}}
@@ -10,7 +9,6 @@
     </div>
 {%- endblock %}
 
-{# Label #}
 {% block form_label -%}
     {% if label is not same as(false) -%}
         {% if not compound -%}
@@ -27,7 +25,6 @@
     {%- endif -%}
 {%- endblock %}
 
-{# Ici (et pas dans form_row) pour couvrir aussi les appels form_widget() directs #}
 {% block widget_attributes -%}
     {%- set aria_describedby = attr['aria-describedby']|default('') ? [attr['aria-describedby']] : [] -%}
     {%- if help -%}
@@ -43,7 +40,6 @@
     {{- parent() -}}
 {%- endblock %}
 
-{# Input, select (single), number, email, password, url, search #}
 {% block form_widget_simple -%}
     {%- set attr = attr|merge({class: (
         'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm '
@@ -53,7 +49,6 @@
     {{- parent() -}}
 {%- endblock %}
 
-{# Textarea #}
 {% block textarea_widget -%}
     {%- set attr = attr|merge({class: (
         'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm '
@@ -63,7 +58,6 @@
     {{- parent() -}}
 {%- endblock %}
 
-{# Select (collapsed choice) #}
 {% block choice_widget_collapsed -%}
     {%- set attr = attr|merge({class: (
         'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white '
@@ -73,7 +67,6 @@
     {{- parent() -}}
 {%- endblock %}
 
-{# Submit / button #}
 {% block button_widget -%}
     {%- set attr = attr|merge({class: (
         'btn-pill-base btn-pill-primary px-5 py-2 text-sm '
@@ -97,7 +90,6 @@
     </fieldset>
 {%- endblock %}
 
-{# Errors #}
 {% block form_errors -%}
     {%- if errors|length > 0 -%}
         <ul role="alert" class="mt-1 text-sm text-red-600 space-y-0.5 list-none p-0">
@@ -108,7 +100,6 @@
     {%- endif %}
 {%- endblock %}
 
-{# Checkbox row #}
 {% block checkbox_row -%}
     <div class="flex items-start mb-4">
         {{- form_widget(form) -}}
@@ -119,7 +110,6 @@
     </div>
 {%- endblock %}
 
-{# Checkbox widget #}
 {% block checkbox_widget -%}
     {%- set attr = attr|merge({class: ('h-4 w-4 text-blue-600 border-gray-300 rounded ' ~ (attr.class|default('')))|trim}) -%}
     {{- parent() -}}

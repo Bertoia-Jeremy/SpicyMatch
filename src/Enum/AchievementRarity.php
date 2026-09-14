@@ -11,9 +11,6 @@ enum AchievementRarity: string
     case EPIC = 'epic';
     case LEGENDARY = 'legendary';
 
-    /**
-     * Clé de traduction (domaine messages) — traduire à l'affichage via |trans.
-     */
     public function label(): string
     {
         return 'enum.rarity.' . $this->value;

@@ -13,17 +13,6 @@ use App\ValueObject\Match\MortarIds;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-/**
- * Integration tests for the spice compatibility system.
- *
- * Uses the real database with the 30 fixture spices + spice_active_compound peuplée.
- * Pré-requis : bin/console app:recompute:oav --sync
- *
- * Ces tests valident :
- *  1. CompatibleSpiceFinder (OAV Tanimoto + enrichissement) avec vraie DB
- *  2. SpiceGroupFinderService (requêtes SQL legacy)
- *  3. SpicesRepository — findCandidatesForScoring
- */
 class SpiceMatchingIntegrationTest extends KernelTestCase
 {
     private SpicesRepository $spicesRepo;
@@ -47,10 +36,6 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         $this->compatibleSpiceFinder = $container->get(CompatibleSpiceFinder::class);
         $this->groupFinder = $container->get(SpiceGroupFinderService::class);
     }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // Repository sanity checks
-    // ──────────────────────────────────────────────────────────────────────────
 
     public function testFixturesLoadedCorrectly(): void
     {
@@ -76,14 +61,6 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         self::assertContains('Carvacrol', $compoundNames);
     }
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // CompatibleSpiceFinder — groupes de compatibilité connus
-    // ──────────────────────────────────────────────────────────────────────────
-
-    /**
-     * Thym + Origan partagent thymol + carvacrol (OAV-actifs).
-     * Au moins 3 épices de la famille monoterpènes doivent apparaître.
-     */
     public function testThymAndOriganHaveCompatibleSpices(): void
     {
         $thym = $this->findSpiceByName('Thym Commun');
@@ -103,9 +80,6 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         self::assertGreaterThanOrEqual(1, $matchCount);
     }
 
-    /**
-     * Thym seul → des candidats avec score [0, 100].
-     */
     public function testThymSelectedAloneReturnsScores(): void
     {
         $thym = $this->findSpiceByName('Thym Commun');
@@ -120,9 +94,6 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         }
     }
 
-    /**
-     * Origan doit apparaître compatible avec Thym (fort chevauchement OAV).
-     */
     public function testOriganAppearsCompatibleWithThym(): void
     {
         $thym = $this->findSpiceByName('Thym Commun');
@@ -134,9 +105,6 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         self::assertNotEmpty($origan, 'Origan should appear as compatible with Thym via OAV');
     }
 
-    /**
-     * Résultats triés par score décroissant.
-     */
     public function testResultsAreSortedByScoreDescending(): void
     {
         $thym = $this->findSpiceByName('Thym Commun');
@@ -152,9 +120,6 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         self::assertSame($sorted, $scores, 'Results must be sorted by score descending');
     }
 
-    /**
-     * Format de sortie : toutes les clés requises doivent être présentes.
-     */
     public function testOutputKeysArePresent(): void
     {
         $thym = $this->findSpiceByName('Thym Commun');
@@ -169,9 +134,6 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         }
     }
 
-    /**
-     * Les épices du mortier ne doivent pas apparaître dans les résultats.
-     */
     public function testMortarSpicesAreExcludedFromResults(): void
     {
         $thym = $this->findSpiceByName('Thym Commun');
@@ -186,10 +148,6 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         self::assertNotContains($thym->getId(), $resultIds, 'Thym must not appear in its own results');
         self::assertNotContains($origan->getId(), $resultIds, 'Origan must not appear in its own results');
     }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // SpiceGroupFinderService — SQL queries
-    // ──────────────────────────────────────────────────────────────────────────
 
     public function testFindTopPairsReturnsResults(): void
     {
@@ -227,7 +185,6 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
     {
         $pairs = $this->groupFinder->findTopPairs(20);
 
-        // Thym + Origan share thymol + carvacrol (both main ×3 each) → score = 6
         $found = false;
         foreach ($pairs as $pair) {
             $names = array_column($pair['spices'], 'name');
@@ -306,16 +263,11 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         }
     }
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // Repository — findCandidatesForScoring
-    // ──────────────────────────────────────────────────────────────────────────
-
     public function testFindCandidatesForScoringExcludesSelectedSpices(): void
     {
         $thym = $this->findSpiceByName('Thym Commun');
         self::assertNotNull($thym);
 
-        // Get compound IDs from thym
         $compoundIds = array_map(fn ($c) => $c->getId(), $thym->getAromaticsCompounds()->toArray());
 
         $candidates = $this->spicesRepo->findCandidatesForScoring($compoundIds, [$thym->getId()]);
@@ -334,7 +286,6 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         $candidates = $this->spicesRepo->findCandidatesForScoring($compoundIds, [$thym->getId()]);
 
         self::assertNotEmpty($candidates);
-        // Access collections — should not trigger lazy-load exceptions
         foreach ($candidates as $c) {
             $mainCount = $c->getAromaticsCompounds()
                 ->count();
@@ -344,13 +295,8 @@ class SpiceMatchingIntegrationTest extends KernelTestCase
         }
     }
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // Helpers
-    // ──────────────────────────────────────────────────────────────────────────
-
     /**
      * @param int[] $ids
-     *
      * @return list<array<string, mixed>>
      */
     private function findCompatibleByIds(array $ids): array

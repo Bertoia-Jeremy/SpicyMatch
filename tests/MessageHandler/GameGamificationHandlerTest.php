@@ -35,6 +35,8 @@ final class GameGamificationHandlerTest extends TestCase
         $this->sessionRepo = $this->createMock(GameSessionRepository::class);
         $this->manager = $this->createMock(GamificationManagerInterface::class);
         $this->em = $this->createMock(EntityManagerInterface::class);
+        $this->em->method('wrapInTransaction')
+            ->willReturnCallback(fn (callable $callback) => $callback($this->em));
         $processedEvents = $this->createMock(\App\Repository\ProcessedGamificationEventRepository::class);
         $processedEvents->method('claim')
             ->willReturn(true);
@@ -68,7 +70,6 @@ final class GameGamificationHandlerTest extends TestCase
         $this->sessionRepo->method('countFinishedByUser')
             ->willReturn(1);
 
-        // Progression creation is now delegated to the manager.
         $this->manager->expects(self::once())
             ->method('getOrCreateProgression')
             ->with($user)
@@ -119,10 +120,9 @@ final class GameGamificationHandlerTest extends TestCase
                 [
                     'xpEarned' => 42,
                     'gamesCompleted' => 3,
-                    'gameMode' => 'qcm', // string, not enum
+                    'gameMode' => 'qcm',
                     'correctAnswers' => 7,
                     'totalQuestions' => 10,
-                    // `score` mirrors `xpEarned` so GameScoreThresholdEvaluator has a value to test against.
                     'score' => 42,
                 ]
             );

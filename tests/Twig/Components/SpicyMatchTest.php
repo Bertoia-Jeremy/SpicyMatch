@@ -163,8 +163,6 @@ class SpicyMatchTest extends TestCase
         self::assertSame('auto', $component->mode);
     }
 
-    // ── Confiance des données ────────────────────────────────────────────────
-
     public function testDataConfidenceNullWhenNoSelection(): void
     {
         $this->confidenceAssessor->expects(self::never())
@@ -303,7 +301,6 @@ class SpicyMatchTest extends TestCase
 
         $results = $component->getResults();
 
-        // Excludes only id=1 (selected) — same-group spices remain (id=4 Gingembre)
         $ids = array_column($results['compatibleSpices'], 'id');
         self::assertNotContains(1, $ids);
         self::assertContains(4, $ids);
@@ -323,8 +320,6 @@ class SpicyMatchTest extends TestCase
         self::assertSame('', $component->filterStId);
         self::assertSame('', $component->search);
     }
-
-    // ── Manual mode: getResults() ───────────────────────────────────────────
 
     public function testManualModeResultsHaveNoScoreKey(): void
     {
@@ -354,7 +349,6 @@ class SpicyMatchTest extends TestCase
 
     public function testManualModeWithMultipleSelectionsExcludesOnlySelected(): void
     {
-        // Sélection de Cannelle (Chaud) et Cumin (Terreux)
         $this->spicesRepo->method('findSpicesForMatch')
             ->willReturn([
                 [
@@ -381,10 +375,8 @@ class SpicyMatchTest extends TestCase
         $results = $component->getResults();
         $ids = array_column($results['compatibleSpices'], 'id');
 
-        // Exclut uniquement Cannelle(1) et Cumin(2)
         self::assertNotContains(1, $ids);
         self::assertNotContains(2, $ids);
-        // Reste Poivre(3), Gingembre(4 — même groupe que Cannelle mais autorisé) et Coriandre(5)
         self::assertContains(3, $ids);
         self::assertContains(4, $ids);
         self::assertContains(5, $ids);
@@ -392,7 +384,6 @@ class SpicyMatchTest extends TestCase
 
     public function testManualModeWithAllSpicesSelectedReturnsEmpty(): void
     {
-        // Toutes les épices sélectionnées → plus rien en compatible
         $this->spicesRepo->method('findSpicesForMatch')
             ->willReturn([
                 [
@@ -437,8 +428,6 @@ class SpicyMatchTest extends TestCase
         $results = $component->getResults();
         self::assertEmpty($results['compatibleSpices']);
     }
-
-    // ── Manual mode: filters still work ─────────────────────────────────────
 
     public function testManualModeRespectsSearchFilter(): void
     {
@@ -485,7 +474,7 @@ class SpicyMatchTest extends TestCase
 
         $component = $this->makeComponent();
         $component->mode = 'manual';
-        $component->filterAgId = 'herbace'; // Herbacé (agId=4)
+        $component->filterAgId = 'herbace';
         $component->spices = [
             'selectedSpices' => ['1'],
             'compatibleSpices' => $this->allSpices,
@@ -516,7 +505,7 @@ class SpicyMatchTest extends TestCase
 
         $component = $this->makeComponent();
         $component->mode = 'manual';
-        $component->filterStId = 'graine'; // stId=2 → Coriandre only
+        $component->filterStId = 'graine';
         $component->spices = [
             'selectedSpices' => ['1'],
             'compatibleSpices' => $this->allSpices,
@@ -526,8 +515,6 @@ class SpicyMatchTest extends TestCase
         self::assertCount(1, $results['compatibleSpices']);
         self::assertSame('Coriandre', $results['compatibleSpices'][0]['name']);
     }
-
-    // ── canAddMoreGroups in manual mode ─────────────────────────────────────
 
     public function testCanAddMoreGroupsInManualModeWithAvailableSpices(): void
     {
@@ -551,8 +538,6 @@ class SpicyMatchTest extends TestCase
         self::assertTrue($component->canAddMoreGroups());
     }
 
-    // ── clearSearch ─────────────────────────────────────────────────────────
-
     public function testClearSearchInManualMode(): void
     {
         $component = $this->makeComponent();
@@ -563,8 +548,6 @@ class SpicyMatchTest extends TestCase
 
         self::assertSame('', $component->search);
     }
-
-    // ── Contexte culinaire ──────────────────────────────────────────────────
 
     public function testDefaultCulinaryContextIsNeutral(): void
     {
@@ -596,7 +579,6 @@ class SpicyMatchTest extends TestCase
 
     public function testBuildCulinaryContextClampsFatRatioAboveOne(): void
     {
-        // Sécurité : le client peut envoyer fat=2.5 via LiveProp writable → clamp à 1
         $component = $this->makeComponent();
         $component->fatRatio = 2.5;
 
@@ -624,7 +606,7 @@ class SpicyMatchTest extends TestCase
 
         $ctx = $component->buildCulinaryContext();
 
-        self::assertSame(1440, $ctx->cookingTimeMin); // cap 24 h
+        self::assertSame(1440, $ctx->cookingTimeMin);
     }
 
     public function testBuildCulinaryContextClampsTemperature(): void
@@ -639,7 +621,6 @@ class SpicyMatchTest extends TestCase
 
     public function testBuildCulinaryContextFallsBackToAirOnUnknownMatrix(): void
     {
-        // Le client peut envoyer matrix=steam via writable → fallback air
         $component = $this->makeComponent();
         $component->matrix = 'steam';
 
@@ -688,7 +669,6 @@ class SpicyMatchTest extends TestCase
 
     public function testSetCookingPresetIgnoresUnknownPreset(): void
     {
-        // Whitelist stricte — un preset inconnu ne change rien
         $component = $this->makeComponent();
         $component->matrix = 'water';
         $component->fatRatio = 0.3;
@@ -778,13 +758,11 @@ class SpicyMatchTest extends TestCase
         $component->matrix = 'oil';
         self::assertSame('Huile', $component->getCulinaryLabel());
 
-        // Cuisson en bouillon
         $component->matrix = 'water';
         $component->fatRatio = 0.0;
         $component->cookingTimeMin = 20;
         self::assertSame('Bouillon', $component->getCulinaryLabel());
 
-        // Sauté
         $component->matrix = 'oil';
         $component->fatRatio = 1.0;
         $component->cookingTimeMin = 10;

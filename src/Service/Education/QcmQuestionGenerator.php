@@ -28,7 +28,6 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
 
     public function generate(GameDifficulty $difficulty, array $excludeSpiceIds = []): ?array
     {
-        // Pick a random base spice (excluding already-used ones)
         $allSpices = $this->spicesRepository->findAllSpices();
         $excludeFlipped = array_flip($excludeSpiceIds);
         $candidates = array_values(array_filter(
@@ -40,7 +39,6 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
             return null;
         }
 
-        // Shuffle and try bases until we find one with enough compatible results
         shuffle($candidates);
 
         foreach ($candidates as $baseData) {
@@ -116,7 +114,6 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
      * @param list<array<string, mixed>> $scored
      * @param array<string, mixed>       $correct
      * @param array<string, mixed>       $baseData
-     *
      * @return list<array<string, mixed>>
      */
     private function strictlyBelow(array $scored, array $correct, array $baseData): array
@@ -132,7 +129,6 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
     /**
      * @param array<string, mixed>       $correct
      * @param list<array<string, mixed>> $dominated
-     *
      * @return list<array<string, mixed>>
      */
     private function pickDistractors(GameDifficulty $difficulty, array $correct, array $dominated): array
@@ -150,7 +146,6 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
 
     /**
      * @param list<array<string, mixed>> $window
-     *
      * @return list<array<string, mixed>>
      */
     private function preferDistinctGroup(array $window, mixed $correctGroupName): array

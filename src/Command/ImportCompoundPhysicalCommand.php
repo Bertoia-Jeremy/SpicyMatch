@@ -17,25 +17,6 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Yaml\Yaml;
 
-/**
- * Ingère les propriétés physico-chimiques (logP, point d'ébullition, tension de vapeur)
- * depuis un fichier YAML versionné.
- *
- * Usage :
- *   bin/console app:import:physical
- *   bin/console app:import:physical --file=fixtures/compound_physical.yaml --dry-run
- *
- * Format YAML attendu :
- *   - compound_name: "Eugenol"
- *     log_p: 2.27
- *     boiling_point_celsius: 254
- *     vapor_pressure_pa: 0.030
- *     source: "PubChem CID 3314"
- *
- * Matching exact par nom. Idempotent : UPDATE si la ligne existe (OneToOne), INSERT sinon.
- *
- * Sécurité : fichier confiné dans fixtures/ (path traversal guard) et < 10 Mo.
- */
 #[AsCommand(
     name: 'app:import:physical',
     description: 'Ingère les propriétés physico-chimiques (logP, bp, vp) depuis un YAML'
@@ -44,7 +25,7 @@ final class ImportCompoundPhysicalCommand extends Command
 {
     private const string DEFAULT_FILE = 'fixtures/compound_physical.yaml';
 
-    private const int MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 Mo
+    private const int MAX_FILE_SIZE = 10 * 1024 * 1024;
 
     public function __construct(
         private readonly AromaticCompoundRepository $aromaticCompoundRepository,
@@ -185,9 +166,6 @@ final class ImportCompoundPhysicalCommand extends Command
         return Command::SUCCESS;
     }
 
-    /**
-     * Résolution + path traversal guard + taille max.
-     */
     private function guardPath(string $file, SymfonyStyle $io): ?string
     {
         $resolvedPath = realpath($file);

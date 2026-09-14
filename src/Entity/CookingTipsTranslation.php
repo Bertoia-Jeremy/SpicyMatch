@@ -9,10 +9,6 @@ use App\Repository\CookingTipsTranslationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * Traduction localisée d'un conseil de cuisson. Une ligne par (conseil, locale).
- * Tous les champs nullables : un champ absent retombe sur le FR canonique (COALESCE).
- */
 #[ORM\Entity(repositoryClass: CookingTipsTranslationRepository::class)]
 #[ORM\Table(name: 'cooking_tips_translation')]
 #[ORM\UniqueConstraint(name: 'uniq_cooking_tips_locale', columns: ['cooking_tips_id', 'locale'])]

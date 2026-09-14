@@ -11,13 +11,6 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 
-/**
- * Base des form types d'édition inline des traductions (EasyAdmin CollectionField).
- *
- * Le FR reste canonique sur l'entité — on ne saisit que en/es. Labels en dur
- * (translation_domain=false) : back-office FR interne. Chaque sous-type ajoute
- * ses champs traduisibles via text()/area() puis définit data_class.
- */
 abstract class AbstractTranslationType extends AbstractType
 {
     protected function addMeta(FormBuilderInterface $builder): void

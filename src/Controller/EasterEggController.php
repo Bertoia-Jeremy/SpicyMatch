@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\PendingGamificationNotification;
 use App\Entity\Users;
+use App\Repository\PendingGamificationNotificationRepository;
 use App\Service\EasterEggService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,6 +24,7 @@ class EasterEggController extends AbstractController
     public function __construct(
         private readonly EasterEggService $easterEggService,
         private readonly EntityManagerInterface $em,
+        private readonly PendingGamificationNotificationRepository $notifRepository,
         #[Autowire(service: 'limiter.gamification_api')]
         private readonly RateLimiterFactory $gamificationApiLimiter,
     ) {
@@ -55,7 +56,6 @@ class EasterEggController extends AbstractController
             $payload = [];
         }
 
-        // 1. Handle egg
         $success = $this->easterEggService->handleEgg($user, $slug, $payload);
 
         if (! $success) {
@@ -65,14 +65,10 @@ class EasterEggController extends AbstractController
             ], 400);
         }
 
-        // 2. Render Turbo Streams from pending notifications (same template as subscriber)
         if ($request->getPreferredFormat() === 'turbo_stream' || $request->headers->get(
             'Accept'
         ) === 'text/vnd.turbo-stream.html') {
-            $notifications = $this->em->getRepository(PendingGamificationNotification::class)->findBy([
-                'user' => $user,
-                'deliveredAt' => null,
-            ]);
+            $notifications = $this->notifRepository->findUndeliveredForUser($user);
 
             $html = '';
             foreach ($notifications as $notification) {

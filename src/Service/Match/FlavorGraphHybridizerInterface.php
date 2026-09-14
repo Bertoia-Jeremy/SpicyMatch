@@ -12,7 +12,6 @@ interface FlavorGraphHybridizerInterface
 {
     /**
      * @param list<array{id: int, score: int, oav_mode: bool}> $results
-     *
      * @return list<array{id: int, score: int, oav_mode: bool}>
      */
     public function rerank(

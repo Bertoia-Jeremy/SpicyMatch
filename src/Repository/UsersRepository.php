@@ -29,9 +29,6 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
             ->flush();
     }
 
-    /**
-     * Used to upgrade (rehash) the user's password automatically over time.
-     */
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
     {
         if (! $user instanceof Users) {
@@ -45,7 +42,6 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
 
     /**
      * @param array<string, mixed> $criteria
-     *
      * @return list<Users>
      */
     public function findNonDeletedBy(array $criteria): array

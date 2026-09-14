@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
+use App\Gamification\GamificationManagerInterface;
 use App\Message\FavoriteToggledEvent;
 use App\Repository\SpicyMatchHistoryRepository;
 use App\Repository\UsersRepository;
@@ -17,7 +18,7 @@ class FavoriteGamificationHandler
     public function __construct(
         private readonly UsersRepository $usersRepository,
         private readonly SpicyMatchHistoryRepository $historyRepository,
-        private readonly \App\Gamification\GamificationManagerInterface $manager,
+        private readonly GamificationManagerInterface $manager,
         private readonly EntityManagerInterface $em,
         private readonly LoggerInterface $logger,
     ) {
@@ -32,14 +33,21 @@ class FavoriteGamificationHandler
 
         $progression = $this->manager->getOrCreateProgression($user);
 
-        // Count is DB-derived, so this handler is naturally idempotent on retry.
+        if (! $progression->isGamificationEnabled()) {
+            return;
+        }
+
         $favoriteCount = $this->historyRepository->countFavoritesByUser($user);
 
-        $this->manager->process($progression, 'favorite_toggled', [
-            'favoriteCount' => $favoriteCount,
-        ]);
+        $this->em->wrapInTransaction(function () use ($favoriteCount, $progression): void {
+            $this->manager->lockForUpdate($progression);
 
-        $this->em->flush();
+            $this->manager->process($progression, 'favorite_toggled', [
+                'favoriteCount' => $favoriteCount,
+            ]);
+
+            $this->em->flush();
+        });
 
         $this->logger->info('gamification.favorite_toggled.processed', [
             'userId' => $user->getId(),

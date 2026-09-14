@@ -7,11 +7,6 @@ namespace App\Gamification\Evaluator;
 use App\Enum\AchievementTrigger;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
-/**
- * Lookup registry for TriggerEvaluatorInterface implementations — one per trigger.
- * Iterates the tagged services once at construction and indexes them by trigger
- * and by event type.
- */
 final class TriggerEvaluatorRegistry
 {
     /**

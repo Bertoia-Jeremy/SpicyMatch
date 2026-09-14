@@ -1,19 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
 
-/**
- * Auto-hide a toast-like element after a delay. Hover pauses the timer.
- * Replaces the inline `x-data="{ show: true, timer: null }" x-init="setTimeout(...)"`
- * pattern used in gamification notification toasts.
- *
- * Usage:
- *   <div data-controller="auto-dismiss"
- *        data-auto-dismiss-delay-value="5000"
- *        data-auto-dismiss-pause-delay-value="2500"
- *        data-action="mouseenter->auto-dismiss#pause mouseleave->auto-dismiss#resume">
- *     ...toast content...
- *     <button data-action="auto-dismiss#dismiss">×</button>
- *   </div>
- */
 export default class extends Controller {
     static values = {
         delay: { type: Number, default: 5000 },

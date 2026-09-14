@@ -80,9 +80,6 @@ class SpicyMatchHistory
         return $this;
     }
 
-    /**
-     * @deprecated Use getSpicyMatch()
-     */
     public function getSpicyMatchId(): ?SpicyMatch
     {
         return $this->spicyMatch;

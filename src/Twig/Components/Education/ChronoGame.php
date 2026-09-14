@@ -14,6 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
@@ -85,6 +86,7 @@ class ChronoGame extends AbstractController
         private readonly AcademyManager $academyManager,
         private readonly GameSessionManager $sessionManager,
         private readonly RequestStack $requestStack,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -155,8 +157,8 @@ class ChronoGame extends AbstractController
             $gameDifficulty = GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY;
             [$t1, $t2] = match ($gameDifficulty) {
                 GameDifficulty::EASY => [8, 12],
-                GameDifficulty::MEDIUM => [4, 8],
-                GameDifficulty::HARD => [3, 6],
+                GameDifficulty::MEDIUM => [12, 18],
+                GameDifficulty::HARD => [16, 24],
             };
             $base = match (true) {
                 $serverElapsed < $t1 => 5,
@@ -232,16 +234,25 @@ class ChronoGame extends AbstractController
         $durationSeconds = time() - $serverStartedAt;
         $serverScore = (int) ($secret['totalScore'] ?? 0);
 
-        $gameSession = $this->sessionManager->createFinishedSession(
-            $user,
-            GameMode::CHRONO,
-            GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY,
-            $serverCorrect,
-            max($serverQuestions, 1),
-            $durationSeconds,
-            null,
-            $serverScore,
-        );
+        try {
+            $gameSession = $this->sessionManager->createFinishedSession(
+                $user,
+                GameMode::CHRONO,
+                GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY,
+                $serverCorrect,
+                max($serverQuestions, 1),
+                $durationSeconds,
+                $serverScore,
+            );
+        } catch (\RuntimeException) {
+            $this->removeSecret();
+            $this->addFlash('warning', $this->translator->trans('flash.daily_limit_reached', [
+                '%mode%' => $this->translator->trans(GameMode::CHRONO->label()),
+                '%max%' => $this->sessionManager->maxDailySessions($user),
+            ]));
+
+            return $this->redirectToRoute('education_index');
+        }
 
         $this->removeSecret();
 
@@ -387,7 +398,6 @@ class ChronoGame extends AbstractController
 
     /**
      * @param array<string, mixed> $card
-     *
      * @return array<string, mixed>
      */
     private function buildDisplayCard(array $card, GameDifficulty $difficulty): array

@@ -19,31 +19,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-/**
- * Auto-fetch des propriétés PubChem (Plan Phase 2) pour les composés en base.
- *
- * Pour chaque composé avec un CAS valide, interroge PubChem (XLogP3, formule
- * brute, CID, InChIKey) et persiste :
- *   - XLogP3 → CompoundPhysical::logP, confidence ESTIMATED (valeur prédite).
- *   - Formule brute → AromaticCompound::formula, si absente.
- *   - CID / InChIKey → AromaticCompound::pubchemCid / inchiKey, identifiants
- *     canoniques (pas de confidence : ce ne sont pas des mesures).
- *
- * CID et InChIKey sont persistés indépendamment du succès de XLogP3 : les
- * trois propriétés viennent du même appel PUG REST mais n'ont aucune
- * dépendance logique entre elles.
- *
- * Usage :
- *   bin/console app:fetch:pubchem              # composés incomplets (CAS présent)
- *   bin/console app:fetch:pubchem --all        # tous, force re-fetch
- *   bin/console app:fetch:pubchem --force      # écrase aussi les valeurs déjà renseignées
- *                                               # (y compris logP en confidence MEASURED/LITERATURE) — implique --all
- *   bin/console app:fetch:pubchem --dry-run    # simulation
- *
- * Respecte les guidelines PubChem (max 5 req/s — délai 250 ms entre composés).
- *
- * @see docs/PLAN_ACQUISITION_DONNEES.md
- */
 #[AsCommand(
     name: 'app:fetch:pubchem',
     description: 'Auto-fetch XLogP3, formule, CID et InChIKey depuis PubChem pour les composés en base.',
@@ -52,9 +27,6 @@ final class FetchPubChemDataCommand extends Command
 {
     private const string LOCK_NAME = 'spicymatch_fetch_pubchem';
 
-    /**
-     * Délai entre composés (μs) — PubChem recommande max 5 req/s.
-     */
     private const int REQUEST_DELAY_US = 250_000;
 
     public function __construct(

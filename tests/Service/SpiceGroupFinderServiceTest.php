@@ -11,12 +11,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
-/**
- * Unit tests for SpiceGroupFinderService.
- *
- * Verifies output format and delegation to the repository.
- * SQL query correctness is validated in integration tests.
- */
 #[AllowMockObjectsWithoutExpectations]
 class SpiceGroupFinderServiceTest extends TestCase
 {
@@ -27,13 +21,8 @@ class SpiceGroupFinderServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->repository = $this->createMock(SpicesRepository::class);
-        // ArrayAdapter = cache mémoire vide à chaque test — évite de mocker CacheInterface.
         $this->service = new SpiceGroupFinderService($this->repository, new ArrayAdapter());
     }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // findTopPairs
-    // ──────────────────────────────────────────────────────────────────────────
 
     public function testFindTopPairsReturnsEmptyArrayWhenNoData(): void
     {
@@ -85,20 +74,17 @@ class SpiceGroupFinderServiceTest extends TestCase
         self::assertArrayHasKey('spices', $pair);
         self::assertCount(2, $pair['spices']);
 
-        // Types must be cast to int
         self::assertIsInt($pair['score']);
         self::assertSame(6, $pair['score']);
         self::assertSame(2, $pair['shared_main']);
         self::assertSame(0, $pair['shared_secondary']);
 
-        // First spice
         self::assertSame(1, $pair['spices'][0]['id']);
         self::assertSame('Thym', $pair['spices'][0]['name']);
         self::assertNull($pair['spices'][0]['file']);
         self::assertSame('#15803d', $pair['spices'][0]['color']);
         self::assertSame('Monoterpènes', $pair['spices'][0]['groupName']);
 
-        // Second spice
         self::assertSame(2, $pair['spices'][1]['id']);
         self::assertSame('Origan', $pair['spices'][1]['name']);
     }
@@ -130,10 +116,6 @@ class SpiceGroupFinderServiceTest extends TestCase
         self::assertNull($result[0]['spices'][0]['groupName']);
         self::assertSame('image.jpg', $result[0]['spices'][1]['file']);
     }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // findTopTriplets
-    // ──────────────────────────────────────────────────────────────────────────
 
     public function testFindTopTripletsReturnsEmptyArrayWhenNoData(): void
     {

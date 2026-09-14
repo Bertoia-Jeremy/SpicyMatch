@@ -6,10 +6,8 @@
     {% set spiceName = spice.getLocalizedName(loc) %}
     {% set imageUrl = vich_uploader_asset(spice, 'imageFile') %}
 
-    {# Grille 2 colonnes : image | contenu — footer col-span-2 #}
     <div class="grid sm:grid-cols-[300px_1fr]">
 
-        {# ── Col 1 : Image ── #}
         <div class="relative min-h-[220px] sm:min-h-[400px]"
              style="background: linear-gradient(135deg, {{ color }}33, {{ color }}11)">
             {% if imageUrl %}
@@ -22,15 +20,12 @@
                     <i class="fa-solid fa-seedling text-6xl"></i>
                 </span>
             {% endif %}
-            {# Gradient overlay bas #}
             <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/25 pointer-events-none"></div>
         </div>
 
-        {# ── Col 2 : Contenu scrollable ── #}
         <div class="overflow-y-auto sm:max-h-[calc(90vh-57px)] p-7 flex flex-col gap-5
                     scrollbar-thin scrollbar-thumb-spice-border scrollbar-track-transparent">
 
-            {# Eyebrow mono : groupe · type #}
             {% if groupName or typeName %}
                 <div class="flex items-center gap-2 font-mono text-[10.5px] tracking-[0.12em] uppercase text-stone-500">
                     {% if groupName %}
@@ -46,12 +41,10 @@
                 </div>
             {% endif %}
 
-            {# Titre — Fraunces #}
             <h2 class="font-display font-normal text-[2.1rem] leading-[1.05] tracking-tight text-stone-900 -mt-1">
                 {{ spiceName }}
             </h2>
 
-            {# Tags groupe + type #}
             <div class="flex flex-wrap gap-1.5">
                 {% if groupName %}
                     <span class="inline-flex items-center gap-1.5 text-[11.5px] font-medium px-2.5 py-1.5 rounded-full border"
@@ -68,7 +61,6 @@
                 {% endif %}
             </div>
 
-            {# Description — serif italic avec bordure accent #}
             {% if spice.getLocalizedDescription(loc) %}
                 <p class="font-display italic font-normal text-[15.5px] leading-relaxed text-stone-600
                           border-l-[2px] pl-4 -ml-0.5"
@@ -77,7 +69,6 @@
                 </p>
             {% endif %}
 
-            {# Saveurs dominantes #}
             {% set flavors = [] %}
             {% for ac in spice.aromaticsCompounds %}
                 {% for f in ac.AlchemyFlavors %}
@@ -104,7 +95,6 @@
                 </div>
             {% endif %}
 
-            {# Composés aromatiques #}
             {% if spice.aromaticsCompounds|length > 0 %}
                 <div class="flex flex-col gap-2.5">
                     <h4 class="font-mono text-[10.5px] tracking-[0.14em] uppercase text-stone-400 flex items-center gap-2">
@@ -127,7 +117,6 @@
 
         </div>
 
-        {# ── Footer — pleine largeur (col-span-2) ── #}
         <div class="sm:col-span-2 border-t border-stone-200 px-7 py-4 flex items-center justify-between
                     bg-cream/80">
             <span class="font-mono text-[11px] text-stone-400 tracking-[0.04em]">{{ 'ui.modal.quick_preview'|trans }}</span>

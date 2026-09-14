@@ -10,8 +10,6 @@ use PHPUnit\Framework\TestCase;
 
 final class CasNumberTest extends TestCase
 {
-    // ── CAS réels des 15 composés (checksum doit valider) ──────────────────────
-
     /**
      * @return array<string, array{string}>
      */
@@ -45,17 +43,13 @@ final class CasNumberTest extends TestCase
         self::assertSame($cas, (string) CasNumber::fromString($cas));
     }
 
-    // ── Checksum invalide ───────────────────────────────────────────────────────
-
     public function testWrongChecksumIsRejected(): void
     {
-        // 97-53-0 est valide ; 97-53-1 a un mauvais checksum
         self::assertFalse(CasNumber::isValid('97-53-1'));
     }
 
     public function testTransposedDigitsFailChecksum(): void
     {
-        // Eugénol 97-53-0 → digits transposés 79-53-0 : checksum ne colle plus
         self::assertFalse(CasNumber::isValid('79-53-0'));
     }
 
@@ -65,8 +59,6 @@ final class CasNumberTest extends TestCase
         $this->expectExceptionMessage('chiffre de contrôle');
         CasNumber::fromString('97-53-1');
     }
-
-    // ── Format invalide ───────────────────────────────────────────────────────
 
     /**
      * @return array<string, array{string}>
@@ -98,15 +90,11 @@ final class CasNumberTest extends TestCase
         CasNumber::fromString('not-a-cas');
     }
 
-    // ── Normalisation / robustesse ──────────────────────────────────────────────
-
     public function testTrimsWhitespace(): void
     {
         self::assertTrue(CasNumber::isValid('  97-53-0  '));
         self::assertSame('97-53-0', (string) CasNumber::fromString('  97-53-0  '));
     }
-
-    // ── equals ───────────────────────────────────────────────────────────────
 
     public function testEquals(): void
     {

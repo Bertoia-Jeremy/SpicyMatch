@@ -38,11 +38,7 @@ class AchievementProgressRepository extends ServiceEntityRepository
     }
 
     /**
-     * Batch variant: load all existing AchievementProgress rows for the given (user, achievements)
-     * pairs in a single query, persist missing ones, return them indexed by achievement id.
-     *
      * @param Achievement[] $achievements
-     *
      * @return array<int, AchievementProgress>
      */
     public function findOrCreateBatchForUser(Users $user, array $achievements): array
@@ -97,10 +93,6 @@ class AchievementProgressRepository extends ServiceEntityRepository
         ]);
     }
 
-    /**
-     * Retourne l'achievement en cours le plus avancé (non complété) pour affichage dans le banner home.
-     * Trie par (progress / triggerValue) DESC pour prioriser le plus proche de la complétion.
-     */
     public function findMostAdvancedNotCompleted(Users $user): ?AchievementProgress
     {
         return $this->createQueryBuilder('ap')

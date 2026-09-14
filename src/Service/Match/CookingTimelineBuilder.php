@@ -10,10 +10,6 @@ use App\Repository\CompoundPhysicalRepositoryInterface;
 use App\ValueObject\Match\CulinaryContext;
 use Psr\Cache\CacheItemPoolInterface;
 
-/**
- * Classe les composés d'un mortier par cinétique (HEAD/HEART/BASE) + rétention sous ctx.
- * Cache TTL 1h sur (compoundIds, ctx).
- */
 final readonly class CookingTimelineBuilder
 {
     public function __construct(
@@ -25,7 +21,6 @@ final readonly class CookingTimelineBuilder
 
     /**
      * @param iterable<AromaticCompound> $compounds
-     *
      * @return array{head: list<TimelineEntry>, heart: list<TimelineEntry>, base: list<TimelineEntry>, unknown: list<TimelineEntry>}
      */
     public function build(iterable $compounds, CulinaryContext $ctx): array

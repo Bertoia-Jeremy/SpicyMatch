@@ -19,9 +19,6 @@ class CompoundOdtRepository extends ServiceEntityRepository
         parent::__construct($registry, CompoundOdt::class);
     }
 
-    /**
-     * Compte le nombre total d'entrées ODT (toutes matrices confondues).
-     */
     public function countTotal(): int
     {
         return (int) $this->createQueryBuilder('o')
@@ -30,9 +27,6 @@ class CompoundOdtRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
-    /**
-     * Trouve l'ODT pour un composé dans la matrice donnée.
-     */
     public function findForCompound(int $aromaticCompoundId, OdtMatrix $matrix): ?CompoundOdt
     {
         return $this->getEntityManager()

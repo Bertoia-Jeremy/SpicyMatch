@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
+use App\Gamification\GamificationManagerInterface;
 use App\Message\SpiceReadEvent;
 use App\Repository\ProcessedGamificationEventRepository;
 use App\Repository\SpicesRepository;
@@ -11,6 +12,7 @@ use App\Repository\SpiceViewRepository;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
@@ -20,9 +22,10 @@ class SpiceReadGamificationHandler
         private readonly UsersRepository $usersRepository,
         private readonly SpicesRepository $spicesRepository,
         private readonly SpiceViewRepository $spiceViewRepository,
-        private readonly \App\Gamification\GamificationManagerInterface $manager,
+        private readonly GamificationManagerInterface $manager,
         private readonly EntityManagerInterface $em,
         private readonly ProcessedGamificationEventRepository $processedEvents,
+        private readonly ClockInterface $clock,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -34,31 +37,32 @@ class SpiceReadGamificationHandler
             return;
         }
 
-        // Idempotence — one award per (user, spice, day). Retries of the same event
-        // never double-count, but a new day = new event key = fresh award.
-        $eventKey = sprintf('read:%d:%s', $event->spiceId, date('Y-m-d'));
-        if (! $this->processedEvents->claim($user, 'spice_read', $eventKey)) {
-            $this->logger->info('gamification.spice_read.duplicate', [
-                'userId' => $user->getId(),
-                'spiceId' => $event->spiceId,
-            ]);
+        $progression = $this->manager->getOrCreateProgression($user);
 
+        if (! $progression->isGamificationEnabled()) {
             return;
         }
 
-        $progression = $this->manager->getOrCreateProgression($user);
+        $this->em->wrapInTransaction(function () use ($event, $user, $progression): void {
+            $this->manager->lockForUpdate($progression);
 
-        if ($progression->isGamificationEnabled()) {
-            // Idempotent counters: recompute from DB, no raw incrementSpicesRead().
-            $distinctCount = $this->spiceViewRepository->countDistinctSpicesByUser($user);
-            $progression->setDiscoveries($distinctCount);
+            $eventKey = sprintf('read:%d:%s', $event->spiceId, $this->clock->now()->format('Y-m-d'));
+            if (! $this->processedEvents->claim($user, 'spice_read', $eventKey)) {
+                $this->logger->info('gamification.spice_read.duplicate', [
+                    'userId' => $user->getId(),
+                    'spiceId' => $event->spiceId,
+                ]);
+
+                return;
+            }
+
+            $progression->setDiscoveries($this->spiceViewRepository->countDistinctSpicesByUser($user));
             $progression->setTotalSpicesRead($this->spiceViewRepository->countByUser($user));
 
             if ($event->isNewViewToday) {
                 $progression->recordReadingStreak();
             }
 
-            // Stats side: record visited spice + aromatic group.
             $stats = $this->manager->getOrCreateStats($user);
             $stats->recordVisitedSpice($event->spiceId);
 
@@ -66,12 +70,12 @@ class SpiceReadGamificationHandler
             if ($spice && ($group = $spice->getAromaticGroups()) && $group->getId()) {
                 $stats->addVisitedAromaticGroup($group->getId());
             }
-        }
 
-        $this->manager->process($progression, 'spice_read', [
-            'isNewView' => $event->isNewViewToday,
-        ]);
+            $this->manager->process($progression, 'spice_read', [
+                'isNewView' => $event->isNewViewToday,
+            ]);
 
-        $this->em->flush();
+            $this->em->flush();
+        });
     }
 }

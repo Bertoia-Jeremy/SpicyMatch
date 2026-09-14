@@ -7,15 +7,9 @@ namespace App\Gamification\Evaluator;
 use App\Entity\Achievement;
 use App\Entity\UserProgression;
 use App\Enum\AchievementTrigger;
-use App\Repository\GameSessionRepository;
 
 final class GameScoreThresholdEvaluator implements TriggerEvaluatorInterface, ProgressTrackableEvaluator
 {
-    public function __construct(
-        private readonly GameSessionRepository $gameSessionRepository,
-    ) {
-    }
-
     public function trigger(): AchievementTrigger
     {
         return AchievementTrigger::GAME_SCORE_THRESHOLD;
@@ -37,23 +31,8 @@ final class GameScoreThresholdEvaluator implements TriggerEvaluatorInterface, Pr
             return false;
         }
 
-        $mode = $achievement->getContextGameMode();
-        $group = $achievement->getContextAromaticGroup();
-        $user = $progression->getUser();
-
-        if ($user === null || $mode === null) {
+        if ($achievement->getContextGameMode() === null) {
             return false;
-        }
-
-        if ($group !== null) {
-            $maxScore = $this->gameSessionRepository->maxScoreInModeForGroup(
-                $user,
-                $mode,
-                $group,
-                $achievement->getContextDifficulty(),
-            );
-
-            return $maxScore >= $achievement->getTriggerValue();
         }
 
         return ((int) ($context['score'] ?? 0)) >= $achievement->getTriggerValue();

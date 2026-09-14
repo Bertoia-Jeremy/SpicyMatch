@@ -8,12 +8,6 @@ use App\Entity\Achievement;
 use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 
-/**
- * Shared predicate: does the runtime event context satisfy the optional
- * gameMode / difficulty filters declared on the Achievement?
- *
- * A filter of null on the achievement means "wildcard".
- */
 final class ContextFilter
 {
     /**

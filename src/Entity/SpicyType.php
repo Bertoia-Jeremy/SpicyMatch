@@ -253,7 +253,6 @@ class SpicyType implements TranslatableInterface, Sluggable
 
     public function removeSpice(Spices $spice): self
     {
-        // set the owning side to null (unless already changed)
         if ($this->spices->removeElement($spice) && $spice->getSpicyType() === $this) {
             $spice->setSpicyType(null);
         }

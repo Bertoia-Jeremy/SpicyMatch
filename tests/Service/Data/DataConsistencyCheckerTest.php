@@ -16,8 +16,6 @@ final class DataConsistencyCheckerTest extends TestCase
         $this->checker = new DataConsistencyChecker();
     }
 
-    // ── OAV ─────────────────────────────────────────────────────────────────
-
     public function testOavWithinRangeNoViolation(): void
     {
         $rows = [
@@ -49,7 +47,6 @@ final class DataConsistencyCheckerTest extends TestCase
 
     public function testOavExactlyOneIsError(): void
     {
-        // OAV = 1 = seuil, doit être strictement > 1
         $rows = [
             [
                 'spice_id' => 2,
@@ -78,11 +75,8 @@ final class DataConsistencyCheckerTest extends TestCase
         self::assertSame('warning', $v[0]['severity']);
     }
 
-    // ── Sommes de concentrations ─────────────────────────────────────────────
-
     public function testConcentrationSumNormalNoViolation(): void
     {
-        // 50 000 ppm = 5 % — plausible
         self::assertSame([], $this->checker->checkConcentrationSums([
             1 => 50_000.0,
         ]));
@@ -102,7 +96,6 @@ final class DataConsistencyCheckerTest extends TestCase
 
     public function testConcentrationSumImplausibleIsWarning(): void
     {
-        // 300 000 ppm = 30 % — implausible mais pas impossible
         $v = $this->checker->checkConcentrationSums([
             1 => 300_000.0,
         ]);
@@ -112,13 +105,10 @@ final class DataConsistencyCheckerTest extends TestCase
 
     public function testConcentrationSumBoundaryAt20PercentNoViolation(): void
     {
-        // Exactement 200 000 = 20 %, non strictement supérieur → pas de violation
         self::assertSame([], $this->checker->checkConcentrationSums([
             1 => 200_000.0,
         ]));
     }
-
-    // ── ODT air manquant ──────────────────────────────────────────────────────
 
     public function testMissingAirOdtIsWarning(): void
     {

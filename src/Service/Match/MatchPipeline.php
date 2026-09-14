@@ -10,12 +10,6 @@ use App\Repository\SpiceActiveCompoundRepository;
 use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 
-/**
- * Pipeline OAV : profil mortier → veto → hydratation → correction (si ctx non neutre) → Tanimoto.
- * Mode dégradé : aucune donnée OAV pour la matrice → veto présence + score FlavorGraph compressé.
- *
- * @see ARCHITECTURE_MOTEUR_COMPATIBILITE.md §4
- */
 final class MatchPipeline implements MatchPipelineInterface
 {
     public function __construct(
@@ -31,7 +25,6 @@ final class MatchPipeline implements MatchPipelineInterface
 
     /**
      * @param int $limit ≥ 1, ≤ 100
-     *
      * @return list<array{id: int, score: int, oav_mode: bool}>
      */
     public function run(MortarIds $mortar, int $limit, CulinaryContext $ctx, ?DataConfidence $confidence = null): array

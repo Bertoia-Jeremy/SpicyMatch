@@ -9,11 +9,6 @@ use App\Entity\UserProgression;
 use App\Gamification\Evaluator\TriggerEvaluatorRegistry;
 use App\Repository\AchievementRepository;
 
-/**
- * Checks which achievements are newly unlocked for a given event.
- * Delegates per-trigger logic to TriggerEvaluator implementations (Strategy pattern).
- * Event → triggers mapping is derived from the evaluators themselves (see Registry::forEvent).
- */
 final class AchievementChecker
 {
     public function __construct(
@@ -23,10 +18,7 @@ final class AchievementChecker
     }
 
     /**
-     * Returns achievements newly unlocked by this event (not already owned).
-     *
      * @param array<string, mixed> $context
-     *
      * @return Achievement[]
      */
     public function check(UserProgression $progression, string $eventType, array $context): array

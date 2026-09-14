@@ -15,18 +15,12 @@ use App\Gamification\GamificationManagerInterface;
 use App\Gamification\XpStrategyInterface;
 use App\Repository\AchievementProgressRepository;
 use App\Repository\AchievementRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
-/**
- * Centralized Gamification Manager.
- * Handles XP calculation, achievement unlocking, and notifications.
- *
- * Opt-out is handled by the `isGamificationEnabled()` guard in `process()` —
- * no Proxy / Null object layer needed (previous proxy was removed 2026-04-22).
- */
 #[AsAlias(GamificationManagerInterface::class)]
 class GamificationManager implements GamificationManagerInterface
 {
@@ -71,12 +65,20 @@ class GamificationManager implements GamificationManagerInterface
         return $stats;
     }
 
+    public function lockForUpdate(UserProgression $progression): void
+    {
+        if ($progression->getId() === null) {
+            $this->em->flush();
+        }
+
+        $this->em->lock($progression, LockMode::PESSIMISTIC_WRITE);
+    }
+
     /**
      * @param array<string, mixed> $context
      */
     public function process(UserProgression $progression, string $eventType, array $context = []): void
     {
-        // Null Object / Opt-out check
         if (! $progression->isGamificationEnabled()) {
             return;
         }
@@ -86,12 +88,10 @@ class GamificationManager implements GamificationManagerInterface
             return;
         }
 
-        // Ensure UserStat exists
         $this->getOrCreateStats($user);
 
         $levelBefore = $progression->getLevel();
 
-        // Apply XP strategies — collect total standard XP gained (pre-achievement) for a single toast
         $standardXp = 0;
         foreach ($this->strategies as $strategy) {
             if ($strategy->supports($eventType)) {
@@ -110,14 +110,11 @@ class GamificationManager implements GamificationManagerInterface
             ]));
         }
 
-        // Check and unlock achievements
         $unlocked = $this->achievementChecker->check($progression, $eventType, $context);
         foreach ($unlocked as $achievement) {
             $progression->addXp($achievement->getXpReward());
             $this->em->persist(new PendingGamificationNotification($user, 'achievement_unlocked', [
                 'slug' => $achievement->getSlug(),
-                // Nom localisé selon la locale de l'utilisateur au moment du déblocage
-                // (le slug reste stocké pour une re-traduction éventuelle).
                 'name' => $achievement->getLocalizedName($user->getLocale()),
                 'icon' => $achievement->getIcon(),
                 'rarity' => $achievement->getRarity()
@@ -137,10 +134,8 @@ class GamificationManager implements GamificationManagerInterface
             ]);
         }
 
-        // Update achievement progress bars
         $this->updateAchievementProgress($progression, $eventType, $context);
 
-        // Notify on level-up
         $levelAfter = $progression->getLevel();
         if ($levelAfter > $levelBefore) {
             $this->em->persist(new PendingGamificationNotification($user, 'level_up', [
@@ -156,12 +151,6 @@ class GamificationManager implements GamificationManagerInterface
     }
 
     /**
-     * Upsert AchievementProgress for all achievements related to the current event triggers.
-     * Only evaluators that implement ProgressTrackableEvaluator (ISP) drive a progress bar —
-     * one-shot triggers (easter eggs, perfect runs) skip this pass.
-     *
-     * Batched: one SELECT per event (all achievements at once) instead of N SELECT + N INSERT.
-     *
      * @param array<string, mixed> $context
      */
     private function updateAchievementProgress(UserProgression $progression, string $eventType, array $context): void
@@ -171,7 +160,6 @@ class GamificationManager implements GamificationManagerInterface
             return;
         }
 
-        // Collect all (evaluator, achievement, value) tuples for this event in one pass.
         $progressTargets = [];
         $achievementsToLoad = [];
         foreach ($this->evaluators->forEvent($eventType) as $evaluator) {
@@ -194,7 +182,6 @@ class GamificationManager implements GamificationManagerInterface
             return;
         }
 
-        // Single batched lookup — loads all existing AchievementProgress rows at once.
         $byAchievementId = $this->achievementProgressRepository->findOrCreateBatchForUser($user, $achievementsToLoad);
 
         foreach ($progressTargets as [$achievement, $value]) {
@@ -205,12 +192,6 @@ class GamificationManager implements GamificationManagerInterface
         }
     }
 
-    /**
-     * Retourne une CLÉ de traduction (pas le libellé FR) — la notification est
-     * persistée puis rendue plus tard, potentiellement dans une autre locale.
-     * Le rendu fait |trans (cf. _notification_stream.html.twig). Évite de figer
-     * la langue à la persistance.
-     */
     private function sourceLabelFor(string $eventType): string
     {
         return match ($eventType) {

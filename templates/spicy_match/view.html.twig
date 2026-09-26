@@ -10,6 +10,7 @@
     '{{ path('edit_spicy_match_history', {id: spicyMatchHistory.id}) }}',
     '{{ csrf_token('history_edit_' ~ spicyMatchHistory.id) }}'
   )"
+  data-duo-map="{{ duoMap|json_encode|e('html_attr') }}"
   {% for spice in spices %}data-spice-name{{ loop.index0 }}="{{ spice.getLocalizedName(loc) }}" {% endfor %}
   class="min-h-screen etamine-paper"
   style="background-color: #F5ECDB;"
@@ -67,7 +68,7 @@
 
   <main class="max-w-[1180px] mx-auto px-6 pb-48">
     {% for spice in spices %}
-      {% set cookingTips = spice.cookingTips|sort((a, b) => a.step <=> b.step) %}
+      {% set cookingTips = spice.cookingTips|sort((a, b) => a.moment.value <=> b.moment.value) %}
 
       <div x-show="isCurrentSpice('{{ spice.id }}')"
            x-transition:enter="transition ease-out duration-[200ms]"
@@ -86,18 +87,30 @@
 
           <div class="tiles grid grid-cols-2 md:grid-cols-4 gap-5 max-w-4xl mx-auto">
             {% for cookingTip in cookingTips %}
-              <button
-                type="button"
-                class="timing"
-                :class="timingTileClass('{{ spice.id }}', {{ cookingTip.id }})"
-                @click="toggleCooking('{{ spice.id }}', {{ cookingTip.id }})"
-              >
-                <div class="hex-num-wrap">{{ '%02d'|format(loop.index) }}</div>
-                <div class="timing-label">{{ cookingTip.getLocalizedCookingStep(loc) }}</div>
-                {% if cookingTip.getLocalizedAdvantages(loc) %}
-                  <div class="timing-blurb">{{ cookingTip.getLocalizedAdvantages(loc) }}</div>
-                {% endif %}
-              </button>
+              <div class="tile-wrap">
+                <button
+                  type="button"
+                  class="timing"
+                  :class="timingTileClass('{{ spice.id }}', {{ cookingTip.id }})"
+                  :aria-describedby="describedBy('{{ spice.id }}', 'cooking', {{ cookingTip.id }})"
+                  @click="toggleCooking('{{ spice.id }}', {{ cookingTip.id }})"
+                >
+                  <div class="hex-num-wrap">{{ '%02d'|format(loop.index) }}</div>
+                  <div class="timing-label">{{ cookingTip.moment.label|trans }}</div>
+                  {% if cookingTip.getLocalizedAdvantages(loc) %}
+                    <div class="timing-blurb">{{ cookingTip.getLocalizedAdvantages(loc) }}</div>
+                  {% endif %}
+                </button>
+                {% for duo in duoTips.byCook[cookingTip.id] ?? [] %}
+                  <div class="duo-tip"
+                       role="tooltip"
+                       id="duo-c-{{ duo.p }}-{{ duo.c }}"
+                       :class="{ 'is-active': duoTipActive('{{ spice.id }}', 'cooking', {{ duo.p }}, {{ duo.c }}) }">
+                    <strong>{{ duo.title }}</strong>
+                    <span>{{ duo.effect }}</span>
+                  </div>
+                {% endfor %}
+              </div>
             {% endfor %}
           </div>
         </section>
@@ -111,20 +124,32 @@
 
           <div class="tiles grid grid-cols-2 md:grid-cols-3 gap-5 max-w-4xl mx-auto">
             {% for prepTip in spice.preparationTips %}
-              <button
-                type="button"
-                class="method"
-                :class="methodTileClass('{{ spice.id }}', {{ prepTip.id }})"
-                @click="togglePreparation('{{ spice.id }}', {{ prepTip.id }})"
-              >
-                <div class="icon-wrap">
-                  {{ include('components/_etamine_icons.html.twig', { name: prepTip.title }) }}
-                </div>
-                <div class="method-label">{{ prepTip.getLocalizedTitle(loc) }}</div>
-                {% if prepTip.getLocalizedAdvantages(loc) %}
-                  <div class="method-blurb">{{ prepTip.getLocalizedAdvantages(loc) }}</div>
-                {% endif %}
-              </button>
+              <div class="tile-wrap">
+                <button
+                  type="button"
+                  class="method"
+                  :class="methodTileClass('{{ spice.id }}', {{ prepTip.id }})"
+                  :aria-describedby="describedBy('{{ spice.id }}', 'preparation', {{ prepTip.id }})"
+                  @click="togglePreparation('{{ spice.id }}', {{ prepTip.id }})"
+                >
+                  <div class="icon-wrap">
+                    {{ include('components/_etamine_icons.html.twig', { slug: prepTip.preparationMethod?.slug }) }}
+                  </div>
+                  <div class="method-label">{{ prepTip.getLocalizedTitle(loc) }}</div>
+                  {% if prepTip.getLocalizedAdvantages(loc) %}
+                    <div class="method-blurb">{{ prepTip.getLocalizedAdvantages(loc) }}</div>
+                  {% endif %}
+                </button>
+                {% for duo in duoTips.byPrep[prepTip.id] ?? [] %}
+                  <div class="duo-tip"
+                       role="tooltip"
+                       id="duo-p-{{ duo.p }}-{{ duo.c }}"
+                       :class="{ 'is-active': duoTipActive('{{ spice.id }}', 'preparation', {{ duo.p }}, {{ duo.c }}) }">
+                    <strong>{{ duo.title }}</strong>
+                    <span>{{ duo.effect }}</span>
+                  </div>
+                {% endfor %}
+              </div>
             {% endfor %}
           </div>
         </section>

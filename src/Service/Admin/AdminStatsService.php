@@ -220,7 +220,7 @@ final class AdminStatsService
             $this->connection->fetchAllAssociative('
                 SELECT ag.name, COUNT(sv.id) AS cnt
                 FROM aromatic_groups ag
-                JOIN spices s ON s.aromatic_groups_id = ag.id
+                JOIN spices s ON s.aromaticGroups = ag.id
                 LEFT JOIN spice_view sv ON sv.spice_id = s.id
                 GROUP BY ag.id
                 ORDER BY cnt DESC

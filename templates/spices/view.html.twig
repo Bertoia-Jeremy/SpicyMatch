@@ -253,23 +253,32 @@
             <span class="font-mono text-[11px]" style="color: rgba(42,24,16,0.4)">{{ 'ui.catalog.moments'|trans({'%count%': spice.cookingTips|length}) }}</span>
         </div>
 
-        {% set marmiteLabels = ['ui.catalog.marmite_before'|trans, 'ui.catalog.marmite_during'|trans, 'ui.catalog.marmite_after'|trans, 'ui.catalog.marmite_last'|trans, 'ui.catalog.marmite_marinade'|trans] %}
-        {% set marmiteIcons = ['fa-fire-flame-curved', 'fa-bowl-hot', 'fa-sparkles', 'fa-clock', 'fa-droplet'] %}
-
         <div class="marmites">
-            {% for tip in spice.cookingTips|slice(0, 3) %}
+            {% for tip in spice.cookingTips|sort((a, b) => a.moment.value <=> b.moment.value) %}
                 <article class="marmite">
                     <div class="marmite-top">
                         <div class="marmite-glyph">
-                            <i class="fa-solid {{ marmiteIcons[loop.index0] ?? 'fa-fire' }} text-2xl" aria-hidden="true"></i>
+                            <i class="fa-solid {{ tip.moment.icon }} text-2xl" aria-hidden="true"></i>
                         </div>
                         <div class="marmite-step">{{ loop.index }}</div>
                     </div>
-                    <div class="marmite-when">{{ marmiteLabels[loop.index0] ?? 'ui.catalog.marmite_default'|trans }}</div>
+                    <div class="marmite-when">{{ tip.moment.label|trans }}</div>
                     <h4 class="font-display text-xl font-medium mb-3 leading-tight" style="text-wrap: balance; color: var(--color-ink-deep)">
-                        {{ tip.getLocalizedCookingStep(loc) }}
+                        {{ tip.getLocalizedTitle(loc) ?? tip.moment.label|trans }}
                     </h4>
                     <p class="font-display text-[15px] leading-relaxed flex-1 mb-4" style="color: rgba(42,24,16,0.5)">{{ tip.getLocalizedText(loc) }}</p>
+                    {% set tipDuos = duosByCook[tip.id] ?? [] %}
+                    {% if tipDuos is not empty %}
+                        <ul class="marmite-duos" aria-label="{{ 'ui.catalog.chef_duo'|trans }}">
+                            {% for duo in tipDuos %}
+                                <li class="marmite-duo">
+                                    <span class="marmite-duo-method">{{ duo.method ?? '' }}</span>
+                                    <span class="marmite-duo-title">{{ duo.title }}</span>
+                                    <span class="marmite-duo-effect">{{ duo.effect }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
                     <span class="marmite-foot">
                         <i class="fa-solid fa-clock text-[10px]" style="color: {{ color }}" aria-hidden="true"></i>
                         {{ 'ui.catalog.step'|trans }} {{ loop.index }}

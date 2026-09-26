@@ -9,9 +9,11 @@ use App\Entity\PreparationTips;
 use App\Entity\Spices;
 use App\Entity\SpicyMatchHistory;
 use App\Entity\Users;
+use App\Enum\CookingMoment;
 use App\Message\FavoriteToggledEvent;
 use App\Repository\CookingTipsRepository;
 use App\Repository\PreparationTipsRepository;
+use App\Repository\SpiceDuoRepository;
 use App\Repository\SpicyMatchHistoryRepository;
 use App\Service\Match\CookingTimelineBuilder;
 use App\Service\Match\MatrixComparator;
@@ -35,6 +37,7 @@ class SpicyMatchHistoryController extends AbstractController
         private readonly SpicyMatchHistoryRepository $historyRepository,
         private readonly PreparationTipsRepository $preparationTipsRepository,
         private readonly CookingTipsRepository $cookingTipsRepository,
+        private readonly SpiceDuoRepository $duoRepository,
         private readonly MessageBusInterface $bus,
     ) {
     }
@@ -82,16 +85,22 @@ class SpicyMatchHistoryController extends AbstractController
             ]);
         }
 
-        $cookingsByStep = [
-            0 => [],
-            1 => [],
-            2 => [],
-            3 => [],
-            4 => [],
-        ];
+        $cookingsByStep = array_fill_keys(array_column(CookingMoment::cases(), 'value'), []);
         foreach ($spicyMatchHistory->getCookingTips() as $cooking) {
-            $step = $cooking->getStep() ?? 0;
-            $cookingsByStep[$step][] = $cooking;
+            $cookingsByStep[($cooking->getMoment() ?? CookingMoment::PRE)->value][] = $cooking;
+        }
+
+        $prepTipIds = [];
+        foreach ($spicyMatchHistory->getPreparationTips() as $prepTip) {
+            $prepTipIds[] = (int) $prepTip->getId();
+        }
+        $cookTipIds = [];
+        foreach ($spicyMatchHistory->getCookingTips() as $cookTip) {
+            $cookTipIds[] = (int) $cookTip->getId();
+        }
+        $duoByPrep = [];
+        foreach ($this->duoRepository->findByTipIds($prepTipIds, $cookTipIds, $request->getLocale()) as $row) {
+            $duoByPrep[$row['prepId']] ??= $row;
         }
 
         $sharedCompounds = null;
@@ -150,6 +159,7 @@ class SpicyMatchHistoryController extends AbstractController
             'spicyMatchHistory' => $spicyMatchHistory,
             'preparations' => $spicyMatchHistory->getPreparationTips(),
             'cookingsByStep' => $cookingsByStep,
+            'duoByPrep' => $duoByPrep,
             'sharedCompounds' => array_values($sharedCompounds ?? []),
             'spicyMatch' => $spicyMatch,
             'culinaryContext' => $culinaryContext,

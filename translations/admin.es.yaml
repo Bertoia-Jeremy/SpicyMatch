@@ -16,6 +16,7 @@ admin:
         cooking_tips: Consejos de cocción
         preparation_tips: Consejos de preparación
         preparation_methods: Métodos de preparación
+        spice_duos: Dúos método × momento
         achievements: Logros
         game_sessions: Sesiones de juego
         users: Usuarios
@@ -57,7 +58,14 @@ admin:
         xp_reward: Recompensa XP
         rarity: Rareza
         easter_egg_slug: Slug del easter egg
-        cooking_step: Paso de cocción
+        cooking_moment: Momento de cocción
+        rank: Rango
+        effect: Efecto
+        science: Ciencia
+        example: Ejemplo
+        preparation_tip: Consejo de preparación
+        cooking_tip: Consejo de cocción
+        hook: Gancho
         title: Título
         text: Texto
         advantages: Ventajas

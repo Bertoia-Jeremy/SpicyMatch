@@ -139,7 +139,7 @@
         {% if this.currentCard.cookingTips is defined and this.currentCard.cookingTips|length > 0 %}
           <div>
             <span class="text-stone-500">{{ 'ui.game.tip'|trans }}</span>
-            {{ this.currentCard.cookingTips[0].title ?? this.currentCard.cookingTips[0].cookingStep ?? '' }}
+            {{ this.currentCard.cookingTips[0].title ?? (this.currentCard.cookingTips[0].moment is not empty ? this.currentCard.cookingTips[0].moment|trans : '') }}
           </div>
         {% endif %}
       </div>

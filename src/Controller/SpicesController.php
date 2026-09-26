@@ -8,9 +8,11 @@ use App\Controller\Concern\CanonicalSlugTrait;
 use App\Entity\Users;
 use App\Message\SpiceReadEvent;
 use App\Repository\AromaticGroupsRepository;
+use App\Repository\SpiceDuoRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpiceViewRepository;
 use App\Repository\SpicyTypeRepository;
+use App\Service\Match\SpiceDuoMapBuilder;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -71,6 +73,8 @@ class SpicesController extends AbstractController
         Request $request,
         SpiceViewRepository $spiceViewRepository,
         MessageBusInterface $bus,
+        SpiceDuoRepository $spiceDuoRepository,
+        SpiceDuoMapBuilder $duoMapBuilder,
     ): Response {
         $locale = $request->getLocale();
         $spice = $this->spicesRepository->findOneByLocalizedSlug($slug, $locale);
@@ -94,8 +98,11 @@ class SpicesController extends AbstractController
             $bus->dispatch(new SpiceReadEvent($user->getId(), $spice->getId(), $isNew));
         }
 
+        $duoRows = $spiceDuoRepository->findBySpiceIds([(int) $spice->getId()], $locale);
+
         return $this->render('spices/view.html.twig', [
             'spice' => $spice,
+            'duosByCook' => $duoMapBuilder->tooltips($duoRows)['byCook'],
             'relatedSpices' => $this->spicesRepository->findRelated($spice, 4),
             'hreflang_slugs' => [
                 'fr' => $spice->getLocalizedSlug('fr'),

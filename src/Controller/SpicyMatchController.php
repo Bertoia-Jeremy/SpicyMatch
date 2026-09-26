@@ -8,8 +8,12 @@ use App\Entity\SpicyMatch;
 use App\Entity\Users;
 use App\Factory\SpicyMatchHistoryFactory;
 use App\Message\MatchSavedEvent;
+use App\Repository\SpiceDuoRepository;
+use App\Repository\SpicesRepository;
+use App\Service\Match\SpiceDuoMapBuilder;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
@@ -33,6 +37,10 @@ class SpicyMatchController extends AbstractController
         SpicyMatchHistoryFactory $spicyMatchHistoryFactory,
         EntityManagerInterface $entityManager,
         MessageBusInterface $bus,
+        SpicesRepository $spicesRepository,
+        SpiceDuoRepository $spiceDuoRepository,
+        SpiceDuoMapBuilder $duoMapBuilder,
+        Request $request,
     ): Response {
         /** @var Users $currentUser */
         $currentUser = $this->getUser();
@@ -51,10 +59,21 @@ class SpicyMatchController extends AbstractController
 
         $bus->dispatch(new MatchSavedEvent($spicyMatchHistory->getId(), $currentUser->getId()));
 
+        $spiceIds = array_values(array_filter($spicyMatch->getSpices()->map(static fn ($s) => $s->getId())->toArray()));
+        $loaded = [];
+        foreach ($spicesRepository->findForLab($spiceIds, $request->getLocale()) as $spice) {
+            $loaded[$spice->getId()] = $spice;
+        }
+        $spices = array_values(array_filter(array_map(static fn (int $id) => $loaded[$id] ?? null, $spiceIds)));
+
+        $duoRows = $spiceDuoRepository->findBySpiceIds($spiceIds, $request->getLocale());
+
         return $this->render('spicy_match/view.html.twig', [
             'spicyMatchHistory' => $spicyMatchHistory,
             'spicyMatch' => $spicyMatch,
-            'spices' => $spicyMatch->getSpices(),
+            'spices' => $spices,
+            'duoMap' => $duoMapBuilder->build($duoRows),
+            'duoTips' => $duoMapBuilder->tooltips($duoRows),
         ]);
     }
 }

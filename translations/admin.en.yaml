@@ -16,6 +16,7 @@ admin:
         cooking_tips: Cooking tips
         preparation_tips: Preparation tips
         preparation_methods: Preparation methods
+        spice_duos: Method × moment duos
         achievements: Achievements
         game_sessions: Game sessions
         users: Users
@@ -57,7 +58,14 @@ admin:
         xp_reward: XP reward
         rarity: Rarity
         easter_egg_slug: Easter egg slug
-        cooking_step: Cooking step
+        cooking_moment: Cooking moment
+        rank: Rank
+        effect: Effect
+        science: Science
+        example: Example
+        preparation_tip: Preparation tip
+        cooking_tip: Cooking tip
+        hook: Hook
         title: Title
         text: Text
         advantages: Advantages

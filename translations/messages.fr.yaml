@@ -448,6 +448,10 @@ ui:
         moment_end: Fin
         moment_after: Après
         moment_free: — libre —
+        chef_word: Mot du Chef
+        chef_effect: Effet
+        chef_science: Science
+        chef_example: Exemple
         kinetics_title: Cinétique aromatique
         kinetics_sub: Tête · Cœur · Fond
         kinetics_retention: ' · rétention à %temp% °C / %time% min'
@@ -826,13 +830,8 @@ ui:
         in_kitchen: En cuisine
         in_kitchen_title: glisser
         moments: '%count% moment(s)'
-        marmite_before: Avant le feu
-        marmite_during: Pendant le feu
-        marmite_after: Après le feu
-        marmite_last: Au dernier moment
-        marmite_marinade: En marinade
-        marmite_default: Au choix
         step: Étape
+        chef_duo: Duo conseillé
         notebook: Le carnet
         notebook_title: notes en passant
         tame: apprivoiser
@@ -1195,6 +1194,27 @@ enum:
         rare: Infusion
         epic: Extraction
         legendary: Essence
+    cooking_moment:
+        pre:
+            label: 'En préparation (Infusion & Marinade)'
+            hint: 'Avant la cuisson, pour parfumer à cœur viandes et liquides.'
+            chef: 'L''extraction à froid ou tiède. On laisse le temps travailler à la place de la chaleur.'
+        start:
+            label: 'Au démarrage (Le Fond de sauce)'
+            hint: 'La base du plat. L''épice fond dans la matière et apporte sa profondeur.'
+            chef: 'On sacrifie les notes fraîches pour construire des notes terreuses et boisées durables.'
+        simmer:
+            label: 'En mijotage (Le Cœur du plat)'
+            hint: 'L''équilibre. Pour lier les saveurs sans détruire les parfums fragiles.'
+            chef: 'L''épice a assez de temps pour diffuser, mais subit moins d''oxydation thermique.'
+        finish:
+            label: 'En touche finale (Hors du feu)'
+            hint: 'Le coup de fouet. Une chauffe très courte pour réveiller les arômes.'
+            chef: 'On coupe le feu et on ajoute l''épice dans le plat encore très chaud. La chaleur libère les huiles, mais l''absence d''ébullition empêche l''évaporation.'
+        plating:
+            label: 'Au dressage (À cru)'
+            hint: 'L''étincelle. Pour un impact pur et un contraste de texture dans l''assiette.'
+            chef: 'Aucune altération. On perçoit le profil originel de l''épice par contact direct avec les papilles.'
     kinetics:
         head: Tête
         heart: Cœur

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Service\Data;
 
+use App\Enum\CookingMoment;
+
 final class DataConsistencyChecker
 {
     private const float OAV_PLAUSIBLE_MAX = 1.0e9;
@@ -92,5 +94,84 @@ final class DataConsistencyChecker
         }
 
         return $violations;
+    }
+
+    /**
+     * @param list<array{id: int, step: int}> $cookingTips
+     * @return list<array{severity: string, message: string}>
+     */
+    public function checkCookingMoments(array $cookingTips): array
+    {
+        $violations = [];
+
+        foreach ($cookingTips as $tip) {
+            if (CookingMoment::tryFrom($tip['step']) === null) {
+                $violations[] = [
+                    'severity' => 'error',
+                    'message' => \sprintf('Conseil de cuisson #%d : step %d hors énumération CookingMoment.', $tip['id'], $tip['step']),
+                ];
+            }
+        }
+
+        return $violations;
+    }
+
+    /**
+     * @param list<array{id: int, prep_spice_id: int, cook_spice_id: int}> $duos
+     * @return list<array{severity: string, message: string}>
+     */
+    public function checkSpiceDuoSpices(array $duos): array
+    {
+        $violations = [];
+
+        foreach ($duos as $duo) {
+            if ($duo['prep_spice_id'] !== $duo['cook_spice_id']) {
+                $violations[] = [
+                    'severity' => 'error',
+                    'message' => \sprintf(
+                        'Duo #%d : conseil de préparation (épice %d) et conseil de cuisson (épice %d) d\'épices différentes.',
+                        $duo['id'],
+                        $duo['prep_spice_id'],
+                        $duo['cook_spice_id'],
+                    ),
+                ];
+            }
+        }
+
+        return $violations;
+    }
+
+    /**
+     * @param list<array{spice_id: int, preparation_method_id: int, total: int}> $groups
+     * @return list<array{severity: string, message: string}>
+     */
+    public function checkDuplicatePreparationTips(array $groups): array
+    {
+        return array_map(static fn (array $g): array => [
+            'severity' => 'error',
+            'message' => \sprintf(
+                'Épice %d : %d conseils de préparation pour la même méthode %d (rattachement de duo ambigu).',
+                $g['spice_id'],
+                $g['total'],
+                $g['preparation_method_id'],
+            ),
+        ], $groups);
+    }
+
+    /**
+     * @param list<array{spice_id: int, step: int, total: int}> $groups
+     * @return list<array{severity: string, message: string}>
+     */
+    public function checkDuplicateCookingMoments(array $groups): array
+    {
+        return array_map(static fn (array $g): array => [
+            'severity' => 'error',
+            'message' => \sprintf(
+                'Épice %d : %d conseils de cuisson pour le même moment %d (rattachement de duo ambigu).',
+                $g['spice_id'],
+                $g['total'],
+                $g['step'],
+            ),
+        ], $groups);
     }
 }

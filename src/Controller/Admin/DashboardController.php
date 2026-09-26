@@ -5,16 +5,17 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Service\Admin\AdminStatsService;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
 use Symfony\UX\Chartjs\Model\Chart;
 
+#[AdminDashboard(routePath: '/admin', routeName: 'admin')]
 class DashboardController extends AbstractDashboardController
 {
     private const DOMAIN = 'admin';
@@ -26,7 +27,6 @@ class DashboardController extends AbstractDashboardController
     ) {
     }
 
-    #[Route(path: '/admin', name: 'admin')]
     public function index(): Response
     {
         $userStats = $this->statsService->getUserStats();
@@ -190,6 +190,7 @@ class DashboardController extends AbstractDashboardController
             'admin.menu.preparation_methods',
             'fa fa-list-check'
         );
+        yield MenuItem::linkTo(SpiceDuoCrudController::class, 'admin.menu.spice_duos', 'fa fa-link');
 
         yield MenuItem::section('admin.menu.section_gamification');
         yield MenuItem::linkTo(AchievementCrudController::class, 'admin.menu.achievements', 'fa fa-trophy');

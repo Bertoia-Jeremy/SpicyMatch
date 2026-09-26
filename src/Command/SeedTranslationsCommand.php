@@ -18,6 +18,8 @@ use App\Entity\PreparationMethods;
 use App\Entity\PreparationMethodsTranslation;
 use App\Entity\PreparationTips;
 use App\Entity\PreparationTipsTranslation;
+use App\Entity\SpiceDuo;
+use App\Entity\SpiceDuoTranslation;
 use App\Entity\Spices;
 use App\Entity\SpiceTranslation;
 use App\Entity\SpicyType;
@@ -169,6 +171,25 @@ final class SeedTranslationsCommand extends Command
                     }
                 },
             ),
+            'spice_duos' => fn (bool $ow): array => $this->seedEach(
+                $this->em->getRepository(SpiceDuo::class)->findAll(),
+                $locale,
+                $ow,
+                function (TranslatableInterface $e, ?TranslationInterface $existing) use ($locale): void {
+                    \assert($e instanceof SpiceDuo);
+                    $t = $existing instanceof SpiceDuoTranslation ? $existing : new SpiceDuoTranslation();
+                    $t->setTitle($e->getTitle())
+                        ->setEffect($e->getEffect())
+                        ->setScience($e->getScience())
+                        ->setExample($e->getExample())
+                        ->setLocale($locale);
+
+                    if (! $existing instanceof SpiceDuoTranslation) {
+                        $e->addTranslation($t);
+                        $this->em->persist($t);
+                    }
+                },
+            ),
             'cooking_tips' => fn (bool $ow): array => $this->seedEach(
                 $this->em->getRepository(CookingTips::class)->findAll(),
                 $locale,
@@ -176,8 +197,7 @@ final class SeedTranslationsCommand extends Command
                 function (TranslatableInterface $e, ?TranslationInterface $existing) use ($locale): void {
                     \assert($e instanceof CookingTips);
                     $t = $existing instanceof CookingTipsTranslation ? $existing : new CookingTipsTranslation();
-                    $t->setCookingStep($e->getCookingStep())
-                        ->setText($e->getText())
+                    $t->setText($e->getText())
                         ->setTitle($e->getTitle())
                         ->setAdvantages($e->getAdvantages())
                         ->setLocale($locale);

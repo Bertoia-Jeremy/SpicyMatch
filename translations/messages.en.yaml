@@ -439,6 +439,10 @@ ui:
         moment_end: End
         moment_after: After
         moment_free: — free —
+        chef_word: "Chef's word"
+        chef_effect: Effect
+        chef_science: Science
+        chef_example: Example
         kinetics_title: Aromatic kinetics
         kinetics_sub: Top · Heart · Base
         kinetics_retention: ' · retention at %temp% °C / %time% min'
@@ -817,13 +821,8 @@ ui:
         in_kitchen: In the kitchen
         in_kitchen_title: slip it
         moments: '%count% moment(s)'
-        marmite_before: Before the heat
-        marmite_during: During the heat
-        marmite_after: After the heat
-        marmite_last: At the last moment
-        marmite_marinade: In a marinade
-        marmite_default: Any time
         step: Step
+        chef_duo: Recommended duo
         notebook: The notebook
         notebook_title: notes in passing
         tame: tame it
@@ -1186,6 +1185,27 @@ enum:
         rare: Infusion
         epic: Extraction
         legendary: Essence
+    cooking_moment:
+        pre:
+            label: 'Prep (Infusion & Marinade)'
+            hint: 'Before cooking, to flavour meats and liquids through and through.'
+            chef: 'Cold or lukewarm extraction. Time does the work instead of heat.'
+        start:
+            label: 'At the start (The Base)'
+            hint: 'The foundation of the dish. The spice melts into the fat and brings depth.'
+            chef: 'Fresh notes are sacrificed to build lasting earthy and woody ones.'
+        simmer:
+            label: 'While simmering (The Heart)'
+            hint: 'The balance. Binds flavours without destroying fragile aromas.'
+            chef: 'The spice has enough time to diffuse, with less thermal oxidation.'
+        finish:
+            label: 'Final touch (Off the heat)'
+            hint: 'The wake-up call. A very short heat to revive the aromas.'
+            chef: 'Turn off the heat and add the spice to the still very hot dish. Heat releases the oils, but no boiling means no evaporation.'
+        plating:
+            label: 'At plating (Raw)'
+            hint: 'The spark. For pure impact and texture contrast on the plate.'
+            chef: 'No alteration. You taste the spice''s original profile through direct contact.'
     kinetics:
         head: Top
         heart: Heart

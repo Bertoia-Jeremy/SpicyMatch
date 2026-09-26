@@ -40,6 +40,10 @@ final class CheckDataConsistencyCommand extends Command
             ...$this->checker->checkOavValues($this->fetchOavRows()),
             ...$this->checker->checkConcentrationSums($this->fetchConcentrationSums(), $this->fetchSpiceNames()),
             ...$this->checker->checkMissingAirOdt($this->fetchCompoundsWithoutAirOdt()),
+            ...$this->checker->checkCookingMoments($this->fetchCookingTipSteps()),
+            ...$this->checker->checkSpiceDuoSpices($this->fetchSpiceDuoSpices()),
+            ...$this->checker->checkDuplicatePreparationTips($this->fetchDuplicatePreparationTips()),
+            ...$this->checker->checkDuplicateCookingMoments($this->fetchDuplicateCookingMoments()),
         ];
 
         $errors = array_filter($violations, static fn (array $v) => $v['severity'] === 'error');
@@ -134,5 +138,78 @@ final class CheckDataConsistencyCommand extends Command
         );
 
         return $rows;
+    }
+
+    /**
+     * @return list<array{id: int, step: int}>
+     */
+    private function fetchCookingTipSteps(): array
+    {
+        /** @var list<array{id: int, step: int}> $rows */
+        $rows = $this->connection->fetchAllAssociative('SELECT id, step FROM cooking_tips');
+
+        return array_map(static fn (array $r): array => [
+            'id' => (int) $r['id'],
+            'step' => (int) $r['step'],
+        ], $rows);
+    }
+
+    /**
+     * @return list<array{id: int, prep_spice_id: int, cook_spice_id: int}>
+     */
+    private function fetchSpiceDuoSpices(): array
+    {
+        $rows = $this->connection->fetchAllAssociative(
+            'SELECT d.id, pt.spice_id AS prep_spice_id, ct.spice_id AS cook_spice_id
+             FROM spice_duo d
+             JOIN preparation_tips pt ON pt.id = d.preparation_tip_id
+             JOIN cooking_tips ct ON ct.id = d.cooking_tip_id',
+        );
+
+        return array_map(static fn (array $r): array => [
+            'id' => (int) $r['id'],
+            'prep_spice_id' => (int) $r['prep_spice_id'],
+            'cook_spice_id' => (int) $r['cook_spice_id'],
+        ], $rows);
+    }
+
+    /**
+     * @return list<array{spice_id: int, preparation_method_id: int, total: int}>
+     */
+    private function fetchDuplicatePreparationTips(): array
+    {
+        $rows = $this->connection->fetchAllAssociative(
+            'SELECT spice_id, preparation_method_id, COUNT(*) AS total
+             FROM preparation_tips
+             WHERE deleted_at IS NULL
+             GROUP BY spice_id, preparation_method_id
+             HAVING COUNT(*) > 1',
+        );
+
+        return array_map(static fn (array $r): array => [
+            'spice_id' => (int) $r['spice_id'],
+            'preparation_method_id' => (int) $r['preparation_method_id'],
+            'total' => (int) $r['total'],
+        ], $rows);
+    }
+
+    /**
+     * @return list<array{spice_id: int, step: int, total: int}>
+     */
+    private function fetchDuplicateCookingMoments(): array
+    {
+        $rows = $this->connection->fetchAllAssociative(
+            'SELECT spice_id, step, COUNT(*) AS total
+             FROM cooking_tips
+             WHERE deleted_at IS NULL
+             GROUP BY spice_id, step
+             HAVING COUNT(*) > 1',
+        );
+
+        return array_map(static fn (array $r): array => [
+            'spice_id' => (int) $r['spice_id'],
+            'step' => (int) $r['step'],
+            'total' => (int) $r['total'],
+        ], $rows);
     }
 }

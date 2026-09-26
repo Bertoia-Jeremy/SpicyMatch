@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Translation\TranslatableInterface;
+use App\Enum\CookingMoment;
 use App\Enum\OdtMatrix;
 use App\Repository\CookingTipsRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -17,9 +18,6 @@ class CookingTips implements TranslatableInterface
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
-
-    #[ORM\Column(length: 255)]
-    private ?string $cooking_step = null;
 
     #[ORM\Column(type: Types::TEXT)]
     private ?string $text = null;
@@ -40,8 +38,8 @@ class CookingTips implements TranslatableInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $title = null;
 
-    #[ORM\Column]
-    private ?int $step = null;
+    #[ORM\Column(name: 'step', type: 'integer', enumType: CookingMoment::class)]
+    private ?CookingMoment $moment = null;
 
     #[ORM\Column(length: 255)]
     private ?string $advantages = null;
@@ -110,11 +108,6 @@ class CookingTips implements TranslatableInterface
         return null;
     }
 
-    public function getLocalizedCookingStep(string $locale): ?string
-    {
-        return $this->getTranslation($locale)?->getCookingStep() ?? $this->cooking_step;
-    }
-
     public function getLocalizedText(string $locale): ?string
     {
         return $this->getTranslation($locale)?->getText() ?? $this->text;
@@ -128,18 +121,6 @@ class CookingTips implements TranslatableInterface
     public function getLocalizedAdvantages(string $locale): ?string
     {
         return $this->getTranslation($locale)?->getAdvantages() ?? $this->advantages;
-    }
-
-    public function getCookingStep(): ?string
-    {
-        return $this->cooking_step;
-    }
-
-    public function setCookingStep(string $cooking_step): static
-    {
-        $this->cooking_step = $cooking_step;
-
-        return $this;
     }
 
     public function getText(): ?string
@@ -214,14 +195,14 @@ class CookingTips implements TranslatableInterface
         return $this;
     }
 
-    public function getStep(): ?int
+    public function getMoment(): ?CookingMoment
     {
-        return $this->step;
+        return $this->moment;
     }
 
-    public function setStep(int $step): static
+    public function setMoment(CookingMoment $moment): static
     {
-        $this->step = $step;
+        $this->moment = $moment;
 
         return $this;
     }

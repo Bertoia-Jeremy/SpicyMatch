@@ -490,7 +490,7 @@ class AcademyManager
             $clues[] = [
                 'type' => 'cooking_tip',
                 'label' => $this->translator->trans('ui.edu.clue.cooking_tip'),
-                'value' => $tip['title'] ?? $tip['cookingStep'] ?? '',
+                'value' => $tip['title'] ?? (isset($tip['moment']) ? $this->translator->trans($tip['moment']) : ''),
             ];
         }
 
@@ -762,7 +762,7 @@ class AcademyManager
             foreach ($spice->getCookingTips() as $tip) {
                 $cookingTips[] = [
                     'title' => $tip->getTitle(),
-                    'cookingStep' => $tip->getCookingStep(),
+                    'moment' => $tip->getMoment()?->label(),
                 ];
             }
 

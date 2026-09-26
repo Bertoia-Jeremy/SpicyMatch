@@ -18,3 +18,6 @@ user:
     password_blank: Veuillez rentrer un mot de passe
     password_min: Votre mot de passe doit contenir au moins {{ limit }} caractères.
     username_reserved: Ce pseudo est réservé.
+spice_duo:
+    duplicate: Ce duo existe déjà pour ces deux conseils.
+    spice_mismatch: Les deux conseils doivent appartenir à la même épice.

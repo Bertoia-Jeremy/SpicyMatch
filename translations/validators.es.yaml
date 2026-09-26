@@ -18,3 +18,6 @@ user:
     password_blank: Introduce una contraseña
     password_min: Tu contraseña debe tener al menos {{ limit }} caracteres.
     username_reserved: Este nombre de usuario está reservado.
+spice_duo:
+    duplicate: Este dúo ya existe para estos dos consejos.
+    spice_mismatch: Ambos consejos deben pertenecer a la misma especia.

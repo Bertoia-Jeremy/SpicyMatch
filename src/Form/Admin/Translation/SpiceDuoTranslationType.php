@@ -4,24 +4,25 @@ declare(strict_types=1);
 
 namespace App\Form\Admin\Translation;
 
-use App\Entity\CookingTipsTranslation;
+use App\Entity\SpiceDuoTranslation;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-final class CookingTipsTranslationType extends AbstractTranslationType
+final class SpiceDuoTranslationType extends AbstractTranslationType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $this->addMeta($builder);
-        $this->text($builder, 'title', 'Titre');
-        $this->area($builder, 'text', 'Texte');
-        $this->text($builder, 'advantages', 'Avantages');
+        $this->text($builder, 'title', 'Accroche');
+        $this->area($builder, 'effect', 'Effet');
+        $this->area($builder, 'science', 'Science');
+        $this->area($builder, 'example', 'Exemple');
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => CookingTipsTranslation::class,
+            'data_class' => SpiceDuoTranslation::class,
         ]);
     }
 }

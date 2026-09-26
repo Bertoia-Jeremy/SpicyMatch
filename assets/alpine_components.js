@@ -585,6 +585,7 @@ export default function registerAlpineComponents(Alpine) {
     Alpine.data('finalisationMelange', (spiceIdsCsv, historyUrl, csrf) => ({
         spiceIds: spiceIdsCsv ? spiceIdsCsv.split(',') : [],
         spiceNames: {},
+        duoMap: { byPrep: {}, byCook: {} },
         current: null,
         results: {},
         toast: { visible: false, text: '' },
@@ -599,6 +600,10 @@ export default function registerAlpineComponents(Alpine) {
                 this.results[id] ??= { cooking: null, preparation: null };
             });
             this.current = this.spiceIds[0] ?? null;
+            try {
+                const parsed = JSON.parse(this.$el.dataset.duoMap || '{}');
+                this.duoMap = { byPrep: parsed.byPrep || {}, byCook: parsed.byCook || {} };
+            } catch (e) { console.error('duoMap parse error', e); }
         },
 
         get allSealed() {
@@ -643,13 +648,46 @@ export default function registerAlpineComponents(Alpine) {
             const r = this.results[spiceId] || {};
             return !!(r.cooking && r.preparation);
         },
+        duoPartners(spiceId, kind) {
+            const r = this.results[spiceId];
+            if (!r) return null;
+            const map = kind === 'cooking' ? this.duoMap.byPrep : this.duoMap.byCook;
+            const counterpart = kind === 'cooking' ? r.preparation : r.cooking;
+            const list = counterpart ? map[counterpart] : null;
+            return list && list.length ? list : null;
+        },
+        duoState(spiceId, kind, tipId) {
+            const partners = this.duoPartners(spiceId, kind);
+            if (!partners) return '';
+            const key = kind === 'cooking' ? 'c' : 'p';
+            const hit = partners.find(d => d[key] === tipId);
+            if (!hit) return 'muted';
+            return hit.r === 1 ? 'recommended' : 'possible';
+        },
+        duoTipActive(spiceId, kind, prepId, cookId) {
+            const r = this.results[spiceId];
+            if (!r) return false;
+            return kind === 'cooking' ? r.preparation === prepId : r.cooking === cookId;
+        },
+        describedBy(spiceId, kind, tipId) {
+            const r = this.results[spiceId];
+            if (!r) return false;
+            if (kind === 'cooking') {
+                const list = r.preparation ? this.duoMap.byCook[tipId] : null;
+                return list && list.some(d => d.p === r.preparation) ? `duo-c-${r.preparation}-${tipId}` : false;
+            }
+            const list = r.cooking ? this.duoMap.byPrep[tipId] : null;
+            return list && list.some(d => d.c === r.cooking) ? `duo-p-${tipId}-${r.cooking}` : false;
+        },
         timingTileClass(spiceId, tipId) {
             const r = this.results[spiceId];
-            return r && r.cooking === tipId ? 'selected' : '';
+            if (r && r.cooking === tipId) return 'selected';
+            return this.duoState(spiceId, 'cooking', tipId);
         },
         methodTileClass(spiceId, tipId) {
             const r = this.results[spiceId];
-            return r && r.preparation === tipId ? 'selected' : '';
+            if (r && r.preparation === tipId) return 'selected';
+            return this.duoState(spiceId, 'preparation', tipId);
         },
 
         toggleCooking(spiceId, tipId) {

@@ -439,6 +439,10 @@ ui:
         moment_end: Fin
         moment_after: Después
         moment_free: — libre —
+        chef_word: Palabra del Chef
+        chef_effect: Efecto
+        chef_science: Ciencia
+        chef_example: Ejemplo
         kinetics_title: Cinética aromática
         kinetics_sub: Cabeza · Corazón · Fondo
         kinetics_retention: ' · retención a %temp% °C / %time% min'
@@ -817,13 +821,8 @@ ui:
         in_kitchen: En la cocina
         in_kitchen_title: deslizarla
         moments: '%count% momento(s)'
-        marmite_before: Antes del fuego
-        marmite_during: Durante el fuego
-        marmite_after: Después del fuego
-        marmite_last: En el último momento
-        marmite_marinade: En adobo
-        marmite_default: A elección
         step: Etapa
+        chef_duo: Dúo recomendado
         notebook: El cuaderno
         notebook_title: notas al pasar
         tame: domesticarla
@@ -1186,6 +1185,27 @@ enum:
         rare: Infusión
         epic: Extracción
         legendary: Esencia
+    cooking_moment:
+        pre:
+            label: 'En preparación (Infusión y Marinada)'
+            hint: 'Antes de cocinar, para perfumar a fondo carnes y líquidos.'
+            chef: 'Extracción en frío o templada. El tiempo trabaja en lugar del calor.'
+        start:
+            label: 'Al inicio (El Fondo)'
+            hint: 'La base del plato. La especia se funde en la grasa y aporta profundidad.'
+            chef: 'Se sacrifican las notas frescas para construir notas terrosas y amaderadas duraderas.'
+        simmer:
+            label: 'En cocción lenta (El Corazón)'
+            hint: 'El equilibrio. Une los sabores sin destruir los aromas frágiles.'
+            chef: 'La especia tiene tiempo de difundirse, con menos oxidación térmica.'
+        finish:
+            label: 'Toque final (Fuera del fuego)'
+            hint: 'El golpe de efecto. Un calor muy breve para despertar los aromas.'
+            chef: 'Se apaga el fuego y se añade la especia al plato aún muy caliente. El calor libera los aceites, pero sin hervor no hay evaporación.'
+        plating:
+            label: 'Al emplatar (En crudo)'
+            hint: 'La chispa. Para un impacto puro y contraste de textura en el plato.'
+            chef: 'Sin alteración. Se percibe el perfil original de la especia por contacto directo.'
     kinetics:
         head: Cabeza
         heart: Corazón

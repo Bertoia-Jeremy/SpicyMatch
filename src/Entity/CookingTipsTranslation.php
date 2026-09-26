@@ -32,9 +32,6 @@ class CookingTipsTranslation implements TranslationInterface
     ])]
     private bool $reviewed = false;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private ?string $cookingStep = null;
-
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $text = null;
 
@@ -81,18 +78,6 @@ class CookingTipsTranslation implements TranslationInterface
     public function setReviewed(bool $reviewed): static
     {
         $this->reviewed = $reviewed;
-
-        return $this;
-    }
-
-    public function getCookingStep(): ?string
-    {
-        return $this->cookingStep;
-    }
-
-    public function setCookingStep(?string $cookingStep): static
-    {
-        $this->cookingStep = $cookingStep;
 
         return $this;
     }

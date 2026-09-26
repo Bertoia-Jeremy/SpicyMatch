@@ -574,6 +574,37 @@ class SpicesRepository extends ServiceEntityRepository
         return array_column($rows, 'name', 'id');
     }
 
+    /**
+     * @param list<int> $ids
+     * @return list<Spices>
+     */
+    public function findForLab(array $ids, string $locale = 'fr'): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $qb = $this->createQueryBuilder('s')
+            ->addSelect('ct', 'pt', 'pm')
+            ->leftJoin('s.cookingTips', 'ct')
+            ->leftJoin('s.preparationTips', 'pt')
+            ->leftJoin('pt.preparationMethod', 'pm')
+            ->where('s.id IN (:ids)')
+            ->setParameter('ids', $ids);
+
+        if ($locale !== 'fr') {
+            $qb->leftJoin('s.translations', 'st', 'WITH', 'st.locale = :locale')
+                ->leftJoin('ct.translations', 'ctt', 'WITH', 'ctt.locale = :locale')
+                ->leftJoin('pt.translations', 'ptt', 'WITH', 'ptt.locale = :locale')
+                ->addSelect('st', 'ctt', 'ptt')
+                ->setParameter('locale', $locale);
+        }
+
+        /** @var list<Spices> */
+        return $qb->getQuery()
+            ->getResult();
+    }
+
     public function countTotal(): int
     {
         return (int) $this->createQueryBuilder('s')

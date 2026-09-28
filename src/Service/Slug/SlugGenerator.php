@@ -7,9 +7,9 @@ namespace App\Service\Slug;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
-final class SlugGenerator
+final readonly class SlugGenerator
 {
-    private readonly SluggerInterface $slugger;
+    private SluggerInterface $slugger;
 
     public function __construct()
     {

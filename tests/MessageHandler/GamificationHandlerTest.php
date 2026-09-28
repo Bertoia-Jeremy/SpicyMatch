@@ -115,7 +115,7 @@ final class GamificationHandlerTest extends TestCase
     {
         $progression = new UserProgression();
         $progression->disableGamification();
-        $user = $this->createMock(Users::class);
+        $user = $this->createStub(Users::class);
         $progression->setUser($user);
         $this->manager->method('getOrCreateProgression')
             ->willReturn($progression);
@@ -194,7 +194,7 @@ final class GamificationHandlerTest extends TestCase
             $processedEvents,
         );
 
-        $user = $this->createMock(Users::class);
+        $user = $this->createStub(Users::class);
         $spicyMatch = $this->createMock(SpicyMatch::class);
         $spicyMatch->method('getUser')
             ->willReturn($user);

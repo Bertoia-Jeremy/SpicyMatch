@@ -16,11 +16,11 @@ use Psr\Cache\CacheItemPoolInterface;
 
 final readonly class AltchaManager
 {
-    public const COST = 10;
+    public const int COST = 10;
 
-    public const KEY_PREFIX_BYTES = 2;
+    public const int KEY_PREFIX_BYTES = 2;
 
-    public const TTL_SECONDS = 600;
+    public const int TTL_SECONDS = 600;
 
     public function __construct(
         private string $altchaHmacKey,
@@ -47,7 +47,7 @@ final readonly class AltchaManager
     {
         $payload = $this->parsePayload($base64Payload);
 
-        if ($payload === null) {
+        if (! $payload instanceof Payload) {
             return false;
         }
 

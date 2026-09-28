@@ -7,12 +7,16 @@ namespace App\Tests\Service;
 use App\Entity\AromaticGroups;
 use App\Entity\Spices;
 use App\Entity\Users;
+use App\Entity\UserStat;
 use App\Repository\SpicesRepository;
 use App\Service\EasterEggService;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
@@ -22,11 +26,20 @@ use Symfony\Component\Messenger\MessageBusInterface;
 #[AllowMockObjectsWithoutExpectations]
 final class EasterEggServiceTest extends TestCase
 {
-    private MessageBusInterface $bus;
+    /**
+     * @var MockObject&MessageBusInterface
+     */
+    private MockObject $bus;
 
-    private SpicesRepository $spicesRepository;
+    /**
+     * @var MockObject&SpicesRepository
+     */
+    private MockObject $spicesRepository;
 
-    private EntityManagerInterface $em;
+    /**
+     * @var Stub&EntityManagerInterface
+     */
+    private Stub $em;
 
     private RequestStack $requestStack;
 
@@ -38,11 +51,11 @@ final class EasterEggServiceTest extends TestCase
     {
         $this->bus = $this->createMock(MessageBusInterface::class);
         $this->spicesRepository = $this->createMock(SpicesRepository::class);
-        $this->em = $this->createMock(EntityManagerInterface::class);
+        $this->em = $this->createStub(EntityManagerInterface::class);
 
         $this->session = new Session(new MockArraySessionStorage());
         $this->requestStack = new RequestStack();
-        $request = new \Symfony\Component\HttpFoundation\Request();
+        $request = new Request();
         $request->setSession($this->session);
         $this->requestStack->push($request);
 
@@ -183,7 +196,7 @@ final class EasterEggServiceTest extends TestCase
         $spice2 = $make($slug2);
 
         $this->spicesRepository->method('find')
-            ->willReturnCallback(fn (int $id) => match ($id) {
+            ->willReturnCallback(fn (int $id): (Spices&MockObject)|null => match ($id) {
                 1 => $spice1,
                 2 => $spice2,
                 default => null,
@@ -211,7 +224,7 @@ final class EasterEggServiceTest extends TestCase
     public function testValidateSecretDuCurryWithCorrectSequence(): void
     {
         $user = $this->makeUser(123);
-        $stats = new \App\Entity\UserStat();
+        $stats = new UserStat();
         $stats->recordVisitedSpice(10);
         $stats->recordVisitedSpice(20);
         $stats->recordVisitedSpice(30);
@@ -225,7 +238,7 @@ final class EasterEggServiceTest extends TestCase
     public function testValidateSecretDuCurryFailsWithWrongSequence(): void
     {
         $user = $this->makeUser(123);
-        $stats = new \App\Entity\UserStat();
+        $stats = new UserStat();
         $stats->recordVisitedSpice(30);
         $stats->recordVisitedSpice(20);
         $stats->recordVisitedSpice(10);
@@ -239,7 +252,7 @@ final class EasterEggServiceTest extends TestCase
     public function testValidateSecretDuCurryFailsWithTooFewVisits(): void
     {
         $user = $this->makeUser(123);
-        $stats = new \App\Entity\UserStat();
+        $stats = new UserStat();
         $stats->recordVisitedSpice(10);
         $stats->recordVisitedSpice(20);
         $user->setStats($stats);
@@ -276,7 +289,7 @@ final class EasterEggServiceTest extends TestCase
     public function testHandleEggUpdatesEasterEggsFoundInStats(): void
     {
         $user = $this->makeUser(123);
-        $stats = new \App\Entity\UserStat();
+        $stats = new UserStat();
         $user->setStats($stats);
 
         self::assertSame(0, $stats->getEasterEggsFound());

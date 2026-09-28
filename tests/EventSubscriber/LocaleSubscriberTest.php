@@ -147,7 +147,7 @@ final class LocaleSubscriberTest extends TestCase
     private function dispatch(Request $request, ?Users $user, bool $mainRequest = true): void
     {
         $token = null;
-        if ($user !== null) {
+        if ($user instanceof Users) {
             $token = $this->createStub(TokenInterface::class);
             $token->method('getUser')
                 ->willReturn($user);
@@ -163,6 +163,7 @@ final class LocaleSubscriberTest extends TestCase
             $mainRequest ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::SUB_REQUEST,
         );
 
-        (new LocaleSubscriber($tokenStorage))->onKernelRequest($event);
+        new LocaleSubscriber($tokenStorage)
+            ->onKernelRequest($event);
     }
 }

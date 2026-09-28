@@ -19,7 +19,7 @@ final class SpiceDuoRepositoryTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->repo = static::getContainer()->get(SpiceDuoRepository::class);
+        $this->repo = self::getContainer()->get(SpiceDuoRepository::class);
     }
 
     public function testEmptySpiceIdsReturnEmpty(): void
@@ -62,7 +62,7 @@ final class SpiceDuoRepositoryTest extends IntegrationTestCase
         try {
             [$prep, $cooks] = $this->spiceWithTips(1);
             $duo = $this->persistDuo($prep, $cooks[0], 1, 'Fond doré');
-            $duo->addTranslation((new SpiceDuoTranslation())->setLocale('en')->setTitle('Golden base'));
+            $duo->addTranslation(new SpiceDuoTranslation()->setLocale('en')->setTitle('Golden base'));
             $this->em->flush();
 
             $spiceId = (int) $prep->getSpice()?->getId();
@@ -107,16 +107,10 @@ final class SpiceDuoRepositoryTest extends IntegrationTestCase
     {
         $preps = $this->em->getRepository(PreparationTips::class)->findAll();
         $prep = $preps[0];
-        $other = null;
-        foreach ($this->em->getRepository(CookingTips::class)->findAll() as $cook) {
-            if ($cook->getSpice() !== $prep->getSpice()) {
-                $other = $cook;
-                break;
-            }
-        }
+        $other = array_find($this->em->getRepository(CookingTips::class)->findAll(), fn ($cook): bool => $cook->getSpice() !== $prep->getSpice());
         self::assertNotNull($other);
 
-        $duo = (new SpiceDuo())
+        $duo = new SpiceDuo()
             ->setPreparationTip($prep)
             ->setCookingTip($other)
             ->setTitle('t')
@@ -124,7 +118,7 @@ final class SpiceDuoRepositoryTest extends IntegrationTestCase
             ->setScience('s')
             ->setExample('x');
 
-        $violations = static::getContainer()->get('validator')->validate($duo);
+        $violations = self::getContainer()->get('validator')->validate($duo);
 
         self::assertCount(1, $violations);
         self::assertSame('cookingTip', $violations[0]->getPropertyPath());
@@ -172,7 +166,7 @@ final class SpiceDuoRepositoryTest extends IntegrationTestCase
 
     private function persistDuo(PreparationTips $prep, CookingTips $cook, int $rank, string $title): SpiceDuo
     {
-        $duo = (new SpiceDuo())
+        $duo = new SpiceDuo()
             ->setPreparationTip($prep)
             ->setCookingTip($cook)
             ->setRank($rank)

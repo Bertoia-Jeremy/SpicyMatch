@@ -17,11 +17,11 @@ use Symfony\Component\Messenger\Stamp\DelayStamp;
 
 final class RecomputeOavTableHandlerTest extends IntegrationTestCase
 {
-    private const REBUILD_LOCK = 'spicymatch_oav_rebuild';
+    private const string REBUILD_LOCK = 'spicymatch_oav_rebuild';
 
-    private const SENTINEL_ID = 999999;
+    private const int SENTINEL_ID = 999999;
 
-    private const MAX_REBUILD_ATTEMPTS = 3;
+    private const int MAX_REBUILD_ATTEMPTS = 3;
 
     private Connection $connection;
 
@@ -106,7 +106,7 @@ final class RecomputeOavTableHandlerTest extends IntegrationTestCase
 
         $delays = array_filter($stamps, static fn (object $stamp): bool => $stamp instanceof DelayStamp);
         self::assertCount(1, $delays);
-        self::assertGreaterThan(0, array_values($delays)[0]->getDelay());
+        self::assertGreaterThan(0, array_first($delays)->getDelay());
     }
 
     public function testAbandonedRebuildIsNotRescheduledOnceAttemptsAreExhausted(): void

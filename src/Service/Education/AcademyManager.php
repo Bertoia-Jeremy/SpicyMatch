@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service\Education;
 
+use App\Entity\AromaticCompound;
 use App\Entity\Spices;
 use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
@@ -50,9 +51,7 @@ class AcademyManager
 
     private function getTransliterator(): \Transliterator
     {
-        if ($this->transliterator === null) {
-            $this->transliterator = \Transliterator::create('NFD; [:Nonspacing Mark:] Remove; NFC');
-        }
+        $this->transliterator ??= \Transliterator::create('NFD; [:Nonspacing Mark:] Remove; NFC');
 
         return $this->transliterator ?? throw new \RuntimeException('ICU transliterator unavailable');
     }
@@ -93,26 +92,19 @@ class AcademyManager
             return $this->spicesRepository->findIncompatibleWith($baseSpice);
         });
 
-        if (empty($excludeIds)) {
+        if ($excludeIds === []) {
             return $allIntruders;
         }
 
         $excludeFlipped = array_flip($excludeIds);
 
-        return array_values(array_filter($allIntruders, fn (Spices $s) => ! isset($excludeFlipped[$s->getId()])));
+        return array_values(array_filter($allIntruders, fn (Spices $s): bool => ! isset($excludeFlipped[$s->getId()])));
     }
 
     public function isCompatible(Spices $base, Spices $candidate): bool
     {
         $results = $this->findCompatibleSpices($base);
-
-        foreach ($results as $r) {
-            if ($r['id'] === $candidate->getId()) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($results, fn (array $r): bool => $r['id'] === $candidate->getId());
     }
 
     /**
@@ -156,12 +148,12 @@ class AcademyManager
     {
         $cards = $this->getAllSpiceCards();
 
-        if (! empty($excludeIds)) {
+        if ($excludeIds !== []) {
             $excludeFlipped = array_flip($excludeIds);
-            $cards = array_filter($cards, fn (array $c) => ! isset($excludeFlipped[$c['id']]));
+            $cards = array_filter($cards, fn (array $c): bool => ! isset($excludeFlipped[$c['id']]));
         }
 
-        if (empty($cards)) {
+        if ($cards === []) {
             return null;
         }
 
@@ -193,7 +185,7 @@ class AcademyManager
         foreach (mb_str_split($name) as $char) {
             $normalized = $this->normalizeChar($char);
 
-            if ($char === ' ' || $char === '-' || $char === '\'') {
+            if (in_array($char, [' ', '-', '\''], true)) {
                 $mask .= $char;
             } elseif (isset($guessedFlipped[$normalized])) {
                 $mask .= $char;
@@ -208,14 +200,7 @@ class AcademyManager
     public function letterInWord(string $letter, string $word): bool
     {
         $normalizedLetter = $this->normalizeChar($letter);
-
-        foreach (mb_str_split($word) as $char) {
-            if ($this->normalizeChar($char) === $normalizedLetter) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(mb_str_split($word), fn (string $char): bool => $this->normalizeChar($char) === $normalizedLetter);
     }
 
     /**
@@ -236,7 +221,7 @@ class AcademyManager
 
         $allSpices = $this->getAllSpices();
         $excludeBaseFlipped = array_flip($excludeBaseIds);
-        $candidates = array_filter($allSpices, fn (Spices $s) => ! isset($excludeBaseFlipped[$s->getId()]));
+        $candidates = array_filter($allSpices, fn (Spices $s): bool => ! isset($excludeBaseFlipped[$s->getId()]));
 
         if (count($candidates) < 5) {
             return null;
@@ -248,7 +233,7 @@ class AcademyManager
             $compatibles = $this->rankedCompatibles($baseSpice);
             $intruders = $this->findIntruders(
                 $baseSpice,
-                [...$excludeBaseIds, ...array_map(static fn (array $c) => (int) $c['id'], $compatibles)],
+                [...$excludeBaseIds, ...array_map(static fn (array $c): int => (int) $c['id'], $compatibles)],
             );
 
             $question = $inverted
@@ -284,7 +269,7 @@ class AcademyManager
             $ranked[] = $entry;
         }
 
-        usort($ranked, static fn (array $a, array $b) => (int) $b['score'] <=> (int) $a['score']);
+        usort($ranked, static fn (array $a, array $b): int => (int) $b['score'] <=> (int) $a['score']);
 
         return $ranked;
     }
@@ -307,7 +292,7 @@ class AcademyManager
             $byGroup[$group->getId()][] = $spice;
         }
 
-        $eligibleGroups = array_filter($byGroup, fn (array $spices) => count($spices) >= 4);
+        $eligibleGroups = array_filter($byGroup, fn (array $spices): bool => count($spices) >= 4);
 
         if (count($eligibleGroups) < 2) {
             return null;
@@ -327,7 +312,7 @@ class AcademyManager
             $excludeFlipped = array_flip($excludeBaseIds);
             $groupSpices = array_values(array_filter(
                 $groupSpices,
-                fn (Spices $s) => ! isset($excludeFlipped[$s->getId()]),
+                fn (Spices $s): bool => ! isset($excludeFlipped[$s->getId()]),
             ));
 
             if (\count($groupSpices) < 3) {
@@ -343,7 +328,7 @@ class AcademyManager
                 }
             }
 
-            if (empty($outsiders)) {
+            if ($outsiders === []) {
                 continue;
             }
 
@@ -392,15 +377,15 @@ class AcademyManager
         $compatibles = $this->findCompatibleSpices($current);
 
         $usedFlipped = array_flip($usedIds);
-        $compatibles = array_values(array_filter($compatibles, fn (array $c) => ! isset($usedFlipped[$c['id']])));
+        $compatibles = array_values(array_filter($compatibles, fn (array $c): bool => ! isset($usedFlipped[$c['id']])));
 
-        if (empty($compatibles)) {
+        if ($compatibles === []) {
             return [];
         }
 
         $filtered = $this->filterByDifficulty($compatibles, $difficulty);
 
-        if (empty($filtered)) {
+        if ($filtered === []) {
             $filtered = $compatibles;
         }
 
@@ -598,16 +583,16 @@ class AcademyManager
     {
         $allSpices = $this->getAllSpices();
         $excludeFlipped = array_flip($excludeIds);
-        $candidates = array_filter($allSpices, fn (Spices $s) => ! isset($excludeFlipped[$s->getId()]));
+        $candidates = array_filter($allSpices, fn (Spices $s): bool => ! isset($excludeFlipped[$s->getId()]));
 
-        if (empty($candidates)) {
+        if ($candidates === []) {
             return null;
         }
 
         if ($difficulty === GameDifficulty::EASY) {
-            $short = array_filter($candidates, fn (Spices $s) => mb_strlen($s->getName()) <= 12);
+            $short = array_filter($candidates, fn (Spices $s): bool => mb_strlen($s->getName()) <= 12);
 
-            if (! empty($short)) {
+            if ($short !== []) {
                 $candidates = $short;
             }
         }
@@ -628,7 +613,7 @@ class AcademyManager
         $excludeNamesFlipped = array_flip($excludeNames);
         $available = array_filter(
             $allNames,
-            fn (string $n) => $n !== $correctName && ! isset($excludeNamesFlipped[$n]),
+            fn (string $n): bool => $n !== $correctName && ! isset($excludeNamesFlipped[$n]),
         );
         $available = array_values($available);
         shuffle($available);
@@ -675,7 +660,7 @@ class AcademyManager
         }
 
         $enriched = $this->spicesRepository->findEnrichedByIds(
-            array_map(static fn (array $option) => $option['id'], $options),
+            array_map(static fn (array $option): int => $option['id'], $options),
             $locale,
         );
 
@@ -786,12 +771,12 @@ class AcademyManager
                 ],
                 'spicyType' => $spice->getSpicyType()?->getName(),
                 'mainCompounds' => array_map(
-                    fn ($c) => $c->getName(),
+                    fn (AromaticCompound $c): ?string => $c->getName(),
                     $spice->getAromaticsCompounds()
                         ->toArray(),
                 ),
                 'secondaryCompounds' => array_map(
-                    fn ($c) => $c->getName(),
+                    fn (AromaticCompound $c): ?string => $c->getName(),
                     $spice->getSecondaryAromaticsCompounds()
                         ->toArray(),
                 ),
@@ -869,12 +854,12 @@ class AcademyManager
         array $intruders,
         GameDifficulty $difficulty,
     ): ?array {
-        $scores = array_map(static fn (array $entry) => (int) $entry['score'], $compatibles);
+        $scores = array_map(static fn (array $entry): int => (int) $entry['score'], $compatibles);
         $intruderCount = count($intruders);
         $eligibleAnswers = [];
 
         foreach ($compatibles as $index => $entry) {
-            $below = $intruderCount + count(array_filter($scores, static fn (int $s) => $s < $scores[$index]));
+            $below = $intruderCount + count(array_filter($scores, static fn (int $s): bool => $s < $scores[$index]));
 
             if ($below >= 3) {
                 $eligibleAnswers[] = $entry;
@@ -1017,7 +1002,7 @@ class AcademyManager
             return $window;
         }
 
-        $sameType = array_values(array_filter($window, static fn (array $e) => $e['spicyTypeId'] === $baseTypeId));
+        $sameType = array_values(array_filter($window, static fn (array $e): bool => $e['spicyTypeId'] === $baseTypeId));
 
         return $sameType === [] ? $window : $sameType;
     }

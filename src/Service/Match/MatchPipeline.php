@@ -10,16 +10,16 @@ use App\Repository\SpiceActiveCompoundRepository;
 use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 
-final class MatchPipeline implements MatchPipelineInterface
+final readonly class MatchPipeline implements MatchPipelineInterface
 {
     public function __construct(
-        private readonly MortarProfileBuilder $mortarProfileBuilder,
-        private readonly CandidateVetoRepository $candidateVetoRepository,
-        private readonly SpiceActiveCompoundRepository $spiceActiveCompoundRepository,
-        private readonly OavTanimotoScorer $scorer,
-        private readonly OavPartitionCalculator $partitionCalculator,
-        private readonly CorrectionApplier $correctionApplier,
-        private readonly FlavorGraphHybridizerInterface $hybridizer,
+        private MortarProfileBuilder $mortarProfileBuilder,
+        private CandidateVetoRepository $candidateVetoRepository,
+        private SpiceActiveCompoundRepository $spiceActiveCompoundRepository,
+        private OavTanimotoScorer $scorer,
+        private OavPartitionCalculator $partitionCalculator,
+        private CorrectionApplier $correctionApplier,
+        private FlavorGraphHybridizerInterface $hybridizer,
     ) {
     }
 
@@ -43,7 +43,7 @@ final class MatchPipeline implements MatchPipelineInterface
         }
 
         if (! $oavMode) {
-            $results = array_map(static fn (int $id) => [
+            $results = array_map(static fn (int $id): array => [
                 'id' => $id,
                 'score' => 0,
                 'oav_mode' => false,
@@ -72,7 +72,7 @@ final class MatchPipeline implements MatchPipelineInterface
 
         $results = $this->hybridizer->rerank($results, $mortar, $oavMode, $matrix, $confidence);
 
-        usort($results, static fn (array $a, array $b) => $b['score'] <=> $a['score']);
+        usort($results, static fn (array $a, array $b): int => $b['score'] <=> $a['score']);
 
         return array_slice($results, 0, $limit);
     }

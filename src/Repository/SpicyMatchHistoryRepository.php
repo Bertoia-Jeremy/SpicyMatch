@@ -7,7 +7,9 @@ namespace App\Repository;
 use App\Entity\SpicyMatchHistory;
 use App\Entity\Users;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query;
 use Doctrine\Persistence\ManagerRegistry;
+use SortDirection;
 
 /**
  * @extends ServiceEntityRepository<SpicyMatchHistory>
@@ -38,23 +40,23 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
             ->where('sm.user = :user')
             ->andWhere('smh.deletedAt IS NULL')
             ->setParameter('user', $user)
-            ->orderBy('smh.createdAt', 'DESC')
+            ->orderBy('smh.createdAt', SortDirection::Descending)
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }
 
     /**
-     * @return \Doctrine\ORM\Query<null, mixed>
+     * @return Query<null, mixed>
      */
-    public function findByUserQuery(Users $user): \Doctrine\ORM\Query
+    public function findByUserQuery(Users $user): Query
     {
         return $this->createQueryBuilder('smh')
             ->join('smh.spicyMatch', 'sm')
             ->where('sm.user = :user')
             ->andWhere('smh.deletedAt IS NULL')
             ->setParameter('user', $user)
-            ->orderBy('smh.createdAt', 'DESC')
+            ->orderBy('smh.createdAt', SortDirection::Descending)
             ->getQuery();
     }
 
@@ -68,9 +70,9 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return \Doctrine\ORM\Query<null, mixed>
+     * @return Query<null, mixed>
      */
-    public function findFavoritesByUserQuery(Users $user): \Doctrine\ORM\Query
+    public function findFavoritesByUserQuery(Users $user): Query
     {
         return $this->createQueryBuilder('smh')
             ->join('smh.spicyMatch', 'sm')
@@ -78,14 +80,14 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
             ->andWhere('smh.favorite = true')
             ->andWhere('smh.deletedAt IS NULL')
             ->setParameter('user', $user)
-            ->orderBy('smh.createdAt', 'DESC')
+            ->orderBy('smh.createdAt', SortDirection::Descending)
             ->getQuery();
     }
 
     /**
-     * @return \Doctrine\ORM\Query<null, mixed>
+     * @return Query<null, mixed>
      */
-    public function findManualByUserQuery(Users $user): \Doctrine\ORM\Query
+    public function findManualByUserQuery(Users $user): Query
     {
         return $this->createQueryBuilder('smh')
             ->join('smh.spicyMatch', 'sm')
@@ -93,7 +95,7 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
             ->andWhere('sm.isManual = true')
             ->andWhere('smh.deletedAt IS NULL')
             ->setParameter('user', $user)
-            ->orderBy('smh.createdAt', 'DESC')
+            ->orderBy('smh.createdAt', SortDirection::Descending)
             ->getQuery();
     }
 

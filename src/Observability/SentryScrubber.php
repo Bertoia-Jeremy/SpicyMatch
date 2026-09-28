@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Observability;
 
 use Sentry\Event;
-use Sentry\EventHint;
 
 final class SentryScrubber
 {
-    private const SENSITIVE_KEY_PATTERN = '/password|token|csrf|secret|api[_-]?key/i';
+    private const string SENSITIVE_KEY_PATTERN = '/password|token|csrf|secret|api[_-]?key/i';
 
-    public function __invoke(Event $event, ?EventHint $hint = null): Event
+    public function __invoke(Event $event): Event
     {
         $request = $event->getRequest();
         if ($request !== []) {

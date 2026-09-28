@@ -10,25 +10,9 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SpiceCompoundConcentrationRepository::class)]
 #[ORM\Table(name: 'spice_compound_concentration')]
-#[ORM\Index(columns: ['aromatic_compound_id'], name: 'idx_compound')]
+#[ORM\Index(name: 'idx_compound', columns: ['aromatic_compound_id'])]
 class SpiceCompoundConcentration
 {
-    #[ORM\Id]
-    #[ORM\ManyToOne(targetEntity: Spices::class)]
-    #[ORM\JoinColumn(name: 'spice_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
-    private Spices $spice;
-
-    #[ORM\Id]
-    #[ORM\ManyToOne(targetEntity: AromaticCompound::class)]
-    #[ORM\JoinColumn(name: 'aromatic_compound_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
-    private AromaticCompound $aromaticCompound;
-
-    #[ORM\Column(name: 'concentration_ppm', type: 'decimal', precision: 14, scale: 4)]
-    private string $concentrationPpm;
-
-    #[ORM\Column(name: 'source', type: 'string', length: 255)]
-    private string $source;
-
     #[ORM\Column(name: 'confidence', type: 'string', length: 20, enumType: DataConfidence::class, options: [
         'default' => 'placeholder',
     ])]
@@ -38,15 +22,19 @@ class SpiceCompoundConcentration
     private \DateTimeImmutable $importedAt;
 
     public function __construct(
-        Spices $spice,
-        AromaticCompound $aromaticCompound,
-        string $concentrationPpm,
-        string $source,
+        #[ORM\Id]
+        #[ORM\ManyToOne(targetEntity: Spices::class)]
+        #[ORM\JoinColumn(name: 'spice_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
+        private Spices $spice,
+        #[ORM\Id]
+        #[ORM\ManyToOne(targetEntity: AromaticCompound::class)]
+        #[ORM\JoinColumn(name: 'aromatic_compound_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
+        private AromaticCompound $aromaticCompound,
+        #[ORM\Column(name: 'concentration_ppm', type: 'decimal', precision: 14, scale: 4)]
+        private string $concentrationPpm,
+        #[ORM\Column(name: 'source', type: 'string', length: 255)]
+        private string $source,
     ) {
-        $this->spice = $spice;
-        $this->aromaticCompound = $aromaticCompound;
-        $this->concentrationPpm = $concentrationPpm;
-        $this->source = $source;
         $this->importedAt = new \DateTimeImmutable();
     }
 

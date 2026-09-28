@@ -71,7 +71,7 @@ class UserProgression
     /**
      * @var Collection<int, UserAchievement>
      */
-    #[ORM\OneToMany(mappedBy: 'userProgression', targetEntity: UserAchievement::class, cascade: [
+    #[ORM\OneToMany(targetEntity: UserAchievement::class, mappedBy: 'userProgression', cascade: [
         'persist',
         'remove',
     ], orphanRemoval: true)]
@@ -133,7 +133,7 @@ class UserProgression
             if ($this->xp === 0) {
                 return 1;
             }
-            $calculated = (int) floor(pow($this->xp / 100, 1 / 1.3));
+            $calculated = (int) floor(($this->xp / 100) ** (1 / 1.3));
 
             return max(1, $calculated);
         }
@@ -142,7 +142,7 @@ class UserProgression
     public int $xpToNextLevel {
         get {
             $nextLevel = $this->level + 1;
-            $requiredXp = (int) ceil(100 * pow($nextLevel, 1.3));
+            $requiredXp = (int) ceil(100 * $nextLevel ** 1.3);
 
             return max(0, $requiredXp - $this->xp);
         }
@@ -151,8 +151,8 @@ class UserProgression
     public float $progressPercent {
         get {
             $currentLevel = $this->level;
-            $xpForCurrent = $currentLevel <= 1 ? 0 : (int) ceil(100 * pow($currentLevel, 1.3));
-            $xpForNext = (int) ceil(100 * pow($currentLevel + 1, 1.3));
+            $xpForCurrent = $currentLevel <= 1 ? 0 : (int) ceil(100 * $currentLevel ** 1.3);
+            $xpForNext = (int) ceil(100 * ($currentLevel + 1) ** 1.3);
             $range = $xpForNext - $xpForCurrent;
 
             if ($range <= 0) {
@@ -244,7 +244,7 @@ class UserProgression
     public function hasAchievement(Achievement $achievement): bool
     {
         return $this->userAchievements->exists(
-            fn (int $_, UserAchievement $ua) => $ua->getAchievement() === $achievement
+            fn (int $_, UserAchievement $ua): bool => $ua->getAchievement() === $achievement
         );
     }
 
@@ -293,7 +293,7 @@ class UserProgression
     {
         $today = new \DateTimeImmutable('today');
 
-        if ($this->lastReadDate === null) {
+        if (! $this->lastReadDate instanceof \DateTimeImmutable) {
             $this->currentReadingStreak = 1;
         } else {
             $diff = (int) $today->diff($this->lastReadDate)
@@ -344,7 +344,7 @@ class UserProgression
 
     public function equipBadge(?UserAchievement $ua): static
     {
-        if ($ua !== null && $ua->getUserProgression() !== $this) {
+        if ($ua instanceof UserAchievement && $ua->getUserProgression() !== $this) {
             throw new \InvalidArgumentException('Badge does not belong to this user.');
         }
         $this->equippedBadge = $ua;

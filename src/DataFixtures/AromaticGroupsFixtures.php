@@ -14,7 +14,7 @@ class AromaticGroupsFixtures extends Fixture implements FixtureGroupInterface
     /**
      * @var array<string, array{name: string, color: string, description: string, cooking: string}>
      */
-    private const GROUPS = [
+    private const array GROUPS = [
         'phenylpropanoides' => [
             'name' => 'Phénylpropanoïdes',
             'color' => '#b45309',

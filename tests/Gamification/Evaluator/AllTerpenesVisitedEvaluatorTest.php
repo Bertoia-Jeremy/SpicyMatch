@@ -119,7 +119,7 @@ final class AllTerpenesVisitedEvaluatorTest extends TestCase
 
     private function makeAchievement(): Achievement
     {
-        return (new Achievement())
+        return new Achievement()
             ->setSlug('test-all-terpenes')
             ->setName('Test')
             ->setDescription('d')

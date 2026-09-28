@@ -15,7 +15,7 @@ final class CompoundPhysicalTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->physical = new CompoundPhysical((new AromaticCompound())->setName('Eugenol'));
+        $this->physical = new CompoundPhysical(new AromaticCompound()->setName('Eugenol'));
     }
 
     public function testOctanolWaterPartitionReturnsNullWhenLogPNull(): void

@@ -66,24 +66,22 @@ final readonly class MatrixComparator
         foreach ($rankings as $matrix => $list) {
             foreach ($list as $entry) {
                 $id = $entry['id'];
-                if (! isset($byId[$id])) {
-                    $byId[$id] = [
-                        'id' => $id,
-                        'name' => $entry['name'],
-                        'scores' => [
-                            'air' => 0,
-                            'water' => 0,
-                            'oil' => 0,
-                        ],
-                    ];
-                }
+                $byId[$id] ??= [
+                    'id' => $id,
+                    'name' => $entry['name'],
+                    'scores' => [
+                        'air' => 0,
+                        'water' => 0,
+                        'oil' => 0,
+                    ],
+                ];
                 $byId[$id]['scores'][$matrix] = $entry['score'];
             }
         }
 
         $grid = array_values($byId);
 
-        usort($grid, static fn (array $a, array $b) => max($b['scores']) <=> max($a['scores']));
+        usort($grid, static fn (array $a, array $b): int => max($b['scores']) <=> max($a['scores']));
 
         return $grid;
     }

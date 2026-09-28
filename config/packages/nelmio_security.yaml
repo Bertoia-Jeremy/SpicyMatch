@@ -20,11 +20,6 @@ nelmio_security:
         policies:
             - 'strict-origin-when-cross-origin'
 
-    # XSS protection — X-XSS-Protection is deprecated but some scanners still flag its absence.
-    xss_protection:
-        enabled: true
-        mode_block: true
-
     csp:
         enabled: true
         hosts: []

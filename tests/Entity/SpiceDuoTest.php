@@ -43,7 +43,8 @@ final class SpiceDuoTest extends TestCase
 
     public function testLocalizedFieldsFallBackToFrenchWhenNoTranslation(): void
     {
-        $duo = (new SpiceDuo())->setTitle('Fond doré')
+        $duo = new SpiceDuo()
+            ->setTitle('Fond doré')
             ->setEffect('e')
             ->setScience('s')
             ->setExample('x');
@@ -54,11 +55,12 @@ final class SpiceDuoTest extends TestCase
 
     public function testLocalizedFieldsPreferTranslationExceptInFrench(): void
     {
-        $duo = (new SpiceDuo())->setTitle('Fond doré')
+        $duo = new SpiceDuo()
+            ->setTitle('Fond doré')
             ->setEffect('e')
             ->setScience('s')
             ->setExample('x');
-        $duo->addTranslation((new SpiceDuoTranslation())->setLocale('en')->setTitle('Golden base'));
+        $duo->addTranslation(new SpiceDuoTranslation()->setLocale('en')->setTitle('Golden base'));
 
         self::assertSame('Golden base', $duo->getLocalizedTitle('en'));
         self::assertSame('e', $duo->getLocalizedEffect('en'));
@@ -74,8 +76,8 @@ final class SpiceDuoTest extends TestCase
 
     private function duoFor(Spices $prepSpice, Spices $cookSpice): SpiceDuo
     {
-        return (new SpiceDuo())
-            ->setPreparationTip((new PreparationTips())->setSpice($prepSpice))
-            ->setCookingTip((new CookingTips())->setSpice($cookSpice));
+        return new SpiceDuo()
+            ->setPreparationTip(new PreparationTips()->setSpice($prepSpice))
+            ->setCookingTip(new CookingTips()->setSpice($cookSpice));
     }
 }

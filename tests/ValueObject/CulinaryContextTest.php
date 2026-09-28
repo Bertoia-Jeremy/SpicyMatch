@@ -32,7 +32,7 @@ final class CulinaryContextTest extends TestCase
 
     public function testIsReadonly(): void
     {
-        self::assertTrue((new \ReflectionClass(CulinaryContext::class))->isReadOnly());
+        self::assertTrue(new \ReflectionClass(CulinaryContext::class)->isReadOnly());
     }
 
     #[DataProvider('validMatrixRequestProvider')]
@@ -124,7 +124,7 @@ final class CulinaryContextTest extends TestCase
     public function testThrowsOnInvalidConstruction(string $expectedMessage, callable $factory): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage($expectedMessage);
+        $this->expectExceptionMessageIsOrContains($expectedMessage);
         $factory();
     }
 
@@ -135,23 +135,23 @@ final class CulinaryContextTest extends TestCase
     {
         yield 'fat ratio below zero' => [
             'fatRatio',
-            static fn () => new CulinaryContext(fatRatio: -0.1, waterRatio: 1.1),
+            static fn (): CulinaryContext => new CulinaryContext(fatRatio: -0.1, waterRatio: 1.1),
         ];
         yield 'fat ratio above one' => [
             'fatRatio',
-            static fn () => new CulinaryContext(fatRatio: 1.5, waterRatio: -0.5),
+            static fn (): CulinaryContext => new CulinaryContext(fatRatio: 1.5, waterRatio: -0.5),
         ];
         yield 'water ratio below zero' => [
             'waterRatio',
-            static fn () => new CulinaryContext(fatRatio: 0.5, waterRatio: -0.5),
+            static fn (): CulinaryContext => new CulinaryContext(fatRatio: 0.5, waterRatio: -0.5),
         ];
         yield 'ratios do not sum to one' => [
             '≈ 1',
-            static fn () => new CulinaryContext(fatRatio: 0.3, waterRatio: 0.3),
+            static fn (): CulinaryContext => new CulinaryContext(fatRatio: 0.3, waterRatio: 0.3),
         ];
         yield 'negative cooking time' => [
             'cookingTimeMin',
-            static fn () => new CulinaryContext(cookingTimeMin: -5),
+            static fn (): CulinaryContext => new CulinaryContext(cookingTimeMin: -5),
         ];
     }
 

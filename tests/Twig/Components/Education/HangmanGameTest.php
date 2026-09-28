@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\Twig\Components\Education;
 
+use App\Repository\SpicesRepository;
 use App\Service\Education\AcademyManager;
 use App\Service\Education\GameSessionManager;
+use App\Service\Match\CompatibleSpiceFinder;
 use App\Twig\Components\Education\HangmanGame;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,17 +26,17 @@ final class HangmanGameTest extends TestCase
 
     private AcademyManager $academyManager;
 
-    private GameSessionManager&MockObject $sessionManager;
+    private GameSessionManager&Stub $sessionManager;
 
     protected function setUp(): void
     {
         $this->academyManager = new AcademyManager(
-            $this->createMock(\App\Repository\SpicesRepository::class),
-            $this->createMock(\App\Service\Match\CompatibleSpiceFinder::class),
+            $this->createStub(SpicesRepository::class),
+            $this->createStub(CompatibleSpiceFinder::class),
             new ArrayAdapter(),
             new IdentityTranslator(),
         );
-        $this->sessionManager = $this->createMock(GameSessionManager::class);
+        $this->sessionManager = $this->createStub(GameSessionManager::class);
     }
 
     /**
@@ -49,8 +51,7 @@ final class HangmanGameTest extends TestCase
         $request = new Request();
         $request->setSession($session);
 
-        $requestStack = new RequestStack();
-        $requestStack->push($request);
+        $requestStack = new RequestStack([$request]);
 
         $game = new HangmanGame($this->academyManager, $this->sessionManager, $requestStack, new IdentityTranslator());
         $game->gameToken = self::TOKEN;

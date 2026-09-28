@@ -29,7 +29,8 @@ final class CookingTimelineBuilderTest extends TestCase
 
     private function makeCompound(int $id, string $name): AromaticCompound
     {
-        $compound = (new AromaticCompound())->setName($name);
+        $compound = new AromaticCompound()
+            ->setName($name);
         $ref = new \ReflectionProperty(AromaticCompound::class, 'id');
         $ref->setValue($compound, $id);
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -39,7 +40,8 @@ final class ExportSpicesCsvCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $date = (new \DateTimeImmutable())->format('Y-m-d_His');
+        $date = new \DateTimeImmutable()
+            ->format('Y-m-d_His');
 
         $outputDir = $this->projectDir . '/' . ltrim((string) $input->getOption('output-dir'), '/');
 
@@ -147,7 +149,7 @@ final class ExportSpicesCsvCommand extends Command
                  ORDER BY id',
             );
             $headers = ['id', 'name', 'cas_number', 'formula', 'description', 'cooking', 'informations'];
-        } catch (\Doctrine\DBAL\Exception) {
+        } catch (Exception) {
             $rows = $this->connection->fetchAllAssociative(
                 'SELECT id, name, description, cooking, informations
                  FROM aromatic_compound
@@ -188,7 +190,7 @@ final class ExportSpicesCsvCommand extends Command
                 'informations',
                 'benefits',
             ];
-        } catch (\Doctrine\DBAL\Exception) {
+        } catch (Exception) {
             $rows = $this->connection->fetchAllAssociative(
                 'SELECT s.id, s.name, s.slug, ag.name AS aromatic_group, st.name AS spicy_type,
                         s.description, s.cooking, s.informations, s.benefits
@@ -251,7 +253,7 @@ final class ExportSpicesCsvCommand extends Command
                  JOIN aromatic_compound ac ON ac.id = co.aromatic_compound_id
                  ORDER BY ac.name, co.matrix',
             );
-        } catch (\Doctrine\DBAL\Exception) {
+        } catch (Exception) {
             $rows = $this->connection->fetchAllAssociative(
                 'SELECT ac.name AS aromatic_compound_name, co.matrix, co.odt_ppm, co.reference_source
                  FROM compound_odt co

@@ -17,7 +17,7 @@ final class SpicyMatchControllerTest extends WebTestCase
 {
     public function testAnonymousUserCanAccessLabIndex(): void
     {
-        $client = static::createClient();
+        $client = self::createClient();
 
         $client->request('GET', '/fr/spicymatch/');
 
@@ -26,7 +26,7 @@ final class SpicyMatchControllerTest extends WebTestCase
 
     public function testAuthenticatedUserCanAccessLabIndex(): void
     {
-        $client = static::createClient();
+        $client = self::createClient();
         $this->loginFirstUser($client);
 
         $client->request('GET', '/fr/spicymatch/');
@@ -36,7 +36,7 @@ final class SpicyMatchControllerTest extends WebTestCase
 
     public function testAnonymousUserIsRedirectedToLoginOnViewRoute(): void
     {
-        $client = static::createClient();
+        $client = self::createClient();
 
         $client->request('GET', '/fr/spicymatch/view/1');
 
@@ -45,12 +45,12 @@ final class SpicyMatchControllerTest extends WebTestCase
 
     public function testViewRendersDuoTooltipsAndMap(): void
     {
-        $client = static::createClient();
-        $user = static::getContainer()->get(UsersRepository::class)->findOneBy([]);
+        $client = self::createClient();
+        $user = self::getContainer()->get(UsersRepository::class)->findOneBy([]);
         self::assertNotNull($user);
         $client->loginUser($user);
 
-        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em = self::getContainer()->get(EntityManagerInterface::class);
         $connection = $em->getConnection();
         $lastMessageId = (int) $connection->fetchOne('SELECT COALESCE(MAX(id), 0) FROM messenger_messages');
 
@@ -65,9 +65,10 @@ final class SpicyMatchControllerTest extends WebTestCase
                 continue;
             }
 
-            $match = (new SpicyMatch())->setUser($user)
+            $match = new SpicyMatch()
+                ->setUser($user)
                 ->addSpice($spice);
-            $duo = (new SpiceDuo())
+            $duo = new SpiceDuo()
                 ->setPreparationTip($prep)
                 ->setCookingTip($cook)
                 ->setTitle('Duo test chef')
@@ -93,12 +94,16 @@ final class SpicyMatchControllerTest extends WebTestCase
             self::assertGreaterThanOrEqual(2, $crawler->filter('[role="tooltip"]')->count());
             self::assertStringContainsString('Duo test chef', $crawler->filter('[role="tooltip"]')->first()->text());
         } finally {
-            $em = static::getContainer()->get(EntityManagerInterface::class);
+            $em = self::getContainer()->get(EntityManagerInterface::class);
             $em->clear();
             $duoToRemove = $em->find(SpiceDuo::class, $duoId);
             $matchToRemove = $em->find(SpicyMatch::class, $matchId);
-            $duoToRemove !== null && $em->remove($duoToRemove);
-            $matchToRemove !== null && $em->remove($matchToRemove);
+            if ($duoToRemove !== null) {
+                $em->remove($duoToRemove);
+            }
+            if ($matchToRemove !== null) {
+                $em->remove($matchToRemove);
+            }
             $em->flush();
             $em->getConnection()
                 ->executeStatement('DELETE FROM messenger_messages WHERE id > :id', [
@@ -109,7 +114,7 @@ final class SpicyMatchControllerTest extends WebTestCase
 
     private function loginFirstUser(KernelBrowser $client): void
     {
-        $user = static::getContainer()->get(UsersRepository::class)->findOneBy([]);
+        $user = self::getContainer()->get(UsersRepository::class)->findOneBy([]);
         self::assertNotNull($user, 'Fixtures must provide at least one user');
         $client->loginUser($user);
     }

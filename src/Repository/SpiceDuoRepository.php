@@ -8,6 +8,7 @@ use App\Entity\SpiceDuo;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
+use SortDirection;
 
 /**
  * @extends ServiceEntityRepository<SpiceDuo>
@@ -67,8 +68,8 @@ class SpiceDuoRepository extends ServiceEntityRepository
             )
             ->innerJoin('d.preparationTip', 'pt')
             ->innerJoin('d.cookingTip', 'ct')
-            ->orderBy('d.rank', 'ASC')
-            ->addOrderBy('d.id', 'ASC');
+            ->orderBy('d.rank', SortDirection::Ascending)
+            ->addOrderBy('d.id', SortDirection::Ascending);
 
         if ($locale === 'fr') {
             return $qb->addSelect('pt.title AS prepTitle', 'd.title AS title', 'd.effect AS effect', 'd.science AS science', 'd.example AS example');

@@ -12,24 +12,24 @@ use Doctrine\ORM\Events;
 #[AsEntityListener(event: Events::postPersist, entity: Achievement::class)]
 #[AsEntityListener(event: Events::postUpdate, entity: Achievement::class)]
 #[AsEntityListener(event: Events::postRemove, entity: Achievement::class)]
-final class AchievementCacheInvalidator
+final readonly class AchievementCacheInvalidator
 {
     public function __construct(
-        private readonly AchievementRepository $achievementRepository,
+        private AchievementRepository $achievementRepository,
     ) {
     }
 
-    public function postPersist(Achievement $achievement): void
+    public function postPersist(): void
     {
         $this->achievementRepository->resetEnabledCache();
     }
 
-    public function postUpdate(Achievement $achievement): void
+    public function postUpdate(): void
     {
         $this->achievementRepository->resetEnabledCache();
     }
 
-    public function postRemove(Achievement $achievement): void
+    public function postRemove(): void
     {
         $this->achievementRepository->resetEnabledCache();
     }

@@ -17,6 +17,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -37,12 +38,9 @@ class EducationController extends AbstractController
     }
 
     #[Route('/', name: 'education_index', methods: ['GET'])]
-    public function index(): Response
+    public function index(#[CurrentUser] ?Users $user = null): Response
     {
-        /** @var Users|null $user */
-        $user = $this->getUser();
-
-        $modes = array_filter(GameMode::cases(), fn (GameMode $m) => $m->isEnabled());
+        $modes = array_filter(GameMode::cases(), fn (GameMode $m): bool => $m->isEnabled());
 
         $dailyCounts = [];
         foreach ($modes as $mode) {
@@ -59,7 +57,7 @@ class EducationController extends AbstractController
             $unlockedByMode[$mode->value] = true;
         }
 
-        if ($user !== null) {
+        if ($user instanceof Users) {
             $grouped = $this->sessionRepository->countTodayByUserGrouped($user);
             foreach ($modes as $mode) {
                 $dailyCounts[$mode->value] = $grouped[$mode->value] ?? 0;
@@ -101,11 +99,8 @@ class EducationController extends AbstractController
 
     #[Route('/briefing', name: 'education_briefing', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function briefing(Request $request): Response
+    public function briefing(Request $request, #[CurrentUser] Users $user): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
         $mode = GameMode::tryFrom($request->query->getString('mode')) ?? GameMode::QCM;
         $difficulty = GameDifficulty::tryFrom($request->query->getString('difficulty')) ?? GameDifficulty::EASY;
 
@@ -119,11 +114,8 @@ class EducationController extends AbstractController
 
     #[Route('/start', name: 'education_start', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
-    public function start(Request $request): Response
+    public function start(Request $request, #[CurrentUser] Users $user): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
         $mode = GameMode::tryFrom($request->request->getString('mode')) ?? GameMode::QCM;
         $difficulty = GameDifficulty::tryFrom($request->request->getString('difficulty')) ?? GameDifficulty::EASY;
 
@@ -166,11 +158,8 @@ class EducationController extends AbstractController
 
     #[Route('/play/{id}', name: 'education_play', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function play(int $id): Response
+    public function play(int $id, #[CurrentUser] Users $user): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
         $session = $this->sessionRepository->find($id);
         if ($session === null || $session->getUser()->getId() !== $user->getId()) {
             throw $this->createNotFoundException();
@@ -203,11 +192,8 @@ class EducationController extends AbstractController
 
     #[Route('/answer/{id}', name: 'education_answer', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
-    public function answer(int $id, Request $request): Response
+    public function answer(int $id, Request $request, #[CurrentUser] Users $user): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
         $session = $this->sessionRepository->find($id);
         if ($session === null || $session->getUser()->getId() !== $user->getId()) {
             throw $this->createNotFoundException();
@@ -228,7 +214,7 @@ class EducationController extends AbstractController
         }
 
         if (! $this->isCsrfTokenValid('education_answer', $request->request->getString('_token'))) {
-            $this->addFlash('error', 'Token CSRF invalide.');
+            $this->addFlash('error', $this->translator->trans('flash.csrf_invalid'));
 
             return $this->redirectToRoute('education_play', [
                 'id' => $id,
@@ -272,7 +258,7 @@ class EducationController extends AbstractController
 
     #[Route('/play-live/{mode}', name: 'education_play_live', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function playLive(string $mode, Request $request): Response
+    public function playLive(string $mode, Request $request, #[CurrentUser] Users $user): Response
     {
         $gameMode = GameMode::tryFrom($mode);
 
@@ -281,9 +267,6 @@ class EducationController extends AbstractController
         }
 
         $difficulty = GameDifficulty::tryFrom($request->query->getString('difficulty')) ?? GameDifficulty::EASY;
-
-        /** @var Users $user */
-        $user = $this->getUser();
 
         if (! $gameMode->isUnlockedForLevel($user->getProgression()?->getLevel() ?? 1)) {
             $this->addFlash('warning', $this->translator->trans('ui.edu.locked_level_hint', [
@@ -313,11 +296,8 @@ class EducationController extends AbstractController
 
     #[Route('/result/{id}', name: 'education_result', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function result(int $id): Response
+    public function result(int $id, #[CurrentUser] Users $user): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
         $session = $this->sessionRepository->find($id);
         if ($session === null || $session->getUser()->getId() !== $user->getId()) {
             throw $this->createNotFoundException();

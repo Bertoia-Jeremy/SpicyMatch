@@ -7,17 +7,17 @@ namespace App\Gamification\Evaluator;
 use App\Enum\AchievementTrigger;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
-final class TriggerEvaluatorRegistry
+final readonly class TriggerEvaluatorRegistry
 {
     /**
      * @var array<string, TriggerEvaluatorInterface>
      */
-    private readonly array $byTrigger;
+    private array $byTrigger;
 
     /**
      * @var array<string, list<TriggerEvaluatorInterface>>
      */
-    private readonly array $byEvent;
+    private array $byEvent;
 
     /**
      * @param iterable<TriggerEvaluatorInterface> $evaluators

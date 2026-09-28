@@ -8,6 +8,7 @@ use App\Entity\PendingGamificationNotification;
 use App\Entity\Users;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use SortDirection;
 
 /**
  * @extends ServiceEntityRepository<PendingGamificationNotification>
@@ -30,7 +31,7 @@ class PendingGamificationNotificationRepository extends ServiceEntityRepository
             ->where('n.user = :user')
             ->andWhere('n.deliveredAt IS NULL')
             ->setParameter('user', $user)
-            ->orderBy('n.createdAt', 'ASC')
+            ->orderBy('n.createdAt', SortDirection::Ascending)
             ->setMaxResults(self::MAX_PER_RESPONSE)
             ->getQuery()
             ->getResult();

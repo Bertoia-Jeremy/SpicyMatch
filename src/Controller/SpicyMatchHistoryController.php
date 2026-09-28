@@ -10,6 +10,7 @@ use App\Entity\Spices;
 use App\Entity\SpicyMatchHistory;
 use App\Entity\Users;
 use App\Enum\CookingMoment;
+use App\Exception\Match\InvalidMortarException;
 use App\Message\FavoriteToggledEvent;
 use App\Repository\CookingTipsRepository;
 use App\Repository\PreparationTipsRepository;
@@ -25,6 +26,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('ROLE_USER')]
@@ -43,11 +45,8 @@ class SpicyMatchHistoryController extends AbstractController
     }
 
     #[Route('/', name: 'index_spicy_match_history', methods: ['GET'])]
-    public function index(): Response
+    public function index(#[CurrentUser] Users $user): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
         return $this->render('spicy_match_history/index.html.twig', [
             'spicymatch_histories' => $this->historyRepository->findByUser($user),
             'favoriteCount' => $this->historyRepository->countFavoritesByUser($user),
@@ -55,11 +54,8 @@ class SpicyMatchHistoryController extends AbstractController
     }
 
     #[Route('/favorites', name: 'favorites_spicy_match_history', methods: ['GET'])]
-    public function favorites(): Response
+    public function favorites(#[CurrentUser] Users $user): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
         return $this->render('spicy_match_history/favorites.html.twig', [
             'spicymatch_histories' => $this->historyRepository->findFavoritesByUser($user),
         ]);
@@ -71,9 +67,9 @@ class SpicyMatchHistoryController extends AbstractController
         MatrixComparator $matrixComparator,
         CookingTimelineBuilder $timelineBuilder,
         Request $request,
+        #[CurrentUser]
+        Users $currentUser,
     ): Response {
-        /** @var Users $currentUser */
-        $currentUser = $this->getUser();
         if ($spicyMatchHistory->getSpicyMatch()->getUser() !== $currentUser) {
             throw $this->createAccessDeniedException();
         }
@@ -113,7 +109,7 @@ class SpicyMatchHistoryController extends AbstractController
                 $sharedCompounds = array_uintersect(
                     $sharedCompounds,
                     $compounds,
-                    static fn ($a, $b) => $a->getId() <=> $b->getId()
+                    static fn ($a, $b): int => $a->getId() <=> $b->getId()
                 );
             }
         }
@@ -136,7 +132,7 @@ class SpicyMatchHistoryController extends AbstractController
                     locale: $request->getLocale(),
                 );
                 $matrixGrid = $matrixComparator->buildGrid($matrixRankings);
-            } catch (\App\Exception\Match\InvalidMortarException) {
+            } catch (InvalidMortarException) {
                 $matrixGrid = [];
             }
         }
@@ -173,9 +169,9 @@ class SpicyMatchHistoryController extends AbstractController
         SpicyMatchHistory $spicyMatchHistory,
         Request $request,
         EntityManagerInterface $entityManager,
+        #[CurrentUser]
+        Users $currentUser,
     ): Response {
-        /** @var Users $currentUser */
-        $currentUser = $this->getUser();
         if ($spicyMatchHistory->getSpicyMatch()->getUser() !== $currentUser) {
             throw $this->createAccessDeniedException();
         }
@@ -191,7 +187,7 @@ class SpicyMatchHistoryController extends AbstractController
 
         $matchSpiceIds = $spicyMatchHistory->getSpicyMatch()
             ->getSpices()
-            ->map(fn (Spices $s) => $s->getId())
+            ->map(fn (Spices $s): ?int => $s->getId())
             ->toArray();
 
         if (! in_array($spiceId, $matchSpiceIds, true)) {
@@ -221,9 +217,9 @@ class SpicyMatchHistoryController extends AbstractController
         SpicyMatchHistory $spicyMatchHistory,
         Request $request,
         EntityManagerInterface $entityManager,
+        #[CurrentUser]
+        Users $currentUser,
     ): JsonResponse {
-        /** @var Users $currentUser */
-        $currentUser = $this->getUser();
         if ($spicyMatchHistory->getSpicyMatch()->getUser() !== $currentUser) {
             throw $this->createAccessDeniedException();
         }
@@ -251,9 +247,9 @@ class SpicyMatchHistoryController extends AbstractController
         SpicyMatchHistory $spicyMatchHistory,
         Request $request,
         EntityManagerInterface $entityManager,
+        #[CurrentUser]
+        Users $currentUser,
     ): JsonResponse {
-        /** @var Users $currentUser */
-        $currentUser = $this->getUser();
         if ($spicyMatchHistory->getSpicyMatch()->getUser() !== $currentUser) {
             throw $this->createAccessDeniedException();
         }
@@ -284,15 +280,7 @@ class SpicyMatchHistoryController extends AbstractController
         int $cookingTipId,
         EntityManagerInterface $em,
     ): Response {
-        $existing = null;
-        foreach ($history->getCookingTips()->toArray() as $tip) {
-            /** @var CookingTips $tip */
-            if ($tip->getSpice()?->getId() === $spiceId) {
-                $existing = $tip;
-                break;
-            }
-        }
-
+        $existing = array_find($history->getCookingTips()->toArray(), fn ($tip): bool => $tip->getSpice()?->getId() === $spiceId);
         if ($existing?->getId() === $cookingTipId) {
             $history->removeCookingTip($existing);
             $cookings = $this->cookingTipsRepository->findBy([
@@ -331,15 +319,7 @@ class SpicyMatchHistoryController extends AbstractController
         int $preparationTipId,
         EntityManagerInterface $em,
     ): Response {
-        $existing = null;
-        foreach ($history->getPreparationTips()->toArray() as $tip) {
-            /** @var PreparationTips $tip */
-            if ($tip->getSpice()?->getId() === $spiceId) {
-                $existing = $tip;
-                break;
-            }
-        }
-
+        $existing = array_find($history->getPreparationTips()->toArray(), fn ($tip): bool => $tip->getSpice()?->getId() === $spiceId);
         if ($existing?->getId() === $preparationTipId) {
             $history->removePreparationTip($existing);
             $preparations = $this->preparationTipsRepository->findBy([

@@ -25,23 +25,24 @@ final class SpiceDuoMapBuilderTest extends TestCase
 
     public function testBuildIndexesBothDirectionsAndKeepsMultiplicity(): void
     {
-        $map = (new SpiceDuoMapBuilder())->build([
-            [
-                'prepId' => 10,
-                'cookId' => 1,
-                'rank' => 1,
-            ],
-            [
-                'prepId' => 10,
-                'cookId' => 2,
-                'rank' => 2,
-            ],
-            [
-                'prepId' => 11,
-                'cookId' => 1,
-                'rank' => 2,
-            ],
-        ]);
+        $map = new SpiceDuoMapBuilder()
+            ->build([
+                [
+                    'prepId' => 10,
+                    'cookId' => 1,
+                    'rank' => 1,
+                ],
+                [
+                    'prepId' => 10,
+                    'cookId' => 2,
+                    'rank' => 2,
+                ],
+                [
+                    'prepId' => 11,
+                    'cookId' => 1,
+                    'rank' => 2,
+                ],
+            ]);
 
         self::assertSame([
             [
@@ -73,15 +74,16 @@ final class SpiceDuoMapBuilderTest extends TestCase
 
     public function testTooltipsCarryTextForBothSides(): void
     {
-        $tips = (new SpiceDuoMapBuilder())->tooltips([
-            [
-                'prepId' => 10,
-                'cookId' => 1,
-                'prepTitle' => 'Infusion',
-                'title' => 'Fond doré',
-                'effect' => 'effet',
-            ],
-        ]);
+        $tips = new SpiceDuoMapBuilder()
+            ->tooltips([
+                [
+                    'prepId' => 10,
+                    'cookId' => 1,
+                    'prepTitle' => 'Infusion',
+                    'title' => 'Fond doré',
+                    'effect' => 'effet',
+                ],
+            ]);
 
         $expected = [
             'p' => 10,

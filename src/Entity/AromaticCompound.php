@@ -16,7 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\UniqueConstraint(name: 'uniq_aromatic_compound_cas', columns: ['cas_number'])]
 #[ORM\UniqueConstraint(name: 'uniq_aromatic_compound_pubchem_cid', columns: ['pubchem_cid'])]
 #[ORM\UniqueConstraint(name: 'uniq_aromatic_compound_inchi_key', columns: ['inchi_key'])]
-class AromaticCompound implements TranslatableInterface, Sluggable
+class AromaticCompound implements TranslatableInterface, Sluggable, \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -26,7 +26,7 @@ class AromaticCompound implements TranslatableInterface, Sluggable
     #[ORM\Column(name: 'name', type: 'string', length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
+    #[ORM\Column(type: 'string', length: 255, unique: true, nullable: true)]
     private ?string $slug = null;
 
     #[ORM\Column(name: 'cas_number', type: 'string', length: 50, nullable: true)]
@@ -80,7 +80,7 @@ class AromaticCompound implements TranslatableInterface, Sluggable
     /**
      * @var Collection<int, AromaticCompoundTranslation>
      */
-    #[ORM\OneToMany(mappedBy: 'aromaticCompound', targetEntity: AromaticCompoundTranslation::class, cascade: [
+    #[ORM\OneToMany(targetEntity: AromaticCompoundTranslation::class, mappedBy: 'aromaticCompound', cascade: [
         'persist',
         'remove',
     ], orphanRemoval: true)]
@@ -363,7 +363,7 @@ class AromaticCompound implements TranslatableInterface, Sluggable
 
     public function __toString(): string
     {
-        return $this->name;
+        return (string) $this->name;
     }
 
     /**

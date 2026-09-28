@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Gamification;
 
 use App\Entity\Achievement;
+use App\Entity\AchievementProgress;
 use App\Entity\PendingGamificationNotification;
 use App\Entity\UserProgression;
 use App\Entity\Users;
@@ -39,6 +40,7 @@ use App\Service\GamificationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -49,7 +51,7 @@ final class GamificationManagerTest extends TestCase
 
     private AchievementRepository&MockObject $achievementRepo;
 
-    private AromaticGroupsRepository&MockObject $aromaticGroupsRepo;
+    private AromaticGroupsRepository&Stub $aromaticGroupsRepo;
 
     private AchievementProgressRepository&MockObject $achievementProgressRepo;
 
@@ -59,7 +61,7 @@ final class GamificationManagerTest extends TestCase
     {
         $this->em = $this->createMock(EntityManagerInterface::class);
         $this->achievementRepo = $this->createMock(AchievementRepository::class);
-        $this->aromaticGroupsRepo = $this->createMock(AromaticGroupsRepository::class);
+        $this->aromaticGroupsRepo = $this->createStub(AromaticGroupsRepository::class);
         $this->achievementProgressRepo = $this->createMock(AchievementProgressRepository::class);
 
         $stats = new UserStat();
@@ -150,7 +152,7 @@ final class GamificationManagerTest extends TestCase
 
         $this->achievementRepo->method('findByTrigger')
             ->willReturnCallback(
-                fn (AchievementTrigger $t) => $t === AchievementTrigger::FIRST_MATCH ? [$achievement] : []
+                fn (AchievementTrigger $t): array => $t === AchievementTrigger::FIRST_MATCH ? [$achievement] : []
             );
 
         $this->setProgressionField('totalMatches', 1);
@@ -167,7 +169,7 @@ final class GamificationManagerTest extends TestCase
 
         $this->achievementRepo->method('findByTrigger')
             ->willReturnCallback(
-                fn (AchievementTrigger $t) => $t === AchievementTrigger::FIRST_MATCH ? [$achievement] : []
+                fn (AchievementTrigger $t): array => $t === AchievementTrigger::FIRST_MATCH ? [$achievement] : []
             );
 
         $this->setProgressionField('totalMatches', 1);
@@ -195,9 +197,9 @@ final class GamificationManagerTest extends TestCase
 
         $this->makeEngine([$strategy])->process($this->progression, 'match_saved');
 
-        $notifs = array_filter($persisted, fn ($n) => $n instanceof PendingGamificationNotification);
+        $notifs = array_filter($persisted, fn (object $n): bool => $n instanceof PendingGamificationNotification);
         self::assertCount(1, $notifs);
-        $notif = array_values($notifs)[0];
+        $notif = array_first($notifs);
         self::assertSame('xp_gained', $notif->getType());
         self::assertSame(5, $notif->getPayload()['amount']);
     }
@@ -217,7 +219,7 @@ final class GamificationManagerTest extends TestCase
 
         $this->makeEngine([$strategy])->process($this->progression, 'match_saved');
 
-        self::assertNotEmpty(array_filter($persisted, fn ($n) => $n instanceof PendingGamificationNotification));
+        self::assertNotEmpty(array_filter($persisted, fn (object $n): bool => $n instanceof PendingGamificationNotification));
     }
 
     public function testDoesNotPersistLevelUpWhenLevelUnchanged(): void
@@ -237,7 +239,7 @@ final class GamificationManagerTest extends TestCase
 
         $levelUps = array_filter(
             $persisted,
-            fn ($n) => $n instanceof PendingGamificationNotification && $n->getType() === 'level_up',
+            fn (object $n): bool => $n instanceof PendingGamificationNotification && $n->getType() === 'level_up',
         );
         self::assertCount(0, $levelUps);
     }
@@ -306,7 +308,7 @@ final class GamificationManagerTest extends TestCase
 
     public function testUpdateAchievementProgressUpsertsProgress(): void
     {
-        $achievement = (new Achievement())
+        $achievement = new Achievement()
             ->setSlug('test-progress')
             ->setName('Many Matches')
             ->setDescription('Desc')
@@ -318,14 +320,14 @@ final class GamificationManagerTest extends TestCase
 
         $this->achievementRepo->method('findByTrigger')
             ->willReturnCallback(
-                fn (AchievementTrigger $t) => $t === AchievementTrigger::N_MATCHES ? [$achievement] : []
+                fn (AchievementTrigger $t): array => $t === AchievementTrigger::N_MATCHES ? [$achievement] : []
             );
 
         $this->setProgressionField('totalMatches', 7);
 
-        $progress = new \App\Entity\AchievementProgress();
+        $progress = new AchievementProgress();
         $progress->setAchievement($achievement);
-        (new \ReflectionProperty(Achievement::class, 'id'))->setValue($achievement, 99);
+        new \ReflectionProperty(Achievement::class, 'id')->setValue($achievement, 99);
         $this->achievementProgressRepo->method('findOrCreateBatchForUser')
             ->willReturn([
                 99 => $progress,
@@ -342,7 +344,7 @@ final class GamificationManagerTest extends TestCase
         $achievement = $this->makeAchievement(AchievementTrigger::FIRST_MATCH, 1);
         $this->achievementRepo->method('findByTrigger')
             ->willReturnCallback(
-                fn (AchievementTrigger $t) => $t === AchievementTrigger::FIRST_MATCH ? [$achievement] : []
+                fn (AchievementTrigger $t): array => $t === AchievementTrigger::FIRST_MATCH ? [$achievement] : []
             );
 
         $this->progression->unlockAchievement($achievement);
@@ -372,7 +374,7 @@ final class GamificationManagerTest extends TestCase
 
         $this->achievementRepo->method('findByTrigger')
             ->willReturnCallback(
-                fn (AchievementTrigger $t) => $t === AchievementTrigger::FIRST_MATCH ? [$achievement] : []
+                fn (AchievementTrigger $t): array => $t === AchievementTrigger::FIRST_MATCH ? [$achievement] : []
             );
 
         $xpBefore = $this->progression->getXp();
@@ -428,7 +430,7 @@ final class GamificationManagerTest extends TestCase
     {
         $strategy = $this->createMock(XpStrategyInterface::class);
         $strategy->method('supports')
-            ->willReturnCallback(fn (string $e) => $e === $eventType);
+            ->willReturnCallback(fn (string $e): bool => $e === $eventType);
         $strategy->method('calculate')
             ->willReturn($xp);
 
@@ -437,7 +439,7 @@ final class GamificationManagerTest extends TestCase
 
     private function makeAchievement(AchievementTrigger $trigger, int $xpReward): Achievement
     {
-        return (new Achievement())
+        return new Achievement()
             ->setSlug('test-' . $trigger->value)
             ->setName('Test Achievement')
             ->setDescription('Desc')
@@ -450,6 +452,6 @@ final class GamificationManagerTest extends TestCase
 
     private function setProgressionField(string $field, mixed $value): void
     {
-        (new \ReflectionProperty(UserProgression::class, $field))->setValue($this->progression, $value);
+        new \ReflectionProperty(UserProgression::class, $field)->setValue($this->progression, $value);
     }
 }

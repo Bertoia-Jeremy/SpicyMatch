@@ -50,7 +50,7 @@
                 <div data-tour="lab-aromatic-filter">
                     {{ filters.filter_dropdown('ui.filters.aromatic_group'|trans, ag_content, {
                         count: this.filterAgId ? 1 : 0,
-                        reset_click: "$dispatch('live:action', {action: 'resetFilters'})",
+                        reset_action: 'resetFilters',
                         style: 'pill'
                     }) }}
                 </div>
@@ -181,7 +181,7 @@
                 <div title="{{ 'ui.lab.mode_tooltip'|trans }}" data-tour="lab-context">
                     {{ filters.filter_dropdown('ui.lab.mode_prefix'|trans({'%label%': this.culinaryLabel}), cooking_content, {
                         count: this.hasCustomCulinaryContext ? 1 : 0,
-                        reset_click: "$dispatch('live:action', {action: 'resetCulinaryContext'})",
+                        reset_action: 'resetCulinaryContext',
                         style: 'pill'
                     }) }}
                 </div>
@@ -206,7 +206,7 @@
                 {% endset %}
                 {{ filters.filter_dropdown('ui.filters.spice_type'|trans, st_content, {
                     count: this.filterStId ? 1 : 0,
-                    reset_click: "$dispatch('live:action', {action: 'resetFilters'})",
+                    reset_action: 'resetFilters',
                     style: 'pill'
                 }) }}
 

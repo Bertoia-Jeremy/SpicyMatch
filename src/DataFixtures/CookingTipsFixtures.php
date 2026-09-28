@@ -17,7 +17,7 @@ class CookingTipsFixtures extends Fixture implements DependentFixtureInterface, 
     /**
      * @var array<string, list<array{step: int, title: string, advantages: string, text: string}>>
      */
-    private const TIPS = [
+    private const array TIPS = [
         'spice_cannelle' => [
             [
                 'step' => 0,

@@ -41,7 +41,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 final class SeedTranslationsCommand extends Command
 {
-    private const SUPPORTED = ['en', 'es'];
+    private const array SUPPORTED = ['en', 'es'];
 
     public function __construct(
         private readonly EntityManagerInterface $em,

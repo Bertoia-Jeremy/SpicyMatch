@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Service\Education;
 
 use App\Entity\GameSession;
+use App\Entity\Users;
 use App\Repository\GameSessionRepository;
 
-final class DifficultyAdvisor
+final readonly class DifficultyAdvisor
 {
     public function __construct(
-        private readonly GameSessionRepository $sessionRepository,
-        private readonly SkillAssessor $assessor,
+        private GameSessionRepository $sessionRepository,
+        private SkillAssessor $assessor,
     ) {
     }
 
@@ -20,7 +21,7 @@ final class DifficultyAdvisor
         $user = $session->getUser();
         $mode = $session->getGameMode();
 
-        if ($user === null || ! $mode->tracksAccuracy()) {
+        if (! $user instanceof Users || ! $mode->tracksAccuracy()) {
             return null;
         }
 

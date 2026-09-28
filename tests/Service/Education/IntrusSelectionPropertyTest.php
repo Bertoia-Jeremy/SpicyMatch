@@ -124,7 +124,7 @@ final class IntrusSelectionPropertyTest extends TestCase
 
         self::assertCount(4, $options, 'P1 ' . $context);
 
-        $ids = array_map(static fn (array $option) => $option['id'], $options);
+        $ids = array_map(static fn (array $option): mixed => $option['id'], $options);
         self::assertCount(4, array_unique($ids), 'P2 ' . $context);
 
         $keySets = array_map(
@@ -208,14 +208,7 @@ final class IntrusSelectionPropertyTest extends TestCase
         if ($this->effectiveIntruders($pool) !== []) {
             return true;
         }
-
-        foreach ($compatibles as $entry) {
-            if ($this->countStrictlyAbove($compatibles, (int) $entry['score']) >= 3) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($compatibles, fn ($entry): bool => $this->countStrictlyAbove($compatibles, (int) $entry['score']) >= 3);
     }
 
     /**
@@ -243,11 +236,11 @@ final class IntrusSelectionPropertyTest extends TestCase
      */
     private function effectiveIntruders(array $pool): array
     {
-        $compatibleIds = array_flip(array_map(static fn (array $c) => (int) $c['id'], $pool['compatibles']));
+        $compatibleIds = array_flip(array_map(static fn (array $c): int => (int) $c['id'], $pool['compatibles']));
 
         return array_values(array_filter(
             $pool['intruders'],
-            static fn (Spices $spice) => ! isset($compatibleIds[(int) $spice->getId()]),
+            static fn (Spices $spice): bool => ! isset($compatibleIds[(int) $spice->getId()]),
         ));
     }
 
@@ -256,7 +249,7 @@ final class IntrusSelectionPropertyTest extends TestCase
      */
     private function countStrictlyAbove(array $compatibles, int $score): int
     {
-        return count(array_filter($compatibles, static fn (array $c) => (int) $c['score'] > $score));
+        return count(array_filter($compatibles, static fn (array $c): bool => (int) $c['score'] > $score));
     }
 
     /**
@@ -264,7 +257,7 @@ final class IntrusSelectionPropertyTest extends TestCase
      */
     private function countStrictlyBelow(array $compatibles, int $score): int
     {
-        return count(array_filter($compatibles, static fn (array $c) => (int) $c['score'] < $score));
+        return count(array_filter($compatibles, static fn (array $c): bool => (int) $c['score'] < $score));
     }
 
     /**

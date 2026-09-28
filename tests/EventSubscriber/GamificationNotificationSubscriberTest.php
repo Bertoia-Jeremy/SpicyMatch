@@ -12,6 +12,7 @@ use App\Repository\PendingGamificationNotificationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,7 +29,7 @@ final class GamificationNotificationSubscriberTest extends TestCase
 
     private PendingGamificationNotificationRepository&MockObject $notifRepository;
 
-    private EntityManagerInterface&MockObject $em;
+    private EntityManagerInterface&Stub $em;
 
     private Environment&MockObject $twig;
 
@@ -38,7 +39,7 @@ final class GamificationNotificationSubscriberTest extends TestCase
     {
         $this->tokenStorage = $this->createMock(TokenStorageInterface::class);
         $this->notifRepository = $this->createMock(PendingGamificationNotificationRepository::class);
-        $this->em = $this->createMock(EntityManagerInterface::class);
+        $this->em = $this->createStub(EntityManagerInterface::class);
         $this->twig = $this->createMock(Environment::class);
 
         $this->subscriber = new GamificationNotificationSubscriber(
@@ -134,7 +135,7 @@ final class GamificationNotificationSubscriberTest extends TestCase
     private function makeEvent(Request $request, Response $response): ResponseEvent
     {
         return new ResponseEvent(
-            $this->createMock(HttpKernelInterface::class),
+            $this->createStub(HttpKernelInterface::class),
             $request,
             HttpKernelInterface::MAIN_REQUEST,
             $response,

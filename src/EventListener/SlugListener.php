@@ -15,11 +15,11 @@ use Doctrine\ORM\Events;
 
 #[AsDoctrineListener(event: Events::prePersist)]
 #[AsDoctrineListener(event: Events::preUpdate)]
-final class SlugListener
+final readonly class SlugListener
 {
     public function __construct(
-        private readonly SlugGenerator $generator,
-        private readonly EntityManagerInterface $em,
+        private SlugGenerator $generator,
+        private EntityManagerInterface $em,
     ) {
     }
 

@@ -38,7 +38,7 @@ final class SpicyMatchTest extends TestCase
 
     public function testAddSpiceIgnoresDuplicate(): void
     {
-        $spice = $this->createMock(Spices::class);
+        $spice = $this->createStub(Spices::class);
         $this->match->addSpice($spice);
         $this->match->addSpice($spice);
 
@@ -47,7 +47,7 @@ final class SpicyMatchTest extends TestCase
 
     public function testRemoveSpice(): void
     {
-        $spice = $this->createMock(Spices::class);
+        $spice = $this->createStub(Spices::class);
         $this->match->addSpice($spice);
         $this->match->removeSpice($spice);
 
@@ -56,8 +56,8 @@ final class SpicyMatchTest extends TestCase
 
     public function testGetSpiceCount(): void
     {
-        $this->match->addSpice($this->createMock(Spices::class));
-        $this->match->addSpice($this->createMock(Spices::class));
+        $this->match->addSpice($this->createStub(Spices::class));
+        $this->match->addSpice($this->createStub(Spices::class));
 
         self::assertSame(2, $this->match->getSpiceCount());
     }

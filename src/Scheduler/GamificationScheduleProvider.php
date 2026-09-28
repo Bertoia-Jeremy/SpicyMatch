@@ -12,16 +12,16 @@ use Symfony\Component\Scheduler\ScheduleProviderInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 
 #[AsSchedule('gamification')]
-final class GamificationScheduleProvider implements ScheduleProviderInterface
+final readonly class GamificationScheduleProvider implements ScheduleProviderInterface
 {
     public function __construct(
-        private readonly CacheInterface $cache,
+        private CacheInterface $cache,
     ) {
     }
 
     public function getSchedule(): Schedule
     {
-        return (new Schedule())
+        return new Schedule()
             ->with(
                 RecurringMessage::cron('0 3 * * *', new RunCommandMessage('app:gamification:cleanup')),
                 RecurringMessage::cron('0 4 * * *', new RunCommandMessage('app:purge-expired-consents')),

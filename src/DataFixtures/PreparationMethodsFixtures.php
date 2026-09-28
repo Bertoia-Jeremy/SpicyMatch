@@ -11,7 +11,7 @@ use Doctrine\Persistence\ObjectManager;
 
 class PreparationMethodsFixtures extends Fixture implements FixtureGroupInterface
 {
-    private const METHODS = [
+    private const array METHODS = [
         'method_entiere' => [
             'name' => 'Utilisation entière',
             'description' => 'L\'épice est incorporée telle quelle dans la préparation — entière, en branche ou en bâton. Elle parfume pendant la cuisson et se retire avant service.',

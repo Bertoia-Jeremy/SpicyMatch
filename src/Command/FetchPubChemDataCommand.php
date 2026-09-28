@@ -175,7 +175,7 @@ final class FetchPubChemDataCommand extends Command
 
         $protectedTiers = [DataConfidence::MEASURED, DataConfidence::LITERATURE];
         $hasProtectedLogP = ! $force
-            && $existingPhysical !== null
+            && $existingPhysical instanceof CompoundPhysical
             && $existingPhysical->getLogP() !== null
             && \in_array($existingPhysical->getConfidence(), $protectedTiers, true);
 
@@ -183,10 +183,10 @@ final class FetchPubChemDataCommand extends Command
             $target = $existingPhysical ?? new CompoundPhysical($compound);
             $target->setLogP($properties->logP);
             $target->setSource(\sprintf('PubChem XLogP3 (auto-fetch via CAS %s)', $cas));
-            if ($existingPhysical === null || $existingPhysical->getConfidence() === DataConfidence::PLACEHOLDER || $force) {
+            if (! $existingPhysical instanceof CompoundPhysical || $existingPhysical->getConfidence() === DataConfidence::PLACEHOLDER || $force) {
                 $target->setConfidence(DataConfidence::ESTIMATED);
             }
-            if ($existingPhysical === null) {
+            if (! $existingPhysical instanceof CompoundPhysical) {
                 $this->em->persist($target);
             }
         }

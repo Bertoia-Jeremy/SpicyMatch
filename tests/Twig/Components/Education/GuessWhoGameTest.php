@@ -12,6 +12,7 @@ use App\Twig\Components\Education\GuessWhoGame;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,12 +28,12 @@ final class GuessWhoGameTest extends TestCase
 
     private AcademyManager&MockObject $academyManager;
 
-    private GameSessionManager&MockObject $sessionManager;
+    private GameSessionManager&Stub $sessionManager;
 
     protected function setUp(): void
     {
         $this->academyManager = $this->createMock(AcademyManager::class);
-        $this->sessionManager = $this->createMock(GameSessionManager::class);
+        $this->sessionManager = $this->createStub(GameSessionManager::class);
 
         $this->academyManager->method('getAllSpiceCards')
             ->willReturn([
@@ -63,8 +64,7 @@ final class GuessWhoGameTest extends TestCase
         $request = new Request();
         $request->setSession($session);
 
-        $requestStack = new RequestStack();
-        $requestStack->push($request);
+        $requestStack = new RequestStack([$request]);
 
         $game = new GuessWhoGame($this->academyManager, $this->sessionManager, $requestStack, new IdentityTranslator());
         $game->gameToken = self::TOKEN;
@@ -588,8 +588,7 @@ final class GuessWhoGameTest extends TestCase
 
         $request = new Request();
         $request->setSession($session);
-        $requestStack = new RequestStack();
-        $requestStack->push($request);
+        $requestStack = new RequestStack([$request]);
 
         $game = new GuessWhoGame($manager, $this->sessionManager, $requestStack, $translator);
         $game->gameToken = self::TOKEN;

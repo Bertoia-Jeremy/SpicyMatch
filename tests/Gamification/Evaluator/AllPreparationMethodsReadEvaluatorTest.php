@@ -77,7 +77,7 @@ final class AllPreparationMethodsReadEvaluatorTest extends TestCase
 
     private function makeAchievement(): Achievement
     {
-        return (new Achievement())
+        return new Achievement()
             ->setSlug('test-all-prep')
             ->setName('Test')
             ->setDescription('d')

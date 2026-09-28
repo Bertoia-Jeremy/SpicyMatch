@@ -16,10 +16,10 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 #[UniqueEntity(fields: [
     'username',
-], message: 'user.username_taken', errorPath: 'username', ignoreNull: false, repositoryMethod: 'findNonDeletedBy')]
+], message: 'user.username_taken', repositoryMethod: 'findNonDeletedBy', errorPath: 'username', ignoreNull: false)]
 #[UniqueEntity(fields: [
     'mail',
-], message: 'user.email_taken', errorPath: 'mail', ignoreNull: true, repositoryMethod: 'findNonDeletedBy')]
+], message: 'user.email_taken', repositoryMethod: 'findNonDeletedBy', errorPath: 'mail', ignoreNull: true)]
 #[ORM\Entity(repositoryClass: UsersRepository::class)]
 #[ORM\Table(name: 'users')]
 #[ORM\HasLifecycleCallbacks]
@@ -63,13 +63,13 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, SpicyMatch>
      */
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: SpicyMatch::class, orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: SpicyMatch::class, mappedBy: 'user', orphanRemoval: true)]
     private Collection $spicyMatches;
 
-    #[ORM\OneToOne(mappedBy: 'user', targetEntity: UserProgression::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(targetEntity: UserProgression::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
     private ?UserProgression $progression = null;
 
-    #[ORM\OneToOne(mappedBy: 'user', targetEntity: UserStat::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(targetEntity: UserStat::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
     private ?UserStat $stats = null;
 
     #[ORM\Column(enumType: GameDifficulty::class, options: [
@@ -218,10 +218,6 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return null;
     }
 
-    public function eraseCredentials(): void
-    {
-    }
-
     public function getMail(): ?string
     {
         return $this->mail;
@@ -323,7 +319,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function isPremium(?\DateTimeImmutable $now = null): bool
     {
-        return $this->premiumUntil !== null && $this->premiumUntil > ($now ?? new \DateTimeImmutable());
+        return $this->premiumUntil instanceof \DateTimeImmutable && $this->premiumUntil > ($now ?? new \DateTimeImmutable());
     }
 
     public function getOnboardingState(): ?string

@@ -182,7 +182,7 @@ final class SpiceReadGamificationHandlerTest extends TestCase
 
     public function testInvokeCreatesProgressionWhenNull(): void
     {
-        $user = $this->createMock(Users::class);
+        $user = $this->createStub(Users::class);
         $this->usersRepo->method('find')
             ->willReturn($user);
         $this->spiceViewRepo->method('countDistinctSpicesByUser')
@@ -204,7 +204,7 @@ final class SpiceReadGamificationHandlerTest extends TestCase
     {
         $progression = new UserProgression();
         $progression->disableGamification();
-        $user = $this->createMock(Users::class);
+        $user = $this->createStub(Users::class);
         $progression->setUser($user);
         $this->manager->method('getOrCreateProgression')
             ->willReturn($progression);

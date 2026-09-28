@@ -14,7 +14,7 @@ final class GoldenPairingsTest extends TestCase
     /**
      * @var array<int, float>
      */
-    private const FENOUIL = [
+    private const array FENOUIL = [
         3 => 50_000_000.0,
         4 => 100_000.0,
         5 => 50_000.0,
@@ -24,7 +24,7 @@ final class GoldenPairingsTest extends TestCase
     /**
      * @var array<int, float>
      */
-    private const ANIS_ETOILE = [
+    private const array ANIS_ETOILE = [
         3 => 80_000_000.0,
         4 => 60_000.0,
         8 => 1_000.0,
@@ -33,7 +33,7 @@ final class GoldenPairingsTest extends TestCase
     /**
      * @var array<int, float>
      */
-    private const CARVI = [
+    private const array CARVI = [
         3 => 1_500_000.0,
         5 => 50_000.0,
         8 => 30_000.0,
@@ -43,7 +43,7 @@ final class GoldenPairingsTest extends TestCase
     /**
      * @var array<int, float>
      */
-    private const POIVRE_LIKE = [
+    private const array POIVRE_LIKE = [
         8 => 5_000.0,
     ];
 

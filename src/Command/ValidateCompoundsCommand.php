@@ -20,11 +20,11 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 )]
 final class ValidateCompoundsCommand extends Command
 {
-    private const PUBCHEM_BASE = 'https://pubchem.ncbi.nlm.nih.gov/rest/pug';
+    private const string PUBCHEM_BASE = 'https://pubchem.ncbi.nlm.nih.gov/rest/pug';
 
-    private const REQUEST_DELAY_US = 250_000;
+    private const int REQUEST_DELAY_US = 250_000;
 
-    private const NAME_SIMILARITY_THRESHOLD = 55;
+    private const int NAME_SIMILARITY_THRESHOLD = 55;
 
     public function __construct(
         private readonly Connection $connection,
@@ -48,7 +48,8 @@ final class ValidateCompoundsCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $apply = (bool) $input->getOption('apply');
-        $date = (new \DateTimeImmutable())->format('Y-m-d_His');
+        $date = new \DateTimeImmutable()
+            ->format('Y-m-d_His');
 
         $io->title('Validation CAS + Formules via PubChem — ' . $date);
 
@@ -154,7 +155,7 @@ final class ValidateCompoundsCommand extends Command
         $pubchemFormula = $properties['MolecularFormula'];
         $pubchemIupac = $properties['IUPACName'];
 
-        $synonyms = $this->fetchPubChemSynonyms($cas, $io);
+        $synonyms = $this->fetchPubChemSynonyms($cas);
         $nameFound = $this->nameInSynonyms($storedName, $synonyms, $pubchemIupac);
         $nameSimilarity = $this->computeNameSimilarity($storedName, $pubchemIupac);
 
@@ -258,7 +259,7 @@ final class ValidateCompoundsCommand extends Command
     /**
      * @return string[]
      */
-    private function fetchPubChemSynonyms(string $cas, SymfonyStyle $io): array
+    private function fetchPubChemSynonyms(string $cas): array
     {
         $url = self::PUBCHEM_BASE . '/compound/name/' . urlencode($cas) . '/synonyms/JSON';
 
@@ -275,7 +276,7 @@ final class ValidateCompoundsCommand extends Command
             $synonyms = $data['InformationList']['Information'][0]['Synonym'] ?? [];
 
             return array_map(fn (mixed $s): string => $this->sanitizeText((string) $s), $synonyms);
-        } catch (TransportExceptionInterface $e) {
+        } catch (TransportExceptionInterface) {
             return [];
         }
     }

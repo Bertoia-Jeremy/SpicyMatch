@@ -8,27 +8,17 @@ use App\Factory\UsersFactory;
 use App\Form\RegistrationFormType;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormView;
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFunction;
+use Twig\Attribute\AsTwigFunction;
 
-final class RegistrationFormExtension extends AbstractExtension
+final readonly class RegistrationFormExtension
 {
     public function __construct(
-        private readonly FormFactoryInterface $formFactory,
-        private readonly UsersFactory $usersFactory,
+        private FormFactoryInterface $formFactory,
+        private UsersFactory $usersFactory,
     ) {
     }
 
-    /**
-     * @return TwigFunction[]
-     */
-    public function getFunctions(): array
-    {
-        return [
-            new TwigFunction('embedded_registration_form', $this->embeddedRegistrationForm(...)),
-        ];
-    }
-
+    #[AsTwigFunction(name: 'embedded_registration_form')]
     public function embeddedRegistrationForm(): FormView
     {
         return $this->formFactory->create(RegistrationFormType::class, $this->usersFactory->create())

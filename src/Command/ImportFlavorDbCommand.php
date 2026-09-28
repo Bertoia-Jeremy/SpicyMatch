@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Entity\SpiceCompoundConcentration;
 use App\Repository\AromaticCompoundRepository;
 use App\Repository\SpicesRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,7 +23,7 @@ use Symfony\Component\Yaml\Yaml;
 )]
 final class ImportFlavorDbCommand extends Command
 {
-    private const DEFAULT_FILE = 'fixtures/spice_compound_concentration.yaml';
+    private const string DEFAULT_FILE = 'fixtures/spice_compound_concentration.yaml';
 
     private const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -30,7 +31,7 @@ final class ImportFlavorDbCommand extends Command
         private readonly SpicesRepository $spicesRepository,
         private readonly AromaticCompoundRepository $aromaticCompoundRepository,
         private readonly EntityManagerInterface $em,
-        #[Autowire('%kernel.project_dir%')]
+        #[Autowire(param: 'kernel.project_dir')]
         private readonly string $projectDir,
     ) {
         parent::__construct();
@@ -74,7 +75,9 @@ final class ImportFlavorDbCommand extends Command
         }
 
         $io->title(sprintf('Import concentrations FlavorDB depuis %s', $resolvedPath));
-        $dryRun && $io->warning('Mode DRY-RUN : aucune écriture en BDD.');
+        if ($dryRun) {
+            $io->warning('Mode DRY-RUN : aucune écriture en BDD.');
+        }
 
         $entries = Yaml::parseFile($resolvedPath, Yaml::PARSE_EXCEPTION_ON_INVALID_TYPE);
 
@@ -147,7 +150,7 @@ final class ImportFlavorDbCommand extends Command
             }
 
             $existing = $this->em->find(
-                \App\Entity\SpiceCompoundConcentration::class,
+                SpiceCompoundConcentration::class,
                 [
                     'spice' => $spice,
                     'aromaticCompound' => $compound,
@@ -160,7 +163,7 @@ final class ImportFlavorDbCommand extends Command
                 $io->text(sprintf('  UPDATE %s / %s = %s ppm', $spiceName, $compoundName, $concentrationPpm));
                 ++$updated;
             } else {
-                $concentration = new \App\Entity\SpiceCompoundConcentration(
+                $concentration = new SpiceCompoundConcentration(
                     $spice,
                     $compound,
                     (string) $concentrationPpm,

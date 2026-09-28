@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AlchemyFlavorsRepository::class)]
 #[ORM\Table(name: 'alchemy_flavors')]
-class AlchemyFlavors implements TranslatableInterface, Sluggable
+class AlchemyFlavors implements TranslatableInterface, Sluggable, \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -23,7 +23,7 @@ class AlchemyFlavors implements TranslatableInterface, Sluggable
     #[ORM\Column(name: 'name', type: 'string', length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
+    #[ORM\Column(type: 'string', length: 255, unique: true, nullable: true)]
     private ?string $slug = null;
 
     #[ORM\Column(name: 'description', type: 'text', nullable: true)]
@@ -53,7 +53,7 @@ class AlchemyFlavors implements TranslatableInterface, Sluggable
     /**
      * @var Collection<int, AlchemyFlavorsTranslation>
      */
-    #[ORM\OneToMany(mappedBy: 'alchemyFlavor', targetEntity: AlchemyFlavorsTranslation::class, cascade: [
+    #[ORM\OneToMany(targetEntity: AlchemyFlavorsTranslation::class, mappedBy: 'alchemyFlavor', cascade: [
         'persist',
         'remove',
     ], orphanRemoval: true)]
@@ -262,6 +262,6 @@ class AlchemyFlavors implements TranslatableInterface, Sluggable
 
     public function __toString(): string
     {
-        return $this->name;
+        return (string) $this->name;
     }
 }

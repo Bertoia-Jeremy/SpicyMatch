@@ -22,23 +22,23 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 )]
 final class ImportSpicesCatalogCommand extends Command
 {
-    private const DEFAULT_FILE = 'data/flavorgraph/selection_100.csv';
+    private const string DEFAULT_FILE = 'data/flavorgraph/selection_100.csv';
 
     private const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-    private const REVIEW_GROUP_NAME = 'À réviser';
+    private const string REVIEW_GROUP_NAME = 'À réviser';
 
-    private const REVIEW_GROUP_COLOR = '#9ca3af';
+    private const string REVIEW_GROUP_COLOR = '#9ca3af';
 
     /**
      * @var list<string>
      */
-    private const DELETED_SLUGS = ['piment-espelette', 'poivre-long'];
+    private const array DELETED_SLUGS = ['piment-espelette', 'poivre-long'];
 
     public function __construct(
         private readonly SpicesRepository $spicesRepository,
         private readonly EntityManagerInterface $em,
-        #[Autowire('%kernel.project_dir%')]
+        #[Autowire(param: 'kernel.project_dir')]
         private readonly string $projectDir,
     ) {
         parent::__construct();
@@ -218,7 +218,7 @@ final class ImportSpicesCatalogCommand extends Command
             $spice = $this->spicesRepository->findOneBy([
                 'slug' => $slug,
             ]);
-            if ($spice instanceof Spices && $spice->getDeletedAt() === null) {
+            if ($spice instanceof Spices && ! $spice->getDeletedAt() instanceof \DateTimeInterface) {
                 $spice->setDeletedAt(new \DateTimeImmutable());
                 ++$count;
             }

@@ -10,38 +10,26 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SpiceActiveCompoundRepository::class)]
 #[ORM\Table(name: 'spice_active_compound')]
-#[ORM\Index(columns: ['spice_id', 'matrix'], name: 'idx_spice_matrix')]
-#[ORM\Index(columns: ['aromatic_compound_id', 'spice_id', 'matrix'], name: 'idx_compound_spice')]
-#[ORM\Index(columns: ['spice_id', 'matrix', 'aromatic_compound_id', 'oav_value'], name: 'idx_spice_cover')]
+#[ORM\Index(name: 'idx_spice_matrix', columns: ['spice_id', 'matrix'])]
+#[ORM\Index(name: 'idx_compound_spice', columns: ['aromatic_compound_id', 'spice_id', 'matrix'])]
+#[ORM\Index(name: 'idx_spice_cover', columns: ['spice_id', 'matrix', 'aromatic_compound_id', 'oav_value'])]
 class SpiceActiveCompound
 {
-    #[ORM\Id]
-    #[ORM\Column(name: 'spice_id', type: 'integer')]
-    private int $spiceId;
-
-    #[ORM\Id]
-    #[ORM\Column(name: 'aromatic_compound_id', type: 'integer')]
-    private int $aromaticCompoundId;
-
-    #[ORM\Id]
-    #[ORM\Column(name: 'matrix', type: 'string', length: 5, enumType: OdtMatrix::class, options: [
-        'default' => 'air',
-    ])]
-    private OdtMatrix $matrix;
-
-    #[ORM\Column(name: 'oav_value', type: 'float')]
-    private float $oavValue;
-
     public function __construct(
-        int $spiceId,
-        int $aromaticCompoundId,
-        float $oavValue,
-        OdtMatrix $matrix = OdtMatrix::AIR,
+        #[ORM\Id]
+        #[ORM\Column(name: 'spice_id', type: 'integer')]
+        private int $spiceId,
+        #[ORM\Id]
+        #[ORM\Column(name: 'aromatic_compound_id', type: 'integer')]
+        private int $aromaticCompoundId,
+        #[ORM\Column(name: 'oav_value', type: 'float')]
+        private float $oavValue,
+        #[ORM\Id]
+        #[ORM\Column(name: 'matrix', type: 'string', length: 5, enumType: OdtMatrix::class, options: [
+            'default' => 'air',
+        ])]
+        private OdtMatrix $matrix = OdtMatrix::AIR
     ) {
-        $this->spiceId = $spiceId;
-        $this->aromaticCompoundId = $aromaticCompoundId;
-        $this->oavValue = $oavValue;
-        $this->matrix = $matrix;
     }
 
     public function getSpiceId(): int

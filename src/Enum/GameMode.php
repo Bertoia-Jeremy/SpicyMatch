@@ -109,7 +109,7 @@ enum GameMode: string
      */
     public static function dailyFeatured(array $modes): self
     {
-        return $modes[(int) (new \DateTimeImmutable('today'))->format('z') % \count($modes)];
+        return $modes[(int) new \DateTimeImmutable('today')->format('z') % \count($modes)];
     }
 
     public function posterGradient(): string

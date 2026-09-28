@@ -7,6 +7,7 @@ namespace App\Command;
 use App\Entity\AromaticCompound;
 use App\Entity\CompoundOdt;
 use App\Entity\SpiceCompoundConcentration;
+use App\Entity\Spices;
 use App\Enum\DataConfidence;
 use App\Enum\OdtMatrix;
 use App\Repository\AromaticCompoundRepository;
@@ -36,7 +37,7 @@ final class ImportAcquisitionCsvCommand extends Command
         private readonly AromaticCompoundRepository $aromaticCompoundRepository,
         private readonly CompoundOdtRepository $compoundOdtRepository,
         private readonly EntityManagerInterface $em,
-        #[Autowire('%kernel.project_dir%')]
+        #[Autowire(param: 'kernel.project_dir')]
         private readonly string $projectDir,
     ) {
         parent::__construct();
@@ -87,7 +88,9 @@ final class ImportAcquisitionCsvCommand extends Command
         }
 
         $io->title(\sprintf('Import acquisition CSV depuis %s', $resolvedPath));
-        $dryRun && $io->warning('Mode DRY-RUN : aucune écriture en BDD.');
+        if ($dryRun) {
+            $io->warning('Mode DRY-RUN : aucune écriture en BDD.');
+        }
 
         $stats = [
             'compounds_created' => 0,
@@ -98,7 +101,7 @@ final class ImportAcquisitionCsvCommand extends Command
 
         /** @var array<string, AromaticCompound> $compoundCache */
         $compoundCache = [];
-        /** @var array<string, \App\Entity\Spices|null> $spiceCache */
+        /** @var array<string, Spices|null> $spiceCache */
         $spiceCache = [];
 
         $header = fgetcsv($handle, escape: '\\');
@@ -111,15 +114,15 @@ final class ImportAcquisitionCsvCommand extends Command
                 continue;
             }
 
-            $spiceName = trim((string) ($row[0] ?? ''));
-            $compoundName = trim((string) ($row[1] ?? ''));
+            $spiceName = trim($row[0] ?? '');
+            $compoundName = trim($row[1] ?? '');
             if ($spiceName === '' || $compoundName === '') {
                 ++$stats['skipped'];
                 continue;
             }
 
-            $cas = trim((string) ($row[2] ?? '')) ?: null;
-            $formula = trim((string) ($row[3] ?? '')) ?: null;
+            $cas = trim($row[2] ?? '') ?: null;
+            $formula = trim($row[3] ?? '') ?: null;
 
             $compound = $compoundCache[$compoundName] ??= $this->resolveCompound(
                 $compoundName,
@@ -203,7 +206,7 @@ final class ImportAcquisitionCsvCommand extends Command
      * @param array<string, int> $stats
      */
     private function upsertConcentration(
-        \App\Entity\Spices $spice,
+        Spices $spice,
         AromaticCompound $compound,
         array $row,
         bool $dryRun,
@@ -267,7 +270,7 @@ final class ImportAcquisitionCsvCommand extends Command
                 $matrix
             ) : null;
 
-            if ($existing !== null) {
+            if ($existing instanceof CompoundOdt) {
                 $existing->setOdtPpm($ppm);
                 $existing->setReferenceSource($source);
                 $existing->setConfidence($confidence);

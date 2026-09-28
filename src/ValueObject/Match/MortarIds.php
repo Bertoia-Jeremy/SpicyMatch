@@ -6,7 +6,7 @@ namespace App\ValueObject\Match;
 
 use App\Exception\Match\InvalidMortarException;
 
-final class MortarIds
+final readonly class MortarIds
 {
     private const int MIN_COUNT = 1;
 
@@ -15,14 +15,14 @@ final class MortarIds
     /**
      * @var list<int>
      */
-    private readonly array $ids;
+    private array $ids;
 
     /**
      * @param int[] $ids IDs d'épices (peuvent contenir des doublons ou des valeurs ≤ 0)
      */
     public function __construct(array $ids)
     {
-        $filtered = array_values(array_unique(array_filter($ids, static fn (int $id) => $id > 0)));
+        $filtered = array_values(array_unique(array_filter($ids, static fn (int $id): bool => $id > 0)));
 
         $count = count($filtered);
         if ($count < self::MIN_COUNT || $count > self::MAX_COUNT) {

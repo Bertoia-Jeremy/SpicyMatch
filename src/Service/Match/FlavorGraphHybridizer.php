@@ -9,13 +9,13 @@ use App\Enum\OdtMatrix;
 use App\Repository\FlavorGraphAffinityRepository;
 use App\ValueObject\Match\MortarIds;
 
-final class FlavorGraphHybridizer implements FlavorGraphHybridizerInterface
+final readonly class FlavorGraphHybridizer implements FlavorGraphHybridizerInterface
 {
     public const float DEGRADED_SCORE_SCALE = 0.65;
 
     public function __construct(
-        private readonly FlavorGraphAffinityRepository $repository,
-        private readonly MatchConfidenceAssessorInterface $confidenceAssessor,
+        private FlavorGraphAffinityRepository $repository,
+        private MatchConfidenceAssessorInterface $confidenceAssessor,
     ) {
     }
 

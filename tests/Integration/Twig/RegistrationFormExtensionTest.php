@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
+use Twig\Environment;
 
 final class RegistrationFormExtensionTest extends KernelTestCase
 {
@@ -19,13 +20,13 @@ final class RegistrationFormExtensionTest extends KernelTestCase
 
         $request = Request::create('/fr/');
         $request->setSession(new Session(new MockArraySessionStorage()));
-        static::getContainer()->get('request_stack')
+        self::getContainer()->get('request_stack')
             ->push($request);
     }
 
     public function testEmbeddedRegistrationFormExposesExpectedFields(): void
     {
-        $container = static::getContainer();
+        $container = self::getContainer();
 
         $extension = new RegistrationFormExtension(
             $container->get('form.factory'),
@@ -42,7 +43,7 @@ final class RegistrationFormExtensionTest extends KernelTestCase
 
     public function testEachCallBuildsAFreshFormInstance(): void
     {
-        $container = static::getContainer();
+        $container = self::getContainer();
 
         $extension = new RegistrationFormExtension(
             $container->get('form.factory'),
@@ -55,17 +56,11 @@ final class RegistrationFormExtensionTest extends KernelTestCase
         self::assertNotSame($first, $second, 'Rendering the modal on two different pages must not share form state');
     }
 
-    public function testGetFunctionsExposesEmbeddedRegistrationForm(): void
+    public function testTwigExposesEmbeddedRegistrationForm(): void
     {
-        $container = static::getContainer();
+        /** @var Environment $twig */
+        $twig = self::getContainer()->get('twig');
 
-        $extension = new RegistrationFormExtension(
-            $container->get('form.factory'),
-            $container->get(UsersFactory::class),
-        );
-
-        $names = array_map(static fn ($f) => $f->getName(), $extension->getFunctions());
-
-        self::assertContains('embedded_registration_form', $names);
+        self::assertNotNull($twig->getFunction('embedded_registration_form'));
     }
 }

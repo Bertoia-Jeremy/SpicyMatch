@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Entity\CompoundOdt;
 use App\Enum\DataConfidence;
 use App\Enum\OdtMatrix;
 use App\Repository\AromaticCompoundRepository;
@@ -22,7 +23,7 @@ use Symfony\Component\Yaml\Yaml;
 #[AsCommand(name: 'app:import:odt', description: 'Ingère les seuils olfactifs (ODT) depuis un fichier YAML')]
 final class ImportOdtCommand extends Command
 {
-    private const DEFAULT_FILE = 'fixtures/compound_odt.yaml';
+    private const string DEFAULT_FILE = 'fixtures/compound_odt.yaml';
 
     private const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -30,7 +31,7 @@ final class ImportOdtCommand extends Command
         private readonly AromaticCompoundRepository $aromaticCompoundRepository,
         private readonly CompoundOdtRepository $compoundOdtRepository,
         private readonly EntityManagerInterface $em,
-        #[Autowire('%kernel.project_dir%')]
+        #[Autowire(param: 'kernel.project_dir')]
         private readonly string $projectDir,
     ) {
         parent::__construct();
@@ -79,7 +80,9 @@ final class ImportOdtCommand extends Command
         }
 
         $io->title(sprintf('Import ODT depuis %s', $resolvedPath));
-        $dryRun && $io->warning('Mode DRY-RUN : aucune écriture en BDD.');
+        if ($dryRun) {
+            $io->warning('Mode DRY-RUN : aucune écriture en BDD.');
+        }
 
         $entries = Yaml::parseFile($resolvedPath, Yaml::PARSE_EXCEPTION_ON_INVALID_TYPE);
 
@@ -135,7 +138,7 @@ final class ImportOdtCommand extends Command
 
             $existing = $this->compoundOdtRepository->findForCompound($compoundId, $matrix);
 
-            if ($existing !== null) {
+            if ($existing instanceof CompoundOdt) {
                 $existing->setOdtPpm((string) $odtPpm);
                 $existing->setReferenceSource($source);
                 $existing->setConfidence($confidence);
@@ -150,7 +153,7 @@ final class ImportOdtCommand extends Command
                 );
                 ++$updated;
             } else {
-                $odt = new \App\Entity\CompoundOdt($compound, $matrix, (string) $odtPpm, $source);
+                $odt = new CompoundOdt($compound, $matrix, (string) $odtPpm, $source);
                 $odt->setConfidence($confidence);
                 $this->em->persist($odt);
                 $io->text(

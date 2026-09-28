@@ -48,6 +48,8 @@
                     <a href="{{ reset_url }}" class="text-xs text-stone-400 underline transition-colors hover:text-paprika-700">
                         {{ 'common.reset'|trans }}
                     </a>
+                {% elseif options.reset_action is defined %}
+                    <twig:Button label="{{ 'common.reset'|trans }}" variant="ghost" size="xs" data-action="live#action" data-live-action-param="{{ options.reset_action }}" />
                 {% elseif options.reset_click is defined %}
                     <twig:Button label="{{ 'common.reset'|trans }}" variant="ghost" size="xs" @click="{{ options.reset_click }}" />
                 {% endif %}

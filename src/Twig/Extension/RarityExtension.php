@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace App\Twig\Extension;
 
 use App\Enum\AchievementRarity;
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFunction;
+use Twig\Attribute\AsTwigFunction;
 
-final class RarityExtension extends AbstractExtension
+final class RarityExtension
 {
     /**
      * @var array<string, array{bg: string, text: string, ring: string}>
      */
-    private const COLORS = [
+    private const array COLORS = [
         'common' => [
             'bg' => '#f5f5f4',
             'text' => '#78716c',
@@ -36,23 +35,16 @@ final class RarityExtension extends AbstractExtension
         ],
     ];
 
-    private const FALLBACK = [
+    private const array FALLBACK = [
         'bg' => '#fff7ed',
         'text' => '#9a3412',
         'ring' => '#f59e0b',
     ];
 
     /**
-     * @return TwigFunction[]
-     */
-    public function getFunctions(): array
-    {
-        return [new TwigFunction('rarity_colors', $this->rarityColors(...))];
-    }
-
-    /**
      * @return array{bg: string, text: string, ring: string}
      */
+    #[AsTwigFunction(name: 'rarity_colors')]
     public function rarityColors(AchievementRarity|string|null $rarity): array
     {
         $key = $rarity instanceof AchievementRarity ? $rarity->value : (string) $rarity;

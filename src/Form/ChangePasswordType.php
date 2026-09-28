@@ -24,12 +24,12 @@ class ChangePasswordType extends AbstractType
                     'autocomplete' => 'current-password',
                 ],
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'user.password_blank',
-                    ]),
-                    new UserPassword([
-                        'message' => 'ui.security.current_password_wrong',
-                    ]),
+                    new NotBlank(
+                        message: 'user.password_blank',
+                    ),
+                    new UserPassword(
+                        message: 'ui.security.current_password_wrong',
+                    ),
                 ],
             ])
             ->add('plainPassword', RepeatedType::class, [
@@ -45,14 +45,14 @@ class ChangePasswordType extends AbstractType
                     'autocomplete' => 'new-password',
                 ],
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'user.password_blank',
-                    ]),
-                    new Length([
-                        'min' => 6,
-                        'minMessage' => 'user.password_min',
-                        'max' => 255,
-                    ]),
+                    new NotBlank(
+                        message: 'user.password_blank',
+                    ),
+                    new Length(
+                        min: 6,
+                        minMessage: 'user.password_min',
+                        max: 255,
+                    ),
                 ],
             ])
         ;

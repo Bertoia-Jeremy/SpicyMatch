@@ -9,11 +9,11 @@ use App\Entity\UserProgression;
 use App\Gamification\Evaluator\TriggerEvaluatorRegistry;
 use App\Repository\AchievementRepository;
 
-final class AchievementChecker
+final readonly class AchievementChecker
 {
     public function __construct(
-        private readonly AchievementRepository $achievementRepository,
-        private readonly TriggerEvaluatorRegistry $evaluators,
+        private AchievementRepository $achievementRepository,
+        private TriggerEvaluatorRegistry $evaluators,
     ) {
     }
 

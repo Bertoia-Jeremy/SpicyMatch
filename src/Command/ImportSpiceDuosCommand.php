@@ -27,7 +27,7 @@ final class ImportSpiceDuosCommand extends Command
     public function __construct(
         private readonly SpiceDuoImporter $importer,
         private readonly EntityManagerInterface $em,
-        #[Autowire('%kernel.project_dir%')]
+        #[Autowire(param: 'kernel.project_dir')]
         private readonly string $projectDir,
     ) {
         parent::__construct();
@@ -72,7 +72,9 @@ final class ImportSpiceDuosCommand extends Command
         }
 
         $io->title(\sprintf('Import duos depuis %s', $resolvedPath));
-        $dryRun && $io->warning('Mode DRY-RUN : aucune écriture en BDD.');
+        if ($dryRun) {
+            $io->warning('Mode DRY-RUN : aucune écriture en BDD.');
+        }
 
         $header = fgetcsv($handle, escape: '\\');
         if (! \is_array($header)) {

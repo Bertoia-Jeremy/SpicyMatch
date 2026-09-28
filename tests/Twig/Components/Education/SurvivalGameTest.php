@@ -60,8 +60,7 @@ final class SurvivalGameTest extends TestCase
         $request = new Request();
         $request->setSession($session);
 
-        $requestStack = new RequestStack();
-        $requestStack->push($request);
+        $requestStack = new RequestStack([$request]);
 
         $game = new SurvivalGame($this->academyManager, $this->sessionManager, $requestStack, $this->spicesRepo, new IdentityTranslator());
         $game->setContainer($this->makeContainer());

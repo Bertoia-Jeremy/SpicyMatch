@@ -13,7 +13,7 @@ final class SpicyMatchExclusionTest extends TestCase
     public function testExcludedSpiceIdsContractReadsScalarIds(): void
     {
         $spice = new Spices();
-        (new \ReflectionProperty(Spices::class, 'id'))->setValue($spice, 42);
+        new \ReflectionProperty(Spices::class, 'id')->setValue($spice, 42);
 
         $user = new Users();
         $user->addExcludedSpice($spice);

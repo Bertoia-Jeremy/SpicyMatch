@@ -11,7 +11,7 @@ use Psr\Cache\CacheItemPoolInterface;
 
 class MortarProfileBuilder
 {
-    private const CACHE_TTL_EMPTY = 300;
+    private const int CACHE_TTL_EMPTY = 300;
 
     public function __construct(
         private readonly SpiceActiveCompoundRepository $spiceActiveCompoundRepository,

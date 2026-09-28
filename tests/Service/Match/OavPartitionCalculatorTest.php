@@ -23,7 +23,8 @@ final class OavPartitionCalculatorTest extends TestCase
 
     private function makePhysical(?float $logP = null, ?int $bp = null): CompoundPhysical
     {
-        $compound = (new AromaticCompound())->setName('Test');
+        $compound = new AromaticCompound()
+            ->setName('Test');
         $physical = new CompoundPhysical($compound);
 
         if ($logP !== null) {
@@ -62,7 +63,7 @@ final class OavPartitionCalculatorTest extends TestCase
 
     public function testFallbackToRawOavWhenLogPMissing(): void
     {
-        $physical = $this->makePhysical(logP: null);
+        $physical = $this->makePhysical();
         $oav = $this->calc->effectiveOav($physical, 1000.0, 5.0, new CulinaryContext(OdtMatrix::WATER));
         self::assertSame(200.0, $oav);
     }
@@ -153,7 +154,7 @@ final class OavPartitionCalculatorTest extends TestCase
 
     public function testNoDecayWhenBoilingPointMissing(): void
     {
-        $physical = $this->makePhysical(logP: 0.0, bp: null);
+        $physical = $this->makePhysical(logP: 0.0);
         $ctx = new CulinaryContext(OdtMatrix::WATER, cookingTimeMin: 60, temperatureCelsius: 100);
 
         $oav = $this->calc->effectiveOav($physical, 100.0, 1.0, $ctx);

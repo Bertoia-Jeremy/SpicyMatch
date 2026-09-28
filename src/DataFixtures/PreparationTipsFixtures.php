@@ -17,7 +17,7 @@ class PreparationTipsFixtures extends Fixture implements DependentFixtureInterfa
     /**
      * @var array<string, list<array{method: string, title: string, advantages: string, text: string}>>
      */
-    private const TIPS = [
+    private const array TIPS = [
         'spice_cannelle' => [
             [
                 'method' => 'method_entiere',

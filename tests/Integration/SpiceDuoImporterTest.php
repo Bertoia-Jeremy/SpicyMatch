@@ -19,7 +19,7 @@ final class SpiceDuoImporterTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->importer = static::getContainer()->get(SpiceDuoImporter::class);
+        $this->importer = self::getContainer()->get(SpiceDuoImporter::class);
     }
 
     public function testUpsertCreatesThenUpdatesWithoutDuplicate(): void
@@ -57,7 +57,7 @@ final class SpiceDuoImporterTest extends IntegrationTestCase
             $this->em->flush();
 
             $this->expectException(\RuntimeException::class);
-            $this->expectExceptionMessage('Aucun moment');
+            $this->expectExceptionMessageIsOrContains('Aucun moment');
 
             $this->importer->upsert($this->row($prep, $cook, 1, 'X'));
         } finally {
@@ -77,7 +77,7 @@ final class SpiceDuoImporterTest extends IntegrationTestCase
             $this->em->flush();
 
             $this->expectException(\RuntimeException::class);
-            $this->expectExceptionMessage('Aucun moment');
+            $this->expectExceptionMessageIsOrContains('Aucun moment');
 
             $this->importer->upsert($this->row($prep, $cook, 1, 'X'));
         } finally {
@@ -93,7 +93,7 @@ final class SpiceDuoImporterTest extends IntegrationTestCase
 
         try {
             [$prep, $cook] = $this->pair();
-            $twin = (new CookingTips())
+            $twin = new CookingTips()
                 ->setSpice($cook->getSpice())
                 ->setMoment($cook->getMoment())
                 ->setText('doublon')
@@ -104,7 +104,7 @@ final class SpiceDuoImporterTest extends IntegrationTestCase
             $this->em->flush();
 
             $this->expectException(\RuntimeException::class);
-            $this->expectExceptionMessage('ambigu');
+            $this->expectExceptionMessageIsOrContains('ambigu');
 
             $this->importer->upsert($this->row($prep, $cook, 1, 'X'));
         } finally {
@@ -133,7 +133,7 @@ final class SpiceDuoImporterTest extends IntegrationTestCase
     public function testUnknownSpiceIsAnExplicitError(): void
     {
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('introuvable');
+        $this->expectExceptionMessageIsOrContains('introuvable');
 
         $this->importer->upsert(new SpiceDuoRow('epice-inexistante', 'infusion', CookingMoment::START, 1, 't', 'e', 's', 'x'));
     }

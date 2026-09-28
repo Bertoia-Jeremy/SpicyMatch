@@ -46,8 +46,8 @@ final class CheckDataConsistencyCommand extends Command
             ...$this->checker->checkDuplicateCookingMoments($this->fetchDuplicateCookingMoments()),
         ];
 
-        $errors = array_filter($violations, static fn (array $v) => $v['severity'] === 'error');
-        $warnings = array_filter($violations, static fn (array $v) => $v['severity'] === 'warning');
+        $errors = array_filter($violations, static fn (array $v): bool => $v['severity'] === 'error');
+        $warnings = array_filter($violations, static fn (array $v): bool => $v['severity'] === 'warning');
 
         foreach ($warnings as $w) {
             $io->warning($w['message']);
@@ -55,7 +55,7 @@ final class CheckDataConsistencyCommand extends Command
 
         if ($errors !== []) {
             $io->error(\sprintf('%d erreur(s) de cohérence :', count($errors)));
-            $io->listing(array_map(static fn (array $v) => $v['message'], $errors));
+            $io->listing(array_map(static fn (array $v): string => $v['message'], $errors));
 
             return Command::FAILURE;
         }

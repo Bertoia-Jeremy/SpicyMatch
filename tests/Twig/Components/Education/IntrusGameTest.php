@@ -8,7 +8,7 @@ use App\Service\Education\AcademyManager;
 use App\Service\Education\GameSessionManager;
 use App\Twig\Components\Education\IntrusGame;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -21,14 +21,14 @@ final class IntrusGameTest extends TestCase
 {
     private const string TOKEN = 'intrus_test_tok';
 
-    private AcademyManager&MockObject $academyManager;
+    private AcademyManager&Stub $academyManager;
 
-    private GameSessionManager&MockObject $sessionManager;
+    private GameSessionManager&Stub $sessionManager;
 
     protected function setUp(): void
     {
-        $this->academyManager = $this->createMock(AcademyManager::class);
-        $this->sessionManager = $this->createMock(GameSessionManager::class);
+        $this->academyManager = $this->createStub(AcademyManager::class);
+        $this->sessionManager = $this->createStub(GameSessionManager::class);
     }
 
     /**
@@ -43,8 +43,7 @@ final class IntrusGameTest extends TestCase
         $request = new Request();
         $request->setSession($session);
 
-        $requestStack = new RequestStack();
-        $requestStack->push($request);
+        $requestStack = new RequestStack([$request]);
 
         $game = new IntrusGame(
             $this->academyManager,

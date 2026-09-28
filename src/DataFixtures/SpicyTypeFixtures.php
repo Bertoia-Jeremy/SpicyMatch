@@ -14,7 +14,7 @@ class SpicyTypeFixtures extends Fixture implements FixtureGroupInterface
     /**
      * @var array<string, array{name: string, description: string}>
      */
-    private const TYPES = [
+    private const array TYPES = [
         'graine' => [
             'name' => 'Graine',
             'description' => 'Épices issues de graines séchées (poivre, cumin, coriandre, cardamome…).',

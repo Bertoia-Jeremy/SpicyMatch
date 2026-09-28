@@ -20,7 +20,7 @@ description: Matching aromatique (épices, composés, groupes aromatiques, méth
 
 stack:
   backend:
-    - Symfony 7.4 / PHP 8.5
+    - "Symfony 8.1 / PHP 8.5 (migré depuis 7.4 ; UX 3.x). ⚠️ Symfony 8 : #[Route] = Symfony\\Component\\Routing\\Attribute\\Route (Annotation\\Route supprimé, échec SILENCIEUX à l'exécution — seul PHPStan le voit) ; contraintes de validation en arguments NOMMÉS (new Length(min: 6), plus de tableau d'options) ; #[ORM\\OrderBy] ET QueryBuilder::orderBy()/addOrderBy() avec \\SortDirection::Ascending|Descending (polyfill php86 ; chaîne 'ASC'/'DESC' dépréciée ORM 3.6 — les tableaux findBy/EasyAdmin ne sont pas concernés) ; utilisateur courant = paramètre #[CurrentUser] Users $user (?Users $user = null sur les routes publiques), plus de /** @var */ + getUser() ; fonctions Twig = #[AsTwigFunction] sur la méthode (plus d'AbstractExtension::getFunctions()) ; ⚠️ NE PAS utiliser #[IsCsrfTokenValid] : InvalidCsrfTokenException est une AuthenticationException → le firewall redirige 302 vers /login, un fetch suit la redirection et voit un 200 (faux succès) — garder les checks manuels isCsrfTokenValid() (403 JSON / flash+redirect) ; services de test référençant une classe supprimée = erreur de compilation container ; #[Target('xxx')] pour un autowiring nommé (ex $oavLogger). 8.2 = sortie nov. 2026, pas encore migrée."
     - Doctrine ORM 3.x (attributs, schema:update — PAS de migrations)
     - Symfony Messenger (transport Doctrine, async)
     - Symfony Security (LoginFormAuthenticator custom)
@@ -43,7 +43,7 @@ package_managers: Composer (composer.lock) + Yarn (yarn.lock)
 
 tooling:
   - ECS (PSR-12) / PHPStan niveau 6 (baseline phpstan-baseline.neon) / ESLint 9 flat config
-  - Rector (SYMFONY_72, CODE_QUALITY, CONSTRUCTOR_INJECTION)
+  - Rector (withComposerBased symfony/doctrine/twig/phpunit + withPhpSets (8.5) + withAttributesSets + deadCode/codeQuality/typeDeclarations, paths src + tests)
   - PHPUnit 13.0.5 + BrowserKit, Doctrine Fixtures (groupes nommés)
 
 scripts:

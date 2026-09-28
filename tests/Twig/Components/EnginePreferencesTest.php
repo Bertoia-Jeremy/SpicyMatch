@@ -44,7 +44,7 @@ final class EnginePreferencesTest extends TestCase
     {
         $user = new Users();
         $spice = new Spices();
-        (new \ReflectionProperty(Spices::class, 'id'))->setValue($spice, 7);
+        new \ReflectionProperty(Spices::class, 'id')->setValue($spice, 7);
 
         $em = $this->createStub(EntityManagerInterface::class);
         $repo = $this->createStub(SpicesRepository::class);

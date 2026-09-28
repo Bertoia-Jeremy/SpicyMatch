@@ -133,13 +133,6 @@ final class CheckCompoundsIntegrityCommand extends Command
         if ($hasStereoMarker) {
             return false;
         }
-
-        foreach (self::ISOMER_SENSITIVE_ROOTS as $root) {
-            if (str_contains($lower, $root)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(self::ISOMER_SENSITIVE_ROOTS, fn (string $root): bool => str_contains($lower, $root));
     }
 }

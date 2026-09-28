@@ -18,7 +18,7 @@ use Symfony\UX\Chartjs\Model\Chart;
 #[AdminDashboard(routePath: '/admin', routeName: 'admin')]
 class DashboardController extends AbstractDashboardController
 {
-    private const DOMAIN = 'admin';
+    private const string DOMAIN = 'admin';
 
     public function __construct(
         private readonly AdminStatsService $statsService,
@@ -40,7 +40,7 @@ class DashboardController extends AbstractDashboardController
 
         $levelChart = $this->chartBuilder->createChart(Chart::TYPE_BAR);
         $levelLabels = array_map(
-            fn (int $b) => $this->translator->trans('admin.chart.level_bucket', [
+            fn (int $b): string => $this->translator->trans('admin.chart.level_bucket', [
                 '%from%' => $b,
                 '%to%' => $b + 4,
             ], self::DOMAIN),
@@ -100,7 +100,7 @@ class DashboardController extends AbstractDashboardController
                     'backgroundColor' => 'rgba(245, 158, 11, 0.1)',
                     'fill' => true,
                     'tension' => 0.3,
-                    'data' => array_map('intval', array_column($matchStats['recentActivity'], 'count')) ?: [0],
+                    'data' => array_map(intval(...), array_column($matchStats['recentActivity'], 'count')) ?: [0],
                 ],
             ],
         ]);
@@ -122,7 +122,7 @@ class DashboardController extends AbstractDashboardController
                     'backgroundColor' => 'rgba(217, 119, 6, 0.1)',
                     'fill' => true,
                     'tension' => 0.3,
-                    'data' => array_map('intval', array_column($xpPerDay, 'total_xp')) ?: [0],
+                    'data' => array_map(intval(...), array_column($xpPerDay, 'total_xp')) ?: [0],
                 ],
             ],
         ]);
@@ -140,7 +140,7 @@ class DashboardController extends AbstractDashboardController
             'datasets' => [
                 [
                     'backgroundColor' => ['#f59e0b', '#ef4444', '#eab308', '#84cc16', '#06b6d4', '#a855f7'],
-                    'data' => array_map('intval', array_column($gameModeDistribution, 'count')) ?: [0],
+                    'data' => array_map(intval(...), array_column($gameModeDistribution, 'count')) ?: [0],
                 ],
             ],
         ]);

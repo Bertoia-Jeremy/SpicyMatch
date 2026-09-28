@@ -19,15 +19,15 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 )]
 final class ImportFlavorGraphCommand extends Command
 {
-    private const DEFAULT_FILE = 'data/flavorgraph/pairing_matrix.csv';
+    private const string DEFAULT_FILE = 'data/flavorgraph/pairing_matrix.csv';
 
     private const MAX_FILE_SIZE = 20 * 1024 * 1024;
 
-    private const BATCH = 1000;
+    private const int BATCH = 1000;
 
     public function __construct(
         private readonly Connection $connection,
-        #[Autowire('%kernel.project_dir%')]
+        #[Autowire(param: 'kernel.project_dir')]
         private readonly string $projectDir,
     ) {
         parent::__construct();

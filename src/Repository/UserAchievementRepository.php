@@ -8,6 +8,7 @@ use App\Entity\UserAchievement;
 use App\Entity\UserProgression;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use SortDirection;
 
 /**
  * @extends ServiceEntityRepository<UserAchievement>
@@ -49,7 +50,7 @@ class UserAchievementRepository extends ServiceEntityRepository
             ->addSelect('a')
             ->where('ua.userProgression = :progression')
             ->setParameter('progression', $progression)
-            ->orderBy('ua.unlockedAt', 'DESC')
+            ->orderBy('ua.unlockedAt', SortDirection::Descending)
             ->getQuery()
             ->getResult();
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Controller\Concern\CanonicalSlugTrait;
+use App\Entity\Spices;
 use App\Entity\Users;
 use App\Message\SpiceReadEvent;
 use App\Repository\AromaticGroupsRepository;
@@ -15,10 +16,12 @@ use App\Repository\SpicyTypeRepository;
 use App\Service\Match\SpiceDuoMapBuilder;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 #[Route('/{_locale}/epices', defaults: [
     '_locale' => 'fr',
@@ -65,9 +68,9 @@ class SpicesController extends AbstractController
         ]);
     }
 
-    #[Route('/{slug}', name: 'view_spice', priority: -10, requirements: [
+    #[Route('/{slug}', name: 'view_spice', requirements: [
         'slug' => '(?!(?:groupes_aromatiques|composes_aromatiques|saveurs_aromatiques|types_epices)$)[^/]+',
-    ])]
+    ], priority: -10)]
     public function view(
         string $slug,
         Request $request,
@@ -75,10 +78,12 @@ class SpicesController extends AbstractController
         MessageBusInterface $bus,
         SpiceDuoRepository $spiceDuoRepository,
         SpiceDuoMapBuilder $duoMapBuilder,
+        #[CurrentUser]
+        ?Users $user = null,
     ): Response {
         $locale = $request->getLocale();
         $spice = $this->spicesRepository->findOneByLocalizedSlug($slug, $locale);
-        if ($spice === null) {
+        if (! $spice instanceof Spices) {
             throw $this->createNotFoundException();
         }
 
@@ -87,13 +92,11 @@ class SpicesController extends AbstractController
             $slug,
             $spice->getLocalizedSlug($locale),
             $locale
-        )) !== null) {
+        )) instanceof RedirectResponse) {
             return $redirect;
         }
 
-        /** @var Users|null $user */
-        $user = $this->getUser();
-        if ($user !== null) {
+        if ($user instanceof Users) {
             $isNew = $spiceViewRepository->recordView($user, $spice);
             $bus->dispatch(new SpiceReadEvent($user->getId(), $spice->getId(), $isNew));
         }
@@ -117,7 +120,7 @@ class SpicesController extends AbstractController
     {
         $locale = $request->getLocale();
         $spice = $this->spicesRepository->findOneByLocalizedSlug($slug, $locale);
-        if ($spice === null) {
+        if (! $spice instanceof Spices) {
             throw $this->createNotFoundException();
         }
 

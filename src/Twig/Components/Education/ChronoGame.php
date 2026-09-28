@@ -223,7 +223,7 @@ class ChronoGame extends AbstractController
 
         $secret = $this->readSecret();
 
-        if (empty($secret)) {
+        if ($secret === []) {
             return $this->redirectToRoute('education_index');
         }
 
@@ -352,7 +352,7 @@ class ChronoGame extends AbstractController
     public function getLocalizedNameOptions(): array
     {
         return array_values(array_map(
-            fn (string $name): string => $this->localizedLabel($name),
+            $this->localizedLabel(...),
             $this->nameOptions,
         ));
     }

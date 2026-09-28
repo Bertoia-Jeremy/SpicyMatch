@@ -9,7 +9,9 @@ use App\Entity\Users;
 use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query;
 use Doctrine\Persistence\ManagerRegistry;
+use SortDirection;
 
 /**
  * @extends ServiceEntityRepository<GameSession>
@@ -30,7 +32,7 @@ class GameSessionRepository extends ServiceEntityRepository
             ->setParameter('user', $user)
             ->setParameter('today', new \DateTimeImmutable('today'));
 
-        if ($mode !== null) {
+        if ($mode instanceof GameMode) {
             $qb->andWhere('gs.gameMode = :mode')
                 ->setParameter('mode', $mode->value);
         }
@@ -105,7 +107,7 @@ class GameSessionRepository extends ServiceEntityRepository
             ->setParameter('user', $user)
             ->setParameter('mode', $mode->value)
             ->setParameter('difficulty', $difficulty->value)
-            ->orderBy('gs.finishedAt', 'DESC')
+            ->orderBy('gs.finishedAt', SortDirection::Descending)
             ->setMaxResults($limit)
             ->getQuery()
             ->getArrayResult();
@@ -124,7 +126,7 @@ class GameSessionRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('gs')
             ->where('gs.user = :user')
             ->setParameter('user', $user)
-            ->orderBy('gs.startedAt', 'DESC')
+            ->orderBy('gs.startedAt', SortDirection::Descending)
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
@@ -163,14 +165,14 @@ class GameSessionRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return \Doctrine\ORM\Query<null, mixed>
+     * @return Query<null, mixed>
      */
-    public function findByUserQuery(Users $user): \Doctrine\ORM\Query
+    public function findByUserQuery(Users $user): Query
     {
         return $this->createQueryBuilder('gs')
             ->where('gs.user = :user')
             ->setParameter('user', $user)
-            ->orderBy('gs.startedAt', 'DESC')
+            ->orderBy('gs.startedAt', SortDirection::Descending)
             ->getQuery();
     }
 

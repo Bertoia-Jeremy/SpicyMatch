@@ -16,7 +16,7 @@ class AlchemyFlavorsFixtures extends Fixture implements DependentFixtureInterfac
     /**
      * @var array<string, array{name: string, description: string, compounds: string[]}>
      */
-    private const FLAVORS = [
+    private const array FLAVORS = [
         'epice_brulant' => [
             'name' => 'Épicé & Brûlant',
             'description' => 'Chaleur intense et persistante en bouche, typique des piments et du poivre.',
@@ -83,7 +83,7 @@ class AlchemyFlavorsFixtures extends Fixture implements DependentFixtureInterfac
     {
         $now = new \DateTimeImmutable('now');
 
-        foreach (self::FLAVORS as $key => $data) {
+        foreach (self::FLAVORS as $data) {
             $entity = new AlchemyFlavors();
             $entity->setName($data['name'])
                 ->setDescription($data['description'])

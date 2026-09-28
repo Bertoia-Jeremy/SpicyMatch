@@ -18,24 +18,18 @@ class ProcessedGamificationEvent
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 64)]
-    private string $eventType;
-
-    #[ORM\Column(length: 191)]
-    private string $eventKey;
-
-    #[ORM\ManyToOne(targetEntity: Users::class)]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    private Users $user;
-
     #[ORM\Column]
     private \DateTimeImmutable $processedAt;
 
-    public function __construct(Users $user, string $eventType, string $eventKey)
-    {
-        $this->user = $user;
-        $this->eventType = $eventType;
-        $this->eventKey = $eventKey;
+    public function __construct(
+        #[ORM\ManyToOne(targetEntity: Users::class)]
+        #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+        private Users $user,
+        #[ORM\Column(length: 64)]
+        private string $eventType,
+        #[ORM\Column(length: 191)]
+        private string $eventKey
+    ) {
         $this->processedAt = new \DateTimeImmutable();
     }
 

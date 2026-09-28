@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
 ])]
 final class HelpController extends AbstractController
 {
-    private const KNOWN_TOPICS = ['gamification', 'academie', 'easter-eggs'];
+    private const array KNOWN_TOPICS = ['gamification', 'academie', 'easter-eggs'];
 
     #[Route('', name: 'help_index', methods: ['GET'])]
     public function index(): Response
@@ -21,9 +21,9 @@ final class HelpController extends AbstractController
         return $this->render('help/index.html.twig');
     }
 
-    #[Route('/{topic}', name: 'help_topic', methods: ['GET'], requirements: [
+    #[Route('/{topic}', name: 'help_topic', requirements: [
         'topic' => 'gamification|academie|easter-eggs',
-    ])]
+    ], methods: ['GET'])]
     public function topic(string $topic): Response
     {
         if (! \in_array($topic, self::KNOWN_TOPICS, true)) {

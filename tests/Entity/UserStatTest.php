@@ -14,8 +14,8 @@ final class UserStatTest extends TestCase
     public function testTotalActionsHookReadsFromProgression(): void
     {
         $progression = new UserProgression();
-        (new \ReflectionProperty(UserProgression::class, 'totalMatches'))->setValue($progression, 5);
-        (new \ReflectionProperty(UserProgression::class, 'totalSpicesRead'))->setValue($progression, 1);
+        new \ReflectionProperty(UserProgression::class, 'totalMatches')->setValue($progression, 5);
+        new \ReflectionProperty(UserProgression::class, 'totalSpicesRead')->setValue($progression, 1);
 
         $user = new Users();
         $user->setProgression($progression);

@@ -18,10 +18,6 @@ class CompoundPhysical
     #[ORM\Column(name: 'id', type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\OneToOne(targetEntity: AromaticCompound::class)]
-    #[ORM\JoinColumn(name: 'aromatic_compound_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
-    private AromaticCompound $compound;
-
     #[ORM\Column(name: 'log_p', type: 'float', nullable: true)]
     private ?float $logP = null;
 
@@ -45,9 +41,11 @@ class CompoundPhysical
     #[ORM\Column(name: 'updated_at', type: 'datetime_immutable')]
     private \DateTimeImmutable $updatedAt;
 
-    public function __construct(AromaticCompound $compound)
-    {
-        $this->compound = $compound;
+    public function __construct(
+        #[ORM\OneToOne(targetEntity: AromaticCompound::class)]
+        #[ORM\JoinColumn(name: 'aromatic_compound_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+        private AromaticCompound $compound
+    ) {
         $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;

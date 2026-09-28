@@ -9,6 +9,7 @@ use App\Entity\AchievementProgress;
 use App\Entity\Users;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use SortDirection;
 
 /**
  * @extends ServiceEntityRepository<AchievementProgress>
@@ -47,7 +48,7 @@ class AchievementProgressRepository extends ServiceEntityRepository
             return [];
         }
 
-        $ids = array_values(array_filter(array_map(fn (Achievement $a) => $a->getId(), $achievements)));
+        $ids = array_values(array_filter(array_map(fn (Achievement $a): ?int => $a->getId(), $achievements)));
 
         $existing = $ids !== []
             ? $this->createQueryBuilder('ap')
@@ -101,7 +102,7 @@ class AchievementProgressRepository extends ServiceEntityRepository
             ->where('ap.user = :user')
             ->andWhere('ap.progress < a.triggerValue')
             ->andWhere('ap.progress > 0')
-            ->orderBy('ap.progress / a.triggerValue', 'DESC')
+            ->orderBy('ap.progress / a.triggerValue', SortDirection::Descending)
             ->setMaxResults(1)
             ->setParameter('user', $user)
             ->getQuery()

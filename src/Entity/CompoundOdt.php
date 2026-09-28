@@ -13,21 +13,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'compound_odt')]
 class CompoundOdt
 {
-    #[ORM\Id]
-    #[ORM\ManyToOne(targetEntity: AromaticCompound::class)]
-    #[ORM\JoinColumn(name: 'aromatic_compound_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
-    private AromaticCompound $aromaticCompound;
-
-    #[ORM\Id]
-    #[ORM\Column(name: 'matrix', type: 'string', length: 10, enumType: OdtMatrix::class)]
-    private OdtMatrix $matrix;
-
-    #[ORM\Column(name: 'odt_ppm', type: 'decimal', precision: 14, scale: 8)]
-    private string $odtPpm;
-
-    #[ORM\Column(name: 'reference_source', type: 'string', length: 255)]
-    private string $referenceSource;
-
     #[ORM\Column(name: 'confidence', type: 'string', length: 20, enumType: DataConfidence::class, options: [
         'default' => 'placeholder',
     ])]
@@ -37,15 +22,18 @@ class CompoundOdt
     private \DateTimeImmutable $importedAt;
 
     public function __construct(
-        AromaticCompound $aromaticCompound,
-        OdtMatrix $matrix,
-        string $odtPpm,
-        string $referenceSource,
+        #[ORM\Id]
+        #[ORM\ManyToOne(targetEntity: AromaticCompound::class)]
+        #[ORM\JoinColumn(name: 'aromatic_compound_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
+        private AromaticCompound $aromaticCompound,
+        #[ORM\Id]
+        #[ORM\Column(name: 'matrix', type: 'string', length: 10, enumType: OdtMatrix::class)]
+        private OdtMatrix $matrix,
+        #[ORM\Column(name: 'odt_ppm', type: 'decimal', precision: 14, scale: 8)]
+        private string $odtPpm,
+        #[ORM\Column(name: 'reference_source', type: 'string', length: 255)]
+        private string $referenceSource,
     ) {
-        $this->aromaticCompound = $aromaticCompound;
-        $this->matrix = $matrix;
-        $this->odtPpm = $odtPpm;
-        $this->referenceSource = $referenceSource;
         $this->importedAt = new \DateTimeImmutable();
     }
 

@@ -7,28 +7,16 @@ namespace App\Twig\Extension;
 use Symfony\Component\Translation\TranslatorBagInterface;
 use Symfony\Contracts\Translation\LocaleAwareInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFunction;
+use Twig\Attribute\AsTwigFunction;
 
-final class JsI18nExtension extends AbstractExtension
+final readonly class JsI18nExtension
 {
     public function __construct(
-        private readonly TranslatorInterface $translator,
+        private TranslatorInterface $translator,
     ) {
     }
 
-    /**
-     * @return TwigFunction[]
-     */
-    public function getFunctions(): array
-    {
-        return [
-            new TwigFunction('js_i18n_json', $this->jsI18nJson(...), [
-                'is_safe' => ['html'],
-            ]),
-        ];
-    }
-
+    #[AsTwigFunction(name: 'js_i18n_json', isSafe: ['html'])]
     public function jsI18nJson(): string
     {
         $messages = $this->collectJsDomain();

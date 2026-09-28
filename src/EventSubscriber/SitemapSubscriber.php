@@ -17,12 +17,12 @@ use Presta\SitemapBundle\Sitemap\Url\UrlConcrete;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-final class SitemapSubscriber implements EventSubscriberInterface
+final readonly class SitemapSubscriber implements EventSubscriberInterface
 {
     /**
      * @var array<string, class-string>
      */
-    private const DETAIL_ROUTES = [
+    private const array DETAIL_ROUTES = [
         'view_spice' => Spices::class,
         'view_aromatic_compound' => AromaticCompound::class,
         'view_alchemy_flavors' => AlchemyFlavors::class,
@@ -33,7 +33,7 @@ final class SitemapSubscriber implements EventSubscriberInterface
     /**
      * @var list<string>
      */
-    private const STATIC_ROUTES = [
+    private const array STATIC_ROUTES = [
         'home',
         'index_spices',
         'index_aromatic_compound',
@@ -44,8 +44,8 @@ final class SitemapSubscriber implements EventSubscriberInterface
     ];
 
     public function __construct(
-        private readonly EntityManagerInterface $em,
-        private readonly UrlGeneratorInterface $router,
+        private EntityManagerInterface $em,
+        private UrlGeneratorInterface $router,
     ) {
     }
 

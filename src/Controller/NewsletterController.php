@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/newsletter')]
@@ -22,7 +23,7 @@ class NewsletterController extends AbstractController
     }
 
     #[Route('/subscribe', name: 'newsletter_subscribe', methods: ['POST'])]
-    public function subscribe(Request $request): Response
+    public function subscribe(Request $request, #[CurrentUser] ?Users $user = null): Response
     {
         $email = $request->request->getString('email');
         if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -36,9 +37,6 @@ class NewsletterController extends AbstractController
 
             return $this->redirect($this->safeReferer($request));
         }
-
-        /** @var Users|null $user */
-        $user = $this->getUser();
 
         $this->newsletterService->subscribe($email, 'footer', $user, $request->getClientIp());
         $this->addFlash('success', $this->translator->trans('flash.newsletter_confirmed'));

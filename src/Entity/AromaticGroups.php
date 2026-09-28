@@ -14,7 +14,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AromaticGroupsRepository::class)]
 #[ORM\Table(name: 'aromatic_groups')]
-class AromaticGroups implements TranslatableInterface, Sluggable
+class AromaticGroups implements TranslatableInterface, Sluggable, \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -24,7 +24,7 @@ class AromaticGroups implements TranslatableInterface, Sluggable
     #[ORM\Column(name: 'name', type: 'string', length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
+    #[ORM\Column(type: 'string', length: 255, unique: true, nullable: true)]
     private ?string $slug = null;
 
     #[Assert\Regex(pattern: '/^#[0-9A-Fa-f]{6}$/', message: 'aromatic_group.color_invalid')]
@@ -58,7 +58,7 @@ class AromaticGroups implements TranslatableInterface, Sluggable
     /**
      * @var Collection<int, AromaticGroupsTranslation>
      */
-    #[ORM\OneToMany(mappedBy: 'aromaticGroup', targetEntity: AromaticGroupsTranslation::class, cascade: [
+    #[ORM\OneToMany(targetEntity: AromaticGroupsTranslation::class, mappedBy: 'aromaticGroup', cascade: [
         'persist',
         'remove',
     ], orphanRemoval: true)]
@@ -279,6 +279,6 @@ class AromaticGroups implements TranslatableInterface, Sluggable
 
     public function __toString(): string
     {
-        return $this->name;
+        return (string) $this->name;
     }
 }

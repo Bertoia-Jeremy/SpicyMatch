@@ -13,11 +13,11 @@ use App\ValueObject\SpiceDuoRow;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-final class SpiceDuoImporter
+final readonly class SpiceDuoImporter
 {
     public function __construct(
-        private readonly EntityManagerInterface $em,
-        private readonly ValidatorInterface $validator,
+        private EntityManagerInterface $em,
+        private ValidatorInterface $validator,
     ) {
     }
 
@@ -67,7 +67,7 @@ final class SpiceDuoImporter
         ]);
         $created = ! $duo instanceof SpiceDuo;
         if (! $duo instanceof SpiceDuo) {
-            $duo = (new SpiceDuo())
+            $duo = new SpiceDuo()
                 ->setPreparationTip($prepTip)
                 ->setCookingTip($cookTip)
                 ->setCreatedAt(new \DateTimeImmutable());

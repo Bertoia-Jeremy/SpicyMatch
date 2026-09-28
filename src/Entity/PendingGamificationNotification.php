@@ -17,19 +17,6 @@ class PendingGamificationNotification
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    private Users $user;
-
-    #[ORM\Column(length: 50)]
-    private string $type;
-
-    /**
-     * @var array<string, mixed>
-     */
-    #[ORM\Column(type: 'json')]
-    private array $payload = [];
-
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -39,11 +26,15 @@ class PendingGamificationNotification
     /**
      * @param array<string, mixed> $payload
      */
-    public function __construct(Users $user, string $type, array $payload)
-    {
-        $this->user = $user;
-        $this->type = $type;
-        $this->payload = $payload;
+    public function __construct(
+        #[ORM\ManyToOne]
+        #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+        private Users $user,
+        #[ORM\Column(length: 50)]
+        private string $type,
+        #[ORM\Column(type: 'json')]
+        private array $payload
+    ) {
         $this->createdAt = new \DateTimeImmutable();
     }
 

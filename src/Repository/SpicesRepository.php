@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\AromaticGroups;
 use App\Entity\Spices;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\ParameterType;
 use Doctrine\Persistence\ManagerRegistry;
+use SortDirection;
 
 /**
  * @extends ServiceEntityRepository<Spices>
@@ -83,7 +85,7 @@ class SpicesRepository extends ServiceEntityRepository
      */
     public function findSpicesForMatch(string $idsString): array
     {
-        $ids = array_map('intval', explode(',', $idsString));
+        $ids = array_map(intval(...), explode(',', $idsString));
 
         return $this->createQueryBuilder('s')
             ->select('s.id', 's.name', 's.slug', 's.description', 's.file', 'ag.color', 'ag.name AS groupName')
@@ -286,7 +288,7 @@ class SpicesRepository extends ServiceEntityRepository
             ->leftJoin('s.aromaticGroups', 'ag')
             ->leftJoin('s.spicyType', 'st')
             ->andWhere('s.deleted_at IS NULL')
-            ->orderBy('s.name', 'ASC');
+            ->orderBy('s.name', SortDirection::Ascending);
 
         if ($aromaticGroupId !== null) {
             $qb->andWhere('s.aromaticGroups = :agId')
@@ -314,7 +316,7 @@ class SpicesRepository extends ServiceEntityRepository
      */
     public function findCandidatesForScoring(array $sharedCompoundIds, array $excludedSpiceIds): array
     {
-        if (empty($sharedCompoundIds)) {
+        if ($sharedCompoundIds === []) {
             return [];
         }
 
@@ -330,7 +332,7 @@ class SpicesRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleColumnResult();
 
-        if (empty($candidateIds)) {
+        if ($candidateIds === []) {
             return [];
         }
 
@@ -398,7 +400,7 @@ class SpicesRepository extends ServiceEntityRepository
             'spiceId' => ParameterType::INTEGER,
         ];
 
-        if (! empty($excludeIds)) {
+        if ($excludeIds !== []) {
             $sql .= ' AND s.id NOT IN (:excludeIds)';
             $params['excludeIds'] = $excludeIds;
         }
@@ -408,7 +410,7 @@ class SpicesRepository extends ServiceEntityRepository
         $ids = $conn->executeQuery($sql, $params, $types)
             ->fetchFirstColumn();
 
-        if (empty($ids)) {
+        if ($ids === []) {
             return [];
         }
 
@@ -524,7 +526,7 @@ class SpicesRepository extends ServiceEntityRepository
     public function findRelated(Spices $spice, int $limit = 4): array
     {
         $group = $spice->getAromaticGroups();
-        if ($group === null) {
+        if (! $group instanceof AromaticGroups) {
             return [];
         }
 

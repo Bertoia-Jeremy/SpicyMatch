@@ -6,6 +6,7 @@ namespace App\Tests\Twig\Components;
 
 use App\Entity\AromaticGroups;
 use App\Entity\SpicyType;
+use App\Enum\DataConfidence;
 use App\Enum\OdtMatrix;
 use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpiceActiveCompoundRepository;
@@ -20,6 +21,7 @@ use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -43,7 +45,7 @@ class SpicyMatchTest extends TestCase
 
     private MatchConfidenceAssessorInterface&MockObject $confidenceAssessor;
 
-    private SpiceActiveCompoundRepository&MockObject $spiceActiveCompoundRepo;
+    private SpiceActiveCompoundRepository&Stub $spiceActiveCompoundRepo;
 
     /**
      * @var list<array<string, mixed>>
@@ -58,7 +60,7 @@ class SpicyMatchTest extends TestCase
         $this->spicyTypeRepo = $this->createMock(SpicyTypeRepository::class);
         $this->spicyMatchService = $this->createMock(SpicyMatchService::class);
         $this->confidenceAssessor = $this->createMock(MatchConfidenceAssessorInterface::class);
-        $this->spiceActiveCompoundRepo = $this->createMock(SpiceActiveCompoundRepository::class);
+        $this->spiceActiveCompoundRepo = $this->createStub(SpiceActiveCompoundRepository::class);
 
         $this->allSpices = [
             [
@@ -109,8 +111,7 @@ class SpicyMatchTest extends TestCase
 
     private function makeComponent(): SpicyMatch
     {
-        $requestStack = new RequestStack();
-        $requestStack->push(Request::create('/fr/spicymatch'));
+        $requestStack = new RequestStack([Request::create('/fr/spicymatch')]);
 
         $hybridizer = $this->createStub(FlavorGraphHybridizerInterface::class);
         $hybridizer->method('isActive')
@@ -177,7 +178,7 @@ class SpicyMatchTest extends TestCase
     {
         $this->confidenceAssessor->expects(self::once())
             ->method('assess')
-            ->willReturn(\App\Enum\DataConfidence::PLACEHOLDER);
+            ->willReturn(DataConfidence::PLACEHOLDER);
 
         $component = $this->makeComponent();
         $component->spices = [
@@ -185,7 +186,7 @@ class SpicyMatchTest extends TestCase
             'compatibleSpices' => $this->allSpices,
         ];
 
-        self::assertSame(\App\Enum\DataConfidence::PLACEHOLDER, $component->getDataConfidence());
+        self::assertSame(DataConfidence::PLACEHOLDER, $component->getDataConfidence());
     }
 
     public function testGetResultsWithNoSelectionReturnsAllSpices(): void

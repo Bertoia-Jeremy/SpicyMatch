@@ -17,7 +17,7 @@ final class AdminStatsServiceIntegrationTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->stats = static::getContainer()->get(AdminStatsService::class);
+        $this->stats = self::getContainer()->get(AdminStatsService::class);
         $this->connection = $this->em->getConnection();
     }
 
@@ -53,7 +53,7 @@ final class AdminStatsServiceIntegrationTest extends IntegrationTestCase
 
             $this->insertUser('onboarding_partial', 'welcome,spices');
             $this->insertUser('onboarding_no_lab', 'welcome,spiceswithsuffix');
-            $this->insertUser('onboarding_null', null);
+            $this->insertUser('onboarding_null');
 
             $after = $this->stats->onboardingCompletionByStep();
 
@@ -80,10 +80,10 @@ final class AdminStatsServiceIntegrationTest extends IntegrationTestCase
 
             $result = $this->stats->achievementProgressCompletionRate();
 
-            $row = array_values(array_filter(
+            $row = array_first(array_filter(
                 $result['perAchievement'],
                 static fn (array $r): bool => $r['slug'] === 'overshoot-achievement',
-            ))[0];
+            ));
 
             self::assertSame(100.0, $row['avg_pct']);
         } finally {
@@ -93,7 +93,8 @@ final class AdminStatsServiceIntegrationTest extends IntegrationTestCase
 
     private function insertUser(string $prefix, ?string $onboardingState = null): int
     {
-        $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
+        $now = new \DateTimeImmutable()
+            ->format('Y-m-d H:i:s');
         $username = $prefix . '_' . bin2hex(random_bytes(4));
 
         $this->connection->insert('users', [
@@ -111,7 +112,8 @@ final class AdminStatsServiceIntegrationTest extends IntegrationTestCase
 
     private function insertUserProgression(int $userId): int
     {
-        $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
+        $now = new \DateTimeImmutable()
+            ->format('Y-m-d H:i:s');
 
         $this->connection->insert('user_progression', [
             'user_id' => $userId,
@@ -143,7 +145,8 @@ final class AdminStatsServiceIntegrationTest extends IntegrationTestCase
         $this->connection->insert('user_achievement', [
             'user_progression_id' => $userProgressionId,
             'achievement_id' => $achievementId,
-            'unlocked_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            'unlocked_at' => new \DateTimeImmutable()
+                ->format('Y-m-d H:i:s'),
         ]);
     }
 
@@ -153,7 +156,8 @@ final class AdminStatsServiceIntegrationTest extends IntegrationTestCase
             'user_id' => $userId,
             'achievement_id' => $achievementId,
             'progress' => $progress,
-            'updated_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            'updated_at' => new \DateTimeImmutable()
+                ->format('Y-m-d H:i:s'),
         ]);
     }
 }

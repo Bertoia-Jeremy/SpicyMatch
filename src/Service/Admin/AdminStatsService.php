@@ -9,15 +9,15 @@ use App\Enum\GameMode;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 
-final class AdminStatsService
+final readonly class AdminStatsService
 {
     /**
      * @var list<string>
      */
-    private const ONBOARDING_KEYS = ['welcome', 'spices', 'lab', 'academy'];
+    private const array ONBOARDING_KEYS = ['welcome', 'spices', 'lab', 'academy'];
 
     public function __construct(
-        private readonly Connection $connection,
+        private Connection $connection,
     ) {
     }
 

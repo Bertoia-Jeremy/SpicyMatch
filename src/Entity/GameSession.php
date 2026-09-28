@@ -10,6 +10,7 @@ use App\Repository\GameSessionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use SortDirection;
 
 #[ORM\Entity(repositoryClass: GameSessionRepository::class)]
 #[ORM\Index(name: 'idx_gs_user_mode_started', columns: ['user_id', 'game_mode', 'started_at'])]
@@ -66,7 +67,7 @@ class GameSession
         'remove',
     ], orphanRemoval: true)]
     #[ORM\OrderBy([
-        'questionIndex' => 'ASC',
+        'questionIndex' => SortDirection::Ascending,
     ])]
     private Collection $questions;
 

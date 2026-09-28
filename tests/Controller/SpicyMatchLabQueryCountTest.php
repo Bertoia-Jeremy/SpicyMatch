@@ -18,16 +18,17 @@ final class SpicyMatchLabQueryCountTest extends WebTestCase
 {
     public function testTranslatedLocaleAddsNoPerTipQueries(): void
     {
-        $client = static::createClient();
-        $user = static::getContainer()->get(UsersRepository::class)->findOneBy([]);
+        $client = self::createClient();
+        $user = self::getContainer()->get(UsersRepository::class)->findOneBy([]);
         self::assertNotNull($user);
         $client->loginUser($user);
 
-        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em = self::getContainer()->get(EntityManagerInterface::class);
         $lastMessageId = (int) $em->getConnection()
             ->fetchOne('SELECT COALESCE(MAX(id), 0) FROM messenger_messages');
 
-        $match = (new SpicyMatch())->setUser($user);
+        $match = new SpicyMatch()
+            ->setUser($user);
         foreach ($this->spicesWithTips($em) as $spice) {
             $match->addSpice($spice);
         }
@@ -41,7 +42,7 @@ final class SpicyMatchLabQueryCountTest extends WebTestCase
 
             self::assertLessThanOrEqual($fr + 2, $en, \sprintf('fr=%d en=%d', $fr, $en));
         } finally {
-            $em = static::getContainer()->get(EntityManagerInterface::class);
+            $em = self::getContainer()->get(EntityManagerInterface::class);
             $em->clear();
             foreach ($em->getRepository(SpicyMatchHistory::class)->findBy([
                 'spicyMatch' => $matchId,
@@ -50,7 +51,9 @@ final class SpicyMatchLabQueryCountTest extends WebTestCase
             }
             $em->flush();
             $leftover = $em->find(SpicyMatch::class, $matchId);
-            $leftover !== null && $em->remove($leftover);
+            if ($leftover !== null) {
+                $em->remove($leftover);
+            }
             $em->flush();
             $em->getConnection()
                 ->executeStatement('DELETE FROM messenger_messages WHERE id > :id', [

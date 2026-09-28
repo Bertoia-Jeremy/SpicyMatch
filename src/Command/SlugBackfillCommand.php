@@ -36,7 +36,7 @@ final class SlugBackfillCommand extends Command
     /**
      * @var list<class-string>
      */
-    private const CLASSES = [
+    private const array CLASSES = [
         Spices::class,
         AromaticGroups::class,
         AromaticCompound::class,

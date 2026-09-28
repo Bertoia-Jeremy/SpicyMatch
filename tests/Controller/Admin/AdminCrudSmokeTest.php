@@ -22,8 +22,8 @@ final class AdminCrudSmokeTest extends WebTestCase
 
     protected function setUp(): void
     {
-        $this->client = static::createClient();
-        $admin = static::getContainer()->get(EntityManagerInterface::class)->getRepository(Users::class)->findOneBy([
+        $this->client = self::createClient();
+        $admin = self::getContainer()->get(EntityManagerInterface::class)->getRepository(Users::class)->findOneBy([
             'username' => 'admin',
         ]);
         self::assertNotNull($admin);
@@ -38,13 +38,14 @@ final class AdminCrudSmokeTest extends WebTestCase
 
     public function testSpiceDuoRowListedAndEditable(): void
     {
-        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em = self::getContainer()->get(EntityManagerInterface::class);
         $prep = $em->getRepository(PreparationTips::class)->findAll()[0];
         $cook = $em->getRepository(CookingTips::class)->findOneBy([
             'spice' => $prep->getSpice(),
         ]);
         self::assertNotNull($cook);
-        $duo = (new SpiceDuo())->setPreparationTip($prep)
+        $duo = new SpiceDuo()
+            ->setPreparationTip($prep)
             ->setCookingTip($cook)
             ->setTitle('smoke')
             ->setEffect('e')
@@ -67,14 +68,16 @@ final class AdminCrudSmokeTest extends WebTestCase
             $form['SpiceDuo[title]'] = 'smoke-edited';
             $this->client->submit($form);
             self::assertResponseRedirects();
-            $em = static::getContainer()->get(EntityManagerInterface::class);
+            $em = self::getContainer()->get(EntityManagerInterface::class);
             $em->clear();
             self::assertSame('smoke-edited', $em->find(SpiceDuo::class, $id)?->getTitle());
         } finally {
-            $em = static::getContainer()->get(EntityManagerInterface::class);
+            $em = self::getContainer()->get(EntityManagerInterface::class);
             $em->clear();
             $leftover = $em->find(SpiceDuo::class, $id);
-            $leftover !== null && $em->remove($leftover);
+            if ($leftover !== null) {
+                $em->remove($leftover);
+            }
             $em->flush();
         }
     }
@@ -151,7 +154,7 @@ final class AdminCrudSmokeTest extends WebTestCase
 
     private function firstId(string $entity): int
     {
-        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em = self::getContainer()->get(EntityManagerInterface::class);
         $row = $em->getRepository($entity)
             ->findOneBy([]);
         self::assertNotNull($row);

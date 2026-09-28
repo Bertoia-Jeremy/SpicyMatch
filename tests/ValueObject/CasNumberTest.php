@@ -56,7 +56,7 @@ final class CasNumberTest extends TestCase
     public function testFromStringThrowsOnBadChecksum(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('chiffre de contrôle');
+        $this->expectExceptionMessageIsOrContains('chiffre de contrôle');
         CasNumber::fromString('97-53-1');
     }
 
@@ -86,7 +86,7 @@ final class CasNumberTest extends TestCase
     public function testFromStringThrowsOnMalformed(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('format invalide');
+        $this->expectExceptionMessageIsOrContains('format invalide');
         CasNumber::fromString('not-a-cas');
     }
 
@@ -108,6 +108,6 @@ final class CasNumberTest extends TestCase
 
     public function testIsReadonly(): void
     {
-        self::assertTrue((new \ReflectionClass(CasNumber::class))->isReadOnly());
+        self::assertTrue(new \ReflectionClass(CasNumber::class)->isReadOnly());
     }
 }

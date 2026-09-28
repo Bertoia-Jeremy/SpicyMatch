@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\DataFixtures;
 
+use App\Entity\AromaticCompound;
 use App\Entity\AromaticGroups;
 use App\Entity\Spices;
 use App\Entity\SpicyType;
@@ -27,7 +28,7 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface, Fixtu
      *   secondary: string[],
      * }>
      */
-    private const SPICES = [
+    private const array SPICES = [
         'cannelle' => [
             'name' => 'Cannelle de Ceylan',
             'description' => 'Écorce intérieure séchée du cannelier de Ceylan. Arôme doux, chaud et légèrement sucré — la plus délicate des cannelles.',
@@ -390,13 +391,13 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface, Fixtu
 
             foreach ($data['main'] as $compoundRef) {
                 $entity->addAromaticsCompounds(
-                    $this->getReference($compoundRef, \App\Entity\AromaticCompound::class)
+                    $this->getReference($compoundRef, AromaticCompound::class)
                 );
             }
 
             foreach ($data['secondary'] as $compoundRef) {
                 $entity->addSecondaryAromaticsCompound(
-                    $this->getReference($compoundRef, \App\Entity\AromaticCompound::class)
+                    $this->getReference($compoundRef, AromaticCompound::class)
                 );
             }
 

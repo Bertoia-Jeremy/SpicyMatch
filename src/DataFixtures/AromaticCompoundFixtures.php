@@ -14,7 +14,7 @@ class AromaticCompoundFixtures extends Fixture implements FixtureGroupInterface
     /**
      * @var array<string, array{name: string, cas_number: string, formula: string, description: string, cooking: string, informations: string}>
      */
-    private const COMPOUNDS = [
+    private const array COMPOUNDS = [
         'eugenol' => [
             'name' => 'Eugenol',
             'cas_number' => '97-53-0',

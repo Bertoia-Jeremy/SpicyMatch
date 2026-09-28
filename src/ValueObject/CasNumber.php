@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\ValueObject;
 
-final readonly class CasNumber
+final readonly class CasNumber implements \Stringable
 {
     private const string PATTERN = '/^(\d{2,7})-(\d{2})-(\d)$/';
 

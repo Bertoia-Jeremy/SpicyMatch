@@ -9,7 +9,7 @@ use App\Repository\SpicyTypeRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/{_locale}/epices/types_epices', defaults: [
     '_locale' => 'fr',

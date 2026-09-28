@@ -23,7 +23,7 @@ final class AchievementTest extends TestCase
 
     private function makeValidAchievement(): Achievement
     {
-        return (new Achievement())
+        return new Achievement()
             ->setSlug('first-match')
             ->setName('Premier mélange')
             ->setDescription('Réalise ton premier mélange.')

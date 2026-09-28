@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Twig\Components;
 
+use App\Entity\AromaticGroups;
 use App\Entity\Spices;
+use App\Entity\SpicyType;
 use App\Entity\Users;
 use App\Enum\DataConfidence;
 use App\Enum\OdtMatrix;
@@ -21,6 +23,7 @@ use App\Service\SpicyMatchService;
 use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
@@ -197,7 +200,7 @@ class SpicyMatch extends AbstractController
     }
 
     /**
-     * @return list<\App\Entity\AromaticGroups>
+     * @return list<AromaticGroups>
      */
     public function getAromaticGroups(): array
     {
@@ -205,7 +208,7 @@ class SpicyMatch extends AbstractController
     }
 
     /**
-     * @return list<\App\Entity\SpicyType>
+     * @return list<SpicyType>
      */
     public function getSpicyTypes(): array
     {
@@ -221,7 +224,7 @@ class SpicyMatch extends AbstractController
         $compatibleSpices = $this->spices['compatibleSpices'];
 
         if (! empty($this->spices['selectedSpices'])) {
-            $ids = array_map('intval', $this->spices['selectedSpices']);
+            $ids = array_map(intval(...), $this->spices['selectedSpices']);
 
             $selectedFlat = $this->spicesRepository->findSpicesForMatch(implode(',', $ids));
             foreach ($selectedFlat as $spice) {
@@ -237,12 +240,12 @@ class SpicyMatch extends AbstractController
 
                 $compatibleSpices = array_values(array_filter(
                     $scored,
-                    fn (array $s) => ! in_array($s['id'], $ids, true),
+                    fn (array $s): bool => ! in_array($s['id'], $ids, true),
                 ));
             } else {
                 $compatibleSpices = array_values(array_filter(
                     $compatibleSpices,
-                    fn (array $s) => ! in_array($s['id'], $ids, true),
+                    fn (array $s): bool => ! in_array($s['id'], $ids, true),
                 ));
             }
         }
@@ -256,7 +259,7 @@ class SpicyMatch extends AbstractController
         }
 
         if ($this->selectedAromaticGroup !== null) {
-            usort($compatibleSpices, function (array $a, array $b) {
+            usort($compatibleSpices, function (array $a, array $b): int {
                 $groupA = $a['groupName'] === $this->selectedAromaticGroup ? 0 : 1;
                 $groupB = $b['groupName'] === $this->selectedAromaticGroup ? 0 : 1;
 
@@ -269,7 +272,7 @@ class SpicyMatch extends AbstractController
             if ($agId !== null) {
                 $compatibleSpices = array_values(array_filter(
                     $compatibleSpices,
-                    fn (array $s) => ($s['agId'] ?? null) === $agId,
+                    fn (array $s): bool => ($s['agId'] ?? null) === $agId,
                 ));
             }
         }
@@ -279,7 +282,7 @@ class SpicyMatch extends AbstractController
             if ($stId !== null) {
                 $compatibleSpices = array_values(array_filter(
                     $compatibleSpices,
-                    fn (array $s) => ($s['stId'] ?? null) === $stId,
+                    fn (array $s): bool => ($s['stId'] ?? null) === $stId,
                 ));
             }
         }
@@ -288,7 +291,7 @@ class SpicyMatch extends AbstractController
             $needle = mb_strtolower($this->search);
             $compatibleSpices = array_values(array_filter(
                 $compatibleSpices,
-                fn (array $s) => str_starts_with(mb_strtolower($s['name']), $needle),
+                fn (array $s): bool => str_starts_with(mb_strtolower($s['name']), $needle),
             ));
         }
 
@@ -320,7 +323,7 @@ class SpicyMatch extends AbstractController
             return null;
         }
 
-        $ids = array_values(array_filter(array_map('intval', $selected), static fn (int $id) => $id > 0));
+        $ids = array_values(array_filter(array_map(intval(...), $selected), static fn (int $id): bool => $id > 0));
         if ($ids === []) {
             return null;
         }
@@ -356,7 +359,7 @@ class SpicyMatch extends AbstractController
     public function isOavScoringAvailable(): bool
     {
         $ids = array_values(array_filter(
-            array_map('intval', $this->spices['selectedSpices']),
+            array_map(intval(...), $this->spices['selectedSpices']),
             static fn (int $id): bool => $id > 0,
         ));
 
@@ -445,7 +448,7 @@ class SpicyMatch extends AbstractController
     }
 
     #[LiveAction]
-    public function nextStep(): \Symfony\Component\HttpFoundation\RedirectResponse
+    public function nextStep(): RedirectResponse
     {
         $this->denyAccessUnlessGranted('ROLE_USER');
 
@@ -454,7 +457,7 @@ class SpicyMatch extends AbstractController
         $user = $this->getUser();
         \assert($user instanceof Users);
 
-        $selectedIds = array_map('intval', $this->spices['selectedSpices']);
+        $selectedIds = array_map(intval(...), $this->spices['selectedSpices']);
         $compatibleSpices = $isManual ? [] : $this->getResults()['compatibleSpices'];
 
         $spicyMatch = $this->spicyMatchService->createFromSelection(

@@ -67,7 +67,7 @@ class SpicyMatchServiceTest extends TestCase
 
     public function testSetsUserOnMatch(): void
     {
-        $user = $this->createMock(Users::class);
+        $user = $this->createStub(Users::class);
         $match = new SpicyMatch();
         $this->factory->method('create')
             ->willReturn($match);
@@ -123,8 +123,8 @@ class SpicyMatchServiceTest extends TestCase
 
     public function testAddsSelectedSpicesToMatch(): void
     {
-        $spice1 = $this->createMock(Spices::class);
-        $spice2 = $this->createMock(Spices::class);
+        $spice1 = $this->createStub(Spices::class);
+        $spice2 = $this->createStub(Spices::class);
         $match = new SpicyMatch();
         $this->factory->method('create')
             ->willReturn($match);

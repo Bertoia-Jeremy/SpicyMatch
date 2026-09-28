@@ -9,28 +9,31 @@ use App\Exception\Match\OavRebuildFailedException;
 use App\Message\RecomputeOavTableMessage;
 use App\Service\Match\MortarProfileBuilder;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\DelayStamp;
 
 #[AsMessageHandler]
-final class RecomputeOavTableHandler
+final readonly class RecomputeOavTableHandler
 {
-    private const REBUILD_LOCK = 'spicymatch_oav_rebuild';
+    private const string REBUILD_LOCK = 'spicymatch_oav_rebuild';
 
-    private const LOCK_WAIT_SECONDS = 0;
+    private const int LOCK_WAIT_SECONDS = 0;
 
-    private const MAX_REBUILD_ATTEMPTS = 3;
+    private const int MAX_REBUILD_ATTEMPTS = 3;
 
-    private const RETRY_DELAY_MS = 60_000;
+    private const int RETRY_DELAY_MS = 60_000;
 
     public function __construct(
-        private readonly Connection $connection,
-        private readonly MortarProfileBuilder $mortarProfileBuilder,
-        private readonly LoggerInterface $logger,
-        private readonly MessageBusInterface $messageBus,
-        private readonly LoggerInterface $oavLogger,
+        private Connection $connection,
+        private MortarProfileBuilder $mortarProfileBuilder,
+        private LoggerInterface $logger,
+        private MessageBusInterface $messageBus,
+        #[Target('oavLogger')]
+        private LoggerInterface $oavLogger,
     ) {
     }
 
@@ -56,7 +59,7 @@ final class RecomputeOavTableHandler
             } finally {
                 $this->releaseRebuildLock();
             }
-        } catch (\Doctrine\DBAL\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error('[OAV] Rebuild échoué — exception DBAL', [
                 'reason' => $reason,
                 'exception' => $e->getMessage(),

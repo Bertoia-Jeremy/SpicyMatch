@@ -47,7 +47,7 @@ final class SpicyMatchHistoryTest extends TestCase
 
     public function testAddPreparationTipIgnoresDuplicate(): void
     {
-        $tip = $this->createMock(PreparationTips::class);
+        $tip = $this->createStub(PreparationTips::class);
         $this->history->addPreparationTip($tip);
         $this->history->addPreparationTip($tip);
 
@@ -56,7 +56,7 @@ final class SpicyMatchHistoryTest extends TestCase
 
     public function testRemovePreparationTip(): void
     {
-        $tip = $this->createMock(PreparationTips::class);
+        $tip = $this->createStub(PreparationTips::class);
         $this->history->addPreparationTip($tip);
         $this->history->removePreparationTip($tip);
 
@@ -65,7 +65,7 @@ final class SpicyMatchHistoryTest extends TestCase
 
     public function testAddCookingTipIgnoresDuplicate(): void
     {
-        $tip = $this->createMock(CookingTips::class);
+        $tip = $this->createStub(CookingTips::class);
         $this->history->addCookingTip($tip);
         $this->history->addCookingTip($tip);
 
@@ -74,7 +74,7 @@ final class SpicyMatchHistoryTest extends TestCase
 
     public function testRemoveCookingTip(): void
     {
-        $tip = $this->createMock(CookingTips::class);
+        $tip = $this->createStub(CookingTips::class);
         $this->history->addCookingTip($tip);
         $this->history->removeCookingTip($tip);
 

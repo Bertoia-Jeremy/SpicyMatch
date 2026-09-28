@@ -31,7 +31,7 @@ final class ImportCompoundPhysicalCommand extends Command
         private readonly AromaticCompoundRepository $aromaticCompoundRepository,
         private readonly CompoundPhysicalRepository $compoundPhysicalRepository,
         private readonly EntityManagerInterface $em,
-        #[Autowire('%kernel.project_dir%')]
+        #[Autowire(param: 'kernel.project_dir')]
         private readonly string $projectDir,
     ) {
         parent::__construct();

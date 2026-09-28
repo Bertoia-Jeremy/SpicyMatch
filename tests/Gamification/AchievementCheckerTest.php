@@ -6,6 +6,8 @@ namespace App\Tests\Gamification;
 
 use App\Entity\Achievement;
 use App\Entity\UserProgression;
+use App\Entity\Users;
+use App\Entity\UserStat;
 use App\Enum\AchievementRarity;
 use App\Enum\AchievementTrigger;
 use App\Gamification\AchievementChecker;
@@ -328,8 +330,8 @@ final class AchievementCheckerTest extends TestCase
         $achievement = $this->makeAchievement(AchievementTrigger::ALL_TERPENES_VISITED, 1);
         $this->stubRepo(AchievementTrigger::ALL_TERPENES_VISITED, [$achievement]);
 
-        $stats = new \App\Entity\UserStat();
-        $user = $this->createMock(\App\Entity\Users::class);
+        $stats = new UserStat();
+        $user = $this->createMock(Users::class);
         $user->method('getStats')
             ->willReturn($stats);
         $this->progression->setUser($user);
@@ -345,12 +347,12 @@ final class AchievementCheckerTest extends TestCase
         $achievement = $this->makeAchievement(AchievementTrigger::ALL_TERPENES_VISITED, 1);
         $this->stubRepo(AchievementTrigger::ALL_TERPENES_VISITED, [$achievement]);
 
-        $stats = new \App\Entity\UserStat();
+        $stats = new UserStat();
         $stats->addVisitedAromaticGroup(1);
         $stats->addVisitedAromaticGroup(2);
         $stats->addVisitedAromaticGroup(3);
 
-        $user = $this->createMock(\App\Entity\Users::class);
+        $user = $this->createMock(Users::class);
         $user->method('getStats')
             ->willReturn($stats);
         $this->progression->setUser($user);
@@ -368,11 +370,11 @@ final class AchievementCheckerTest extends TestCase
         $achievement = $this->makeAchievement(AchievementTrigger::ALL_TERPENES_VISITED, 1);
         $this->stubRepo(AchievementTrigger::ALL_TERPENES_VISITED, [$achievement]);
 
-        $stats = new \App\Entity\UserStat();
+        $stats = new UserStat();
         $stats->addVisitedAromaticGroup(1);
         $stats->addVisitedAromaticGroup(2);
 
-        $user = $this->createMock(\App\Entity\Users::class);
+        $user = $this->createMock(Users::class);
         $user->method('getStats')
             ->willReturn($stats);
         $this->progression->setUser($user);
@@ -390,7 +392,7 @@ final class AchievementCheckerTest extends TestCase
         $nSpices = $this->makeAchievement(AchievementTrigger::N_SPICES_USED, 3);
 
         $this->repo->method('findByTrigger')
-            ->willReturnCallback(fn (AchievementTrigger $t) => match ($t) {
+            ->willReturnCallback(fn (AchievementTrigger $t): array => match ($t) {
                 AchievementTrigger::FIRST_MATCH => [$firstMatch],
                 AchievementTrigger::N_MATCHES => [$nMatches],
                 AchievementTrigger::N_SPICES_USED => [$nSpices],
@@ -435,7 +437,7 @@ final class AchievementCheckerTest extends TestCase
         int $triggerValue,
         ?string $easterEggSlug = null,
     ): Achievement {
-        return (new Achievement())
+        return new Achievement()
             ->setSlug('test-' . $trigger->value)
             ->setName('Test')
             ->setDescription('Desc')
@@ -452,7 +454,7 @@ final class AchievementCheckerTest extends TestCase
     private function stubRepo(AchievementTrigger $trigger, array $achievements): void
     {
         $this->repo->method('findByTrigger')
-            ->willReturnCallback(fn (AchievementTrigger $t) => $t === $trigger ? $achievements : []);
+            ->willReturnCallback(fn (AchievementTrigger $t): array => $t === $trigger ? $achievements : []);
     }
 
     private function setField(string $field, mixed $value): void

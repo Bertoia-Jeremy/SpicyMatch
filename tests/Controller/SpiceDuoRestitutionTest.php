@@ -17,19 +17,21 @@ final class SpiceDuoRestitutionTest extends WebTestCase
 {
     public function testHistoryPageShowsChefWordForChosenPair(): void
     {
-        $client = static::createClient();
-        $user = static::getContainer()->get(UsersRepository::class)->findOneBy([]);
+        $client = self::createClient();
+        $user = self::getContainer()->get(UsersRepository::class)->findOneBy([]);
         self::assertNotNull($user);
         $client->loginUser($user);
 
-        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em = self::getContainer()->get(EntityManagerInterface::class);
         $lastMessageId = (int) $em->getConnection()
             ->fetchOne('SELECT COALESCE(MAX(id), 0) FROM messenger_messages');
 
         [$prep, $cook] = $this->pair($em);
-        $match = (new SpicyMatch())->setUser($user)
+        $match = new SpicyMatch()
+            ->setUser($user)
             ->addSpice($prep->getSpice());
-        $history = (new SpicyMatchHistory())->setSpicyMatch($match)
+        $history = new SpicyMatchHistory()
+            ->setSpicyMatch($match)
             ->addPreparationTip($prep)
             ->addCookingTip($cook);
         $duo = $this->duo($prep, $cook);
@@ -52,19 +54,21 @@ final class SpiceDuoRestitutionTest extends WebTestCase
 
     public function testHistoryPageWithoutDuoHasNoChefWord(): void
     {
-        $client = static::createClient();
-        $user = static::getContainer()->get(UsersRepository::class)->findOneBy([]);
+        $client = self::createClient();
+        $user = self::getContainer()->get(UsersRepository::class)->findOneBy([]);
         self::assertNotNull($user);
         $client->loginUser($user);
 
-        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em = self::getContainer()->get(EntityManagerInterface::class);
         $lastMessageId = (int) $em->getConnection()
             ->fetchOne('SELECT COALESCE(MAX(id), 0) FROM messenger_messages');
 
         [$prep, $cook] = $this->pair($em);
-        $match = (new SpicyMatch())->setUser($user)
+        $match = new SpicyMatch()
+            ->setUser($user)
             ->addSpice($prep->getSpice());
-        $history = (new SpicyMatchHistory())->setSpicyMatch($match)
+        $history = new SpicyMatchHistory()
+            ->setSpicyMatch($match)
             ->addPreparationTip($prep)
             ->addCookingTip($cook);
         $em->persist($match);
@@ -84,8 +88,8 @@ final class SpiceDuoRestitutionTest extends WebTestCase
 
     public function testSpicePageShowsDuoUnderMarmite(): void
     {
-        $client = static::createClient();
-        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $client = self::createClient();
+        $em = self::getContainer()->get(EntityManagerInterface::class);
 
         [$prep, $cook] = $this->pair($em);
         $spice = $prep->getSpice();
@@ -102,10 +106,12 @@ final class SpiceDuoRestitutionTest extends WebTestCase
             self::assertResponseIsSuccessful();
             self::assertStringContainsString('Duo test chef', $crawler->filter('.marmite-duo')->text());
         } finally {
-            $em = static::getContainer()->get(EntityManagerInterface::class);
+            $em = self::getContainer()->get(EntityManagerInterface::class);
             $em->clear();
             $toRemove = $em->find(SpiceDuo::class, $duoId);
-            $toRemove !== null && $em->remove($toRemove);
+            if ($toRemove !== null) {
+                $em->remove($toRemove);
+            }
             $em->flush();
         }
     }
@@ -130,7 +136,7 @@ final class SpiceDuoRestitutionTest extends WebTestCase
 
     private function duo(PreparationTips $prep, CookingTips $cook): SpiceDuo
     {
-        return (new SpiceDuo())
+        return new SpiceDuo()
             ->setPreparationTip($prep)
             ->setCookingTip($cook)
             ->setTitle('Duo test chef')
@@ -146,11 +152,13 @@ final class SpiceDuoRestitutionTest extends WebTestCase
      */
     private function cleanup(array $ids, int $lastMessageId): void
     {
-        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em = self::getContainer()->get(EntityManagerInterface::class);
         $em->clear();
         foreach ([[SpiceDuo::class, $ids[2]], [SpicyMatchHistory::class, $ids[0]], [SpicyMatch::class, $ids[1]]] as [$class, $id]) {
             $entity = $id === null ? null : $em->find($class, $id);
-            $entity !== null && $em->remove($entity);
+            if ($entity !== null) {
+                $em->remove($entity);
+            }
             $em->flush();
         }
         $em->getConnection()

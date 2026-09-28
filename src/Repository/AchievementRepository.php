@@ -8,6 +8,7 @@ use App\Entity\Achievement;
 use App\Enum\AchievementTrigger;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use SortDirection;
 
 /**
  * @extends ServiceEntityRepository<Achievement>
@@ -76,8 +77,8 @@ class AchievementRepository extends ServiceEntityRepository
     public function findAllOrdered(): array
     {
         return $this->createQueryBuilder('a')
-            ->orderBy('a.rarity', 'ASC')
-            ->addOrderBy('a.triggerValue', 'ASC')
+            ->orderBy('a.rarity', SortDirection::Ascending)
+            ->addOrderBy('a.triggerValue', SortDirection::Ascending)
             ->getQuery()
             ->getResult()
         ;

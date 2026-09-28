@@ -65,7 +65,7 @@ final class EasterEggGamificationHandlerTest extends TestCase
 
     public function testCreatesProgressionWhenNull(): void
     {
-        $user = $this->createMock(Users::class);
+        $user = $this->createStub(Users::class);
         $this->usersRepo->method('find')
             ->willReturn($user);
 
@@ -83,7 +83,7 @@ final class EasterEggGamificationHandlerTest extends TestCase
     public function testDelegatesWithCorrectContext(): void
     {
         $progression = new UserProgression();
-        $user = $this->createMock(Users::class);
+        $user = $this->createStub(Users::class);
         $this->usersRepo->method('find')
             ->willReturn($user);
         $this->manager->method('getOrCreateProgression')

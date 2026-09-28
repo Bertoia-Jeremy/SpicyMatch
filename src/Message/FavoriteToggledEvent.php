@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Message;
 
-final class FavoriteToggledEvent
+final readonly class FavoriteToggledEvent
 {
     public function __construct(
-        public readonly int $userId,
+        public int $userId,
     ) {
     }
 }

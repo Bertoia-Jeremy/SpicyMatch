@@ -28,13 +28,14 @@ final class NullFlavorGraphHybridizerTest extends TestCase
             ],
         ];
 
-        $out = (new NullFlavorGraphHybridizer())->rerank($results, new MortarIds([1]), true, OdtMatrix::AIR);
+        $out = new NullFlavorGraphHybridizer()
+            ->rerank($results, new MortarIds([1]), true, OdtMatrix::AIR);
 
         self::assertSame($results, $out);
     }
 
     public function testIsActiveReturnsFalse(): void
     {
-        self::assertFalse((new NullFlavorGraphHybridizer())->isActive());
+        self::assertFalse(new NullFlavorGraphHybridizer()->isActive());
     }
 }

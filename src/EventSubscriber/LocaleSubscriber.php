@@ -12,16 +12,16 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
-final class LocaleSubscriber implements EventSubscriberInterface
+final readonly class LocaleSubscriber implements EventSubscriberInterface
 {
     /**
      * @var list<string> source unique des locales supportées (UI, négociation, requirements de route)
      */
-    public const SUPPORTED_LOCALES = ['fr', 'en', 'es'];
+    public const array SUPPORTED_LOCALES = ['fr', 'en', 'es'];
 
     public function __construct(
-        private readonly TokenStorageInterface $tokenStorage,
-        private readonly string $defaultLocale = 'fr',
+        private TokenStorageInterface $tokenStorage,
+        private string $defaultLocale = 'fr',
     ) {
     }
 

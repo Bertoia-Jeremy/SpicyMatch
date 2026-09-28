@@ -16,15 +16,15 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 #[AsEventListener(event: KernelEvents::REQUEST, priority: 10)]
-final class RateLimitListener
+final readonly class RateLimitListener
 {
     public function __construct(
         #[Autowire(service: 'limiter.lc_actions')]
-        private readonly RateLimiterFactory $lcActionsLimiter,
+        private RateLimiterFactory $lcActionsLimiter,
         #[Autowire(service: 'limiter.user_actions')]
-        private readonly RateLimiterFactory $userActionsLimiter,
-        private readonly TokenStorageInterface $tokenStorage,
-        private readonly LoggerInterface $logger,
+        private RateLimiterFactory $userActionsLimiter,
+        private TokenStorageInterface $tokenStorage,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -41,7 +41,7 @@ final class RateLimitListener
 
         $path = $request->getPathInfo();
         $limiterFactory = $this->pickLimiter($path);
-        if ($limiterFactory === null) {
+        if (! $limiterFactory instanceof RateLimiterFactory) {
             return;
         }
 

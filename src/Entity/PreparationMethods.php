@@ -11,7 +11,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PreparationMethodsRepository::class)]
-class PreparationMethods implements TranslatableInterface, Sluggable
+class PreparationMethods implements TranslatableInterface, Sluggable, \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -21,7 +21,7 @@ class PreparationMethods implements TranslatableInterface, Sluggable
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
+    #[ORM\Column(type: 'string', length: 255, unique: true, nullable: true)]
     private ?string $slug = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
@@ -36,11 +36,7 @@ class PreparationMethods implements TranslatableInterface, Sluggable
     /**
      * @var Collection<int, PreparationTips>
      */
-    #[ORM\OneToMany(
-        mappedBy: 'preparationMethod',
-        targetEntity: PreparationTips::class,
-        cascade: ['persist', 'remove']
-    )]
+    #[ORM\OneToMany(targetEntity: PreparationTips::class, mappedBy: 'preparationMethod', cascade: ['persist', 'remove'])]
     private Collection $preparationTips;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -58,7 +54,7 @@ class PreparationMethods implements TranslatableInterface, Sluggable
     /**
      * @var Collection<int, PreparationMethodsTranslation>
      */
-    #[ORM\OneToMany(mappedBy: 'preparationMethod', targetEntity: PreparationMethodsTranslation::class, cascade: [
+    #[ORM\OneToMany(targetEntity: PreparationMethodsTranslation::class, mappedBy: 'preparationMethod', cascade: [
         'persist',
         'remove',
     ], orphanRemoval: true)]
@@ -209,7 +205,7 @@ class PreparationMethods implements TranslatableInterface, Sluggable
 
     public function __toString(): string
     {
-        return $this->name;
+        return (string) $this->name;
     }
 
     /**

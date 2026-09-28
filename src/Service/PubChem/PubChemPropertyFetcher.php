@@ -7,7 +7,7 @@ namespace App\Service\PubChem;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-final class PubChemPropertyFetcher
+final readonly class PubChemPropertyFetcher
 {
     private const string PUBCHEM_BASE = 'https://pubchem.ncbi.nlm.nih.gov/rest/pug';
 
@@ -16,7 +16,7 @@ final class PubChemPropertyFetcher
     private const int FORMULA_MAX_LENGTH = 30;
 
     public function __construct(
-        private readonly HttpClientInterface $httpClient,
+        private HttpClientInterface $httpClient,
     ) {
     }
 

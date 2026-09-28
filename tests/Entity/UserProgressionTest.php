@@ -274,7 +274,7 @@ final class UserProgressionTest extends TestCase
 
     private function makeAchievement(): Achievement
     {
-        return (new Achievement())
+        return new Achievement()
             ->setSlug('test')
             ->setName('Test')
             ->setDescription('Test description')

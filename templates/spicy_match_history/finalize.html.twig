@@ -11,6 +11,7 @@
     '{{ csrf_token('history_edit_' ~ spicyMatchHistory.id) }}'
   )"
   data-duo-map="{{ duoMap|json_encode|e('html_attr') }}"
+  data-selections="{{ selections|json_encode|e('html_attr') }}"
   {% for spice in spices %}data-spice-name{{ loop.index0 }}="{{ spice.getLocalizedName(loc) }}" {% endfor %}
   class="min-h-screen etamine-paper"
   style="background-color: #F5ECDB;"

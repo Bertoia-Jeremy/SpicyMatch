@@ -8,6 +8,8 @@ use App\Entity\Achievement;
 use App\Entity\GameSession;
 use App\Entity\Spices;
 use App\Entity\SpiceView;
+use App\Entity\SpicyMatch;
+use App\Entity\SpicyMatchHistory;
 use App\Entity\UserAchievement;
 use App\Entity\UserProgression;
 use App\Entity\Users;
@@ -15,6 +17,7 @@ use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use App\Repository\GameSessionRepository;
 use App\Repository\SpiceViewRepository;
+use App\Repository\SpicyMatchHistoryRepository;
 use App\Repository\UserAchievementRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -59,6 +62,28 @@ final class GamificationAggregatesRepositoryTest extends KernelTestCase
         $userId = (int) $user->getId();
 
         self::assertSame(3, $repo->countGroupedByUser()[$userId] ?? null);
+        self::assertSame(2, $repo->countDistinctSpicesGroupedByUser()[$userId] ?? null);
+    }
+
+    public function testMatchAggregatesCountOnlySealedHistories(): void
+    {
+        $user = $this->createUser();
+        $spices = $this->em->getRepository(Spices::class)
+            ->findBy([], [
+                'id' => 'ASC',
+            ], 3);
+        self::assertCount(3, $spices);
+
+        $this->persistHistory($user, [$spices[0], $spices[1]], sealed: true);
+        $this->persistHistory($user, [$spices[2]], sealed: false);
+        $this->em->flush();
+
+        $repo = self::getContainer()->get(SpicyMatchHistoryRepository::class);
+        $userId = (int) $user->getId();
+
+        self::assertSame(1, $repo->countByUser($user));
+        self::assertSame(2, $repo->countDistinctSpicesByUser($user));
+        self::assertSame(1, $repo->countGroupedByUser()[$userId] ?? null);
         self::assertSame(2, $repo->countDistinctSpicesGroupedByUser()[$userId] ?? null);
     }
 
@@ -122,6 +147,25 @@ final class GamificationAggregatesRepositoryTest extends KernelTestCase
         $view = new SpiceView($user, $spice);
         new \ReflectionProperty(SpiceView::class, 'viewedDay')->setValue($view, new \DateTimeImmutable($day));
         $this->em->persist($view);
+    }
+
+    /**
+     * @param list<Spices> $spices
+     */
+    private function persistHistory(Users $user, array $spices, bool $sealed): void
+    {
+        $match = new SpicyMatch()
+            ->setUser($user);
+        foreach ($spices as $spice) {
+            $match->addSpice($spice);
+        }
+        $history = new SpicyMatchHistory()
+            ->setSpicyMatch($match);
+        if ($sealed) {
+            new \ReflectionProperty(SpicyMatchHistory::class, 'sealedAt')->setValue($history, new \DateTimeImmutable());
+        }
+        $this->em->persist($match);
+        $this->em->persist($history);
     }
 
     private function persistSession(Users $user, int $score, bool $finished): void

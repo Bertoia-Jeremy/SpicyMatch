@@ -119,6 +119,7 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
             ->join('smh.spicyMatch', 'sm')
             ->where('sm.user = :user')
             ->andWhere('smh.deletedAt IS NULL')
+            ->andWhere('smh.sealedAt IS NOT NULL')
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
@@ -134,6 +135,7 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
                 ->select('IDENTITY(sm.user) AS uid', 'COUNT(smh.id) AS total')
                 ->join('smh.spicyMatch', 'sm')
                 ->where('smh.deletedAt IS NULL')
+                ->andWhere('smh.sealedAt IS NOT NULL')
                 ->andWhere('sm.user IS NOT NULL')
                 ->groupBy('sm.user')
                 ->getQuery()
@@ -152,6 +154,7 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
                 ->join('smh.spicyMatch', 'sm')
                 ->join('sm.spices', 's')
                 ->where('smh.deletedAt IS NULL')
+                ->andWhere('smh.sealedAt IS NOT NULL')
                 ->andWhere('sm.user IS NOT NULL')
                 ->groupBy('sm.user')
                 ->getQuery()
@@ -181,6 +184,7 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
             ->join('sm.spices', 's')
             ->where('sm.user = :user')
             ->andWhere('smh.deletedAt IS NULL')
+            ->andWhere('smh.sealedAt IS NOT NULL')
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();

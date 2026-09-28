@@ -55,6 +55,9 @@ class SpicyMatchHistory
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $deletedAt = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $sealedAt = null;
+
     public function __construct()
     {
         $this->preparationTips = new ArrayCollection();
@@ -107,6 +110,71 @@ class SpicyMatchHistory
         $this->preparationTips->removeElement($tip);
 
         return $this;
+    }
+
+    public function chooseCookingTip(Spices $spice, ?CookingTips $tip): void
+    {
+        if ($tip !== null && $tip->getSpice() !== $spice) {
+            throw new \InvalidArgumentException('Cooking tip does not belong to this spice.');
+        }
+
+        foreach ($this->cookingTips->toArray() as $current) {
+            if ($current->getSpice() === $spice && $current !== $tip) {
+                $this->cookingTips->removeElement($current);
+            }
+        }
+        if ($tip !== null) {
+            $this->addCookingTip($tip);
+        }
+    }
+
+    public function choosePreparationTip(Spices $spice, ?PreparationTips $tip): void
+    {
+        if ($tip !== null && $tip->getSpice() !== $spice) {
+            throw new \InvalidArgumentException('Preparation tip does not belong to this spice.');
+        }
+
+        foreach ($this->preparationTips->toArray() as $current) {
+            if ($current->getSpice() === $spice && $current !== $tip) {
+                $this->preparationTips->removeElement($current);
+            }
+        }
+        if ($tip !== null) {
+            $this->addPreparationTip($tip);
+        }
+    }
+
+    public function markSealedIfComplete(\DateTimeImmutable $now): bool
+    {
+        if ($this->sealedAt !== null || ! $this->isSealed()) {
+            return false;
+        }
+
+        $this->sealedAt = $now;
+
+        return true;
+    }
+
+    public function getSealedAt(): ?\DateTimeImmutable
+    {
+        return $this->sealedAt;
+    }
+
+    public function isSealed(): bool
+    {
+        $spices = $this->spicyMatch?->getSpices();
+        if ($spices === null || $spices->isEmpty()) {
+            return false;
+        }
+
+        foreach ($spices as $spice) {
+            if (! $this->cookingTips->exists(static fn (int $key, CookingTips $tip): bool => $tip->getSpice() === $spice)
+                || ! $this->preparationTips->exists(static fn (int $key, PreparationTips $tip): bool => $tip->getSpice() === $spice)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

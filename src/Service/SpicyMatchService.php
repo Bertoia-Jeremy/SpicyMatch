@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Entity\SpicyMatch;
+use App\Entity\SpicyMatchHistory;
 use App\Entity\SpicyMatchResult;
 use App\Entity\Users;
+use App\Exception\Match\InvalidMortarException;
 use App\Factory\SpicyMatchFactory;
+use App\Factory\SpicyMatchHistoryFactory;
 use App\Repository\SpicesRepository;
 use App\ValueObject\Match\CulinaryContext;
 use Doctrine\ORM\EntityManagerInterface;
@@ -18,38 +20,44 @@ class SpicyMatchService
         private readonly SpicyMatchFactory $factory,
         private readonly SpicesRepository $spicesRepository,
         private readonly EntityManagerInterface $em,
+        private readonly SpicyMatchHistoryFactory $historyFactory,
     ) {
     }
 
     /**
-     * @param list<int>                          $selectedIds      Flat list of selected spice IDs
-     * @param list<array{id: int, score: mixed}> $compatibleSpices Scored compatible spices (auto mode only)
-     * @param CulinaryContext                    $ctx              Contexte culinaire — défaut neutre
+     * @param list<int>                          $selectedIds
+     * @param list<array{id: int, score: mixed}> $compatibleSpices
+     *
+     * @throws InvalidMortarException
      */
-    public function createFromSelection(
-        ?Users $user,
+    public function start(
+        Users $user,
         array $selectedIds,
         bool $isManual,
         array $compatibleSpices,
         CulinaryContext $ctx,
-    ): SpicyMatch {
+    ): SpicyMatchHistory {
+        $selected = $selectedIds === [] ? [] : $this->spicesRepository->findBy([
+            'id' => $selectedIds,
+        ]);
+        if ($selected === []) {
+            throw InvalidMortarException::emptySelection();
+        }
+
         $spicyMatch = $this->factory->create();
         $spicyMatch->setUser($user);
         $spicyMatch->setIsManual($isManual);
         $spicyMatch->setCulinaryContext($ctx);
 
-        foreach ($this->spicesRepository->findBy([
-            'id' => $selectedIds,
-        ]) as $spice) {
+        foreach ($selected as $spice) {
             $spicyMatch->addSpice($spice);
         }
 
         if (! $isManual && $compatibleSpices !== []) {
-            $compatibleIds = array_column($compatibleSpices, 'id');
             $scoreBySpiceId = array_column($compatibleSpices, 'score', 'id');
 
             foreach ($this->spicesRepository->findBy([
-                'id' => $compatibleIds,
+                'id' => array_column($compatibleSpices, 'id'),
             ]) as $spice) {
                 $result = new SpicyMatchResult();
                 $result->setSpice($spice);
@@ -58,9 +66,12 @@ class SpicyMatchService
             }
         }
 
+        $history = $this->historyFactory->create($spicyMatch);
+
         $this->em->persist($spicyMatch);
+        $this->em->persist($history);
         $this->em->flush();
 
-        return $spicyMatch;
+        return $history;
     }
 }

@@ -32,13 +32,17 @@ final class SpicyMatchLabQueryCountTest extends WebTestCase
         foreach ($this->spicesWithTips($em) as $spice) {
             $match->addSpice($spice);
         }
+        $history = new SpicyMatchHistory()
+            ->setSpicyMatch($match);
         $em->persist($match);
+        $em->persist($history);
         $em->flush();
         $matchId = $match->getId();
+        $historyId = $history->getId();
 
         try {
-            $fr = $this->queryCount($client, '/fr/spicymatch/view/' . $matchId);
-            $en = $this->queryCount($client, '/en/spicymatch/view/' . $matchId);
+            $fr = $this->queryCount($client, '/fr/spicymatch/history/' . $historyId . '/finalize');
+            $en = $this->queryCount($client, '/en/spicymatch/history/' . $historyId . '/finalize');
 
             self::assertLessThanOrEqual($fr + 2, $en, \sprintf('fr=%d en=%d', $fr, $en));
         } finally {

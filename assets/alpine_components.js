@@ -591,19 +591,33 @@ export default function registerAlpineComponents(Alpine) {
         toast: { visible: false, text: '' },
         _toastT: null,
         _autoT: null,
-        _saveT: null,
-        _abort: null,
+        _saveTimers: {},
+        _failed: new Set(),
+        _pending: new Set(),
+        _chain: Promise.resolve(),
+        _onPageHide: null,
 
         init() {
+            this._onPageHide = () => this.flushOnUnload();
+            window.addEventListener('pagehide', this._onPageHide);
+            let selections = {};
+            try {
+                selections = JSON.parse(this.$el.dataset.selections || '{}');
+            } catch (e) { console.error('selections parse error', e); }
             this.spiceIds.forEach((id, i) => {
                 this.spiceNames[id] = this.$el.dataset['spiceName' + i] || id;
-                this.results[id] ??= { cooking: null, preparation: null };
+                const saved = selections[id] || {};
+                this.results[id] = { cooking: saved.cooking ?? null, preparation: saved.preparation ?? null };
             });
-            this.current = this.spiceIds[0] ?? null;
+            this.current = this.spiceIds.find(id => !this.done(id)) ?? this.spiceIds[0] ?? null;
             try {
                 const parsed = JSON.parse(this.$el.dataset.duoMap || '{}');
                 this.duoMap = { byPrep: parsed.byPrep || {}, byCook: parsed.byCook || {} };
             } catch (e) { console.error('duoMap parse error', e); }
+        },
+        destroy() {
+            window.removeEventListener('pagehide', this._onPageHide);
+            this.flushOnUnload();
         },
 
         get allSealed() {
@@ -693,17 +707,23 @@ export default function registerAlpineComponents(Alpine) {
         toggleCooking(spiceId, tipId) {
             const r = this.results[spiceId];
             r.cooking = (r.cooking === tipId) ? null : tipId;
-            this.persist({ spiceId, cookingId: tipId });
+            this.persist(spiceId, 'cooking');
             this.maybeAdvance(spiceId);
         },
         togglePreparation(spiceId, tipId) {
             const r = this.results[spiceId];
             r.preparation = (r.preparation === tipId) ? null : tipId;
-            this.persist({ spiceId, preparationId: tipId });
+            this.persist(spiceId, 'preparation');
             this.maybeAdvance(spiceId);
         },
-        goToHistory(url) {
-            if (this.allSealed) window.location.href = url;
+        async goToHistory(url) {
+            if (!this.allSealed) return;
+            await this.flushSaves();
+            if (this._failed.size > 0) {
+                this.showToast(t('melange.save_error'), 3000);
+                return;
+            }
+            window.location.href = url;
         },
 
         maybeAdvance(spiceId) {
@@ -728,33 +748,74 @@ export default function registerAlpineComponents(Alpine) {
                 if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 24, behavior: 'smooth' });
             }, 250);
         },
-        showToast(text) {
+        showToast(text, duration = 1500) {
             this.toast.text = text;
             this.toast.visible = true;
             clearTimeout(this._toastT);
-            this._toastT = setTimeout(() => { this.toast.visible = false; }, 1500);
+            this._toastT = setTimeout(() => { this.toast.visible = false; }, duration);
         },
 
-        persist(params) {
-            clearTimeout(this._saveT);
-            this._saveT = setTimeout(async () => {
-                if (this._abort) this._abort.abort();
-                this._abort = new AbortController();
-                try {
-                    await fetch(historyUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-Token': csrf,
-                        },
-                        body: new URLSearchParams(params),
-                        signal: this._abort.signal,
-                    });
-                } catch (e) {
-                    if (e.name !== 'AbortError') console.error('Persist error', e);
-                }
+        persist(spiceId, kind) {
+            const key = spiceId + ':' + kind;
+            clearTimeout(this._saveTimers[key]);
+            this._saveTimers[key] = setTimeout(() => {
+                delete this._saveTimers[key];
+                this.send(spiceId, kind);
             }, 150);
+        },
+        request(spiceId, kind, keepalive = false) {
+            const tipId = this.results[spiceId]?.[kind] ?? 0;
+            return fetch(historyUrl, {
+                method: 'POST',
+                keepalive,
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': csrf,
+                },
+                body: new URLSearchParams({ spiceId, kind, tipId }),
+            });
+        },
+        send(spiceId, kind) {
+            const key = spiceId + ':' + kind;
+            if (this._pending.has(key)) return this._chain;
+            this._pending.add(key);
+            this._chain = this._chain.then(async () => {
+                if (!this._pending.delete(key)) return;
+                try {
+                    const response = await this.request(spiceId, kind);
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    this._failed.delete(key);
+                } catch (e) {
+                    console.error('Persist error', e);
+                    this._failed.add(key);
+                    this.showToast(t('melange.save_error'), 3000);
+                }
+            });
+            return this._chain;
+        },
+        flushSaves() {
+            Object.keys(this._saveTimers).forEach(key => {
+                clearTimeout(this._saveTimers[key]);
+                delete this._saveTimers[key];
+                this._failed.add(key);
+            });
+            [...this._failed].forEach(key => {
+                const [spiceId, kind] = key.split(':');
+                this.send(spiceId, kind);
+            });
+            return this._chain;
+        },
+        flushOnUnload() {
+            const keys = new Set([...Object.keys(this._saveTimers), ...this._failed, ...this._pending]);
+            this._pending.clear();
+            keys.forEach(key => {
+                clearTimeout(this._saveTimers[key]);
+                delete this._saveTimers[key];
+                const [spiceId, kind] = key.split(':');
+                this.request(spiceId, kind, true).catch(() => {});
+            });
+            this._failed.clear();
         },
     }));
 

@@ -27,6 +27,7 @@ melange:
     status_upcoming: à venir
     toast_complete: '%spice% scellée — mélange complet'
     toast_next: '%spice% scellée — %next% →'
+    save_error: Choix non enregistré — réessaie
 cooking:
     cta_final: Voir ma recette finale
     cta_incomplete: Finalise la préparation de chaque épice

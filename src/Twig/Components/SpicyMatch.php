@@ -11,6 +11,7 @@ use App\Entity\Users;
 use App\Enum\DataConfidence;
 use App\Enum\OdtMatrix;
 use App\Enum\ScoringMode;
+use App\Exception\Match\InvalidMortarException;
 use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpiceActiveCompoundRepository;
 use App\Repository\SpicesRepository;
@@ -460,16 +461,20 @@ class SpicyMatch extends AbstractController
         $selectedIds = array_map(intval(...), $this->spices['selectedSpices']);
         $compatibleSpices = $isManual ? [] : $this->getResults()['compatibleSpices'];
 
-        $spicyMatch = $this->spicyMatchService->createFromSelection(
-            $user,
-            $selectedIds,
-            $isManual,
-            $compatibleSpices,
-            $this->buildCulinaryContext(),
-        );
+        try {
+            $history = $this->spicyMatchService->start(
+                $user,
+                $selectedIds,
+                $isManual,
+                $compatibleSpices,
+                $this->buildCulinaryContext(),
+            );
+        } catch (InvalidMortarException) {
+            return $this->redirectToRoute('index_spicy_match');
+        }
 
-        return $this->redirectToRoute('view_spicy_match', [
-            'id' => $spicyMatch->getId(),
+        return $this->redirectToRoute('finalize_spicy_match_history', [
+            'id' => $history->getId(),
         ]);
     }
 }

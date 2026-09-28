@@ -10,4 +10,9 @@ final class InvalidMortarException extends \InvalidArgumentException
     {
         return new self('"spices" doit contenir entre 1 et 10 IDs valides.');
     }
+
+    public static function emptySelection(): self
+    {
+        return new self('Aucune épice valide dans la sélection.');
+    }
 }

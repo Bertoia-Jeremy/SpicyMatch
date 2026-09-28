@@ -10,16 +10,23 @@ use App\Entity\Spices;
 use App\Entity\SpicyMatchHistory;
 use App\Entity\Users;
 use App\Enum\CookingMoment;
+use App\Enum\HistoryTipKind;
 use App\Exception\Match\InvalidMortarException;
 use App\Message\FavoriteToggledEvent;
+use App\Message\MatchSavedEvent;
 use App\Repository\CookingTipsRepository;
 use App\Repository\PreparationTipsRepository;
 use App\Repository\SpiceDuoRepository;
+use App\Repository\SpicesRepository;
 use App\Repository\SpicyMatchHistoryRepository;
+use App\Security\Voter\SpicyMatchHistoryVoter;
 use App\Service\Match\CookingTimelineBuilder;
 use App\Service\Match\MatrixComparator;
+use App\Service\Match\SpiceDuoMapBuilder;
 use App\ValueObject\Match\MortarIds;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Clock\ClockInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,6 +48,7 @@ class SpicyMatchHistoryController extends AbstractController
         private readonly CookingTipsRepository $cookingTipsRepository,
         private readonly SpiceDuoRepository $duoRepository,
         private readonly MessageBusInterface $bus,
+        private readonly ClockInterface $clock,
     ) {
     }
 
@@ -61,23 +69,69 @@ class SpicyMatchHistoryController extends AbstractController
         ]);
     }
 
+    #[Route('/{id<\d+>}/finalize', name: 'finalize_spicy_match_history', methods: ['GET'])]
+    #[IsGranted(SpicyMatchHistoryVoter::OWNER, 'spicyMatchHistory')]
+    public function finalize(
+        SpicyMatchHistory $spicyMatchHistory,
+        SpicesRepository $spicesRepository,
+        SpiceDuoMapBuilder $duoMapBuilder,
+        Request $request,
+    ): Response {
+        $spicyMatch = $spicyMatchHistory->getSpicyMatch();
+        if ($spicyMatch === null || $spicyMatch->getSpices()->isEmpty()) {
+            return $this->redirectToRoute('index_spicy_match');
+        }
+
+        $spiceIds = array_values(array_filter($spicyMatch->getSpices()->map(static fn (Spices $s): ?int => $s->getId())->toArray()));
+        $loaded = [];
+        foreach ($spicesRepository->findForLab($spiceIds, $request->getLocale()) as $spice) {
+            $loaded[$spice->getId()] = $spice;
+        }
+        $spices = array_values(array_filter(array_map(static fn (int $id): ?Spices => $loaded[$id] ?? null, $spiceIds)));
+
+        $selections = [];
+        foreach ($spiceIds as $spiceId) {
+            $selections[$spiceId] = [
+                HistoryTipKind::COOKING->value => null,
+                HistoryTipKind::PREPARATION->value => null,
+            ];
+        }
+        foreach ($spicyMatchHistory->getCookingTips() as $tip) {
+            $spiceId = $tip->getSpice()?->getId();
+            if ($spiceId !== null && isset($selections[$spiceId])) {
+                $selections[$spiceId][HistoryTipKind::COOKING->value] = $tip->getId();
+            }
+        }
+        foreach ($spicyMatchHistory->getPreparationTips() as $tip) {
+            $spiceId = $tip->getSpice()?->getId();
+            if ($spiceId !== null && isset($selections[$spiceId])) {
+                $selections[$spiceId][HistoryTipKind::PREPARATION->value] = $tip->getId();
+            }
+        }
+
+        $duoRows = $this->duoRepository->findBySpiceIds($spiceIds, $request->getLocale());
+
+        return $this->render('spicy_match_history/finalize.html.twig', [
+            'spicyMatchHistory' => $spicyMatchHistory,
+            'spicyMatch' => $spicyMatch,
+            'spices' => $spices,
+            'selections' => $selections,
+            'duoMap' => $duoMapBuilder->build($duoRows),
+            'duoTips' => $duoMapBuilder->tooltips($duoRows),
+        ]);
+    }
+
     #[Route('/view/{id}', name: 'view_spicy_match_history', methods: ['GET'])]
+    #[IsGranted(SpicyMatchHistoryVoter::OWNER, 'spicyMatchHistory')]
     public function view(
         SpicyMatchHistory $spicyMatchHistory,
         MatrixComparator $matrixComparator,
         CookingTimelineBuilder $timelineBuilder,
         Request $request,
-        #[CurrentUser]
-        Users $currentUser,
     ): Response {
-        if ($spicyMatchHistory->getSpicyMatch()->getUser() !== $currentUser) {
-            throw $this->createAccessDeniedException();
-        }
-
-        if ($spicyMatchHistory->getPreparationTips()->isEmpty()) {
-            return $this->redirectToRoute('view_spicy_match', [
-                'id' => $spicyMatchHistory->getSpicyMatch()
-                    ->getId(),
+        if (! $spicyMatchHistory->isSealed()) {
+            return $this->redirectToRoute('finalize_spicy_match_history', [
+                'id' => $spicyMatchHistory->getId(),
             ]);
         }
 
@@ -165,17 +219,14 @@ class SpicyMatchHistoryController extends AbstractController
     }
 
     #[Route('/edit/{id}', name: 'edit_spicy_match_history', methods: ['POST'])]
+    #[IsGranted(SpicyMatchHistoryVoter::OWNER, 'spicyMatchHistory')]
     public function edit(
         SpicyMatchHistory $spicyMatchHistory,
         Request $request,
         EntityManagerInterface $entityManager,
         #[CurrentUser]
         Users $currentUser,
-    ): Response {
-        if ($spicyMatchHistory->getSpicyMatch()->getUser() !== $currentUser) {
-            throw $this->createAccessDeniedException();
-        }
-
+    ): JsonResponse {
         $token = $request->headers->get('X-CSRF-Token', '');
         if (! $this->isCsrfTokenValid('history_edit_' . $spicyMatchHistory->getId(), $token)) {
             return $this->json([
@@ -183,47 +234,65 @@ class SpicyMatchHistoryController extends AbstractController
             ], 403);
         }
 
-        $spiceId = (int) $request->request->get('spiceId');
+        $kind = $request->request->getEnum('kind', HistoryTipKind::class);
+        $spiceId = $request->request->getInt('spiceId');
+        $tipId = $request->request->getInt('tipId');
 
-        $matchSpiceIds = $spicyMatchHistory->getSpicyMatch()
-            ->getSpices()
-            ->map(fn (Spices $s): ?int => $s->getId())
-            ->toArray();
+        $spice = $spicyMatchHistory->getSpicyMatch()
+            ?->getSpices()
+            ->findFirst(static fn (int $key, Spices $s): bool => $s->getId() === $spiceId);
 
-        if (! in_array($spiceId, $matchSpiceIds, true)) {
-            return $this->json($this->renderView('Exception/Error.html.twig', [
-                'codeError' => '105',
-            ]));
+        if ($kind === null || $spice === null) {
+            return $this->json([
+                'error' => 'Invalid spice or kind',
+            ], 400);
         }
 
-        $cookingTipId = (int) $request->request->get('cookingId');
-        $preparationTipId = (int) $request->request->get('preparationId');
-
-        if ($cookingTipId) {
-            return $this->handleCookingTip($spicyMatchHistory, $spiceId, $cookingTipId, $entityManager);
+        $tip = null;
+        if ($tipId > 0) {
+            $tip = $kind === HistoryTipKind::COOKING
+                ? $this->cookingTipsRepository->find($tipId)
+                : $this->preparationTipsRepository->find($tipId);
+            if ($tip === null || $tip->getSpice() !== $spice) {
+                return $this->json([
+                    'error' => 'Unknown tip for this spice',
+                ], 404);
+            }
         }
 
-        if ($preparationTipId) {
-            return $this->handlePreparationTip($spicyMatchHistory, $spiceId, $preparationTipId, $entityManager);
-        }
+        $entityManager->wrapInTransaction(function (EntityManagerInterface $em) use ($spicyMatchHistory, $spice, $kind, $tip, $currentUser): void {
+            $em->refresh($spicyMatchHistory, LockMode::PESSIMISTIC_WRITE);
 
-        return $this->json($this->renderView('Exception/Error.html.twig', [
-            'codeError' => '173',
-        ]));
+            if ($kind === HistoryTipKind::COOKING) {
+                \assert($tip === null || $tip instanceof CookingTips);
+                $spicyMatchHistory->chooseCookingTip($spice, $tip);
+            } else {
+                \assert($tip === null || $tip instanceof PreparationTips);
+                $spicyMatchHistory->choosePreparationTip($spice, $tip);
+            }
+
+            $now = $this->clock->now();
+            $spicyMatchHistory->setUpdatedAt($now);
+
+            if ($spicyMatchHistory->markSealedIfComplete($now)) {
+                $this->bus->dispatch(new MatchSavedEvent((int) $spicyMatchHistory->getId(), (int) $currentUser->getId()));
+            }
+        });
+
+        return $this->json([
+            'spiceId' => $spiceId,
+            'kind' => $kind->value,
+            'tipId' => $tip?->getId(),
+        ]);
     }
 
     #[Route('/{id}/rename', name: 'rename_spicy_match_history', methods: ['POST'])]
+    #[IsGranted(SpicyMatchHistoryVoter::OWNER, 'spicyMatchHistory')]
     public function rename(
         SpicyMatchHistory $spicyMatchHistory,
         Request $request,
         EntityManagerInterface $entityManager,
-        #[CurrentUser]
-        Users $currentUser,
     ): JsonResponse {
-        if ($spicyMatchHistory->getSpicyMatch()->getUser() !== $currentUser) {
-            throw $this->createAccessDeniedException();
-        }
-
         $data = json_decode($request->getContent(), true);
 
         if (! $this->isCsrfTokenValid('history_action_' . $spicyMatchHistory->getId(), $data['_token'] ?? '')) {
@@ -234,7 +303,7 @@ class SpicyMatchHistoryController extends AbstractController
 
         $title = trim((string) ($data['title'] ?? ''));
         $spicyMatchHistory->setTitle($title !== '' ? $title : null);
-        $spicyMatchHistory->setUpdatedAt(new \DateTimeImmutable());
+        $spicyMatchHistory->setUpdatedAt($this->clock->now());
         $entityManager->flush();
 
         return $this->json([
@@ -243,6 +312,7 @@ class SpicyMatchHistoryController extends AbstractController
     }
 
     #[Route('/{id}/favorite/toggle', name: 'toggle_favorite_spicy_match_history', methods: ['POST'])]
+    #[IsGranted(SpicyMatchHistoryVoter::OWNER, 'spicyMatchHistory')]
     public function toggleFavorite(
         SpicyMatchHistory $spicyMatchHistory,
         Request $request,
@@ -250,10 +320,6 @@ class SpicyMatchHistoryController extends AbstractController
         #[CurrentUser]
         Users $currentUser,
     ): JsonResponse {
-        if ($spicyMatchHistory->getSpicyMatch()->getUser() !== $currentUser) {
-            throw $this->createAccessDeniedException();
-        }
-
         $token = $request->headers->get('X-CSRF-Token', '');
         if (! $this->isCsrfTokenValid('history_action_' . $spicyMatchHistory->getId(), $token)) {
             return $this->json([
@@ -262,7 +328,7 @@ class SpicyMatchHistoryController extends AbstractController
         }
 
         $spicyMatchHistory->setFavorite(! $spicyMatchHistory->isFavorite());
-        $spicyMatchHistory->setUpdatedAt(new \DateTimeImmutable());
+        $spicyMatchHistory->setUpdatedAt($this->clock->now());
         $entityManager->flush();
 
         if ($spicyMatchHistory->isFavorite()) {
@@ -272,83 +338,5 @@ class SpicyMatchHistoryController extends AbstractController
         return $this->json([
             'favorite' => $spicyMatchHistory->isFavorite(),
         ]);
-    }
-
-    private function handleCookingTip(
-        SpicyMatchHistory $history,
-        int $spiceId,
-        int $cookingTipId,
-        EntityManagerInterface $em,
-    ): Response {
-        $existing = array_find($history->getCookingTips()->toArray(), fn ($tip): bool => $tip->getSpice()?->getId() === $spiceId);
-        if ($existing?->getId() === $cookingTipId) {
-            $history->removeCookingTip($existing);
-            $cookings = $this->cookingTipsRepository->findBy([
-                'spice' => $spiceId,
-            ]);
-        } else {
-            if ($existing) {
-                $history->removeCookingTip($existing);
-            }
-            $cookingTip = $this->cookingTipsRepository->find($cookingTipId);
-            if (! $cookingTip instanceof CookingTips || $cookingTip->getSpice()?->getId() !== $spiceId) {
-                return $this->json($this->renderView('Exception/Error.html.twig', [
-                    'codeError' => '105',
-                ]));
-            }
-            $history->addCookingTip($cookingTip);
-            $cookings = [$cookingTip];
-        }
-
-        $history->setUpdatedAt(new \DateTimeImmutable());
-        $em->flush();
-
-        $html = '';
-        foreach ($cookings as $cooking) {
-            $html .= $this->renderView('components/_card_spicy_tips.html.twig', [
-                'cookingTip' => $cooking,
-            ]);
-        }
-
-        return $this->json($html);
-    }
-
-    private function handlePreparationTip(
-        SpicyMatchHistory $history,
-        int $spiceId,
-        int $preparationTipId,
-        EntityManagerInterface $em,
-    ): Response {
-        $existing = array_find($history->getPreparationTips()->toArray(), fn ($tip): bool => $tip->getSpice()?->getId() === $spiceId);
-        if ($existing?->getId() === $preparationTipId) {
-            $history->removePreparationTip($existing);
-            $preparations = $this->preparationTipsRepository->findBy([
-                'spice' => $spiceId,
-            ]);
-        } else {
-            if ($existing) {
-                $history->removePreparationTip($existing);
-            }
-            $preparationTip = $this->preparationTipsRepository->find($preparationTipId);
-            if (! $preparationTip instanceof PreparationTips || $preparationTip->getSpice()?->getId() !== $spiceId) {
-                return $this->json($this->renderView('Exception/Error.html.twig', [
-                    'codeError' => '146',
-                ]));
-            }
-            $history->addPreparationTip($preparationTip);
-            $preparations = [$preparationTip];
-        }
-
-        $history->setUpdatedAt(new \DateTimeImmutable());
-        $em->flush();
-
-        $html = '';
-        foreach ($preparations as $preparation) {
-            $html .= $this->renderView('components/_card_spicy_tips.html.twig', [
-                'preparationTip' => $preparation,
-            ]);
-        }
-
-        return $this->json($html);
     }
 }

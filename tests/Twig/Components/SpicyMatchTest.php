@@ -6,8 +6,10 @@ namespace App\Tests\Twig\Components;
 
 use App\Entity\AromaticGroups;
 use App\Entity\SpicyType;
+use App\Entity\Users;
 use App\Enum\DataConfidence;
 use App\Enum\OdtMatrix;
+use App\Exception\Match\InvalidMortarException;
 use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpiceActiveCompoundRepository;
 use App\Repository\SpicesRepository;
@@ -26,7 +28,9 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
@@ -775,10 +779,59 @@ class SpicyMatchTest extends TestCase
         $component = $this->makeComponent();
 
         $this->spicyMatchService->expects(self::never())
-            ->method('createFromSelection');
+            ->method('start');
 
         $this->expectException(AccessDeniedException::class);
 
         $component->nextStep();
+    }
+
+    public function testNextStepRedirectsToLabWhenMortarHasNoValidSpice(): void
+    {
+        $component = $this->makeComponent();
+        $component->setContainer($this->makeAuthenticatedContainer());
+        $component->mode = 'manual';
+        $component->spices = [
+            'selectedSpices' => ['999999'],
+            'compatibleSpices' => [],
+        ];
+
+        $this->spicyMatchService->expects(self::once())
+            ->method('start')
+            ->willThrowException(InvalidMortarException::emptySelection());
+
+        self::assertSame('/fr/spicymatch/', $component->nextStep()->getTargetUrl());
+    }
+
+    private function makeAuthenticatedContainer(): ContainerInterface
+    {
+        $token = $this->createStub(TokenInterface::class);
+        $token->method('getUser')
+            ->willReturn(new Users());
+
+        $tokenStorage = $this->createStub(TokenStorageInterface::class);
+        $tokenStorage->method('getToken')
+            ->willReturn($token);
+
+        $authChecker = $this->createStub(AuthorizationCheckerInterface::class);
+        $authChecker->method('isGranted')
+            ->willReturn(true);
+
+        $router = $this->createStub(UrlGeneratorInterface::class);
+        $router->method('generate')
+            ->willReturnCallback(static fn (string $name): string => $name === 'index_spicy_match' ? '/fr/spicymatch/' : '/' . $name);
+
+        $container = $this->createStub(ContainerInterface::class);
+        $container->method('has')
+            ->willReturnCallback(static fn (string $id): bool => in_array($id, ['security.token_storage', 'security.authorization_checker', 'router'], true));
+        $container->method('get')
+            ->willReturnCallback(static fn (string $id): ?object => match ($id) {
+                'security.token_storage' => $tokenStorage,
+                'security.authorization_checker' => $authChecker,
+                'router' => $router,
+                default => null,
+            });
+
+        return $container;
     }
 }

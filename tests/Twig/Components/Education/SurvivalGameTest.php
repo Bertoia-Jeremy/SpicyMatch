@@ -22,20 +22,17 @@ use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Translation\IdentityTranslator;
 
-/**
- * Unit tests for SurvivalGame::pick() and SurvivalGame::start().
- *
- * Security focus: replay guard (session vs LiveProp currentSpiceId mismatch),
- * compatible/incompatible branching, victory detection.
- */
 #[AllowMockObjectsWithoutExpectations]
 final class SurvivalGameTest extends TestCase
 {
     private const string TOKEN = 'survival_test_tok';
 
     private AcademyManager&MockObject $academyManager;
+
     private GameSessionManager&MockObject $sessionManager;
+
     private SpicesRepository&MockObject $spicesRepo;
 
     protected function setUp(): void
@@ -51,25 +48,21 @@ final class SurvivalGameTest extends TestCase
             ->willReturn(new GameSession());
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
-
     /**
      * @param array<string, mixed> $secret
-     *
      * @return array{SurvivalGame, Session}
      */
     private function makeGame(array $secret = []): array
     {
         $session = new Session(new MockArraySessionStorage());
-        $session->set('game_'.self::TOKEN, $secret);
+        $session->set('game_' . self::TOKEN, $secret);
 
         $request = new Request();
         $request->setSession($session);
 
-        $requestStack = new RequestStack();
-        $requestStack->push($request);
+        $requestStack = new RequestStack([$request]);
 
-        $game = new SurvivalGame($this->academyManager, $this->sessionManager, $requestStack, $this->spicesRepo);
+        $game = new SurvivalGame($this->academyManager, $this->sessionManager, $requestStack, $this->spicesRepo, new IdentityTranslator());
         $game->setContainer($this->makeContainer());
         $game->gameToken = self::TOKEN;
         $game->isStarted = true;
@@ -102,7 +95,6 @@ final class SurvivalGameTest extends TestCase
 
     /**
      * @param int[] $compatibleIds
-     *
      * @return array<string, mixed>
      */
     private function withSecret(int $currentSpiceId = 1, array $compatibleIds = []): array
@@ -112,8 +104,6 @@ final class SurvivalGameTest extends TestCase
             'currentSpiceId' => $currentSpiceId,
         ];
     }
-
-    // ── pick() — guards ───────────────────────────────────────────────────────
 
     public function testPickDoesNothingWhenNotStarted(): void
     {
@@ -146,15 +136,11 @@ final class SurvivalGameTest extends TestCase
         self::assertSame(0, $game->chainLength);
     }
 
-    /**
-     * Security: client replays an old snapshot where currentSpiceId differs from session truth.
-     */
     public function testPickReplayGuardRejectsCurrentSpiceMismatch(): void
     {
-        // Session says currentSpiceId=2, LiveProp says currentSpiceId=1 → stale client
         $secret = $this->withSecret(currentSpiceId: 2, compatibleIds: [42]);
         [$game] = $this->makeGame($secret);
-        $game->currentSpiceId = 1; // mismatch
+        $game->currentSpiceId = 1;
 
         $game->pick(42);
 
@@ -162,15 +148,13 @@ final class SurvivalGameTest extends TestCase
         self::assertSame(0, $game->chainLength);
     }
 
-    // ── pick() — incompatible spice ───────────────────────────────────────────
-
     public function testPickIncompatibleSpiceSetsGameOver(): void
     {
         $this->stubFinishedSession();
         $secret = $this->withSecret(currentSpiceId: 1, compatibleIds: [2, 3]);
         [$game] = $this->makeGame($secret);
 
-        $game->pick(99); // not in compatibleIds
+        $game->pick(99);
 
         self::assertTrue($game->isGameOver);
         self::assertSame(0, $game->chainLength);
@@ -197,8 +181,6 @@ final class SurvivalGameTest extends TestCase
         self::assertTrue($game->isGameOver);
     }
 
-    // ── pick() — compatible spice ─────────────────────────────────────────────
-
     public function testPickCompatibleSpiceIncrementsChainLength(): void
     {
         $this->stubFinishedSession();
@@ -214,7 +196,6 @@ final class SurvivalGameTest extends TestCase
             ],
         ];
 
-        // findSpiceById(42) → getAllSpiceCards() with card 42
         $this->academyManager->method('getAllSpiceCards')
             ->willReturn([
                 42 => [
@@ -228,7 +209,6 @@ final class SurvivalGameTest extends TestCase
                     'color' => null,
                 ],
             ]);
-        // generateOptions() → find(42) returns null → options = [] (triggers victory)
         $this->spicesRepo->method('find')
             ->willReturn(null);
 
@@ -376,13 +356,87 @@ final class SurvivalGameTest extends TestCase
                     'color' => null,
                 ],
             ]);
-        // find() → null → generateOptions() → options = [] → victory
         $this->spicesRepo->method('find')
             ->willReturn(null);
 
         $game->pick(42);
 
         self::assertTrue($game->isVictory);
+    }
+
+    public function testPickLocalizesTheCurrentSpiceLikeTheOptions(): void
+    {
+        $this->stubFinishedSession();
+        $secret = $this->withSecret(currentSpiceId: 1, compatibleIds: [42]);
+        [$game] = $this->makeGame($secret);
+        $game->options = [
+            [
+                'id' => 42,
+                'name' => 'Pepper',
+                'file' => null,
+                'color' => null,
+                'groupName' => 'Terpenes',
+            ],
+        ];
+
+        $this->academyManager->method('getAllSpiceCards')
+            ->willReturn([
+                42 => [
+                    'id' => 42,
+                    'name' => 'Poivre',
+                    'file' => null,
+                    'aromaticGroup' => [
+                        'color' => '#C00',
+                        'name' => 'Terpènes',
+                    ],
+                ],
+            ]);
+        $this->academyManager->method('localizeSpiceSummaries')
+            ->willReturnCallback(static fn (array $summaries): array => array_map(
+                static fn (array $s): array => [
+                    ...$s,
+                    'name' => 'Pepper',
+                    'groupName' => 'Terpenes',
+                ],
+                $summaries,
+            ));
+        $this->spicesRepo->method('find')
+            ->willReturn(null);
+
+        $game->pick(42);
+
+        self::assertSame('Pepper', $game->currentSpiceName);
+        self::assertSame('Terpenes', $game->currentSpiceGroupName);
+    }
+
+    public function testMountLocalizesTheStartingSpices(): void
+    {
+        [$game] = $this->makeGame();
+
+        $this->academyManager->method('getAllSpiceCards')
+            ->willReturn([
+                42 => [
+                    'id' => 42,
+                    'name' => 'Poivre',
+                    'file' => null,
+                    'aromaticGroup' => [
+                        'color' => '#C00',
+                        'name' => 'Terpènes',
+                    ],
+                ],
+            ]);
+        $this->academyManager->method('localizeSpiceSummaries')
+            ->willReturnCallback(static fn (array $summaries): array => array_map(
+                static fn (array $s): array => [
+                    ...$s,
+                    'name' => 'Pepper',
+                ],
+                $summaries,
+            ));
+
+        $game->mount('easy');
+
+        self::assertSame(['Pepper'], array_column($game->startingSpices, 'name'));
     }
 
     public function testPickCompatibleSpiceSetsGameOverWhenCardNotFound(): void
@@ -400,7 +454,6 @@ final class SurvivalGameTest extends TestCase
             ],
         ];
 
-        // findSpiceById(42) → getAllSpiceCards() missing card 42 → null → isGameOver
         $this->academyManager->method('getAllSpiceCards')
             ->willReturn([]);
 

@@ -16,12 +16,13 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 #[UniqueEntity(fields: [
     'username',
-], message: 'user.username_taken', errorPath: 'username', ignoreNull: false, repositoryMethod: 'findNonDeletedBy')]
+], message: 'user.username_taken', repositoryMethod: 'findNonDeletedBy', errorPath: 'username', ignoreNull: false)]
 #[UniqueEntity(fields: [
     'mail',
-], message: 'user.email_taken', errorPath: 'mail', ignoreNull: true, repositoryMethod: 'findNonDeletedBy')]
+], message: 'user.email_taken', repositoryMethod: 'findNonDeletedBy', errorPath: 'mail', ignoreNull: true)]
 #[ORM\Entity(repositoryClass: UsersRepository::class)]
 #[ORM\Table(name: 'users')]
+#[ORM\HasLifecycleCallbacks]
 class Users implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -62,29 +63,20 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, SpicyMatch>
      */
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: SpicyMatch::class, orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: SpicyMatch::class, mappedBy: 'user', orphanRemoval: true)]
     private Collection $spicyMatches;
 
-    #[ORM\OneToOne(mappedBy: 'user', targetEntity: UserProgression::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(targetEntity: UserProgression::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
     private ?UserProgression $progression = null;
 
-    #[ORM\OneToOne(mappedBy: 'user', targetEntity: UserStat::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(targetEntity: UserStat::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
     private ?UserStat $stats = null;
 
-    /**
-     * Difficulté préférée de l'utilisateur — pilote les règles transverses
-     * (rendu monochrome, chrono Hangman, sélection intrus stricte).
-     * EASY = Commis, MEDIUM = Cuisinier, HARD = Chef de Partie.
-     */
     #[ORM\Column(enumType: GameDifficulty::class, options: [
         'default' => 'easy',
     ])]
     private GameDifficulty $preferredDifficulty = GameDifficulty::EASY;
 
-    /**
-     * Langue préférée de l'utilisateur (i18n). Source prioritaire pour le LocaleSubscriber.
-     * Valeurs supportées : fr (défaut), en, es.
-     */
     #[ORM\Column(name: 'locale', type: 'string', length: 5, options: [
         'default' => 'fr',
     ])]
@@ -119,9 +111,6 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->id;
     }
 
-    /**
-     * @deprecated since Symfony 5.3, use getUserIdentifier instead
-     */
     public function getUsername(): string
     {
         return (string) $this->username;
@@ -134,23 +123,14 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
     public function getUserIdentifier(): string
     {
         return (string) $this->username;
     }
 
-    /**
-     * @see UserInterface
-     */
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
@@ -164,6 +144,13 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         $this->roles = $roles;
 
         return $this;
+    }
+
+    #[ORM\PrePersist]
+    public function initializeTimestamps(): void
+    {
+        $this->created_at ??= new \DateTimeImmutable();
+        $this->updated_at ??= new \DateTimeImmutable();
     }
 
     public function getCreatedAt(): ?\DateTimeInterface
@@ -214,9 +201,6 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
     public function getPassword(): string
     {
         return $this->password;
@@ -229,24 +213,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * Returning a salt is only needed, if you are not using a modern
-     * hashing algorithm (e.g. bcrypt or sodium) in your security.yaml.
-     *
-     * @see UserInterface
-     */
     public function getSalt(): ?string
     {
         return null;
-    }
-
-    /**
-     * @see UserInterface
-     */
-    public function eraseCredentials(): void
-    {
-        // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
     }
 
     public function getMail(): ?string
@@ -305,7 +274,6 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function removeSpicyMatch(SpicyMatch $spicyMatch): static
     {
-        // set the owning side to null (unless already changed)
         if ($this->spicyMatches->removeElement($spicyMatch) && $spicyMatch->getUserId() === $this) {
             $spicyMatch->setUserId(null);
         }
@@ -351,7 +319,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function isPremium(?\DateTimeImmutable $now = null): bool
     {
-        return null !== $this->premiumUntil && $this->premiumUntil > ($now ?? new \DateTimeImmutable());
+        return $this->premiumUntil instanceof \DateTimeImmutable && $this->premiumUntil > ($now ?? new \DateTimeImmutable());
     }
 
     public function getOnboardingState(): ?string

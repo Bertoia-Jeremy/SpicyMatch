@@ -1,11 +1,10 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ session.gameMode.label|trans }} — Résultats{% endblock %}
+{% block title %}{{ 'ui.edu.result_title'|trans({'%mode%': session.gameMode.label|trans}) }}{% endblock %}
 
 {% block body %}
 <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-  {# Score card #}
   <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-8 text-center mb-8">
     <div class="flex items-center justify-center gap-3 mb-6">
       <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-saffron-100 text-saffron-600">
@@ -33,7 +32,6 @@
         </div>
       </div>
     {% else %}
-      {# Circular score display #}
       <div class="w-32 h-32 mx-auto mb-6 rounded-full border-8 flex items-center justify-center
         {{ session.accuracy >= 80 ? 'border-green-400 text-green-700' : (session.accuracy >= 50 ? 'border-turmeric-400 text-turmeric-700' : 'border-red-400 text-red-700') }}">
         <div>
@@ -100,11 +98,45 @@
     </div>
   </div>
 
+  {% if skillAssessment is not null %}
+    {% set fromLabel = skillAssessment.current.label|trans %}
+    {% set toLabel = skillAssessment.suggested.label|trans %}
+    {% set skillParams = {
+      '%rate%': skillAssessment.winrate,
+      '%count%': skillAssessment.samples,
+      '%from%': fromLabel,
+      '%to%': toLabel
+    } %}
+    <div class="card-warm p-6 mb-8 flex flex-col sm:flex-row sm:items-center gap-4">
+      <div class="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center
+        {{ skillAssessment.isPromotion ? 'bg-saffron-100 text-saffron-600' : 'bg-stone-100 text-stone-500' }}">
+        <i class="fa-solid {{ skillAssessment.isPromotion ? 'fa-arrow-trend-up' : 'fa-scale-balanced' }}" aria-hidden="true"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="font-semibold text-stone-800">
+          {{ (skillAssessment.isPromotion ? 'ui.edu.skill.up_title' : 'ui.edu.skill.down_title')|trans }}
+        </p>
+        <p class="text-sm text-stone-600 mt-0.5">
+          {{ (skillAssessment.isPromotion ? 'ui.edu.skill.up_text' : 'ui.edu.skill.down_text')|trans(skillParams) }}
+        </p>
+      </div>
+      {% if canReplay %}
+        <twig:Button
+            label="{{ 'ui.edu.skill.cta'|trans(skillParams) }}"
+            variant="{{ skillAssessment.isPromotion ? 'primary' : 'secondary' }}"
+            size="sm"
+            icon="fa-solid fa-play"
+            href="{{ session.gameMode.isLiveComponent
+              ? path('education_play_live', { mode: session.gameMode.value, difficulty: skillAssessment.suggested.value })
+              : path('education_briefing', { mode: session.gameMode.value, difficulty: skillAssessment.suggested.value }) }}" />
+      {% endif %}
+    </div>
+  {% endif %}
+
   <div class="mb-8">
     {% include 'partials/_ads_banner.html.twig' %}
   </div>
 
-  {# Question review (QCM only — LC modes don't store GameQuestion rows) #}
   {% if session.questions is not empty %}
     <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6">
       <h2 class="text-lg font-semibold text-stone-800 mb-4">{{ 'ui.edu.question_details'|trans }}</h2>

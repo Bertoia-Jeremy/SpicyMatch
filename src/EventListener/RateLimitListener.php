@@ -15,32 +15,16 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
-/**
- * Applies per-user rate limiting to Live Component actions and user-mutation routes.
- *
- * Listens on kernel.request (priority 10) — BEFORE the firewall, so authenticated
- * users are keyed by their own token-storage user; anonymous hits use the IP.
- *
- * Scope:
- *   - POST /_components/... → lc_actions (60/min)
- *   - POST /users/gamification/toggle → user_actions (30/min)
- *   - POST /users/badge/equip/... → user_actions (30/min)
- *   - POST /spicymatch/history/.../rename, /.../favorite/toggle → user_actions (30/min)
- *
- * Out of scope:
- *   - GET routes (no mutation)
- *   - /api/gamification/egg/... → already limited inline in EasterEggController
- */
 #[AsEventListener(event: KernelEvents::REQUEST, priority: 10)]
-final class RateLimitListener
+final readonly class RateLimitListener
 {
     public function __construct(
         #[Autowire(service: 'limiter.lc_actions')]
-        private readonly RateLimiterFactory $lcActionsLimiter,
+        private RateLimiterFactory $lcActionsLimiter,
         #[Autowire(service: 'limiter.user_actions')]
-        private readonly RateLimiterFactory $userActionsLimiter,
-        private readonly TokenStorageInterface $tokenStorage,
-        private readonly LoggerInterface $logger,
+        private RateLimiterFactory $userActionsLimiter,
+        private TokenStorageInterface $tokenStorage,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -51,13 +35,13 @@ final class RateLimitListener
         }
 
         $request = $event->getRequest();
-        if ('POST' !== $request->getMethod()) {
+        if ($request->getMethod() !== 'POST') {
             return;
         }
 
         $path = $request->getPathInfo();
         $limiterFactory = $this->pickLimiter($path);
-        if (null === $limiterFactory) {
+        if (! $limiterFactory instanceof RateLimiterFactory) {
             return;
         }
 
@@ -96,29 +80,25 @@ final class RateLimitListener
             return $this->lcActionsLimiter;
         }
 
-        // User mutation routes — POST-only, matched by suffix patterns.
-        if (1 === preg_match('#^/users/(gamification/toggle|badge/equip/\d+|difficulty/update)$#', $path)) {
+        if (preg_match('#^/users/(gamification/toggle|badge/equip/\d+|difficulty/update)$#', $path) === 1) {
             return $this->userActionsLimiter;
         }
 
-        if (1 === preg_match('#^/spicymatch/history/\d+/(rename|favorite/toggle)$#', $path)) {
+        if (preg_match('#^/spicymatch/history/\d+/(rename|favorite/toggle)$#', $path) === 1) {
             return $this->userActionsLimiter;
         }
 
         return null;
     }
 
-    /**
-     * Prefer user id as the rate-limit key; fall back to client IP for anonymous hits.
-     */
     private function limiterKey(string $clientIp): string
     {
         $token = $this->tokenStorage->getToken();
         $user = $token?->getUser();
-        if ($user instanceof Users && null !== $user->getId()) {
-            return 'user:'.$user->getId();
+        if ($user instanceof Users && $user->getId() !== null) {
+            return 'user:' . $user->getId();
         }
 
-        return 'ip:'.$clientIp;
+        return 'ip:' . $clientIp;
     }
 }

@@ -11,7 +11,6 @@ return static function (ECSConfig $ecsConfig): void {
     $ecsConfig->sets([
         SetList::PSR_12,
         SetList::COMMON,
-        SetList::SYMPLIFY
     ]);
 
     $ecsConfig->ruleWithConfiguration(

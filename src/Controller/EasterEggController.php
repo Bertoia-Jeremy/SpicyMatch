@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\PendingGamificationNotification;
 use App\Entity\Users;
+use App\Repository\PendingGamificationNotificationRepository;
 use App\Service\EasterEggService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/gamification')]
@@ -24,29 +25,27 @@ class EasterEggController extends AbstractController
     public function __construct(
         private readonly EasterEggService $easterEggService,
         private readonly EntityManagerInterface $em,
+        private readonly PendingGamificationNotificationRepository $notifRepository,
         #[Autowire(service: 'limiter.gamification_api')]
         private readonly RateLimiterFactory $gamificationApiLimiter,
     ) {
     }
 
     #[Route('/egg/{slug}', name: 'api_gamification_egg', methods: ['POST'])]
-    public function found(string $slug, Request $request): Response
+    public function found(string $slug, Request $request, #[CurrentUser] Users $user): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
         $limiter = $this->gamificationApiLimiter->create((string) $user->getId());
         if (! $limiter->consume()->isAccepted()) {
             return new JsonResponse([
                 'error' => 'Too many requests',
-            ], 429);
+            ], Response::HTTP_TOO_MANY_REQUESTS);
         }
 
         $token = $request->headers->get('X-CSRF-Token', '');
         if (! $this->isCsrfTokenValid('easter_egg', $token)) {
             return new JsonResponse([
                 'error' => 'Invalid CSRF token',
-            ], 403);
+            ], Response::HTTP_FORBIDDEN);
         }
 
         try {
@@ -55,24 +54,19 @@ class EasterEggController extends AbstractController
             $payload = [];
         }
 
-        // 1. Handle egg
         $success = $this->easterEggService->handleEgg($user, $slug, $payload);
 
         if (! $success) {
             return new JsonResponse([
                 'status' => 'error',
                 'message' => 'Invalid egg or conditions not met',
-            ], 400);
+            ], Response::HTTP_BAD_REQUEST);
         }
 
-        // 2. Render Turbo Streams from pending notifications (same template as subscriber)
-        if ('turbo_stream' === $request->getPreferredFormat() || 'text/vnd.turbo-stream.html' === $request->headers->get(
+        if ($request->getPreferredFormat() === 'turbo_stream' || $request->headers->get(
             'Accept'
-        )) {
-            $notifications = $this->em->getRepository(PendingGamificationNotification::class)->findBy([
-                'user' => $user,
-                'deliveredAt' => null,
-            ]);
+        ) === 'text/vnd.turbo-stream.html') {
+            $notifications = $this->notifRepository->findUndeliveredForUser($user);
 
             $html = '';
             foreach ($notifications as $notification) {
@@ -84,7 +78,7 @@ class EasterEggController extends AbstractController
             }
             $this->em->flush();
 
-            return new Response($html, 200, [
+            return new Response($html, Response::HTTP_OK, [
                 'Content-Type' => 'text/vnd.turbo-stream.html',
             ]);
         }

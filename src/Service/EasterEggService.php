@@ -15,9 +15,6 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 class EasterEggService
 {
-    /**
-     * Whitelist of known egg slugs — any other slug is rejected.
-     */
     private const array KNOWN_SLUGS = [
         'grain_de_sel',
         'perdu_dans_le_souk',
@@ -28,6 +25,10 @@ class EasterEggService
         'le_poids_de_l_or',
         'la_recette_perdue',
     ];
+
+    private const string BURNING_GROUP_SLUG = 'capsaicinoides-alcaloides';
+
+    private const string UNCLASSIFIED_GROUP_SLUG = 'a-reviser';
 
     public function __construct(
         private readonly MessageBusInterface $bus,
@@ -43,7 +44,6 @@ class EasterEggService
      */
     public function handleEgg(Users $user, string $slug, array $payload = []): bool
     {
-        // 1. Whitelist check
         if (! \in_array($slug, self::KNOWN_SLUGS, true)) {
             $this->logger->warning('easter_egg.unknown_slug', [
                 'userId' => $user->getId(),
@@ -53,13 +53,11 @@ class EasterEggService
             return false;
         }
 
-        // 2. Idempotence — already found → silent success, no dispatch, no double-count.
-        $stats = $user->getStats();
-        if ($stats instanceof UserStat && $stats->hasFoundEgg($slug)) {
+        $stats = $this->getOrCreateStats($user);
+        if ($stats->hasFoundEgg($slug)) {
             return true;
         }
 
-        // 3. Server-side validation
         if (! $this->validateCondition($user, $slug, $payload)) {
             $this->logger->info('easter_egg.validation_failed', [
                 'userId' => $user->getId(),
@@ -69,16 +67,12 @@ class EasterEggService
             return false;
         }
 
-        // 4. Dispatch event
-        $this->bus->dispatch(new EasterEggFoundEvent($user->getId(), $slug));
+        $stats->recordFoundEgg($slug);
+        $stats->incrementEasterEggsFound();
+        $this->em->persist($stats);
+        $this->em->flush();
 
-        // 5. Record + increment counter (idempotent thanks to recordFoundEgg guard)
-        if ($stats instanceof UserStat) {
-            $stats->recordFoundEgg($slug);
-            $stats->incrementEasterEggsFound();
-            $this->em->persist($stats);
-            $this->em->flush();
-        }
+        $this->bus->dispatch(new EasterEggFoundEvent($user->getId(), $slug));
 
         $this->logger->info('easter_egg.found', [
             'userId' => $user->getId(),
@@ -88,14 +82,27 @@ class EasterEggService
         return true;
     }
 
+    private function getOrCreateStats(Users $user): UserStat
+    {
+        $stats = $user->getStats();
+        if ($stats === null) {
+            $stats = new UserStat();
+            $stats->setUser($user);
+            $user->setStats($stats);
+            $this->em->persist($stats);
+        }
+
+        return $stats;
+    }
+
     /**
      * @param array<string, mixed> $payload
      */
     private function validateCondition(Users $user, string $slug, array $payload): bool
     {
         return match ($slug) {
-            'grain_de_sel' => true, // Purely interaction-based
-            'perdu_dans_le_souk' => true, // 404 page interaction
+            'grain_de_sel' => true,
+            'perdu_dans_le_souk' => true,
             'alchimiste_de_l_ombre' => $this->validateAlchimisteCount(),
             'temps_de_l_infusion' => $this->validateTempsInfusion(),
             'equilibre_des_contraires' => $this->validateEquilibre($user, $payload),
@@ -106,10 +113,6 @@ class EasterEggService
         };
     }
 
-    /**
-     * Count stored server-side in session (incremented by the toggle endpoint),
-     * so the client cannot forge `{"count": 999}`.
-     */
     private function validateAlchimisteCount(): bool
     {
         $session = $this->requestStack->getSession();
@@ -118,10 +121,6 @@ class EasterEggService
         return $count >= 5;
     }
 
-    /**
-     * Duration computed from a server-issued timestamp in the session
-     * (set when the user opens the target page), not from the client payload.
-     */
     private function validateTempsInfusion(): bool
     {
         $session = $this->requestStack->getSession();
@@ -145,7 +144,7 @@ class EasterEggService
 
         $spice = $this->spicesRepository->find($spiceId);
 
-        return 'poivre_noir' === $spice?->getSlug();
+        return $spice?->getSlug() === 'poivre_noir';
     }
 
     /**
@@ -154,10 +153,9 @@ class EasterEggService
     private function validateLaRecettePerdue(array $payload): bool
     {
         $keywords = $payload['keywords'] ?? [];
-        // Expecting 4 specific keywords (order doesn't matter for this one or specific sequence)
         $expected = ['cannelle', 'cardamome', 'clou_girofle', 'muscade'];
 
-        return 4 === count(array_intersect($expected, $keywords));
+        return count(array_intersect($expected, $keywords)) === 4;
     }
 
     private function validateSecretDuCurry(Users $user): bool
@@ -172,17 +170,13 @@ class EasterEggService
             return false;
         }
 
-        // Expected sequence: Curcuma -> Cumin -> Gingembre (in reverse order of history: Gingembre, Cumin, Curcuma)
-        // History is appended, so end of array is most recent.
         $recent = array_slice($history, -3);
 
-        // Fetch IDs by slug (assuming slugs are standard)
         $ids = $this->getSpiceIds(['curcuma', 'cumin', 'gingembre']);
-        if (3 !== count($ids)) {
-            return false; // Spices not found
+        if (count($ids) !== 3) {
+            return false;
         }
 
-        // Recent: [Curcuma_ID, Cumin_ID, Gingembre_ID]
         return $recent === array_values($ids);
     }
 
@@ -191,7 +185,6 @@ class EasterEggService
      */
     private function validateEquilibre(Users $user, array $payload): bool
     {
-        // Payload should contain the two spice IDs being compared
         $spiceId1 = $payload['spice1'] ?? null;
         $spiceId2 = $payload['spice2'] ?? null;
 
@@ -206,35 +199,36 @@ class EasterEggService
             return false;
         }
 
-        $type1 = $spice1->getSpicyType()?->getName();
-        $type2 = $spice2->getSpicyType()?->getName();
+        $group1 = $spice1->getAromaticGroups()?->getSlug();
+        $group2 = $spice2->getAromaticGroups()?->getSlug();
 
-        if (! $type1 || ! $type2) {
+        if ($group1 === null || $group2 === null || $group1 === $group2) {
             return false;
         }
 
-        // Check if one is "Douce" and the other is "Brulante" (or similar strong type)
-        // Adjust strings based on actual DB values if known, assuming 'Douce' and 'Brulante'.
-        $pair = [\mb_strtolower($type1), \mb_strtolower($type2)];
+        $pair = [$group1, $group2];
 
-        // Use loose matching or specific values
-        return \in_array('douce', $pair, true) && \in_array('brulante', $pair, true);
+        return \in_array(self::BURNING_GROUP_SLUG, $pair, true)
+            && ! \in_array(self::UNCLASSIFIED_GROUP_SLUG, $pair, true);
     }
 
     /**
      * @param string[] $slugs
-     *
-     * @return array<int> Ordered list of IDs
+     * @return array<int>
      */
     private function getSpiceIds(array $slugs): array
     {
+        $bySlug = [];
+        foreach ($this->spicesRepository->findBy([
+            'slug' => $slugs,
+        ]) as $spice) {
+            $bySlug[$spice->getSlug()] = $spice->getId();
+        }
+
         $ids = [];
         foreach ($slugs as $slug) {
-            $spice = $this->spicesRepository->findOneBy([
-                'slug' => $slug,
-            ]);
-            if ($spice) {
-                $ids[] = $spice->getId();
+            if (isset($bySlug[$slug])) {
+                $ids[] = $bySlug[$slug];
             }
         }
 

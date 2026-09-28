@@ -22,7 +22,6 @@ final class MatchConfidenceAssessorTest extends TestCase
     private function makeAssessor(array $concentrationTiers, array $odtTiers): MatchConfidenceAssessor
     {
         $conn = $this->createMock(Connection::class);
-        // 1er appel = concentrations, 2e = ODT
         $conn->method('fetchFirstColumn')
             ->willReturnOnConsecutiveCalls($concentrationTiers, $odtTiers);
 
@@ -43,7 +42,6 @@ final class MatchConfidenceAssessorTest extends TestCase
 
     public function testWeakestLinkWins(): void
     {
-        // concentrations mesurées mais ODT provisoire → global provisoire
         $assessor = $this->makeAssessor(['measured', 'literature'], ['placeholder']);
         self::assertSame(DataConfidence::PLACEHOLDER, $assessor->assess(new MortarIds([1, 2]), OdtMatrix::AIR));
     }
@@ -56,14 +54,12 @@ final class MatchConfidenceAssessorTest extends TestCase
 
     public function testInvalidTierStringsAreIgnored(): void
     {
-        // une valeur corrompue en base ne doit pas casser l'agrégat
         $assessor = $this->makeAssessor(['literature', 'garbage'], ['literature']);
         self::assertSame(DataConfidence::LITERATURE, $assessor->assess(new MortarIds([1]), OdtMatrix::AIR));
     }
 
     public function testMatrixIsPassedThrough(): void
     {
-        // Sanity : l'appel fonctionne avec une matrice non-air
         $assessor = $this->makeAssessor(['literature'], ['estimated']);
         self::assertSame(DataConfidence::ESTIMATED, $assessor->assess(new MortarIds([1]), OdtMatrix::WATER));
     }

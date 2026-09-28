@@ -44,10 +44,8 @@ class SpicesCrudController extends AbstractCrudController
             ),
             AssociationField::new('aromaticGroups', 'admin.field.aromatic_group'),
             AssociationField::new('spicyType', 'admin.field.spicy_type'),
-            //  AssociationField::new('aco_ids', 'Composants aromatiques'),
             AssociationField::new('aromaticsCompounds', 'admin.field.main_compounds'),
             AssociationField::new('secondary_aromatics_compounds', 'admin.field.secondary_compounds'),
-            // onlyOnIndex pour le voir juste sur le tableau, onlyOnUpdated pour juste au moment de la modif
             CollectionField::new('translations', 'admin.field.translations')
                 ->setEntryType(SpiceTranslationType::class)
                 ->setEntryIsComplex()

@@ -12,10 +12,7 @@ interface QuestionGeneratorInterface
     public function supports(GameMode $mode): bool;
 
     /**
-     * Generate a question for the given difficulty.
-     *
-     * @param list<int> $excludeSpiceIds spice IDs already used in this session (to avoid repeats)
-     *
+     * @param list<int> $excludeSpiceIds
      * @return array{
      *     type: string,
      *     prompt: string,
@@ -23,7 +20,7 @@ interface QuestionGeneratorInterface
      *     options: list<array{id: int, name: string}>,
      *     correctAnswer: string,
      *     metadata: array<string, mixed>
-     * }|null null if not enough data to generate a question
+     * }|null
      */
     public function generate(GameDifficulty $difficulty, array $excludeSpiceIds = []): ?array;
 }

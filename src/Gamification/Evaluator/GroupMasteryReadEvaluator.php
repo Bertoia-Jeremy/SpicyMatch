@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace App\Gamification\Evaluator;
 
 use App\Entity\Achievement;
+use App\Entity\AromaticGroups;
 use App\Entity\UserProgression;
+use App\Entity\Users;
 use App\Enum\AchievementTrigger;
 use App\Repository\SpiceViewRepository;
 
-final class GroupMasteryReadEvaluator implements TriggerEvaluatorInterface
+final readonly class GroupMasteryReadEvaluator implements TriggerEvaluatorInterface
 {
     public function __construct(
-        private readonly SpiceViewRepository $spiceViewRepository,
+        private SpiceViewRepository $spiceViewRepository,
     ) {
     }
 
@@ -35,7 +37,7 @@ final class GroupMasteryReadEvaluator implements TriggerEvaluatorInterface
         $user = $progression->getUser();
         $group = $achievement->getContextAromaticGroup();
 
-        if (null === $user || null === $group) {
+        if (! $user instanceof Users || ! $group instanceof AromaticGroups) {
             return false;
         }
 

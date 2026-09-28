@@ -42,7 +42,6 @@
                          )">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                             <div class="flex-1 min-w-0">
-                                {# Titre inline-éditable (double-clic ou clic icône crayon) #}
                                 <div class="mb-2 group" @dblclick.stop="startEdit">
                                     <h2 x-show="!editing"
                                         class="inline-flex items-center gap-1.5 text-lg font-semibold text-stone-800 cursor-pointer hover:text-saffron-700 transition-colors"
@@ -79,7 +78,6 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-4 shrink-0">
-                                {# Étoile favori cliquable — retire des favoris #}
                                 <button type="button"
                                         @click.stop="toggleFavorite"
                                         x-show="favorite"

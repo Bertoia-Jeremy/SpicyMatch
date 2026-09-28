@@ -10,11 +10,6 @@ use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 use Psr\Cache\CacheItemPoolInterface;
 
-/**
- * Compare le ranking d'un mortier sur les 3 matrices (air/water/oil) à ctx fixe.
- * Cache TTL 1h sur (mortar, ctx, limit, locale) — locale dans la clé car les noms
- * d'épices sont enrichis en sortie.
- */
 final readonly class MatrixComparator
 {
     public function __construct(
@@ -61,10 +56,7 @@ final readonly class MatrixComparator
     }
 
     /**
-     * Vue grille : 1 ligne par épice présente dans au moins un top, scores par matrice (0 si absente).
-     *
      * @param array<string, list<array{id: int, name: string, score: int}>> $rankings
-     *
      * @return list<array{id: int, name: string, scores: array<string, int>}>
      */
     public function buildGrid(array $rankings): array
@@ -74,24 +66,22 @@ final readonly class MatrixComparator
         foreach ($rankings as $matrix => $list) {
             foreach ($list as $entry) {
                 $id = $entry['id'];
-                if (! isset($byId[$id])) {
-                    $byId[$id] = [
-                        'id' => $id,
-                        'name' => $entry['name'],
-                        'scores' => [
-                            'air' => 0,
-                            'water' => 0,
-                            'oil' => 0,
-                        ],
-                    ];
-                }
+                $byId[$id] ??= [
+                    'id' => $id,
+                    'name' => $entry['name'],
+                    'scores' => [
+                        'air' => 0,
+                        'water' => 0,
+                        'oil' => 0,
+                    ],
+                ];
                 $byId[$id]['scores'][$matrix] = $entry['score'];
             }
         }
 
         $grid = array_values($byId);
 
-        usort($grid, static fn (array $a, array $b) => max($b['scores']) <=> max($a['scores']));
+        usort($grid, static fn (array $a, array $b): int => max($b['scores']) <=> max($a['scores']));
 
         return $grid;
     }
@@ -102,7 +92,7 @@ final readonly class MatrixComparator
     private function rankFor(MortarIds $mortar, CulinaryContext $ctx, int $limit, ?string $locale = null): array
     {
         $pipeline = $this->matchPipeline->run($mortar, $limit, $ctx);
-        if ([] === $pipeline) {
+        if ($pipeline === []) {
             return [];
         }
 

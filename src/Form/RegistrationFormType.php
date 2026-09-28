@@ -40,14 +40,14 @@ class RegistrationFormType extends AbstractType
                     'autocomplete' => 'new-password',
                 ],
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'user.password_blank',
-                    ]),
-                    new Length([
-                        'min' => 6,
-                        'minMessage' => 'user.password_min',
-                        'max' => 255,
-                    ]),
+                    new NotBlank(
+                        message: 'user.password_blank',
+                    ),
+                    new Length(
+                        min: 6,
+                        minMessage: 'user.password_min',
+                        max: 255,
+                    ),
                 ],
             ])
             ->add('altcha', HiddenType::class, [

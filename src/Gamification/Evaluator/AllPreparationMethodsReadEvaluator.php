@@ -6,15 +6,16 @@ namespace App\Gamification\Evaluator;
 
 use App\Entity\Achievement;
 use App\Entity\UserProgression;
+use App\Entity\Users;
 use App\Enum\AchievementTrigger;
 use App\Repository\PreparationMethodsRepository;
 use App\Repository\SpiceViewRepository;
 
-final class AllPreparationMethodsReadEvaluator implements TriggerEvaluatorInterface
+final readonly class AllPreparationMethodsReadEvaluator implements TriggerEvaluatorInterface
 {
     public function __construct(
-        private readonly PreparationMethodsRepository $preparationMethodsRepository,
-        private readonly SpiceViewRepository $spiceViewRepository,
+        private PreparationMethodsRepository $preparationMethodsRepository,
+        private SpiceViewRepository $spiceViewRepository,
     ) {
     }
 
@@ -35,12 +36,12 @@ final class AllPreparationMethodsReadEvaluator implements TriggerEvaluatorInterf
         }
 
         $user = $progression->getUser();
-        if (null === $user) {
+        if (! $user instanceof Users) {
             return false;
         }
 
         $totalMethods = $this->preparationMethodsRepository->count([]);
-        if (0 === $totalMethods) {
+        if ($totalMethods === 0) {
             return false;
         }
 

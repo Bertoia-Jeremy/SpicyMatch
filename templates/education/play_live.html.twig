@@ -2,7 +2,12 @@
 
 {% block title %}{{ mode.label|trans }} — {{ 'ui.edu.academy_title'|trans }}{% endblock %}
 
+{% block body_class %}{{ mode.value == 'hangman' ? 'has-hangman' : '' }}{% endblock %}
+
 {% block body %}
+{% if mode.value == 'hangman' %}
+  <twig:Education:HangmanGame difficulty="{{ difficulty.value }}" />
+{% else %}
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
   {% if mode.value == 'survival' %}
     <twig:Education:SurvivalGame difficulty="{{ difficulty.value }}" />
@@ -10,10 +15,9 @@
     <twig:Education:IntrusGame difficulty="{{ difficulty.value }}" />
   {% elseif mode.value == 'guess_who' %}
     <twig:Education:GuessWhoGame difficulty="{{ difficulty.value }}" />
-  {% elseif mode.value == 'hangman' %}
-    <twig:Education:HangmanGame difficulty="{{ difficulty.value }}" />
   {% elseif mode.value == 'chrono' %}
     <twig:Education:ChronoGame difficulty="{{ difficulty.value }}" />
   {% endif %}
 </div>
+{% endif %}
 {% endblock %}

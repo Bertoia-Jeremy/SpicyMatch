@@ -1,0 +1,226 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Command;
+
+use App\Entity\AromaticCompound;
+use App\Entity\CompoundPhysical;
+use App\Enum\DataConfidence;
+use App\Repository\AromaticCompoundRepository;
+use App\Repository\CompoundPhysicalRepository;
+use App\Service\PubChem\PubChemCompoundProperties;
+use App\Service\PubChem\PubChemPropertyFetcher;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
+
+#[AsCommand(
+    name: 'app:fetch:pubchem',
+    description: 'Auto-fetch XLogP3, formule, CID et InChIKey depuis PubChem pour les composés en base.',
+)]
+final class FetchPubChemDataCommand extends Command
+{
+    private const string LOCK_NAME = 'spicymatch_fetch_pubchem';
+
+    private const int REQUEST_DELAY_US = 250_000;
+
+    public function __construct(
+        private readonly AromaticCompoundRepository $aromaticCompoundRepository,
+        private readonly CompoundPhysicalRepository $compoundPhysicalRepository,
+        private readonly EntityManagerInterface $em,
+        private readonly PubChemPropertyFetcher $pubChemPropertyFetcher,
+    ) {
+        parent::__construct();
+    }
+
+    protected function configure(): void
+    {
+        $this
+            ->addOption('all', null, InputOption::VALUE_NONE, 'Re-fetch même si toutes les données sont déjà renseignées.')
+            ->addOption('force', null, InputOption::VALUE_NONE, 'Écrase les valeurs déjà renseignées, y compris logP en confidence MEASURED/LITERATURE (implique --all).')
+            ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Simulation sans écriture en BDD.');
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $io = new SymfonyStyle($input, $output);
+        $connection = $this->em->getConnection();
+
+        $acquired = $connection->fetchOne('SELECT GET_LOCK(?, ?)', [self::LOCK_NAME, 0]);
+        if ($acquired === null || (string) $acquired !== '1') {
+            $io->error('Une autre exécution de app:fetch:pubchem est déjà en cours.');
+
+            return Command::FAILURE;
+        }
+
+        try {
+            return $this->doExecute($input, $io);
+        } finally {
+            $connection->executeStatement('SELECT RELEASE_LOCK(?)', [self::LOCK_NAME]);
+        }
+    }
+
+    private function doExecute(InputInterface $input, SymfonyStyle $io): int
+    {
+        $force = (bool) $input->getOption('force');
+        $forceAll = $force || (bool) $input->getOption('all');
+        $dryRun = (bool) $input->getOption('dry-run');
+
+        if ($dryRun) {
+            $io->warning('Mode DRY-RUN : aucune écriture en BDD.');
+        }
+
+        if ($force) {
+            $io->warning('Mode FORCE : écrase les données existantes, y compris logP en confidence MEASURED/LITERATURE.');
+        }
+
+        $compounds = $this->aromaticCompoundRepository->findAll();
+        $fetched = 0;
+        $skipped = 0;
+        $failed = 0;
+
+        foreach ($compounds as $compound) {
+            $name = (string) $compound->getName();
+            $cas = $compound->getCasNumber();
+
+            if ($cas === null || trim($cas) === '') {
+                $io->text(\sprintf('  SKIP %s : pas de CAS', $name));
+                ++$skipped;
+                continue;
+            }
+
+            $existingPhysical = $this->compoundPhysicalRepository->findOneBy([
+                'compound' => $compound,
+            ]);
+
+            if (! $forceAll
+                && $existingPhysical?->getLogP() !== null
+                && $compound->getPubchemCid() !== null
+                && $compound->getInchiKey() !== null
+            ) {
+                $io->text(\sprintf('  SKIP %s : logP/CID/InChIKey déjà renseignés', $name));
+                ++$skipped;
+                continue;
+            }
+
+            $properties = $this->pubChemPropertyFetcher->fetch($cas);
+
+            if ($properties->logP === null && $properties->formula === null && $properties->cid === null && $properties->inchiKey === null) {
+                $io->text(\sprintf('  ❌ Aucune donnée PubChem pour %s (%s)', $name, $cas));
+                ++$failed;
+                usleep(self::REQUEST_DELAY_US);
+                continue;
+            }
+
+            if ($dryRun) {
+                $io->text(\sprintf(
+                    '  FETCH (dry-run) %s (%s) → XLogP3=%s formule=%s CID=%s InChIKey=%s',
+                    $name,
+                    $cas,
+                    $properties->logP ?? '—',
+                    $properties->formula ?? '—',
+                    $properties->cid ?? '—',
+                    $properties->inchiKey ?? '—',
+                ));
+            } else {
+                $this->applyProperties($compound, $existingPhysical, $properties, $cas, $force, $io);
+                $this->em->flush();
+
+                $persistedLogP = $existingPhysical?->getLogP()
+                    ?? $this->compoundPhysicalRepository->findOneBy([
+                        'compound' => $compound,
+                    ])?->getLogP();
+
+                $io->text(\sprintf(
+                    '  FETCH %s (%s) → XLogP3=%s formule=%s CID=%s InChIKey=%s',
+                    $name,
+                    $cas,
+                    $persistedLogP ?? '—',
+                    $compound->getFormula() ?? '—',
+                    $compound->getPubchemCid() ?? '—',
+                    $compound->getInchiKey() ?? '—',
+                ));
+            }
+            ++$fetched;
+            usleep(self::REQUEST_DELAY_US);
+        }
+
+        $io->success(\sprintf(
+            'Auto-fetch terminé — %d fetchés, %d ignorés, %d échoués%s.',
+            $fetched,
+            $skipped,
+            $failed,
+            $dryRun ? ' (dry-run)' : '',
+        ));
+
+        return $failed === 0 ? Command::SUCCESS : Command::FAILURE;
+    }
+
+    private function applyProperties(
+        AromaticCompound $compound,
+        ?CompoundPhysical $existingPhysical,
+        PubChemCompoundProperties $properties,
+        string $cas,
+        bool $force,
+        SymfonyStyle $io,
+    ): void {
+        if ($properties->formula !== null && ($force || $compound->getFormula() === null)) {
+            $compound->setFormula($properties->formula);
+        }
+
+        $protectedTiers = [DataConfidence::MEASURED, DataConfidence::LITERATURE];
+        $hasProtectedLogP = ! $force
+            && $existingPhysical instanceof CompoundPhysical
+            && $existingPhysical->getLogP() !== null
+            && \in_array($existingPhysical->getConfidence(), $protectedTiers, true);
+
+        if ($properties->logP !== null && ! $hasProtectedLogP) {
+            $target = $existingPhysical ?? new CompoundPhysical($compound);
+            $target->setLogP($properties->logP);
+            $target->setSource(\sprintf('PubChem XLogP3 (auto-fetch via CAS %s)', $cas));
+            if (! $existingPhysical instanceof CompoundPhysical || $existingPhysical->getConfidence() === DataConfidence::PLACEHOLDER || $force) {
+                $target->setConfidence(DataConfidence::ESTIMATED);
+            }
+            if (! $existingPhysical instanceof CompoundPhysical) {
+                $this->em->persist($target);
+            }
+        }
+
+        if ($properties->cid !== null && ($force || $compound->getPubchemCid() === null)) {
+            $collision = $this->aromaticCompoundRepository->findOneBy([
+                'pubchemCid' => $properties->cid,
+            ]);
+            if ($collision !== null && $collision !== $compound) {
+                $io->warning(\sprintf(
+                    'CID %d déjà attribué à "%s" — non assigné à "%s" (collision à investiguer manuellement).',
+                    $properties->cid,
+                    (string) $collision->getName(),
+                    (string) $compound->getName(),
+                ));
+            } else {
+                $compound->setPubchemCid($properties->cid);
+            }
+        }
+
+        if ($properties->inchiKey !== null && ($force || $compound->getInchiKey() === null)) {
+            $collision = $this->aromaticCompoundRepository->findOneBy([
+                'inchiKey' => $properties->inchiKey,
+            ]);
+            if ($collision !== null && $collision !== $compound) {
+                $io->warning(\sprintf(
+                    'InChIKey %s déjà attribué à "%s" — non assigné à "%s" (collision à investiguer manuellement).',
+                    $properties->inchiKey,
+                    (string) $collision->getName(),
+                    (string) $compound->getName(),
+                ));
+            } else {
+                $compound->setInchiKey($properties->inchiKey);
+            }
+        }
+    }
+}

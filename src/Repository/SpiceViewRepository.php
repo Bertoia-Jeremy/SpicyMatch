@@ -21,10 +21,6 @@ class SpiceViewRepository extends ServiceEntityRepository
         parent::__construct($registry, SpiceView::class);
     }
 
-    /**
-     * Records a spice view for today.
-     * Returns true if this is a new view (not seen today), false if already recorded.
-     */
     public function recordView(Users $user, Spices $spice): bool
     {
         $today = new \DateTimeImmutable('today');
@@ -35,7 +31,7 @@ class SpiceViewRepository extends ServiceEntityRepository
             'viewedDay' => $today,
         ]);
 
-        if (null !== $existing) {
+        if ($existing !== null) {
             return false;
         }
 
@@ -58,9 +54,6 @@ class SpiceViewRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
-    /**
-     * Total number of views recorded for this user (one row = one distinct day/spice pair).
-     */
     public function countByUser(Users $user): int
     {
         return (int) $this->createQueryBuilder('sv')
@@ -71,10 +64,6 @@ class SpiceViewRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
-    /**
-     * Count of distinct spices the user has viewed that belong to the given aromatic group.
-     * Drives the GROUP_MASTERY_READ trigger.
-     */
     public function countByGroup(Users $user, AromaticGroups $group): int
     {
         return (int) $this->createQueryBuilder('sv')
@@ -90,9 +79,47 @@ class SpiceViewRepository extends ServiceEntityRepository
     }
 
     /**
-     * Count of distinct preparation methods the user has encountered across viewed spices.
-     * Drives the ALL_PREPARATION_METHODS_READ trigger.
+     * @return array<int, int>
      */
+    public function countGroupedByUser(): array
+    {
+        return $this->mapGroupedByUser(
+            $this->createQueryBuilder('sv')
+                ->select('IDENTITY(sv.user) AS uid', 'COUNT(sv.id) AS total')
+                ->groupBy('sv.user')
+                ->getQuery()
+                ->getArrayResult()
+        );
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    public function countDistinctSpicesGroupedByUser(): array
+    {
+        return $this->mapGroupedByUser(
+            $this->createQueryBuilder('sv')
+                ->select('IDENTITY(sv.user) AS uid', 'COUNT(DISTINCT sv.spice) AS total')
+                ->groupBy('sv.user')
+                ->getQuery()
+                ->getArrayResult()
+        );
+    }
+
+    /**
+     * @param list<array<string, mixed>> $rows
+     * @return array<int, int>
+     */
+    private function mapGroupedByUser(array $rows): array
+    {
+        $result = [];
+        foreach ($rows as $row) {
+            $result[(int) $row['uid']] = (int) $row['total'];
+        }
+
+        return $result;
+    }
+
     public function countDistinctPreparationMethodsSeenBy(Users $user): int
     {
         return (int) $this->createQueryBuilder('sv')

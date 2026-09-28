@@ -4,70 +4,60 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Entity\SpicyMatch;
+use App\Entity\SpicyMatchHistory;
 use App\Entity\SpicyMatchResult;
 use App\Entity\Users;
+use App\Exception\Match\InvalidMortarException;
 use App\Factory\SpicyMatchFactory;
+use App\Factory\SpicyMatchHistoryFactory;
 use App\Repository\SpicesRepository;
 use App\ValueObject\Match\CulinaryContext;
 use Doctrine\ORM\EntityManagerInterface;
 
-/**
- * Business logic for creating and persisting a SpicyMatch from a user selection.
- *
- * Extracted from the SpicyMatch LiveComponent to remove the EntityManager
- * dependency from the component and centralise persistence concerns.
- */
 class SpicyMatchService
 {
     public function __construct(
         private readonly SpicyMatchFactory $factory,
         private readonly SpicesRepository $spicesRepository,
         private readonly EntityManagerInterface $em,
+        private readonly SpicyMatchHistoryFactory $historyFactory,
     ) {
     }
 
     /**
-     * Build, persist and return a SpicyMatch from a flat list of selected spice IDs.
+     * @param list<int>                          $selectedIds
+     * @param list<array{id: int, score: mixed}> $compatibleSpices
      *
-     * In auto mode, $compatibleSpices must be the scored array produced by
-     * CompatibleSpiceFinder::findCompatible() — each entry must contain 'id' and 'score'.
-     * In manual mode, pass an empty array (no results are stored).
-     *
-     * Le contexte culinaire ($ctx) est persisté avec l'entité pour permettre la
-     * restitution exacte du ranking lors de la consultation historique.
-     *
-     * @param list<int>                          $selectedIds      Flat list of selected spice IDs
-     * @param list<array{id: int, score: mixed}> $compatibleSpices Scored compatible spices (auto mode only)
-     * @param CulinaryContext                    $ctx              Contexte culinaire — défaut neutre
+     * @throws InvalidMortarException
      */
-    public function createFromSelection(
-        ?Users $user,
+    public function start(
+        Users $user,
         array $selectedIds,
         bool $isManual,
         array $compatibleSpices,
         CulinaryContext $ctx,
-    ): SpicyMatch {
+    ): SpicyMatchHistory {
+        $selected = $selectedIds === [] ? [] : $this->spicesRepository->findBy([
+            'id' => $selectedIds,
+        ]);
+        if ($selected === []) {
+            throw InvalidMortarException::emptySelection();
+        }
+
         $spicyMatch = $this->factory->create();
         $spicyMatch->setUser($user);
         $spicyMatch->setIsManual($isManual);
         $spicyMatch->setCulinaryContext($ctx);
 
-        // Batch load selected spices — 1 SELECT IN
-        foreach ($this->spicesRepository->findBy([
-            'id' => $selectedIds,
-        ]) as $spice) {
+        foreach ($selected as $spice) {
             $spicyMatch->addSpice($spice);
         }
 
-        // Auto mode: persist scored results for history/reference
-        if (! $isManual && [] !== $compatibleSpices) {
-            $compatibleIds = array_column($compatibleSpices, 'id');
+        if (! $isManual && $compatibleSpices !== []) {
             $scoreBySpiceId = array_column($compatibleSpices, 'score', 'id');
 
-            // Batch load compatible spices — 1 SELECT IN
             foreach ($this->spicesRepository->findBy([
-                'id' => $compatibleIds,
+                'id' => array_column($compatibleSpices, 'id'),
             ]) as $spice) {
                 $result = new SpicyMatchResult();
                 $result->setSpice($spice);
@@ -76,9 +66,12 @@ class SpicyMatchService
             }
         }
 
+        $history = $this->historyFactory->create($spicyMatch);
+
         $this->em->persist($spicyMatch);
+        $this->em->persist($history);
         $this->em->flush();
 
-        return $spicyMatch;
+        return $history;
     }
 }

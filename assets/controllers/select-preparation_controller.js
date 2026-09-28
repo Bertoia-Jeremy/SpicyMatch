@@ -45,7 +45,6 @@ export default class extends Controller
         }
 
         if (isDeselecting) {
-            // Deselect: show all cards again
             this.preparationIdValue = 0;
             this.preparationTargets.forEach(t => {
                 t.classList.remove('hidden');
@@ -57,7 +56,6 @@ export default class extends Controller
                 }
             });
         } else {
-            // Select: hide others, highlight selected
             this.preparationIdValue = clickedId;
             this.preparationTargets.forEach(t => {
                 const inner = t.querySelector(':scope > button');

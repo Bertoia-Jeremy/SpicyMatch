@@ -18,11 +18,6 @@ use Psr\Cache\CacheItemPoolInterface;
 #[CoversClass(MortarProfileBuilder::class)]
 final class MortarProfileBuilderTest extends TestCase
 {
-    // ── Helpers ────────────────────────────────────────────────────────────────────
-
-    /**
-     * Crée un mock de cache toujours en MISS (cold cache).
-     */
     private function coldCache(): CacheItemPoolInterface
     {
         $item = $this->createStub(CacheItemInterface::class);
@@ -43,8 +38,6 @@ final class MortarProfileBuilderTest extends TestCase
     }
 
     /**
-     * Crée un mock de cache en HIT avec la valeur donnée.
-     *
      * @param array<int, float> $cachedValue
      */
     private function warmCache(array $cachedValue): CacheItemPoolInterface
@@ -62,13 +55,8 @@ final class MortarProfileBuilderTest extends TestCase
         return $pool;
     }
 
-    // ── Comportement du profil (max par molécule) ──────────────────────────────────
-
     public function testBuildComputesMaxPerCompound(): void
     {
-        // Épice 1 : eugenol OAV=5.0, thymol OAV=2.0
-        // Épice 2 : eugenol OAV=3.0, carvacrol OAV=8.0
-        // Profil mortier attendu : eugenol=5.0, thymol=2.0, carvacrol=8.0
         $repo = $this->createStub(SpiceActiveCompoundRepository::class);
         $repo->method('loadOavProfilesBatch')
             ->willReturn([
@@ -110,8 +98,6 @@ final class MortarProfileBuilderTest extends TestCase
 
     public function testBuildEmptyOavDataReturnsNull(): void
     {
-        // Pas de données OAV → build() retourne null (signale au pipeline : mode dégradé).
-        // L'état "vide" est désormais caché avec un TTL court (5 min) pour PERF-7.
         $repo = $this->createStub(SpiceActiveCompoundRepository::class);
         $repo->method('loadOavProfilesBatch')
             ->willReturn([]);
@@ -124,7 +110,6 @@ final class MortarProfileBuilderTest extends TestCase
 
     public function testEmptyOavStateIsCachedAndShortCircuitsSubsequentBuilds(): void
     {
-        // PERF-7 : le 2e build ne doit PAS retoucher la DB si le sentinel vide est en cache.
         $repo = $this->createMock(SpiceActiveCompoundRepository::class);
         $repo->expects(self::once())
             ->method('loadOavProfilesBatch')
@@ -136,8 +121,6 @@ final class MortarProfileBuilderTest extends TestCase
         self::assertNull($builder->build(new MortarIds([1]), OdtMatrix::AIR));
     }
 
-    // ── Comportement du cache ──────────────────────────────────────────────────────
-
     public function testBuildUsesCacheOnHit(): void
     {
         $cached = [
@@ -145,7 +128,6 @@ final class MortarProfileBuilderTest extends TestCase
             20 => 4.4,
         ];
 
-        // Le repo ne doit PAS être appelé si le cache répond
         $repo = $this->createMock(SpiceActiveCompoundRepository::class);
         $repo->expects(self::never())->method('loadOavProfilesBatch');
 
@@ -157,7 +139,6 @@ final class MortarProfileBuilderTest extends TestCase
 
     public function testBuildSortsIdsForCacheKey(): void
     {
-        // [3, 1, 2] et [1, 2, 3] doivent produire la même clé de cache
         $cacheKey = null;
 
         $item = $this->createStub(CacheItemInterface::class);
@@ -193,8 +174,6 @@ final class MortarProfileBuilderTest extends TestCase
         self::assertSame($keyA, $keyB, 'Ordre des IDs ne doit pas affecter la clé de cache');
     }
 
-    // ── Cache key inclut la matrice ────────────────────────────────────────────
-
     public function testCacheKeyIncludesMatrix(): void
     {
         $capturedKeys = [];
@@ -228,15 +207,11 @@ final class MortarProfileBuilderTest extends TestCase
         $builder->build($mortar, OdtMatrix::WATER);
         $builder->build($mortar, OdtMatrix::OIL);
 
-        // Toutes les clés doivent être différentes
         self::assertCount(3, array_unique($capturedKeys), '3 matrices → 3 clés de cache distinctes');
-        // Chaque clé doit contenir le nom de la matrice
         self::assertStringContainsString('air', $capturedKeys[0]);
         self::assertStringContainsString('water', $capturedKeys[1]);
         self::assertStringContainsString('oil', $capturedKeys[2]);
     }
-
-    // ── TTL par matrice ────────────────────────────────────────────────────────
 
     public function testAirMatrixUses24hTtl(): void
     {

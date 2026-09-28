@@ -13,6 +13,7 @@ use App\Service\Education\GameSessionManager;
 use App\Service\Education\QuestionGeneratorInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -21,13 +22,18 @@ use Symfony\Component\Messenger\MessageBusInterface;
 class GameSessionManagerTest extends TestCase
 {
     private EntityManagerInterface&MockObject $em;
+
     private GameSessionRepository&MockObject $sessionRepo;
+
     private MessageBusInterface&MockObject $bus;
+
     private QuestionGeneratorInterface&MockObject $generator;
 
     protected function setUp(): void
     {
         $this->em = $this->createMock(EntityManagerInterface::class);
+        $this->em->method('wrapInTransaction')
+            ->willReturnCallback(static fn (callable $work): mixed => $work());
         $this->sessionRepo = $this->createMock(GameSessionRepository::class);
         $this->bus = $this->createMock(MessageBusInterface::class);
         $this->generator = $this->createMock(QuestionGeneratorInterface::class);
@@ -52,9 +58,6 @@ class GameSessionManagerTest extends TestCase
         $this->em->expects(self::once())
             ->method('persist')
             ->with(self::isInstanceOf(GameSession::class));
-
-        $this->em->expects(self::once())
-            ->method('flush');
 
         $manager = $this->makeManager();
         $session = $manager->startSession($user, GameMode::QCM, GameDifficulty::EASY);
@@ -166,7 +169,49 @@ class GameSessionManagerTest extends TestCase
         self::assertSame(0, $session->getCorrectAnswers());
     }
 
-    public function testCalculateXpEasyMode(): void
+    #[DataProvider('xpProvider')]
+    public function testCalculateXp(
+        GameMode $mode,
+        GameDifficulty $difficulty,
+        int $correctAnswers,
+        int $expected,
+    ): void {
+        $user = $this->createStub(Users::class);
+        $user->method('getId')
+            ->willReturn(1);
+
+        $session = new GameSession();
+        $session->setUser($user);
+        $session->setGameMode($mode);
+        $session->setDifficulty($difficulty);
+        $session->setTotalQuestions(10);
+
+        for ($i = 0; $i < $correctAnswers; ++$i) {
+            $session->incrementCorrectAnswers();
+        }
+
+        $manager = $this->makeManager();
+        self::assertSame($expected, $manager->calculateXp($session));
+    }
+
+    /**
+     * @return iterable<string, array{GameMode, GameDifficulty, int, int}>
+     */
+    public static function xpProvider(): iterable
+    {
+        yield 'qcm facile sans multiplicateur' => [GameMode::QCM, GameDifficulty::EASY, 7, 21];
+        yield 'qcm difficile, multiplicateur x2' => [GameMode::QCM, GameDifficulty::HARD, 7, 42];
+        yield 'pendu revalorisé à 8 XP par mot' => [GameMode::HANGMAN, GameDifficulty::EASY, 5, 40];
+        yield 'plafond de session atteint' => [
+            GameMode::HANGMAN,
+            GameDifficulty::HARD,
+            5,
+            GameSessionManager::MAX_XP_PER_SESSION,
+        ];
+        yield 'aucune bonne réponse, aucun XP' => [GameMode::QCM, GameDifficulty::HARD, 0, 0];
+    }
+
+    public function testCalculateXpNeverQueriesTheDailyCount(): void
     {
         $user = $this->createStub(Users::class);
         $user->method('getId')
@@ -177,68 +222,39 @@ class GameSessionManagerTest extends TestCase
         $session->setGameMode(GameMode::QCM);
         $session->setDifficulty(GameDifficulty::EASY);
         $session->setTotalQuestions(10);
+        $session->incrementCorrectAnswers();
 
-        // 7 correct * 3 XP * 1.0 multiplier = 21
-        for ($i = 0; $i < 7; ++$i) {
-            $session->incrementCorrectAnswers();
-        }
+        $this->sessionRepo->expects(self::never())
+            ->method('countTodayByUser');
 
-        $this->sessionRepo->method('countTodayByUser')
-            ->willReturn(1);
-
-        $manager = $this->makeManager();
-        self::assertSame(21, $manager->calculateXp($session));
+        self::assertSame(3, $this->makeManager()->calculateXp($session));
     }
 
-    public function testCalculateXpHardModeWithMultiplier(): void
+    #[DataProvider('gamePointsProvider')]
+    public function testConvertGamePoints(GameDifficulty $difficulty, int $points, int $expected): void
     {
-        $user = $this->createStub(Users::class);
-        $user->method('getId')
-            ->willReturn(1);
-
-        $session = new GameSession();
-        $session->setUser($user);
-        $session->setGameMode(GameMode::QCM);
-        $session->setDifficulty(GameDifficulty::HARD);
-        $session->setTotalQuestions(10);
-
-        // 7 correct * 3 XP * 2.0 multiplier = 42
-        for ($i = 0; $i < 7; ++$i) {
-            $session->incrementCorrectAnswers();
-        }
-
-        $this->sessionRepo->method('countTodayByUser')
-            ->willReturn(1);
-
-        $manager = $this->makeManager();
-        self::assertSame(42, $manager->calculateXp($session));
+        self::assertSame($expected, $this->makeManager()->convertGamePoints($points, $difficulty));
     }
 
-    public function testCalculateXpReducedAfterThreshold(): void
+    /**
+     * @return iterable<string, array{GameDifficulty, int, int}>
+     */
+    public static function gamePointsProvider(): iterable
     {
-        $user = $this->createStub(Users::class);
-        $user->method('getId')
-            ->willReturn(1);
-
-        $session = new GameSession();
-        $session->setUser($user);
-        $session->setGameMode(GameMode::QCM);
-        $session->setDifficulty(GameDifficulty::EASY);
-        $session->setTotalQuestions(10);
-
-        // 10 correct * 3 XP * 1.0 * 0.5 (reduced) = 15
-        for ($i = 0; $i < 10; ++$i) {
-            $session->incrementCorrectAnswers();
-        }
-
-        $this->sessionRepo->method('countTodayByUser')
-            ->willReturn(4); // > 3 threshold
-
-        $manager = $this->makeManager();
-        self::assertSame(15, $manager->calculateXp($session));
+        yield 'points bruts en facile' => [GameDifficulty::EASY, 40, 40];
+        yield 'points x1.5 en moyen' => [GameDifficulty::MEDIUM, 30, 45];
+        yield 'points x2 en difficile' => [GameDifficulty::HARD, 25, 50];
+        yield 'score élevé ramené au plafond' => [
+            GameDifficulty::EASY,
+            255,
+            GameSessionManager::MAX_XP_PER_SESSION,
+        ];
+        yield 'plafond atteint par le multiplicateur' => [
+            GameDifficulty::HARD,
+            80,
+            GameSessionManager::MAX_XP_PER_SESSION,
+        ];
     }
-
-    // ── Anti-farming guard on createFinishedSession (Live Component flow) ──
 
     public function testCreateFinishedSessionThrowsAtDailyLimit(): void
     {
@@ -246,13 +262,11 @@ class GameSessionManagerTest extends TestCase
         $user->method('getId')
             ->willReturn(1);
 
-        // Mirror what startSession() enforces — LC sessions MUST be capped too.
         $this->sessionRepo->expects(self::once())
             ->method('countTodayByUser')
             ->with($user, GameMode::INTRUS)
             ->willReturn(5);
 
-        // No persist, no dispatch — the throw must happen before.
         $this->em->expects(self::never())->method('persist');
         $this->em->expects(self::never())->method('flush');
         $this->bus->expects(self::never())->method('dispatch');

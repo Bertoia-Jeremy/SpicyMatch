@@ -38,6 +38,7 @@ security:
         - { path: ^/api/match, roles: PUBLIC_ACCESS }  # endpoint de matching OAV — public, sans auth
         - { path: ^/api/gamification, roles: ROLE_USER }
         - { path: '^/[a-z]{2}/education/?$', roles: PUBLIC_ACCESS }
+        - { path: '^/[a-z]{2}/spicymatch/?$', roles: PUBLIC_ACCESS }
         - { path: '^/[a-z]{2}/(users|spicymatch|education)', roles: ROLE_USER }
         - { path: ^/, roles: PUBLIC_ACCESS }
 

@@ -6,13 +6,15 @@ namespace App\Gamification\Evaluator;
 
 use App\Entity\Achievement;
 use App\Entity\UserProgression;
+use App\Entity\Users;
 use App\Enum\AchievementTrigger;
+use App\Enum\GameMode;
 use App\Repository\GameSessionRepository;
 
-final class GamePerfectRunEvaluator implements TriggerEvaluatorInterface
+final readonly class GamePerfectRunEvaluator implements TriggerEvaluatorInterface
 {
     public function __construct(
-        private readonly GameSessionRepository $gameSessionRepository,
+        private GameSessionRepository $gameSessionRepository,
     ) {
     }
 
@@ -35,7 +37,7 @@ final class GamePerfectRunEvaluator implements TriggerEvaluatorInterface
         $user = $progression->getUser();
         $mode = $achievement->getContextGameMode();
 
-        if (null === $user || null === $mode) {
+        if (! $user instanceof Users || ! $mode instanceof GameMode) {
             return false;
         }
 

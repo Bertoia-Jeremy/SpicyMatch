@@ -8,7 +8,7 @@ use App\Repository\SpicesRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/{_locale}', defaults: [
     '_locale' => 'fr',
@@ -21,7 +21,7 @@ class SearchController extends AbstractController
         $query = trim((string) $request->query->get('q', ''));
         $results = [];
 
-        if ('' !== $query && mb_strlen($query) >= 2) {
+        if ($query !== '' && mb_strlen($query) >= 2) {
             $results = $spicesRepository->search($query, $request->getLocale());
         }
 

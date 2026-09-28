@@ -18,24 +18,20 @@ class SpiceView
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    private ?Users $user = null;
-
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    private ?Spices $spice = null;
-
     #[ORM\Column]
     private \DateTimeImmutable $viewedAt;
 
     #[ORM\Column(type: 'date_immutable')]
     private \DateTimeImmutable $viewedDay;
 
-    public function __construct(Users $user, Spices $spice)
-    {
-        $this->user = $user;
-        $this->spice = $spice;
+    public function __construct(
+        #[ORM\ManyToOne]
+        #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+        private Users $user,
+        #[ORM\ManyToOne]
+        #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+        private Spices $spice
+    ) {
         $this->viewedAt = new \DateTimeImmutable();
         $this->viewedDay = new \DateTimeImmutable('today');
     }

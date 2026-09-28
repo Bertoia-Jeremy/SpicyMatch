@@ -43,6 +43,11 @@ flash:
     daily_limit_reached: 'Daily limit reached (%max% %mode% sessions per day).'
 
 ui:
+    pairing:
+        excellent: Excellent
+        harmonieux: Harmonious
+        audacieux: Bold
+        discordant: Discordant
     meta:
         description: SpicyMatch — Create perfect spice blends through molecular analysis of aromatic compounds.
         default_title: SpicyMatch — Culinary Alchemy
@@ -268,6 +273,12 @@ ui:
             chrono_0: Identify each spice as fast as possible.
             chrono_1: You see the photo and characteristics, but not the name.
             chrono_2: Time is ticking — every second counts.
+        skill:
+            up_title: You have this level down
+            up_text: '%rate%% accuracy over your last %count% runs on %from%. Ready for %to%?'
+            down_title: One notch down?
+            down_text: '%rate%% accuracy over your last %count% runs on %from%. Try %to% to get back in the groove.'
+            cta: 'Try %to%'
         academy_title: Spice Academy
         academy_intro: Test your knowledge of spices and their aromatic compatibilities.
         xp_per_correct: '%xp% XP/correct'
@@ -276,8 +287,7 @@ ui:
         timed_mode: Timed
         survival_mode: Survival
         come_back_tomorrow: Come back tomorrow
-        reduced_xp_tooltip: 'XP reduced by 50%% beyond %threshold% games/day'
-        remaining_xp: '%count% left · ×0.5 XP'
+        result_title: '%mode% — Results'
         remaining_today: '%remaining%/%max% today'
         recent_games: Recent games
         correct_count: '%correct%/%total% correct'
@@ -312,6 +322,24 @@ ui:
         is_correct_answer: is the correct answer.
         you_answered: You answered
         correct_was: The correct answer was
+        level_label: 'Level %level%'
+        next_level: Next level
+        level_progress: Level progress
+        games_played: games played
+        achievements_stat: achievements
+        record_label: 'Record: %score%'
+        record_none: To unlock
+        daily_challenge: Daily challenge
+        locked_hint: Come back tomorrow to replay
+        locked_level_hint: '%mode% unlocks at level %level%'
+        lesson: 'Lesson %numeral%'
+        gate:
+            title: Log in to play
+            subtitle: One last step before the game.
+            why_title: Why create an account?
+            why_fair: A fair, protected game — no bots, only real players.
+            why_progress: Your progress and XP saved, with your reports sent by email.
+            why_space: A personal space to keep your preferences from one game to the next.
     onboarding:
         welcome_title: Welcome to SpicyMatch!
         welcome_text: 'Discover how to create spice blends that truly work. A quick guided tour in 3 steps:'
@@ -411,6 +439,10 @@ ui:
         moment_end: End
         moment_after: After
         moment_free: — free —
+        chef_word: "Chef's word"
+        chef_effect: Effect
+        chef_science: Science
+        chef_example: Example
         kinetics_title: Aromatic kinetics
         kinetics_sub: Top · Heart · Base
         kinetics_retention: ' · retention at %temp% °C / %time% min'
@@ -464,7 +496,11 @@ ui:
         advanced: Advanced
         odt_matrix: ODT matrix
         no_matrix_data: No matrix with data
-        presence_mode: Sorted by shared-compound presence — no quantitative OAV score (insufficient data).
+        scoring_mode:
+            hybrid: 'OAV chemical score blended with co-occurrence affinity (FlavorGraph).'
+            oav: 'OAV chemical score only (weighted Tanimoto).'
+            flavorgraph: 'Co-occurrence affinity (FlavorGraph), no chemical measurement: reduced scale, maximum %max%.'
+            presence: 'Sorted by shared-compound presence, no quantitative score.'
         fat_ratio: Fat ratio
         cooking_time: Cooking time
         temperature: Temperature
@@ -717,6 +753,23 @@ ui:
         persist: If the problem persists, please contact the administrator.
         home: Home
         report: Report
+        '404':
+            eyebrow: 'Spice unaccounted for'
+            aria_label: '404 error'
+            title: This page went up in smoke during roasting
+            title_html: 'This page went up in <em>smoke</em> during roasting'
+            description: "We turned the whole spice rack upside down: still no sign of it. No worries — the best finds often start with a trail that vanishes."
+            xp_note: 'A dead end is still a lead. +0 XP · lesson learned'
+            back: Back to home
+            explore: Explore the spices
+            play: Start a game
+            footnote: Expected to land somewhere else?
+            footnote_link: Report the wrong trail
+        '403':
+            title: Restricted access
+            description: You do not have the permissions required to view this page. Sign in or head back home.
+            back: Back to home
+            countdown: 'Automatic redirect in %count% seconds.'
     security:
         password: Password
         password_text: Change your password below.
@@ -768,13 +821,8 @@ ui:
         in_kitchen: In the kitchen
         in_kitchen_title: slip it
         moments: '%count% moment(s)'
-        marmite_before: Before the heat
-        marmite_during: During the heat
-        marmite_after: After the heat
-        marmite_last: At the last moment
-        marmite_marinade: In a marinade
-        marmite_default: Any time
         step: Step
+        chef_duo: Recommended duo
         notebook: The notebook
         notebook_title: notes in passing
         tame: tame it
@@ -1031,21 +1079,6 @@ ui:
         chapter: Chapter IV · The Academy
         title_html: 'The theater of <em class="not-italic italic" style="color: var(--color-turmeric-700)">the senses.</em>'
         blurb: Six mini-games. Spices as a playground. Each round reveals a new angle — the odd one out, survival, hangman, speed.
-        play_scoville: Play the Scoville Challenge
-        play_choice: Play the Chef's Choice
-        play_overcooked: Play Overcooked
-        act1: Act I
-        act2: Act II
-        act3: Act III
-        scoville_title_html: 'Scoville <span class="ital">Challenge.</span>'
-        scoville_tag: chili survival game
-        scoville_footer: Unlimited games
-        choice_title_html: "The Chef's <span class=\"ital\">Choice.</span>"
-        choice_tag: spot the odd one out
-        choice_footer: 5 questions
-        overcooked_title_html: '<span class="ital">Overcooked!</span>'
-        overcooked_tag: hangman of forgotten spices
-        overcooked_footer: 8 words to guess
         cta_sub: 6 modes available · XP · Achievements · Leaderboards
         cta: Join the Academy
     hero:
@@ -1110,21 +1143,39 @@ enum:
         qcm:
             label: The Chef's Choice
             desc: 'Find the most compatible spice among 4 options.'
+            title_top: "The Chef's"
+            title_bottom: 'Choice.'
+            tagline: 'find the most compatible spice among 4 options'
         survival:
             label: Scoville Challenge
             desc: 'Chain compatible spices without a mistake.'
+            title_top: 'Scoville'
+            title_bottom: 'Challenge.'
+            tagline: 'chain compatible spices without a mistake'
         guess_who:
             label: Fine Palate
             desc: 'Guess the spice from progressive clues.'
+            title_top: 'Fine'
+            title_bottom: 'Palate.'
+            tagline: 'guess the spice from progressive clues'
         intrus:
             label: Out of Season
             desc: 'Find the odd one out among compatible spices.'
+            title_top: 'Out of'
+            title_bottom: 'Season.'
+            tagline: 'find the odd one out among compatible spices'
         hangman:
             label: Now Cooking
             desc: 'Guess the spice name letter by letter.'
+            title_top: 'Now'
+            title_bottom: 'Cooking.'
+            tagline: 'guess the spice name letter by letter'
         chrono:
             label: On High Heat
             desc: 'Identify the spices as fast as possible.'
+            title_top: 'On High'
+            title_bottom: 'Heat.'
+            tagline: 'identify the spices as fast as possible'
     difficulty:
         easy: Easy
         medium: Medium
@@ -1134,6 +1185,27 @@ enum:
         rare: Infusion
         epic: Extraction
         legendary: Essence
+    cooking_moment:
+        pre:
+            label: 'Prep (Infusion & Marinade)'
+            hint: 'Before cooking, to flavour meats and liquids through and through.'
+            chef: 'Cold or lukewarm extraction. Time does the work instead of heat.'
+        start:
+            label: 'At the start (The Base)'
+            hint: 'The foundation of the dish. The spice melts into the fat and brings depth.'
+            chef: 'Fresh notes are sacrificed to build lasting earthy and woody ones.'
+        simmer:
+            label: 'While simmering (The Heart)'
+            hint: 'The balance. Binds flavours without destroying fragile aromas.'
+            chef: 'The spice has enough time to diffuse, with less thermal oxidation.'
+        finish:
+            label: 'Final touch (Off the heat)'
+            hint: 'The wake-up call. A very short heat to revive the aromas.'
+            chef: 'Turn off the heat and add the spice to the still very hot dish. Heat releases the oils, but no boiling means no evaporation.'
+        plating:
+            label: 'At plating (Raw)'
+            hint: 'The spark. For pure impact and texture contrast on the plate.'
+            chef: 'No alteration. You taste the spice''s original profile through direct contact.'
     kinetics:
         head: Top
         heart: Heart

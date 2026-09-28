@@ -12,10 +12,6 @@ use Twig\Extension\AbstractExtension;
 use Twig\Extension\GlobalsInterface;
 use Twig\TwigFunction;
 
-/**
- * Expose la difficulté courante de l'utilisateur (et ses dérivées) à tous les templates Twig
- * via des variables globales — évite l'oubli silencieux d'un paramètre `monochrome` sur les macros.
- */
 final class DifficultyExtension extends AbstractExtension implements GlobalsInterface
 {
     public function __construct(

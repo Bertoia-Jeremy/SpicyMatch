@@ -20,7 +20,7 @@ class AromaticCompoundRepository extends ServiceEntityRepository
 
     public function findOneByLocalizedSlug(string $slug, string $locale): ?AromaticCompound
     {
-        if ('fr' !== $locale) {
+        if ($locale !== 'fr') {
             $translated = $this->createQueryBuilder('e')
                 ->innerJoin('e.translations', 't', 'WITH', 't.locale = :loc AND t.slug = :slug')
                 ->setParameter('loc', $locale)
@@ -29,7 +29,7 @@ class AromaticCompoundRepository extends ServiceEntityRepository
                 ->getQuery()
                 ->getOneOrNullResult();
 
-            if (null !== $translated) {
+            if ($translated !== null) {
                 return $translated;
             }
         }
@@ -70,21 +70,17 @@ class AromaticCompoundRepository extends ServiceEntityRepository
     }
 
     /**
-     * Hydratation batch id → name localisé (LEFT JOIN locale + COALESCE FR) pour
-     * éviter le N+1 sur les listes.
-     *
      * @param int[]       $ids
      * @param string|null $locale null ou 'fr' → noms canoniques directs
-     *
      * @return array<int, string> compound_id => name
      */
     public function findNamesById(array $ids, ?string $locale = null): array
     {
-        if ([] === $ids) {
+        if ($ids === []) {
             return [];
         }
 
-        if (null === $locale || 'fr' === $locale) {
+        if ($locale === null || $locale === 'fr') {
             $rows = $this->createQueryBuilder('a')
                 ->select('a.id', 'a.name')
                 ->where('a.id IN (:ids)')

@@ -13,9 +13,10 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AromaticCompoundRepository::class)]
 #[ORM\Table(name: 'aromatic_compound')]
-// CAS unique. Multiple NULL toléré par MariaDB → composés sans CAS non bloquants.
 #[ORM\UniqueConstraint(name: 'uniq_aromatic_compound_cas', columns: ['cas_number'])]
-class AromaticCompound implements TranslatableInterface, Sluggable
+#[ORM\UniqueConstraint(name: 'uniq_aromatic_compound_pubchem_cid', columns: ['pubchem_cid'])]
+#[ORM\UniqueConstraint(name: 'uniq_aromatic_compound_inchi_key', columns: ['inchi_key'])]
+class AromaticCompound implements TranslatableInterface, Sluggable, \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -25,23 +26,20 @@ class AromaticCompound implements TranslatableInterface, Sluggable
     #[ORM\Column(name: 'name', type: 'string', length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
+    #[ORM\Column(type: 'string', length: 255, unique: true, nullable: true)]
     private ?string $slug = null;
 
-    /**
-     * Numéro CAS — identifiant universel cross-sources (PubChem, van Gemert, FlavorDB, Flavornet).
-     * Format : XXXXXXX-YY-Z (ex: "97-53-0" pour l'eugénol).
-     * Nullable : non renseigné tant que la validation PubChem n'est pas effectuée.
-     */
     #[ORM\Column(name: 'cas_number', type: 'string', length: 50, nullable: true)]
     private ?string $casNumber = null;
 
-    /**
-     * Formule brute (ex: "C10H12O2").
-     * Source : PubChem — validé via NIST WebBook.
-     */
     #[ORM\Column(name: 'formula', type: 'string', length: 30, nullable: true)]
     private ?string $formula = null;
+
+    #[ORM\Column(name: 'pubchem_cid', type: 'integer', nullable: true)]
+    private ?int $pubchemCid = null;
+
+    #[ORM\Column(name: 'inchi_key', type: 'string', length: 27, nullable: true)]
+    private ?string $inchiKey = null;
 
     #[ORM\Column(name: 'description', type: 'text', nullable: true)]
     private ?string $description = null;
@@ -82,7 +80,7 @@ class AromaticCompound implements TranslatableInterface, Sluggable
     /**
      * @var Collection<int, AromaticCompoundTranslation>
      */
-    #[ORM\OneToMany(mappedBy: 'aromaticCompound', targetEntity: AromaticCompoundTranslation::class, cascade: [
+    #[ORM\OneToMany(targetEntity: AromaticCompoundTranslation::class, mappedBy: 'aromaticCompound', cascade: [
         'persist',
         'remove',
     ], orphanRemoval: true)]
@@ -130,7 +128,7 @@ class AromaticCompound implements TranslatableInterface, Sluggable
 
     public function getTranslation(string $locale): ?AromaticCompoundTranslation
     {
-        if ('fr' === $locale) {
+        if ($locale === 'fr') {
             return null;
         }
 
@@ -212,6 +210,30 @@ class AromaticCompound implements TranslatableInterface, Sluggable
     public function setFormula(?string $formula): self
     {
         $this->formula = $formula;
+
+        return $this;
+    }
+
+    public function getPubchemCid(): ?int
+    {
+        return $this->pubchemCid;
+    }
+
+    public function setPubchemCid(?int $pubchemCid): self
+    {
+        $this->pubchemCid = $pubchemCid;
+
+        return $this;
+    }
+
+    public function getInchiKey(): ?string
+    {
+        return $this->inchiKey;
+    }
+
+    public function setInchiKey(?string $inchiKey): self
+    {
+        $this->inchiKey = $inchiKey;
 
         return $this;
     }
@@ -341,7 +363,7 @@ class AromaticCompound implements TranslatableInterface, Sluggable
 
     public function __toString(): string
     {
-        return $this->name;
+        return (string) $this->name;
     }
 
     /**

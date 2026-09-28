@@ -4,16 +4,12 @@ declare(strict_types=1);
 
 namespace App\Service\Match;
 
+use App\Enum\PairingAffinity;
 use App\Repository\SpicesRepository;
 use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 use Symfony\Component\HttpFoundation\RequestStack;
 
-/**
- * Adapter UI/éducation : pipeline + enrichissement (nom, image, groupe, type) en une requête.
- *
- * @see ARCHITECTURE_MOTEUR_COMPATIBILITE.md §3 + §4.1
- */
 class CompatibleSpiceFinder
 {
     public function __construct(
@@ -24,13 +20,13 @@ class CompatibleSpiceFinder
     }
 
     /**
-     * @return list<array{id: int, name: string, file: ?string, agId: ?int, color: ?string, groupName: ?string, stId: ?int, typeName: ?string, score: int}>
+     * @return list<array{id: int, name: string, file: ?string, agId: ?int, color: ?string, groupName: ?string, stId: ?int, typeName: ?string, score: int, affinity: string}>
      */
     public function findCompatible(MortarIds $mortar, int $limit, CulinaryContext $ctx): array
     {
         $pipelineResults = $this->matchPipeline->run($mortar, $limit, $ctx);
 
-        if ([] === $pipelineResults) {
+        if ($pipelineResults === []) {
             return [];
         }
 
@@ -41,6 +37,7 @@ class CompatibleSpiceFinder
         $results = [];
         foreach ($enriched as $row) {
             $id = (int) $row['id'];
+            $score = $scoreMap[$id] ?? 0;
 
             $results[] = [
                 'id' => $id,
@@ -51,7 +48,8 @@ class CompatibleSpiceFinder
                 'groupName' => isset($row['groupName']) ? (string) $row['groupName'] : null,
                 'stId' => isset($row['stId']) ? (int) $row['stId'] : null,
                 'typeName' => isset($row['typeName']) ? (string) $row['typeName'] : null,
-                'score' => $scoreMap[$id] ?? 0,
+                'score' => $score,
+                'affinity' => PairingAffinity::fromScore($score / 100.0)->value,
             ];
         }
 

@@ -20,6 +20,7 @@ use PHPUnit\Framework\TestCase;
 final class GamePerfectRunEvaluatorTest extends TestCase
 {
     private GameSessionRepository&MockObject $sessionRepo;
+
     private GamePerfectRunEvaluator $evaluator;
 
     protected function setUp(): void
@@ -49,7 +50,6 @@ final class GamePerfectRunEvaluatorTest extends TestCase
 
         $this->sessionRepo->method('countPerfectRunsByMode')
             ->willReturn(3);
-        // Achievement declares mode filter → ContextFilter rejects if context mode missing.
         self::assertTrue($this->evaluator->isMet($achievement, $progression, [
             'gameMode' => GameMode::INTRUS,
         ]));
@@ -77,7 +77,7 @@ final class GamePerfectRunEvaluatorTest extends TestCase
             ->setTriggerValue($triggerValue)
             ->setXpReward(10)
             ->setRarity(AchievementRarity::EPIC);
-        if (null !== $mode) {
+        if ($mode !== null) {
             $a->setContextGameMode($mode);
         }
 

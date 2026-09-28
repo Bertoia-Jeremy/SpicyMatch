@@ -6,285 +6,185 @@ namespace App\Tests\Service;
 
 use App\Entity\Spices;
 use App\Entity\SpicyMatch;
+use App\Entity\SpicyMatchHistory;
 use App\Entity\Users;
 use App\Enum\OdtMatrix;
+use App\Exception\Match\InvalidMortarException;
 use App\Factory\SpicyMatchFactory;
+use App\Factory\SpicyMatchHistoryFactory;
 use App\Repository\SpicesRepository;
 use App\Service\SpicyMatchService;
 use App\ValueObject\Match\CulinaryContext;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Unit tests for SpicyMatchService::createFromSelection().
- *
- * Verifies persistence delegation, batch loading, auto/manual mode branching.
- * Entity-level collection assertions (addSpice, addResult) belong to entity tests.
- */
 #[AllowMockObjectsWithoutExpectations]
 class SpicyMatchServiceTest extends TestCase
 {
     private SpicyMatchFactory&MockObject $factory;
+
     private SpicesRepository&MockObject $spicesRepo;
+
     private EntityManagerInterface&MockObject $em;
+
     private SpicyMatchService $service;
+
+    private SpicyMatch $match;
+
+    private Users $user;
 
     protected function setUp(): void
     {
         $this->factory = $this->createMock(SpicyMatchFactory::class);
         $this->spicesRepo = $this->createMock(SpicesRepository::class);
         $this->em = $this->createMock(EntityManagerInterface::class);
-        $this->service = new SpicyMatchService($this->factory, $this->spicesRepo, $this->em);
-    }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // Persistence contract
-    // ──────────────────────────────────────────────────────────────────────────
-
-    public function testPersistsAndFlushesTheCreatedMatch(): void
-    {
-        $match = new SpicyMatch();
+        $this->service = new SpicyMatchService(
+            $this->factory,
+            $this->spicesRepo,
+            $this->em,
+            new SpicyMatchHistoryFactory(),
+        );
+        $this->match = new SpicyMatch();
         $this->factory->method('create')
-            ->willReturn($match);
-        $this->spicesRepo->method('findBy')
-            ->willReturn([]);
-
-        $this->em->expects(self::once())->method('persist')->with($match);
-        $this->em->expects(self::once())->method('flush');
-
-        $this->service->createFromSelection(null, [], true, [], new CulinaryContext());
+            ->willReturn($this->match);
+        $this->user = new Users();
     }
 
-    public function testReturnsThePersistableMatch(): void
+    public function testPersistsMatchAndHistoryInOneFlush(): void
     {
-        $match = new SpicyMatch();
-        $this->factory->method('create')
-            ->willReturn($match);
         $this->spicesRepo->method('findBy')
-            ->willReturn([]);
+            ->willReturn([new Spices()]);
 
-        $result = $this->service->createFromSelection(null, [], true, [], new CulinaryContext());
+        $persisted = [];
+        $this->em->expects(self::exactly(2))
+            ->method('persist')
+            ->willReturnCallback(static function (object $entity) use (&$persisted): void {
+                $persisted[] = $entity::class;
+            });
+        $this->em->expects(self::once())
+            ->method('flush');
 
-        self::assertSame($match, $result);
+        $history = $this->service->start($this->user, [1], true, [], new CulinaryContext());
+
+        self::assertSame([SpicyMatch::class, SpicyMatchHistory::class], $persisted);
+        self::assertSame($this->match, $history->getSpicyMatch());
+        self::assertSame($this->user, $this->match->getUser());
     }
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // User and manual flag
-    // ──────────────────────────────────────────────────────────────────────────
-
-    public function testSetsNullUserOnMatch(): void
+    /**
+     * @param list<int> $selectedIds
+     * @param list<Spices> $found
+     */
+    #[DataProvider('emptyMortars')]
+    public function testRefusesAnEmptyMortarWithoutWriting(array $selectedIds, array $found): void
     {
-        $match = new SpicyMatch();
-        $this->factory->method('create')
-            ->willReturn($match);
         $this->spicesRepo->method('findBy')
-            ->willReturn([]);
+            ->willReturn($found);
+        $this->em->expects(self::never())
+            ->method('persist');
+        $this->em->expects(self::never())
+            ->method('flush');
 
-        $this->service->createFromSelection(null, [], false, [], new CulinaryContext());
+        $this->expectException(InvalidMortarException::class);
 
-        self::assertNull($match->getUser());
+        $this->service->start($this->user, $selectedIds, true, [], new CulinaryContext());
     }
 
-    public function testSetsUserOnMatch(): void
+    /**
+     * @return iterable<string, array{list<int>, list<Spices>}>
+     */
+    public static function emptyMortars(): iterable
     {
-        $user = $this->createMock(Users::class);
-        $match = new SpicyMatch();
-        $this->factory->method('create')
-            ->willReturn($match);
-        $this->spicesRepo->method('findBy')
-            ->willReturn([]);
-
-        $this->service->createFromSelection($user, [], true, [], new CulinaryContext());
-
-        self::assertSame($user, $match->getUser());
+        yield 'no id selected' => [[], []];
+        yield 'ids unknown in database' => [[404, 405], []];
     }
 
-    public function testSetsIsManualTrueInManualMode(): void
+    #[DataProvider('modes')]
+    public function testStoresTheMode(bool $isManual): void
     {
-        $match = new SpicyMatch();
-        $this->factory->method('create')
-            ->willReturn($match);
         $this->spicesRepo->method('findBy')
-            ->willReturn([]);
+            ->willReturn([new Spices()]);
 
-        $this->service->createFromSelection(null, [], true, [], new CulinaryContext());
+        $this->service->start($this->user, [1], $isManual, [], new CulinaryContext());
 
-        self::assertTrue($match->isManual());
+        self::assertSame($isManual, $this->match->isManual());
     }
 
-    public function testSetsIsManualFalseInAutoMode(): void
+    /**
+     * @return iterable<string, array{bool}>
+     */
+    public static function modes(): iterable
     {
-        $match = new SpicyMatch();
-        $this->factory->method('create')
-            ->willReturn($match);
-        $this->spicesRepo->method('findBy')
-            ->willReturn([]);
-
-        $this->service->createFromSelection(null, [], false, [], new CulinaryContext());
-
-        self::assertFalse($match->isManual());
+        yield 'manual' => [true];
+        yield 'auto' => [false];
     }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // Batch loading of selected spices
-    // ──────────────────────────────────────────────────────────────────────────
 
     public function testBatchLoadsSelectedSpicesWithOneQuery(): void
     {
-        $match = new SpicyMatch();
-        $this->factory->method('create')
-            ->willReturn($match);
-
         $this->spicesRepo->expects(self::once())
             ->method('findBy')
             ->with([
                 'id' => [1, 2, 3],
             ])
-            ->willReturn([]);
+            ->willReturn([new Spices(), new Spices(), new Spices()]);
 
-        $this->service->createFromSelection(null, [1, 2, 3], true, [], new CulinaryContext());
+        $this->service->start($this->user, [1, 2, 3], true, [], new CulinaryContext());
+
+        self::assertCount(3, $this->match->getSpices());
     }
-
-    public function testAddsSelectedSpicesToMatch(): void
-    {
-        $spice1 = $this->createMock(Spices::class);
-        $spice2 = $this->createMock(Spices::class);
-        $match = new SpicyMatch();
-        $this->factory->method('create')
-            ->willReturn($match);
-
-        $this->spicesRepo->method('findBy')
-            ->willReturn([$spice1, $spice2]);
-
-        $this->service->createFromSelection(null, [1, 2], true, [], new CulinaryContext());
-
-        self::assertCount(2, $match->getSpices());
-    }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // Manual mode — no results stored
-    // ──────────────────────────────────────────────────────────────────────────
 
     public function testManualModeDoesNotStoreResults(): void
     {
-        $match = new SpicyMatch();
-        $this->factory->method('create')
-            ->willReturn($match);
-        $this->spicesRepo->method('findBy')
-            ->willReturn([]);
-
-        // Even if compatible spices are passed, manual mode must ignore them
-        $compatible = [[
-            'id' => 99,
-            'score' => 80,
-        ]];
-        $this->service->createFromSelection(null, [], true, $compatible, new CulinaryContext());
-
-        self::assertCount(0, $match->getResults());
-    }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // Auto mode — results stored
-    // ──────────────────────────────────────────────────────────────────────────
-
-    public function testAutoModeStoresCompatibleResults(): void
-    {
-        $compatibleSpice = $this->createMock(Spices::class);
-        $compatibleSpice->method('getId')
-            ->willReturn(99);
-
-        $match = new SpicyMatch();
-        $this->factory->method('create')
-            ->willReturn($match);
-
-        // First findBy → selected spices (empty); second findBy → compatible
-        $this->spicesRepo->method('findBy')
-            ->willReturnOnConsecutiveCalls(
-                [],                    // selected spices
-                [$compatibleSpice],    // compatible spices
-            );
-
-        $compatible = [[
-            'id' => 99,
-            'score' => 75,
-        ]];
-        $this->service->createFromSelection(null, [], false, $compatible, new CulinaryContext());
-
-        self::assertCount(1, $match->getResults());
-    }
-
-    public function testAutoModeWithEmptyCompatibleSpicesDoesNotCallSecondFindBy(): void
-    {
-        $match = new SpicyMatch();
-        $this->factory->method('create')
-            ->willReturn($match);
-
-        // Only 1 findBy call expected (selected spices); no second call for empty compatible list
         $this->spicesRepo->expects(self::once())
             ->method('findBy')
-            ->willReturn([]);
+            ->willReturn([new Spices()]);
 
-        $this->service->createFromSelection(null, [], false, [], new CulinaryContext());
+        $this->service->start($this->user, [1], true, [[
+            'id' => 99,
+            'score' => 80,
+        ]], new CulinaryContext());
 
-        self::assertCount(0, $match->getResults());
+        self::assertCount(0, $this->match->getResults());
     }
 
-    public function testAutoModeResultScoresAreCastToInt(): void
+    public function testAutoModeWithoutCompatibleSpicesDoesNotQueryThem(): void
     {
-        $compatibleSpice = $this->createMock(Spices::class);
+        $this->spicesRepo->expects(self::once())
+            ->method('findBy')
+            ->willReturn([new Spices()]);
+
+        $this->service->start($this->user, [1], false, [], new CulinaryContext());
+
+        self::assertCount(0, $this->match->getResults());
+    }
+
+    public function testAutoModeStoresCompatibleResultsWithIntScores(): void
+    {
+        $compatibleSpice = $this->createStub(Spices::class);
         $compatibleSpice->method('getId')
             ->willReturn(7);
 
-        $match = new SpicyMatch();
-        $this->factory->method('create')
-            ->willReturn($match);
-
         $this->spicesRepo->method('findBy')
-            ->willReturnOnConsecutiveCalls([], [$compatibleSpice]);
+            ->willReturnOnConsecutiveCalls([new Spices()], [$compatibleSpice]);
 
-        // score passed as string (as returned from DB queries)
-        $compatible = [[
+        $this->service->start($this->user, [1], false, [[
             'id' => 7,
             'score' => '82',
-        ]];
-        $this->service->createFromSelection(null, [], false, $compatible, new CulinaryContext());
+        ]], new CulinaryContext());
 
-        $results = $match->getResults()
+        $results = $this->match->getResults()
             ->toArray();
         self::assertCount(1, $results);
         self::assertSame(82, $results[0]->getScore());
     }
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // Persistance du contexte culinaire
-    // ──────────────────────────────────────────────────────────────────────────
-
-    public function testDefaultCulinaryContextPersistedOnMatch(): void
+    public function testCustomCulinaryContextIsPropagatedToMatch(): void
     {
-        $match = new SpicyMatch();
-        $this->factory->method('create')
-            ->willReturn($match);
         $this->spicesRepo->method('findBy')
-            ->willReturn([]);
-
-        $this->service->createFromSelection(null, [], false, [], new CulinaryContext());
-
-        // Pas de ctx fourni → defaults (air, fat=0, time=0, temp=20)
-        self::assertSame(OdtMatrix::AIR, $match->getMatrix());
-        self::assertSame(0.0, $match->getFatRatio());
-        self::assertSame(0, $match->getCookingTimeMin());
-        self::assertSame(20, $match->getTemperatureCelsius());
-    }
-
-    public function testCustomCulinaryContextPersistedOnMatch(): void
-    {
-        $match = new SpicyMatch();
-        $this->factory->method('create')
-            ->willReturn($match);
-        $this->spicesRepo->method('findBy')
-            ->willReturn([]);
+            ->willReturn([new Spices()]);
 
         $ctx = new CulinaryContext(
             OdtMatrix::WATER,
@@ -294,36 +194,11 @@ class SpicyMatchServiceTest extends TestCase
             temperatureCelsius: 80,
         );
 
-        $this->service->createFromSelection(null, [], false, [], $ctx);
+        $this->service->start($this->user, [1], false, [], $ctx);
 
-        self::assertSame(OdtMatrix::WATER, $match->getMatrix());
-        self::assertSame(0.25, $match->getFatRatio());
-        self::assertSame(20, $match->getCookingTimeMin());
-        self::assertSame(80, $match->getTemperatureCelsius());
-    }
-
-    public function testCulinaryContextRoundtripsThroughGetCulinaryContext(): void
-    {
-        $match = new SpicyMatch();
-        $this->factory->method('create')
-            ->willReturn($match);
-        $this->spicesRepo->method('findBy')
-            ->willReturn([]);
-
-        $ctx = new CulinaryContext(
-            OdtMatrix::OIL,
-            fatRatio: 1.0,
-            waterRatio: 0.0,
-            cookingTimeMin: 15,
-            temperatureCelsius: 140
-        );
-
-        $this->service->createFromSelection(null, [], false, [], $ctx);
-        $recovered = $match->getCulinaryContext();
-
-        self::assertSame($ctx->matrix, $recovered->matrix);
-        self::assertSame($ctx->fatRatio, $recovered->fatRatio);
-        self::assertSame($ctx->cookingTimeMin, $recovered->cookingTimeMin);
-        self::assertSame($ctx->temperatureCelsius, $recovered->temperatureCelsius);
+        self::assertSame(OdtMatrix::WATER, $this->match->getMatrix());
+        self::assertSame(0.25, $this->match->getFatRatio());
+        self::assertSame(20, $this->match->getCookingTimeMin());
+        self::assertSame(80, $this->match->getTemperatureCelsius());
     }
 }

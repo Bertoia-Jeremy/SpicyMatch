@@ -7,7 +7,7 @@ use App\Repository\PreparationMethodsRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/{_locale}/preparation/methods', defaults: [
     '_locale' => 'fr',
@@ -29,7 +29,7 @@ class PreparationMethodsController extends AbstractController
     {
         $locale = $request->getLocale();
         $preparationMethod = $repository->findOneByLocalizedSlug($slug, $locale);
-        if (null === $preparationMethod) {
+        if ($preparationMethod === null) {
             throw $this->createNotFoundException();
         }
 
@@ -42,10 +42,7 @@ class PreparationMethodsController extends AbstractController
             return $redirect;
         }
 
-        // Seed the server-side timestamp for the "temps_de_l_infusion" easter egg
-        // (stay ≥ 260s on the infusion page). Client cannot forge this value —
-        // the EasterEggService reads it from session on validation.
-        if ('infusion' === mb_strtolower((string) $preparationMethod->getName())) {
+        if (mb_strtolower((string) $preparationMethod->getName()) === 'infusion') {
             $session = $request->getSession();
             if (! \is_int($session->get('easter_egg.infusion_started_at'))) {
                 $session->set('easter_egg.infusion_started_at', time());

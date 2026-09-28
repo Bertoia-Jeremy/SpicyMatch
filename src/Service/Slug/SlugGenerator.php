@@ -7,9 +7,9 @@ namespace App\Service\Slug;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
-final class SlugGenerator
+final readonly class SlugGenerator
 {
-    private readonly SluggerInterface $slugger;
+    private SluggerInterface $slugger;
 
     public function __construct()
     {
@@ -22,7 +22,7 @@ final class SlugGenerator
             ->lower()
             ->toString();
 
-        return '' === $slug ? 'n' : $slug;
+        return $slug === '' ? 'n' : $slug;
     }
 
     /**
@@ -35,7 +35,7 @@ final class SlugGenerator
         $suffix = 2;
 
         while ($exists($slug)) {
-            $slug = $base.'-'.$suffix;
+            $slug = $base . '-' . $suffix;
             ++$suffix;
         }
 

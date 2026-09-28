@@ -1,14 +1,3 @@
-/* Alpine.data() registry — all components used across the SpicyMatch UI.
- *
- * Required for CSP Phase 2 (ADR-007): with the `@alpinejs/csp` build:
- *   - x-data MUST reference a registered Alpine.data() name (no inline literals)
- *   - Directive expressions allow ONLY: identifiers, member access, method calls
- *     (with literal args). NO ternary, NO arrow functions, NO `document.*`,
- *     NO `$watch` callbacks inline.
- *
- * Therefore every conditional class / text uses a helper METHOD on the
- * component, e.g. `:class="chevronClass()"` instead of `:class="open ? 'a' : 'b'"`.
- */
 
 import { t } from './i18n.js';
 
@@ -64,7 +53,6 @@ const loopTab = (e, root) => {
 };
 
 export default function registerAlpineComponents(Alpine) {
-    /* ─── Generic toggles / modals / accordions ──────────────────────── */
     Alpine.data('toggle', (initial = false) => ({
         open: initial,
         show: initial,
@@ -81,12 +69,12 @@ export default function registerAlpineComponents(Alpine) {
         cancel() { this.confirming = false; },
     }));
 
-    /* Navbar — overlay (desktop) + sheet (mobile). */
     Alpine.data('navMenu', () => ({
         open: false,
         mobileOpen: false,
         previouslyFocused: null,
         _keyHandler: null,
+        _gateHandler: null,
 
         init() {
             this.$watch('open', (v) => {
@@ -124,10 +112,13 @@ export default function registerAlpineComponents(Alpine) {
                 if (e.key === 'Tab' && (this.open || this.mobileOpen)) loopTab(e, this.$el);
             };
             window.addEventListener('keydown', this._keyHandler);
+            this._gateHandler = () => { this.open = false; this.mobileOpen = false; };
+            window.addEventListener('gate-login', this._gateHandler);
         },
 
         destroy() {
             window.removeEventListener('keydown', this._keyHandler);
+            window.removeEventListener('gate-login', this._gateHandler);
         },
 
         _restoreFocus() {
@@ -227,6 +218,13 @@ export default function registerAlpineComponents(Alpine) {
         init() {
             new MutationObserver(() => { this.pending = {}; })
                 .observe(this.$el, { attributes: true, attributeFilter: ['data-word-num'] });
+
+            window.addEventListener('keydown', (e) => {
+                const letter = e.key.toUpperCase();
+                if (!/^[A-Z]$/.test(letter)) return;
+                const btn = this.$el.querySelector(`button[data-letter="${letter}"]`);
+                if (btn && !btn.disabled) btn.click();
+            });
         },
 
         guess(letter) {
@@ -321,7 +319,6 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
-    /* ─── Layout / global ─────────────────────────────────────────────── */
     Alpine.data('scrollTop', () => ({
         visible: false,
         init() {
@@ -345,7 +342,6 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
-    /* ─── Spice catalog widgets ───────────────────────────────────────── */
     Alpine.data('spicesLimit', (total = 9999) => ({
         gridMode: false,
         limit: 8,
@@ -428,7 +424,6 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
-    /* ─── Education ───────────────────────────────────────────────────── */
     Alpine.data('difficultySelector', (initial = 'easy') => ({
         difficulty: initial,
         pick(diff) { this.difficulty = diff; },
@@ -472,7 +467,6 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
-    /* ─── Registration ────────────────────────────────────────────────── */
     Alpine.data('registrationTracker', () => ({
         selected: null,
         submitted: false,
@@ -481,7 +475,6 @@ export default function registerAlpineComponents(Alpine) {
         pick(value) { this.selected = value; },
     }));
 
-    /* ─── Recette finalisée (view_spicy_match_history) ───────────────── */
     Alpine.data('recetteView', (historyId, renameUrl, favUrl, csrfToken, initialTitle, isFavorite) => ({
         favorite: isFavorite,
         title: initialTitle,
@@ -511,7 +504,6 @@ export default function registerAlpineComponents(Alpine) {
 
     }));
 
-    /* ─── SpicyMatchHistory: rename + favorite ────────────────────────── */
     Alpine.data('historyItem', (id, renameUrl, toggleUrl, token, initialTitle = '', initialFavorite = false, fallbackTitle = '') => ({
         id,
         renameUrl,
@@ -590,27 +582,44 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
-    /* ─── Finalisation du mélange L'Étamine (spicy_match/view) ──────────── */
     Alpine.data('finalisationMelange', (spiceIdsCsv, historyUrl, csrf) => ({
         spiceIds: spiceIdsCsv ? spiceIdsCsv.split(',') : [],
         spiceNames: {},
+        duoMap: { byPrep: {}, byCook: {} },
         current: null,
         results: {},
         toast: { visible: false, text: '' },
         _toastT: null,
         _autoT: null,
-        _saveT: null,
-        _abort: null,
+        _saveTimers: {},
+        _failed: new Set(),
+        _pending: new Set(),
+        _chain: Promise.resolve(),
+        _onPageHide: null,
 
         init() {
+            this._onPageHide = () => this.flushOnUnload();
+            window.addEventListener('pagehide', this._onPageHide);
+            let selections = {};
+            try {
+                selections = JSON.parse(this.$el.dataset.selections || '{}');
+            } catch (e) { console.error('selections parse error', e); }
             this.spiceIds.forEach((id, i) => {
                 this.spiceNames[id] = this.$el.dataset['spiceName' + i] || id;
-                this.results[id] ??= { cooking: null, preparation: null };
+                const saved = selections[id] || {};
+                this.results[id] = { cooking: saved.cooking ?? null, preparation: saved.preparation ?? null };
             });
-            this.current = this.spiceIds[0] ?? null;
+            this.current = this.spiceIds.find(id => !this.done(id)) ?? this.spiceIds[0] ?? null;
+            try {
+                const parsed = JSON.parse(this.$el.dataset.duoMap || '{}');
+                this.duoMap = { byPrep: parsed.byPrep || {}, byCook: parsed.byCook || {} };
+            } catch (e) { console.error('duoMap parse error', e); }
+        },
+        destroy() {
+            window.removeEventListener('pagehide', this._onPageHide);
+            this.flushOnUnload();
         },
 
-        /* ——— Computed ——— */
         get allSealed() {
             return this.spiceIds.every(id => this.results[id] && this.results[id].cooking && this.results[id].preparation);
         },
@@ -622,7 +631,6 @@ export default function registerAlpineComponents(Alpine) {
             return t('melange.sealed_count', `${done} / ${total}`).replace('%done%', done).replace('%total%', total);
         },
 
-        /* ——— UI helpers (méthodes pour compatibilité CSP Alpine) ——— */
         isCurrentSpice(spiceId) {
             return this.current === spiceId;
         },
@@ -654,33 +662,70 @@ export default function registerAlpineComponents(Alpine) {
             const r = this.results[spiceId] || {};
             return !!(r.cooking && r.preparation);
         },
+        duoPartners(spiceId, kind) {
+            const r = this.results[spiceId];
+            if (!r) return null;
+            const map = kind === 'cooking' ? this.duoMap.byPrep : this.duoMap.byCook;
+            const counterpart = kind === 'cooking' ? r.preparation : r.cooking;
+            const list = counterpart ? map[counterpart] : null;
+            return list && list.length ? list : null;
+        },
+        duoState(spiceId, kind, tipId) {
+            const partners = this.duoPartners(spiceId, kind);
+            if (!partners) return '';
+            const key = kind === 'cooking' ? 'c' : 'p';
+            const hit = partners.find(d => d[key] === tipId);
+            if (!hit) return 'muted';
+            return hit.r === 1 ? 'recommended' : 'possible';
+        },
+        duoTipActive(spiceId, kind, prepId, cookId) {
+            const r = this.results[spiceId];
+            if (!r) return false;
+            return kind === 'cooking' ? r.preparation === prepId : r.cooking === cookId;
+        },
+        describedBy(spiceId, kind, tipId) {
+            const r = this.results[spiceId];
+            if (!r) return false;
+            if (kind === 'cooking') {
+                const list = r.preparation ? this.duoMap.byCook[tipId] : null;
+                return list && list.some(d => d.p === r.preparation) ? `duo-c-${r.preparation}-${tipId}` : false;
+            }
+            const list = r.cooking ? this.duoMap.byPrep[tipId] : null;
+            return list && list.some(d => d.c === r.cooking) ? `duo-p-${tipId}-${r.cooking}` : false;
+        },
         timingTileClass(spiceId, tipId) {
             const r = this.results[spiceId];
-            return r && r.cooking === tipId ? 'selected' : '';
+            if (r && r.cooking === tipId) return 'selected';
+            return this.duoState(spiceId, 'cooking', tipId);
         },
         methodTileClass(spiceId, tipId) {
             const r = this.results[spiceId];
-            return r && r.preparation === tipId ? 'selected' : '';
+            if (r && r.preparation === tipId) return 'selected';
+            return this.duoState(spiceId, 'preparation', tipId);
         },
 
-        /* ——— Actions ——— */
         toggleCooking(spiceId, tipId) {
             const r = this.results[spiceId];
             r.cooking = (r.cooking === tipId) ? null : tipId;
-            this.persist({ spiceId, cookingId: tipId });
+            this.persist(spiceId, 'cooking');
             this.maybeAdvance(spiceId);
         },
         togglePreparation(spiceId, tipId) {
             const r = this.results[spiceId];
             r.preparation = (r.preparation === tipId) ? null : tipId;
-            this.persist({ spiceId, preparationId: tipId });
+            this.persist(spiceId, 'preparation');
             this.maybeAdvance(spiceId);
         },
-        goToHistory(url) {
-            if (this.allSealed) window.location.href = url;
+        async goToHistory(url) {
+            if (!this.allSealed) return;
+            await this.flushSaves();
+            if (this._failed.size > 0) {
+                this.showToast(t('melange.save_error'), 3000);
+                return;
+            }
+            window.location.href = url;
         },
 
-        /* ——— Auto-avance + toast ——— */
         maybeAdvance(spiceId) {
             clearTimeout(this._autoT);
             const r = this.results[spiceId];
@@ -703,38 +748,77 @@ export default function registerAlpineComponents(Alpine) {
                 if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 24, behavior: 'smooth' });
             }, 250);
         },
-        showToast(text) {
+        showToast(text, duration = 1500) {
             this.toast.text = text;
             this.toast.visible = true;
             clearTimeout(this._toastT);
-            this._toastT = setTimeout(() => { this.toast.visible = false; }, 1500);
+            this._toastT = setTimeout(() => { this.toast.visible = false; }, duration);
         },
 
-        /* ——— Persistance (fetch vers edit_spicy_match_history) ——— */
-        persist(params) {
-            clearTimeout(this._saveT);
-            this._saveT = setTimeout(async () => {
-                if (this._abort) this._abort.abort();
-                this._abort = new AbortController();
-                try {
-                    await fetch(historyUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-Token': csrf,
-                        },
-                        body: new URLSearchParams(params),
-                        signal: this._abort.signal,
-                    });
-                } catch (e) {
-                    if (e.name !== 'AbortError') console.error('Persist error', e);
-                }
+        persist(spiceId, kind) {
+            const key = spiceId + ':' + kind;
+            clearTimeout(this._saveTimers[key]);
+            this._saveTimers[key] = setTimeout(() => {
+                delete this._saveTimers[key];
+                this.send(spiceId, kind);
             }, 150);
+        },
+        request(spiceId, kind, keepalive = false) {
+            const tipId = this.results[spiceId]?.[kind] ?? 0;
+            return fetch(historyUrl, {
+                method: 'POST',
+                keepalive,
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': csrf,
+                },
+                body: new URLSearchParams({ spiceId, kind, tipId }),
+            });
+        },
+        send(spiceId, kind) {
+            const key = spiceId + ':' + kind;
+            if (this._pending.has(key)) return this._chain;
+            this._pending.add(key);
+            this._chain = this._chain.then(async () => {
+                if (!this._pending.delete(key)) return;
+                try {
+                    const response = await this.request(spiceId, kind);
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    this._failed.delete(key);
+                } catch (e) {
+                    console.error('Persist error', e);
+                    this._failed.add(key);
+                    this.showToast(t('melange.save_error'), 3000);
+                }
+            });
+            return this._chain;
+        },
+        flushSaves() {
+            Object.keys(this._saveTimers).forEach(key => {
+                clearTimeout(this._saveTimers[key]);
+                delete this._saveTimers[key];
+                this._failed.add(key);
+            });
+            [...this._failed].forEach(key => {
+                const [spiceId, kind] = key.split(':');
+                this.send(spiceId, kind);
+            });
+            return this._chain;
+        },
+        flushOnUnload() {
+            const keys = new Set([...Object.keys(this._saveTimers), ...this._failed, ...this._pending]);
+            this._pending.clear();
+            keys.forEach(key => {
+                clearTimeout(this._saveTimers[key]);
+                delete this._saveTimers[key];
+                const [spiceId, kind] = key.split(':');
+                this.request(spiceId, kind, true).catch(() => {});
+            });
+            this._failed.clear();
         },
     }));
 
-    /* ─── Cooking finalization legacy (spicy_match/view) ─────────────────── */
     Alpine.data('cookingChecklist', (spiceIdsCsv = '') => ({
         spiceStatus: {},
         nextOpenId: null,
@@ -824,7 +908,6 @@ export default function registerAlpineComponents(Alpine) {
         chevronClass() { return this.open ? '' : '-rotate-180'; },
     }));
 
-    /* ─── RGPD / onboarding (inline scripts extracted) ────────────────── */
     Alpine.data('cookieConsent', () => ({
         visible: false,
         analytics: false,
@@ -912,6 +995,65 @@ export default function registerAlpineComponents(Alpine) {
             saveOnboardingState(this.$root, null).finally(() => {
                 window.location.href = this.$el.dataset.homeUrl;
             });
+        },
+    }));
+
+    Alpine.data('gateTrigger', (url = '', tab = 'login') => ({
+        url,
+        tab,
+        trigger(event) {
+            if (!document.querySelector('[x-data="gateLoginModal"]')) return;
+            event.preventDefault();
+            const target = this.url || (window.location.pathname + window.location.search);
+            window.dispatchEvent(new CustomEvent('gate-login', { detail: { url: target, tab: this.tab } }));
+        },
+    }));
+
+    Alpine.data('gateLoginModal', () => ({
+        open: false,
+        activeTab: 'login',
+        targetUrl: '',
+        previouslyFocused: null,
+
+        init() {
+            document.addEventListener('turbo:before-visit', () => { this.open = false; });
+        },
+
+        onGate(evt) {
+            this.activeTab = evt.detail.tab || 'login';
+            this.targetUrl = evt.detail.url;
+            this.previouslyFocused = document.activeElement;
+            this.open = true;
+            this.$nextTick(() => focusFirst(this.$el));
+        },
+
+        close() {
+            if (!this.open) return;
+            this.open = false;
+            if (this.previouslyFocused) this.previouslyFocused.focus();
+            this.previouslyFocused = null;
+            this.targetUrl = '';
+        },
+
+        handleTab(e) {
+            if (!this.open) return;
+            loopTab(e, this.$el);
+        },
+
+        showLogin() {
+            this.activeTab = 'login';
+        },
+
+        showRegister() {
+            this.activeTab = 'register';
+        },
+
+        isLoginTab() {
+            return 'login' === this.activeTab;
+        },
+
+        isRegisterTab() {
+            return 'register' === this.activeTab;
         },
     }));
 
@@ -1075,7 +1217,6 @@ export default function registerAlpineComponents(Alpine) {
             const tooltipW = Math.min(320, vw - margin * 2);
             const tooltipH = 200;
 
-            // Auto-fallback: si position 'left'/'right' ne tient pas, force vertical
             let resolved = position || 'bottom';
             if (resolved === 'left' && rect.left < tooltipW + margin) {
                 resolved = (rect.bottom + tooltipH + margin < vh) ? 'bottom' : 'top';
@@ -1083,7 +1224,6 @@ export default function registerAlpineComponents(Alpine) {
             if (resolved === 'right' && vw - rect.right < tooltipW + margin) {
                 resolved = (rect.bottom + tooltipH + margin < vh) ? 'bottom' : 'top';
             }
-            // Auto-fallback vertical: si pas de place en bas, passe en haut (et vice-versa)
             if (resolved === 'bottom' && rect.bottom + tooltipH + margin > vh && rect.top > tooltipH + margin) {
                 resolved = 'top';
             }
@@ -1207,10 +1347,6 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
-    /* ─── Homepage — Toile des Arômes (système solaire moléculaire) ────
-       Les données (noms/badges/descriptions traduits + géométrie) sont
-       fournies par le template via data-molecules (JSON), pour garder ce
-       fichier JS sans contenu localisé (i18n). */
     Alpine.data('toile', () => ({
         activeId: 'm1',
         molecules: [],
@@ -1231,5 +1367,47 @@ export default function registerAlpineComponents(Alpine) {
         setActive(id) { this.activeId = id; },
         isActive(id) { return this.activeId === id; },
         cardStyle() { return `border-color: ${this.active.accent || 'transparent'}`; },
+    }));
+
+    Alpine.data('errorCountdown', (seconds = 10, url = '/') => ({
+        remaining: Number(seconds),
+        paused: false,
+        _timer: null,
+        _pauseHandler: null,
+        _resumeHandler: null,
+
+        init() {
+            this._pauseHandler = () => { this.paused = true; };
+            this._resumeHandler = () => { this.paused = false; };
+            this.$el.addEventListener('mouseenter', this._pauseHandler);
+            this.$el.addEventListener('focusin', this._pauseHandler);
+            this.$el.addEventListener('mouseleave', this._resumeHandler);
+            this.$el.addEventListener('focusout', this._resumeHandler);
+            this._timer = setInterval(() => this.tick(), 1000);
+        },
+
+        destroy() {
+            this._stop();
+            this.$el.removeEventListener('mouseenter', this._pauseHandler);
+            this.$el.removeEventListener('focusin', this._pauseHandler);
+            this.$el.removeEventListener('mouseleave', this._resumeHandler);
+            this.$el.removeEventListener('focusout', this._resumeHandler);
+        },
+
+        tick() {
+            if (this.paused) return;
+            this.remaining -= 1;
+            if (this.remaining <= 0) {
+                this.remaining = 0;
+                this._stop();
+                window.location.assign(url);
+            }
+        },
+
+        _stop() {
+            if (this._timer === null) return;
+            clearInterval(this._timer);
+            this._timer = null;
+        },
     }));
 }

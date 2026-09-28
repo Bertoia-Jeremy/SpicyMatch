@@ -9,10 +9,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * XP and level tracking per user.
- * Level formula: level = floor((xp / 100)^(1/1.3)), no cap.
- */
 #[ORM\Entity(repositoryClass: UserProgressionRepository::class)]
 class UserProgression
 {
@@ -75,7 +71,7 @@ class UserProgression
     /**
      * @var Collection<int, UserAchievement>
      */
-    #[ORM\OneToMany(mappedBy: 'userProgression', targetEntity: UserAchievement::class, cascade: [
+    #[ORM\OneToMany(targetEntity: UserAchievement::class, mappedBy: 'userProgression', cascade: [
         'persist',
         'remove',
     ], orphanRemoval: true)]
@@ -116,6 +112,14 @@ class UserProgression
         return $this->xp;
     }
 
+    public function setXp(int $xp): static
+    {
+        $this->xp = max(0, $xp);
+        $this->updatedAt = new \DateTimeImmutable();
+
+        return $this;
+    }
+
     public function addXp(int $amount): static
     {
         $this->xp += max(0, $amount);
@@ -124,45 +128,31 @@ class UserProgression
         return $this;
     }
 
-    /**
-     * Level calculation using PHP 8.4 Property Hooks.
-     * Formula: XP = 100 * level^1.3
-     * Inverse: Level = (XP / 100)^(1/1.3)
-     * No cap — levels scale infinitely (level 100 ≈ 100k XP).
-     */
     public int $level {
         get {
-            if (0 === $this->xp) {
+            if ($this->xp === 0) {
                 return 1;
             }
-            // level = (xp / 100) ^ (1 / 1.3)
-            $calculated = (int) floor(pow($this->xp / 100, 1 / 1.3));
+            $calculated = (int) floor(($this->xp / 100) ** (1 / 1.3));
 
             return max(1, $calculated);
         }
     }
 
-    /**
-     * XP needed to reach next level.
-     */
     public int $xpToNextLevel {
         get {
             $nextLevel = $this->level + 1;
-            // XP required for next level = 100 * nextLevel^1.3
-            $requiredXp = (int) ceil(100 * pow($nextLevel, 1.3));
+            $requiredXp = (int) ceil(100 * $nextLevel ** 1.3);
 
             return max(0, $requiredXp - $this->xp);
         }
     }
 
-    /**
-     * Progress percentage within current level (0.0–100.0).
-     */
     public float $progressPercent {
         get {
             $currentLevel = $this->level;
-            $xpForCurrent = $currentLevel <= 1 ? 0 : (int) ceil(100 * pow($currentLevel, 1.3));
-            $xpForNext = (int) ceil(100 * pow($currentLevel + 1, 1.3));
+            $xpForCurrent = $currentLevel <= 1 ? 0 : (int) ceil(100 * $currentLevel ** 1.3);
+            $xpForNext = (int) ceil(100 * ($currentLevel + 1) ** 1.3);
             $range = $xpForNext - $xpForCurrent;
 
             if ($range <= 0) {
@@ -254,7 +244,7 @@ class UserProgression
     public function hasAchievement(Achievement $achievement): bool
     {
         return $this->userAchievements->exists(
-            fn (int $_, UserAchievement $ua) => $ua->getAchievement() === $achievement
+            fn (int $_, UserAchievement $ua): bool => $ua->getAchievement() === $achievement
         );
     }
 
@@ -299,25 +289,20 @@ class UserProgression
         return $this->longestReadingStreak;
     }
 
-    /**
-     * Call once per day when a new spice view is recorded.
-     * Increments the streak if last read was yesterday, resets to 1 otherwise.
-     */
     public function recordReadingStreak(): static
     {
         $today = new \DateTimeImmutable('today');
 
-        if (null === $this->lastReadDate) {
+        if (! $this->lastReadDate instanceof \DateTimeImmutable) {
             $this->currentReadingStreak = 1;
         } else {
             $diff = (int) $today->diff($this->lastReadDate)
                 ->days;
-            if (1 === $diff) {
+            if ($diff === 1) {
                 ++$this->currentReadingStreak;
             } elseif ($diff > 1) {
                 $this->currentReadingStreak = 1;
             }
-            // diff === 0 : already recorded today, no change
         }
 
         if ($this->currentReadingStreak > $this->longestReadingStreak) {
@@ -359,7 +344,7 @@ class UserProgression
 
     public function equipBadge(?UserAchievement $ua): static
     {
-        if (null !== $ua && $ua->getUserProgression() !== $this) {
+        if ($ua instanceof UserAchievement && $ua->getUserProgression() !== $this) {
             throw new \InvalidArgumentException('Badge does not belong to this user.');
         }
         $this->equippedBadge = $ua;

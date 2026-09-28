@@ -10,6 +10,7 @@ use App\Repository\GameSessionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use SortDirection;
 
 #[ORM\Entity(repositoryClass: GameSessionRepository::class)]
 #[ORM\Index(name: 'idx_gs_user_mode_started', columns: ['user_id', 'game_mode', 'started_at'])]
@@ -55,20 +56,8 @@ class GameSession
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $finishedAt = null;
 
-    /**
-     * Server-side timeout for time-limited games (e.g. Hangman in Chef de Partie mode).
-     * Validated on every LiveAction to prevent client-side timer tampering.
-     */
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $expiresAt = null;
-
-    /**
-     * Spice cible présentée dans le briefing pour les modes qui en ont une
-     * (Survival, GuessWho, Hangman, Chrono). Null pour QCM/Intrus.
-     */
-    #[ORM\ManyToOne(targetEntity: Spices::class)]
-    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    private ?Spices $targetSpice = null;
 
     /**
      * @var Collection<int, GameQuestion>
@@ -78,7 +67,7 @@ class GameSession
         'remove',
     ], orphanRemoval: true)]
     #[ORM\OrderBy([
-        'questionIndex' => 'ASC',
+        'questionIndex' => SortDirection::Ascending,
     ])]
     private Collection $questions;
 
@@ -88,12 +77,9 @@ class GameSession
         $this->startedAt = new \DateTimeImmutable();
     }
 
-    /**
-     * Accuracy percentage (0.0–100.0).
-     */
     public float $accuracy {
         get {
-            if (0 === $this->totalQuestions) {
+            if ($this->totalQuestions === 0) {
                 return 0.0;
             }
 
@@ -101,11 +87,8 @@ class GameSession
         }
     }
 
-    /**
-     * Whether the session has been finished.
-     */
     public bool $isFinished {
-        get => null !== $this->finishedAt;
+        get => $this->finishedAt !== null;
     }
 
     public function getId(): ?int
@@ -263,18 +246,6 @@ class GameSession
 
     public function isExpired(): bool
     {
-        return null !== $this->expiresAt && new \DateTimeImmutable() > $this->expiresAt;
-    }
-
-    public function getTargetSpice(): ?Spices
-    {
-        return $this->targetSpice;
-    }
-
-    public function setTargetSpice(?Spices $targetSpice): static
-    {
-        $this->targetSpice = $targetSpice;
-
-        return $this;
+        return $this->expiresAt !== null && new \DateTimeImmutable() > $this->expiresAt;
     }
 }

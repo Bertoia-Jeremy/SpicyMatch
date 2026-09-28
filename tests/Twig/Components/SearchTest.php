@@ -1,62 +1,53 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Twig\Components;
 
 use App\Repository\SpicesRepository;
 use App\Twig\Components\Search;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\UX\LiveComponent\Test\InteractsWithLiveComponents;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
 
-class SearchTest extends KernelTestCase
+final class SearchTest extends TestCase
 {
-    use InteractsWithLiveComponents;
-
-    public function testSearchFunctionality(): void
+    #[DataProvider('provideShortQueries')]
+    public function testShortQueryReturnsNoResultsWithoutSearching(string $query): void
     {
-        $mockSpicesRepository = $this->createMock(SpicesRepository::class);
+        $repository = $this->createMock(SpicesRepository::class);
+        $repository->expects(self::never())->method('search');
 
-        // Test case 1: Empty query
-        $mockSpicesRepository->expects($this->once())
-            ->method('search')
-            ->with('')
-            ->willReturn([]);
+        $component = new Search($repository);
+        $component->query = $query;
 
-        $component = $this->createLiveComponent(Search::class, [], [
-            SpicesRepository::class => $mockSpicesRepository,
-        ]);
+        self::assertSame([], $component->getResults());
+    }
 
-        $component->set('query', '');
-        $this->assertEmpty($component->get('results'));
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideShortQueries(): iterable
+    {
+        yield 'empty query' => [''];
+        yield 'single character' => ['a'];
+    }
 
-        // Test case 2: Short query (less than 2 characters)
-        $mockSpicesRepository->expects($this->once())
-            ->method('search')
-            ->with('a')
-            ->willReturn([]);
-
-        $component->set('query', 'a');
-        $this->assertEmpty($component->get('results'));
-
-        // Test case 3: Valid query with results
-        $expectedResults = [[
+    public function testQueryOfTwoCharactersOrMoreDelegatesToRepository(): void
+    {
+        $expected = [[
             'id' => 1,
-            'name' => 'Cinnamon',
+            'name' => 'Cannelle',
+            'type' => 'spice',
         ]];
-        $mockSpicesRepository->expects($this->once())
+        $repository = $this->createMock(SpicesRepository::class);
+        $repository->expects(self::once())
             ->method('search')
-            ->with('cinn')
-            ->willReturn($expectedResults);
+            ->with('cann')
+            ->willReturn($expected);
 
-        $component->set('query', 'cinn');
-        $this->assertEquals($expectedResults, $component->get('results'));
+        $component = new Search($repository);
+        $component->query = 'cann';
 
-        // Test case 4: Valid query with no results
-        $mockSpicesRepository->expects($this->once())
-            ->method('search')
-            ->with('xyz')
-            ->willReturn([]);
-
-        $component->set('query', 'xyz');
-        $this->assertEmpty($component->get('results'));
+        self::assertSame($expected, $component->getResults());
     }
 }

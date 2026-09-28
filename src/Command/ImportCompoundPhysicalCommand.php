@@ -17,25 +17,6 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Yaml\Yaml;
 
-/**
- * Ingère les propriétés physico-chimiques (logP, point d'ébullition, tension de vapeur)
- * depuis un fichier YAML versionné.
- *
- * Usage :
- *   bin/console app:import:physical
- *   bin/console app:import:physical --file=fixtures/compound_physical.yaml --dry-run
- *
- * Format YAML attendu :
- *   - compound_name: "Eugenol"
- *     log_p: 2.27
- *     boiling_point_celsius: 254
- *     vapor_pressure_pa: 0.030
- *     source: "PubChem CID 3314"
- *
- * Matching exact par nom. Idempotent : UPDATE si la ligne existe (OneToOne), INSERT sinon.
- *
- * Sécurité : fichier confiné dans fixtures/ (path traversal guard) et < 10 Mo.
- */
 #[AsCommand(
     name: 'app:import:physical',
     description: 'Ingère les propriétés physico-chimiques (logP, bp, vp) depuis un YAML'
@@ -44,13 +25,13 @@ final class ImportCompoundPhysicalCommand extends Command
 {
     private const string DEFAULT_FILE = 'fixtures/compound_physical.yaml';
 
-    private const int MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 Mo
+    private const int MAX_FILE_SIZE = 10 * 1024 * 1024;
 
     public function __construct(
         private readonly AromaticCompoundRepository $aromaticCompoundRepository,
         private readonly CompoundPhysicalRepository $compoundPhysicalRepository,
         private readonly EntityManagerInterface $em,
-        #[Autowire('%kernel.project_dir%')]
+        #[Autowire(param: 'kernel.project_dir')]
         private readonly string $projectDir,
     ) {
         parent::__construct();
@@ -72,7 +53,7 @@ final class ImportCompoundPhysicalCommand extends Command
         $dryRun = (bool) $input->getOption('dry-run');
 
         $resolvedPath = $this->guardPath($file, $io);
-        if (null === $resolvedPath) {
+        if ($resolvedPath === null) {
             return Command::FAILURE;
         }
 
@@ -99,7 +80,7 @@ final class ImportCompoundPhysicalCommand extends Command
             }
 
             $compoundName = isset($entry['compound_name']) ? (string) $entry['compound_name'] : null;
-            if (null === $compoundName) {
+            if ($compoundName === null) {
                 $io->warning('Entrée ignorée (compound_name manquant).');
                 ++$skipped;
                 continue;
@@ -109,7 +90,7 @@ final class ImportCompoundPhysicalCommand extends Command
                 'name' => $compoundName,
             ]);
 
-            if (null === $compound) {
+            if ($compound === null) {
                 $io->warning(\sprintf('Composé "%s" introuvable en BDD — ignoré.', $compoundName));
                 ++$skipped;
                 continue;
@@ -120,7 +101,7 @@ final class ImportCompoundPhysicalCommand extends Command
             $vaporPressure = $this->parseFloat($entry['vapor_pressure_pa'] ?? null);
             $source = isset($entry['source']) ? (string) $entry['source'] : null;
 
-            if (null === $logP && null === $boilingPoint && null === $vaporPressure) {
+            if ($logP === null && $boilingPoint === null && $vaporPressure === null) {
                 $io->warning(\sprintf('Aucune donnée exploitable pour "%s" — ignoré.', $compoundName));
                 ++$skipped;
                 continue;
@@ -130,7 +111,7 @@ final class ImportCompoundPhysicalCommand extends Command
                 'compound' => $compound,
             ]);
 
-            if (null !== $existing) {
+            if ($existing !== null) {
                 $existing->setLogP($logP);
                 $existing->setBoilingPointCelsius($boilingPoint);
                 $existing->setVaporPressurePa($vaporPressure);
@@ -185,22 +166,19 @@ final class ImportCompoundPhysicalCommand extends Command
         return Command::SUCCESS;
     }
 
-    /**
-     * Résolution + path traversal guard + taille max.
-     */
     private function guardPath(string $file, SymfonyStyle $io): ?string
     {
         $resolvedPath = realpath($file);
-        $allowedDir = realpath($this->projectDir.'/fixtures');
+        $allowedDir = realpath($this->projectDir . '/fixtures');
 
-        if (false === $resolvedPath || false === $allowedDir || ! str_starts_with($resolvedPath, $allowedDir.'/')) {
+        if ($resolvedPath === false || $allowedDir === false || ! str_starts_with($resolvedPath, $allowedDir . '/')) {
             $io->error(\sprintf('Le fichier "%s" doit se trouver dans fixtures/.', $file));
 
             return null;
         }
 
         $size = filesize($resolvedPath);
-        if (false === $size || $size > self::MAX_FILE_SIZE) {
+        if ($size === false || $size > self::MAX_FILE_SIZE) {
             $io->error('Fichier trop volumineux (max 10 Mo).');
 
             return null;
@@ -211,7 +189,7 @@ final class ImportCompoundPhysicalCommand extends Command
 
     private function parseFloat(mixed $raw): ?float
     {
-        if (null === $raw || '' === $raw) {
+        if ($raw === null || $raw === '') {
             return null;
         }
         if (! is_numeric($raw)) {
@@ -223,7 +201,7 @@ final class ImportCompoundPhysicalCommand extends Command
 
     private function parseInt(mixed $raw): ?int
     {
-        if (null === $raw || '' === $raw) {
+        if ($raw === null || $raw === '') {
             return null;
         }
         if (! is_numeric($raw)) {

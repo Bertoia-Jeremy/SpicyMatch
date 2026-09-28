@@ -7,19 +7,6 @@ namespace App\Tests\Support;
 use Doctrine\DBAL\Logging\DebugStack;
 use Doctrine\ORM\EntityManagerInterface;
 
-/**
- * Bound the number of SQL queries executed by a code block.
- *
- * Guards against N+1 regressions — the main failure mode we can't catch with
- * unit tests alone. Requires a KernelTestCase-style container.
- *
- * Usage:
- *   use QueryCountTrait;
- *
- *   $this->assertQueryCountUnder(5, function () {
- *       $this->handler->__invoke($event);
- *   });
- */
 trait QueryCountTrait
 {
     /**
@@ -52,8 +39,8 @@ trait QueryCountTrait
                 'Expected fewer than %d SQL queries, got %d. Executed queries:%s',
                 $maxQueries,
                 $count,
-                "\n".implode("\n", array_map(
-                    static fn (array $q) => '  - '.$q['sql'],
+                "\n" . implode("\n", array_map(
+                    static fn (array $q) => '  - ' . $q['sql'],
                     array_slice($logger->queries, 0, 20),
                 )),
             ),

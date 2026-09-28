@@ -20,6 +20,7 @@ use PHPUnit\Framework\TestCase;
 final class AllTerpenesVisitedEvaluatorTest extends TestCase
 {
     private AromaticGroupsRepository&MockObject $aromaticGroupsRepo;
+
     private AllTerpenesVisitedEvaluator $evaluator;
 
     protected function setUp(): void
@@ -118,7 +119,7 @@ final class AllTerpenesVisitedEvaluatorTest extends TestCase
 
     private function makeAchievement(): Achievement
     {
-        return (new Achievement())
+        return new Achievement()
             ->setSlug('test-all-terpenes')
             ->setName('Test')
             ->setDescription('d')

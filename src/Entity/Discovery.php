@@ -9,10 +9,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * Records the first user to discover a unique spice combination.
- * combinationHash = md5(implode(',', sorted spice IDs)) for fast uniqueness check.
- */
 #[ORM\Entity(repositoryClass: DiscoveryRepository::class)]
 #[ORM\UniqueConstraint(fields: ['combinationHash'])]
 class Discovery

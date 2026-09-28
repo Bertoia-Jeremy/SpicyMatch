@@ -19,8 +19,6 @@ final class OavTanimotoScorerTest extends TestCase
         $this->scorer = new OavTanimotoScorer();
     }
 
-    // ── Cas frontières ─────────────────────────────────────────────────────────────
-
     public function testScoreEmptyCandidateReturnsZero(): void
     {
         self::assertSame(0.0, $this->scorer->score([], [
@@ -42,7 +40,6 @@ final class OavTanimotoScorerTest extends TestCase
 
     public function testScoreDisjointSetsReturnsZero(): void
     {
-        // Aucun composé en commun → Tanimoto = 0
         $candidate = [
             1 => 10.0,
             2 => 5.0,
@@ -57,7 +54,6 @@ final class OavTanimotoScorerTest extends TestCase
 
     public function testScoreIdenticalProfileReturnsOne(): void
     {
-        // Profils identiques → Tanimoto = 1
         $profile = [
             1 => 10.0,
             2 => 5.0,
@@ -66,8 +62,6 @@ final class OavTanimotoScorerTest extends TestCase
 
         self::assertEqualsWithDelta(1.0, $this->scorer->score($profile, $profile), 1e-9);
     }
-
-    // ── Cas partiels ───────────────────────────────────────────────────────────────
 
     public function testScorePartialOverlapSymmetric(): void
     {
@@ -80,13 +74,9 @@ final class OavTanimotoScorerTest extends TestCase
             3 => 8.0,
         ];
 
-        // Poids log : w1=ln10=2.302585, w2=ln5=1.609438, w3=ln8=2.079442
-        // minSum = min(ln10,ln10) = 2.302585
-        // maxSum = ln10 + ln5 (candidat seul) + ln8 (mortier seul) = 5.991465
         $expected = log(10) / (log(10) + log(5) + log(8));
 
         self::assertEqualsWithDelta($expected, $this->scorer->score($candidate, $mortar), 1e-9);
-        // Symétrie : score(a, b) == score(b, a)
         self::assertEqualsWithDelta($expected, $this->scorer->score($mortar, $candidate), 1e-9);
     }
 
@@ -99,7 +89,6 @@ final class OavTanimotoScorerTest extends TestCase
             1 => 8.0,
         ];
 
-        // Poids log : ln(4)/ln(8) = 2ln2/3ln2 = 2/3 ≈ 0.6667
         self::assertEqualsWithDelta(log(4) / log(8), $this->scorer->score($candidate, $mortar), 1e-9);
     }
 
@@ -111,11 +100,8 @@ final class OavTanimotoScorerTest extends TestCase
         $mortar = [
             1 => 10.0,
         ];
-        // Poids log : ln(8.76)/ln(10) = 2.170196/2.302585 ≈ 0.94250 → floor(94.25) = 94
         self::assertSame(94, $this->scorer->scoreAsInt($candidate, $mortar));
     }
-
-    // ── Monotonie ─────────────────────────────────────────────────────────────────
 
     public function testScoreIncreasesWithMoreSharedCompounds(): void
     {
@@ -147,35 +133,26 @@ final class OavTanimotoScorerTest extends TestCase
         self::assertEqualsWithDelta(1.0, $s3, 1e-9, 'profils identiques → 1.0');
     }
 
-    // ── Valeurs de référence extraites de MatchPipelineTest ──────────────────────
-
     public function testScoreFromPipelineSpecCandidate10(): void
     {
-        // Poids log : (ln90+ln40)/(ln100+ln50) = (4.499810+3.688879)/(4.605170+3.912023)
-        //           = 8.188689/8.517193 ≈ 0.96143 → floor = 96
         self::assertSame(96, $this->scorer->scoreAsInt([
             1 => 90.0,
             2 => 40.0,
         ], [
             1 => 100.0,
             2 => 50.0,
-        ],));
+        ], ));
     }
 
     public function testScoreFromPipelineSpecCandidate11(): void
     {
-        // Candidat avec un seul composé en commun.
-        // Poids log : ln10 / (ln100 + ln50) = 2.302585/8.517193 ≈ 0.27035 → floor = 27
-        // (vs 6 en linéaire : la compression log redonne du poids aux composés mineurs)
         self::assertSame(27, $this->scorer->scoreAsInt([
             1 => 10.0,
         ], [
             1 => 100.0,
             2 => 50.0,
-        ],));
+        ], ));
     }
-
-    // ── Bornes ────────────────────────────────────────────────────────────────────
 
     #[DataProvider('randomProfilesProvider')]
     public function testScoreAlwaysBetweenZeroAndOne(array $candidate, array $mortar): void

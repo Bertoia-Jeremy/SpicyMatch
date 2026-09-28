@@ -36,7 +36,6 @@
     {%- endif %}
   </div>
 
-  {# HEADER — progress bar remplacée par progress_dots ci-dessous #}
   {{ game_header.header(
       icon = 'fa-solid fa-ban',
       title = 'enum.game_mode.intrus.label'|trans,
@@ -48,10 +47,8 @@
       useProgressBar = false,
   ) }}
 
-  {# PROGRESS DOTS #}
   {{ game_header.progress_dots(this.answers, this.questionNumber, this.totalQuestions) }}
 
-  {# PROMPT + FAMILY CHIP #}
   <div class="text-center mb-6">
     {% if this.familyName %}
       <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-100 border border-stone-200 text-sm text-stone-700 mb-3">
@@ -69,7 +66,6 @@
   </div>
 
   {% if not this.showFeedback %}
-    {# ── PHASE QUESTION ── #}
     <div class="grid grid-cols-2 gap-3.5 mb-4">
       {% for option in this.options %}
         {% set letter = ['A', 'B', 'C', 'D'][loop.index0] %}
@@ -133,7 +129,6 @@
     </div>
 
   {% else %}
-    {# ── PHASE FEEDBACK ── #}
     <div class="grid grid-cols-2 gap-3.5 mb-4">
       {% for option in this.options %}
         {% set isIntrus = option.name == this.lastCorrectAnswerName %}
@@ -151,7 +146,6 @@
       {% endfor %}
     </div>
 
-    {# XP et explication dérivés des LiveProps existants — pas de nouvelles props PHP #}
     {% set compatibles = [] %}
     {% for opt in this.options %}
       {% if opt.name != this.lastCorrectAnswerName %}

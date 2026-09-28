@@ -11,18 +11,12 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 
-/**
- * 12 aromatic flavor profiles linked to real aromatic compounds.
- *
- * AlchemyFlavors are culinary descriptors grouping compounds by perceived taste/smell.
- * They are NOT used in compatibility scoring but enrich the data model for future use.
- */
 class AlchemyFlavorsFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     /**
      * @var array<string, array{name: string, description: string, compounds: string[]}>
      */
-    private const FLAVORS = [
+    private const array FLAVORS = [
         'epice_brulant' => [
             'name' => 'Épicé & Brûlant',
             'description' => 'Chaleur intense et persistante en bouche, typique des piments et du poivre.',
@@ -89,7 +83,7 @@ class AlchemyFlavorsFixtures extends Fixture implements DependentFixtureInterfac
     {
         $now = new \DateTimeImmutable('now');
 
-        foreach (self::FLAVORS as $key => $data) {
+        foreach (self::FLAVORS as $data) {
             $entity = new AlchemyFlavors();
             $entity->setName($data['name'])
                 ->setDescription($data['description'])

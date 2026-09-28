@@ -35,6 +35,8 @@ final class EasterEggGamificationHandlerTest extends TestCase
         $this->usersRepo = $this->createMock(UsersRepository::class);
         $this->manager = $this->createMock(GamificationManagerInterface::class);
         $this->em = $this->createMock(EntityManagerInterface::class);
+        $this->em->method('wrapInTransaction')
+            ->willReturnCallback(fn (callable $callback) => $callback($this->em));
         $this->processedEvents = $this->createMock(ProcessedGamificationEventRepository::class);
         $this->processedEvents->method('claim')
             ->willReturn(true);
@@ -63,11 +65,10 @@ final class EasterEggGamificationHandlerTest extends TestCase
 
     public function testCreatesProgressionWhenNull(): void
     {
-        $user = $this->createMock(Users::class);
+        $user = $this->createStub(Users::class);
         $this->usersRepo->method('find')
             ->willReturn($user);
 
-        // Progression creation is now delegated to the manager.
         $this->manager->expects(self::once())
             ->method('getOrCreateProgression')
             ->with($user)
@@ -82,7 +83,7 @@ final class EasterEggGamificationHandlerTest extends TestCase
     public function testDelegatesWithCorrectContext(): void
     {
         $progression = new UserProgression();
-        $user = $this->createMock(Users::class);
+        $user = $this->createStub(Users::class);
         $this->usersRepo->method('find')
             ->willReturn($user);
         $this->manager->method('getOrCreateProgression')
@@ -92,28 +93,8 @@ final class EasterEggGamificationHandlerTest extends TestCase
             ->method('process')
             ->with($progression, 'easter_egg_found', [
                 'easterEggSlug' => 'secret_egg',
-                'xpAmount' => 100,
             ]);
 
-        ($this->handler)(new EasterEggFoundEvent(1, 'secret_egg', 100));
-    }
-
-    public function testDefaultXpAmountIs75(): void
-    {
-        $progression = new UserProgression();
-        $user = $this->createMock(Users::class);
-        $this->usersRepo->method('find')
-            ->willReturn($user);
-        $this->manager->method('getOrCreateProgression')
-            ->willReturn($progression);
-
-        $this->manager->expects(self::once())
-            ->method('process')
-            ->with($progression, 'easter_egg_found', [
-                'easterEggSlug' => 'grain_de_sel',
-                'xpAmount' => 75,
-            ]);
-
-        ($this->handler)(new EasterEggFoundEvent(1, 'grain_de_sel'));
+        ($this->handler)(new EasterEggFoundEvent(1, 'secret_egg'));
     }
 }

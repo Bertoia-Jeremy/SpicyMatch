@@ -9,9 +9,12 @@ use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use App\Service\Education\AcademyManager;
 use App\Service\Education\GameSessionManager;
+use App\Service\Education\LocalizedSpiceNames;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
@@ -19,6 +22,7 @@ use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
 #[AsLiveComponent]
+#[IsGranted('ROLE_USER')]
 class ChronoGame extends AbstractController
 {
     use DefaultActionTrait;
@@ -45,11 +49,6 @@ class ChronoGame extends AbstractController
     #[LiveProp]
     public int $timeLimit = 120;
 
-    /**
-     * ID of the currently displayed spice. The full card is rebuilt server-side
-     * via `getCurrentCard()` at render time — this keeps the LC payload tiny
-     * (was ~3-5 KB per re-render with the full `$currentCard` array).
-     */
     #[LiveProp]
     public int $currentCardId = 0;
 
@@ -78,7 +77,7 @@ class ChronoGame extends AbstractController
     public int $startedAt = 0;
 
     /**
-     * @var int[] Last 5 used spice IDs (not full history, to allow cycling)
+     * @var int[]
      */
     #[LiveProp]
     public array $recentIds = [];
@@ -87,6 +86,7 @@ class ChronoGame extends AbstractController
         private readonly AcademyManager $academyManager,
         private readonly GameSessionManager $sessionManager,
         private readonly RequestStack $requestStack,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -119,11 +119,10 @@ class ChronoGame extends AbstractController
         $correctName = $secret['correctName'] ?? '';
         $questionStartedAt = $secret['questionStartedAt'] ?? null;
 
-        if (null === $questionStartedAt) {
+        if ($questionStartedAt === null) {
             return null;
         }
 
-        // Anti-farming: ignore clicks during wrong-answer cooldown.
         if (time() < ($secret['wrongAnswerCooldown'] ?? 0)) {
             $this->isInCooldown = true;
 
@@ -139,7 +138,7 @@ class ChronoGame extends AbstractController
         $serverStartedAt = (int) ($secret['startedAt'] ?? $this->startedAt);
         $serverTimeLimit = (int) ($secret['timeLimit'] ?? $this->timeLimit);
 
-        $isCorrect = $spiceName === $correctName;
+        $isCorrect = $this->matchesExpectedName($spiceName, $correctName, (int) ($secret['correctId'] ?? 0));
         $serverElapsed = time() - $questionStartedAt;
 
         ++$serverQuestions;
@@ -158,8 +157,8 @@ class ChronoGame extends AbstractController
             $gameDifficulty = GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY;
             [$t1, $t2] = match ($gameDifficulty) {
                 GameDifficulty::EASY => [8, 12],
-                GameDifficulty::MEDIUM => [4, 8],
-                GameDifficulty::HARD => [3, 6],
+                GameDifficulty::MEDIUM => [12, 18],
+                GameDifficulty::HARD => [16, 24],
             };
             $base = match (true) {
                 $serverElapsed < $t1 => 5,
@@ -192,7 +191,6 @@ class ChronoGame extends AbstractController
             return $this->finish();
         }
 
-        // generateQuestion modifie $secret par référence, writeSecret une seule fois
         $this->generateQuestion($secret);
         $this->writeSecret($secret);
 
@@ -225,8 +223,7 @@ class ChronoGame extends AbstractController
 
         $secret = $this->readSecret();
 
-        // Guard: orphan token (session already consumed or never started properly)
-        if (empty($secret)) {
+        if ($secret === []) {
             return $this->redirectToRoute('education_index');
         }
 
@@ -237,16 +234,25 @@ class ChronoGame extends AbstractController
         $durationSeconds = time() - $serverStartedAt;
         $serverScore = (int) ($secret['totalScore'] ?? 0);
 
-        $gameSession = $this->sessionManager->createFinishedSession(
-            $user,
-            GameMode::CHRONO,
-            GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY,
-            $serverCorrect,
-            max($serverQuestions, 1),
-            $durationSeconds,
-            null,
-            $serverScore,
-        );
+        try {
+            $gameSession = $this->sessionManager->createFinishedSession(
+                $user,
+                GameMode::CHRONO,
+                GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY,
+                $serverCorrect,
+                max($serverQuestions, 1),
+                $durationSeconds,
+                $serverScore,
+            );
+        } catch (\RuntimeException) {
+            $this->removeSecret();
+            $this->addFlash('warning', $this->translator->trans('flash.daily_limit_reached', [
+                '%mode%' => $this->translator->trans(GameMode::CHRONO->label()),
+                '%max%' => $this->sessionManager->maxDailySessions($user),
+            ]));
+
+            return $this->redirectToRoute('education_index');
+        }
 
         $this->removeSecret();
 
@@ -256,7 +262,7 @@ class ChronoGame extends AbstractController
     }
 
     /**
-     * @param array<string, mixed> $secret passed by reference — caller is responsible for persisting to session
+     * @param array<string, mixed> $secret
      */
     private function generateQuestion(array &$secret): void
     {
@@ -264,12 +270,12 @@ class ChronoGame extends AbstractController
 
         $card = $this->academyManager->getRandomSpiceCard($this->recentIds);
 
-        if (null === $card) {
+        if ($card === null) {
             $this->recentIds = [];
             $card = $this->academyManager->getRandomSpiceCard();
         }
 
-        if (null === $card) {
+        if ($card === null) {
             $this->isFinished = true;
 
             return;
@@ -286,8 +292,8 @@ class ChronoGame extends AbstractController
         $optionsCount = $this->academyManager->getChronoOptionsCount($gameDifficulty);
         $this->nameOptions = $this->academyManager->generateNameOptions($card['name'], $optionsCount);
 
-        // Modifie le secret par référence — le caller persiste en session
         $secret['correctName'] = $card['name'];
+        $secret['correctId'] = (int) $card['id'];
         $secret['questionStartedAt'] = time();
     }
 
@@ -297,44 +303,108 @@ class ChronoGame extends AbstractController
     private ?array $resolvedCardCache = null;
 
     /**
-     * Resolve the current card at render time from the cached spice cards — keeps the
-     * LiveProp payload lean (only `currentCardId` travels to the client).
-     *
+     * @var array<int, array<string, mixed>>|null
+     */
+    private ?array $spiceCardsCache = null;
+
+    /**
+     * @var array<int, array{canonical: string, localized: string, groupName: ?string}>|null
+     */
+    private ?array $nameMapCache = null;
+
+    /**
+     * @var array<string, string>|null
+     */
+    private ?array $labelByCanonicalCache = null;
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function spiceCards(): array
+    {
+        return $this->spiceCardsCache ??= $this->academyManager->getAllSpiceCards();
+    }
+
+    /**
+     * @return array<int, array{canonical: string, localized: string, groupName: ?string}>
+     */
+    private function nameMap(): array
+    {
+        return $this->nameMapCache ??= LocalizedSpiceNames::build($this->spiceCards(), $this->academyManager);
+    }
+
+    private function localizedLabel(string $canonical): string
+    {
+        return LocalizedSpiceNames::label(
+            $canonical,
+            $this->labelByCanonicalCache ??= LocalizedSpiceNames::labelIndex($this->nameMap()),
+        );
+    }
+
+    private function matchesExpectedName(string $given, string $expected, int $expectedId): bool
+    {
+        return LocalizedSpiceNames::matches($given, $expected, $expectedId, $this->nameMap());
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getLocalizedNameOptions(): array
+    {
+        return array_values(array_map(
+            $this->localizedLabel(...),
+            $this->nameOptions,
+        ));
+    }
+
+    public function getLastCorrectNameLabel(): string
+    {
+        return $this->localizedLabel($this->lastCorrectName);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function getCurrentCard(): array
     {
-        if (null !== $this->resolvedCardCache) {
+        if ($this->resolvedCardCache !== null) {
             return $this->resolvedCardCache;
         }
 
-        if (0 === $this->currentCardId) {
+        if ($this->currentCardId === 0) {
             return $this->resolvedCardCache = [];
         }
 
-        $cards = $this->academyManager->getAllSpiceCards();
+        $cards = $this->spiceCards();
         if (! isset($cards[$this->currentCardId])) {
             return $this->resolvedCardCache = [];
         }
 
-        return $this->resolvedCardCache = $this->buildDisplayCard(
+        $display = $this->buildDisplayCard(
             $cards[$this->currentCardId],
             GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY,
         );
+
+        $group = $display['aromaticGroup'] ?? null;
+        $localizedGroup = $this->nameMap()[$this->currentCardId]['groupName'] ?? null;
+
+        if (\is_array($group) && $localizedGroup !== null) {
+            $group['name'] = $localizedGroup;
+            $display['aromaticGroup'] = $group;
+        }
+
+        return $this->resolvedCardCache = $display;
     }
 
     /**
      * @param array<string, mixed> $card
-     *
      * @return array<string, mixed>
      */
     private function buildDisplayCard(array $card, GameDifficulty $difficulty): array
     {
-        // Common fields (no name!)
         $display = [];
 
-        if (GameDifficulty::EASY === $difficulty) {
-            // Full info: image, description, group, type, compounds, tips
+        if ($difficulty === GameDifficulty::EASY) {
             $display['file'] = $card['file'];
             $display['description'] = $card['description'];
             $display['aromaticGroup'] = $card['aromaticGroup'];
@@ -343,15 +413,13 @@ class ChronoGame extends AbstractController
             $display['secondaryCompounds'] = $card['secondaryCompounds'];
             $display['alchemyFlavors'] = $card['alchemyFlavors'];
             $display['cookingTips'] = $card['cookingTips'];
-        } elseif (GameDifficulty::MEDIUM === $difficulty) {
-            // Partial: image, group, compounds (no description)
+        } elseif ($difficulty === GameDifficulty::MEDIUM) {
             $display['file'] = $card['file'];
             $display['aromaticGroup'] = $card['aromaticGroup'];
             $display['mainCompounds'] = $card['mainCompounds'];
             $display['secondaryCompounds'] = $card['secondaryCompounds'];
             $display['alchemyFlavors'] = $card['alchemyFlavors'];
         } else {
-            // Hard: compounds and flavors only
             $display['mainCompounds'] = $card['mainCompounds'];
             $display['secondaryCompounds'] = $card['secondaryCompounds'];
             $display['alchemyFlavors'] = $card['alchemyFlavors'];

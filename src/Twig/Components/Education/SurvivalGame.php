@@ -13,6 +13,8 @@ use App\Service\Education\GameSessionManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
@@ -20,6 +22,7 @@ use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
 #[AsLiveComponent]
+#[IsGranted('ROLE_USER')]
 class SurvivalGame extends AbstractController
 {
     use DefaultActionTrait;
@@ -87,6 +90,7 @@ class SurvivalGame extends AbstractController
         private readonly GameSessionManager $sessionManager,
         private readonly RequestStack $requestStack,
         private readonly SpicesRepository $spicesRepository,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -103,7 +107,6 @@ class SurvivalGame extends AbstractController
     {
         $secret = $this->readSecret();
 
-        // Replay guard: only honor start() if the session has no current spice yet.
         if (($secret['currentSpiceId'] ?? null) !== null) {
             return;
         }
@@ -114,7 +117,7 @@ class SurvivalGame extends AbstractController
 
         $spice = $this->findSpiceById($spiceId);
 
-        if (null === $spice) {
+        if ($spice === null) {
             return;
         }
 
@@ -131,7 +134,6 @@ class SurvivalGame extends AbstractController
             return null;
         }
 
-        // Validate server-side from session secret
         $secret = $this->readSecret();
         $compatibleIds = $secret['compatibleIds'] ?? [];
         $sessionCurrent = $secret['currentSpiceId'] ?? null;
@@ -142,7 +144,6 @@ class SurvivalGame extends AbstractController
 
         $isCompatible = in_array($spiceId, $compatibleIds, true);
 
-        // Find the picked option's name
         $pickedName = '';
 
         foreach ($this->options as $opt) {
@@ -168,7 +169,7 @@ class SurvivalGame extends AbstractController
 
         $spice = $this->findSpiceById($spiceId);
 
-        if (null === $spice) {
+        if ($spice === null) {
             $this->isGameOver = true;
 
             return $this->finishSession();
@@ -197,20 +198,29 @@ class SurvivalGame extends AbstractController
         /** @var Users $user */
         $user = $this->getUser();
 
-        // Authoritative chainLength from session, never LiveProp.
         $secret = $this->readSecret();
         $serverChain = (int) ($secret['chainLength'] ?? 0);
 
         $durationSeconds = time() - $this->startedAt;
 
-        $gameSession = $this->sessionManager->createFinishedSession(
-            $user,
-            GameMode::SURVIVAL,
-            GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY,
-            $serverChain,
-            max($serverChain, 1),
-            $durationSeconds,
-        );
+        try {
+            $gameSession = $this->sessionManager->createFinishedSession(
+                $user,
+                GameMode::SURVIVAL,
+                GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY,
+                $serverChain,
+                max($serverChain, 1),
+                $durationSeconds,
+            );
+        } catch (\RuntimeException) {
+            $this->removeSecret();
+            $this->addFlash('warning', $this->translator->trans('flash.daily_limit_reached', [
+                '%mode%' => $this->translator->trans(GameMode::SURVIVAL->label()),
+                '%max%' => $this->sessionManager->maxDailySessions($user),
+            ]));
+
+            return $this->redirectToRoute('education_index');
+        }
 
         $this->removeSecret();
 
@@ -221,28 +231,22 @@ class SurvivalGame extends AbstractController
 
     private function loadStartingSpices(): void
     {
-        $cards = $this->academyManager->getAllSpiceCards();
         $spices = [];
 
-        foreach ($cards as $card) {
-            $spices[] = [
-                'id' => $card['id'],
-                'name' => $card['name'],
-                'file' => $card['file'],
-                'color' => $card['aromaticGroup']['color'] ?? null,
-                'groupName' => $card['aromaticGroup']['name'] ?? null,
-            ];
+        foreach ($this->academyManager->getAllSpiceCards() as $card) {
+            $spices[] = $this->toSummary($card);
         }
 
         shuffle($spices);
-        $this->startingSpices = array_slice($spices, 0, 12);
+
+        $this->startingSpices = $this->academyManager->localizeSpiceSummaries(array_slice($spices, 0, 12));
     }
 
     private function generateOptions(): void
     {
         $spice = $this->spicesRepository->find($this->currentSpiceId);
 
-        if (null === $spice) {
+        if ($spice === null) {
             $this->options = [];
 
             return;
@@ -296,14 +300,25 @@ class SurvivalGame extends AbstractController
             return null;
         }
 
-        $card = $cards[$id];
+        $summary = $this->toSummary($cards[$id]);
+
+        return $this->academyManager->localizeSpiceSummaries([$summary])[0] ?? $summary;
+    }
+
+    /**
+     * @param array<string, mixed> $card
+     * @return array{id: int, name: string, file: ?string, color: ?string, groupName: ?string}
+     */
+    private function toSummary(array $card): array
+    {
+        $group = \is_array($card['aromaticGroup'] ?? null) ? $card['aromaticGroup'] : [];
 
         return [
-            'id' => $card['id'],
-            'name' => $card['name'],
-            'file' => $card['file'],
-            'color' => $card['aromaticGroup']['color'] ?? null,
-            'groupName' => $card['aromaticGroup']['name'] ?? null,
+            'id' => (int) $card['id'],
+            'name' => (string) $card['name'],
+            'file' => null !== ($card['file'] ?? null) ? (string) $card['file'] : null,
+            'color' => null !== ($group['color'] ?? null) ? (string) $group['color'] : null,
+            'groupName' => null !== ($group['name'] ?? null) ? (string) $group['name'] : null,
         ];
     }
 }

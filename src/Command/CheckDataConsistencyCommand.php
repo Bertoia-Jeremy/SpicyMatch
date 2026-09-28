@@ -13,22 +13,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-/**
- * Cohérence cross-tables des données du moteur OAV.
- *
- * Offline, rapide. Complète app:check:compounds (intégrité par composé) en
- * vérifiant des invariants qui s'étendent sur plusieurs tables :
- *
- *   - OAV matérialisé > 1 (invariant van Gemert) et < plafond plausible
- *   - Σ concentrations par épice ≤ 100 % de la masse
- *   - composé concentré mais sans ODT air (trou OAV silencieux)
- *
- * Exit ≠ 0 si erreur dure → utilisable en garde CI / pré-déploiement.
- *
- * Usage :
- *   php bin/console app:check:data
- *   php bin/console app:check:data --strict   # warnings bloquants
- */
 #[AsCommand(
     name: 'app:check:data',
     description: 'Valide la cohérence cross-tables des données OAV (invariants, sommes, trous).',
@@ -56,23 +40,27 @@ final class CheckDataConsistencyCommand extends Command
             ...$this->checker->checkOavValues($this->fetchOavRows()),
             ...$this->checker->checkConcentrationSums($this->fetchConcentrationSums(), $this->fetchSpiceNames()),
             ...$this->checker->checkMissingAirOdt($this->fetchCompoundsWithoutAirOdt()),
+            ...$this->checker->checkCookingMoments($this->fetchCookingTipSteps()),
+            ...$this->checker->checkSpiceDuoSpices($this->fetchSpiceDuoSpices()),
+            ...$this->checker->checkDuplicatePreparationTips($this->fetchDuplicatePreparationTips()),
+            ...$this->checker->checkDuplicateCookingMoments($this->fetchDuplicateCookingMoments()),
         ];
 
-        $errors = array_filter($violations, static fn (array $v) => 'error' === $v['severity']);
-        $warnings = array_filter($violations, static fn (array $v) => 'warning' === $v['severity']);
+        $errors = array_filter($violations, static fn (array $v): bool => $v['severity'] === 'error');
+        $warnings = array_filter($violations, static fn (array $v): bool => $v['severity'] === 'warning');
 
         foreach ($warnings as $w) {
             $io->warning($w['message']);
         }
 
-        if ([] !== $errors) {
+        if ($errors !== []) {
             $io->error(\sprintf('%d erreur(s) de cohérence :', count($errors)));
-            $io->listing(array_map(static fn (array $v) => $v['message'], $errors));
+            $io->listing(array_map(static fn (array $v): string => $v['message'], $errors));
 
             return Command::FAILURE;
         }
 
-        if ($strict && [] !== $warnings) {
+        if ($strict && $warnings !== []) {
             $io->error(\sprintf('%d warning(s) bloquant(s) en mode --strict.', count($warnings)));
 
             return Command::FAILURE;
@@ -80,7 +68,7 @@ final class CheckDataConsistencyCommand extends Command
 
         $io->success(\sprintf(
             'Cohérence OK%s.',
-            [] !== $warnings ? \sprintf(' (%d warning)', count($warnings)) : '',
+            $warnings !== [] ? \sprintf(' (%d warning)', count($warnings)) : '',
         ));
 
         return Command::SUCCESS;
@@ -132,8 +120,6 @@ final class CheckDataConsistencyCommand extends Command
     }
 
     /**
-     * Composés référencés en concentration mais sans ligne ODT en matrice air.
-     *
      * @return list<array{id: int, name: string}>
      */
     private function fetchCompoundsWithoutAirOdt(): array
@@ -152,5 +138,78 @@ final class CheckDataConsistencyCommand extends Command
         );
 
         return $rows;
+    }
+
+    /**
+     * @return list<array{id: int, step: int}>
+     */
+    private function fetchCookingTipSteps(): array
+    {
+        /** @var list<array{id: int, step: int}> $rows */
+        $rows = $this->connection->fetchAllAssociative('SELECT id, step FROM cooking_tips');
+
+        return array_map(static fn (array $r): array => [
+            'id' => (int) $r['id'],
+            'step' => (int) $r['step'],
+        ], $rows);
+    }
+
+    /**
+     * @return list<array{id: int, prep_spice_id: int, cook_spice_id: int}>
+     */
+    private function fetchSpiceDuoSpices(): array
+    {
+        $rows = $this->connection->fetchAllAssociative(
+            'SELECT d.id, pt.spice_id AS prep_spice_id, ct.spice_id AS cook_spice_id
+             FROM spice_duo d
+             JOIN preparation_tips pt ON pt.id = d.preparation_tip_id
+             JOIN cooking_tips ct ON ct.id = d.cooking_tip_id',
+        );
+
+        return array_map(static fn (array $r): array => [
+            'id' => (int) $r['id'],
+            'prep_spice_id' => (int) $r['prep_spice_id'],
+            'cook_spice_id' => (int) $r['cook_spice_id'],
+        ], $rows);
+    }
+
+    /**
+     * @return list<array{spice_id: int, preparation_method_id: int, total: int}>
+     */
+    private function fetchDuplicatePreparationTips(): array
+    {
+        $rows = $this->connection->fetchAllAssociative(
+            'SELECT spice_id, preparation_method_id, COUNT(*) AS total
+             FROM preparation_tips
+             WHERE deleted_at IS NULL
+             GROUP BY spice_id, preparation_method_id
+             HAVING COUNT(*) > 1',
+        );
+
+        return array_map(static fn (array $r): array => [
+            'spice_id' => (int) $r['spice_id'],
+            'preparation_method_id' => (int) $r['preparation_method_id'],
+            'total' => (int) $r['total'],
+        ], $rows);
+    }
+
+    /**
+     * @return list<array{spice_id: int, step: int, total: int}>
+     */
+    private function fetchDuplicateCookingMoments(): array
+    {
+        $rows = $this->connection->fetchAllAssociative(
+            'SELECT spice_id, step, COUNT(*) AS total
+             FROM cooking_tips
+             WHERE deleted_at IS NULL
+             GROUP BY spice_id, step
+             HAVING COUNT(*) > 1',
+        );
+
+        return array_map(static fn (array $r): array => [
+            'spice_id' => (int) $r['spice_id'],
+            'step' => (int) $r['step'],
+            'total' => (int) $r['total'],
+        ], $rows);
     }
 }

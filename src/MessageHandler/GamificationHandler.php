@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
+use App\Gamification\GamificationManagerInterface;
 use App\Message\MatchSavedEvent;
 use App\Repository\ProcessedGamificationEventRepository;
 use App\Repository\SpicyMatchHistoryRepository;
@@ -16,7 +17,7 @@ class GamificationHandler
 {
     public function __construct(
         private readonly SpicyMatchHistoryRepository $historyRepository,
-        private readonly \App\Gamification\GamificationManagerInterface $manager,
+        private readonly GamificationManagerInterface $manager,
         private readonly EntityManagerInterface $em,
         private readonly LoggerInterface $logger,
         private readonly ProcessedGamificationEventRepository $processedEvents,
@@ -26,7 +27,7 @@ class GamificationHandler
     public function __invoke(MatchSavedEvent $event): void
     {
         $history = $this->historyRepository->find($event->spicyMatchHistoryId);
-        if (null === $history) {
+        if ($history === null) {
             $this->logger->warning('gamification.match_saved.history_missing', [
                 'historyId' => $event->spicyMatchHistoryId,
             ]);
@@ -35,7 +36,7 @@ class GamificationHandler
         }
 
         $spicyMatch = $history->getSpicyMatch();
-        if (null === $spicyMatch) {
+        if ($spicyMatch === null) {
             $this->logger->warning('gamification.match_saved.spicy_match_missing', [
                 'historyId' => $event->spicyMatchHistoryId,
             ]);
@@ -44,33 +45,34 @@ class GamificationHandler
         }
 
         $user = $spicyMatch->getUser();
-        if (null === $user) {
-            return;
-        }
-
-        // Idempotence guard — short-circuit if this exact match has already been processed.
-        if (! $this->processedEvents->claim($user, 'match_saved', 'match:'.$event->spicyMatchHistoryId)) {
-            $this->logger->info('gamification.match_saved.duplicate', [
-                'userId' => $user->getId(),
-                'historyId' => $event->spicyMatchHistoryId,
-            ]);
-
+        if ($user === null) {
             return;
         }
 
         $progression = $this->manager->getOrCreateProgression($user);
 
-        if ($progression->isGamificationEnabled()) {
-            // Recount from DB (keeps totals in sync even if ledger gets pruned).
-            $matchCount = $this->historyRepository->countByUser($user);
-            $progression->setTotalMatches($matchCount);
-
-            $uniqueSpiceCount = $this->historyRepository->countDistinctSpicesByUser($user);
-            $progression->setUniqueSpicesUsed($uniqueSpiceCount);
+        if (! $progression->isGamificationEnabled()) {
+            return;
         }
 
-        $this->manager->process($progression, 'match_saved');
+        $this->em->wrapInTransaction(function () use ($event, $user, $progression): void {
+            $this->manager->lockForUpdate($progression);
 
-        $this->em->flush();
+            if (! $this->processedEvents->claim($user, 'match_saved', 'match:' . $event->spicyMatchHistoryId)) {
+                $this->logger->info('gamification.match_saved.duplicate', [
+                    'userId' => $user->getId(),
+                    'historyId' => $event->spicyMatchHistoryId,
+                ]);
+
+                return;
+            }
+
+            $progression->setTotalMatches($this->historyRepository->countByUser($user));
+            $progression->setUniqueSpicesUsed($this->historyRepository->countDistinctSpicesByUser($user));
+
+            $this->manager->process($progression, 'match_saved');
+
+            $this->em->flush();
+        });
     }
 }

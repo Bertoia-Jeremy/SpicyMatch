@@ -1,11 +1,9 @@
-{# templates/components/_pagination.html.twig #}
 {% if pageCount > 1 %}
     <nav aria-label="{{ 'ui.pagination.nav_label'|trans }}" class="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-4 mt-10">
         <ul class="flex -space-x-px text-sm list-none p-0 m-0">
-            {# Previous Button #}
             {% if previous is defined %}
                 <li>
-                    <a href="{{ path(route, query|merge({(pageParameterName): previous})) }}" 
+                    <a href="{{ path(route, query|merge({(pageParameterName): previous})) }}"
                        class="flex items-center justify-center text-stone-600 bg-white border border-stone-200 hover:bg-spice-surface hover:text-saffron-700 shadow-xs font-medium rounded-s-xl text-sm px-4 h-10 transition-colors">
                         {{ 'ui.pagination.previous'|trans }}
                     </a>
@@ -18,18 +16,17 @@
                 </li>
             {% endif %}
 
-            {# Pages #}
             {% for page in pagesInRange %}
                 {% if page != current %}
                     <li>
-                        <a href="{{ path(route, query|merge({(pageParameterName): page})) }}" 
+                        <a href="{{ path(route, query|merge({(pageParameterName): page})) }}"
                            class="flex items-center justify-center text-stone-600 bg-white border border-stone-200 hover:bg-spice-surface hover:text-saffron-700 shadow-xs font-medium text-sm w-10 h-10 transition-colors">
                             {{ page }}
                         </a>
                     </li>
                 {% else %}
                     <li>
-                        <span aria-current="page" 
+                        <span aria-current="page"
                               class="flex items-center justify-center text-white bg-saffron-700 border border-saffron-700 font-bold text-sm w-10 h-10 shadow-lg shadow-saffron-600/20 z-10 relative">
                             {{ page }}
                         </span>
@@ -37,10 +34,9 @@
                 {% endif %}
             {% endfor %}
 
-            {# Next Button #}
             {% if next is defined %}
                 <li>
-                    <a href="{{ path(route, query|merge({(pageParameterName): next})) }}" 
+                    <a href="{{ path(route, query|merge({(pageParameterName): next})) }}"
                        class="flex items-center justify-center text-stone-600 bg-white border border-stone-200 hover:bg-spice-surface hover:text-saffron-700 shadow-xs font-medium rounded-e-xl text-sm px-4 h-10 transition-colors">
                         {{ 'ui.pagination.next'|trans }}
                     </a>
@@ -54,18 +50,16 @@
             {% endif %}
         </ul>
 
-        {# Items per page select #}
         <form method="GET" action="{{ path(route) }}" class="flex items-center gap-2" x-data x-ref="limitForm">
-            {# Keep existing query params except page and limit #}
             {% for key, value in query %}
                 {% if key != pageParameterName and key != 'limit' %}
                     <input type="hidden" name="{{ key }}" value="{{ value }}">
                 {% endif %}
             {% endfor %}
-            
+
             <label for="limit" class="sr-only">{{ 'ui.pagination.per_page_hint'|trans }}</label>
-            <select id="limit" 
-                    name="limit" 
+            <select id="limit"
+                    name="limit"
                     @change="$event.target.form.submit()"
                     class="block w-36 px-3 py-2 bg-white border border-stone-200 text-stone-700 text-sm rounded-xl focus:ring-saffron-500 focus:border-saffron-500 shadow-xs cursor-pointer transition-all">
                 {% set currentLimit = app.request.query.get('limit', 12) %}

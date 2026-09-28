@@ -39,7 +39,6 @@
     {% endif %}
 
   {% elseif not this.isStarted %}
-    {# Starting spice selection #}
     <div class="text-center mb-8">
       <p class="text-lg font-semibold text-stone-800 mb-2">{{ 'ui.game.choose_start'|trans }}</p>
       <p class="text-sm text-stone-500">{{ 'ui.game.choose_start_text'|trans }}</p>
@@ -52,7 +51,6 @@
     </div>
 
   {% else %}
-    {# Active game: current spice + options #}
     <div class="text-center mb-8">
       <p class="text-sm text-stone-500 mb-2">{{ 'ui.game.current_spice'|trans }}</p>
       <div class="inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-spice-surface border border-spice-border">

@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/newsletter')]
@@ -22,10 +23,10 @@ class NewsletterController extends AbstractController
     }
 
     #[Route('/subscribe', name: 'newsletter_subscribe', methods: ['POST'])]
-    public function subscribe(Request $request): Response
+    public function subscribe(Request $request, #[CurrentUser] ?Users $user = null): Response
     {
         $email = $request->request->getString('email');
-        if ('' === $email || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->addFlash('error', $this->translator->trans('flash.email_invalid'));
 
             return $this->redirect($this->safeReferer($request));
@@ -37,24 +38,17 @@ class NewsletterController extends AbstractController
             return $this->redirect($this->safeReferer($request));
         }
 
-        /** @var Users|null $user */
-        $user = $this->getUser();
-
         $this->newsletterService->subscribe($email, 'footer', $user, $request->getClientIp());
         $this->addFlash('success', $this->translator->trans('flash.newsletter_confirmed'));
 
         return $this->redirect($this->safeReferer($request));
     }
 
-    /**
-     * Referer interne uniquement (host exact), sinon `/` — empêche l'open redirect
-     * via en-tête `Referer` forgé.
-     */
     private function safeReferer(Request $request): string
     {
         $referer = $request->headers->get('referer');
         $base = $request->getSchemeAndHttpHost();
-        if (is_string($referer) && ($referer === $base || str_starts_with($referer, $base.'/'))) {
+        if (is_string($referer) && ($referer === $base || str_starts_with($referer, $base . '/'))) {
             return $referer;
         }
 
@@ -65,7 +59,7 @@ class NewsletterController extends AbstractController
     public function unsubscribeByLink(string $token, Request $request): Response
     {
         $email = $request->query->getString('email');
-        if ('' === $email) {
+        if ($email === '') {
             throw $this->createNotFoundException();
         }
 

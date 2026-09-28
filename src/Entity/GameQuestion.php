@@ -10,6 +10,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: GameQuestionRepository::class)]
 class GameQuestion
 {
+    public const int MAX_TIME_SPENT_MS = 3_600_000;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -114,7 +116,7 @@ class GameQuestion
         $this->answerGiven = $answer;
         $this->isCorrect = $correct;
         $this->answeredAt = new \DateTimeImmutable();
-        $this->timeSpentMs = $timeSpentMs;
+        $this->timeSpentMs = $timeSpentMs === null ? null : min(max($timeSpentMs, 0), self::MAX_TIME_SPENT_MS);
 
         return $this;
     }

@@ -10,11 +10,6 @@ use App\Enum\GameMode;
 use App\Gamification\Evaluator\ContextFilter;
 use PHPUnit\Framework\TestCase;
 
-/**
- * The ContextFilter gates achievement evaluation by gameMode/difficulty filters.
- * Every evaluator depends on it — a regression here silently unlocks achievements
- * that should have been scoped to specific modes/difficulties.
- */
 final class ContextFilterTest extends TestCase
 {
     public function testPassesWhenAchievementHasNoFilters(): void
@@ -98,19 +93,16 @@ final class ContextFilterTest extends TestCase
     {
         $achievement = $this->achievement(GameMode::CHRONO, GameDifficulty::HARD);
 
-        // Mode OK, difficulty wrong → reject
         self::assertFalse(ContextFilter::matches($achievement, [
             'gameMode' => GameMode::CHRONO,
             'difficulty' => GameDifficulty::EASY,
         ]));
 
-        // Difficulty OK, mode wrong → reject
         self::assertFalse(ContextFilter::matches($achievement, [
             'gameMode' => GameMode::INTRUS,
             'difficulty' => GameDifficulty::HARD,
         ]));
 
-        // Both match → pass
         self::assertTrue(ContextFilter::matches($achievement, [
             'gameMode' => GameMode::CHRONO,
             'difficulty' => GameDifficulty::HARD,
@@ -120,10 +112,10 @@ final class ContextFilterTest extends TestCase
     private function achievement(?GameMode $mode, ?GameDifficulty $difficulty): Achievement
     {
         $achievement = new Achievement();
-        if (null !== $mode) {
+        if ($mode !== null) {
             $achievement->setContextGameMode($mode);
         }
-        if (null !== $difficulty) {
+        if ($difficulty !== null) {
             $achievement->setContextDifficulty($difficulty);
         }
 

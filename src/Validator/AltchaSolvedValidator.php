@@ -23,11 +23,11 @@ final class AltchaSolvedValidator extends ConstraintValidator
             throw new UnexpectedTypeException($constraint, AltchaSolved::class);
         }
 
-        if (null !== $value && ! is_string($value)) {
+        if ($value !== null && ! is_string($value)) {
             throw new UnexpectedValueException($value, 'string');
         }
 
-        if (null !== $value && '' !== $value && $this->altchaManager->verify($value)) {
+        if ($value !== null && $value !== '' && $this->altchaManager->verify($value)) {
             return;
         }
 

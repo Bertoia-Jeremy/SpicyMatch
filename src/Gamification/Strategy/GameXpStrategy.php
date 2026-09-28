@@ -7,10 +7,6 @@ namespace App\Gamification\Strategy;
 use App\Entity\UserProgression;
 use App\Gamification\XpStrategyInterface;
 
-/**
- * XP for game_completed events.
- * XP amount is pre-calculated by GameSessionManager and passed in context.
- */
 final class GameXpStrategy implements XpStrategyInterface
 {
     public function calculate(UserProgression $progression, array $context): int
@@ -20,6 +16,6 @@ final class GameXpStrategy implements XpStrategyInterface
 
     public function supports(string $eventType): bool
     {
-        return 'game_completed' === $eventType;
+        return $eventType === 'game_completed';
     }
 }

@@ -5,28 +5,21 @@ declare(strict_types=1);
 namespace App\Tests\Gamification\Evaluator;
 
 use App\Entity\Achievement;
-use App\Entity\AromaticGroups;
 use App\Entity\UserProgression;
-use App\Entity\Users;
 use App\Enum\AchievementRarity;
 use App\Enum\AchievementTrigger;
+use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use App\Gamification\Evaluator\GameScoreThresholdEvaluator;
-use App\Repository\GameSessionRepository;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
-#[AllowMockObjectsWithoutExpectations]
 final class GameScoreThresholdEvaluatorTest extends TestCase
 {
-    private GameSessionRepository&MockObject $sessionRepo;
     private GameScoreThresholdEvaluator $evaluator;
 
     protected function setUp(): void
     {
-        $this->sessionRepo = $this->createMock(GameSessionRepository::class);
-        $this->evaluator = new GameScoreThresholdEvaluator($this->sessionRepo);
+        $this->evaluator = new GameScoreThresholdEvaluator();
     }
 
     public function testTriggerAndEventType(): void
@@ -44,37 +37,50 @@ final class GameScoreThresholdEvaluatorTest extends TestCase
         self::assertSame(0, $this->evaluator->currentValue($progression, []));
     }
 
-    public function testReturnsFalseWhenUserNull(): void
-    {
-        $achievement = $this->makeAchievement(GameMode::CHRONO, null, 50);
-        $progression = new UserProgression(); // no user
-
-        self::assertFalse($this->evaluator->isMet($achievement, $progression, [
-            'score' => 100,
-        ]));
-    }
-
     public function testReturnsFalseWhenAchievementModeNull(): void
     {
-        $achievement = $this->makeAchievement(null, null, 50);
-        $progression = $this->progressionWithUser();
+        $achievement = $this->makeAchievement(null, 50);
 
-        self::assertFalse($this->evaluator->isMet($achievement, $progression, [
+        self::assertFalse($this->evaluator->isMet($achievement, new UserProgression(), [
+            'gameMode' => 'chrono',
             'score' => 100,
         ]));
     }
 
-    public function testSessionScoreCaseUsesContextScore(): void
+    public function testReturnsFalseWhenModeDiffers(): void
     {
-        $achievement = $this->makeAchievement(GameMode::CHRONO, null, 50);
-        $progression = $this->progressionWithUser();
+        $achievement = $this->makeAchievement(GameMode::CHRONO, 50);
 
-        // Repository never queried in the no-group case.
-        $this->sessionRepo->expects(self::never())->method('maxScoreInModeForGroup');
+        self::assertFalse($this->evaluator->isMet($achievement, new UserProgression(), [
+            'gameMode' => 'qcm',
+            'score' => 100,
+        ]));
+    }
+
+    public function testReturnsFalseWhenDifficultyDiffers(): void
+    {
+        $achievement = $this->makeAchievement(GameMode::CHRONO, 50);
+        $achievement->setContextDifficulty(GameDifficulty::HARD);
+
+        self::assertFalse($this->evaluator->isMet($achievement, new UserProgression(), [
+            'gameMode' => 'chrono',
+            'difficulty' => 'easy',
+            'score' => 100,
+        ]));
+    }
+
+    public function testComparesContextScoreToThreshold(): void
+    {
+        $achievement = $this->makeAchievement(GameMode::CHRONO, 50);
+        $progression = new UserProgression();
 
         self::assertTrue($this->evaluator->isMet($achievement, $progression, [
             'gameMode' => 'chrono',
             'score' => 55,
+        ]));
+        self::assertTrue($this->evaluator->isMet($achievement, $progression, [
+            'gameMode' => 'chrono',
+            'score' => 50,
         ]));
         self::assertFalse($this->evaluator->isMet($achievement, $progression, [
             'gameMode' => 'chrono',
@@ -82,22 +88,7 @@ final class GameScoreThresholdEvaluatorTest extends TestCase
         ]));
     }
 
-    public function testGroupScopedCaseQueriesRepo(): void
-    {
-        $group = $this->createStub(AromaticGroups::class);
-        $achievement = $this->makeAchievement(GameMode::CHRONO, $group, 100);
-        $progression = $this->progressionWithUser();
-
-        $this->sessionRepo->expects(self::once())
-            ->method('maxScoreInModeForGroup')
-            ->willReturn(120);
-
-        self::assertTrue($this->evaluator->isMet($achievement, $progression, [
-            'gameMode' => 'chrono',
-        ]));
-    }
-
-    private function makeAchievement(?GameMode $mode, ?AromaticGroups $group, int $triggerValue): Achievement
+    private function makeAchievement(?GameMode $mode, int $triggerValue): Achievement
     {
         $a = new Achievement();
         $a->setSlug('test-score')
@@ -107,24 +98,10 @@ final class GameScoreThresholdEvaluatorTest extends TestCase
             ->setTriggerValue($triggerValue)
             ->setXpReward(10)
             ->setRarity(AchievementRarity::COMMON);
-        if (null !== $mode) {
+        if ($mode !== null) {
             $a->setContextGameMode($mode);
-        }
-        if (null !== $group) {
-            $a->setContextAromaticGroup($group);
         }
 
         return $a;
-    }
-
-    private function progressionWithUser(): UserProgression
-    {
-        $user = $this->createMock(Users::class);
-        $user->method('getId')
-            ->willReturn(1);
-        $progression = new UserProgression();
-        $progression->setUser($user);
-
-        return $progression;
     }
 }

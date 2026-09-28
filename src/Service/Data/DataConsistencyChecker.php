@@ -4,32 +4,18 @@ declare(strict_types=1);
 
 namespace App\Service\Data;
 
-/**
- * Règles de cohérence cross-tables, pures (sans I/O). Délégué par app:check:data.
- * Violations : ['severity' => 'error'|'warning', 'message' => string].
- */
+use App\Enum\CookingMoment;
+
 final class DataConsistencyChecker
 {
-    /**
-     * Au-delà, donnée probablement erronée (eugénol pur en air ≈ 10^8).
-     */
     private const float OAV_PLAUSIBLE_MAX = 1.0e9;
 
-    /**
-     * > 100 % masse, impossible.
-     */
     private const float CONCENTRATION_SUM_IMPOSSIBLE_PPM = 1_000_000.0;
 
-    /**
-     * > 20 % masse — implausible (HE ≈ 3-10 % typique).
-     */
     private const float CONCENTRATION_SUM_IMPLAUSIBLE_PPM = 200_000.0;
 
     /**
-     * OAV > 1 (perceptibilité van Gemert) et < plafond plausible.
-     *
      * @param list<array{spice_id: int, aromatic_compound_id: int, matrix: string, oav_value: float}> $rows
-     *
      * @return list<array{severity: string, message: string}>
      */
     public function checkOavValues(array $rows): array
@@ -59,7 +45,6 @@ final class DataConsistencyChecker
     /**
      * @param array<int, float>  $sumBySpiceId spice_id => Σ ppm
      * @param array<int, string> $spiceNames
-     *
      * @return list<array{severity: string, message: string}>
      */
     public function checkConcentrationSums(array $sumBySpiceId, array $spiceNames = []): array
@@ -67,7 +52,7 @@ final class DataConsistencyChecker
         $violations = [];
 
         foreach ($sumBySpiceId as $spiceId => $sum) {
-            $name = $spiceNames[$spiceId] ?? ('épice '.$spiceId);
+            $name = $spiceNames[$spiceId] ?? ('épice ' . $spiceId);
 
             if ($sum > self::CONCENTRATION_SUM_IMPOSSIBLE_PPM) {
                 $violations[] = [
@@ -90,10 +75,7 @@ final class DataConsistencyChecker
     }
 
     /**
-     * Composé concentré sans ODT air = trou silencieux (jamais OAV-actif en air).
-     *
      * @param list<array{id: int, name: string}> $compoundsWithoutAirOdt
-     *
      * @return list<array{severity: string, message: string}>
      */
     public function checkMissingAirOdt(array $compoundsWithoutAirOdt): array
@@ -112,5 +94,84 @@ final class DataConsistencyChecker
         }
 
         return $violations;
+    }
+
+    /**
+     * @param list<array{id: int, step: int}> $cookingTips
+     * @return list<array{severity: string, message: string}>
+     */
+    public function checkCookingMoments(array $cookingTips): array
+    {
+        $violations = [];
+
+        foreach ($cookingTips as $tip) {
+            if (CookingMoment::tryFrom($tip['step']) === null) {
+                $violations[] = [
+                    'severity' => 'error',
+                    'message' => \sprintf('Conseil de cuisson #%d : step %d hors énumération CookingMoment.', $tip['id'], $tip['step']),
+                ];
+            }
+        }
+
+        return $violations;
+    }
+
+    /**
+     * @param list<array{id: int, prep_spice_id: int, cook_spice_id: int}> $duos
+     * @return list<array{severity: string, message: string}>
+     */
+    public function checkSpiceDuoSpices(array $duos): array
+    {
+        $violations = [];
+
+        foreach ($duos as $duo) {
+            if ($duo['prep_spice_id'] !== $duo['cook_spice_id']) {
+                $violations[] = [
+                    'severity' => 'error',
+                    'message' => \sprintf(
+                        'Duo #%d : conseil de préparation (épice %d) et conseil de cuisson (épice %d) d\'épices différentes.',
+                        $duo['id'],
+                        $duo['prep_spice_id'],
+                        $duo['cook_spice_id'],
+                    ),
+                ];
+            }
+        }
+
+        return $violations;
+    }
+
+    /**
+     * @param list<array{spice_id: int, preparation_method_id: int, total: int}> $groups
+     * @return list<array{severity: string, message: string}>
+     */
+    public function checkDuplicatePreparationTips(array $groups): array
+    {
+        return array_map(static fn (array $g): array => [
+            'severity' => 'error',
+            'message' => \sprintf(
+                'Épice %d : %d conseils de préparation pour la même méthode %d (rattachement de duo ambigu).',
+                $g['spice_id'],
+                $g['total'],
+                $g['preparation_method_id'],
+            ),
+        ], $groups);
+    }
+
+    /**
+     * @param list<array{spice_id: int, step: int, total: int}> $groups
+     * @return list<array{severity: string, message: string}>
+     */
+    public function checkDuplicateCookingMoments(array $groups): array
+    {
+        return array_map(static fn (array $g): array => [
+            'severity' => 'error',
+            'message' => \sprintf(
+                'Épice %d : %d conseils de cuisson pour le même moment %d (rattachement de duo ambigu).',
+                $g['spice_id'],
+                $g['total'],
+                $g['step'],
+            ),
+        ], $groups);
     }
 }

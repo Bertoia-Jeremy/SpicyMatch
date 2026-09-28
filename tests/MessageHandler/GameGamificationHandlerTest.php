@@ -10,11 +10,13 @@ use App\Gamification\GamificationManagerInterface;
 use App\Message\GameCompletedEvent;
 use App\MessageHandler\GameGamificationHandler;
 use App\Repository\GameSessionRepository;
+use App\Repository\ProcessedGamificationEventRepository;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 #[AllowMockObjectsWithoutExpectations]
 final class GameGamificationHandlerTest extends TestCase
@@ -35,7 +37,9 @@ final class GameGamificationHandlerTest extends TestCase
         $this->sessionRepo = $this->createMock(GameSessionRepository::class);
         $this->manager = $this->createMock(GamificationManagerInterface::class);
         $this->em = $this->createMock(EntityManagerInterface::class);
-        $processedEvents = $this->createMock(\App\Repository\ProcessedGamificationEventRepository::class);
+        $this->em->method('wrapInTransaction')
+            ->willReturnCallback(fn (callable $callback) => $callback($this->em));
+        $processedEvents = $this->createMock(ProcessedGamificationEventRepository::class);
         $processedEvents->method('claim')
             ->willReturn(true);
         $this->handler = new GameGamificationHandler(
@@ -44,7 +48,7 @@ final class GameGamificationHandlerTest extends TestCase
             $this->manager,
             $this->em,
             $processedEvents,
-            new \Psr\Log\NullLogger(),
+            new NullLogger(),
         );
     }
 
@@ -62,13 +66,12 @@ final class GameGamificationHandlerTest extends TestCase
 
     public function testCreatesProgressionWhenNull(): void
     {
-        $user = $this->createMock(Users::class);
+        $user = $this->createStub(Users::class);
         $this->usersRepo->method('find')
             ->willReturn($user);
         $this->sessionRepo->method('countFinishedByUser')
             ->willReturn(1);
 
-        // Progression creation is now delegated to the manager.
         $this->manager->expects(self::once())
             ->method('getOrCreateProgression')
             ->with($user)
@@ -82,7 +85,7 @@ final class GameGamificationHandlerTest extends TestCase
     public function testUsesIdempotentCountFromDatabase(): void
     {
         $progression = new UserProgression();
-        $user = $this->createMock(Users::class);
+        $user = $this->createStub(Users::class);
         $this->manager->method('getOrCreateProgression')
             ->willReturn($progression);
         $this->usersRepo->method('find')
@@ -95,7 +98,7 @@ final class GameGamificationHandlerTest extends TestCase
 
         $this->manager->expects(self::once())
             ->method('process')
-            ->with($progression, 'game_completed', self::callback(fn (array $ctx) => 5 === $ctx['gamesCompleted']));
+            ->with($progression, 'game_completed', self::callback(fn (array $ctx): bool => $ctx['gamesCompleted'] === 5));
 
         ($this->handler)(new GameCompletedEvent(1, 1, 'qcm', 7, 10, 21));
     }
@@ -103,7 +106,7 @@ final class GameGamificationHandlerTest extends TestCase
     public function testForwardsAllEventDataInContext(): void
     {
         $progression = new UserProgression();
-        $user = $this->createMock(Users::class);
+        $user = $this->createStub(Users::class);
         $this->manager->method('getOrCreateProgression')
             ->willReturn($progression);
         $this->usersRepo->method('find')
@@ -119,10 +122,9 @@ final class GameGamificationHandlerTest extends TestCase
                 [
                     'xpEarned' => 42,
                     'gamesCompleted' => 3,
-                    'gameMode' => 'qcm', // string, not enum
+                    'gameMode' => 'qcm',
                     'correctAnswers' => 7,
                     'totalQuestions' => 10,
-                    // `score` mirrors `xpEarned` so GameScoreThresholdEvaluator has a value to test against.
                     'score' => 42,
                 ]
             );

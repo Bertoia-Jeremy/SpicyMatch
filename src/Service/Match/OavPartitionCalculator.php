@@ -7,26 +7,10 @@ namespace App\Service\Match;
 use App\Entity\CompoundPhysical;
 use App\ValueObject\Match\CulinaryContext;
 
-/**
- * OAV efficace sous contexte culinaire : partition Nernst (eau/huile) × décroissance thermique.
- *
- *  Nernst : C_water = C_total / (K_ow·φ_oil + φ_water), C_oil = K_ow·C_water.
- *  Decay  : k(T) nul sous T_inert, max au bp, linéaire entre. C(t) = C0·exp(-k(T)·t).
- *
- * effectiveOav() = calcul absolu (concentration brute). correctionFactor() = facteur ×
- * appliqué à un OAV précalculé (MatchPipeline + shadow table).
- */
 final readonly class OavPartitionCalculator
 {
-    /**
-     * Calibration empirique : monoterpènes (limonène, linalol) bouillis 30 min ≈ 5 % rétention
-     * → exp(-0.1 × 30) ≈ 0.05. Domaine : cuisson conventionnelle, ≤ 1 atm.
-     */
     private const float K_AT_BOILING = 0.1;
 
-    /**
-     * Sous 50 °C, évaporation négligée pour les arômes culinaires (Henry, vapor pressure).
-     */
     private const int T_INERT_CELSIUS = 50;
 
     public function needsCorrection(CulinaryContext $ctx): bool
@@ -36,16 +20,13 @@ final readonly class OavPartitionCalculator
 
     public function correctionFactor(?CompoundPhysical $physical, CulinaryContext $ctx): float
     {
-        if (null === $physical) {
+        if ($physical === null) {
             return 1.0;
         }
 
         return $this->partitionFactor($physical, $ctx) * $this->decayFactor($physical, $ctx);
     }
 
-    /**
-     * Null si ODT manquant (≤ 0). 0.0 si concentration nulle.
-     */
     public function effectiveOav(
         ?CompoundPhysical $physical,
         float $concentrationPpm,
@@ -60,7 +41,7 @@ final readonly class OavPartitionCalculator
             return 0.0;
         }
 
-        if (null === $physical) {
+        if ($physical === null) {
             return $concentrationPpm / $odtPpm;
         }
 
@@ -70,7 +51,7 @@ final readonly class OavPartitionCalculator
     private function partitionFactor(CompoundPhysical $physical, CulinaryContext $ctx): float
     {
         $kOw = $physical->octanolWaterPartition();
-        if (null === $kOw) {
+        if ($kOw === null) {
             return 1.0;
         }
 
@@ -85,7 +66,7 @@ final readonly class OavPartitionCalculator
         }
 
         $bp = $physical->getBoilingPointCelsius();
-        if (null === $bp || $ctx->temperatureCelsius <= self::T_INERT_CELSIUS) {
+        if ($bp === null || $ctx->temperatureCelsius <= self::T_INERT_CELSIUS) {
             return 1.0;
         }
 

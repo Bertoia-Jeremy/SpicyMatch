@@ -1,11 +1,6 @@
-{# ═══════════════════════════════════════════════════════
-   Chapitre III — Le Labo Culinaire
-   3 fiches vintage + mur de citations épinglées
-   ═══════════════════════════════════════════════════════ #}
 
 <section id="labo" class="home-section" style="background: var(--color-cream)">
 
-    {# Section header #}
     <div class="section-head">
         <div>
             <div class="section-label">{{ 'ui.labo.chapter'|trans }}</div>
@@ -21,7 +16,6 @@
 
     <div class="labo-grid">
 
-        {# ── Fiche I : Torréfaction ── #}
         <article class="recipe-card">
             <div class="flex justify-between items-start mb-5 relative z-[1]">
                 <div class="recipe-num">{{ 'ui.labo.fiche1'|trans|raw }}</div>
@@ -89,7 +83,6 @@
             </div>
         </article>
 
-        {# ── Fiche II : Infusion ── #}
         <article class="recipe-card">
             <div class="flex justify-between items-start mb-5 relative z-[1]">
                 <div class="recipe-num">{{ 'ui.labo.fiche2'|trans|raw }}</div>
@@ -166,7 +159,6 @@
             </div>
         </article>
 
-        {# ── Fiche III : Pilonage ── #}
         <article class="recipe-card">
             <div class="flex justify-between items-start mb-5 relative z-[1]">
                 <div class="recipe-num">{{ 'ui.labo.fiche3'|trans|raw }}</div>
@@ -253,11 +245,9 @@
 
     </div>
 
-    {# ── Mur de citations ── #}
     <div class="quotes-wrap">
         <div class="quotes-head">
             <h3>{{ 'ui.labo.quotes_head'|trans }}</h3>
-            {# Boutons décoratifs — pas de JS pour l'instant #}
             <div class="flex gap-[10px]" aria-hidden="true">
                 <button type="button"
                         class="w-[42px] h-[42px] rounded-full flex items-center justify-center cursor-default"

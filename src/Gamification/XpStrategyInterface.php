@@ -9,9 +9,6 @@ use App\Entity\UserProgression;
 interface XpStrategyInterface
 {
     /**
-     * Calculate XP to award for the given event context.
-     * Returns 0 if this strategy has nothing to award.
-     *
      * @param array<string, mixed> $context
      */
     public function calculate(UserProgression $progression, array $context): int;

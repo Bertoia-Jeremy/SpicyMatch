@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\SpiceView;
+use App\Entity\SpicyMatchHistory;
 use App\Entity\UserAchievement;
+use App\Entity\UserProgression;
 use App\Entity\Users;
+use App\Entity\UserStat;
 use App\Enum\GameDifficulty;
 use App\Form\ChangePasswordType;
 use App\Form\UsersMailType;
@@ -23,7 +27,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -45,31 +50,22 @@ class UsersController extends AbstractController
     }
 
     #[Route('/', name: 'dashboard_user', methods: ['GET'])]
-    public function index(): Response
+    public function index(#[CurrentUser] Users $user): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
         return $this->render('users/dashboard.html.twig', [
             'progression' => $user->getProgression(),
         ]);
     }
 
-    /**
-     * RGPD article 20 — data portability.
-     * Returns a JSON download of everything we hold on the current user.
-     */
     #[Route('/export', name: 'export_user_data', methods: ['GET'])]
-    public function exportData(): JsonResponse
+    public function exportData(#[CurrentUser] Users $user): JsonResponse
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
         $progression = $user->getProgression();
         $stats = $user->getStats();
 
         $payload = [
-            'exportedAt' => (new \DateTimeImmutable())->format(\DATE_ATOM),
+            'exportedAt' => new \DateTimeImmutable()
+                ->format(\DATE_ATOM),
             'account' => [
                 'username' => $user->getUsername(),
                 'email' => $user->getMail(),
@@ -77,7 +73,7 @@ class UsersController extends AbstractController
                 'createdAt' => $user->getCreatedAt()?->format(\DATE_ATOM),
                 'lastLoginAt' => $user->getLastLoginAt()?->format(\DATE_ATOM),
             ],
-            'progression' => null === $progression ? null : [
+            'progression' => $progression instanceof UserProgression ? [
                 'xp' => $progression->getXp(),
                 'level' => $progression->getLevel(),
                 'totalMatches' => $progression->getTotalMatches(),
@@ -87,26 +83,26 @@ class UsersController extends AbstractController
                 'longestReadingStreak' => $progression->getLongestReadingStreak(),
                 'discoveries' => $progression->getDiscoveries(),
                 'gamificationEnabled' => $progression->isGamificationEnabled(),
-            ],
-            'stats' => null === $stats ? null : [
+            ] : null,
+            'stats' => $stats instanceof UserStat ? [
                 'easterEggsFound' => $stats->getEasterEggsFound(),
                 'foundEggSlugs' => $stats->getFoundEggSlugs(),
                 'visitedAromaticGroups' => $stats->getVisitedAromaticGroups(),
                 'totalActions' => $stats->totalActions,
-            ],
+            ] : null,
             'achievements' => array_map(
-                static fn ($ua) => [
+                static fn ($ua): array => [
                     'slug' => $ua->getAchievement()?->getSlug(),
                     'name' => $ua->getAchievement()?->getName(),
                     'unlockedAt' => $ua->getUnlockedAt()
                         ->format(\DATE_ATOM),
                 ],
-                null !== $progression
+                $progression instanceof UserProgression
                     ? $this->userAchievementRepository->findByProgressionWithAchievement($progression)
                     : [],
             ),
             'matchHistory' => array_map(
-                static fn ($h) => [
+                static fn (SpicyMatchHistory $h): array => [
                     'id' => $h->getId(),
                     'title' => $h->getTitle(),
                     'favorite' => $h->isFavorite(),
@@ -118,7 +114,7 @@ class UsersController extends AbstractController
                 ]),
             ),
             'spicesRead' => array_map(
-                static fn ($sv) => [
+                static fn (SpiceView $sv): array => [
                     'spiceId' => $sv->getSpice()?->getId(),
                     'spiceName' => $sv->getSpice()?->getName(),
                     'viewedDay' => $sv->getViewedDay()
@@ -148,11 +144,8 @@ class UsersController extends AbstractController
     }
 
     #[Route('/userMail', name: 'mail_user', methods: ['GET', 'POST'])]
-    public function userMail(Request $request): Response
+    public function userMail(Request $request, #[CurrentUser] Users $user): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
         $formMail = $this->createForm(UsersMailType::class, $user, [
             'action' => $this->generateUrl('mail_user'),
         ]);
@@ -174,9 +167,9 @@ class UsersController extends AbstractController
         Request $request,
         UserPasswordHasherInterface $hasher,
         EntityManagerInterface $em,
+        #[CurrentUser]
+        Users $user,
     ): Response {
-        /** @var Users $user */
-        $user = $this->getUser();
         $form = $this->createForm(ChangePasswordType::class, null, [
             'action' => $this->generateUrl('change_password_user'),
         ]);
@@ -203,13 +196,13 @@ class UsersController extends AbstractController
     ): Response {
         $edit = in_array($edit, ['mail', 'password'], true) ? $edit : null;
 
-        if ('mail' === $edit && null === $mailForm) {
+        if ($edit === 'mail' && ! $mailForm instanceof FormInterface) {
             $mailForm = $this->createForm(UsersMailType::class, $user, [
                 'action' => $this->generateUrl('mail_user'),
             ]);
         }
 
-        if ('password' === $edit && null === $passwordForm) {
+        if ($edit === 'password' && ! $passwordForm instanceof FormInterface) {
             $passwordForm = $this->createForm(ChangePasswordType::class, null, [
                 'action' => $this->generateUrl('change_password_user'),
             ]);
@@ -236,15 +229,12 @@ class UsersController extends AbstractController
         ]);
     }
 
-    #[Route('/profile/tab/{tab}', name: 'profile_tab', methods: ['GET'], requirements: [
+    #[Route('/profile/tab/{tab}', name: 'profile_tab', requirements: [
         'tab' => 'dashboard|grimoire|history|lab',
-    ])]
-    public function profileTab(string $tab, Request $request, PaginatorInterface $paginator): Response
+    ], methods: ['GET'])]
+    public function profileTab(string $tab, Request $request, PaginatorInterface $paginator, #[CurrentUser] Users $user): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
-        if ('lab' === $tab) {
+        if ($tab === 'lab') {
             return $this->renderLabFragment($user, $request->query->getString('edit') ?: null);
         }
 
@@ -265,7 +255,7 @@ class UsersController extends AbstractController
             default => throw $this->createNotFoundException(),
         };
 
-        return $this->render('users/tabs/_'.$tab.'.html.twig', $data);
+        return $this->render('users/tabs/_' . $tab . '.html.twig', $data);
     }
 
     /**
@@ -278,7 +268,7 @@ class UsersController extends AbstractController
         $progressByAchievementId = [];
         foreach ($this->achievementProgressRepository->findByUser($user) as $ap) {
             $achievement = $ap->getAchievement();
-            if (null !== $achievement && null !== $achievement->getId()) {
+            if ($achievement !== null && $achievement->getId() !== null) {
                 $progressByAchievementId[$achievement->getId()] = $ap;
             }
         }
@@ -286,7 +276,7 @@ class UsersController extends AbstractController
         return [
             'progression' => $progression,
             'allAchievements' => $this->achievementRepository->findAllOrdered(),
-            'userAchievements' => $progression
+            'userAchievements' => $progression instanceof UserProgression
                 ? $this->userAchievementRepository->findByProgressionWithAchievement($progression)
                 : [],
             'progressByAchievementId' => $progressByAchievementId,
@@ -316,7 +306,7 @@ class UsersController extends AbstractController
     }
 
     #[Route('/gamification/toggle', name: 'toggle_gamification_user', methods: ['POST'])]
-    public function toggleGamification(Request $request, EntityManagerInterface $em): Response
+    public function toggleGamification(Request $request, EntityManagerInterface $em, #[CurrentUser] Users $user): Response
     {
         if (! $this->isCsrfTokenValid('toggle_gamification', $request->request->get('_token'))) {
             $this->addFlash('error', $this->translator->trans('flash.token_invalid'));
@@ -326,11 +316,9 @@ class UsersController extends AbstractController
             ]);
         }
 
-        /** @var Users $user */
-        $user = $this->getUser();
         $progression = $user->getProgression();
 
-        if (null !== $progression) {
+        if ($progression instanceof UserProgression) {
             $progression->isGamificationEnabled()
                 ? $progression->disableGamification()
                 : $progression->enableGamification();
@@ -347,7 +335,7 @@ class UsersController extends AbstractController
     }
 
     #[Route('/difficulty/update', name: 'update_difficulty_user', methods: ['POST'])]
-    public function updateDifficulty(Request $request, EntityManagerInterface $em): Response
+    public function updateDifficulty(Request $request, EntityManagerInterface $em, #[CurrentUser] Users $user): Response
     {
         if (! $this->isCsrfTokenValid('update_difficulty', $request->request->get('_token'))) {
             $this->addFlash('error', $this->translator->trans('flash.token_invalid'));
@@ -359,7 +347,7 @@ class UsersController extends AbstractController
 
         $difficulty = GameDifficulty::tryFrom($request->request->getString('difficulty'));
 
-        if (null === $difficulty) {
+        if ($difficulty === null) {
             $this->addFlash('error', $this->translator->trans('flash.difficulty_invalid'));
 
             return $this->redirectToRoute('profile_user', [
@@ -367,8 +355,6 @@ class UsersController extends AbstractController
             ]);
         }
 
-        /** @var Users $user */
-        $user = $this->getUser();
         $user->setPreferredDifficulty($difficulty);
         $em->flush();
 
@@ -380,13 +366,11 @@ class UsersController extends AbstractController
     }
 
     #[Route('/badge/equip/{id}', name: 'equip_badge_user', methods: ['POST'])]
-    public function equipBadge(Request $request, UserAchievement $ua, EntityManagerInterface $em): Response
+    public function equipBadge(Request $request, UserAchievement $ua, EntityManagerInterface $em, #[CurrentUser] Users $user): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
         $progression = $user->getProgression();
 
-        if (! $this->isCsrfTokenValid('equip_badge_'.$ua->getId(), $request->request->get('_token'))) {
+        if (! $this->isCsrfTokenValid('equip_badge_' . $ua->getId(), $request->request->get('_token'))) {
             $this->addFlash('error', $this->translator->trans('flash.token_invalid'));
 
             return $this->redirectToRoute('profile_user', [
@@ -394,7 +378,7 @@ class UsersController extends AbstractController
             ]);
         }
 
-        if (null === $progression || $ua->getUserProgression() !== $progression) {
+        if (! $progression instanceof UserProgression || $ua->getUserProgression() !== $progression) {
             throw $this->createAccessDeniedException();
         }
 
@@ -413,7 +397,7 @@ class UsersController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
-        if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $user->getId(), $request->request->get('_token'))) {
             $user->setDeletedAt(new \DateTimeImmutable());
             $entityManager->persist($user);
             $entityManager->flush();

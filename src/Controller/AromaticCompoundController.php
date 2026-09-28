@@ -9,7 +9,7 @@ use App\Repository\AromaticCompoundRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/{_locale}/epices/composes_aromatiques', defaults: [
     '_locale' => 'fr',
@@ -31,7 +31,7 @@ class AromaticCompoundController extends AbstractController
     {
         $locale = $request->getLocale();
         $aromaticCompound = $repository->findOneByLocalizedSlug($slug, $locale);
-        if (null === $aromaticCompound) {
+        if ($aromaticCompound === null) {
             throw $this->createNotFoundException();
         }
 

@@ -9,10 +9,6 @@ use App\Repository\AchievementTranslationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * Traduction localisée d'un succès (Achievement). Une ligne par (succès, locale).
- * slug / icon / enums restent invariants sur Achievement.
- */
 #[ORM\Entity(repositoryClass: AchievementTranslationRepository::class)]
 #[ORM\Table(name: 'achievement_translation')]
 #[ORM\UniqueConstraint(name: 'uniq_achievement_locale', columns: ['achievement_id', 'locale'])]

@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Controller\Api;
 
 use App\Enum\OdtMatrix;
+use App\Enum\PairingAffinity;
+use App\Enum\ScoringMode;
 use App\Exception\Match\InvalidMortarException;
 use App\Repository\SpicesRepository;
+use App\Service\Match\FlavorGraphHybridizerInterface;
 use App\Service\Match\MatchConfidenceAssessorInterface;
 use App\Service\Match\MatchPipelineInterface;
 use App\ValueObject\Match\CulinaryContext;
@@ -19,36 +22,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 
-/**
- * Endpoint GET /api/match — Moteur de compatibilité aromatique.
- *
- * Paramètres :
- *   ?spices=id1,id2,…   (1 à 10 IDs d'épices, virgule-séparés)
- *   ?limit=20            (optionnel, défaut 20, max 100)
- *   ?matrix=air          (optionnel, défaut "air" ; valeurs : air|water|oil)
- *   ?fat=0.5             (optionnel, fraction grasse ∈ [0, 1] ; défaut 0)
- *   ?water=0.5           (optionnel, fraction aqueuse ∈ [0, 1] ; défaut 1-fat)
- *   ?cooking_time=30     (optionnel, minutes ≥ 0 ; défaut 0)
- *   ?temperature=100     (optionnel, °C ; défaut 20)
- *
- * Réponse 200 :
- * {
- *   "mortar": [1, 2],
- *   "results": [{ "id": 14, "name": "Marjolaine", "score": 87 }, …],
- *   "oav_mode": true,
- *   "matrix": "air",
- *   "fat_ratio": 0.0,
- *   "water_ratio": 1.0,
- *   "cooking_time_min": 0,
- *   "temperature_celsius": 20,
- *   "count": 1
- * }
- *
- * Rate limit : 30 req/min par IP (sliding window).
- * Accès : PUBLIC_ACCESS — déclaré explicitement dans security.yaml.
- *
- * @see ARCHITECTURE_MOTEUR_COMPATIBILITE.md §4.1
- */
 #[Route('/api/match', name: 'api_match', methods: ['GET'])]
 final class MatchController extends AbstractController
 {
@@ -56,6 +29,7 @@ final class MatchController extends AbstractController
         private readonly MatchPipelineInterface $matchPipeline,
         private readonly SpicesRepository $spicesRepository,
         private readonly MatchConfidenceAssessorInterface $confidenceAssessor,
+        private readonly FlavorGraphHybridizerInterface $hybridizer,
         #[Autowire(service: 'limiter.match_api')]
         private readonly RateLimiterFactory $matchApiLimiter,
     ) {
@@ -63,11 +37,8 @@ final class MatchController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        // Rate limiting : 30 req/min par IP (endpoint public, calcul SQL lourd).
-        // getClientIp() peut retourner null si trusted_proxies n'est pas configuré.
-        // Fallback 'unknown' partagerait un seul bucket entre tous les clients → DoS trivial.
         $clientIp = $request->getClientIp();
-        if (null === $clientIp) {
+        if ($clientIp === null) {
             return $this->json(
                 [
                     'error' => 'Impossible de déterminer l\'adresse IP du client.',
@@ -76,7 +47,7 @@ final class MatchController extends AbstractController
             );
         }
 
-        $limiter = $this->matchApiLimiter->create('ip:'.$clientIp);
+        $limiter = $this->matchApiLimiter->create('ip:' . $clientIp);
         $rateLimit = $limiter->consume();
 
         if (! $rateLimit->isAccepted()) {
@@ -84,7 +55,7 @@ final class MatchController extends AbstractController
 
             return $this->json(
                 [
-                    'error' => 'Trop de requêtes. Réessayer dans '.$retryAfter.' secondes.',
+                    'error' => 'Trop de requêtes. Réessayer dans ' . $retryAfter . ' secondes.',
                 ],
                 Response::HTTP_TOO_MANY_REQUESTS,
                 [
@@ -93,16 +64,14 @@ final class MatchController extends AbstractController
             );
         }
 
-        // Validation du paramètre obligatoire
         $spicesParam = trim($request->query->getString('spices'));
 
-        if ('' === $spicesParam) {
+        if ($spicesParam === '') {
             return $this->json([
                 'error' => 'Le paramètre "spices" est requis (IDs virgule-séparés).',
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        // Parsing puis validation domaine via MortarIds (count ∈ [1,10], IDs > 0, dédup).
         $parsedIds = array_map(static fn (string $id) => (int) trim($id), explode(',', $spicesParam));
 
         try {
@@ -115,7 +84,6 @@ final class MatchController extends AbstractController
 
         $limit = max(1, min(100, $request->query->getInt('limit', 20)));
 
-        // Contexte culinaire : fat ∈ [0,1] (water auto = 1-fat si absent), cooking_time min ≥ 0, temperature °C.
         $matrixRaw = $request->query->getString('matrix', 'air');
 
         try {
@@ -126,8 +94,6 @@ final class MatchController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        // Validation is_numeric + is_finite AVANT cast : (float)"1e308" → INF échappe sinon.
-        // Bornes : constantes publiques de CulinaryContext (partagées API + UI + VO).
         $hasFat = $request->query->has('fat');
         $hasWater = $request->query->has('water');
 
@@ -200,31 +166,29 @@ final class MatchController extends AbstractController
             $culinaryContext = new CulinaryContext($matrix, $fatRatio, $waterRatio, $cookingTime, $temperature);
         } catch (\InvalidArgumentException $e) {
             return $this->json([
-                'error' => 'Paramètres culinaires invalides : '.$e->getMessage(),
+                'error' => 'Paramètres culinaires invalides : ' . $e->getMessage(),
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        // Vérification que les épices du mortier existent et ne sont pas soft-deletées
         $mortarSpices = array_filter(
             $this->spicesRepository->findBy([
                 'id' => $mortar->toArray(),
             ]),
-            static fn ($s) => null === $s->getDeletedAt(),
+            static fn ($s) => $s->getDeletedAt() === null,
         );
         $foundIds = array_map(static fn ($s) => $s->getId(), $mortarSpices);
         $missingIds = array_diff($mortar->toArray(), $foundIds);
 
-        if ([] !== $missingIds) {
-            // Message générique — ne pas exposer quels IDs existent ou non (info disclosure)
+        if ($missingIds !== []) {
             return $this->json([
                 'error' => 'Une ou plusieurs épices sont introuvables.',
             ], Response::HTTP_NOT_FOUND);
         }
 
-        // Exécution du pipeline avec le contexte culinaire (matrice ODT)
-        $pipelineResults = $this->matchPipeline->run($mortar, $limit, $culinaryContext);
+        $confidence = $this->confidenceAssessor->assess($mortar, $culinaryContext->matrix);
 
-        // Enrichissement avec les noms d'épices — DQL scalaire (pas d'hydratation entité)
+        $pipelineResults = $this->matchPipeline->run($mortar, $limit, $culinaryContext, $confidence);
+
         $candidateIds = array_column($pipelineResults, 'id');
         $nameMap = $this->spicesRepository->findNamesById($candidateIds, $request->getLocale());
 
@@ -233,19 +197,19 @@ final class MatchController extends AbstractController
                 'id' => $row['id'],
                 'name' => $nameMap[$row['id']] ?? null,
                 'score' => $row['score'],
+                'affinity' => PairingAffinity::fromScore($row['score'] / 100.0)->value,
             ],
             $pipelineResults
         );
 
-        $oavMode = [] !== $pipelineResults && $pipelineResults[0]['oav_mode'];
-
-        // Confiance globale = maillon le plus faible parmi les données contributrices.
-        $confidence = $this->confidenceAssessor->assess($mortar, $culinaryContext->matrix);
+        $oavMode = $pipelineResults !== [] && $pipelineResults[0]['oav_mode'];
+        $scoringMode = ScoringMode::resolve($oavMode, $this->hybridizer->isActive());
 
         return $this->json([
             'mortar' => $mortar->toArray(),
             'results' => $results,
             'oav_mode' => $oavMode,
+            'scoring_mode' => $scoringMode->value,
             'matrix' => $culinaryContext->matrix->value,
             'fat_ratio' => $culinaryContext->fatRatio,
             'water_ratio' => $culinaryContext->waterRatio,
@@ -253,6 +217,7 @@ final class MatchController extends AbstractController
             'temperature_celsius' => $culinaryContext->temperatureCelsius,
             'confidence' => $confidence->value,
             'confidence_tier' => $confidence->tier(),
+            'flavorgraph_mode' => $this->hybridizer->isActive(),
             'count' => count($results),
         ]);
     }

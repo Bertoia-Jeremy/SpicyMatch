@@ -8,6 +8,7 @@ use App\Entity\Achievement;
 use App\Enum\AchievementTrigger;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use SortDirection;
 
 /**
  * @extends ServiceEntityRepository<Achievement>
@@ -15,9 +16,6 @@ use Doctrine\Persistence\ManagerRegistry;
 class AchievementRepository extends ServiceEntityRepository
 {
     /**
-     * Per-request cache: avoids N+1 when the same trigger is fetched multiple times
-     * in one HTTP request (e.g. GamificationManager + AchievementChecker).
-     *
      * @var array<string, Achievement[]>|null
      */
     private ?array $enabledByTrigger = null;
@@ -32,7 +30,7 @@ class AchievementRepository extends ServiceEntityRepository
      */
     public function findByTrigger(AchievementTrigger $trigger): array
     {
-        if (null === $this->enabledByTrigger || $this->cacheIsDetached()) {
+        if ($this->enabledByTrigger === null || $this->cacheIsDetached()) {
             $this->warmEnabledCache();
         }
 
@@ -51,10 +49,6 @@ class AchievementRepository extends ServiceEntityRepository
         return false;
     }
 
-    /**
-     * Prime the per-request cache with all enabled achievements, grouped by trigger.
-     * One SELECT instead of N (one per trigger).
-     */
     private function warmEnabledCache(): void
     {
         $all = $this->createQueryBuilder('a')
@@ -72,9 +66,6 @@ class AchievementRepository extends ServiceEntityRepository
         $this->enabledByTrigger = $byTrigger;
     }
 
-    /**
-     * Force cache invalidation (used after admin mutation via CRUD).
-     */
     public function resetEnabledCache(): void
     {
         $this->enabledByTrigger = null;
@@ -86,8 +77,8 @@ class AchievementRepository extends ServiceEntityRepository
     public function findAllOrdered(): array
     {
         return $this->createQueryBuilder('a')
-            ->orderBy('a.rarity', 'ASC')
-            ->addOrderBy('a.triggerValue', 'ASC')
+            ->orderBy('a.rarity', SortDirection::Ascending)
+            ->addOrderBy('a.triggerValue', SortDirection::Ascending)
             ->getQuery()
             ->getResult()
         ;

@@ -1,0 +1,65 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.onboarding_stats.page_title'|trans({}, 'admin') }}{% endblock %}
+
+{% block body %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <h1 class="text-3xl font-bold text-stone-800 mb-2">{{ 'admin.onboarding_stats.title'|trans({}, 'admin') }}</h1>
+    <p class="text-stone-600 mb-8">{{ 'admin.onboarding_stats.intro'|trans({}, 'admin') }}</p>
+
+    {% if completionByStep is empty %}
+        <p class="text-stone-500 italic">{{ 'admin.stats.no_data'|trans({}, 'admin') }}</p>
+    {% else %}
+        <section class="mb-10">
+            <div class="bg-white rounded-2xl border border-stone-200 p-6 mb-6">
+                <canvas id="chartOnboarding" height="100"></canvas>
+            </div>
+            <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead class="bg-cream border-b border-stone-200 text-left">
+                        <tr>
+                            <th class="px-4 py-2">{{ 'admin.onboarding_stats.col_step'|trans({}, 'admin') }}</th>
+                            <th class="px-4 py-2">{{ 'admin.onboarding_stats.col_seen'|trans({}, 'admin') }}</th>
+                            <th class="px-4 py-2">{{ 'admin.onboarding_stats.col_rate'|trans({}, 'admin') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for step, data in completionByStep %}
+                        <tr class="border-b border-stone-100">
+                            <td class="px-4 py-2 font-medium text-stone-800">{{ step }}</td>
+                            <td class="px-4 py-2 text-stone-700">{{ data.seen }}</td>
+                            <td class="px-4 py-2 text-paprika-600 font-semibold">{{ data.rate }}%</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
+</div>
+
+{% set jsonSafeFlags = constant('JSON_HEX_TAG') b-or constant('JSON_HEX_AMP') b-or constant('JSON_HEX_APOS') b-or constant('JSON_HEX_QUOT') %}
+<script type="application/json" id="stats-onboarding">{{ completionByStep|json_encode(jsonSafeFlags)|raw }}</script>
+
+<script nonce="{{ csp_nonce('script') }}" src="{{ asset('lib/chartjs/chart.umd.min.js') }}"></script>
+<script nonce="{{ csp_nonce('script') }}">
+(() => {
+    const data = JSON.parse(document.getElementById('stats-onboarding').textContent);
+    const keys = Object.keys(data);
+    if (keys.length) {
+        new Chart(document.getElementById('chartOnboarding'), {
+            type: 'bar',
+            data: {
+                labels: keys,
+                datasets: [{
+                    label: 'Taux de complétion (%)',
+                    data: keys.map(k => data[k].rate),
+                    backgroundColor: '#f59e0b',
+                }],
+            },
+            options: { scales: { y: { beginAtZero: true, max: 100 } } },
+        });
+    }
+})();
+</script>
+{% endblock %}

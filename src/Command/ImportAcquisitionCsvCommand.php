@@ -7,6 +7,7 @@ namespace App\Command;
 use App\Entity\AromaticCompound;
 use App\Entity\CompoundOdt;
 use App\Entity\SpiceCompoundConcentration;
+use App\Entity\Spices;
 use App\Enum\DataConfidence;
 use App\Enum\OdtMatrix;
 use App\Repository\AromaticCompoundRepository;
@@ -21,19 +22,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
-/**
- * Ingère la feuille maître d'acquisition (CSV consolidé, 1 ligne par épice × composé)
- * directement en base. Contrairement aux imports YAML, cette commande CRÉE les composés
- * manquants (nom + CAS + formule) — la donnée reste privée dans data/acquisition/ (gitignoré).
- *
- * Colonnes : spice_name, compound_name, cas_number, formula, concentration_ppm,
- * concentration_source, concentration_confidence, log_p, boiling_point_celsius,
- * vapor_pressure_pa, physical_source, odt_air_ppm, odt_water_ppm, odt_oil_ppm,
- * odt_confidence, odt_source, notes.
- *
- * Matching épice/composé par nom exact. Idempotent (upsert). La couche physico-chimique
- * (logP/bp/vp) reste déléguée à app:fetch:physical (PubChem) : ignorée ici.
- */
 #[AsCommand(
     name: 'app:import:acquisition-csv',
     description: 'Ingère data/acquisition/*.csv en base (crée composés + concentrations + ODT).',
@@ -41,6 +29,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 final class ImportAcquisitionCsvCommand extends Command
 {
     private const string DEFAULT_FILE = 'data/acquisition/acquisition_master.csv';
+
     private const int MAX_FILE_SIZE = 10 * 1024 * 1024;
 
     public function __construct(
@@ -48,7 +37,7 @@ final class ImportAcquisitionCsvCommand extends Command
         private readonly AromaticCompoundRepository $aromaticCompoundRepository,
         private readonly CompoundOdtRepository $compoundOdtRepository,
         private readonly EntityManagerInterface $em,
-        #[Autowire('%kernel.project_dir%')]
+        #[Autowire(param: 'kernel.project_dir')]
         private readonly string $projectDir,
     ) {
         parent::__construct();
@@ -75,31 +64,33 @@ final class ImportAcquisitionCsvCommand extends Command
         $file = $input->getOption('file');
         $dryRun = (bool) $input->getOption('dry-run');
 
-        $resolvedPath = realpath($file) ?: realpath($this->projectDir.'/'.ltrim($file, '/'));
-        $allowedDir = realpath($this->projectDir.'/data/acquisition');
+        $resolvedPath = realpath($file) ?: realpath($this->projectDir . '/' . ltrim($file, '/'));
+        $allowedDir = realpath($this->projectDir . '/data/acquisition');
 
-        if (false === $resolvedPath || false === $allowedDir || ! str_starts_with($resolvedPath, $allowedDir.'/')) {
+        if ($resolvedPath === false || $allowedDir === false || ! str_starts_with($resolvedPath, $allowedDir . '/')) {
             $io->error(\sprintf('Le fichier "%s" doit se trouver dans data/acquisition/.', $file));
 
             return Command::FAILURE;
         }
 
         $size = filesize($resolvedPath);
-        if (false === $size || $size > self::MAX_FILE_SIZE) {
+        if ($size === false || $size > self::MAX_FILE_SIZE) {
             $io->error('Fichier trop volumineux (max 10 Mo).');
 
             return Command::FAILURE;
         }
 
         $handle = fopen($resolvedPath, 'r');
-        if (false === $handle) {
+        if ($handle === false) {
             $io->error('Lecture impossible.');
 
             return Command::FAILURE;
         }
 
         $io->title(\sprintf('Import acquisition CSV depuis %s', $resolvedPath));
-        $dryRun && $io->warning('Mode DRY-RUN : aucune écriture en BDD.');
+        if ($dryRun) {
+            $io->warning('Mode DRY-RUN : aucune écriture en BDD.');
+        }
 
         $stats = [
             'compounds_created' => 0,
@@ -110,12 +101,12 @@ final class ImportAcquisitionCsvCommand extends Command
 
         /** @var array<string, AromaticCompound> $compoundCache */
         $compoundCache = [];
-        /** @var array<string, \App\Entity\Spices|null> $spiceCache */
+        /** @var array<string, Spices|null> $spiceCache */
         $spiceCache = [];
 
         $header = fgetcsv($handle, escape: '\\');
         if (\is_array($header) && isset($header[0])) {
-            $header[0] = str_replace("\u{FEFF}", '', (string) $header[0]); // strip BOM
+            $header[0] = str_replace("\u{FEFF}", '', (string) $header[0]);
         }
 
         while (($row = fgetcsv($handle, escape: '\\')) !== false) {
@@ -123,15 +114,15 @@ final class ImportAcquisitionCsvCommand extends Command
                 continue;
             }
 
-            $spiceName = trim((string) ($row[0] ?? ''));
-            $compoundName = trim((string) ($row[1] ?? ''));
-            if ('' === $spiceName || '' === $compoundName) {
+            $spiceName = trim($row[0] ?? '');
+            $compoundName = trim($row[1] ?? '');
+            if ($spiceName === '' || $compoundName === '') {
                 ++$stats['skipped'];
                 continue;
             }
 
-            $cas = trim((string) ($row[2] ?? '')) ?: null;
-            $formula = trim((string) ($row[3] ?? '')) ?: null;
+            $cas = trim($row[2] ?? '') ?: null;
+            $formula = trim($row[3] ?? '') ?: null;
 
             $compound = $compoundCache[$compoundName] ??= $this->resolveCompound(
                 $compoundName,
@@ -145,7 +136,7 @@ final class ImportAcquisitionCsvCommand extends Command
             $spice = $spiceCache[$spiceName] ??= $this->spicesRepository->findOneBy([
                 'name' => $spiceName,
             ]);
-            if (null === $spice) {
+            if ($spice === null) {
                 $io->warning(\sprintf('Épice "%s" introuvable — ligne ignorée.', $spiceName));
                 ++$stats['skipped'];
                 continue;
@@ -169,7 +160,7 @@ final class ImportAcquisitionCsvCommand extends Command
             $stats['skipped'],
             $dryRun ? ' (dry-run)' : '',
         ));
-        $io->note('Penser à : app:fetch:physical (logP) puis app:recompute:oav --sync.');
+        $io->note('Penser à : app:fetch:pubchem (logP) puis app:recompute:oav --sync.');
 
         return Command::SUCCESS;
     }
@@ -188,7 +179,7 @@ final class ImportAcquisitionCsvCommand extends Command
         $existing = $this->aromaticCompoundRepository->findOneBy([
             'name' => $name,
         ]);
-        if (null !== $existing) {
+        if ($existing !== null) {
             return $existing;
         }
 
@@ -215,14 +206,14 @@ final class ImportAcquisitionCsvCommand extends Command
      * @param array<string, int> $stats
      */
     private function upsertConcentration(
-        \App\Entity\Spices $spice,
+        Spices $spice,
         AromaticCompound $compound,
         array $row,
         bool $dryRun,
         array &$stats,
     ): void {
         $raw = $row[4] ?? null;
-        if (null === $raw || ! is_numeric($raw) || (float) $raw < 0.0) {
+        if ($raw === null || ! is_numeric($raw) || (float) $raw < 0.0) {
             return;
         }
 
@@ -230,14 +221,14 @@ final class ImportAcquisitionCsvCommand extends Command
         $source = trim((string) ($row[5] ?? '')) ?: 'acquisition_csv';
         $confidence = DataConfidence::tryFrom(trim((string) ($row[6] ?? ''))) ?? DataConfidence::ESTIMATED;
 
-        $existing = null !== $compound->getId()
+        $existing = $compound->getId() !== null
             ? $this->em->find(SpiceCompoundConcentration::class, [
                 'spice' => $spice,
                 'aromaticCompound' => $compound,
             ])
             : null;
 
-        if (null !== $existing) {
+        if ($existing !== null) {
             $existing->setConcentrationPpm($ppm);
             $existing->setSource($source);
             $existing->setConfidence($confidence);
@@ -268,18 +259,18 @@ final class ImportAcquisitionCsvCommand extends Command
         ];
 
         foreach ($matrices as [$matrix, $raw]) {
-            if (null === $raw || ! is_numeric($raw) || (float) $raw <= 0.0) {
+            if ($raw === null || ! is_numeric($raw) || (float) $raw <= 0.0) {
                 continue;
             }
 
             $ppm = (string) (float) $raw;
             $compoundId = $compound->getId();
-            $existing = null !== $compoundId ? $this->compoundOdtRepository->findForCompound(
+            $existing = $compoundId !== null ? $this->compoundOdtRepository->findForCompound(
                 $compoundId,
                 $matrix
             ) : null;
 
-            if (null !== $existing) {
+            if ($existing instanceof CompoundOdt) {
                 $existing->setOdtPpm($ppm);
                 $existing->setReferenceSource($source);
                 $existing->setConfidence($confidence);

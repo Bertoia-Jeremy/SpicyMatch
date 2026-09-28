@@ -27,24 +27,23 @@ class ConsentController extends AbstractController
         } catch (\Throwable) {
             return new JsonResponse([
                 'error' => 'Invalid JSON',
-            ], 400);
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         if (! $this->isCsrfTokenValid('cookie_consent', $data['_token'] ?? '')) {
             return new JsonResponse([
                 'error' => 'Invalid CSRF token',
-            ], 403);
+            ], Response::HTTP_FORBIDDEN);
         }
 
         $analytics = (bool) ($data['analytics'] ?? false);
         $functional = (bool) ($data['functional'] ?? false);
 
-        // Respect DNT: override analytics to false
         if ($this->consentService->respectsDnt()) {
             $analytics = false;
         }
 
-        $consent = $this->consentService->saveConsent($analytics, $functional);
+        $this->consentService->saveConsent($analytics, $functional);
 
         $cookieData = json_encode([
             'analytics' => $analytics,
@@ -61,7 +60,7 @@ class ConsentController extends AbstractController
                 ->withValue($cookieData)
                 ->withExpires(new \DateTimeImmutable('+13 months'))
                 ->withPath('/')
-                ->withSameSite('lax')
+                ->withSameSite(Cookie::SAMESITE_LAX)
         );
 
         return $response;

@@ -7,7 +7,9 @@ namespace App\Repository;
 use App\Entity\SpicyMatchHistory;
 use App\Entity\Users;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query;
 use Doctrine\Persistence\ManagerRegistry;
+use SortDirection;
 
 /**
  * @extends ServiceEntityRepository<SpicyMatchHistory>
@@ -29,9 +31,6 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * Fetch at most $limit histories for $user — avoids loading the full collection
-     * when only a preview is needed (e.g., profile page).
-     *
      * @return SpicyMatchHistory[]
      */
     public function findByUserWithLimit(Users $user, int $limit): array
@@ -41,23 +40,23 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
             ->where('sm.user = :user')
             ->andWhere('smh.deletedAt IS NULL')
             ->setParameter('user', $user)
-            ->orderBy('smh.createdAt', 'DESC')
+            ->orderBy('smh.createdAt', SortDirection::Descending)
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }
 
     /**
-     * @return \Doctrine\ORM\Query<null, mixed>
+     * @return Query<null, mixed>
      */
-    public function findByUserQuery(Users $user): \Doctrine\ORM\Query
+    public function findByUserQuery(Users $user): Query
     {
         return $this->createQueryBuilder('smh')
             ->join('smh.spicyMatch', 'sm')
             ->where('sm.user = :user')
             ->andWhere('smh.deletedAt IS NULL')
             ->setParameter('user', $user)
-            ->orderBy('smh.createdAt', 'DESC')
+            ->orderBy('smh.createdAt', SortDirection::Descending)
             ->getQuery();
     }
 
@@ -71,9 +70,9 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return \Doctrine\ORM\Query<null, mixed>
+     * @return Query<null, mixed>
      */
-    public function findFavoritesByUserQuery(Users $user): \Doctrine\ORM\Query
+    public function findFavoritesByUserQuery(Users $user): Query
     {
         return $this->createQueryBuilder('smh')
             ->join('smh.spicyMatch', 'sm')
@@ -81,14 +80,14 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
             ->andWhere('smh.favorite = true')
             ->andWhere('smh.deletedAt IS NULL')
             ->setParameter('user', $user)
-            ->orderBy('smh.createdAt', 'DESC')
+            ->orderBy('smh.createdAt', SortDirection::Descending)
             ->getQuery();
     }
 
     /**
-     * @return \Doctrine\ORM\Query<null, mixed>
+     * @return Query<null, mixed>
      */
-    public function findManualByUserQuery(Users $user): \Doctrine\ORM\Query
+    public function findManualByUserQuery(Users $user): Query
     {
         return $this->createQueryBuilder('smh')
             ->join('smh.spicyMatch', 'sm')
@@ -96,7 +95,7 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
             ->andWhere('sm.isManual = true')
             ->andWhere('smh.deletedAt IS NULL')
             ->setParameter('user', $user)
-            ->orderBy('smh.createdAt', 'DESC')
+            ->orderBy('smh.createdAt', SortDirection::Descending)
             ->getQuery();
     }
 
@@ -120,9 +119,61 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
             ->join('smh.spicyMatch', 'sm')
             ->where('sm.user = :user')
             ->andWhere('smh.deletedAt IS NULL')
+            ->andWhere('smh.sealedAt IS NOT NULL')
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    public function countGroupedByUser(): array
+    {
+        return $this->mapGroupedByUser(
+            $this->createQueryBuilder('smh')
+                ->select('IDENTITY(sm.user) AS uid', 'COUNT(smh.id) AS total')
+                ->join('smh.spicyMatch', 'sm')
+                ->where('smh.deletedAt IS NULL')
+                ->andWhere('smh.sealedAt IS NOT NULL')
+                ->andWhere('sm.user IS NOT NULL')
+                ->groupBy('sm.user')
+                ->getQuery()
+                ->getArrayResult()
+        );
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    public function countDistinctSpicesGroupedByUser(): array
+    {
+        return $this->mapGroupedByUser(
+            $this->createQueryBuilder('smh')
+                ->select('IDENTITY(sm.user) AS uid', 'COUNT(DISTINCT s.id) AS total')
+                ->join('smh.spicyMatch', 'sm')
+                ->join('sm.spices', 's')
+                ->where('smh.deletedAt IS NULL')
+                ->andWhere('smh.sealedAt IS NOT NULL')
+                ->andWhere('sm.user IS NOT NULL')
+                ->groupBy('sm.user')
+                ->getQuery()
+                ->getArrayResult()
+        );
+    }
+
+    /**
+     * @param list<array<string, mixed>> $rows
+     * @return array<int, int>
+     */
+    private function mapGroupedByUser(array $rows): array
+    {
+        $result = [];
+        foreach ($rows as $row) {
+            $result[(int) $row['uid']] = (int) $row['total'];
+        }
+
+        return $result;
     }
 
     public function countDistinctSpicesByUser(Users $user): int
@@ -133,6 +184,7 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
             ->join('sm.spices', 's')
             ->where('sm.user = :user')
             ->andWhere('smh.deletedAt IS NULL')
+            ->andWhere('smh.sealedAt IS NOT NULL')
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();

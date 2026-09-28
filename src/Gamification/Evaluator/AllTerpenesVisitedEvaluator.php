@@ -6,13 +6,14 @@ namespace App\Gamification\Evaluator;
 
 use App\Entity\Achievement;
 use App\Entity\UserProgression;
+use App\Entity\UserStat;
 use App\Enum\AchievementTrigger;
 use App\Repository\AromaticGroupsRepository;
 
-final class AllTerpenesVisitedEvaluator implements TriggerEvaluatorInterface, ProgressTrackableEvaluator
+final readonly class AllTerpenesVisitedEvaluator implements TriggerEvaluatorInterface, ProgressTrackableEvaluator
 {
     public function __construct(
-        private readonly AromaticGroupsRepository $aromaticGroupsRepository,
+        private AromaticGroupsRepository $aromaticGroupsRepository,
     ) {
     }
 
@@ -40,12 +41,12 @@ final class AllTerpenesVisitedEvaluator implements TriggerEvaluatorInterface, Pr
         }
 
         $stats = $progression->getUser()?->getStats();
-        if (null === $stats) {
+        if (! $stats instanceof UserStat) {
             return false;
         }
 
         $totalGroups = $this->aromaticGroupsRepository->count([]);
-        if (0 === $totalGroups) {
+        if ($totalGroups === 0) {
             return false;
         }
 

@@ -10,10 +10,6 @@ use App\Repository\AromaticGroupsTranslationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * Traduction localisée d'un groupe aromatique. Une ligne par (groupe, locale).
- * Le FR canonique vit sur AromaticGroups et sert de fallback (COALESCE).
- */
 #[ORM\Entity(repositoryClass: AromaticGroupsTranslationRepository::class)]
 #[ORM\Table(name: 'aromatic_groups_translation')]
 #[ORM\UniqueConstraint(name: 'uniq_aromatic_groups_locale', columns: ['aromatic_groups_id', 'locale'])]

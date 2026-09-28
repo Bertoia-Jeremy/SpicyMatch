@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\DataFixtures;
 
+use App\Entity\AromaticCompound;
 use App\Entity\AromaticGroups;
 use App\Entity\Spices;
 use App\Entity\SpicyType;
@@ -12,31 +13,6 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 
-/**
- * 30 real spices with their main and secondary aromatic compounds.
- *
- * Designed to create clear, testable compatibility groups:
- *
- *   → Famille Cannelle/Girofle (eugenol + cinnamaldéhyde)
- *       Cannelle + Clou de Girofle + Laurier + Piment de la Jamaïque + Macis
- *
- *   → Famille Anis/Fenouil (anéthol ± estragole)
- *       Fenouil + Anis Étoilé + Anis Vert + Estragon + Basilic
- *
- *   → Famille Coriandre/Cardamome (linalol + terpinèn-4-ol + géraniol)
- *       Coriandre + Cardamome + Muscade + Basilic + Poivre de Sichuan
- *
- *   → Famille Piment/Poivre (capsaïcine + pipérine)
- *       Piment de Cayenne + Piment d'Espelette + Paprika + Poivre Noir + Poivre Blanc + Poivre Long
- *
- *   → Famille Thym/Origan/Cumin (thymol + carvacrol)
- *       Thym + Origan + Cumin + Romarin + Marjolaine + Sauge + Carvi
- *
- *   → Famille Curcuma/Gingembre (curcumine)
- *       Curcuma + Gingembre
- *
- *   → Safran (safranal unique — peu ou pas de compatibilité cross-group)
- */
 class SpicesFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     /**
@@ -52,9 +28,7 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface, Fixtu
      *   secondary: string[],
      * }>
      */
-    private const SPICES = [
-        // ── Famille Phénylpropanoïdes ───────────────────────────────────────────
-
+    private const array SPICES = [
         'cannelle' => [
             'name' => 'Cannelle de Ceylan',
             'description' => 'Écorce intérieure séchée du cannelier de Ceylan. Arôme doux, chaud et légèrement sucré — la plus délicate des cannelles.',
@@ -122,8 +96,6 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface, Fixtu
             'secondary' => [],
         ],
 
-        // ── Famille Terpènes Oxygénés ───────────────────────────────────────────
-
         'basilic' => [
             'name' => 'Basilic Grand Vert',
             'description' => 'Herbe aromatique estivale aux notes florales, anisées douces et légèrement poivrées.',
@@ -168,8 +140,6 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface, Fixtu
             'main' => ['compound_terpinene4ol'],
             'secondary' => ['compound_eugenol', 'compound_linalool'],
         ],
-
-        // ── Famille Capsaïcinoïdes & Alcaloïdes ────────────────────────────────
 
         'poivre_noir' => [
             'name' => 'Poivre Noir',
@@ -216,8 +186,6 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface, Fixtu
             'secondary' => ['compound_piperine'],
         ],
 
-        // ── Famille Monoterpènes Phénoliques ───────────────────────────────────
-
         'thym' => [
             'name' => 'Thym Commun',
             'description' => 'Herbe méditerranéenne aromatique aux notes herbacées franches, chaudes et légèrement médicinales.',
@@ -252,8 +220,6 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface, Fixtu
             'secondary' => ['compound_limonene'],
         ],
 
-        // ── Famille Curcuminoïdes & Arylalcanones ──────────────────────────────
-
         'curcuma' => [
             'name' => 'Curcuma',
             'description' => 'Rhizome séché et moulu aux notes terreuses, légèrement amères et boisées. Épice dorée de la cuisine indienne.',
@@ -276,8 +242,6 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface, Fixtu
             'main' => ['compound_zingerone'],
             'secondary' => ['compound_curcumine', 'compound_limonene'],
         ],
-
-        // ── Nouvelles épices Phénylpropanoïdes ─────────────────────────────────
 
         'piment_jamaique' => [
             'name' => 'Piment de la Jamaïque',
@@ -302,8 +266,6 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface, Fixtu
             'secondary' => ['compound_terpinene4ol', 'compound_cinnamaldehyde'],
         ],
 
-        // ── Nouvelles épices Anis/Fenouil ───────────────────────────────────────
-
         'anis_vert' => [
             'name' => 'Anis Vert',
             'description' => 'Graines d\'anis commun aux notes anisées douces et fraîches, moins intenses que la badiane.',
@@ -316,8 +278,6 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface, Fixtu
             'secondary' => ['compound_estragole', 'compound_linalool'],
         ],
 
-        // ── Nouvelles épices Terpènes Oxygénés ─────────────────────────────────
-
         'poivre_sichuan' => [
             'name' => 'Poivre de Sichuan',
             'description' => 'Baies de Zanthoxylum aux notes citronnées, florales et à l\'effet anesthésiant/fourmillant unique (parestésie). Pas un vrai poivre.',
@@ -329,8 +289,6 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface, Fixtu
             'main' => ['compound_limonene', 'compound_geraniol'],
             'secondary' => ['compound_linalool'],
         ],
-
-        // ── Nouvelles épices Capsaïcinoïdes ────────────────────────────────────
 
         'piment_espelette' => [
             'name' => 'Piment d\'Espelette',
@@ -354,8 +312,6 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface, Fixtu
             'main' => ['compound_piperine'],
             'secondary' => ['compound_limonene'],
         ],
-
-        // ── Nouvelles épices Monoterpènes Phénoliques ──────────────────────────
 
         'romarin' => [
             'name' => 'Romarin',
@@ -402,8 +358,6 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface, Fixtu
             'secondary' => ['compound_thymol'],
         ],
 
-        // ── Safran (unique) ─────────────────────────────────────────────────────
-
         'safran' => [
             'name' => 'Safran',
             'description' => 'Stigmates séchés du crocus sativus. L\'épice la plus chère du monde — arôme unique, floral, mielleuse et légèrement métallique.',
@@ -437,17 +391,17 @@ class SpicesFixtures extends Fixture implements DependentFixtureInterface, Fixtu
 
             foreach ($data['main'] as $compoundRef) {
                 $entity->addAromaticsCompounds(
-                    $this->getReference($compoundRef, \App\Entity\AromaticCompound::class)
+                    $this->getReference($compoundRef, AromaticCompound::class)
                 );
             }
 
             foreach ($data['secondary'] as $compoundRef) {
                 $entity->addSecondaryAromaticsCompound(
-                    $this->getReference($compoundRef, \App\Entity\AromaticCompound::class)
+                    $this->getReference($compoundRef, AromaticCompound::class)
                 );
             }
 
-            $this->addReference('spice_'.$key, $entity);
+            $this->addReference('spice_' . $key, $entity);
             $manager->persist($entity);
         }
 

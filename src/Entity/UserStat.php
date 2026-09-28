@@ -44,11 +44,6 @@ class UserStat
     ])]
     private array $foundEggSlugs = [];
 
-    /**
-     * Virtual property using PHP 8.4 Property Hooks.
-     * Source of truth is `UserProgression` for match/read counters; `UserStat` only owns
-     * easter eggs and visited-group tracking.
-     */
     public int $totalActions {
         get {
             $progression = $this->user?->getProgression();
@@ -59,9 +54,6 @@ class UserStat
         }
     }
 
-    /**
-     * Count of unique aromatic groups visited.
-     */
     public int $visitedGroupsCount {
         get => \count(\array_unique($this->visitedAromaticGroups));
     }
@@ -111,7 +103,6 @@ class UserStat
     public function recordVisitedSpice(int $spiceId): static
     {
         $this->lastVisitedSpices[] = $spiceId;
-        // Keep only last 10
         if (\count($this->lastVisitedSpices) > 10) {
             array_shift($this->lastVisitedSpices);
         }

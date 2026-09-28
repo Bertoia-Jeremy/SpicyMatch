@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Enum;
 
-/**
- * Tier de confiance d'une donnée physico-chimique (ODT, concentration, logP…).
- * Du plus fiable au moins : A measured / B literature / C estimated / D placeholder.
- */
 enum DataConfidence: string
 {
     case MEASURED = 'measured';
@@ -25,12 +21,9 @@ enum DataConfidence: string
         };
     }
 
-    /**
-     * Clé de traduction (domaine messages).
-     */
     public function label(): string
     {
-        return 'enum.confidence.'.$this->value;
+        return 'enum.confidence.' . $this->value;
     }
 
     public function tier(): string
@@ -43,21 +36,15 @@ enum DataConfidence: string
         };
     }
 
-    /**
-     * Vrai si tier ≥ literature.
-     */
     public function isProductionGrade(): bool
     {
         return $this->rank() >= self::LITERATURE
             ->rank();
     }
 
-    /**
-     * Maillon le plus faible — détermine la confiance d'une chaîne de données.
-     */
     public static function weakest(self ...$confidences): self
     {
-        if ([] === $confidences) {
+        if ($confidences === []) {
             return self::PLACEHOLDER;
         }
 

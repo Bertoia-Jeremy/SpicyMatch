@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SpicyTypeRepository::class)]
 #[ORM\Table(name: 'spicy_type')]
-class SpicyType implements TranslatableInterface, Sluggable
+class SpicyType implements TranslatableInterface, Sluggable, \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -23,7 +23,7 @@ class SpicyType implements TranslatableInterface, Sluggable
     #[ORM\Column(name: 'name', type: 'string', length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
+    #[ORM\Column(type: 'string', length: 255, unique: true, nullable: true)]
     private ?string $slug = null;
 
     #[ORM\Column(name: 'description', type: 'text', nullable: true)]
@@ -53,7 +53,7 @@ class SpicyType implements TranslatableInterface, Sluggable
     /**
      * @var Collection<int, SpicyTypeTranslation>
      */
-    #[ORM\OneToMany(mappedBy: 'spicyType', targetEntity: SpicyTypeTranslation::class, cascade: [
+    #[ORM\OneToMany(targetEntity: SpicyTypeTranslation::class, mappedBy: 'spicyType', cascade: [
         'persist',
         'remove',
     ], orphanRemoval: true)]
@@ -99,7 +99,7 @@ class SpicyType implements TranslatableInterface, Sluggable
 
     public function getTranslation(string $locale): ?SpicyTypeTranslation
     {
-        if ('fr' === $locale) {
+        if ($locale === 'fr') {
             return null;
         }
 
@@ -253,7 +253,6 @@ class SpicyType implements TranslatableInterface, Sluggable
 
     public function removeSpice(Spices $spice): self
     {
-        // set the owning side to null (unless already changed)
         if ($this->spices->removeElement($spice) && $spice->getSpicyType() === $this) {
             $spice->setSpicyType(null);
         }
@@ -263,6 +262,6 @@ class SpicyType implements TranslatableInterface, Sluggable
 
     public function __toString(): string
     {
-        return $this->name;
+        return (string) $this->name;
     }
 }

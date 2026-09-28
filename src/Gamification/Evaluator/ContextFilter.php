@@ -8,12 +8,6 @@ use App\Entity\Achievement;
 use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 
-/**
- * Shared predicate: does the runtime event context satisfy the optional
- * gameMode / difficulty filters declared on the Achievement?
- *
- * A filter of null on the achievement means "wildcard".
- */
 final class ContextFilter
 {
     /**
@@ -22,12 +16,12 @@ final class ContextFilter
     public static function matches(Achievement $achievement, array $context): bool
     {
         $expectedMode = $achievement->getContextGameMode();
-        if (null !== $expectedMode && ! self::modeMatches($expectedMode, $context['gameMode'] ?? null)) {
+        if ($expectedMode !== null && ! self::modeMatches($expectedMode, $context['gameMode'] ?? null)) {
             return false;
         }
 
         $expectedDifficulty = $achievement->getContextDifficulty();
-        if (null !== $expectedDifficulty && ! self::difficultyMatches(
+        if ($expectedDifficulty !== null && ! self::difficultyMatches(
             $expectedDifficulty,
             $context['difficulty'] ?? null
         )) {

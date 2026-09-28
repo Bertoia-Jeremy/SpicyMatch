@@ -6,7 +6,6 @@
     {% set selectedSpices = this.results.selectedSpices %}
     {% set filterCount = (this.filterAgId ? 1 : 0) + (this.filterStId ? 1 : 0) + (this.search ? 1 : 0) %}
 
-    {# Pré-calculs floatbar #}
     {% set selectedCount = 0 %}
     {% for gName, spices in selectedSpices %}
         {% set selectedCount = selectedCount + spices|length %}
@@ -25,16 +24,12 @@
         {% endfor %}
     {% endfor %}
 
-    {# ── Layout 2 colonnes : main + sidebar ── #}
     <div class="grid xl:grid-cols-[1fr_300px] gap-6">
 
-        {# ────────────── COLONNE PRINCIPALE ────────────── #}
         <div class="min-w-0">
 
-            {# Barre de filtres + recherche + toggle — inline comme le design #}
             <div class="flex flex-wrap items-center gap-2 mb-2 pb-4 border-b border-spice-border">
 
-                {# Filtre Groupe Aromatique #}
                 {% set ag_content %}
                     <div class="flex flex-col gap-2">
                         {% for group in this.aromaticGroups %}
@@ -55,20 +50,17 @@
                 <div data-tour="lab-aromatic-filter">
                     {{ filters.filter_dropdown('ui.filters.aromatic_group'|trans, ag_content, {
                         count: this.filterAgId ? 1 : 0,
-                        reset_click: "$dispatch('live:action', {action: 'resetFilters'})",
+                        reset_action: 'resetFilters',
                         style: 'pill'
                     }) }}
                 </div>
 
-                {# ── Sélecteur de cuisson (Étape 3E-2) ─────────────────────── #}
                 {% set cooking_content %}
                     <div class="flex flex-col gap-4" x-data="{ advanced: {{ this.hasCustomCulinaryContext and (this.fatRatio > 0 or this.cookingTimeMin > 0) ? 'true' : 'false' }} }">
-                        {# Question d'amorce #}
                         <p class="text-xs text-stone-500 leading-snug">
                             {{ 'ui.lab.cooking_question_html'|trans|raw }}
                         </p>
 
-                        {# Trois grands modes culinaires (UX-6 ARIA labels + UX-2 contraste +800) #}
                         <div class="grid grid-cols-3 gap-2" role="group" aria-label="{{ 'ui.lab.culinary_context_aria'|trans }}">
                             <button type="button"
                                     data-action="live#action"
@@ -119,7 +111,6 @@
                             </button>
                         </div>
 
-                        {# Avancé : sliders fine-tuning #}
                         <button type="button"
                                 @click="advanced = !advanced"
                                 class="flex items-center justify-between text-[11px] font-mono uppercase tracking-widest
@@ -129,14 +120,12 @@
                         </button>
 
                         <div x-show="advanced" x-cloak class="flex flex-col gap-3">
-                            {# Matrice ODT (override manuel) #}
                             <div>
                                 <div class="flex items-baseline justify-between mb-1.5">
                                     <label class="text-[11px] font-mono uppercase tracking-widest text-stone-500">{{ 'ui.lab.odt_matrix'|trans }}</label>
                                     <span class="text-[11px] text-stone-400">{{ this.matrix }}</span>
                                 </div>
                                 <div class="inline-flex w-full rounded-full bg-stone-50 p-0.5 border border-stone-200">
-                                    {# Véracité par omission : seules les matrices ayant des données OAV réelles sont proposées. #}
                                     {% for m in this.availableMatrices %}
                                         <label class="cursor-pointer flex-1">
                                             <input type="radio" name="matrix" value="{{ m }}" data-model="matrix"
@@ -152,7 +141,6 @@
                                 </div>
                             </div>
 
-                            {# Fraction grasse #}
                             <div>
                                 <div class="flex items-baseline justify-between mb-1">
                                     <label for="fatRatio" class="text-[11px] font-mono uppercase tracking-widest text-stone-500">{{ 'ui.lab.fat_ratio'|trans }}</label>
@@ -164,7 +152,6 @@
                                        class="w-full accent-saffron-600">
                             </div>
 
-                            {# Cuisson #}
                             <div>
                                 <div class="flex items-baseline justify-between mb-1">
                                     <label for="cookingTimeMin" class="text-[11px] font-mono uppercase tracking-widest text-stone-500">{{ 'ui.lab.cooking_time'|trans }}</label>
@@ -176,7 +163,6 @@
                                        class="w-full accent-saffron-600">
                             </div>
 
-                            {# Température #}
                             <div>
                                 <div class="flex items-baseline justify-between mb-1">
                                     <label for="temperatureCelsius" class="text-[11px] font-mono uppercase tracking-widest text-stone-500">{{ 'ui.lab.temperature'|trans }}</label>
@@ -191,16 +177,16 @@
                     </div>
                 {% endset %}
 
-                {# UX-1 : libellé explicite "Mode : X" pour rendre l'action et l'état visibles. #}
+                {% if oav_context_enabled %}
                 <div title="{{ 'ui.lab.mode_tooltip'|trans }}" data-tour="lab-context">
                     {{ filters.filter_dropdown('ui.lab.mode_prefix'|trans({'%label%': this.culinaryLabel}), cooking_content, {
                         count: this.hasCustomCulinaryContext ? 1 : 0,
-                        reset_click: "$dispatch('live:action', {action: 'resetCulinaryContext'})",
+                        reset_action: 'resetCulinaryContext',
                         style: 'pill'
                     }) }}
                 </div>
+                {% endif %}
 
-                {# Filtre Type d'Épice #}
                 {% set st_content %}
                     <div class="flex flex-col gap-2">
                         {% for type in this.spicyTypes %}
@@ -220,11 +206,10 @@
                 {% endset %}
                 {{ filters.filter_dropdown('ui.filters.spice_type'|trans, st_content, {
                     count: this.filterStId ? 1 : 0,
-                    reset_click: "$dispatch('live:action', {action: 'resetFilters'})",
+                    reset_action: 'resetFilters',
                     style: 'pill'
                 }) }}
 
-                {# Barre de recherche #}
                 <div class="relative flex-1 min-w-44">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs pointer-events-none" aria-hidden="true"></i>
                     <input
@@ -246,7 +231,6 @@
                     {% endif %}
                 </div>
 
-                {# Reset global — uniquement quand un filtre dropdown est actif (la croix gère la recherche) #}
                 {% if this.filterAgId or this.filterStId %}
                     <button type="button"
                             data-action="live#action"
@@ -256,7 +240,6 @@
                     </button>
                 {% endif %}
 
-                {# Toggle Auto / Manuel — inline dans la toolbar #}
                 <div class="inline-flex rounded-full bg-cream p-0.5 border border-spice-border shadow-sm ml-auto"
                      data-tour="mode-toggle">
                     <label class="cursor-pointer">
@@ -277,15 +260,11 @@
                     </label>
                 </div>
 
-                {# Meta compteur #}
                 <span class="font-mono text-[11px] text-stone-400 whitespace-nowrap">
                     {{ 'ui.lab.spices_count'|trans({'%count%': compatibleSpices|length}) }}
                 </span>
             </div>
 
-            {# ── Grille épices plate.
-                 UX-3 feedback debounce : data-loading="addClass(opacity-60)" donne un signal
-                 visuel immédiat (50–100 ms) pendant que le serveur recalcule les scores. ── #}
             <form data-model="spices" data-loading="addClass(opacity-60)">
                 <h2 class="sr-only">{{ 'ui.lab.spices_count'|trans({'%count%': compatibleSpices|length}) }}</h2>
                 {% if this.excludedSpiceCount > 0 %}
@@ -317,19 +296,16 @@
                 {% endif %}
             </form>
 
-        </div>{# fin colonne principale #}
+        </div>
 
-        {# ────────────── WORKSPACE SIDEBAR (xl+) ────────────── #}
         <aside class="hidden xl:block">
             <div class="workspace" data-tour="lab-workspace">
 
-                {# Entête #}
                 <div class="flex items-baseline justify-between pb-3 border-b border-spice-border">
                     <h3 class="font-display text-lg font-medium text-stone-800">{{ 'ui.lab.my_blend'|trans }}</h3>
                     <span class="group-count">{{ selectedCount }}</span>
                 </div>
 
-                {# Liste des épices sélectionnées #}
                 <div class="workspace-list flex flex-col gap-2">
                     {% if selectedCount == 0 %}
                         <div class="ws-empty">
@@ -340,7 +316,6 @@
                         </div>
                     {% else %}
                         {% for gName, spices in selectedSpices %}
-                            {# En-tête groupe dans sidebar #}
                             <div class="flex items-center gap-2 px-1 pt-1">
                                 <span class="size-2 rounded-full flex-none"
                                       style="background: {{ spices.0.color ?? '#888' }}"></span>
@@ -369,7 +344,6 @@
                                             {{ gName }}
                                         </p>
                                     </div>
-                                    {# Checkbox cachée (checked) — unchecking la retire du modèle LC #}
                                     <input type="checkbox"
                                            class="sr-only"
                                            data-model="spices.selectedSpices"
@@ -388,7 +362,6 @@
                     {% endif %}
                 </div>
 
-                {# CTAs #}
                 <div class="flex flex-col gap-2 pt-1 border-t border-spice-border">
                     {% if selectedCount > 0 %}
                         <button type="button"
@@ -400,6 +373,7 @@
                             <i class="fa-solid fa-trash-can text-xs" aria-hidden="true"></i>{{ 'ui.lab.clear_selection'|trans }}
                         </button>
                     {% endif %}
+                    {% if is_granted('ROLE_USER') %}
                     <button type="button"
                             data-action="live#action"
                             data-live-action-param="nextStep"
@@ -412,10 +386,20 @@
                                    disabled:opacity-40 disabled:cursor-not-allowed">
                         {{ 'ui.lab.compose'|trans }}<i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
                     </button>
+                    {% else %}
+                    <button type="button"
+                            x-data="gateTrigger('', 'register')" @click="trigger($event)"
+                            data-tour="lab-compose"
+                            {% if selectedCount == 0 %}disabled{% endif %}
+                            class="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl
+                                   text-sm font-semibold bg-saffron-600 text-white shadow-sm
+                                   hover:bg-saffron-700 transition-colors
+                                   disabled:opacity-40 disabled:cursor-not-allowed">
+                        {{ 'ui.lab.compose'|trans }}<i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
+                    </button>
+                    {% endif %}
                 </div>
 
-                {# Badge qualité des données (Levier 4) — honnêteté sur la fiabilité du score.
-                   Affiché dès qu'une sélection existe ; alerte visuelle si non production-grade. #}
                 {% set dataConfidence = this.dataConfidence %}
                 {% if dataConfidence is not null %}
                     {% set isProd = dataConfidence.isProductionGrade %}
@@ -434,16 +418,13 @@
                     </div>
                 {% endif %}
 
-                {# Véracité : sans données OAV pour le mortier, le tri est basé sur la présence
-                   de composés partagés, pas sur un score OAV quantitatif. On le dit explicitement. #}
                 {% if selectedCount > 0 and not this.oavScoringAvailable %}
                     <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] bg-stone-100 border border-stone-300">
                         <i class="fa-solid fa-diagram-project text-stone-500 shrink-0" aria-hidden="true"></i>
-                        <p class="text-stone-600">{{ 'ui.lab.presence_mode'|trans }}</p>
+                        <p class="text-stone-600">{{ this.scoringMode.label|trans({'%max%': this.degradedScoreMax}) }}</p>
                     </div>
                 {% endif %}
 
-                {# Tip footer #}
                 {% if selectedCount > 0 %}
                     <p class="text-[11px] text-stone-400 leading-relaxed flex gap-1.5 pt-1">
                         <i class="fa-solid fa-circle-info text-saffron-400 mt-0.5 shrink-0" aria-hidden="true"></i>
@@ -451,8 +432,6 @@
                     </p>
                 {% endif %}
 
-                {# Indicateur contexte culinaire — visible dès qu'on quitte les defaults.
-                   UX-2 contraste WCAG : bg-saffron-100 + text-saffron-800/900 (ratio ≥ 4.5:1). #}
                 {% if this.hasCustomCulinaryContext %}
                     <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-saffron-100 border border-saffron-300 text-[11px]">
                         <i class="fa-solid fa-fire text-saffron-700 shrink-0" aria-hidden="true"></i>
@@ -477,9 +456,8 @@
             </div>
         </aside>
 
-    </div>{# fin grid 2 colonnes #}
+    </div>
 
-    {# ── FLOATBAR mobile (<xl) ── #}
     <div class="floatbar" data-tour="lab-workspace">
         {% if selectedCount == 0 %}
             <div class="flex items-center gap-2 text-stone-400 text-sm flex-1">
@@ -495,7 +473,6 @@
             </button>
         {% else %}
             <div class="flex items-center gap-3 flex-1 min-w-0">
-                {# Avatars épices #}
                 <div class="flex">
                     {% for sp in firstThree %}
                         {% set fbImg = sp.file ? asset('uploads/spices/' ~ sp.file) : null %}
@@ -524,6 +501,7 @@
                     <p class="font-mono text-[10px] uppercase tracking-wide text-stone-400">{{ 'ui.lab.selected'|trans }}</p>
                 </div>
             </div>
+            {% if is_granted('ROLE_USER') %}
             <button type="button"
                     data-action="live#action"
                     data-live-action-param="nextStep"
@@ -534,6 +512,16 @@
                            hover:bg-saffron-700 transition-colors shrink-0">
                 {{ 'ui.lab.compose_short'|trans }} <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
             </button>
+            {% else %}
+            <button type="button"
+                    x-data="gateTrigger('', 'register')" @click="trigger($event)"
+                    data-tour="lab-compose"
+                    class="inline-flex items-center gap-2 h-10 px-4 rounded-xl
+                           text-sm font-semibold bg-saffron-600 text-white shadow-sm
+                           hover:bg-saffron-700 transition-colors shrink-0">
+                {{ 'ui.lab.compose_short'|trans }} <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
+            </button>
+            {% endif %}
         {% endif %}
     </div>
 

@@ -1,4 +1,3 @@
-{# templates/components/Button.html.twig — bouton unifié (a11y + i18n) #}
 {% props
     label = '',
     variant = 'primary',
@@ -29,7 +28,6 @@
     'xl': 'px-9 py-4 text-lg gap-3'
 } %}
 
-{# variant back : flèche par défaut si aucune icône fournie #}
 {% set icon = (variant == 'back' and icon is null) ? 'fas fa-arrow-left' : icon %}
 
 {% set is_link = href is not null %}

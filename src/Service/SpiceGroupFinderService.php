@@ -8,19 +8,6 @@ use App\Repository\SpicesRepository;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
-/**
- * Proactive discovery of the best compatible spice groups.
- *
- * Unlike CompatibilityScoreService (which scores candidates given a user selection),
- * this service pre-computes the top pairs and triplets across all spices using
- * SQL self-joins on the pivot tables — much faster than PHP-based iteration.
- *
- * Score formula: sharedMain×3 + sharedSecondary×1 (no group bonus, no alchemy).
- *
- * Results are cached in `spice.compatibility.cache` (TTL 1h). The underlying SQL
- * is O(N²) for pairs and O(N³) for triplets — unsuitable for per-request execution
- * at scale. Cache invalidation is TTL-based (no event-driven invalidation — MVP).
- */
 class SpiceGroupFinderService
 {
     public function __construct(
@@ -30,14 +17,11 @@ class SpiceGroupFinderService
     }
 
     /**
-     * Returns the top compatible spice pairs sorted by shared compound score.
-     * Result is cached for 1h (TTL-based).
-     *
      * @return array<array{score: int, shared_main: int, shared_secondary: int, spices: list<array{id: int, name: string, file: ?string, color: ?string, groupName: ?string}>}>
      */
     public function findTopPairs(int $limit = 20): array
     {
-        return $this->cache->get('spice.top_pairs.'.$limit, function (ItemInterface $item) use ($limit): array {
+        return $this->cache->get('spice.top_pairs.' . $limit, function (ItemInterface $item) use ($limit): array {
             $item->expiresAfter(3600);
 
             /** @var list<array<string, mixed>> $rows */
@@ -48,14 +32,11 @@ class SpiceGroupFinderService
     }
 
     /**
-     * Returns the top compatible spice triplets with strict intersection (compound in all 3).
-     * Result is cached for 1h (TTL-based, O(N³) SQL query).
-     *
      * @return array<array{score: int, shared_main: int, shared_secondary: int, spices: list<array{id: int, name: string, file: ?string, color: ?string, groupName: ?string}>}>
      */
     public function findTopTriplets(int $limit = 10): array
     {
-        return $this->cache->get('spice.top_triplets.'.$limit, function (ItemInterface $item) use ($limit): array {
+        return $this->cache->get('spice.top_triplets.' . $limit, function (ItemInterface $item) use ($limit): array {
             $item->expiresAfter(3600);
 
             /** @var list<array<string, mixed>> $rows */
@@ -67,7 +48,6 @@ class SpiceGroupFinderService
 
     /**
      * @param list<array<string, mixed>> $rows
-     *
      * @return list<array{score: int, shared_main: int, shared_secondary: int, spices: list<array{id: int, name: string, file: ?string, color: ?string, groupName: ?string}>}>
      */
     private function formatPairs(array $rows): array
@@ -97,7 +77,6 @@ class SpiceGroupFinderService
 
     /**
      * @param list<array<string, mixed>> $rows
-     *
      * @return list<array{score: int, shared_main: int, shared_secondary: int, spices: list<array{id: int, name: string, file: ?string, color: ?string, groupName: ?string}>}>
      */
     private function formatTriplets(array $rows): array

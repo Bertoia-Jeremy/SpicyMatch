@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Users;
+use App\Enum\GameMode;
 use App\Repository\AchievementProgressRepository;
 use App\Repository\AromaticCompoundRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\UsersRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/{_locale}', defaults: [
@@ -28,12 +30,9 @@ class HomeController extends AbstractController
     }
 
     #[Route('/', name: 'home')]
-    public function index(TranslatorInterface $translator): Response
+    public function index(TranslatorInterface $translator, #[CurrentUser] ?Users $user = null): Response
     {
-        /** @var Users|null $user */
-        $user = $this->getUser();
-
-        if ($user && $user->getLastLoginAt()) {
+        if ($user instanceof Users && $user->getLastLoginAt() instanceof \DateTimeInterface) {
             $today = new \DateTimeImmutable();
             $lastLogin = $user->getLastLoginAt();
 
@@ -42,22 +41,26 @@ class HomeController extends AbstractController
                     '%username%' => $user->getUserIdentifier(),
                 ]));
             }
-        } elseif ($user) {
+        } elseif ($user instanceof Users) {
             $this->addFlash('info', $translator->trans('flash.welcome', [
                 '%username%' => $user->getUserIdentifier(),
             ]));
         }
 
         $nextAchievementProgress = null;
-        if (null !== $user) {
+        if ($user instanceof Users) {
             $nextAchievementProgress = $this->achievementProgressRepository->findMostAdvancedNotCompleted($user);
         }
+
+        $gameModes = array_filter(GameMode::cases(), fn (GameMode $m): bool => $m->isEnabled());
 
         return $this->render('home/index.html.twig', [
             'nextAchievementProgress' => $nextAchievementProgress,
             'spicesCount' => $this->spicesRepository->countTotal(),
             'compoundsCount' => $this->aromaticCompoundRepository->countTotal(),
             'usersCount' => $this->usersRepository->countActive(),
+            'gameModes' => $gameModes,
+            'dailyFeaturedMode' => GameMode::dailyFeatured($gameModes),
         ]);
     }
 }

@@ -1,28 +1,19 @@
 <?php
 
-use Rector\Symfony\Set\SymfonySetList;
 use Rector\Config\RectorConfig;
-use Rector\Doctrine\Set\DoctrineSetList;
-use Rector\Symfony\Set\SensiolabsSetList;
-use Rector\Set\ValueObject\SetList;
+use Rector\Symfony\Set\SymfonySetList;
 
-return static function (RectorConfig $rectorConfig): void {
-    $rectorConfig->paths([
-        __DIR__ . '/src'
-    ]);
-
-    $rectorConfig->symfonyContainerXml(__DIR__ . '/var/cache/dev/App_KernelDevDebugContainer.xml');
-    $rectorConfig->sets([
-        SymfonySetList::SYMFONY_62,
+return RectorConfig::configure()
+    ->withPaths([
+        __DIR__ . '/src',
+        __DIR__ . '/tests',
+    ])
+    ->withSymfonyContainerXml(__DIR__ . '/var/cache/dev/App_KernelDevDebugContainer.xml')
+    ->withComposerBased(twig: true, doctrine: true, phpunit: true, symfony: true)
+    ->withPhpSets()
+    ->withAttributesSets()
+    ->withSets([
         SymfonySetList::SYMFONY_CODE_QUALITY,
         SymfonySetList::SYMFONY_CONSTRUCTOR_INJECTION,
-        SetList::TYPE_DECLARATION,
-        SetList::DEAD_CODE,
-        SetList::CODE_QUALITY
-    ]);
-    
-    $rectorConfig->sets([
-        DoctrineSetList::ANNOTATIONS_TO_ATTRIBUTES,
-        SymfonySetList::ANNOTATIONS_TO_ATTRIBUTES
-    ]);
-};
+    ])
+    ->withPreparedSets(deadCode: true, codeQuality: true, typeDeclarations: true);

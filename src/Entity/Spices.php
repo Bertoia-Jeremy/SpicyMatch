@@ -12,14 +12,13 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\File;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Vich\UploaderBundle\Mapping\Attribute\Uploadable;
 use Vich\UploaderBundle\Mapping\Attribute\UploadableField;
 
 #[Uploadable]
 #[ORM\Entity(repositoryClass: SpicesRepository::class)]
 #[ORM\Table(name: 'spices')]
-class Spices implements TranslatableInterface, Sluggable
+class Spices implements TranslatableInterface, Sluggable, \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -27,11 +26,11 @@ class Spices implements TranslatableInterface, Sluggable
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: AromaticGroups::class, inversedBy: 'spices')]
-    #[ORM\JoinColumn(nullable: false, referencedColumnName: 'id', name: 'aromaticGroups')]
+    #[ORM\JoinColumn(name: 'aromaticGroups', referencedColumnName: 'id', nullable: false)]
     private ?AromaticGroups $aromaticGroups = null;
 
     #[ORM\ManyToOne(targetEntity: SpicyType::class, inversedBy: 'spices')]
-    #[ORM\JoinColumn(referencedColumnName: 'id', name: 'spicy_type')]
+    #[ORM\JoinColumn(name: 'spicy_type', referencedColumnName: 'id')]
     private ?SpicyType $spicyType = null;
 
     #[ORM\Column(type: 'string', length: 255)]
@@ -80,13 +79,13 @@ class Spices implements TranslatableInterface, Sluggable
     /**
      * @var Collection<int, CookingTips>
      */
-    #[ORM\OneToMany(mappedBy: 'spice', targetEntity: CookingTips::class, orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: CookingTips::class, mappedBy: 'spice', orphanRemoval: true)]
     private Collection $cookingTips;
 
     /**
      * @var Collection<int, PreparationTips>
      */
-    #[ORM\OneToMany(mappedBy: 'spice', targetEntity: PreparationTips::class, orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: PreparationTips::class, mappedBy: 'spice', orphanRemoval: true)]
     private Collection $preparationTips;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -96,12 +95,9 @@ class Spices implements TranslatableInterface, Sluggable
     private ?string $slug = null;
 
     /**
-     * Traductions localisées (pattern Translation Table). Le FR vit sur cette
-     * entité ; cette collection ne contient que les locales non-FR renseignées.
-     *
      * @var Collection<int, SpiceTranslation>
      */
-    #[ORM\OneToMany(mappedBy: 'spice', targetEntity: SpiceTranslation::class, cascade: [
+    #[ORM\OneToMany(targetEntity: SpiceTranslation::class, mappedBy: 'spice', cascade: [
         'persist',
         'remove',
     ], orphanRemoval: true)]
@@ -172,15 +168,9 @@ class Spices implements TranslatableInterface, Sluggable
         return $this;
     }
 
-    /**
-     * Retourne la traduction pour une locale, ou null si absente.
-     * Pour le rendu d'UNE entité (page détail) — PAS pour les listes/hot-path
-     * (utiliser l'hydratation batch du repository pour éviter le N+1).
-     */
     public function getTranslation(string $locale): ?SpiceTranslation
     {
-        // FR = canonique (pas de ligne de traduction) → évite le lazy-load de la collection.
-        if ('fr' === $locale) {
+        if ($locale === 'fr') {
             return null;
         }
 
@@ -193,9 +183,6 @@ class Spices implements TranslatableInterface, Sluggable
         return null;
     }
 
-    /**
-     * Nom localisé avec fallback FR (champ canonique de l'entité).
-     */
     public function getLocalizedName(string $locale): ?string
     {
         return $this->getTranslation($locale)?->getName() ?? $this->name;
@@ -322,16 +309,11 @@ class Spices implements TranslatableInterface, Sluggable
         return $this;
     }
 
-    /**
-     * @param File|UploadedFile|null $imageFile
-     */
     public function setImageFile(?File $imageFile = null): void
     {
         $this->imageFile = $imageFile;
 
         if ($imageFile instanceof File) {
-            // It is required that at least one field changes if you are using doctrine
-            // otherwise the event listeners won't be called and the file is lost
             $this->updated_at = new \DateTimeImmutable('now');
         }
     }
@@ -377,7 +359,7 @@ class Spices implements TranslatableInterface, Sluggable
 
     public function __toString(): string
     {
-        return $this->name;
+        return (string) $this->name;
     }
 
     /**
@@ -424,7 +406,6 @@ class Spices implements TranslatableInterface, Sluggable
 
     public function removeCookingTip(CookingTips $cookingTip): static
     {
-        // set the owning side to null (unless already changed)
         if ($this->cookingTips->removeElement($cookingTip) && $cookingTip->getSpice() === $this) {
             $cookingTip->setSpice(null);
         }
@@ -452,7 +433,6 @@ class Spices implements TranslatableInterface, Sluggable
 
     public function removePreparationTip(PreparationTips $preparationTip): static
     {
-        // set the owning side to null (unless already changed)
         if ($this->preparationTips->removeElement($preparationTip) && $preparationTip->getSpice() === $this) {
             $preparationTip->setSpice(null);
         }

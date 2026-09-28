@@ -9,27 +9,12 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 
-/**
- * 15 real aromatic compounds with correct botanical descriptions.
- *
- * CAS numbers validated via PubChem API (double-check: re-query by CAS → nom IUPAC concordant).
- * Formulas validated via NIST WebBook.
- *
- * These compounds drive spice compatibility:
- *   - eugenol + cinnamaldéhyde + linalool  → cinnamon/clove/bay family
- *   - anethole + estragole                 → anise/fennel/tarragon family
- *   - linalool + terpinène-4-ol + géraniol → coriander/cardamom family
- *   - capsaïcine + pipérine                → chili/pepper family
- *   - thymol + carvacrol                   → thyme/oregano/cumin family
- *   - curcumine + zingerone                → turmeric/ginger family
- *   - safranal                             → saffron (unique)
- */
 class AromaticCompoundFixtures extends Fixture implements FixtureGroupInterface
 {
     /**
      * @var array<string, array{name: string, cas_number: string, formula: string, description: string, cooking: string, informations: string}>
      */
-    private const COMPOUNDS = [
+    private const array COMPOUNDS = [
         'eugenol' => [
             'name' => 'Eugenol',
             'cas_number' => '97-53-0',
@@ -167,7 +152,7 @@ class AromaticCompoundFixtures extends Fixture implements FixtureGroupInterface
                 ->setCreatedAt($now)
                 ->setUpdatedAt($now);
 
-            $this->addReference('compound_'.$key, $entity);
+            $this->addReference('compound_' . $key, $entity);
             $manager->persist($entity);
         }
 

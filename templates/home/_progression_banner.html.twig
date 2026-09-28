@@ -1,7 +1,3 @@
-{# ═══════════════════════════════════════════════════════
-   Banner Progression — utilisateurs connectés avec gamification
-   Extrait de l'ancien index.html.twig, 0 changement fonctionnel
-   ═══════════════════════════════════════════════════════ #}
 
 {% if is_granted('ROLE_USER') and app.user.progression and app.user.progression.gamificationEnabled %}
     {% set prog = app.user.progression %}
@@ -11,7 +7,6 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
 
-            {# Identité + niveau #}
             <div class="flex items-center gap-3 shrink-0">
                 {% include 'components/_avatar.html.twig' with {
                     sizeClass: 'w-10 h-10 text-base shrink-0',
@@ -23,7 +18,6 @@
                 </div>
             </div>
 
-            {# Barre XP #}
             <div class="flex-1 min-w-0">
                 <div class="flex justify-between text-xs text-stone-500 mb-1.5">
                     <span class="font-medium text-saffron-700">{{ prog.xp }} XP</span>
@@ -35,7 +29,6 @@
                 </div>
             </div>
 
-            {# Streak + prochain succès #}
             <div class="flex items-center gap-4 shrink-0 text-sm">
                 {% if streak > 0 %}
                     <div class="flex items-center gap-1.5 {{ streak >= 7 ? 'text-paprika-700' : 'text-saffron-600' }} font-bold">
@@ -56,7 +49,6 @@
                 {% endif %}
             </div>
 
-            {# CTAs rapides #}
             <div class="flex items-center gap-2 shrink-0">
                 <a href="{{ path('index_spicy_match') }}"
                    class="flex items-center gap-1.5 px-4 py-2 bg-paprika-800 text-white text-xs font-bold rounded-full hover:bg-paprika-900 transition-colors shadow-sm">

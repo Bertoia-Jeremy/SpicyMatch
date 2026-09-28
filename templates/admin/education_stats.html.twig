@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.education_stats.page_title'|trans({}, 'admin') }}{% endblock %}
+
+{% block body %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <h1 class="text-3xl font-bold text-stone-800 mb-2">{{ 'admin.education_stats.title'|trans({}, 'admin') }}</h1>
+    <p class="text-stone-600 mb-8">{{ 'admin.education_stats.intro'|trans({}, 'admin') }}</p>
+
+    <section class="mb-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="bg-white rounded-2xl border border-stone-200 p-6 text-center">
+            <h6 class="text-stone-500 text-sm mb-2">{{ 'admin.education_stats.live_component_sessions'|trans({}, 'admin') }}</h6>
+            <p class="text-3xl font-bold text-stone-800">{{ breakdown.liveComponentAdoption.live_component }}</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-stone-200 p-6 text-center">
+            <h6 class="text-stone-500 text-sm mb-2">{{ 'admin.education_stats.qcm_sessions'|trans({}, 'admin') }}</h6>
+            <p class="text-3xl font-bold text-stone-800">{{ breakdown.liveComponentAdoption.qcm }}</p>
+        </div>
+    </section>
+
+    <section class="mb-10">
+        <h2 class="text-xl font-semibold text-stone-800 mb-4">{{ 'admin.education_stats.by_mode_title'|trans({}, 'admin') }}</h2>
+        {% if breakdown.byMode is empty %}
+            <p class="text-stone-500 italic">{{ 'admin.stats.no_data'|trans({}, 'admin') }}</p>
+        {% else %}
+            <div class="bg-white rounded-2xl border border-stone-200 p-6">
+                <canvas id="chartByMode" height="100"></canvas>
+            </div>
+        {% endif %}
+    </section>
+
+    <section class="mb-10">
+        <h2 class="text-xl font-semibold text-stone-800 mb-4">{{ 'admin.education_stats.by_difficulty_title'|trans({}, 'admin') }}</h2>
+        {% if breakdown.byDifficulty is empty %}
+            <p class="text-stone-500 italic">{{ 'admin.stats.no_data'|trans({}, 'admin') }}</p>
+        {% else %}
+            <div class="bg-white rounded-2xl border border-stone-200 p-6">
+                <canvas id="chartByDifficulty" height="100"></canvas>
+            </div>
+        {% endif %}
+    </section>
+</div>
+
+{% set jsonSafeFlags = constant('JSON_HEX_TAG') b-or constant('JSON_HEX_AMP') b-or constant('JSON_HEX_APOS') b-or constant('JSON_HEX_QUOT') %}
+<script type="application/json" id="stats-by-mode">{{ breakdown.byMode|json_encode(jsonSafeFlags)|raw }}</script>
+<script type="application/json" id="stats-by-difficulty">{{ breakdown.byDifficulty|json_encode(jsonSafeFlags)|raw }}</script>
+
+<script nonce="{{ csp_nonce('script') }}" src="{{ asset('lib/chartjs/chart.umd.min.js') }}"></script>
+<script nonce="{{ csp_nonce('script') }}">
+(() => {
+    const parse = (id) => JSON.parse(document.getElementById(id).textContent);
+
+    const byMode = parse('stats-by-mode');
+    if (byMode.length) {
+        new Chart(document.getElementById('chartByMode'), {
+            type: 'bar',
+            data: {
+                labels: byMode.map(x => x.game_mode),
+                datasets: [{
+                    label: 'Précision moyenne (%)',
+                    data: byMode.map(x => x.avg_accuracy),
+                    backgroundColor: '#f59e0b',
+                }],
+            },
+            options: { scales: { y: { beginAtZero: true, max: 100 } } },
+        });
+    }
+
+    const byDifficulty = parse('stats-by-difficulty');
+    if (byDifficulty.length) {
+        new Chart(document.getElementById('chartByDifficulty'), {
+            type: 'bar',
+            data: {
+                labels: byDifficulty.map(x => x.difficulty),
+                datasets: [{
+                    label: 'Sessions',
+                    data: byDifficulty.map(x => x.sessions),
+                    backgroundColor: '#ef4444',
+                }],
+            },
+            options: { scales: { y: { beginAtZero: true } } },
+        });
+    }
+})();
+</script>
+{% endblock %}

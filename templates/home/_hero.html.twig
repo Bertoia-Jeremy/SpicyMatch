@@ -1,11 +1,6 @@
-{# ═══════════════════════════════════════════════════════
-   Hero — L'Éveil des Sens
-   Chapitre I : titre éditorial + key-figures
-   ═══════════════════════════════════════════════════════ #}
 
 <section class="home-hero-grid bg-cream overflow-hidden">
 
-    {# Coins décoratifs #}
     <div class="hero-corner tl">
         <span class="dot-sauge" aria-hidden="true"></span>
         <span>{{ 'ui.hero.season'|trans|raw }}</span>
@@ -16,7 +11,6 @@
         <span>{{ 'ui.hero.blends_est'|trans }}</span>
     </div>
 
-    {# ── Colonne gauche : contenu éditorial ── #}
     <div class="hero-content">
 
         <div class="hero-meta">
@@ -53,7 +47,6 @@
 
     </div>
 
-    {# ── Colonne droite : chiffres clés ── #}
     <aside class="key-figures" aria-label="{{ 'ui.hero.figures_label'|trans }}">
 
         <div class="kf-eyebrow">
@@ -61,7 +54,6 @@
             <span>{{ 'ui.hero.figures_eyebrow'|trans }}</span>
         </div>
 
-        {# 1 — Épices #}
         <div class="kf-row">
             <div class="kf-num">
                 <span class="sr-only">{{ 'ui.hero.figure_spices_sr'|trans({'%count%': spicesCount}) }}</span>
@@ -77,7 +69,6 @@
             </div>
         </div>
 
-        {# 2 — Arômes / composés #}
         <div class="kf-row">
             <div class="kf-num">
                 <span class="sr-only">{{ 'ui.hero.figure_aromas_sr'|trans({'%count%': compoundsCount}) }}</span>
@@ -97,7 +88,6 @@
             </div>
         </div>
 
-        {# 3 — Apprentis chefs #}
         <div class="kf-row">
             <div class="kf-num">
                 <span class="sr-only">{{ 'ui.hero.figure_chefs_sr'|trans({'%count%': usersCount}) }}</span>

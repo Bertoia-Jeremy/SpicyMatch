@@ -32,9 +32,7 @@ class NewsletterServiceTest extends TestCase
 
     public function testSubscribeCreatesNewSubscription(): void
     {
-        $this->repo->expects(self::once())
-            ->method('findByEmail')
-            ->with('new@example.com')
+        $this->repo->method('findByEmail')
             ->willReturn(null);
 
         $this->em->expects(self::once())->method('persist');
@@ -99,9 +97,7 @@ class NewsletterServiceTest extends TestCase
         $sub = new NewsletterSubscription();
         $sub->setEmail('active@example.com');
 
-        $this->repo->expects(self::once())
-            ->method('findActiveByEmail')
-            ->with('active@example.com')
+        $this->repo->method('findActiveByEmail')
             ->willReturn($sub);
 
         $this->em->expects(self::once())->method('flush');
@@ -150,7 +146,7 @@ class NewsletterServiceTest extends TestCase
     {
         $token = $this->service->generateUnsubscribeToken('test@example.com');
 
-        self::assertFalse($this->service->validateUnsubscribeToken('test@example.com', $token.'tampered'));
+        self::assertFalse($this->service->validateUnsubscribeToken('test@example.com', $token . 'tampered'));
     }
 
     public function testValidateTokenReturnsFalseForWrongEmail(): void

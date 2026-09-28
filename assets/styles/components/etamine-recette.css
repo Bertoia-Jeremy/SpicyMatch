@@ -309,3 +309,29 @@
   h1.font-display { font-size: 32px !important; line-height: 1.05; }
   .stat-num       { font-size: 22px; }
 }
+
+.chef-word {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-left: 3px solid #D2773A;
+  border-radius: 0 10px 10px 0;
+  background: rgba(210,119,58,.08);
+}
+.chef-word-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+  color: #9A4720;
+}
+.chef-word-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px; line-height: 1.15; color: #2A1F14;
+  margin: 4px 0 8px;
+}
+.chef-word-list dt {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: #7A6A55; margin-top: 6px;
+}
+.chef-word-list dd {
+  font-size: 14px; line-height: 1.5; color: #5A4A38; margin: 0;
+}

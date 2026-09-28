@@ -4,30 +4,16 @@ declare(strict_types=1);
 
 namespace App\Service\Match;
 
-/**
- * Tanimoto pondéré OAV log-compressé : w_i = OAV > 1 ? ln(OAV) : 0 ; S = Σmin(w_c,w_M)/Σmax.
- *
- * Pourquoi le log : OAV s'étale sur ~6 ordres de grandeur, en linéaire le composé
- * dominant écrase tout et la majorité des candidats compatibles scorent 0%.
- * La perception olfactive étant log (Weber-Fechner), pondérer par ln(OAV) reflète
- * l'intensité perçue.
- *
- * Clamp à 0 sous OAV=1 : sous le seuil van Gemert. Gère aussi les OAV<1 post-Nernst.
- * Base log neutre (simplifie dans le ratio). Affiché ×100 (floor).
- *
- * @see ARCHITECTURE_MOTEUR_COMPATIBILITE.md §3
- */
 final class OavTanimotoScorer
 {
     /**
      * @param array<int, float> $candidateOav
      * @param array<int, float> $mortarOav
-     *
      * @return float ∈ [0, 1]
      */
     public function score(array $candidateOav, array $mortarOav): float
     {
-        if ([] === $candidateOav || [] === $mortarOav) {
+        if ($candidateOav === [] || $mortarOav === []) {
             return 0.0;
         }
 

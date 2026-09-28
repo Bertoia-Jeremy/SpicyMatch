@@ -12,24 +12,14 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 
-/**
- * Base class for integration tests needing a booted kernel + DB.
- *
- * Provides:
- *   - `$this->em`       — EntityManager from the container
- *   - `$this->session`  — a MockArraySessionStorage-backed Session, pushed on the RequestStack
- *   - `createTestUser()` — persists a minimal Users entity with a unique username
- *   - QueryCountTrait    — assertions on SQL query count
- *
- * Subclasses should extend this instead of KernelTestCase directly — keeps the
- * setup identical and prevents drift between test files.
- */
 abstract class IntegrationTestCase extends KernelTestCase
 {
     use QueryCountTrait;
 
     protected EntityManagerInterface $em;
+
     protected Session $session;
+
     protected RequestStack $requestStack;
 
     protected function setUp(): void
@@ -46,22 +36,18 @@ abstract class IntegrationTestCase extends KernelTestCase
 
     protected function tearDown(): void
     {
-        // Pop request we pushed in setUp — avoids leaking state across tests.
-        while (null !== $this->requestStack->getCurrentRequest()) {
+        while ($this->requestStack->getCurrentRequest() !== null) {
             $this->requestStack->pop();
         }
 
         parent::tearDown();
     }
 
-    /**
-     * Persist a minimal Users entity. Unique username avoids collisions across tests.
-     */
     protected function createTestUser(string $prefix = 'test'): Users
     {
         $user = new Users();
-        $user->setUsername($prefix.'_'.bin2hex(random_bytes(4)));
-        $user->setMail($user->getUsername().'@example.test');
+        $user->setUsername($prefix . '_' . bin2hex(random_bytes(4)));
+        $user->setMail($user->getUsername() . '@example.test');
         $user->setPassword('hash');
         $this->em->persist($user);
         $this->em->flush();

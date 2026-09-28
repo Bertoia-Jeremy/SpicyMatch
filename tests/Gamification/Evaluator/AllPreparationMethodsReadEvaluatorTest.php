@@ -20,7 +20,9 @@ use PHPUnit\Framework\TestCase;
 final class AllPreparationMethodsReadEvaluatorTest extends TestCase
 {
     private PreparationMethodsRepository&MockObject $prepRepo;
+
     private SpiceViewRepository&MockObject $spiceViewRepo;
+
     private AllPreparationMethodsReadEvaluator $evaluator;
 
     protected function setUp(): void
@@ -44,7 +46,6 @@ final class AllPreparationMethodsReadEvaluatorTest extends TestCase
 
     public function testReturnsFalseWhenZeroTotalMethods(): void
     {
-        // Edge case: DB empty → we must not unlock accidentally (0 >= 0 is true!)
         $progression = $this->progressionWithUser();
         $this->prepRepo->method('count')
             ->willReturn(0);
@@ -76,7 +77,7 @@ final class AllPreparationMethodsReadEvaluatorTest extends TestCase
 
     private function makeAchievement(): Achievement
     {
-        return (new Achievement())
+        return new Achievement()
             ->setSlug('test-all-prep')
             ->setName('Test')
             ->setDescription('d')

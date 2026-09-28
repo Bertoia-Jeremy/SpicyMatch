@@ -14,15 +14,15 @@ final class UserStatTest extends TestCase
     public function testTotalActionsHookReadsFromProgression(): void
     {
         $progression = new UserProgression();
-        (new \ReflectionProperty(UserProgression::class, 'totalMatches'))->setValue($progression, 5);
-        (new \ReflectionProperty(UserProgression::class, 'totalSpicesRead'))->setValue($progression, 1);
+        new \ReflectionProperty(UserProgression::class, 'totalMatches')->setValue($progression, 5);
+        new \ReflectionProperty(UserProgression::class, 'totalSpicesRead')->setValue($progression, 1);
 
         $user = new Users();
         $user->setProgression($progression);
 
         $stats = new UserStat();
         $stats->setUser($user);
-        $stats->incrementEasterEggsFound(); // 1
+        $stats->incrementEasterEggsFound();
 
         self::assertSame(7, $stats->totalActions);
     }
@@ -42,7 +42,7 @@ final class UserStatTest extends TestCase
         $stats = new UserStat();
         $stats->addVisitedAromaticGroup(1);
         $stats->addVisitedAromaticGroup(2);
-        $stats->addVisitedAromaticGroup(1); // Duplicate
+        $stats->addVisitedAromaticGroup(1);
 
         self::assertSame(2, $stats->visitedGroupsCount);
     }
@@ -63,7 +63,6 @@ final class UserStatTest extends TestCase
 
         $spices = $stats->getLastVisitedSpices();
         self::assertCount(10, $spices);
-        // First two (1, 2) should be evicted
         self::assertNotContains(1, $spices);
         self::assertNotContains(2, $spices);
         self::assertContains(12, $spices);

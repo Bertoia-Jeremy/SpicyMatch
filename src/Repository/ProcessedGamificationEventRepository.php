@@ -8,7 +8,8 @@ use App\Entity\ProcessedGamificationEvent;
 use App\Entity\Users;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\DBAL\ParameterType;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -16,34 +17,36 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ProcessedGamificationEventRepository extends ServiceEntityRepository
 {
-    public function __construct(
-        ManagerRegistry $registry,
-        private readonly EntityManagerInterface $em,
-    ) {
+    public function __construct(ManagerRegistry $registry)
+    {
         parent::__construct($registry, ProcessedGamificationEvent::class);
     }
 
-    /**
-     * Atomic claim: returns true if this was the first time the (eventType, eventKey)
-     * pair was claimed; false if the pair was already in the ledger.
-     *
-     * The UNIQUE constraint on (event_type, event_key) ensures that concurrent
-     * retries of the same event can never both succeed — at most one wins.
-     */
     public function claim(Users $user, string $eventType, string $eventKey): bool
     {
-        $record = new ProcessedGamificationEvent($user, $eventType, $eventKey);
+        $connection = $this->getEntityManager()
+            ->getConnection();
 
         try {
-            $this->em->persist($record);
-            $this->em->flush();
-
-            return true;
+            $connection->insert(
+                'processed_gamification_event',
+                [
+                    'event_type' => $eventType,
+                    'event_key' => $eventKey,
+                    'user_id' => $user->getId(),
+                    'processed_at' => new \DateTimeImmutable(),
+                ],
+                [
+                    'event_type' => ParameterType::STRING,
+                    'event_key' => ParameterType::STRING,
+                    'user_id' => ParameterType::INTEGER,
+                    'processed_at' => Types::DATETIME_IMMUTABLE,
+                ],
+            );
         } catch (UniqueConstraintViolationException) {
-            // Already processed — retry detected, short-circuit silently.
-            $this->em->clear();
-
             return false;
         }
+
+        return true;
     }
 }

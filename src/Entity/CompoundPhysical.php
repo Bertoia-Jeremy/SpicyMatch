@@ -9,10 +9,6 @@ use App\Enum\DataConfidence;
 use App\Repository\CompoundPhysicalRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * Propriétés physico-chimiques (logP, bp, vp). Source : PubChem + NIST WebBook.
- * Champs nullables — données importées progressivement.
- */
 #[ORM\Entity(repositoryClass: CompoundPhysicalRepository::class)]
 #[ORM\Table(name: 'compound_physical')]
 class CompoundPhysical
@@ -22,25 +18,12 @@ class CompoundPhysical
     #[ORM\Column(name: 'id', type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\OneToOne(targetEntity: AromaticCompound::class)]
-    #[ORM\JoinColumn(name: 'aromatic_compound_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
-    private AromaticCompound $compound;
-
-    /**
-     * log10(K_ow), plage typique [-2, 8].
-     */
     #[ORM\Column(name: 'log_p', type: 'float', nullable: true)]
     private ?float $logP = null;
 
-    /**
-     * °C à 1 atm.
-     */
     #[ORM\Column(name: 'boiling_point_celsius', type: 'integer', nullable: true)]
     private ?int $boilingPointCelsius = null;
 
-    /**
-     * Pa à 25 °C.
-     */
     #[ORM\Column(name: 'vapor_pressure_pa', type: 'float', nullable: true)]
     private ?float $vaporPressurePa = null;
 
@@ -58,9 +41,11 @@ class CompoundPhysical
     #[ORM\Column(name: 'updated_at', type: 'datetime_immutable')]
     private \DateTimeImmutable $updatedAt;
 
-    public function __construct(AromaticCompound $compound)
-    {
-        $this->compound = $compound;
+    public function __construct(
+        #[ORM\OneToOne(targetEntity: AromaticCompound::class)]
+        #[ORM\JoinColumn(name: 'aromatic_compound_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+        private AromaticCompound $compound
+    ) {
         $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
@@ -151,12 +136,9 @@ class CompoundPhysical
         return $this->updatedAt;
     }
 
-    /**
-     * K_ow = 10^logP, ou null si logP absent.
-     */
     public function octanolWaterPartition(): ?float
     {
-        return null === $this->logP ? null : 10 ** $this->logP;
+        return $this->logP === null ? null : 10 ** $this->logP;
     }
 
     public function aromaKinetics(): ?AromaKinetics

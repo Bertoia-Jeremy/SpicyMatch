@@ -13,25 +13,17 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-/**
- * Purges stale gamification rows that accumulate without being needed long-term.
- *
- * Retention policy:
- *   - pending_gamification_notification : 90 days (already delivered or abandoned)
- *   - processed_gamification_event       : 180 days (idempotency ledger — past this
- *                                           window, Messenger retries cannot reasonably
- *                                           re-deliver the same event).
- *
- * Run daily via the scheduler (see config/packages/scheduler.yaml).
- */
 #[AsCommand(
     name: 'app:gamification:cleanup',
     description: 'Purges expired gamification notifications + idempotency ledger entries.',
 )]
 final class GamificationCleanupCommand extends Command
 {
-    private const NOTIFICATION_RETENTION_DAYS = 90;
-    private const LEDGER_RETENTION_DAYS = 180;
+    private const int NOTIFICATION_RETENTION_DAYS = 90;
+
+    private const int UNDELIVERED_RETENTION_DAYS = 180;
+
+    private const int LEDGER_RETENTION_DAYS = 180;
 
     public function __construct(
         private readonly Connection $connection,
@@ -52,6 +44,13 @@ final class GamificationCleanupCommand extends Command
                 self::NOTIFICATION_RETENTION_DAYS,
             )
             ->addOption(
+                'undelivered-days',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Purge notifications never delivered, older than N days',
+                self::UNDELIVERED_RETENTION_DAYS,
+            )
+            ->addOption(
                 'ledger-days',
                 null,
                 InputOption::VALUE_REQUIRED,
@@ -66,12 +65,19 @@ final class GamificationCleanupCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $dryRun = (bool) $input->getOption('dry-run');
         $notificationDays = (int) $input->getOption('notification-days');
+        $undeliveredDays = (int) $input->getOption('undelivered-days');
         $ledgerDays = (int) $input->getOption('ledger-days');
 
         $notifDeleted = $this->purge(
             'pending_gamification_notification',
             'delivered_at IS NOT NULL AND delivered_at < DATE_SUB(NOW(), INTERVAL :days DAY)',
             $notificationDays,
+            $dryRun,
+        );
+        $undeliveredDeleted = $this->purge(
+            'pending_gamification_notification',
+            'delivered_at IS NULL AND created_at < DATE_SUB(NOW(), INTERVAL :days DAY)',
+            $undeliveredDays,
             $dryRun,
         );
         $ledgerDeleted = $this->purge(
@@ -84,13 +90,15 @@ final class GamificationCleanupCommand extends Command
         $this->logger->info('gamification.cleanup.completed', [
             'dry_run' => $dryRun,
             'notifications_deleted' => $notifDeleted,
+            'undelivered_deleted' => $undeliveredDeleted,
             'ledger_deleted' => $ledgerDeleted,
         ]);
 
         $io->success(sprintf(
-            '%s: notifications=%d, ledger=%d',
+            '%s: notifications=%d, undelivered=%d, ledger=%d',
             $dryRun ? 'Dry-run' : 'Purged',
             $notifDeleted,
+            $undeliveredDeleted,
             $ledgerDeleted,
         ));
 
@@ -108,7 +116,7 @@ final class GamificationCleanupCommand extends Command
             'days' => $days,
         ]);
 
-        if ($dryRun || 0 === $count) {
+        if ($dryRun || $count === 0) {
             return $count;
         }
 

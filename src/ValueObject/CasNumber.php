@@ -4,13 +4,7 @@ declare(strict_types=1);
 
 namespace App\ValueObject;
 
-/**
- * Numéro CAS au format XXXXXXX-YY-Z (2-7 / 2 / 1 chiffre de contrôle).
- *
- * Le checksum détecte les fautes de frappe : sum(digit_i × position_i) mod 10 = check.
- * Ex. eugénol 97-53-0 → 3×1+5×2+7×3+9×4 = 70 mod 10 = 0 ✓.
- */
-final readonly class CasNumber
+final readonly class CasNumber implements \Stringable
 {
     private const string PATTERN = '/^(\d{2,7})-(\d{2})-(\d)$/';
 
@@ -28,10 +22,7 @@ final readonly class CasNumber
         }
 
         if (! self::checksumValid($digits, $checkDigit)) {
-            throw new \InvalidArgumentException(\sprintf(
-                'Numéro CAS "%s" : chiffre de contrôle invalide (faute de frappe probable).',
-                $raw,
-            ));
+            throw new \InvalidArgumentException(\sprintf('Numéro CAS "%s" : chiffre de contrôle invalide (faute de frappe probable).', $raw));
         }
 
         return new self($normalized);
@@ -61,11 +52,11 @@ final readonly class CasNumber
      */
     private static function matchesFormat(string $value, ?string &$digits = null, ?int &$checkDigit = null): bool
     {
-        if (1 !== preg_match(self::PATTERN, $value, $m)) {
+        if (preg_match(self::PATTERN, $value, $m) !== 1) {
             return false;
         }
 
-        $digits = $m[1].$m[2];
+        $digits = $m[1] . $m[2];
         $checkDigit = (int) $m[3];
 
         return true;

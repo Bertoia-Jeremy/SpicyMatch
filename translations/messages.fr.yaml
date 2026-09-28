@@ -43,6 +43,11 @@ flash:
     daily_limit_reached: 'Limite quotidienne atteinte (%max% sessions %mode% par jour).'
 
 ui:
+    pairing:
+        excellent: Excellent
+        harmonieux: Harmonieux
+        audacieux: Audacieux
+        discordant: Discordant
     meta:
         description: SpicyMatch — Créez des mélanges d'épices parfaits grâce à l'analyse moléculaire des composés aromatiques.
         default_title: SpicyMatch — L'Alchimie Culinaire
@@ -232,6 +237,15 @@ ui:
         validate: Valider
         same_family_one: 'appartient à la même famille aromatique'
         same_family_many: 'appartiennent à la même famille aromatique'
+        hangman_attempts_left: '%count% essais restants'
+        hangman_last_attempt: Dernier essai !
+        hangman_overcooked: Trop cuit
+        hangman_letters_left: '%count% lettres à trouver'
+        hangman_letter_left: 1 lettre à trouver
+        hangman_served: Servi !
+        hangman_hint_label: Indice
+        hangman_hint_cta: Toucher pour révéler
+        keyboard_note: ou tapez au clavier
     edu:
         prompt:
             qcm_best_match: 'Quelle épice se marie le mieux avec %spice% ?'
@@ -268,6 +282,12 @@ ui:
             chrono_0: Identifie chaque épice le plus vite possible.
             chrono_1: Tu vois la photo et les caractéristiques, mais pas le nom.
             chrono_2: Le temps est compté — chaque seconde compte.
+        skill:
+            up_title: Tu maîtrises ce niveau
+            up_text: '%rate%% de réussite sur tes %count% dernières parties en %from%. Prêt pour %to% ?'
+            down_title: Un cran en dessous ?
+            down_text: '%rate%% de réussite sur tes %count% dernières parties en %from%. Essaie %to% pour retrouver le rythme.'
+            cta: 'Essayer en %to%'
         academy_title: Académie des Épices
         academy_intro: Teste tes connaissances sur les épices et leurs compatibilités aromatiques.
         xp_per_correct: '%xp% XP/correct'
@@ -276,8 +296,7 @@ ui:
         timed_mode: Chrono
         survival_mode: Survie
         come_back_tomorrow: Reviens demain
-        reduced_xp_tooltip: 'XP réduit de 50%% au-delà de %threshold% parties/jour'
-        remaining_xp: '%count% restantes · ×0.5 XP'
+        result_title: '%mode% — Résultats'
         remaining_today: '%remaining%/%max% aujourd''hui'
         recent_games: Parties récentes
         correct_count: '%correct%/%total% correct'
@@ -312,6 +331,24 @@ ui:
         is_correct_answer: est la bonne réponse.
         you_answered: Tu as répondu
         correct_was: La bonne réponse était
+        level_label: 'Niveau %level%'
+        next_level: Prochain niveau
+        level_progress: Progression de niveau
+        games_played: parties jouées
+        achievements_stat: succès
+        record_label: 'Record : %score%'
+        record_none: À débloquer
+        daily_challenge: Défi du jour
+        locked_hint: Reviens demain pour rejouer
+        locked_level_hint: '%mode% se débloque au niveau %level%'
+        lesson: 'Leçon %numeral%'
+        gate:
+            title: Connecte-toi pour jouer
+            subtitle: Une dernière étape avant la partie.
+            why_title: Pourquoi créer un compte ?
+            why_fair: Un jeu protégé et équitable — fini les bots, place aux vrais joueurs.
+            why_progress: Ta progression et ton XP sauvegardés, avec tes bilans envoyés par e-mail.
+            why_space: Un espace perso pour retrouver tes préférences à chaque partie.
     onboarding:
         welcome_title: Bienvenue sur SpicyMatch !
         welcome_text: 'Découvre comment créer des mélanges d''épices qui fonctionnent vraiment. Petite visite guidée en 3 étapes :'
@@ -411,6 +448,10 @@ ui:
         moment_end: Fin
         moment_after: Après
         moment_free: — libre —
+        chef_word: Mot du Chef
+        chef_effect: Effet
+        chef_science: Science
+        chef_example: Exemple
         kinetics_title: Cinétique aromatique
         kinetics_sub: Tête · Cœur · Fond
         kinetics_retention: ' · rétention à %temp% °C / %time% min'
@@ -464,7 +505,11 @@ ui:
         advanced: Avancé
         odt_matrix: Matrice ODT
         no_matrix_data: Aucune matrice avec données
-        presence_mode: Tri par présence de composés partagés — pas de score OAV quantitatif (données insuffisantes).
+        scoring_mode:
+            hybrid: 'Score chimique OAV mélangé à l''affinité par co-occurrence (FlavorGraph).'
+            oav: 'Score chimique OAV seul (Tanimoto pondéré).'
+            flavorgraph: 'Affinité par co-occurrence (FlavorGraph), sans mesure chimique : échelle réduite, maximum %max%.'
+            presence: 'Tri par présence de composés partagés, sans score quantitatif.'
         fat_ratio: Fraction grasse
         cooking_time: Temps de cuisson
         temperature: Température
@@ -717,6 +762,23 @@ ui:
         persist: Si le problème persiste, merci de contacter l'administrateur.
         home: Accueil
         report: Signaler
+        '404':
+            eyebrow: 'Épice introuvable au bocal'
+            aria_label: 'Erreur 404'
+            title: 'Cette page s''est volatilisée à la torréfaction'
+            title_html: 'Cette page s''est <em>volatilisée</em> à la torréfaction'
+            description: 'On a retourné toute l''étagère à épices : cette page reste introuvable. Pas de panique — les meilleures trouvailles commencent souvent par une piste qui se dérobe.'
+            xp_note: '« Une fausse piste reste une piste. » +0 XP · leçon apprise'
+            back: Retour à l'accueil
+            explore: Explorer les épices
+            play: Lancer une partie
+            footnote: Tu pensais atterrir ailleurs ?
+            footnote_link: Signale la fausse piste
+        '403':
+            title: Accès réservé
+            description: Tu n'as pas les droits nécessaires pour consulter cette page. Connecte-toi ou retourne à l'accueil.
+            back: Retour à l'accueil
+            countdown: 'Redirection automatique dans %count% secondes.'
     security:
         password: Mot de passe
         password_text: Modifie ton mot de passe ci-dessous.
@@ -768,13 +830,8 @@ ui:
         in_kitchen: En cuisine
         in_kitchen_title: glisser
         moments: '%count% moment(s)'
-        marmite_before: Avant le feu
-        marmite_during: Pendant le feu
-        marmite_after: Après le feu
-        marmite_last: Au dernier moment
-        marmite_marinade: En marinade
-        marmite_default: Au choix
         step: Étape
+        chef_duo: Duo conseillé
         notebook: Le carnet
         notebook_title: notes en passant
         tame: apprivoiser
@@ -1031,21 +1088,6 @@ ui:
         chapter: Chapitre IV · L'Académie
         title_html: 'Le théâtre des <em class="not-italic italic" style="color: var(--color-turmeric-700)">sens.</em>'
         blurb: Six mini-jeux. Des épices comme terrain de jeu. Chaque partie révèle un angle nouveau — l'intrus, la survie, le pendu, la vitesse.
-        play_scoville: Jouer au Défi de Scoville
-        play_choice: Jouer au Choix du Chef
-        play_overcooked: Jouer à Trop Cuit
-        act1: Acte I
-        act2: Acte II
-        act3: Acte III
-        scoville_title_html: 'Défi de <span class="ital">Scoville.</span>'
-        scoville_tag: jeu de survie au piment
-        scoville_footer: Parties illimitées
-        choice_title_html: 'Le Choix <span class="ital">du Chef.</span>'
-        choice_tag: trouver l'intrus en cuisine
-        choice_footer: 5 questions
-        overcooked_title_html: 'Trop <span class="ital">Cuit!</span>'
-        overcooked_tag: le pendu des épices oubliées
-        overcooked_footer: 8 mots à deviner
         cta_sub: 6 modes disponibles · XP · Succès · Classements
         cta: Rejoindre l'Académie
     hero:
@@ -1110,21 +1152,39 @@ enum:
         qcm:
             label: Le Choix du Chef
             desc: 'Trouve l''épice la plus compatible parmi 4 choix.'
+            title_top: 'Le Choix'
+            title_bottom: 'du Chef.'
+            tagline: "trouver l'épice la plus compatible parmi 4 choix"
         survival:
             label: Défi de Scoville
             desc: 'Enchaîne les épices compatibles sans erreur.'
+            title_top: 'Défi de'
+            title_bottom: 'Scoville.'
+            tagline: 'enchaîner les épices compatibles sans erreur'
         guess_who:
             label: Palais Fin
             desc: 'Devine l''épice à partir d''indices progressifs.'
+            title_top: 'Palais'
+            title_bottom: 'Fin.'
+            tagline: "deviner l'épice à partir d'indices progressifs"
         intrus:
             label: Hors Saison
             desc: 'Trouve l''intrus parmi les épices compatibles.'
+            title_top: 'Hors'
+            title_bottom: 'Saison.'
+            tagline: "trouver l'intrus parmi les épices compatibles"
         hangman:
             label: Cuisson en Cours
             desc: 'Devine le nom de l''épice lettre par lettre.'
+            title_top: 'Cuisson'
+            title_bottom: 'en Cours.'
+            tagline: "deviner le nom de l'épice lettre par lettre"
         chrono:
             label: À Feu Vif
             desc: 'Identifie les épices le plus vite possible.'
+            title_top: 'À Feu'
+            title_bottom: 'Vif.'
+            tagline: 'identifier les épices le plus vite possible'
     difficulty:
         easy: Facile
         medium: Moyen
@@ -1134,6 +1194,27 @@ enum:
         rare: Infusion
         epic: Extraction
         legendary: Essence
+    cooking_moment:
+        pre:
+            label: 'En préparation (Infusion & Marinade)'
+            hint: 'Avant la cuisson, pour parfumer à cœur viandes et liquides.'
+            chef: 'L''extraction à froid ou tiède. On laisse le temps travailler à la place de la chaleur.'
+        start:
+            label: 'Au démarrage (Le Fond de sauce)'
+            hint: 'La base du plat. L''épice fond dans la matière et apporte sa profondeur.'
+            chef: 'On sacrifie les notes fraîches pour construire des notes terreuses et boisées durables.'
+        simmer:
+            label: 'En mijotage (Le Cœur du plat)'
+            hint: 'L''équilibre. Pour lier les saveurs sans détruire les parfums fragiles.'
+            chef: 'L''épice a assez de temps pour diffuser, mais subit moins d''oxydation thermique.'
+        finish:
+            label: 'En touche finale (Hors du feu)'
+            hint: 'Le coup de fouet. Une chauffe très courte pour réveiller les arômes.'
+            chef: 'On coupe le feu et on ajoute l''épice dans le plat encore très chaud. La chaleur libère les huiles, mais l''absence d''ébullition empêche l''évaporation.'
+        plating:
+            label: 'Au dressage (À cru)'
+            hint: 'L''étincelle. Pour un impact pur et un contraste de texture dans l''assiette.'
+            chef: 'Aucune altération. On perçoit le profil originel de l''épice par contact direct avec les papilles.'
     kinetics:
         head: Tête
         heart: Cœur

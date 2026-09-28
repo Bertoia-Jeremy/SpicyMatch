@@ -16,8 +16,6 @@ final class DataConsistencyCheckerTest extends TestCase
         $this->checker = new DataConsistencyChecker();
     }
 
-    // ── OAV ─────────────────────────────────────────────────────────────────
-
     public function testOavWithinRangeNoViolation(): void
     {
         $rows = [
@@ -49,7 +47,6 @@ final class DataConsistencyCheckerTest extends TestCase
 
     public function testOavExactlyOneIsError(): void
     {
-        // OAV = 1 = seuil, doit être strictement > 1
         $rows = [
             [
                 'spice_id' => 2,
@@ -78,11 +75,8 @@ final class DataConsistencyCheckerTest extends TestCase
         self::assertSame('warning', $v[0]['severity']);
     }
 
-    // ── Sommes de concentrations ─────────────────────────────────────────────
-
     public function testConcentrationSumNormalNoViolation(): void
     {
-        // 50 000 ppm = 5 % — plausible
         self::assertSame([], $this->checker->checkConcentrationSums([
             1 => 50_000.0,
         ]));
@@ -102,7 +96,6 @@ final class DataConsistencyCheckerTest extends TestCase
 
     public function testConcentrationSumImplausibleIsWarning(): void
     {
-        // 300 000 ppm = 30 % — implausible mais pas impossible
         $v = $this->checker->checkConcentrationSums([
             1 => 300_000.0,
         ]);
@@ -112,13 +105,10 @@ final class DataConsistencyCheckerTest extends TestCase
 
     public function testConcentrationSumBoundaryAt20PercentNoViolation(): void
     {
-        // Exactement 200 000 = 20 %, non strictement supérieur → pas de violation
         self::assertSame([], $this->checker->checkConcentrationSums([
             1 => 200_000.0,
         ]));
     }
-
-    // ── ODT air manquant ──────────────────────────────────────────────────────
 
     public function testMissingAirOdtIsWarning(): void
     {
@@ -136,5 +126,93 @@ final class DataConsistencyCheckerTest extends TestCase
     public function testNoMissingAirOdtNoViolation(): void
     {
         self::assertSame([], $this->checker->checkMissingAirOdt([]));
+    }
+
+    public function testValidCookingMomentsNoViolation(): void
+    {
+        self::assertSame([], $this->checker->checkCookingMoments([
+            [
+                'id' => 1,
+                'step' => 0,
+            ],
+            [
+                'id' => 2,
+                'step' => 4,
+            ],
+        ]));
+    }
+
+    public function testUnknownCookingMomentIsError(): void
+    {
+        $v = $this->checker->checkCookingMoments([[
+            'id' => 7,
+            'step' => 5,
+        ]]);
+
+        self::assertCount(1, $v);
+        self::assertSame('error', $v[0]['severity']);
+        self::assertStringContainsString('#7', $v[0]['message']);
+    }
+
+    public function testDuoWithSameSpiceNoViolation(): void
+    {
+        self::assertSame([], $this->checker->checkSpiceDuoSpices([
+            [
+                'id' => 1,
+                'prep_spice_id' => 3,
+                'cook_spice_id' => 3,
+            ],
+        ]));
+    }
+
+    public function testDuoAcrossSpicesIsError(): void
+    {
+        $v = $this->checker->checkSpiceDuoSpices([
+            [
+                'id' => 9,
+                'prep_spice_id' => 3,
+                'cook_spice_id' => 4,
+            ],
+        ]);
+
+        self::assertCount(1, $v);
+        self::assertSame('error', $v[0]['severity']);
+        self::assertStringContainsString('#9', $v[0]['message']);
+    }
+
+    public function testNoDuplicateTipsNoViolation(): void
+    {
+        self::assertSame([], $this->checker->checkDuplicatePreparationTips([]));
+        self::assertSame([], $this->checker->checkDuplicateCookingMoments([]));
+    }
+
+    public function testDuplicatePreparationTipsIsError(): void
+    {
+        $v = $this->checker->checkDuplicatePreparationTips([
+            [
+                'spice_id' => 3,
+                'preparation_method_id' => 8,
+                'total' => 2,
+            ],
+        ]);
+
+        self::assertCount(1, $v);
+        self::assertSame('error', $v[0]['severity']);
+        self::assertStringContainsString('méthode 8', $v[0]['message']);
+    }
+
+    public function testDuplicateCookingMomentsIsError(): void
+    {
+        $v = $this->checker->checkDuplicateCookingMoments([
+            [
+                'spice_id' => 3,
+                'step' => 2,
+                'total' => 2,
+            ],
+        ]);
+
+        self::assertCount(1, $v);
+        self::assertSame('error', $v[0]['severity']);
+        self::assertStringContainsString('moment 2', $v[0]['message']);
     }
 }

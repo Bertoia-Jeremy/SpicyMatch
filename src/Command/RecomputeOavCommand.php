@@ -16,18 +16,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Messenger\MessageBusInterface;
 
-/**
- * Déclenche le recalcul de la table spice_active_compound (vue matérialisée OAV).
- *
- * Le handler reconstruit toujours les 3 matrices (air, water, oil) en une seule passe.
- * Transaction InnoDB unique sur les 3 INSERT — atomique, zéro downtime.
- *
- * Usage :
- *   bin/console app:recompute:oav         # dispatch async (Messenger)
- *   bin/console app:recompute:oav --sync  # exécution synchrone directe
- *
- * @see ARCHITECTURE_MOTEUR_COMPATIBILITE.md §6.6
- */
 #[AsCommand(
     name: 'app:recompute:oav',
     description: 'Recalcule la table spice_active_compound (vue matérialisée OAV — toutes matrices)'
@@ -65,7 +53,17 @@ final class RecomputeOavCommand extends Command
 
         if ($sync) {
             $io->section('Rebuild synchrone (handler direct) — toutes matrices');
-            ($this->handler)($message);
+
+            if (! ($this->handler)($message)) {
+                $io->error(sprintf(
+                    'Rebuild abandonné — verrou indisponible : la table OAV reste inchangée (%d lignes). '
+                    . 'Un rebuild a été re-planifié en asynchrone ; relancer une fois le worker au repos.',
+                    $before,
+                ));
+
+                return Command::FAILURE;
+            }
+
             $after = $this->spiceActiveCompoundRepository->countTotal();
             $io->success(sprintf('Rebuild terminé — %d lignes OAV-actives (toutes matrices).', $after));
         } else {

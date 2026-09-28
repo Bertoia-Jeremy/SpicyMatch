@@ -12,6 +12,7 @@ use App\Repository\PendingGamificationNotificationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,16 +26,20 @@ use Twig\Environment;
 final class GamificationNotificationSubscriberTest extends TestCase
 {
     private TokenStorageInterface&MockObject $tokenStorage;
+
     private PendingGamificationNotificationRepository&MockObject $notifRepository;
-    private EntityManagerInterface&MockObject $em;
+
+    private EntityManagerInterface&Stub $em;
+
     private Environment&MockObject $twig;
+
     private GamificationNotificationSubscriber $subscriber;
 
     protected function setUp(): void
     {
         $this->tokenStorage = $this->createMock(TokenStorageInterface::class);
         $this->notifRepository = $this->createMock(PendingGamificationNotificationRepository::class);
-        $this->em = $this->createMock(EntityManagerInterface::class);
+        $this->em = $this->createStub(EntityManagerInterface::class);
         $this->twig = $this->createMock(Environment::class);
 
         $this->subscriber = new GamificationNotificationSubscriber(
@@ -52,8 +57,6 @@ final class GamificationNotificationSubscriberTest extends TestCase
         $response = new Response('<html><body>x</body></html>');
         $response->headers->set('Content-Type', 'text/html');
 
-        // Expect: no notification lookup at all when inside a Turbo Frame — the toast
-        // would otherwise land inside the frame and be lost.
         $this->notifRepository->expects(self::never())->method('findUndeliveredForUser');
 
         $this->subscriber->onKernelResponse($this->makeEvent($request, $response));
@@ -89,7 +92,6 @@ final class GamificationNotificationSubscriberTest extends TestCase
         $this->tokenStorage->method('getToken')
             ->willReturn($token);
 
-        // Opt-out MUST short-circuit BEFORE hitting the notification repo.
         $this->notifRepository->expects(self::never())->method('findUndeliveredForUser');
 
         $this->subscriber->onKernelResponse($this->makeEvent($request, $response));
@@ -133,7 +135,7 @@ final class GamificationNotificationSubscriberTest extends TestCase
     private function makeEvent(Request $request, Response $response): ResponseEvent
     {
         return new ResponseEvent(
-            $this->createMock(HttpKernelInterface::class),
+            $this->createStub(HttpKernelInterface::class),
             $request,
             HttpKernelInterface::MAIN_REQUEST,
             $response,

@@ -6,12 +6,16 @@ namespace App\Tests\Twig\Components;
 
 use App\Entity\AromaticGroups;
 use App\Entity\SpicyType;
+use App\Entity\Users;
+use App\Enum\DataConfidence;
 use App\Enum\OdtMatrix;
+use App\Exception\Match\InvalidMortarException;
 use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpiceActiveCompoundRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
 use App\Service\Match\CompatibleSpiceFinder;
+use App\Service\Match\FlavorGraphHybridizerInterface;
 use App\Service\Match\MatchConfidenceAssessorInterface;
 use App\Service\SpicyMatchService;
 use App\Twig\Components\SpicyMatch;
@@ -19,22 +23,33 @@ use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 #[AllowMockObjectsWithoutExpectations]
 class SpicyMatchTest extends TestCase
 {
     private SpicesRepository&MockObject $spicesRepo;
+
     private CompatibleSpiceFinder&MockObject $compatibleSpiceFinder;
+
     private AromaticGroupsRepository&MockObject $aromaticGroupsRepo;
+
     private SpicyTypeRepository&MockObject $spicyTypeRepo;
+
     private SpicyMatchService&MockObject $spicyMatchService;
+
     private MatchConfidenceAssessorInterface&MockObject $confidenceAssessor;
-    private SpiceActiveCompoundRepository&MockObject $spiceActiveCompoundRepo;
+
+    private SpiceActiveCompoundRepository&Stub $spiceActiveCompoundRepo;
 
     /**
      * @var list<array<string, mixed>>
@@ -49,7 +64,7 @@ class SpicyMatchTest extends TestCase
         $this->spicyTypeRepo = $this->createMock(SpicyTypeRepository::class);
         $this->spicyMatchService = $this->createMock(SpicyMatchService::class);
         $this->confidenceAssessor = $this->createMock(MatchConfidenceAssessorInterface::class);
-        $this->spiceActiveCompoundRepo = $this->createMock(SpiceActiveCompoundRepository::class);
+        $this->spiceActiveCompoundRepo = $this->createStub(SpiceActiveCompoundRepository::class);
 
         $this->allSpices = [
             [
@@ -100,8 +115,11 @@ class SpicyMatchTest extends TestCase
 
     private function makeComponent(): SpicyMatch
     {
-        $requestStack = new RequestStack();
-        $requestStack->push(Request::create('/fr/spicymatch'));
+        $requestStack = new RequestStack([Request::create('/fr/spicymatch')]);
+
+        $hybridizer = $this->createStub(FlavorGraphHybridizerInterface::class);
+        $hybridizer->method('isActive')
+            ->willReturn(true);
 
         $component = new SpicyMatch(
             $this->spicesRepo,
@@ -112,6 +130,7 @@ class SpicyMatchTest extends TestCase
             $this->confidenceAssessor,
             $this->spiceActiveCompoundRepo,
             $requestStack,
+            $hybridizer,
         );
 
         $component->setContainer($this->makeAnonymousContainer());
@@ -125,13 +144,19 @@ class SpicyMatchTest extends TestCase
         $tokenStorage->method('getToken')
             ->willReturn(null);
 
+        $authChecker = $this->createMock(AuthorizationCheckerInterface::class);
+        $authChecker->method('isGranted')
+            ->willReturn(false);
+
         $container = $this->createMock(ContainerInterface::class);
         $container->method('has')
-            ->with('security.token_storage')
-            ->willReturn(true);
+            ->willReturnCallback(static fn (string $id): bool => in_array($id, ['security.token_storage', 'security.authorization_checker'], true));
         $container->method('get')
-            ->with('security.token_storage')
-            ->willReturn($tokenStorage);
+            ->willReturnCallback(static fn (string $id): ?object => match ($id) {
+                'security.token_storage' => $tokenStorage,
+                'security.authorization_checker' => $authChecker,
+                default => null,
+            });
 
         return $container;
     }
@@ -142,8 +167,6 @@ class SpicyMatchTest extends TestCase
 
         self::assertSame('auto', $component->mode);
     }
-
-    // ── Confiance des données ────────────────────────────────────────────────
 
     public function testDataConfidenceNullWhenNoSelection(): void
     {
@@ -159,7 +182,7 @@ class SpicyMatchTest extends TestCase
     {
         $this->confidenceAssessor->expects(self::once())
             ->method('assess')
-            ->willReturn(\App\Enum\DataConfidence::PLACEHOLDER);
+            ->willReturn(DataConfidence::PLACEHOLDER);
 
         $component = $this->makeComponent();
         $component->spices = [
@@ -167,7 +190,7 @@ class SpicyMatchTest extends TestCase
             'compatibleSpices' => $this->allSpices,
         ];
 
-        self::assertSame(\App\Enum\DataConfidence::PLACEHOLDER, $component->getDataConfidence());
+        self::assertSame(DataConfidence::PLACEHOLDER, $component->getDataConfidence());
     }
 
     public function testGetResultsWithNoSelectionReturnsAllSpices(): void
@@ -283,7 +306,6 @@ class SpicyMatchTest extends TestCase
 
         $results = $component->getResults();
 
-        // Excludes only id=1 (selected) — same-group spices remain (id=4 Gingembre)
         $ids = array_column($results['compatibleSpices'], 'id');
         self::assertNotContains(1, $ids);
         self::assertContains(4, $ids);
@@ -303,8 +325,6 @@ class SpicyMatchTest extends TestCase
         self::assertSame('', $component->filterStId);
         self::assertSame('', $component->search);
     }
-
-    // ── Manual mode: getResults() ───────────────────────────────────────────
 
     public function testManualModeResultsHaveNoScoreKey(): void
     {
@@ -334,7 +354,6 @@ class SpicyMatchTest extends TestCase
 
     public function testManualModeWithMultipleSelectionsExcludesOnlySelected(): void
     {
-        // Sélection de Cannelle (Chaud) et Cumin (Terreux)
         $this->spicesRepo->method('findSpicesForMatch')
             ->willReturn([
                 [
@@ -361,10 +380,8 @@ class SpicyMatchTest extends TestCase
         $results = $component->getResults();
         $ids = array_column($results['compatibleSpices'], 'id');
 
-        // Exclut uniquement Cannelle(1) et Cumin(2)
         self::assertNotContains(1, $ids);
         self::assertNotContains(2, $ids);
-        // Reste Poivre(3), Gingembre(4 — même groupe que Cannelle mais autorisé) et Coriandre(5)
         self::assertContains(3, $ids);
         self::assertContains(4, $ids);
         self::assertContains(5, $ids);
@@ -372,7 +389,6 @@ class SpicyMatchTest extends TestCase
 
     public function testManualModeWithAllSpicesSelectedReturnsEmpty(): void
     {
-        // Toutes les épices sélectionnées → plus rien en compatible
         $this->spicesRepo->method('findSpicesForMatch')
             ->willReturn([
                 [
@@ -417,8 +433,6 @@ class SpicyMatchTest extends TestCase
         $results = $component->getResults();
         self::assertEmpty($results['compatibleSpices']);
     }
-
-    // ── Manual mode: filters still work ─────────────────────────────────────
 
     public function testManualModeRespectsSearchFilter(): void
     {
@@ -465,7 +479,7 @@ class SpicyMatchTest extends TestCase
 
         $component = $this->makeComponent();
         $component->mode = 'manual';
-        $component->filterAgId = 'herbace'; // Herbacé (agId=4)
+        $component->filterAgId = 'herbace';
         $component->spices = [
             'selectedSpices' => ['1'],
             'compatibleSpices' => $this->allSpices,
@@ -496,7 +510,7 @@ class SpicyMatchTest extends TestCase
 
         $component = $this->makeComponent();
         $component->mode = 'manual';
-        $component->filterStId = 'graine'; // stId=2 → Coriandre only
+        $component->filterStId = 'graine';
         $component->spices = [
             'selectedSpices' => ['1'],
             'compatibleSpices' => $this->allSpices,
@@ -506,8 +520,6 @@ class SpicyMatchTest extends TestCase
         self::assertCount(1, $results['compatibleSpices']);
         self::assertSame('Coriandre', $results['compatibleSpices'][0]['name']);
     }
-
-    // ── canAddMoreGroups in manual mode ─────────────────────────────────────
 
     public function testCanAddMoreGroupsInManualModeWithAvailableSpices(): void
     {
@@ -531,8 +543,6 @@ class SpicyMatchTest extends TestCase
         self::assertTrue($component->canAddMoreGroups());
     }
 
-    // ── clearSearch ─────────────────────────────────────────────────────────
-
     public function testClearSearchInManualMode(): void
     {
         $component = $this->makeComponent();
@@ -543,8 +553,6 @@ class SpicyMatchTest extends TestCase
 
         self::assertSame('', $component->search);
     }
-
-    // ── Contexte culinaire ──────────────────────────────────────────────────
 
     public function testDefaultCulinaryContextIsNeutral(): void
     {
@@ -576,7 +584,6 @@ class SpicyMatchTest extends TestCase
 
     public function testBuildCulinaryContextClampsFatRatioAboveOne(): void
     {
-        // Sécurité : le client peut envoyer fat=2.5 via LiveProp writable → clamp à 1
         $component = $this->makeComponent();
         $component->fatRatio = 2.5;
 
@@ -604,7 +611,7 @@ class SpicyMatchTest extends TestCase
 
         $ctx = $component->buildCulinaryContext();
 
-        self::assertSame(1440, $ctx->cookingTimeMin); // cap 24 h
+        self::assertSame(1440, $ctx->cookingTimeMin);
     }
 
     public function testBuildCulinaryContextClampsTemperature(): void
@@ -619,7 +626,6 @@ class SpicyMatchTest extends TestCase
 
     public function testBuildCulinaryContextFallsBackToAirOnUnknownMatrix(): void
     {
-        // Le client peut envoyer matrix=steam via writable → fallback air
         $component = $this->makeComponent();
         $component->matrix = 'steam';
 
@@ -668,7 +674,6 @@ class SpicyMatchTest extends TestCase
 
     public function testSetCookingPresetIgnoresUnknownPreset(): void
     {
-        // Whitelist stricte — un preset inconnu ne change rien
         $component = $this->makeComponent();
         $component->matrix = 'water';
         $component->fatRatio = 0.3;
@@ -758,16 +763,75 @@ class SpicyMatchTest extends TestCase
         $component->matrix = 'oil';
         self::assertSame('Huile', $component->getCulinaryLabel());
 
-        // Cuisson en bouillon
         $component->matrix = 'water';
         $component->fatRatio = 0.0;
         $component->cookingTimeMin = 20;
         self::assertSame('Bouillon', $component->getCulinaryLabel());
 
-        // Sauté
         $component->matrix = 'oil';
         $component->fatRatio = 1.0;
         $component->cookingTimeMin = 10;
         self::assertSame('Sauté', $component->getCulinaryLabel());
+    }
+
+    public function testNextStepDeniesAnonymousUserInsteadOfCrashing(): void
+    {
+        $component = $this->makeComponent();
+
+        $this->spicyMatchService->expects(self::never())
+            ->method('start');
+
+        $this->expectException(AccessDeniedException::class);
+
+        $component->nextStep();
+    }
+
+    public function testNextStepRedirectsToLabWhenMortarHasNoValidSpice(): void
+    {
+        $component = $this->makeComponent();
+        $component->setContainer($this->makeAuthenticatedContainer());
+        $component->mode = 'manual';
+        $component->spices = [
+            'selectedSpices' => ['999999'],
+            'compatibleSpices' => [],
+        ];
+
+        $this->spicyMatchService->expects(self::once())
+            ->method('start')
+            ->willThrowException(InvalidMortarException::emptySelection());
+
+        self::assertSame('/fr/spicymatch/', $component->nextStep()->getTargetUrl());
+    }
+
+    private function makeAuthenticatedContainer(): ContainerInterface
+    {
+        $token = $this->createStub(TokenInterface::class);
+        $token->method('getUser')
+            ->willReturn(new Users());
+
+        $tokenStorage = $this->createStub(TokenStorageInterface::class);
+        $tokenStorage->method('getToken')
+            ->willReturn($token);
+
+        $authChecker = $this->createStub(AuthorizationCheckerInterface::class);
+        $authChecker->method('isGranted')
+            ->willReturn(true);
+
+        $router = $this->createStub(UrlGeneratorInterface::class);
+        $router->method('generate')
+            ->willReturnCallback(static fn (string $name): string => $name === 'index_spicy_match' ? '/fr/spicymatch/' : '/' . $name);
+
+        $container = $this->createStub(ContainerInterface::class);
+        $container->method('has')
+            ->willReturnCallback(static fn (string $id): bool => in_array($id, ['security.token_storage', 'security.authorization_checker', 'router'], true));
+        $container->method('get')
+            ->willReturnCallback(static fn (string $id): ?object => match ($id) {
+                'security.token_storage' => $tokenStorage,
+                'security.authorization_checker' => $authChecker,
+                'router' => $router,
+                default => null,
+            });
+
+        return $container;
     }
 }

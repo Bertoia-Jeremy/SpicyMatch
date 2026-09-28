@@ -6,11 +6,10 @@
 
 {% set loc = app.request.locale %}
 
-{# ─── Maps de données ─────────────────────────────────────────────────── #}
 {% set cookingStepBySpice = {} %}
 {% for step, cookings in cookingsByStep %}
   {% for cooking in cookings %}
-    {% set cookingStepBySpice = cookingStepBySpice|merge({(cooking.spice.id): cooking.cookingStep}) %}
+    {% set cookingStepBySpice = cookingStepBySpice|merge({(cooking.spice.id): cooking.moment.label|trans}) %}
   {% endfor %}
 {% endfor %}
 
@@ -52,7 +51,6 @@
   style="background-color: #F5ECDB; color: #2A1F14;"
 >
 
-  {# ===== TOP BAR ===== #}
   <header class="max-w-[1180px] mx-auto px-6 pt-6 pb-3 flex items-center justify-between">
     <twig:Button
         label="{{ 'ui.history.back_to_history'|trans }}"
@@ -63,7 +61,6 @@
     <div class="flex items-center gap-2"></div>
   </header>
 
-  {# ===== HERO / FOLIO ===== #}
   <section class="max-w-[1180px] mx-auto px-6 pt-3 pb-6">
     <div class="flex items-start gap-4 mb-2">
       <span class="hex flex-shrink-0 mt-1 grid place-items-center"
@@ -140,7 +137,7 @@
     <div class="rule-dots my-2"></div>
   </div>
 
-  {# ===== CARTE DU MOMENT (contexte culinaire persisté — Étape 3E-3) ===== #}
+  {% if oav_context_enabled %}
   <section class="max-w-[1180px] mx-auto px-6 pt-6 pb-2">
     <div class="flex flex-wrap items-center gap-4 px-5 py-4 rounded-2xl border"
          style="border-color: rgba(154,71,32,0.18); background: linear-gradient(180deg, #FBF5E9 0%, #F5ECDB 100%);">
@@ -172,8 +169,8 @@
       </div>
     </div>
   </section>
+  {% endif %}
 
-  {# ===== PRÉPARATION DES ÉPICES ===== #}
   <section class="max-w-[1180px] mx-auto px-6 pt-8 pb-6">
     <div class="flex items-center gap-3 mb-5">
       <span class="section-icon">
@@ -192,18 +189,15 @@
         {% set prepMatrix = prep.applicableMatrix %}
         {% set prepApplicable = prepMatrix is null or prepMatrix == culinaryContext.matrix %}
         <article class="card prep {{ prepApplicable ? '' : 'opacity-60' }}" role="article">
-          {# Colonne 1 — Thumb hexagonal #}
           <div class="prep-thumb stripes" aria-hidden="true">
             <span class="placeholder-label">{{ prep.spice.name|split(' ')|first|slice(0,4)|upper }}</span>
           </div>
 
-          {# Colonne 2 — Narration #}
           <div class="min-w-0">
             <div class="flex items-baseline gap-2 flex-wrap">
               <span class="prep-name {{ prepApplicable ? '' : 'line-through' }}">{{ prep.spice.getLocalizedName(loc) }}</span>
               <span class="prep-form">— {{ prep.getLocalizedTitle(loc) }}</span>
               {% if not prepApplicable %}
-                {# UX-4 : tooltip explicatif + contraste plus visible (turmeric-50/saffron-900). #}
                 <span class="smallcaps px-2 py-0.5 rounded-full inline-flex items-center gap-1 cursor-help"
                       style="background:#FEF3C7; color:#78350F; border:1px solid #FCD34D;"
                       role="note"
@@ -220,14 +214,28 @@
             {% if prep.getLocalizedText(loc) %}
               <p class="mt-2 text-[14px] leading-relaxed" style="color: #5A4A38;">{{ prep.getLocalizedText(loc) }}</p>
             {% endif %}
+            {% set duo = duoByPrep[prep.id] ?? null %}
+            {% if duo %}
+              <aside class="chef-word" aria-label="{{ 'ui.recipe.chef_word'|trans }}">
+                <div class="chef-word-tag">{{ 'ui.recipe.chef_word'|trans }}</div>
+                <div class="chef-word-title">{{ duo.title }}</div>
+                <dl class="chef-word-list">
+                  <dt>{{ 'ui.recipe.chef_effect'|trans }}</dt>
+                  <dd>{{ duo.effect }}</dd>
+                  <dt>{{ 'ui.recipe.chef_science'|trans }}</dt>
+                  <dd>{{ duo.science }}</dd>
+                  <dt>{{ 'ui.recipe.chef_example'|trans }}</dt>
+                  <dd>{{ duo.example }}</dd>
+                </dl>
+              </aside>
+            {% endif %}
           </div>
 
-          {# Colonne 3 — Méthode #}
           <div class="method-panel">
             <span class="method-tag">{{ 'ui.recipe.method'|trans }}</span>
             <div class="method-row">
               <div class="method-icon">
-                {{ include('components/_etamine_icons.html.twig', { name: prep.title }) }}
+                {{ include('components/_etamine_icons.html.twig', { slug: prep.preparationMethod?.slug }) }}
               </div>
               <div>
                 <div class="method-name">{{ prep.getLocalizedTitle(loc) }}</div>
@@ -248,7 +256,6 @@
     </div>
   </section>
 
-  {# ===== MOMENTS D'INSERTION ===== #}
   <section class="max-w-[1180px] mx-auto px-6 pt-8 pb-6">
     <div class="flex items-center gap-3 mb-5">
       <span class="section-icon">
@@ -299,9 +306,8 @@
     </div>
   </section>
 
-  {# ===== TIMELINE CINÉTIQUE (Étape 3E-3) ===== #}
   {% set kineticsTotal = cookingTimeline.head|length + cookingTimeline.heart|length + cookingTimeline.base|length %}
-  {% if kineticsTotal > 0 %}
+  {% if oav_context_enabled and kineticsTotal > 0 %}
     <section class="max-w-[1180px] mx-auto px-6 pt-8 pb-6">
       <div class="flex items-center gap-3 mb-5">
         <span class="section-icon">
@@ -369,8 +375,7 @@
     </section>
   {% endif %}
 
-  {# ===== COMPARATIF MATRICIEL (Étape 3E-3 — Phase B/E) ===== #}
-  {% if matrixGrid|length > 0 %}
+  {% if oav_context_enabled and matrixGrid|length > 0 %}
     <section class="max-w-[1180px] mx-auto px-6 pt-8 pb-6">
       <div class="flex items-center gap-3 mb-5">
         <span class="section-icon">
@@ -431,7 +436,6 @@
     </section>
   {% endif %}
 
-  {# ===== NOTE DE L'ALCHIMISTE ===== #}
   <section class="max-w-[1180px] mx-auto px-6 pt-4 pb-2">
     <div class="note-slip">
       <div class="note-mark">
@@ -477,7 +481,6 @@
     {% include 'partials/_ads_banner.html.twig' %}
   </div>
 
-  {# ===== CTA BAS DE PAGE ===== #}
   <section class="max-w-[1180px] mx-auto px-6 pt-10 pb-20">
     <div class="flex justify-center">
       <twig:Button

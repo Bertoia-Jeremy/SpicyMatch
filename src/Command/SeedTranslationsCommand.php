@@ -18,6 +18,8 @@ use App\Entity\PreparationMethods;
 use App\Entity\PreparationMethodsTranslation;
 use App\Entity\PreparationTips;
 use App\Entity\PreparationTipsTranslation;
+use App\Entity\SpiceDuo;
+use App\Entity\SpiceDuoTranslation;
 use App\Entity\Spices;
 use App\Entity\SpiceTranslation;
 use App\Entity\SpicyType;
@@ -33,26 +35,13 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-/**
- * Amorce les lignes de traduction de TOUTES les entités traduisibles (pattern
- * Translation Table) pour une locale cible, en copiant le contenu FR canonique
- * comme point de départ (à retravailler ensuite par un traducteur).
- *
- * Idempotent : ne touche pas une traduction déjà existante (sauf --overwrite,
- * qui met à jour la ligne en place — pas de delete/insert → pas de collision
- * sur l'unique (owner, locale)).
- * Le FR n'a JAMAIS besoin de ligne (il vit sur l'entité et sert de fallback COALESCE).
- *
- *   app:i18n:seed-translations en
- *   app:i18n:seed-translations es --overwrite
- */
 #[AsCommand(
     name: 'app:i18n:seed-translations',
     description: 'Amorce les traductions de toutes les entités pour une locale (copie du FR canonique).',
 )]
 final class SeedTranslationsCommand extends Command
 {
-    private const SUPPORTED = ['en', 'es'];
+    private const array SUPPORTED = ['en', 'es'];
 
     public function __construct(
         private readonly EntityManagerInterface $em,
@@ -182,6 +171,25 @@ final class SeedTranslationsCommand extends Command
                     }
                 },
             ),
+            'spice_duos' => fn (bool $ow): array => $this->seedEach(
+                $this->em->getRepository(SpiceDuo::class)->findAll(),
+                $locale,
+                $ow,
+                function (TranslatableInterface $e, ?TranslationInterface $existing) use ($locale): void {
+                    \assert($e instanceof SpiceDuo);
+                    $t = $existing instanceof SpiceDuoTranslation ? $existing : new SpiceDuoTranslation();
+                    $t->setTitle($e->getTitle())
+                        ->setEffect($e->getEffect())
+                        ->setScience($e->getScience())
+                        ->setExample($e->getExample())
+                        ->setLocale($locale);
+
+                    if (! $existing instanceof SpiceDuoTranslation) {
+                        $e->addTranslation($t);
+                        $this->em->persist($t);
+                    }
+                },
+            ),
             'cooking_tips' => fn (bool $ow): array => $this->seedEach(
                 $this->em->getRepository(CookingTips::class)->findAll(),
                 $locale,
@@ -189,8 +197,7 @@ final class SeedTranslationsCommand extends Command
                 function (TranslatableInterface $e, ?TranslationInterface $existing) use ($locale): void {
                     \assert($e instanceof CookingTips);
                     $t = $existing instanceof CookingTipsTranslation ? $existing : new CookingTipsTranslation();
-                    $t->setCookingStep($e->getCookingStep())
-                        ->setText($e->getText())
+                    $t->setText($e->getText())
                         ->setTitle($e->getTitle())
                         ->setAdvantages($e->getAdvantages())
                         ->setLocale($locale);
@@ -283,7 +290,6 @@ final class SeedTranslationsCommand extends Command
     /**
      * @param list<TranslatableInterface>                                  $owners
      * @param callable(TranslatableInterface, ?TranslationInterface): void $upsert
-     *
      * @return array{int, int} [écrites, conservées]
      */
     private function seedEach(array $owners, string $locale, bool $overwrite, callable $upsert): array
@@ -294,13 +300,12 @@ final class SeedTranslationsCommand extends Command
         foreach ($owners as $owner) {
             $existing = $owner->getTranslation($locale);
 
-            // Ne JAMAIS écraser une traduction relue par un humain, même avec --overwrite.
-            if (null !== $existing && $existing->isReviewed()) {
+            if ($existing !== null && $existing->isReviewed()) {
                 ++$skipped;
                 continue;
             }
 
-            if (null !== $existing && ! $overwrite) {
+            if ($existing !== null && ! $overwrite) {
                 ++$skipped;
                 continue;
             }

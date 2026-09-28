@@ -27,6 +27,7 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
     public function __construct(
         private UrlGeneratorInterface $urlGenerator,
         private EntityManagerInterface $entityManager,
+        private RedirectTargetGuard $redirectTargetGuard,
     ) {
     }
 
@@ -51,6 +52,10 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
             $user->setLastLoginAt(new \DateTimeImmutable());
             $this->entityManager->persist($user);
             $this->entityManager->flush();
+        }
+
+        if ($postTarget = $this->redirectTargetGuard->safeOrNull($request->request->get('_target_path'))) {
+            return new RedirectResponse($postTarget);
         }
 
         if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {

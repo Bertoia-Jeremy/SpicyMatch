@@ -10,14 +10,6 @@ use App\Repository\SpiceTranslationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * Traduction localisée d'une épice (Spices). Une ligne par (spice, locale).
- *
- * Le FR canonique vit sur Spices ; cette table ne contient que les locales
- * traduites. Contrainte unique (spice_id, locale) = intégrité forte (pas de
- * doublon silencieux). Pas de FK contraignante côté DB nécessaire au-delà du
- * JoinColumn standard.
- */
 #[ORM\Entity(repositoryClass: SpiceTranslationRepository::class)]
 #[ORM\Table(name: 'spice_translation')]
 #[ORM\UniqueConstraint(name: 'uniq_spice_locale', columns: ['spice_id', 'locale'])]

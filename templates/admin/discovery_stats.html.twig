@@ -1,0 +1,97 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.discovery_stats.page_title'|trans({}, 'admin') }}{% endblock %}
+
+{% block body %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <h1 class="text-3xl font-bold text-stone-800 mb-2">{{ 'admin.discovery_stats.title'|trans({}, 'admin') }}</h1>
+    <p class="text-stone-600 mb-8">{{ 'admin.discovery_stats.intro'|trans({}, 'admin') }}</p>
+
+    <section class="mb-10">
+        <div class="bg-white rounded-2xl border border-stone-200 p-6 text-center max-w-xs">
+            <h6 class="text-stone-500 text-sm mb-2">{{ 'admin.discovery_stats.active_streaks'|trans({}, 'admin') }}</h6>
+            <p class="text-3xl font-bold text-stone-800">{{ readingStreaks.activeCount }}</p>
+        </div>
+    </section>
+
+    <section class="mb-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <h2 class="text-xl font-semibold text-stone-800 mb-4">{{ 'admin.dash.most_viewed_spices'|trans({}, 'admin') }}</h2>
+            {% if topViewed is empty %}
+                <p class="text-stone-500 italic">{{ 'admin.stats.no_data'|trans({}, 'admin') }}</p>
+            {% else %}
+                <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden">
+                    <table class="w-full text-sm">
+                        <thead class="bg-cream border-b border-stone-200 text-left">
+                            <tr>
+                                <th class="px-4 py-2">{{ 'admin.dash.col_spice'|trans({}, 'admin') }}</th>
+                                <th class="px-4 py-2">{{ 'admin.discovery_stats.col_views'|trans({}, 'admin') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for spice in topViewed %}
+                            <tr class="border-b border-stone-100">
+                                <td class="px-4 py-2 font-medium text-stone-800">{{ spice.name }}</td>
+                                <td class="px-4 py-2 text-stone-700">{{ spice.views }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+
+        <div>
+            <h2 class="text-xl font-semibold text-stone-800 mb-4">{{ 'admin.dash.popular_groups'|trans({}, 'admin') }}</h2>
+            {% if groupPopularity is empty %}
+                <p class="text-stone-500 italic">{{ 'admin.stats.no_data'|trans({}, 'admin') }}</p>
+            {% else %}
+                <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden">
+                    <table class="w-full text-sm">
+                        <thead class="bg-cream border-b border-stone-200 text-left">
+                            <tr>
+                                <th class="px-4 py-2">{{ 'admin.dash.col_group'|trans({}, 'admin') }}</th>
+                                <th class="px-4 py-2">{{ 'admin.dash.col_views'|trans({}, 'admin') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for group in groupPopularity %}
+                            <tr class="border-b border-stone-100">
+                                <td class="px-4 py-2 font-medium text-stone-800">{{ group.name }}</td>
+                                <td class="px-4 py-2 text-stone-700">{{ group.cnt }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="mb-10">
+        <h2 class="text-xl font-semibold text-stone-800 mb-4">{{ 'admin.discovery_stats.top_streaks_title'|trans({}, 'admin') }}</h2>
+        {% if readingStreaks.top is empty %}
+            <p class="text-stone-500 italic">{{ 'admin.stats.no_data'|trans({}, 'admin') }}</p>
+        {% else %}
+            <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead class="bg-cream border-b border-stone-200 text-left">
+                        <tr>
+                            <th class="px-4 py-2">{{ 'admin.stats.col_user'|trans({}, 'admin') }}</th>
+                            <th class="px-4 py-2">{{ 'admin.discovery_stats.col_streak'|trans({}, 'admin') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in readingStreaks.top %}
+                        <tr class="border-b border-stone-100">
+                            <td class="px-4 py-2 font-medium text-stone-800">{{ row.username }}</td>
+                            <td class="px-4 py-2 text-paprika-600 font-semibold">{{ row.streak }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

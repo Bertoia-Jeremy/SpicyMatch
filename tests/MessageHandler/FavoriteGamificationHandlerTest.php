@@ -15,6 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 #[AllowMockObjectsWithoutExpectations]
 final class FavoriteGamificationHandlerTest extends TestCase
@@ -35,12 +36,14 @@ final class FavoriteGamificationHandlerTest extends TestCase
         $this->historyRepo = $this->createMock(SpicyMatchHistoryRepository::class);
         $this->manager = $this->createMock(GamificationManagerInterface::class);
         $this->em = $this->createMock(EntityManagerInterface::class);
+        $this->em->method('wrapInTransaction')
+            ->willReturnCallback(fn (callable $callback) => $callback($this->em));
         $this->handler = new FavoriteGamificationHandler(
             $this->usersRepo,
             $this->historyRepo,
             $this->manager,
             $this->em,
-            new \Psr\Log\NullLogger(),
+            new NullLogger(),
         );
     }
 
@@ -59,7 +62,7 @@ final class FavoriteGamificationHandlerTest extends TestCase
     public function testDelegatesWithFavoriteCountContext(): void
     {
         $progression = new UserProgression();
-        $user = $this->createMock(Users::class);
+        $user = $this->createStub(Users::class);
         $this->manager->method('getOrCreateProgression')
             ->willReturn($progression);
 
@@ -83,7 +86,7 @@ final class FavoriteGamificationHandlerTest extends TestCase
     public function testHandlesZeroFavoritesGracefully(): void
     {
         $progression = new UserProgression();
-        $user = $this->createMock(Users::class);
+        $user = $this->createStub(Users::class);
         $this->manager->method('getOrCreateProgression')
             ->willReturn($progression);
 

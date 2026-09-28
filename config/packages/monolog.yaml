@@ -2,6 +2,7 @@ monolog:
     channels:
         - deprecation # Deprecations are logged in the dedicated "deprecation" channel when it exists
         - gamification # Structured events for gamification pipeline — consumable by Loki/Grafana
+        - oav
 
 when@dev:
     monolog:
@@ -16,6 +17,12 @@ when@dev:
                 path: "%kernel.logs_dir%/gamification.log"
                 level: info
                 channels: [gamification]
+                formatter: monolog.formatter.json
+            oav:
+                type: stream
+                path: "%kernel.logs_dir%/oav.log"
+                level: info
+                channels: [oav]
                 formatter: monolog.formatter.json
             # uncomment to get logging in your browser
             # you may have to allow bigger header sizes in your Web server configuration
@@ -65,6 +72,12 @@ when@prod:
                 path: php://stderr
                 level: info
                 channels: [gamification]
+                formatter: monolog.formatter.json
+            oav:
+                type: stream
+                path: php://stderr
+                level: info
+                channels: [oav]
                 formatter: monolog.formatter.json
             console:
                 type: console

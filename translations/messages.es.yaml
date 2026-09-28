@@ -43,6 +43,11 @@ flash:
     daily_limit_reached: 'Límite diario alcanzado (%max% sesiones de %mode% por día).'
 
 ui:
+    pairing:
+        excellent: Excelente
+        harmonieux: Armonioso
+        audacieux: Audaz
+        discordant: Discordante
     meta:
         description: SpicyMatch — Crea mezclas de especias perfectas mediante el análisis molecular de los compuestos aromáticos.
         default_title: SpicyMatch — La Alquimia Culinaria
@@ -268,6 +273,12 @@ ui:
             chrono_0: Identifica cada especia lo más rápido posible.
             chrono_1: Ves la foto y las características, pero no el nombre.
             chrono_2: El tiempo corre — cada segundo cuenta.
+        skill:
+            up_title: Dominas este nivel
+            up_text: '%rate%% de aciertos en tus últimas %count% partidas en %from%. ¿Listo para %to%?'
+            down_title: ¿Un nivel por debajo?
+            down_text: '%rate%% de aciertos en tus últimas %count% partidas en %from%. Prueba %to% para recuperar el ritmo.'
+            cta: 'Probar en %to%'
         academy_title: Academia de las Especias
         academy_intro: Pon a prueba tus conocimientos sobre las especias y sus compatibilidades aromáticas.
         xp_per_correct: '%xp% XP/correcta'
@@ -276,8 +287,7 @@ ui:
         timed_mode: Contrarreloj
         survival_mode: Supervivencia
         come_back_tomorrow: Vuelve mañana
-        reduced_xp_tooltip: 'XP reducido un 50%% más allá de %threshold% partidas/día'
-        remaining_xp: '%count% restantes · ×0.5 XP'
+        result_title: '%mode% — Resultados'
         remaining_today: '%remaining%/%max% hoy'
         recent_games: Partidas recientes
         correct_count: '%correct%/%total% correctas'
@@ -312,6 +322,24 @@ ui:
         is_correct_answer: es la respuesta correcta.
         you_answered: Has respondido
         correct_was: La respuesta correcta era
+        level_label: 'Nivel %level%'
+        next_level: Siguiente nivel
+        level_progress: Progreso de nivel
+        games_played: partidas jugadas
+        achievements_stat: logros
+        record_label: 'Récord: %score%'
+        record_none: Por desbloquear
+        daily_challenge: Desafío del día
+        locked_hint: Vuelve mañana para volver a jugar
+        locked_level_hint: '%mode% se desbloquea en el nivel %level%'
+        lesson: 'Lección %numeral%'
+        gate:
+            title: Inicia sesión para jugar
+            subtitle: Un último paso antes de la partida.
+            why_title: ¿Por qué crear una cuenta?
+            why_fair: Un juego protegido y justo — sin bots, solo jugadores reales.
+            why_progress: Tu progreso y tu XP guardados, con tus resúmenes enviados por email.
+            why_space: Un espacio personal para conservar tus preferencias en cada partida.
     onboarding:
         welcome_title: ¡Bienvenido a SpicyMatch!
         welcome_text: 'Descubre cómo crear mezclas de especias que realmente funcionan. Una visita guiada en 3 etapas:'
@@ -411,6 +439,10 @@ ui:
         moment_end: Fin
         moment_after: Después
         moment_free: — libre —
+        chef_word: Palabra del Chef
+        chef_effect: Efecto
+        chef_science: Ciencia
+        chef_example: Ejemplo
         kinetics_title: Cinética aromática
         kinetics_sub: Cabeza · Corazón · Fondo
         kinetics_retention: ' · retención a %temp% °C / %time% min'
@@ -464,7 +496,11 @@ ui:
         advanced: Avanzado
         odt_matrix: Matriz ODT
         no_matrix_data: Ninguna matriz con datos
-        presence_mode: Orden por presencia de compuestos compartidos — sin puntuación OAV cuantitativa (datos insuficientes).
+        scoring_mode:
+            hybrid: 'Puntuación química OAV combinada con la afinidad por coocurrencia (FlavorGraph).'
+            oav: 'Puntuación química OAV sola (Tanimoto ponderado).'
+            flavorgraph: 'Afinidad por coocurrencia (FlavorGraph), sin medición química: escala reducida, máximo %max%.'
+            presence: 'Orden por presencia de compuestos compartidos, sin puntuación cuantitativa.'
         fat_ratio: Fracción grasa
         cooking_time: Tiempo de cocción
         temperature: Temperatura
@@ -717,6 +753,23 @@ ui:
         persist: Si el problema persiste, contacta con el administrador.
         home: Inicio
         report: Reportar
+        '404':
+            eyebrow: 'Especia desaparecida del bote'
+            aria_label: 'Error 404'
+            title: Esta página se esfumó durante el tueste
+            title_html: 'Esta página se esfumó durante el <em>tueste</em>'
+            description: 'Hemos revuelto toda la especiera: sigue sin aparecer. Tranquilo — los mejores hallazgos suelen empezar con una pista que se desvanece.'
+            xp_note: 'Una pista falsa sigue siendo una pista. +0 XP · lección aprendida'
+            back: Volver al inicio
+            explore: Explorar las especias
+            play: Empezar una partida
+            footnote: ¿Esperabas llegar a otro sitio?
+            footnote_link: Informa de la pista falsa
+        '403':
+            title: Acceso restringido
+            description: No tienes los permisos necesarios para ver esta página. Inicia sesión o vuelve al inicio.
+            back: Volver al inicio
+            countdown: 'Redirección automática en %count% segundos.'
     security:
         password: Contraseña
         password_text: Cambia tu contraseña a continuación.
@@ -768,13 +821,8 @@ ui:
         in_kitchen: En la cocina
         in_kitchen_title: deslizarla
         moments: '%count% momento(s)'
-        marmite_before: Antes del fuego
-        marmite_during: Durante el fuego
-        marmite_after: Después del fuego
-        marmite_last: En el último momento
-        marmite_marinade: En adobo
-        marmite_default: A elección
         step: Etapa
+        chef_duo: Dúo recomendado
         notebook: El cuaderno
         notebook_title: notas al pasar
         tame: domesticarla
@@ -1031,21 +1079,6 @@ ui:
         chapter: Capítulo IV · La Academia
         title_html: 'El teatro de los <em class="not-italic italic" style="color: var(--color-turmeric-700)">sentidos.</em>'
         blurb: Seis minijuegos. Las especias como terreno de juego. Cada partida revela un ángulo nuevo — el intruso, la supervivencia, el ahorcado, la velocidad.
-        play_scoville: Jugar al Desafío Scoville
-        play_choice: Jugar a La Elección del Chef
-        play_overcooked: Jugar a Demasiado Hecho
-        act1: Acto I
-        act2: Acto II
-        act3: Acto III
-        scoville_title_html: 'Desafío <span class="ital">Scoville.</span>'
-        scoville_tag: juego de supervivencia al picante
-        scoville_footer: Partidas ilimitadas
-        choice_title_html: 'La Elección <span class="ital">del Chef.</span>'
-        choice_tag: encontrar el intruso en la cocina
-        choice_footer: 5 preguntas
-        overcooked_title_html: '<span class="ital">¡Demasiado Hecho!</span>'
-        overcooked_tag: el ahorcado de las especias olvidadas
-        overcooked_footer: 8 palabras por adivinar
         cta_sub: 6 modos disponibles · XP · Logros · Clasificaciones
         cta: Unirse a la Academia
     hero:
@@ -1110,21 +1143,39 @@ enum:
         qcm:
             label: La Elección del Chef
             desc: 'Encuentra la especia más compatible entre 4 opciones.'
+            title_top: 'La Elección'
+            title_bottom: 'del Chef.'
+            tagline: 'encuentra la especia más compatible entre 4 opciones'
         survival:
             label: Desafío Scoville
             desc: 'Encadena especias compatibles sin fallar.'
+            title_top: 'Desafío'
+            title_bottom: 'Scoville.'
+            tagline: 'encadena especias compatibles sin fallar'
         guess_who:
             label: Paladar Fino
             desc: 'Adivina la especia a partir de pistas progresivas.'
+            title_top: 'Paladar'
+            title_bottom: 'Fino.'
+            tagline: 'adivina la especia a partir de pistas progresivas'
         intrus:
             label: Fuera de Temporada
             desc: 'Encuentra el intruso entre las especias compatibles.'
+            title_top: 'Fuera de'
+            title_bottom: 'Temporada.'
+            tagline: 'encuentra el intruso entre las especias compatibles'
         hangman:
             label: Cocinando
             desc: 'Adivina el nombre de la especia letra a letra.'
+            title_top: 'Cocción'
+            title_bottom: 'en Curso.'
+            tagline: 'adivina el nombre de la especia letra a letra'
         chrono:
             label: A Fuego Vivo
             desc: 'Identifica las especias lo más rápido posible.'
+            title_top: 'A Fuego'
+            title_bottom: 'Vivo.'
+            tagline: 'identifica las especias lo más rápido posible'
     difficulty:
         easy: Fácil
         medium: Medio
@@ -1134,6 +1185,27 @@ enum:
         rare: Infusión
         epic: Extracción
         legendary: Esencia
+    cooking_moment:
+        pre:
+            label: 'En preparación (Infusión y Marinada)'
+            hint: 'Antes de cocinar, para perfumar a fondo carnes y líquidos.'
+            chef: 'Extracción en frío o templada. El tiempo trabaja en lugar del calor.'
+        start:
+            label: 'Al inicio (El Fondo)'
+            hint: 'La base del plato. La especia se funde en la grasa y aporta profundidad.'
+            chef: 'Se sacrifican las notas frescas para construir notas terrosas y amaderadas duraderas.'
+        simmer:
+            label: 'En cocción lenta (El Corazón)'
+            hint: 'El equilibrio. Une los sabores sin destruir los aromas frágiles.'
+            chef: 'La especia tiene tiempo de difundirse, con menos oxidación térmica.'
+        finish:
+            label: 'Toque final (Fuera del fuego)'
+            hint: 'El golpe de efecto. Un calor muy breve para despertar los aromas.'
+            chef: 'Se apaga el fuego y se añade la especia al plato aún muy caliente. El calor libera los aceites, pero sin hervor no hay evaporación.'
+        plating:
+            label: 'Al emplatar (En crudo)'
+            hint: 'La chispa. Para un impacto puro y contraste de textura en el plato.'
+            chef: 'Sin alteración. Se percibe el perfil original de la especia por contacto directo.'
     kinetics:
         head: Cabeza
         heart: Corazón

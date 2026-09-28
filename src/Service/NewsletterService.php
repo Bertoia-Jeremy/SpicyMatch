@@ -25,7 +25,7 @@ class NewsletterService
         ?string $ip = null,
     ): NewsletterSubscription {
         $existing = $this->subscriptionRepository->findByEmail($email);
-        if (null !== $existing) {
+        if ($existing !== null) {
             return $existing;
         }
 
@@ -44,7 +44,7 @@ class NewsletterService
     public function unsubscribe(string $email): void
     {
         $subscription = $this->subscriptionRepository->findActiveByEmail($email);
-        if (null === $subscription) {
+        if ($subscription === null) {
             return;
         }
 

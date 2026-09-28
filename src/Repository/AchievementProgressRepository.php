@@ -9,6 +9,7 @@ use App\Entity\AchievementProgress;
 use App\Entity\Users;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use SortDirection;
 
 /**
  * @extends ServiceEntityRepository<AchievementProgress>
@@ -26,7 +27,7 @@ class AchievementProgressRepository extends ServiceEntityRepository
             'user' => $user,
             'achievement' => $achievement,
         ]);
-        if (null === $ap) {
+        if ($ap === null) {
             $ap = new AchievementProgress();
             $ap->setUser($user)
                 ->setAchievement($achievement);
@@ -38,22 +39,18 @@ class AchievementProgressRepository extends ServiceEntityRepository
     }
 
     /**
-     * Batch variant: load all existing AchievementProgress rows for the given (user, achievements)
-     * pairs in a single query, persist missing ones, return them indexed by achievement id.
-     *
      * @param Achievement[] $achievements
-     *
      * @return array<int, AchievementProgress>
      */
     public function findOrCreateBatchForUser(Users $user, array $achievements): array
     {
-        if ([] === $achievements) {
+        if ($achievements === []) {
             return [];
         }
 
-        $ids = array_values(array_filter(array_map(fn (Achievement $a) => $a->getId(), $achievements)));
+        $ids = array_values(array_filter(array_map(fn (Achievement $a): ?int => $a->getId(), $achievements)));
 
-        $existing = [] !== $ids
+        $existing = $ids !== []
             ? $this->createQueryBuilder('ap')
                 ->where('ap.user = :user')
                 ->andWhere('ap.achievement IN (:ids)')
@@ -66,7 +63,7 @@ class AchievementProgressRepository extends ServiceEntityRepository
         $byAchievementId = [];
         foreach ($existing as $ap) {
             $achievement = $ap->getAchievement();
-            if (null !== $achievement && null !== $achievement->getId()) {
+            if ($achievement !== null && $achievement->getId() !== null) {
                 $byAchievementId[$achievement->getId()] = $ap;
             }
         }
@@ -74,7 +71,7 @@ class AchievementProgressRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         foreach ($achievements as $achievement) {
             $id = $achievement->getId();
-            if (null === $id || isset($byAchievementId[$id])) {
+            if ($id === null || isset($byAchievementId[$id])) {
                 continue;
             }
             $ap = new AchievementProgress();
@@ -97,10 +94,6 @@ class AchievementProgressRepository extends ServiceEntityRepository
         ]);
     }
 
-    /**
-     * Retourne l'achievement en cours le plus avancé (non complété) pour affichage dans le banner home.
-     * Trie par (progress / triggerValue) DESC pour prioriser le plus proche de la complétion.
-     */
     public function findMostAdvancedNotCompleted(Users $user): ?AchievementProgress
     {
         return $this->createQueryBuilder('ap')
@@ -109,7 +102,7 @@ class AchievementProgressRepository extends ServiceEntityRepository
             ->where('ap.user = :user')
             ->andWhere('ap.progress < a.triggerValue')
             ->andWhere('ap.progress > 0')
-            ->orderBy('ap.progress / a.triggerValue', 'DESC')
+            ->orderBy('ap.progress / a.triggerValue', SortDirection::Descending)
             ->setMaxResults(1)
             ->setParameter('user', $user)
             ->getQuery()

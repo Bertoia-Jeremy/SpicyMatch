@@ -10,7 +10,6 @@ interface CompoundPhysicalRepositoryInterface
 {
     /**
      * @param int[] $compoundIds
-     *
      * @return array<int, CompoundPhysical>
      */
     public function loadByCompoundIds(array $compoundIds): array;

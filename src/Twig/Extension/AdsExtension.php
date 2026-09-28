@@ -6,10 +6,9 @@ namespace App\Twig\Extension;
 
 use App\Entity\Users;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFunction;
+use Twig\Attribute\AsTwigFunction;
 
-final class AdsExtension extends AbstractExtension
+final readonly class AdsExtension
 {
     private const array PROVIDER_TEMPLATES = [
         'ethicalads' => 'partials/ads/_ethicalads.html.twig',
@@ -22,27 +21,15 @@ final class AdsExtension extends AbstractExtension
     private const string DEV_ONLY_PROVIDER = 'placeholder';
 
     public function __construct(
-        private readonly TokenStorageInterface $tokenStorage,
-        private readonly bool $enabled,
-        private readonly string $provider,
-        private readonly string $publisherId,
-        private readonly string $environment,
+        private TokenStorageInterface $tokenStorage,
+        private bool $enabled,
+        private string $provider,
+        private string $publisherId,
+        private string $environment,
     ) {
     }
 
-    /**
-     * @return TwigFunction[]
-     */
-    public function getFunctions(): array
-    {
-        return [
-            new TwigFunction('ads_enabled', $this->adsEnabled(...)),
-            new TwigFunction('ads_provider', $this->adsProvider(...)),
-            new TwigFunction('ads_template', $this->adsTemplate(...)),
-            new TwigFunction('ads_publisher_id', $this->adsPublisherId(...)),
-        ];
-    }
-
+    #[AsTwigFunction(name: 'ads_enabled')]
     public function adsEnabled(): bool
     {
         if (! $this->enabled) {
@@ -51,27 +38,30 @@ final class AdsExtension extends AbstractExtension
 
         $user = $this->tokenStorage->getToken()?->getUser();
 
-        return ! ($user instanceof Users && $user->isPremium());
+        return ! $user instanceof Users || ! $user->isPremium();
     }
 
+    #[AsTwigFunction(name: 'ads_provider')]
     public function adsProvider(): string
     {
         if (! isset(self::PROVIDER_TEMPLATES[$this->provider])) {
             return self::DEFAULT_PROVIDER;
         }
 
-        if (self::DEV_ONLY_PROVIDER === $this->provider && 'prod' === $this->environment) {
+        if ($this->provider === self::DEV_ONLY_PROVIDER && $this->environment === 'prod') {
             return self::DEFAULT_PROVIDER;
         }
 
         return $this->provider;
     }
 
+    #[AsTwigFunction(name: 'ads_template')]
     public function adsTemplate(): string
     {
         return self::PROVIDER_TEMPLATES[$this->adsProvider()];
     }
 
+    #[AsTwigFunction(name: 'ads_publisher_id')]
     public function adsPublisherId(): string
     {
         return $this->publisherId;

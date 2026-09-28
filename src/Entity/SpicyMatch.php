@@ -11,11 +11,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * Snapshot d'une composition (user + spices + contexte culinaire + ranking).
- * Sémantiquement immutable après création — pas de mutation par les services ;
- * Doctrine ne supporte pas encore readonly nativement, d'où les setters publics.
- */
 #[ORM\Entity(repositoryClass: SpicyMatchRepository::class)]
 class SpicyMatch
 {
@@ -66,7 +61,6 @@ class SpicyMatch
     ])]
     private bool $isManual = false;
 
-    // Contexte culinaire au moment de la composition (snapshot pour restituer le ranking exact).
     #[ORM\Column(name: 'matrix', type: 'string', length: 5, enumType: OdtMatrix::class, options: [
         'default' => 'air',
     ])]
@@ -77,9 +71,6 @@ class SpicyMatch
     ])]
     private float $fatRatio = 0.0;
 
-    /**
-     * Persisté plutôt que dérivé : invariant fat+water≈1 garanti à long terme.
-     */
     #[ORM\Column(name: 'water_ratio', type: 'float', options: [
         'default' => 1.0,
     ])]
@@ -121,17 +112,11 @@ class SpicyMatch
         return $this;
     }
 
-    /**
-     * @deprecated Use getUser()
-     */
     public function getUserId(): ?Users
     {
         return $this->user;
     }
 
-    /**
-     * @deprecated Use setUser()
-     */
     public function setUserId(?Users $user): static
     {
         return $this->setUser($user);
@@ -260,7 +245,6 @@ class SpicyMatch
     public function setFatRatio(float $fatRatio): static
     {
         $this->fatRatio = $fatRatio;
-        // Maintient l'invariant fat + water ≈ 1.
         $this->waterRatio = max(0.0, min(1.0, 1.0 - $fatRatio));
 
         return $this;

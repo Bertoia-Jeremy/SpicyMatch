@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
-use App\Entity\AromaticGroups;
 use App\Entity\GameSession;
 use App\Entity\Users;
 use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query;
 use Doctrine\Persistence\ManagerRegistry;
+use SortDirection;
 
 /**
  * @extends ServiceEntityRepository<GameSession>
@@ -31,7 +32,7 @@ class GameSessionRepository extends ServiceEntityRepository
             ->setParameter('user', $user)
             ->setParameter('today', new \DateTimeImmutable('today'));
 
-        if (null !== $mode) {
+        if ($mode instanceof GameMode) {
             $qb->andWhere('gs.gameMode = :mode')
                 ->setParameter('mode', $mode->value);
         }
@@ -41,9 +42,6 @@ class GameSessionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Returns today's session count per mode in a single query.
-     * Modes with 0 sessions are absent from the result — callers should use ?? 0.
-     *
      * @return array<string, int> Keyed by GameMode::value
      */
     public function countTodayByUserGrouped(Users $user): array
@@ -68,6 +66,59 @@ class GameSessionRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return array<string, int> Keyed by GameMode::value
+     */
+    public function findBestScoreByUserGrouped(Users $user): array
+    {
+        $rows = $this->createQueryBuilder('gs')
+            ->select('gs.gameMode, MAX(gs.score) AS best')
+            ->where('gs.user = :user')
+            ->andWhere('gs.finishedAt IS NOT NULL')
+            ->groupBy('gs.gameMode')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getArrayResult();
+
+        $result = [];
+        foreach ($rows as $row) {
+            $mode = $row['gameMode'] instanceof GameMode ? $row['gameMode']->value : (string) $row['gameMode'];
+            $result[$mode] = (int) $row['best'];
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return list<float>
+     */
+    public function findRecentAccuracies(
+        Users $user,
+        GameMode $mode,
+        GameDifficulty $difficulty,
+        int $limit,
+    ): array {
+        $rows = $this->createQueryBuilder('gs')
+            ->select('gs.correctAnswers AS ok', 'gs.totalQuestions AS total')
+            ->where('gs.user = :user')
+            ->andWhere('gs.gameMode = :mode')
+            ->andWhere('gs.difficulty = :difficulty')
+            ->andWhere('gs.finishedAt IS NOT NULL')
+            ->andWhere('gs.totalQuestions > 0')
+            ->setParameter('user', $user)
+            ->setParameter('mode', $mode->value)
+            ->setParameter('difficulty', $difficulty->value)
+            ->orderBy('gs.finishedAt', SortDirection::Descending)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_values(array_map(
+            static fn (array $row): float => round((int) $row['ok'] / (int) $row['total'] * 100, 1),
+            $rows,
+        ));
+    }
+
+    /**
      * @return GameSession[]
      */
     public function findByUser(Users $user, int $limit = 10): array
@@ -75,10 +126,31 @@ class GameSessionRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('gs')
             ->where('gs.user = :user')
             ->setParameter('user', $user)
-            ->orderBy('gs.startedAt', 'DESC')
+            ->orderBy('gs.startedAt', SortDirection::Descending)
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    public function sumFinishedScoreGroupedByUser(): array
+    {
+        $rows = $this->createQueryBuilder('gs')
+            ->select('IDENTITY(gs.user) AS uid', 'SUM(gs.score) AS total')
+            ->where('gs.finishedAt IS NOT NULL')
+            ->andWhere('gs.user IS NOT NULL')
+            ->groupBy('gs.user')
+            ->getQuery()
+            ->getArrayResult();
+
+        $result = [];
+        foreach ($rows as $row) {
+            $result[(int) $row['uid']] = (int) $row['total'];
+        }
+
+        return $result;
     }
 
     public function countFinishedByUser(Users $user): int
@@ -93,52 +165,17 @@ class GameSessionRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return \Doctrine\ORM\Query<null, mixed>
+     * @return Query<null, mixed>
      */
-    public function findByUserQuery(Users $user): \Doctrine\ORM\Query
+    public function findByUserQuery(Users $user): Query
     {
         return $this->createQueryBuilder('gs')
             ->where('gs.user = :user')
             ->setParameter('user', $user)
-            ->orderBy('gs.startedAt', 'DESC')
+            ->orderBy('gs.startedAt', SortDirection::Descending)
             ->getQuery();
     }
 
-    /**
-     * Max score achieved by this user in the given mode, restricted to sessions
-     * whose target spice belongs to a specific aromatic group. Drives
-     * GAME_SCORE_THRESHOLD achievements with contextAromaticGroup set.
-     */
-    public function maxScoreInModeForGroup(
-        Users $user,
-        GameMode $mode,
-        AromaticGroups $group,
-        ?GameDifficulty $difficulty = null,
-    ): int {
-        $qb = $this->createQueryBuilder('gs')
-            ->select('COALESCE(MAX(gs.score), 0)')
-            ->innerJoin('gs.targetSpice', 's')
-            ->innerJoin('s.aromaticGroups', 'ag')
-            ->where('gs.user = :user')
-            ->andWhere('gs.gameMode = :mode')
-            ->andWhere('ag = :group')
-            ->andWhere('gs.finishedAt IS NOT NULL')
-            ->setParameter('user', $user)
-            ->setParameter('mode', $mode->value)
-            ->setParameter('group', $group);
-
-        if (null !== $difficulty) {
-            $qb->andWhere('gs.difficulty = :difficulty')
-                ->setParameter('difficulty', $difficulty->value);
-        }
-
-        return (int) $qb->getQuery()
-            ->getSingleScalarResult();
-    }
-
-    /**
-     * Number of perfect runs (correctAnswers === totalQuestions) in the given mode.
-     */
     public function countPerfectRunsByMode(Users $user, GameMode $mode): int
     {
         return (int) $this->createQueryBuilder('gs')
@@ -150,21 +187,6 @@ class GameSessionRepository extends ServiceEntityRepository
             ->andWhere('gs.totalQuestions > 0')
             ->setParameter('user', $user)
             ->setParameter('mode', $mode->value)
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
-
-    /**
-     * Count of distinct target spices the user has played against across all finished sessions.
-     */
-    public function countDistinctTargetSpices(Users $user): int
-    {
-        return (int) $this->createQueryBuilder('gs')
-            ->select('COUNT(DISTINCT gs.targetSpice)')
-            ->where('gs.user = :user')
-            ->andWhere('gs.targetSpice IS NOT NULL')
-            ->andWhere('gs.finishedAt IS NOT NULL')
-            ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
     }

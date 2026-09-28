@@ -9,10 +9,6 @@ use App\Repository\PreparationTipsTranslationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * Traduction localisée d'un conseil de préparation. Une ligne par (conseil, locale).
- * Tous les champs nullables : fallback FR canonique par champ (COALESCE).
- */
 #[ORM\Entity(repositoryClass: PreparationTipsTranslationRepository::class)]
 #[ORM\Table(name: 'preparation_tips_translation')]
 #[ORM\UniqueConstraint(name: 'uniq_preparation_tips_locale', columns: ['preparation_tips_id', 'locale'])]

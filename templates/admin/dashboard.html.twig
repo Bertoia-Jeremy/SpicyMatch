@@ -4,7 +4,6 @@
 <div class="container-fluid">
   <h1 class="h3 mb-4">{{ 'admin.dash.title'|trans({}, 'admin') }}</h1>
 
-  {# KPI Cards #}
   <div class="row g-3 mb-4">
     <div class="col-sm-6 col-xl-3">
       <div class="card text-center">
@@ -44,7 +43,6 @@
     </div>
   </div>
 
-  {# Gamification stats #}
   <div class="row g-3 mb-4">
     <div class="col-sm-4">
       <div class="card text-center">
@@ -65,7 +63,42 @@
     </div>
   </div>
 
-  {# Charts row #}
+  <div class="row g-3 mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-subtitle text-muted mb-3">{{ 'admin.dash.rarity_breakdown'|trans({}, 'admin') }}</h6>
+          <div class="d-flex flex-wrap gap-2">
+            {% for rarity, cnt in unlockedByRarity %}
+              <span class="badge bg-secondary fs-6">{{ rarity }} : {{ cnt }}</span>
+            {% else %}
+              <small class="text-muted">{{ 'admin.stats.no_data'|trans({}, 'admin') }}</small>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-subtitle text-muted mb-3">{{ 'admin.dash.xp_per_day'|trans({}, 'admin') }}</h6>
+          {{ render_chart(xpChart) }}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-subtitle text-muted mb-3">{{ 'admin.dash.game_mode_distribution'|trans({}, 'admin') }}</h6>
+          {{ render_chart(gameModeChart) }}
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row g-3 mb-4">
     <div class="col-md-6">
       <div class="card">
@@ -85,7 +118,6 @@
     </div>
   </div>
 
-  {# Top spices in matches #}
   {% if spiceStats.topInMatches is not empty %}
   <div class="row g-3">
     <div class="col-md-6">

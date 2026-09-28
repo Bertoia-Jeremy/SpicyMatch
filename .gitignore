@@ -3,10 +3,12 @@
 /.env.local
 /.env.local.php
 /.env.*.local
+/.claude
 /config/secrets/prod/prod.decrypt.private.php
 /public/bundles/
 /var/
 /vendor/
+/data/
 ###< symfony/framework-bundle ###
 
 ###> phpunit/phpunit ###
@@ -60,3 +62,6 @@ data/exports/
 # Sauvegardes SQL (générées automatiquement — non versionnées)
 data/backups/
 data/acquisition/
+
+# FlavorGraph : embeddings binaires volumineux (téléchargés, ~10 Mo — non versionnés)
+data/flavorgraph/*.pickle

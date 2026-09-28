@@ -9,7 +9,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/onboarding')]
@@ -19,13 +21,13 @@ class OnboardingController extends AbstractController
     public const ALLOWED_KEYS = ['welcome', 'spices', 'lab', 'academy'];
 
     #[Route('/state', name: 'api_onboarding_state', methods: ['POST'])]
-    public function saveState(Request $request, EntityManagerInterface $em): JsonResponse
+    public function saveState(Request $request, EntityManagerInterface $em, #[CurrentUser] Users $user): JsonResponse
     {
         $token = $request->headers->get('X-CSRF-Token', '');
         if (! $this->isCsrfTokenValid('onboarding', $token)) {
             return new JsonResponse([
                 'error' => 'Invalid CSRF token',
-            ], 403);
+            ], Response::HTTP_FORBIDDEN);
         }
 
         try {
@@ -36,11 +38,11 @@ class OnboardingController extends AbstractController
 
         $state = $payload['state'] ?? null;
 
-        if (null !== $state) {
+        if ($state !== null) {
             if (! is_string($state)) {
                 return new JsonResponse([
                     'error' => 'Invalid state',
-                ], 400);
+                ], Response::HTTP_BAD_REQUEST);
             }
 
             $keys = array_values(array_unique(array_filter(explode(',', $state))));
@@ -48,15 +50,13 @@ class OnboardingController extends AbstractController
                 if (! in_array($key, self::ALLOWED_KEYS, true)) {
                     return new JsonResponse([
                         'error' => 'Invalid state',
-                    ], 400);
+                    ], Response::HTTP_BAD_REQUEST);
                 }
             }
 
-            $state = [] === $keys ? null : implode(',', $keys);
+            $state = $keys === [] ? null : implode(',', $keys);
         }
 
-        /** @var Users $user */
-        $user = $this->getUser();
         $user->setOnboardingState($state);
         $em->flush();
 

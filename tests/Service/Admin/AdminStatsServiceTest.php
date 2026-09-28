@@ -10,15 +10,11 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
-/**
- * AdminStatsService — powers the admin gamification dashboard.
- * Uses raw DBAL queries; we mock the Connection and assert on the
- * shape of the returned arrays (not the exact SQL strings).
- */
 #[AllowMockObjectsWithoutExpectations]
 final class AdminStatsServiceTest extends TestCase
 {
     private Connection&MockObject $connection;
+
     private AdminStatsService $service;
 
     protected function setUp(): void
@@ -39,7 +35,7 @@ final class AdminStatsServiceTest extends TestCase
     public function testAchievementUnlockRateShapesRows(): void
     {
         $this->connection->method('fetchOne')
-            ->willReturn(10); // 10 total users
+            ->willReturn(10);
         $this->connection->method('fetchAllAssociative')
             ->willReturn([
                 [
@@ -59,8 +55,8 @@ final class AdminStatsServiceTest extends TestCase
         $result = $this->service->achievementUnlockRate();
         self::assertCount(2, $result);
         self::assertSame('first-match', $result[0]['slug']);
-        self::assertSame(80.0, $result[0]['unlock_rate']); // 8/10 × 100
-        self::assertSame(20.0, $result[1]['unlock_rate']); // 2/10 × 100
+        self::assertSame(80.0, $result[0]['unlock_rate']);
+        self::assertSame(20.0, $result[1]['unlock_rate']);
     }
 
     public function testSessionsPerModePerDayCasts(): void
@@ -103,7 +99,7 @@ final class AdminStatsServiceTest extends TestCase
 
         $result = $this->service->xpPerDay(30);
         self::assertSame(10.0, $result[0]['avg_xp_per_user']);
-        self::assertSame(0.0, $result[1]['avg_xp_per_user']); // division by zero guarded
+        self::assertSame(0.0, $result[1]['avg_xp_per_user']);
     }
 
     public function testAnomaliesReturnsEmptyWhenBelowThreshold(): void
@@ -148,7 +144,7 @@ final class AdminStatsServiceTest extends TestCase
     public function testGetGamificationStatsComputesRate(): void
     {
         $this->connection->method('fetchOne')
-            ->willReturn(50, 10, 5); // 50 unlocks, 10 users, 5 achievements → 50/(10*5)=100%
+            ->willReturn(50, 10, 5);
         $this->connection->method('fetchAllAssociative')
             ->willReturn([
                 [
@@ -217,6 +213,184 @@ final class AdminStatsServiceTest extends TestCase
         $stats = $this->service->getEducationStats();
         self::assertSame(150, $stats['totalGames']);
         self::assertSame(78.5, $stats['avgAccuracy']);
+    }
+
+    public function testUnlockedByRarityShapesRows(): void
+    {
+        $this->connection->method('fetchAllAssociative')
+            ->willReturn([
+                [
+                    'rarity' => 'common',
+                    'cnt' => '8',
+                ],
+                [
+                    'rarity' => 'legendary',
+                    'cnt' => '1',
+                ],
+            ]);
+
+        $result = $this->service->unlockedByRarity();
+        self::assertSame([
+            'common' => 8,
+            'rare' => 0,
+            'epic' => 0,
+            'legendary' => 1,
+        ], $result);
+    }
+
+    public function testTopViewedSpicesCastsAndScopesToWindow(): void
+    {
+        $this->connection->method('fetchAllAssociative')
+            ->willReturn([
+                [
+                    'name' => 'Poivre',
+                    'views' => '15',
+                ],
+            ]);
+
+        $result = $this->service->topViewedSpices(7);
+        self::assertSame('Poivre', $result[0]['name']);
+        self::assertSame(15, $result[0]['views']);
+    }
+
+    public function testGameModeDistributionCasts(): void
+    {
+        $this->connection->method('fetchAllAssociative')
+            ->willReturn([
+                [
+                    'game_mode' => 'qcm',
+                    'count' => '30',
+                ],
+                [
+                    'game_mode' => 'intrus',
+                    'count' => '9',
+                ],
+            ]);
+
+        $result = $this->service->gameModeDistribution(30);
+        self::assertSame('qcm', $result[0]['game_mode']);
+        self::assertSame(30, $result[0]['count']);
+    }
+
+    public function testAchievementProgressCompletionRateGuardsDivisionByZero(): void
+    {
+        $this->connection->method('fetchOne')
+            ->willReturn(0.0);
+        $this->connection->method('fetchAllAssociative')
+            ->willReturn([]);
+
+        $result = $this->service->achievementProgressCompletionRate();
+        self::assertSame(0.0, $result['globalAvg']);
+        self::assertSame([], $result['perAchievement']);
+    }
+
+    public function testAchievementProgressCompletionRateComputesAverage(): void
+    {
+        $this->connection->method('fetchOne')
+            ->willReturn(62.5);
+        $this->connection->method('fetchAllAssociative')
+            ->willReturn([
+                [
+                    'slug' => 'ten-matches',
+                    'name' => '10 mélanges',
+                    'avg_pct' => '75.333',
+                ],
+            ]);
+
+        $result = $this->service->achievementProgressCompletionRate();
+        self::assertSame(62.5, $result['globalAvg']);
+        self::assertSame('ten-matches', $result['perAchievement'][0]['slug']);
+        self::assertSame(75.3, $result['perAchievement'][0]['avg_pct']);
+    }
+
+    public function testGetEducationStatsBreakdownShape(): void
+    {
+        $this->connection->method('fetchAllAssociative')
+            ->willReturn(
+                [[
+                    'game_mode' => 'qcm',
+                    'sessions' => '20',
+                    'avg_accuracy' => '80.5',
+                ]],
+                [[
+                    'difficulty' => 'easy',
+                    'sessions' => '15',
+                    'avg_accuracy' => '90.1',
+                ]],
+            );
+        $this->connection->method('fetchAssociative')
+            ->willReturn([
+                'live_component' => '40',
+                'qcm' => '12',
+            ]);
+
+        $stats = $this->service->getEducationStatsBreakdown();
+        self::assertSame('qcm', $stats['byMode'][0]['game_mode']);
+        self::assertSame(20, $stats['byMode'][0]['sessions']);
+        self::assertSame(80.5, $stats['byMode'][0]['avg_accuracy']);
+        self::assertSame('easy', $stats['byDifficulty'][0]['difficulty']);
+        self::assertSame(90.1, $stats['byDifficulty'][0]['avg_accuracy']);
+        self::assertSame(40, $stats['liveComponentAdoption']['live_component']);
+        self::assertSame(12, $stats['liveComponentAdoption']['qcm']);
+    }
+
+    public function testOnboardingCompletionByStepReturnsEmptyWhenNoUsers(): void
+    {
+        $this->connection->method('fetchOne')
+            ->willReturn(0);
+
+        self::assertSame([], $this->service->onboardingCompletionByStep());
+    }
+
+    public function testOnboardingCompletionByStepComputesRatePerKey(): void
+    {
+        $this->connection->method('fetchOne')
+            ->willReturn(10);
+        $this->connection->method('fetchAssociative')
+            ->willReturn([
+                'welcome' => '10',
+                'spices' => '3',
+                'lab' => '8',
+                'academy' => '5',
+            ]);
+
+        $result = $this->service->onboardingCompletionByStep();
+        self::assertSame([
+            'welcome' => [
+                'seen' => 10,
+                'rate' => 100.0,
+            ],
+            'spices' => [
+                'seen' => 3,
+                'rate' => 30.0,
+            ],
+            'lab' => [
+                'seen' => 8,
+                'rate' => 80.0,
+            ],
+            'academy' => [
+                'seen' => 5,
+                'rate' => 50.0,
+            ],
+        ], $result);
+    }
+
+    public function testActiveReadingStreaksShape(): void
+    {
+        $this->connection->method('fetchOne')
+            ->willReturn(4);
+        $this->connection->method('fetchAllAssociative')
+            ->willReturn([
+                [
+                    'username' => 'epicier42',
+                    'streak' => '9',
+                ],
+            ]);
+
+        $result = $this->service->activeReadingStreaks();
+        self::assertSame(4, $result['activeCount']);
+        self::assertSame('epicier42', $result['top'][0]['username']);
+        self::assertSame(9, $result['top'][0]['streak']);
     }
 
     public function testGetMatchStatsShape(): void

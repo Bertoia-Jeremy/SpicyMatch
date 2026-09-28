@@ -4,74 +4,52 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller\Api;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
-/**
- * Tests fonctionnels de l'endpoint GET /api/match.
- *
- * Utilise la DB de dev (spicymatch) avec les 30 épices fixture
- * et la table spice_active_compound peuplée (app:recompute:oav --sync requis).
- *
- * IDs connus d'après les fixtures :
- *   15 = Thym Commun, 16 = Origan Méditerranéen, 27 = Marjolaine
- *
- * @see ARCHITECTURE_MOTEUR_COMPATIBILITE.md §4.1
- */
 final class MatchControllerTest extends WebTestCase
 {
-    // ── Validation des paramètres (400) ────────────────────────────────────────
-
-    public function testMissingSpicesParamReturns400(): void
+    #[DataProvider('invalidRequestProvider')]
+    public function testInvalidRequestReturns400(string $query, ?string $expectedError): void
     {
         $client = static::createClient();
-        $client->request('GET', '/api/match');
+        $client->request('GET', $query);
 
         self::assertResponseStatusCodeSame(400);
         $data = json_decode((string) $client->getResponse()->getContent(), true);
         self::assertArrayHasKey('error', $data);
+
+        if ($expectedError !== null) {
+            self::assertStringContainsString($expectedError, $data['error']);
+        }
     }
 
-    public function testEmptySpicesParamReturns400(): void
+    /**
+     * @return iterable<string, array{string, ?string}>
+     */
+    public static function invalidRequestProvider(): iterable
     {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=');
-
-        self::assertResponseStatusCodeSame(400);
-    }
-
-    public function testNonPositiveIdsReturns400(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=0,-1,abc');
-
-        // Tous les IDs invalides → count($mortarIds) < 1
-        self::assertResponseStatusCodeSame(400);
-    }
-
-    public function testMoreThanTenIdsReturns400(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=1,2,3,4,5,6,7,8,9,10,11');
-
-        self::assertResponseStatusCodeSame(400);
-        $data = json_decode((string) $client->getResponse()->getContent(), true);
-        self::assertArrayHasKey('error', $data);
+        yield 'missing spices param' => ['/api/match', null];
+        yield 'empty spices param' => ['/api/match?spices=', null];
+        yield 'all ids non positive' => ['/api/match?spices=0,-1,abc', null];
+        yield 'more than ten ids' => ['/api/match?spices=1,2,3,4,5,6,7,8,9,10,11', null];
+        yield 'invalid matrix' => ['/api/match?spices=15&matrix=steam', 'Matrice invalide'];
+        yield 'empty matrix' => ['/api/match?spices=15&matrix=', null];
+        yield 'ratios do not sum to one' => ['/api/match?spices=15&fat=0.3&water=0.3', 'culinaires invalides'];
+        yield 'negative cooking time' => ['/api/match?spices=15&cooking_time=-5', null];
+        yield 'fat ratio above one' => ['/api/match?spices=15&fat=1.5', null];
     }
 
     public function testExactlyTenIdsIsAccepted(): void
     {
-        // 10 IDs valides → doit passer la validation (même si certains n'existent pas → 404)
-        // On passe des IDs qui existent tous (1-10 sont des épices fixture)
         $client = static::createClient();
         $client->request('GET', '/api/match?spices=1,2,3,4,5,6,7,8,9,10');
 
-        // 200 ou 404 selon que les épices existent — pas 400
         self::assertNotSame(400, $client->getResponse()->getStatusCode());
     }
 
     public function testDuplicateIdsDeduped(): void
     {
-        // "15,15,16" → dédupliqué en [15, 16] → 2 IDs valides → 200
         $client = static::createClient();
         $client->request('GET', '/api/match?spices=15,15,16');
 
@@ -80,8 +58,6 @@ final class MatchControllerTest extends WebTestCase
         self::assertCount(2, $data['mortar'], 'Les doublons doivent être dédupliqués');
     }
 
-    // ── Épices introuvables (404) ──────────────────────────────────────────────
-
     public function testUnknownSpiceIdReturns404(): void
     {
         $client = static::createClient();
@@ -89,20 +65,16 @@ final class MatchControllerTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(404);
         $data = json_decode((string) $client->getResponse()->getContent(), true);
-        // Message générique — pas de disclosure d'IDs (cf. M2)
         self::assertArrayHasKey('error', $data);
     }
 
     public function testPartiallyUnknownSpicesReturn404(): void
     {
-        // 15 existe, 99998 non → 404
         $client = static::createClient();
         $client->request('GET', '/api/match?spices=15,99998');
 
         self::assertResponseStatusCodeSame(404);
     }
-
-    // ── Réponse 200 — structure ────────────────────────────────────────────────
 
     public function testValidRequestReturns200WithExpectedStructure(): void
     {
@@ -118,6 +90,7 @@ final class MatchControllerTest extends WebTestCase
         self::assertArrayHasKey('mortar', $data);
         self::assertArrayHasKey('results', $data);
         self::assertArrayHasKey('oav_mode', $data);
+        self::assertArrayHasKey('scoring_mode', $data);
         self::assertArrayHasKey('count', $data);
         self::assertSame([15], $data['mortar']);
         self::assertSame(count($data['results']), $data['count']);
@@ -182,8 +155,6 @@ final class MatchControllerTest extends WebTestCase
         self::assertTrue($data['oav_mode'], 'oav_mode doit être true (table spice_active_compound peuplée)');
     }
 
-    // ── Paramètre limit ────────────────────────────────────────────────────────
-
     public function testLimitParamRestrictsResults(): void
     {
         $client = static::createClient();
@@ -217,8 +188,6 @@ final class MatchControllerTest extends WebTestCase
         self::assertLessThanOrEqual(100, count($data['results']));
     }
 
-    // ── Cohérence sémantique ───────────────────────────────────────────────────
-
     public function testMortarSpicesNotInResults(): void
     {
         $client = static::createClient();
@@ -234,7 +203,6 @@ final class MatchControllerTest extends WebTestCase
 
     public function testThymOriganFindRelatedSpices(): void
     {
-        // Thym + Origan partagent Thymol + Carvacrol → Marjolaine (27) doit apparaître
         $client = static::createClient();
         $client->request('GET', '/api/match?spices=15,16');
 
@@ -245,74 +213,29 @@ final class MatchControllerTest extends WebTestCase
         self::assertContains(27, $resultIds, 'Marjolaine doit être compatible avec Thym + Origan');
     }
 
-    // ── Paramètre matrix ───────────────────────────────────────────────────────
-
-    public function testInvalidMatrixReturns400(): void
+    #[DataProvider('acceptedMatrixProvider')]
+    public function testMatrixIsEchoedInResponse(string $query, string $expectedMatrix): void
     {
         $client = static::createClient();
-        $client->request('GET', '/api/match?spices=15&matrix=steam');
-
-        self::assertResponseStatusCodeSame(400);
-        $data = json_decode((string) $client->getResponse()->getContent(), true);
-        self::assertArrayHasKey('error', $data);
-        self::assertStringContainsString('Matrice invalide', $data['error']);
-    }
-
-    public function testResponseIncludesMatrixKey(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=15&matrix=air');
+        $client->request('GET', $query);
 
         self::assertResponseIsSuccessful();
         $data = json_decode((string) $client->getResponse()->getContent(), true);
 
         self::assertArrayHasKey('matrix', $data);
-        self::assertSame('air', $data['matrix']);
+        self::assertSame($expectedMatrix, $data['matrix']);
     }
 
-    public function testDefaultMatrixIsAirWhenOmitted(): void
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function acceptedMatrixProvider(): iterable
     {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=15');
-
-        self::assertResponseIsSuccessful();
-        $data = json_decode((string) $client->getResponse()->getContent(), true);
-
-        self::assertArrayHasKey('matrix', $data);
-        self::assertSame('air', $data['matrix']);
+        yield 'explicit air' => ['/api/match?spices=15&matrix=air', 'air'];
+        yield 'default air when omitted' => ['/api/match?spices=15', 'air'];
+        yield 'water' => ['/api/match?spices=15&matrix=water', 'water'];
+        yield 'oil' => ['/api/match?spices=15&matrix=oil', 'oil'];
     }
-
-    public function testWaterMatrixIsAccepted(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=15&matrix=water');
-
-        self::assertResponseIsSuccessful();
-        $data = json_decode((string) $client->getResponse()->getContent(), true);
-
-        self::assertSame('water', $data['matrix']);
-    }
-
-    public function testOilMatrixIsAccepted(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=15&matrix=oil');
-
-        self::assertResponseIsSuccessful();
-        $data = json_decode((string) $client->getResponse()->getContent(), true);
-
-        self::assertSame('oil', $data['matrix']);
-    }
-
-    public function testEmptyMatrixReturns400(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=15&matrix=');
-
-        self::assertResponseStatusCodeSame(400);
-    }
-
-    // ── Contexte culinaire étendu via API ────────────────────────────────────
 
     public function testDefaultCulinaryContextFieldsInResponse(): void
     {
@@ -322,7 +245,6 @@ final class MatchControllerTest extends WebTestCase
         self::assertResponseIsSuccessful();
         $data = json_decode((string) $client->getResponse()->getContent(), true);
 
-        // JSON encode 0.0 → "0" puis decode → int 0 (perte du marqueur float). assertEquals tolérant.
         self::assertEquals(0.0, $data['fat_ratio']);
         self::assertEquals(1.0, $data['water_ratio']);
         self::assertSame(0, $data['cooking_time_min']);
@@ -365,38 +287,8 @@ final class MatchControllerTest extends WebTestCase
         self::assertSame(100, $data['temperature_celsius']);
     }
 
-    public function testInvalidRatiosReturns400(): void
-    {
-        // fat=0.3 + water=0.3 → somme ≠ 1 → InvalidArgumentException
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=15&fat=0.3&water=0.3');
-
-        self::assertResponseStatusCodeSame(400);
-        $data = json_decode((string) $client->getResponse()->getContent(), true);
-        self::assertStringContainsString('culinaires invalides', $data['error']);
-    }
-
-    public function testNegativeCookingTimeReturns400(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=15&cooking_time=-5');
-
-        self::assertResponseStatusCodeSame(400);
-    }
-
-    public function testFatRatioAboveOneReturns400(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/api/match?spices=15&fat=1.5');
-
-        self::assertResponseStatusCodeSame(400);
-    }
-
     public function testExtendedContextChangesMatchScoring(): void
     {
-        // Sanity end-to-end : un mortier identique doit produire des scores différents
-        // selon que le contexte est neutre (matrix=water seul) ou physique (fat=0.5).
-        // Cas réel : Thym + Origan en bouillon vs vinaigrette → ranking peut bouger.
         $client = static::createClient();
 
         $client->request('GET', '/api/match?spices=15,16&matrix=water');
@@ -408,7 +300,6 @@ final class MatchControllerTest extends WebTestCase
         $emulsion = json_decode((string) $client->getResponse()->getContent(), true);
 
         self::assertSame($baseline['count'], $emulsion['count'], 'Même nombre de candidats');
-        // Au moins UN candidat doit avoir un score différent → la correction physique s'applique
         $baselineScores = array_column($baseline['results'], 'score', 'id');
         $emulsionScores = array_column($emulsion['results'], 'score', 'id');
         self::assertNotSame(

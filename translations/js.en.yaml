@@ -27,6 +27,7 @@ melange:
     status_upcoming: upcoming
     toast_complete: '%spice% sealed — blend complete'
     toast_next: '%spice% sealed — %next% →'
+    save_error: Choice not saved — try again
 cooking:
     cta_final: View my final recipe
     cta_incomplete: Finalize the preparation of each spice

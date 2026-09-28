@@ -3,7 +3,6 @@
 {% block title %}{{ 'ui.profile.dashboard_title'|trans }}{% endblock %}
 
 {% block body %}
-  {# Utilise app.user.progression directement — fiable sur toutes les pages, indépendamment des vars de contrôleur #}
   {% set _prog = app.user.progression %}
   {% set _badge = _prog ? _prog.equippedBadge : null %}
 
@@ -11,12 +10,10 @@
     <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-8">
       <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
 
-        {# Avatar #}
         <div class="shrink-0 flex justify-center">
           {% include 'components/_avatar.html.twig' with {sizeClass: 'w-24 h-24 text-3xl', equippedBadge: _badge } %}
         </div>
 
-        {# Infos utilisateur #}
         <div class="flex-1 text-center md:text-left">
           <h1 class="text-3xl font-bold text-stone-800 mb-2 flex items-center gap-2.5 flex-wrap justify-center md:justify-start">
             {{ app.user.username|capitalize }}
@@ -28,7 +25,6 @@
           </h1>
 
           {% if _prog %}
-            {# Niveau XP #}
             <div class="flex items-center gap-2 mb-2 justify-center md:justify-start flex-wrap">
               <span class="inline-flex items-center gap-1.5 bg-turmeric-300/30 text-turmeric-700 text-sm font-medium px-3 py-1 rounded-full">
                 <i class="fa-solid fa-star text-turmeric-500 text-xs" aria-hidden="true"></i>
@@ -36,7 +32,6 @@
               </span>
             </div>
 
-            {# Succès équipé — colors driven by the centralized RarityExtension #}
             {% if _badge %}
               {% set _colors = rarity_colors(_badge.achievement.rarity) %}
               <div class="flex items-center gap-2 mb-2 justify-center md:justify-start flex-wrap">

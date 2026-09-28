@@ -14,7 +14,6 @@ final class CookingTipsTranslationType extends AbstractTranslationType
     {
         $this->addMeta($builder);
         $this->text($builder, 'title', 'Titre');
-        $this->text($builder, 'cookingStep', 'Étape de cuisson');
         $this->area($builder, 'text', 'Texte');
         $this->text($builder, 'advantages', 'Avantages');
     }

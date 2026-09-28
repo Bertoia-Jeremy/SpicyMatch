@@ -29,34 +29,38 @@ class GameGamificationHandler
     public function __invoke(GameCompletedEvent $event): void
     {
         $user = $this->usersRepository->find($event->userId);
-        if (null === $user) {
-            return;
-        }
-
-        // Idempotence — each finished GameSession is awarded once.
-        if (! $this->processedEvents->claim($user, 'game_completed', 'session:'.$event->sessionId)) {
-            $this->logger->info('gamification.game_completed.duplicate', [
-                'userId' => $user->getId(),
-                'sessionId' => $event->sessionId,
-            ]);
-
+        if ($user === null) {
             return;
         }
 
         $progression = $this->manager->getOrCreateProgression($user);
 
-        // Idempotent: count total finished sessions from DB
-        $gamesCompleted = $this->sessionRepository->countFinishedByUser($user);
+        if (! $progression->isGamificationEnabled()) {
+            return;
+        }
 
-        $this->manager->process($progression, 'game_completed', [
-            'xpEarned' => $event->xpEarned,
-            'gamesCompleted' => $gamesCompleted,
-            'gameMode' => $event->gameMode,
-            'correctAnswers' => $event->correctAnswers,
-            'totalQuestions' => $event->totalQuestions,
-            'score' => $event->xpEarned,
-        ]);
+        $this->em->wrapInTransaction(function () use ($event, $user, $progression): void {
+            $this->manager->lockForUpdate($progression);
 
-        $this->em->flush();
+            if (! $this->processedEvents->claim($user, 'game_completed', 'session:' . $event->sessionId)) {
+                $this->logger->info('gamification.game_completed.duplicate', [
+                    'userId' => $user->getId(),
+                    'sessionId' => $event->sessionId,
+                ]);
+
+                return;
+            }
+
+            $this->manager->process($progression, 'game_completed', [
+                'xpEarned' => $event->xpEarned,
+                'gamesCompleted' => $this->sessionRepository->countFinishedByUser($user),
+                'gameMode' => $event->gameMode,
+                'correctAnswers' => $event->correctAnswers,
+                'totalQuestions' => $event->totalQuestions,
+                'score' => $event->xpEarned,
+            ]);
+
+            $this->em->flush();
+        });
     }
 }

@@ -10,10 +10,6 @@ use App\Repository\PreparationMethodsTranslationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * Traduction localisée d'une méthode de préparation. Une ligne par (méthode, locale).
- * Tous les champs nullables : fallback FR canonique par champ (COALESCE).
- */
 #[ORM\Entity(repositoryClass: PreparationMethodsTranslationRepository::class)]
 #[ORM\Table(name: 'preparation_methods_translation')]
 #[ORM\UniqueConstraint(name: 'uniq_preparation_methods_locale', columns: ['preparation_methods_id', 'locale'])]

@@ -16,7 +16,7 @@ use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 final class AltchaManagerTest extends TestCase
 {
-    private const HMAC_KEY = 'test-secret';
+    private const string HMAC_KEY = 'test-secret';
 
     private AltchaManager $manager;
 
@@ -74,8 +74,8 @@ final class AltchaManagerTest extends TestCase
         );
 
         $solution = new Altcha(hmacSignatureSecret: self::HMAC_KEY)->solveChallenge(new SolveChallengeOptions(
-            algorithm: new Sha(),
             challenge: $challenge,
+            algorithm: new Sha(),
         ));
 
         $this->assertNotNull($solution);

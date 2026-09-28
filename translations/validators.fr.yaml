@@ -1,6 +1,13 @@
 # Messages de validation (domaine 'validators').
 aromatic_group:
     color_invalid: La couleur doit être un code hexadécimal valide (#RRGGBB).
+achievement:
+    slug_blank: Le slug ne peut pas être vide.
+    slug_too_long: Le slug ne peut pas dépasser {{ limit }} caractères.
+    slug_format: Le slug doit être en minuscules, chiffres et tirets uniquement (ex. premier-match).
+    name_blank: Le nom ne peut pas être vide.
+    name_too_long: Le nom ne peut pas dépasser {{ limit }} caractères.
+    description_blank: La description ne peut pas être vide.
 altcha:
     invalid: La vérification anti-robot a échoué. Cochez la case puis réessayez.
 contact:
@@ -11,3 +18,6 @@ user:
     password_blank: Veuillez rentrer un mot de passe
     password_min: Votre mot de passe doit contenir au moins {{ limit }} caractères.
     username_reserved: Ce pseudo est réservé.
+spice_duo:
+    duplicate: Ce duo existe déjà pour ces deux conseils.
+    spice_mismatch: Les deux conseils doivent appartenir à la même épice.

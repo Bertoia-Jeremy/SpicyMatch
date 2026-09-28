@@ -1,22 +1,3 @@
-{#
-  Spice option card used by IntrusGame / SurvivalGame / ChronoGame option grids.
-  Shared shape: image-or-fallback icon + name + group/color strip, selectable via
-  a Live Component action.
-
-  Arguments:
-    option        — {id, name, file?, color?, groupName?}
-    action        — live action name (e.g. 'answer', 'pick')
-    paramName     — data-live-*-param name ('spiceId' by default)
-    sizeClass     — 'md' (default) or 'sm' (smaller icon + no group line)
-    showGroupLine — bool, default true: renders groupName under the option name
-
-  Alpine state is local to this card via `submitting/selected` — keep the grid
-  wrapper's x-data for shared state off this macro's surface.
-#}
-{#
-  feedback_card — non-interactive card for post-answer reveal.
-  feedbackState: 'intrus-right' | 'intrus-wrong' | 'wrong-pick' | null (neutral/dimmed)
-#}
 {% macro feedback_card(option, feedbackState = null, sizeClass = 'md') %}
     {% set iconBox = sizeClass == 'sm' ? 'w-10 h-10 text-lg' : 'w-12 h-12 text-xl' %}
     {% if feedbackState == 'intrus-right' %}

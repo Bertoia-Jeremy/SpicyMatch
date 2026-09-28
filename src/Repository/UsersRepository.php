@@ -29,13 +29,10 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
             ->flush();
     }
 
-    /**
-     * Used to upgrade (rehash) the user's password automatically over time.
-     */
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
     {
         if (! $user instanceof Users) {
-            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', \get_class($user)));
+            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
         }
 
         $user->setPassword($newHashedPassword);
@@ -45,7 +42,6 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
 
     /**
      * @param array<string, mixed> $criteria
-     *
      * @return list<Users>
      */
     public function findNonDeletedBy(array $criteria): array
@@ -53,7 +49,7 @@ class UsersRepository extends ServiceEntityRepository implements PasswordUpgrade
         $qb = $this->createQueryBuilder('u')
             ->andWhere('u.deleted_at IS NULL')
             ->andWhere(implode(' AND ', array_map(
-                static fn (string $key): string => 'u.'.$key.' = :'.$key,
+                static fn (string $key): string => 'u.' . $key . ' = :' . $key,
                 array_keys($criteria)
             )));
 

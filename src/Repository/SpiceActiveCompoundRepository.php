@@ -12,12 +12,6 @@ use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<SpiceActiveCompound>
- *
- * Les lectures se font via DBAL pour éviter l'overhead de l'hydratation Doctrine
- * (la table est lue en masse, pas épice par épice).
- *
- * Toutes les méthodes acceptent un paramètre `$matrix` (défaut: AIR) pour
- * filtrer sur la bonne matrice ODT.
  */
 class SpiceActiveCompoundRepository extends ServiceEntityRepository
 {
@@ -27,15 +21,12 @@ class SpiceActiveCompoundRepository extends ServiceEntityRepository
     }
 
     /**
-     * Charge les profils OAV de plusieurs épices en une seule requête SQL.
-     *
      * @param int[] $spiceIds
-     *
      * @return array<int, array<int, float>> spice_id => [compound_id => oav_value]
      */
     public function loadOavProfilesBatch(array $spiceIds, OdtMatrix $matrix): array
     {
-        if ([] === $spiceIds) {
+        if ($spiceIds === []) {
             return [];
         }
 
@@ -63,9 +54,6 @@ class SpiceActiveCompoundRepository extends ServiceEntityRepository
         return $profiles;
     }
 
-    /**
-     * Retourne le nombre total d'entrées OAV-actives (diagnostic).
-     */
     public function countTotal(): int
     {
         return (int) $this->getEntityManager()
@@ -74,9 +62,6 @@ class SpiceActiveCompoundRepository extends ServiceEntityRepository
     }
 
     /**
-     * Matrices ayant au moins une entrée OAV-active (véracité par omission :
-     * une matrice sans données ne doit pas être proposée dans l'UI).
-     *
      * @return list<string> valeurs OdtMatrix présentes (sous-ensemble de air|water|oil)
      */
     public function matricesWithData(): array
@@ -89,17 +74,14 @@ class SpiceActiveCompoundRepository extends ServiceEntityRepository
     }
 
     /**
-     * Vrai si au moins une des épices données possède un composé OAV-actif dans la matrice.
-     * Sert à distinguer scoring OAV réel vs repli présence (pas de score quantitatif).
-     *
      * @param int[] $spiceIds
      */
     public function hasDataForSpices(array $spiceIds, OdtMatrix $matrix): bool
     {
-        if ([] === $spiceIds) {
+        if ($spiceIds === []) {
             return false;
         }
 
-        return [] !== $this->loadOavProfilesBatch($spiceIds, $matrix);
+        return $this->loadOavProfilesBatch($spiceIds, $matrix) !== [];
     }
 }

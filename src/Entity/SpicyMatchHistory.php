@@ -8,6 +8,7 @@ use App\Repository\SpicyMatchHistoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: SpicyMatchHistoryRepository::class)]
 #[ORM\Index(name: 'idx_smh_spicy_match', columns: ['spicy_match_id'])]
@@ -15,6 +16,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(name: 'idx_smh_favorite_deleted', columns: ['spicy_match_id', 'favorite', 'deleted_at'])]
 class SpicyMatchHistory
 {
+    public const int TITLE_MAX_LENGTH = 120;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -39,6 +42,7 @@ class SpicyMatchHistory
     private Collection $cookingTips;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Length(max: self::TITLE_MAX_LENGTH)]
     private ?string $title = null;
 
     #[ORM\Column(options: [

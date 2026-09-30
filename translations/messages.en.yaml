@@ -410,35 +410,14 @@ ui:
     recipe:
         new_blend: Create a new blend
         matrix_caption: Compatibility scores by cooking matrix
-        folio: 'Folio · %id% · Laboratory Notebook'
         rename_aria: Rename the recipe
         rename: Rename
         add_favorite: Add to favorites
-        in_favorites: In your favorites
         spices: 'spice|spices'
         moments: 'moment|moments'
-        methods: 'method|methods'
-        shared_compound: shared compound
-        moment_card: Moment card
-        dry_profile: Dry olfactory profile — no cooking.
-        fat: '% fat'
-        aqueous: '% aqueous'
-        prep_title: Spice preparation
-        prep_sub: 'The chef''s hand · %count% spice(s)'
-        out_of_matrix_aria: 'Out-of-matrix preparation: %label%'
         out_of_matrix_title: 'This preparation is listed for the %label% matrix. To enable it, compose a new blend in the Lab by choosing the %label% mode.'
         out_of_matrix: 'out of matrix · %label%'
         method: Method
-        moments_title: Insertion moments
-        moments_sub: Mastering timing · 5 aromatic windows
-        earlier: Earlier
-        later: Later
-        moment_before: Before
-        moment_start: Start
-        moment_middle: Middle
-        moment_end: End
-        moment_after: After
-        moment_free: — free —
         chef_word: "Chef's word"
         chef_effect: Effect
         chef_science: Science
@@ -454,7 +433,7 @@ ui:
         retention_title: Fraction preserved after the cooking scenario (Nernst × thermal decay)
         no_physchem: '%count% compound(s) without physico-chemical data (%names%).'
         matrix_title: Matrix comparison
-        matrix_sub: What if we cooked differently?&nbsp;Top 5 candidates per ODT matrix
+        matrix_sub: What if we cooked differently? Top 5 candidates per ODT matrix
         col_spice: Spice
         current_matrix: Blend matrix
         out_of_top5: Outside the top 5 in this matrix
@@ -464,6 +443,37 @@ ui:
         note_shared: '"These spices share %count% aromatic compound(s) in common — their affinity rests on a shared aromatic signature."'
         note_manual: '"A freely composed blend — the complementarity of these spices expresses itself without affinity calculation."'
         note_contrast: '"These spices have no main aromatic compound in common — their pairing rests on complementarity and contrast."'
+        untitled_placeholder: Name this blend
+        lab_notebook: Lab notebook
+        folio_short: 'Folio %id%'
+        tabs_aria: Recipe display
+        tab_timeline: Timeline
+        tab_spices: Spices
+        composition: Blend composition
+        read: Read
+        collapse: Collapse
+        free: Free
+        prepare: Prepare
+        incorporate: Add
+        prepared_suffix: (prepared)
+        no_chef_word: No chef's word for this pairing yet.
+        goto_spice_aria: 'See the %name% card'
+        goto_spice_page: '%name% spice page'
+        favorite_failed: Favourite not saved.
+        retry: Retry
+        cook_mode:
+            start: Switch to cooking mode
+            title: Cooking mode
+            close: Leave cooking mode
+            before_start: Before you start
+            mise_en_place: Mise en place
+            mise_en_place_hint: Prepare every spice before lighting the stove.
+            moment_of: 'Moment %n% of %total%'
+            next_step: 'Next step · %moment%'
+            finish: Finish
+            previous: Previous step
+            screen_awake: Screen kept awake
+            mark_done: '%name%: mark as done'
     lab:
         a11y_results: '%selected% spices in the mortar, %count% compatible spices shown.'
         finalize_title: Finalizing the blend — SpicyMatch

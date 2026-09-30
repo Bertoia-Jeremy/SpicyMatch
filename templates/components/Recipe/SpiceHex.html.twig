@@ -1,0 +1,10 @@
+{% props spice, size = 'md' %}
+{% set dims = {sm: [36, 34], md: [46, 42], lg: [52, 48], xl: [40, 38]}[size] ?? [46, 42] %}
+{% set img = vich_uploader_asset(spice, 'imageFile', 'App\\Entity\\Spices') %}
+<span class="recipe-hex hex recipe-hex--{{ size }}" aria-hidden="true">
+    {% if img %}
+        <img src="{{ img|imagine_filter('spice_thumb') }}" alt="" width="{{ dims[0] }}" height="{{ dims[1] }}" loading="lazy" decoding="async" class="size-full object-cover">
+    {% else %}
+        <span class="recipe-hex-placeholder">{{ spice.getLocalizedName(app.request.locale)|slice(0, 4)|upper }}</span>
+    {% endif %}
+</span>

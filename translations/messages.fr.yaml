@@ -419,35 +419,14 @@ ui:
     recipe:
         new_blend: Créer un nouveau mélange
         matrix_caption: Scores de compatibilité par matrice de cuisson
-        folio: 'Folio · %id% · Carnet du Laboratoire'
         rename_aria: Renommer la recette
         rename: Renommer
         add_favorite: Ajouter aux favoris
-        in_favorites: Dans vos favoris
         spices: 'épice|épices'
         moments: 'moment|moments'
-        methods: 'méthode|méthodes'
-        shared_compound: composé commun
-        moment_card: Carte du moment
-        dry_profile: Profil olfactif sec — sans cuisson.
-        fat: '% gras'
-        aqueous: '% aqueux'
-        prep_title: Préparation des épices
-        prep_sub: 'La main du chef · %count% épice(s)'
-        out_of_matrix_aria: 'Préparation hors matrice : %label%'
         out_of_matrix_title: 'Cette préparation est répertoriée pour la matrice « %label% ». Pour l''activer, composez un nouveau mélange au Lab en choisissant le mode %label%.'
         out_of_matrix: 'hors matrice · %label%'
         method: Méthode
-        moments_title: Moments d'insertion
-        moments_sub: La maîtrise du temps · 5 fenêtres aromatiques
-        earlier: Plus tôt
-        later: Plus tard
-        moment_before: Avant
-        moment_start: Début
-        moment_middle: Milieu
-        moment_end: Fin
-        moment_after: Après
-        moment_free: — libre —
         chef_word: Mot du Chef
         chef_effect: Effet
         chef_science: Science
@@ -463,7 +442,7 @@ ui:
         retention_title: Fraction préservée après le scénario culinaire (Nernst × décroissance thermique)
         no_physchem: '%count% composé(s) sans donnée physico-chimique (%names%).'
         matrix_title: Comparatif matriciel
-        matrix_sub: Et si on cuisinait autrement&nbsp;? Top 5 candidats par matrice ODT
+        matrix_sub: Et si on cuisinait autrement ? Top 5 candidats par matrice ODT
         col_spice: Épice
         current_matrix: Matrice du mélange
         out_of_top5: Hors du top 5 dans cette matrice
@@ -473,6 +452,37 @@ ui:
         note_shared: '« Ces épices partagent %count% composé(s) aromatique(s) en commun — leur affinité repose sur une signature aromatique commune. »'
         note_manual: « Mélange composé librement — la complémentarité de ces épices s'exprime sans calcul d'affinité. »
         note_contrast: « Ces épices n'ont pas de composé aromatique principal en commun — leur association repose sur la complémentarité et le contraste. »
+        untitled_placeholder: Nommer ce mélange
+        lab_notebook: Carnet du laboratoire
+        folio_short: 'Folio %id%'
+        tabs_aria: Affichage de la recette
+        tab_timeline: Déroulé
+        tab_spices: Épices
+        composition: Composition du mélange
+        read: Lire
+        collapse: Réduire
+        free: Libre
+        prepare: Préparer
+        incorporate: Incorporer
+        prepared_suffix: (préparé)
+        no_chef_word: Pas encore de mot du chef pour cette association.
+        goto_spice_aria: 'Voir la fiche de %name%'
+        goto_spice_page: 'Page de l''épice %name%'
+        favorite_failed: Favori non enregistré.
+        retry: Réessayer
+        cook_mode:
+            start: Passer en mode cuisine
+            title: Mode cuisine
+            close: Quitter le mode cuisine
+            before_start: Avant de commencer
+            mise_en_place: Mise en place
+            mise_en_place_hint: Préparez toutes les épices avant d'allumer le feu.
+            moment_of: 'Moment %n% sur %total%'
+            next_step: 'Étape suivante · %moment%'
+            finish: Terminer
+            previous: Étape précédente
+            screen_awake: Écran maintenu allumé
+            mark_done: '%name% : marquer comme fait'
     lab:
         a11y_results: '%selected% épices dans le mortier, %count% épices compatibles affichées.'
         finalize_title: Finalisation du mélange — SpicyMatch

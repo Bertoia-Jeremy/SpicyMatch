@@ -1,0 +1,68 @@
+<div class="recipe-cards">
+    {% for step in recipe.steps %}
+        {% set id = step.spiceId %}
+        {% set name = step.spice.getLocalizedName(loc) %}
+        {% set prep = step.preparation %}
+        {% set cooking = step.cooking %}
+        <article id="recipe-spice-{{ id }}" class="recipe-card">
+            <button type="button" class="recipe-card-head"
+                    x-on:click="toggleSpice({{ id }})"
+                    x-bind:aria-expanded="openSpiceId === {{ id }}"
+                    aria-expanded="false"
+                    aria-controls="recipe-spice-body-{{ id }}">
+                <twig:Recipe:SpiceHex :spice="step.spice" size="md" />
+                <span class="min-w-0 flex-1 text-left">
+                    <span class="recipe-card-name">{{ name }}</span>
+                    {% if prep %}<span class="recipe-card-form">{{ prep.getLocalizedTitle(loc) }}</span>{% endif %}
+                </span>
+                <span class="recipe-moment-chip">{{ step.number }} · {{ step.moment.label|trans }}</span>
+                <i class="fa-solid fa-chevron-down recipe-chevron" x-bind:class="openSpiceId === {{ id }} && 'is-open'" aria-hidden="true"></i>
+            </button>
+
+            <div id="recipe-spice-body-{{ id }}" class="recipe-card-body" x-show="openSpiceId === {{ id }}" x-cloak>
+                {% if step.group %}
+                    <a href="{{ path('view_spice', {slug: step.spice.getLocalizedSlug(loc)}) }}" class="recipe-family-link" style="color: {{ step.group.color ?? '#7A6A55' }}">
+                        <span class="flex items-center gap-2">
+                            <span class="recipe-dot" style="background-color: {{ step.group.color ?? '#7A6A55' }}" aria-hidden="true"></span>
+                            <span class="recipe-mono !text-current">{{ step.group.getLocalizedName(loc) }}</span>
+                        </span>
+                        <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
+                        <span class="sr-only">{{ 'ui.recipe.goto_spice_page'|trans({'%name%': name}) }}</span>
+                    </a>
+                {% endif %}
+
+                {% if prep %}
+                    {% set prepMatrix = prep.applicableMatrix %}
+                    <section class="recipe-block">
+                        <div class="recipe-block-tag">
+                            <twig:Recipe:MomentHex :moment="step.moment" size="xs" label="P" :empty="true" />
+                            <span class="recipe-mono">{{ 'ui.recipe.prepare'|trans }}</span>
+                            {% if prepMatrix is not null and prepMatrix != recipe.culinaryContext.matrix %}
+                                <span class="recipe-badge-warn" role="note" title="{{ 'ui.recipe.out_of_matrix_title'|trans({'%label%': prepMatrix.label|trans}) }}">
+                                    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                                    {{ 'ui.recipe.out_of_matrix'|trans({'%label%': prepMatrix.label|trans}) }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        <h3 class="recipe-block-title">{{ prep.getLocalizedTitle(loc) }}</h3>
+                        {% if prep.getLocalizedText(loc) %}<p class="recipe-block-text">{{ prep.getLocalizedText(loc) }}</p>{% endif %}
+                        {% if prep.getLocalizedAdvantages(loc) %}<p class="recipe-block-hint">{{ prep.getLocalizedAdvantages(loc) }}</p>{% endif %}
+                    </section>
+                {% endif %}
+
+                {% if cooking %}
+                    <section class="recipe-block">
+                        <div class="recipe-block-tag">
+                            <twig:Recipe:MomentHex :moment="step.moment" size="xs" />
+                            <span class="recipe-mono">{{ 'ui.recipe.incorporate'|trans }} · {{ step.moment.label|trans }}</span>
+                        </div>
+                        <h3 class="recipe-block-title">{{ cooking.getLocalizedTitle(loc) }}</h3>
+                        {% if cooking.getLocalizedAdvantages(loc) %}<p class="recipe-block-hint">{{ cooking.getLocalizedAdvantages(loc) }}</p>{% endif %}
+                    </section>
+                {% endif %}
+
+                <twig:Recipe:ChefWord :duo="step.duo" />
+            </div>
+        </article>
+    {% endfor %}
+</div>

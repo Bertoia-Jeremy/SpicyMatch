@@ -81,6 +81,7 @@ final class SpiceDuoRestitutionTest extends WebTestCase
 
             self::assertResponseIsSuccessful();
             self::assertCount(0, $crawler->filter('.chef-word'));
+            self::assertGreaterThan(0, $crawler->filter('.recipe-chef-empty')->count());
         } finally {
             $this->cleanup($ids, $lastMessageId);
         }

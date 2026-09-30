@@ -410,35 +410,14 @@ ui:
     recipe:
         new_blend: Crear una nueva mezcla
         matrix_caption: Puntuaciones de compatibilidad por matriz de cocción
-        folio: 'Folio · %id% · Cuaderno del Laboratorio'
         rename_aria: Renombrar la receta
         rename: Renombrar
         add_favorite: Añadir a favoritos
-        in_favorites: En tus favoritos
         spices: 'especia|especias'
         moments: 'momento|momentos'
-        methods: 'método|métodos'
-        shared_compound: compuesto común
-        moment_card: Carta del momento
-        dry_profile: Perfil olfativo seco — sin cocción.
-        fat: '% graso'
-        aqueous: '% acuoso'
-        prep_title: Preparación de las especias
-        prep_sub: 'La mano del chef · %count% especia(s)'
-        out_of_matrix_aria: 'Preparación fuera de matriz: %label%'
         out_of_matrix_title: 'Esta preparación está registrada para la matriz %label%. Para activarla, compón una nueva mezcla en el Lab eligiendo el modo %label%.'
         out_of_matrix: 'fuera de matriz · %label%'
         method: Método
-        moments_title: Momentos de inserción
-        moments_sub: El dominio del tiempo · 5 ventanas aromáticas
-        earlier: Antes
-        later: Después
-        moment_before: Antes
-        moment_start: Inicio
-        moment_middle: Medio
-        moment_end: Fin
-        moment_after: Después
-        moment_free: — libre —
         chef_word: Palabra del Chef
         chef_effect: Efecto
         chef_science: Ciencia
@@ -454,7 +433,7 @@ ui:
         retention_title: Fracción preservada tras el escenario culinario (Nernst × decaimiento térmico)
         no_physchem: '%count% compuesto(s) sin datos físico-químicos (%names%).'
         matrix_title: Comparativa matricial
-        matrix_sub: ¿Y si cocináramos de otra forma?&nbsp;Top 5 candidatos por matriz ODT
+        matrix_sub: ¿Y si cocináramos de otra forma? Top 5 candidatos por matriz ODT
         col_spice: Especia
         current_matrix: Matriz de la mezcla
         out_of_top5: Fuera del top 5 en esta matriz
@@ -464,6 +443,37 @@ ui:
         note_shared: '«Estas especias comparten %count% compuesto(s) aromático(s) en común — su afinidad se basa en una firma aromática compartida.»'
         note_manual: '«Mezcla compuesta libremente — la complementariedad de estas especias se expresa sin cálculo de afinidad.»'
         note_contrast: '«Estas especias no tienen ningún compuesto aromático principal en común — su asociación se basa en la complementariedad y el contraste.»'
+        untitled_placeholder: Nombrar esta mezcla
+        lab_notebook: Cuaderno del laboratorio
+        folio_short: 'Folio %id%'
+        tabs_aria: Vista de la receta
+        tab_timeline: Desarrollo
+        tab_spices: Especias
+        composition: Composición de la mezcla
+        read: Leer
+        collapse: Reducir
+        free: Libre
+        prepare: Preparar
+        incorporate: Incorporar
+        prepared_suffix: (preparada)
+        no_chef_word: Todavía no hay palabra del chef para esta combinación.
+        goto_spice_aria: 'Ver la ficha de %name%'
+        goto_spice_page: 'Página de la especia %name%'
+        favorite_failed: Favorito no guardado.
+        retry: Reintentar
+        cook_mode:
+            start: Pasar al modo cocina
+            title: Modo cocina
+            close: Salir del modo cocina
+            before_start: Antes de empezar
+            mise_en_place: Mise en place
+            mise_en_place_hint: Prepara todas las especias antes de encender el fuego.
+            moment_of: 'Momento %n% de %total%'
+            next_step: 'Siguiente paso · %moment%'
+            finish: Terminar
+            previous: Paso anterior
+            screen_awake: Pantalla mantenida encendida
+            mark_done: '%name%: marcar como hecho'
     lab:
         a11y_results: '%selected% especias en el mortero, %count% especias compatibles mostradas.'
         finalize_title: Finalización de la mezcla — SpicyMatch

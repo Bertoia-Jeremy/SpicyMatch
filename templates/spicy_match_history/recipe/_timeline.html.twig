@@ -1,0 +1,35 @@
+<ol class="recipe-timeline">
+    {% for moment in recipe.moments %}
+        {% set steps = recipe.stepsAt(moment) %}
+        <li class="recipe-moment {{ steps is empty ? 'is-empty' }}">
+            <twig:Recipe:MomentHex :moment="moment" :empty="steps is empty" />
+            <div class="min-w-0 flex-1">
+                <div class="recipe-moment-head">
+                    <h2 class="recipe-moment-label">{{ moment.label|trans }}</h2>
+                    <span class="recipe-mono">{{ steps is empty ? 'ui.recipe.free'|trans : moment.hint|trans }}</span>
+                </div>
+                {% for step in steps %}
+                    {% set name = step.spice.getLocalizedName(loc) %}
+                    {% set prepTitle = step.preparation?.getLocalizedTitle(loc) %}
+                    {% set cookTitle = step.cooking?.getLocalizedTitle(loc) %}
+                    <button type="button" class="recipe-row"
+                            x-on:click="goToSpice({{ step.spiceId }})"
+                            aria-label="{{ 'ui.recipe.goto_spice_aria'|trans({'%name%': name}) }}">
+                        <twig:Recipe:SpiceHex :spice="step.spice" size="sm" />
+                        <span class="min-w-0 flex-1 text-left">
+                            <span class="recipe-row-name">{{ name }}</span>
+                            <span class="recipe-row-sub">
+                                {{- prepTitle -}}
+                                {%- if prepTitle and cookTitle %} · {% endif -%}
+                                {%- if cookTitle %}{{ cookTitle|first|lower ~ cookTitle|slice(1) }}{% endif -%}
+                            </span>
+                        </span>
+                        {% if step.group %}
+                            <span class="recipe-dot" style="background-color: {{ step.group.color ?? '#7A6A55' }}" aria-hidden="true"></span>
+                        {% endif %}
+                    </button>
+                {% endfor %}
+            </div>
+        </li>
+    {% endfor %}
+</ol>

@@ -34,7 +34,7 @@
                          x-data="historyItem(
                             {{ history.id }},
                             '{{ path('rename_spicy_match_history', {id: history.id}) }}',
-                            '{{ path('toggle_favorite_spicy_match_history', {id: history.id}) }}',
+                            '{{ path('set_favorite_spicy_match_history', {id: history.id}) }}',
                             '{{ csrf_token('history_action_' ~ history.id) }}',
                             '{{ history.title ? history.title|e('js') : '' }}',
                             {{ history.isFavorite ? 'true' : 'false' }},

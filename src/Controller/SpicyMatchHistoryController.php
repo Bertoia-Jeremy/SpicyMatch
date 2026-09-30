@@ -9,9 +9,7 @@ use App\Entity\PreparationTips;
 use App\Entity\Spices;
 use App\Entity\SpicyMatchHistory;
 use App\Entity\Users;
-use App\Enum\CookingMoment;
 use App\Enum\HistoryTipKind;
-use App\Exception\Match\InvalidMortarException;
 use App\Message\FavoriteToggledEvent;
 use App\Message\MatchSavedEvent;
 use App\Repository\CookingTipsRepository;
@@ -20,10 +18,8 @@ use App\Repository\SpiceDuoRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyMatchHistoryRepository;
 use App\Security\Voter\SpicyMatchHistoryVoter;
-use App\Service\Match\CookingTimelineBuilder;
-use App\Service\Match\MatrixComparator;
 use App\Service\Match\SpiceDuoMapBuilder;
-use App\ValueObject\Match\MortarIds;
+use App\Service\Recipe\RecipeViewFactory;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Clock\ClockInterface;
@@ -125,8 +121,7 @@ class SpicyMatchHistoryController extends AbstractController
     #[IsGranted(SpicyMatchHistoryVoter::OWNER, 'spicyMatchHistory')]
     public function view(
         SpicyMatchHistory $spicyMatchHistory,
-        MatrixComparator $matrixComparator,
-        CookingTimelineBuilder $timelineBuilder,
+        RecipeViewFactory $recipeViewFactory,
         Request $request,
     ): Response {
         if (! $spicyMatchHistory->isSealed()) {
@@ -135,86 +130,9 @@ class SpicyMatchHistoryController extends AbstractController
             ]);
         }
 
-        $cookingsByStep = array_fill_keys(array_column(CookingMoment::cases(), 'value'), []);
-        foreach ($spicyMatchHistory->getCookingTips() as $cooking) {
-            $cookingsByStep[($cooking->getMoment() ?? CookingMoment::PRE)->value][] = $cooking;
-        }
-
-        $prepTipIds = [];
-        foreach ($spicyMatchHistory->getPreparationTips() as $prepTip) {
-            $prepTipIds[] = (int) $prepTip->getId();
-        }
-        $cookTipIds = [];
-        foreach ($spicyMatchHistory->getCookingTips() as $cookTip) {
-            $cookTipIds[] = (int) $cookTip->getId();
-        }
-        $duoByPrep = [];
-        foreach ($this->duoRepository->findByTipIds($prepTipIds, $cookTipIds, $request->getLocale()) as $row) {
-            $duoByPrep[$row['prepId']] ??= $row;
-        }
-
-        $sharedCompounds = null;
-        foreach ($spicyMatchHistory->getSpicyMatch()->getSpices() as $spice) {
-            $compounds = $spice->getAromaticsCompounds()
-                ->toArray();
-            if ($sharedCompounds === null) {
-                $sharedCompounds = $compounds;
-            } else {
-                $sharedCompounds = array_uintersect(
-                    $sharedCompounds,
-                    $compounds,
-                    static fn ($a, $b): int => $a->getId() <=> $b->getId()
-                );
-            }
-        }
-
-        $spicyMatch = $spicyMatchHistory->getSpicyMatch();
-        $culinaryContext = $spicyMatch->getCulinaryContext();
-        $mortarSpiceIds = $spicyMatch->getSpices()
-            ->map(static fn (Spices $s): ?int => $s->getId())
-            ->filter(static fn (?int $id): bool => $id !== null)
-            ->toArray();
-
-        $matrixGrid = [];
-        $boundedIds = array_slice(array_values($mortarSpiceIds), 0, 10);
-        if ($boundedIds !== []) {
-            try {
-                $matrixRankings = $matrixComparator->compare(
-                    new MortarIds($boundedIds),
-                    $culinaryContext,
-                    limit: 5,
-                    locale: $request->getLocale(),
-                );
-                $matrixGrid = $matrixComparator->buildGrid($matrixRankings);
-            } catch (InvalidMortarException) {
-                $matrixGrid = [];
-            }
-        }
-
-        $mortarCompounds = [];
-        $seenCompoundIds = [];
-        foreach ($spicyMatch->getSpices() as $spice) {
-            foreach ($spice->getAromaticsCompounds() as $compound) {
-                $cid = $compound->getId();
-                if ($cid === null || isset($seenCompoundIds[$cid])) {
-                    continue;
-                }
-                $seenCompoundIds[$cid] = true;
-                $mortarCompounds[] = $compound;
-            }
-        }
-        $cookingTimeline = $timelineBuilder->build($mortarCompounds, $culinaryContext);
-
         return $this->render('spicy_match_history/view.html.twig', [
-            'spicyMatchHistory' => $spicyMatchHistory,
-            'preparations' => $spicyMatchHistory->getPreparationTips(),
-            'cookingsByStep' => $cookingsByStep,
-            'duoByPrep' => $duoByPrep,
-            'sharedCompounds' => array_values($sharedCompounds ?? []),
-            'spicyMatch' => $spicyMatch,
-            'culinaryContext' => $culinaryContext,
-            'matrixGrid' => $matrixGrid,
-            'cookingTimeline' => $cookingTimeline,
+            'history' => $spicyMatchHistory,
+            'recipe' => $recipeViewFactory->build($spicyMatchHistory, $request->getLocale()),
         ]);
     }
 
@@ -293,15 +211,17 @@ class SpicyMatchHistoryController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
     ): JsonResponse {
-        $data = json_decode($request->getContent(), true);
+        $data = $request->toArray();
+        $token = $data['_token'] ?? '';
 
-        if (! $this->isCsrfTokenValid('history_action_' . $spicyMatchHistory->getId(), $data['_token'] ?? '')) {
+        if (! \is_string($token) || ! $this->isCsrfTokenValid('history_action_' . $spicyMatchHistory->getId(), $token)) {
             return $this->json([
                 'error' => 'Invalid CSRF token',
             ], 403);
         }
 
-        $title = trim((string) ($data['title'] ?? ''));
+        $raw = $data['title'] ?? '';
+        $title = \is_string($raw) ? mb_substr(trim($raw), 0, SpicyMatchHistory::TITLE_MAX_LENGTH) : '';
         $spicyMatchHistory->setTitle($title !== '' ? $title : null);
         $spicyMatchHistory->setUpdatedAt($this->clock->now());
         $entityManager->flush();
@@ -311,9 +231,9 @@ class SpicyMatchHistoryController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/favorite/toggle', name: 'toggle_favorite_spicy_match_history', methods: ['POST'])]
+    #[Route('/{id}/favorite', name: 'set_favorite_spicy_match_history', methods: ['POST'])]
     #[IsGranted(SpicyMatchHistoryVoter::OWNER, 'spicyMatchHistory')]
-    public function toggleFavorite(
+    public function setFavorite(
         SpicyMatchHistory $spicyMatchHistory,
         Request $request,
         EntityManagerInterface $entityManager,
@@ -327,11 +247,21 @@ class SpicyMatchHistoryController extends AbstractController
             ], 403);
         }
 
-        $spicyMatchHistory->setFavorite(! $spicyMatchHistory->isFavorite());
-        $spicyMatchHistory->setUpdatedAt($this->clock->now());
-        $entityManager->flush();
+        $favorite = $request->toArray()['favorite'] ?? null;
+        if (! \is_bool($favorite)) {
+            return $this->json([
+                'error' => 'Invalid favorite value',
+            ], 400);
+        }
 
-        if ($spicyMatchHistory->isFavorite()) {
+        $wasFavorite = $spicyMatchHistory->isFavorite();
+        if ($wasFavorite !== $favorite) {
+            $spicyMatchHistory->setFavorite($favorite);
+            $spicyMatchHistory->setUpdatedAt($this->clock->now());
+            $entityManager->flush();
+        }
+
+        if (! $wasFavorite && $favorite) {
             $this->bus->dispatch(new FavoriteToggledEvent($currentUser->getId()));
         }
 

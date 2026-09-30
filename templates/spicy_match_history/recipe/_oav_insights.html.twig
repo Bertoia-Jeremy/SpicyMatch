@@ -1,0 +1,93 @@
+{% set ctx = recipe.culinaryContext %}
+{% set timeline = recipe.cookingTimeline %}
+
+{% if recipe.hasKinetics %}
+    <details class="recipe-details">
+        <summary class="recipe-details-summary">
+            <span>
+                <span class="recipe-card-name">{{ 'ui.recipe.kinetics_title'|trans }}</span>
+                <span class="recipe-mono block">
+                    {{ 'ui.recipe.kinetics_sub'|trans }}
+                    {% if ctx.cookingTimeMin > 0 %}{{ 'ui.recipe.kinetics_retention'|trans({'%temp%': ctx.temperatureCelsius, '%time%': ctx.cookingTimeMin}) }}{% endif %}
+                </span>
+            </span>
+            <i class="fa-solid fa-chevron-down recipe-chevron" aria-hidden="true"></i>
+        </summary>
+        <div class="flex flex-col gap-3 px-4 pb-4">
+            {% for key in ['head', 'heart', 'base'] %}
+                {% set bucket = timeline[key] %}
+                <div class="recipe-block !mt-0 !border-t-0">
+                    <div class="flex items-baseline justify-between gap-2">
+                        <h3 class="recipe-block-title !mt-0">{{ ('enum.kinetics.' ~ key)|trans }}</h3>
+                        <span class="recipe-mono tabular-nums">{{ bucket|length }} {{ 'ui.recipe.compounds'|trans({'%count%': bucket|length}) }}</span>
+                    </div>
+                    <p class="recipe-block-hint !mt-0.5">{{ ('ui.recipe.kinetics_' ~ key ~ '_blurb')|trans }}</p>
+                    {% if bucket is empty %}
+                        <p class="recipe-block-hint italic">{{ 'ui.recipe.no_compound_cat'|trans }}</p>
+                    {% else %}
+                        <ul class="mt-2 flex flex-col gap-1">
+                            {% for entry in bucket %}
+                                <li class="flex items-center justify-between gap-2 text-[13px] text-ink-900">
+                                    <span>{{ entry.name }}</span>
+                                    {% if entry.retention is not null and ctx.cookingTimeMin > 0 %}
+                                        {% set pct = (entry.retention * 100)|round %}
+                                        <span class="recipe-mono tabular-nums {{ pct >= 70 ? '!text-sauge' : (pct >= 30 ? '!text-turmeric-700' : '!text-saffron-800') }}" title="{{ 'ui.recipe.retention_title'|trans }}">{{ pct }}&nbsp;%</span>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            {% if timeline.unknown is not empty %}
+                <p class="recipe-block-hint">
+                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                    {{ 'ui.recipe.no_physchem'|trans({'%count%': timeline.unknown|length, '%names%': timeline.unknown|map(e => e.name)|join(', ')}) }}
+                </p>
+            {% endif %}
+        </div>
+    </details>
+{% endif %}
+
+{% if recipe.matrixGrid is not empty %}
+    <details class="recipe-details">
+        <summary class="recipe-details-summary">
+            <span>
+                <span class="recipe-card-name">{{ 'ui.recipe.matrix_title'|trans }}</span>
+                <span class="recipe-mono block">{{ 'ui.recipe.matrix_sub'|trans }}</span>
+            </span>
+            <i class="fa-solid fa-chevron-down recipe-chevron" aria-hidden="true"></i>
+        </summary>
+        <div class="overflow-x-auto px-4 pb-4">
+            <table class="w-full text-[13px]">
+                <caption class="sr-only">{{ 'ui.recipe.matrix_caption'|trans }}</caption>
+                <thead>
+                    <tr>
+                        <th scope="col" class="recipe-mono py-2 text-left">{{ 'ui.recipe.col_spice'|trans }}</th>
+                        {% for key in ['air', 'water', 'oil'] %}
+                            {% set current = ctx.matrix.value == key %}
+                            <th scope="col" class="recipe-mono py-2 text-center {{ current ? '!text-saffron-800' }}">
+                                {{ ('enum.matrix.' ~ key)|trans }}
+                                {% if current %}<span class="sr-only">{{ 'ui.recipe.current_matrix'|trans }}</span>{% endif %}
+                            </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in recipe.matrixGrid %}
+                        <tr class="border-t border-parchment-300">
+                            <th scope="row" class="py-2 text-left font-normal text-ink-900">{{ row.name }}</th>
+                            {% for key in ['air', 'water', 'oil'] %}
+                                {% set score = row.scores[key] %}
+                                {% set current = ctx.matrix.value == key %}
+                                <td class="py-2 text-center tabular-nums {{ score == 0 ? 'text-ink-600' : (current ? 'text-saffron-800' : 'text-ink-900') }} {{ score > 0 and score == max(row.scores) ? 'font-semibold' }} {{ current ? 'bg-saffron-50' }}"
+                                    title="{{ score == 0 ? 'ui.recipe.out_of_top5'|trans : 'ui.recipe.tanimoto_title'|trans }}">{{ score == 0 ? '—' : score }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p class="recipe-block-hint">{{ 'ui.recipe.tanimoto_note'|trans }}</p>
+        </div>
+    </details>
+{% endif %}

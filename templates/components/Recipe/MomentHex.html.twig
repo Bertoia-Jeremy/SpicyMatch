@@ -1,0 +1,2 @@
+{% props moment, empty = false, size = 'md', label = null %}
+<span class="recipe-moment-hex hex recipe-moment-hex--{{ size }} {{ empty ? 'is-empty' }}" aria-hidden="true">{{ label ?? '%02d'|format(moment.value + 1) }}</span>

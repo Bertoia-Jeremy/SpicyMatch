@@ -475,33 +475,169 @@ export default function registerAlpineComponents(Alpine) {
         pick(value) { this.selected = value; },
     }));
 
-    Alpine.data('recetteView', (historyId, renameUrl, favUrl, csrfToken, initialTitle, isFavorite) => ({
-        favorite: isFavorite,
-        title: initialTitle,
+    Alpine.data('recetteView', () => ({
+        tab: 'timeline',
+        openSpiceId: null,
+        noteOpen: false,
+        favorite: false,
+        favError: false,
+        favPending: false,
+        favTarget: null,
+        title: '',
+        placeholder: '',
+        wakeLock: null,
+        cook: { active: false, step: 0, total: 1, done: {} },
+        _wakeSentinel: null,
+        _onBeforeCache: null,
+        _onVisibility: null,
 
-        toggleFavorite() {
-            this.favorite = !this.favorite;
-            apiFetch(favUrl, {
-                method: 'POST',
-                headers: { 'X-CSRF-Token': csrfToken },
-            }).catch(e => console.error('toggleFavorite', e));
+        init() {
+            const d = this.$root.dataset;
+            this.favorite = d.favorite === '1';
+            this.title = d.title || '';
+            this.placeholder = d.placeholder || '';
+            this.cook.total = parseInt(d.cookSteps, 10) || 1;
+
+            this._onBeforeCache = () => this.exitCook(false);
+            this._onVisibility = () => {
+                if (document.visibilityState === 'visible' && this.cook.active) this.acquireWakeLock();
+            };
+            document.addEventListener('turbo:before-cache', this._onBeforeCache);
+            document.addEventListener('visibilitychange', this._onVisibility);
         },
 
-        saveTitle(el) {
-            const text = (el.innerText || '').trim().slice(0, 120);
-            if (!text) { el.innerText = this.title; return; }
-            if (text === this.title) return;
+        destroy() {
+            document.removeEventListener('turbo:before-cache', this._onBeforeCache);
+            document.removeEventListener('visibilitychange', this._onVisibility);
+            this.releaseWakeLock();
+        },
+
+        toggleSpice(id) {
+            this.openSpiceId = this.openSpiceId === id ? null : id;
+        },
+
+        goToSpice(id) {
+            this.tab = 'spices';
+            this.openSpiceId = id;
+            this.$nextTick(() => {
+                const card = document.getElementById(`recipe-spice-${id}`);
+                const seg = this.$root.querySelector('.recipe-segment-wrap');
+                if (!card) return;
+                const offset = (seg ? seg.getBoundingClientRect().bottom : 0) + 8;
+                window.scrollTo({ top: card.getBoundingClientRect().top + window.scrollY - offset, behavior: 'smooth' });
+            });
+        },
+
+        async setFavorite(next) {
+            if (this.favPending) return;
+            const previous = this.favorite;
+            this.favTarget = next;
+            this.favorite = next;
+            this.favError = false;
+            this.favPending = true;
+            try {
+                const res = await apiFetch(this.$root.dataset.favoriteUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': this.$root.dataset.token },
+                    body: JSON.stringify({ favorite: next }),
+                });
+                const data = await res.json();
+                this.favorite = data.favorite === true;
+            } catch (e) {
+                this.favorite = previous;
+                this.favError = true;
+            } finally {
+                this.favPending = false;
+            }
+        },
+
+        retryFavorite() {
+            if (this.favTarget !== null) this.setFavorite(this.favTarget);
+        },
+
+        focusTitle(el) {
+            if (!this.title) el.textContent = '';
+        },
+
+        async saveTitle(el) {
+            const text = (el.textContent || '').trim().slice(0, 120);
+            if (text === this.title) {
+                el.textContent = this.title || this.placeholder;
+                return;
+            }
+            const previous = this.title;
             this.title = text;
-            apiFetch(renameUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: text, _token: csrfToken }),
-            }).catch(e => console.error('saveTitle', e));
+            el.textContent = text || this.placeholder;
+            try {
+                const res = await apiFetch(this.$root.dataset.renameUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: text, _token: this.$root.dataset.token }),
+                });
+                const data = await res.json();
+                this.title = data.title || '';
+            } catch (e) {
+                this.title = previous;
+                toast(t('common.save_failed'), 'fa-solid fa-triangle-exclamation');
+            }
+            el.textContent = this.title || this.placeholder;
         },
 
-        favClass() { return this.favorite ? 'active' : ''; },
-        favLabel()  { return this.favorite ? t('favorites.in') : t('favorites.add'); },
+        storageKey() {
+            return `recipe-cook-${this.$root.dataset.id}`;
+        },
 
+        enterCook() {
+            let done = {};
+            try {
+                done = JSON.parse(localStorage.getItem(this.storageKey()) || '{}') || {};
+            } catch (e) {
+                done = {};
+            }
+            this.cook = { ...this.cook, active: true, step: 0, done };
+            this.acquireWakeLock();
+            this.$nextTick(() => this.$refs.cookClose?.focus());
+        },
+
+        exitCook(restoreFocus = true) {
+            if (!this.cook.active) return;
+            this.cook.active = false;
+            this.releaseWakeLock();
+            if (restoreFocus) this.$nextTick(() => this.$refs.cookCta?.focus());
+        },
+
+        cookPrev() {
+            if (this.cook.step > 0) this.cook.step--;
+        },
+
+        cookNext() {
+            if (this.cook.step < this.cook.total - 1) this.cook.step++;
+            this.$root.querySelector('.recipe-cook-scroll')?.scrollTo({ top: 0 });
+        },
+
+        toggleDone(key) {
+            this.cook.done = { ...this.cook.done, [key]: !this.cook.done[key] };
+            try {
+                localStorage.setItem(this.storageKey(), JSON.stringify(this.cook.done));
+            } catch (e) {}
+        },
+
+        async acquireWakeLock() {
+            if (!('wakeLock' in navigator)) return;
+            try {
+                this._wakeSentinel = await navigator.wakeLock.request('screen');
+                this.wakeLock = true;
+                this._wakeSentinel.addEventListener('release', () => { this.wakeLock = false; });
+            } catch (e) {
+                this.wakeLock = false;
+            }
+        },
+
+        releaseWakeLock() {
+            this._wakeSentinel?.release().catch(() => {});
+            this._wakeSentinel = null;
+            this.wakeLock = false;
+        },
     }));
 
     Alpine.data('historyItem', (id, renameUrl, toggleUrl, token, initialTitle = '', initialFavorite = false, fallbackTitle = '') => ({
@@ -554,7 +690,8 @@ export default function registerAlpineComponents(Alpine) {
             try {
                 const res = await apiFetch(this.toggleUrl, {
                     method: 'POST',
-                    headers: { 'X-CSRF-Token': this.token },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': this.token },
+                    body: JSON.stringify({ favorite: !this.favorite }),
                 });
                 const data = await res.json();
                 this.favorite = data.favorite;
@@ -562,22 +699,6 @@ export default function registerAlpineComponents(Alpine) {
                     data.favorite ? t('favorites.added') : t('favorites.removed'),
                     data.favorite ? 'fa-solid fa-star' : 'fa-regular fa-star',
                 );
-            } catch (e) { console.error('Toggle error', e); }
-        },
-    }));
-
-    Alpine.data('favoriteRemover', (toggleUrl, token) => ({
-        toggleUrl,
-        token,
-        removed: false,
-        async removeFavorite() {
-            try {
-                await apiFetch(this.toggleUrl, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-Token': this.token },
-                });
-                this.removed = true;
-                toast(t('favorites.removed'), 'fa-regular fa-star');
             } catch (e) { console.error('Toggle error', e); }
         },
     }));

@@ -84,7 +84,7 @@ final readonly class RateLimitListener
             return $this->userActionsLimiter;
         }
 
-        if (preg_match('#^/spicymatch/history/\d+/(rename|favorite/toggle)$#', $path) === 1) {
+        if (preg_match('#^/(?:[a-z]{2}/)?spicymatch/history/\d+/(rename|favorite)$#', $path) === 1) {
             return $this->userActionsLimiter;
         }
 

@@ -176,6 +176,46 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
         return $result;
     }
 
+    public function preloadForRecipe(SpicyMatchHistory $history, string $locale): void
+    {
+        $translated = $locale !== 'fr';
+
+        $tips = $this->createQueryBuilder('smh')
+            ->addSelect('pt', 'pts', 'ag', 'ct')
+            ->leftJoin('smh.preparationTips', 'pt')
+            ->leftJoin('pt.spice', 'pts')
+            ->leftJoin('pts.aromaticGroups', 'ag')
+            ->leftJoin('smh.cookingTips', 'ct')
+            ->where('smh = :history')
+            ->setParameter('history', $history);
+        if ($translated) {
+            $tips->leftJoin('pt.translations', 'ptt', 'WITH', 'ptt.locale = :locale')
+                ->leftJoin('pts.translations', 'st', 'WITH', 'st.locale = :locale')
+                ->leftJoin('ag.translations', 'agt', 'WITH', 'agt.locale = :locale')
+                ->leftJoin('ct.translations', 'ctt', 'WITH', 'ctt.locale = :locale')
+                ->addSelect('ptt', 'st', 'agt', 'ctt')
+                ->setParameter('locale', $locale);
+        }
+        $tips->getQuery()
+            ->getResult();
+
+        $mortar = $this->createQueryBuilder('smh')
+            ->addSelect('sm', 's', 'sg', 'ac')
+            ->join('smh.spicyMatch', 'sm')
+            ->leftJoin('sm.spices', 's')
+            ->leftJoin('s.aromaticGroups', 'sg')
+            ->leftJoin('s.aromaticsCompounds', 'ac')
+            ->where('smh = :history')
+            ->setParameter('history', $history);
+        if ($translated) {
+            $mortar->leftJoin('ac.translations', 'act', 'WITH', 'act.locale = :locale')
+                ->addSelect('act')
+                ->setParameter('locale', $locale);
+        }
+        $mortar->getQuery()
+            ->getResult();
+    }
+
     public function countDistinctSpicesByUser(Users $user): int
     {
         return (int) $this->createQueryBuilder('smh')

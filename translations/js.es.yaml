@@ -36,3 +36,5 @@ tour:
     next: Siguiente →
 timer:
     remaining: '%time% restantes'
+common:
+    save_failed: Cambio no guardado — inténtalo de nuevo

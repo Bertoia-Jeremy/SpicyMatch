@@ -36,3 +36,5 @@ tour:
     next: Suivant →
 timer:
     remaining: '%time% restantes'
+common:
+    save_failed: Modification non enregistrée — réessaie

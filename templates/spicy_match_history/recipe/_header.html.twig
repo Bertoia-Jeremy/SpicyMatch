@@ -1,0 +1,93 @@
+<div class="recipe-topbar">
+    <twig:Button
+        label="{{ 'ui.history.back_to_history'|trans }}"
+        href="{{ path('profile_user', {tab: 'history'}) }}"
+        variant="back"
+        iconOnly
+        extra="recipe-icon-btn"
+    />
+    <span class="recipe-mono">{{ 'ui.recipe.folio_short'|trans({'%id%': '%04d'|format(history.id)}) }}</span>
+    <button type="button" class="recipe-icon-btn recipe-fav {{ history.isFavorite ? 'is-active' }}"
+            x-on:click="setFavorite(!favorite)"
+            x-bind:class="favorite && 'is-active'"
+            x-bind:aria-pressed="favorite"
+            x-bind:disabled="favPending"
+            aria-pressed="{{ history.isFavorite ? 'true' : 'false' }}"
+            aria-label="{{ 'ui.recipe.add_favorite'|trans }}">
+        <i class="{{ history.isFavorite ? 'fa-solid' : 'fa-regular' }} fa-star" x-bind:class="favorite ? 'fa-solid' : 'fa-regular'" aria-hidden="true"></i>
+    </button>
+</div>
+
+<header class="px-5 pt-1.5">
+    <div class="recipe-mono">{{ 'ui.recipe.lab_notebook'|trans }}</div>
+    <div class="mt-1 flex items-start gap-2">
+        <h1 class="recipe-title">
+            <span x-ref="titleEl"
+                  contenteditable="true"
+                  spellcheck="false"
+                  role="textbox"
+                  aria-label="{{ 'ui.recipe.rename_aria'|trans }}"
+                  class="recipe-title-edit {{ history.title is null ? 'is-placeholder' }}"
+                  x-bind:class="!title && 'is-placeholder'"
+                  x-on:focus="focusTitle($event.target)"
+                  x-on:blur="saveTitle($event.target)"
+                  x-on:keydown.enter.prevent="$event.target.blur()"
+                  x-text="title || placeholder">{{ history.title ?? placeholder }}</span>
+        </h1>
+        <button type="button" class="recipe-pen" x-on:click="$refs.titleEl.focus()" aria-label="{{ 'ui.recipe.rename'|trans }}">
+            <i class="fa-solid fa-pen text-xs" aria-hidden="true"></i>
+        </button>
+    </div>
+
+    <p class="recipe-meta">
+        <time datetime="{{ history.createdAt|date('c') }}">{{ history.createdAt|format_datetime('short', 'short') }}</time>
+        · {{ recipe.steps|length }} {{ 'ui.recipe.spices'|trans({'%count%': recipe.steps|length}) }}
+        · {{ recipe.usedMoments|length }} {{ 'ui.recipe.moments'|trans({'%count%': recipe.usedMoments|length}) }}
+    </p>
+
+    {% if oav_context_enabled %}
+        {% set ctx = recipe.culinaryContext %}
+        <p class="recipe-meta mt-1 flex items-center gap-1.5">
+            <i class="fa-solid {{ ctx.icon }}" aria-hidden="true"></i>
+            <span>{{ ctx.label }} · {{ ctx.matrix.label|trans }}</span>
+            {% if ctx.isCustom and ctx.cookingTimeMin > 0 %}
+                <span>· {{ ctx.cookingTimeMin }}&nbsp;min @ {{ ctx.temperatureCelsius }}&nbsp;°C</span>
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if recipe.steps is not empty %}
+        <ul class="recipe-composition" aria-label="{{ 'ui.recipe.composition'|trans }}">
+            {% for step in recipe.steps %}
+                {% set name = step.spice.getLocalizedName(loc) %}
+                <li>
+                    <button type="button" class="recipe-composition-item"
+                            x-on:click="goToSpice({{ step.spiceId }})"
+                            aria-label="{{ 'ui.recipe.goto_spice_aria'|trans({'%name%': name}) }}">
+                        <twig:Recipe:SpiceHex :spice="step.spice" size="lg" />
+                        <span class="recipe-composition-name">{{ name }}</span>
+                    </button>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% set families = recipe.families %}
+    {% if families is not empty %}
+        <div class="mt-4">
+            <div class="recipe-family-bar" aria-hidden="true">
+                {% for family in families %}
+                    <span style="flex: {{ family.count }}; background-color: {{ family.group.color ?? '#7A6A55' }}"></span>
+                {% endfor %}
+            </div>
+            <ul class="recipe-family-legend">
+                {% for family in families %}
+                    <li>
+                        <span class="recipe-dot" style="background-color: {{ family.group.color ?? '#7A6A55' }}" aria-hidden="true"></span>
+                        {{ family.group.getLocalizedName(loc) }} ×{{ family.count }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+</header>

@@ -1,0 +1,106 @@
+{% set moments = recipe.usedMoments %}
+{% set total = 1 + moments|length %}
+<div class="recipe-cook" role="dialog" aria-modal="true" aria-labelledby="recipe-cook-title" x-on:keydown.escape.window="exitCook()">
+    <div class="recipe-cook-bar">
+        <button type="button" class="recipe-icon-btn" x-ref="cookClose" x-on:click="exitCook()" aria-label="{{ 'ui.recipe.cook_mode.close'|trans }}">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+        <span class="recipe-mono" id="recipe-cook-title">{{ 'ui.recipe.cook_mode.title'|trans }}</span>
+        <span class="recipe-mono tabular-nums" x-text="(cook.step + 1) + '/{{ total }}'"></span>
+    </div>
+
+    <div class="recipe-cook-progress" aria-hidden="true">
+        {% for i in 0..(total - 1) %}
+            <span x-bind:class="cook.step >= {{ i }} && 'is-done'"></span>
+        {% endfor %}
+    </div>
+
+    <div class="recipe-cook-scroll">
+        <section x-show="cook.step === 0">
+            <div class="recipe-mono">{{ 'ui.recipe.cook_mode.before_start'|trans }}</div>
+            <h2 class="recipe-cook-h2">{{ 'ui.recipe.cook_mode.mise_en_place'|trans }}</h2>
+            <p class="recipe-cook-hint">{{ 'ui.recipe.cook_mode.mise_en_place_hint'|trans }}</p>
+            {% for step in recipe.steps|filter(s => s.preparation is not null) %}
+                {% set key = 'p' ~ step.spiceId %}
+                {% set name = step.spice.getLocalizedName(loc) %}
+                <article class="recipe-cook-card" x-bind:class="cook.done['{{ key }}'] && 'is-done'">
+                    <div class="flex items-center gap-3">
+                        <twig:Recipe:SpiceHex :spice="step.spice" size="xl" />
+                        <div class="min-w-0 flex-1">
+                            <div class="recipe-cook-name">{{ name }}</div>
+                            <div class="recipe-cook-form">{{ step.preparation.getLocalizedTitle(loc) }}</div>
+                        </div>
+                        <button type="button" class="recipe-check" x-on:click="toggleDone('{{ key }}')"
+                                x-bind:aria-pressed="!!cook.done['{{ key }}']"
+                                aria-label="{{ 'ui.recipe.cook_mode.mark_done'|trans({'%name%': name}) }}">
+                            <i class="fa-solid fa-check" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    {% if step.preparation.getLocalizedText(loc) %}
+                        <p class="recipe-cook-text">{{ step.preparation.getLocalizedText(loc) }}</p>
+                    {% endif %}
+                </article>
+            {% endfor %}
+        </section>
+
+        {% for moment in moments %}
+            <section x-show="cook.step === {{ loop.index }}">
+                <div class="recipe-mono">{{ 'ui.recipe.cook_mode.moment_of'|trans({'%n%': '%02d'|format(moment.value + 1), '%total%': '%02d'|format(recipe.moments|length)}) }}</div>
+                <h2 class="recipe-cook-h2">{{ moment.label|trans }}</h2>
+                <p class="recipe-cook-hint">{{ moment.hint|trans }}</p>
+                {% for step in recipe.stepsAt(moment) %}
+                    {% set key = 'c' ~ step.spiceId %}
+                    {% set name = step.spice.getLocalizedName(loc) %}
+                    <article class="recipe-cook-card" x-bind:class="cook.done['{{ key }}'] && 'is-done'">
+                        <div class="flex items-center gap-3">
+                            <twig:Recipe:SpiceHex :spice="step.spice" size="xl" />
+                            <div class="min-w-0 flex-1">
+                                <div class="recipe-cook-name">{{ name }}</div>
+                                {% if step.preparation %}
+                                    <div class="recipe-cook-form">{{ step.preparation.getLocalizedTitle(loc) }} {{ 'ui.recipe.prepared_suffix'|trans }}</div>
+                                {% endif %}
+                            </div>
+                            <button type="button" class="recipe-check" x-on:click="toggleDone('{{ key }}')"
+                                    x-bind:aria-pressed="!!cook.done['{{ key }}']"
+                                    aria-label="{{ 'ui.recipe.cook_mode.mark_done'|trans({'%name%': name}) }}">
+                                <i class="fa-solid fa-check" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        {% if step.cooking %}
+                            <h3 class="recipe-cook-title">{{ step.cooking.getLocalizedTitle(loc) }}</h3>
+                            {% if step.cooking.getLocalizedAdvantages(loc) %}
+                                <p class="recipe-cook-text">{{ step.cooking.getLocalizedAdvantages(loc) }}</p>
+                            {% endif %}
+                        {% endif %}
+                        {% if step.duo and step.duo.effect %}
+                            <p class="recipe-cook-effect">{{ step.duo.effect }}</p>
+                        {% endif %}
+                    </article>
+                {% endfor %}
+            </section>
+        {% endfor %}
+
+        <p class="recipe-wake" x-show="wakeLock">
+            <span class="recipe-dot bg-sauge" aria-hidden="true"></span>
+            {{ 'ui.recipe.cook_mode.screen_awake'|trans }}
+        </p>
+    </div>
+
+    <div class="recipe-cook-nav">
+        <button type="button" class="recipe-cook-prev" x-on:click="cookPrev()" x-bind:disabled="cook.step === 0" aria-label="{{ 'ui.recipe.cook_mode.previous'|trans }}">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        </button>
+        {% for i in 0..(total - 1) %}
+            {% if i < total - 1 %}
+                <button type="button" class="recipe-cta-btn" x-show="cook.step === {{ i }}" x-on:click="cookNext()">
+                    {{ 'ui.recipe.cook_mode.next_step'|trans({'%moment%': moments[i].label|trans}) }}
+                </button>
+            {% else %}
+                <button type="button" class="recipe-cta-btn" x-show="cook.step === {{ i }}" x-on:click="exitCook()">
+                    <i class="fa-solid fa-check" aria-hidden="true"></i>
+                    {{ 'ui.recipe.cook_mode.finish'|trans }}
+                </button>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>

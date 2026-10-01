@@ -9,7 +9,7 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
        x-data="profileTabs('{{ activeTab }}')" x-cloak>
 
-    <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-8">
+    <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-4 sm:p-8">
       <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
         <div class="shrink-0 flex justify-center">
           {% include 'components/_avatar.html.twig' with {sizeClass: 'w-24 h-24 text-3xl', equippedBadge: _badge} %}
@@ -38,7 +38,7 @@
         {% set _frameSrc = (key == 'history' and app.request.query.get('filter'))
           ? path('profile_tab', {tab: key, filter: app.request.query.get('filter')})
           : path('profile_tab', {tab: key}) %}
-        <div x-show="isActive('{{ key }}')" role="tabpanel" :aria-labelledby="'tab-' + '{{ key }}'">
+        <div x-show="isActive('{{ key }}')" role="tabpanel" id="tabpanel-{{ key }}" aria-labelledby="tab-{{ key }}">
           <turbo-frame id="{{ frameId }}" loading="{{ key == activeTab ? 'eager' : 'lazy' }}" src="{{ _frameSrc }}">
             <div class="py-16 text-center text-stone-400" aria-busy="true">
               <i class="fa-solid fa-spinner fa-spin text-2xl" aria-hidden="true"></i>

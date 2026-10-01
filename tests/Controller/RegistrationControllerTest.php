@@ -48,7 +48,7 @@ final class RegistrationControllerTest extends WebTestCase
 
         $client->request('POST', '/register', [
             $formName => [
-                'username' => 'gatereg' . random_int(1000, 9999),
+                'username' => 'gatereg' . bin2hex(random_bytes(6)),
                 'mail' => '',
                 'plainPassword' => 'Password1!',
                 'altcha' => $this->solvedAltchaPayload(),

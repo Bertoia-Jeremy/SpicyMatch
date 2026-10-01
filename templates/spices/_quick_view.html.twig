@@ -12,7 +12,7 @@
              style="background: linear-gradient(135deg, {{ color }}33, {{ color }}11)">
             {% if imageUrl %}
                 <img src="{{ imageUrl|imagine_filter('spice_hero') }}" alt="{{ spiceName }}"
-                     decoding="async" width="800" height="800"
+                     fetchpriority="high" decoding="async" width="800" height="800"
                      class="absolute inset-0 w-full h-full object-cover">
             {% else %}
                 <span class="absolute inset-0 flex items-center justify-center" aria-hidden="true"

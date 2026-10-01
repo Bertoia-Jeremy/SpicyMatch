@@ -6,7 +6,10 @@
     {% set open = options.open|default(false) %}
     {% set style = options.style|default('underline') %}
 
-    <details class="group relative {{ class }}" {{ open ? 'open' : '' }}>
+    <details class="group relative {{ class }}" {{ open ? 'open' : '' }}
+             x-data
+             x-on:click.outside="$el.open = false"
+             x-on:keydown.escape="if ($el.open) { $el.open = false; $el.querySelector('summary').focus() }">
 
         {% if style == 'pill' %}
             <summary class="inline-flex items-center gap-1.5 h-[34px] px-3 rounded-lg cursor-pointer select-none

@@ -1,4 +1,4 @@
-<div class="flex flex-wrap border-b border-spice-border mt-6" role="tablist"
+<div class="flex flex-nowrap overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden border-b border-spice-border mt-6" role="tablist"
      aria-label="{{ 'ui.profile.tabs.aria_label'|trans }}"
      @keydown.right.prevent="$refs[tabs[(tabs.indexOf(tab)+1) % tabs.length]].focus()"
      @keydown.left.prevent="$refs[tabs[(tabs.indexOf(tab)-1+tabs.length) % tabs.length]].focus()">
@@ -11,11 +11,12 @@
     {% for item in items %}
         <button type="button" role="tab"
                 x-ref="{{ item.key }}"
-                :id="'tab-' + '{{ item.key }}'"
+                id="tab-{{ item.key }}"
+                aria-controls="tabpanel-{{ item.key }}"
                 :aria-selected="isActive('{{ item.key }}').toString()"
                 :tabindex="isActive('{{ item.key }}') ? 0 : -1"
                 @click="go('{{ item.key }}')"
-                class="px-4 py-2 text-sm font-medium transition-colors border-b-2"
+                class="shrink-0 whitespace-nowrap px-4 py-2 text-sm font-medium transition-colors border-b-2 focus:outline-none focus-visible:ring-2 focus:ring-saffron-600/30"
                 :class="isActive('{{ item.key }}') ? 'text-saffron-700 border-saffron-700' : 'text-stone-500 border-transparent hover:text-stone-800 hover:border-stone-300'">
             <i class="{{ item.icon }} text-xs mr-1" aria-hidden="true"></i>{{ item.label }}
         </button>

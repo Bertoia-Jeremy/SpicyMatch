@@ -26,7 +26,7 @@ docker exec -w /var/www/html/spicymatch p8.5 php bin/console doctrine:schema:upd
 docker exec -w /var/www/html/spicymatch p8.5 php bin/console doctrine:fixtures:load --append --group=X
 yarn build
 ```
-- `composer ci` = check-cs + phpstan + test-unit + schema-test + test-integration + test-controller + check-data.
+- `composer ci` = check-cs + lint-twig + phpstan + test-unit + schema-test + test-integration + test-controller + check-data.
 - Env frais : DB `spicymatch_test` seedée (30 épices + `app:recompute:oav --sync --env=test`).
 - `yarn build` après tout changement de classes Tailwind.
 - Baseline PHPStan : `phpstan analyze --generate-baseline=phpstan-baseline.neon`, uniquement après un vrai fix.
@@ -50,7 +50,7 @@ yarn build
 - Messenger Doctrine sur MariaDB : polling 60 s, donc le rebuild OAV n'est pas instantané.
 
 ## Tests
-- Suites : Unit (Service, Entity, Enum, Gamification, MessageHandler, Twig, ValueObject, EventSubscriber), Integration (Integration, Repository), Controller. Tout nouveau répertoire sous `tests/` va dans une `<testsuite>` de `phpunit.dist.xml`.
+- Suites : Unit (Service, Entity, Enum, Gamification, MessageHandler, Twig, ValueObject, EventSubscriber, Security), Integration (Integration, Repository), Controller. Tout nouveau répertoire sous `tests/` va dans une `<testsuite>` de `phpunit.dist.xml`.
 - Un comportement, un owner : test exhaustif au niveau le plus bas (VO/service), câblage au-dessus (1 nominal + 1 erreur).
 - ≥ 3 variantes de même forme → `#[DataProvider]` avec datasets nommés.
 - Asserter l'état, pas le trajet. Exception : services de persistance à EM mocké.
@@ -80,7 +80,7 @@ MVC Symfony (Controller > Service > Repository > Entity), REST par controllers, 
 - `level = max(1, floor((xp/100) ** (1/1.3)))`. XP niveau L = `100 * L^1.3`.
 - Sources XP : match +10, nouvelle vue d'épice +5, partie (≤ 60), badge (≤ 200). Easter eggs = badge-only, zéro XP direct.
 - Nouveau badge = échelle XP badges R1–R5 : plafond 200, bandes common ≤ 25 / rare ≤ 50 / epic ≤ 100 / legendary ≤ 200, valeur = 0,25 × XP direct du palier, arrondie à 5. Fixtures et DB identiques sur (slug, icon, trigger, triggerValue, xpReward, rarity).
-- Icône de badge : FA 6.7.2 FREE uniquement (les noms Pro/FA5 rendent un `<i>` vide sans erreur).
+- Icône de badge : FA 6.7.2 FREE uniquement ET présente dans le subset (les noms absents rendent un `<i>` vide sans erreur). L'admin choisit parmi `IconSubsetManifest::solidChoices()`.
 - 1 trigger = 1 evaluator (`App\Gamification\Evaluator\*`, tag, doublons refusés au compile).
 - Handlers Messenger :
   - Gardes (`getOrCreateProgression` + `isGamificationEnabled`) AVANT `claim()`.
@@ -88,12 +88,19 @@ MVC Symfony (Controller > Service > Repository > Entity), REST par controllers, 
 - `GamificationNotificationSubscriber` : gardes bon marché avant la requête, `MAX_PER_RESPONSE=20`. Index `idx_pgn_user_delivered` obligatoire.
 - Easter eggs : aucun déclencheur front (`api_gamification_egg` jamais appelé). Câbler ou retirer.
 - Avatar = badge équipé (`_avatar.html.twig`).
+- Série = activité (tout event XP) : `recordActivityStreak()` dans `GamificationManager::process()` sous lock, avant les achievements. Colonnes BDD `*_reading_streak`/`last_read_date` conservées (seules les propriétés PHP renommées).
+- Renommage d'une valeur d'enum persistée (`AchievementTrigger`…) : script `docs/sql/` appliqué AVANT le code, sinon hydratation → 500.
+- `AROMATIC_GROUPS_VISITED` : atteint si `visités >= min(max(1, triggerValue), total groupes)`.
+- Fixtures badges : `--group=achievements`.
+- Gamification off ⇒ jeux fermés : `GameAccessVoter::PLAY` (redirect + flash `flash.gamification_disabled` côté `EducationController`, `#[IsGranted]` sur les 5 LC). Twig : `gamification_on()` seule source (true en anonyme), aucune trace XP/niveau/série affichée si false.
 
 ### Éducation
 - 6 modes : QCM (route-based) + 5 Live Components.
 - Cap dur quotidien : 2 sessions/mode en free, 5 en premium, via `GameSessionManager::withDailyQuota()` (transaction + `PESSIMISTIC_WRITE`).
   - Tout appelant (5 LC + QCM) DOIT attraper `\RuntimeException` : purger le secret de session, flasher `flash.daily_limit_reached`, rediriger sur `education_index`.
 - XP : `MAX_XP_PER_SESSION=60` sur les deux branches. Un `overrideScore` = points de jeu, convertis par `convertGamePoints()` ; ne pas pré-appliquer le multiplicateur.
+- Jeu du jour : `DailyChallengeResolver` (modes débloqués pour le niveau, rotation `GameDay::ordinal % count`, null si gamif off). Jour = `GameDay` (`ClockInterface` + param `app.timezone` = Europe/Paris, doit égaler le TZ PHP). Tests : `MockClock`.
+- Bonus du jour : cap `MAX_XP_PER_SESSION` PUIS ×2, 1 fois/jour (1ʳᵉ session terminée sur le mode du jour, `hasDailyBonusSince` sur `finishedAt`), décidé sous lock user (`withDailyQuota` pour les LC, transaction explicite pour `finishSession` QCM). `GameSession.score` inclut le bonus (le « meilleur score » aussi).
 - Réponses correctes en session HTTP, jamais en `#[LiveProp]`. Aucune valeur scoring-critique en `LiveProp`, aucun `writable: true` dans les LC Education.
 - `doFinish()`/`finishSession()` de LC : session vide (secret absent ou 0 réponse) → redirect sans persister.
 - LC de jeu : `#[IsGranted('ROLE_USER')]` au niveau classe (`/_components/*` non préfixé).
@@ -104,6 +111,8 @@ MVC Symfony (Controller > Service > Repository > Entity), REST par controllers, 
 - Sessions sans accuracy (`tracksAccuracy()` false, cas SURVIVAL) exclues des stats de précision.
 
 ### Duos / Lab
+- Composition : `SpicyMatchService::MIN_SPICES = 2` (serveur + boutons désactivés). `MortarIds::MIN_COUNT = 1` reste pour `/api/match`.
+- Recherche Lab : `SearchNormalizer` (casse + accents + apostrophes, contient), noms localisés via `findAllSpices($locale)`.
 - `CookingMoment` enum PRE=0…PLATING=4 mappé sur la colonne `step`. Valeur hors 0–4 → 500 (garde `app:check:data`). Le libellé vient de `moment.label|trans`.
 - `SpiceDuo` : un duo ne se crée que depuis deux tips existants de la même épice. Import : `app:import:spice-duos <fichier sous data/> [--dry-run]`, toujours `--dry-run` d'abord.
 - Finalisation : `SpicyMatch::nextStep()` → `SpicyMatchService::start()` (un flush, sans dispatch) → redirect GET `finalize` (sans écriture, id d'historique).
@@ -122,27 +131,51 @@ MVC Symfony (Controller > Service > Repository > Entity), REST par controllers, 
 - Rate limit `RateLimitListener` : les chemins sont préfixés `/{_locale}`, la regex doit l'accepter.
 
 ### i18n (FR défaut / EN / ES)
-- Toutes les URLs de contenu sont préfixées `/{_locale}`, sauf Root, Api, Admin, Security, Registration, Newsletter, Consent, EasterEgg, Locale. `LocaleSubscriber` résout la locale.
+- Toutes les URLs de contenu sont préfixées `/{_locale}`, sauf Root, Robots, Api, Admin, Security, Registration, Newsletter, EasterEgg, Locale. `LocaleSubscriber` résout la locale et ne touche la session que si `hasPreviousSession()` (sinon toute réponse anonyme devient `private`) ; la locale Accept-Language n'est pas persistée.
 - Catalogues `translations/messages.{fr,en,es}.yaml`, plus les domaines `validators`, `admin`, `js`. Namespaces : common, form, flash, ui, gamification, enum. Les clés edu/lab/catalog sont SOUS `ui`.
 - Entités traduisibles : pattern Translation Table (pas Gedmo). `getLocalizedXxx()` = COALESCE avec fallback FR, court-circuit `fr`. Colonne `reviewed=1` = jamais écrasée par `app:i18n:seed-translations` (`--overwrite` écrase tout ce qui n'est pas reviewed).
 - Slugs : FR canonique sur l'entité, EN/ES sur `*_translation`. 301 via `CanonicalSlugTrait`. Le slug n'est jamais resynchronisé au rename.
-- Collision de routes : `view_spice` a `priority:-10` + lookahead négatif. Ajouter une sous-section sous `/epices` = mettre à jour le lookahead.
+- Lookup slug : `LocalizedSlugLookupTrait` (repos) résout slug locale → slug FR → slug d'une autre locale → id numérique ; le controller 301 vers le slug canonique. Filtres `index_spices` (`aromatic_group`, `spicy_type`) : id ou slug étranger → 301.
+- Catalogue = routes localisées Symfony : préfixes classe dans `App\Routing\CatalogPath` (segments traduits fr/en/es, kebab-case). Noms internes `xxx.fr|en|es` : lire `_canonical_route ?? _route`, jamais `_route` seul. `path('xxx')` suit la locale courante, `{_locale: 'en'}` choisit la variante.
+- Collision de routes : `view_spice` a `priority:-10` + `CatalogPath::SPICE_SLUG_REQUIREMENT` (lookahead sur les segments des 3 langues). Nouvelle sous-section sous `/epices` = l'ajouter au lookahead ET à `spiceSubsections()` (garde `CatalogRoutingTest`).
+- Canonical/hreflang/switcher : `locale_alternates(absolute)` (lit `hreflang_slugs` du contexte). `switch_locale` redirige vers `?target=` si chemin interne (`/`, pas `//`, pas de `\` ni caractère de contrôle), sinon `home`. Plus de réécriture du referer.
+- Index catalogue EN/ES : `findAllForLocale($locale)` (fetch-join traductions, anti N+1) ; `SpicesRepository::findFiltered(..., $locale)` idem. Composants anonymes `templates/components/Catalog/` (Header, Grid, Card, Hero, Section, LinkedSpices), couleur BDD validée hex avant inline.
+
+### SEO
+- Sitemap : `SitemapSubscriber` = routes statiques + `DETAIL_ROUTES` (classe → repo `SitemapSourceInterface::findSitemapRows()`, 1 requête scalaire/entité via `LocalizedSlugLookupTrait`). 1 `<url>` par locale, 3 alternates + x-default fr, `lastmod` = `updated_at`, slug traduit absent → slug FR. Cache public 1 h (Presta), qui dépend de l'absence de session.
+- `/robots.txt` = `RobotsController` (hors locale, sitemap en URL absolue). Jamais de `public/robots.txt`.
+- JSON-LD : `SchemaProviderInterface` (autotag, `supports(?object)`/`build`) agrégés par `json_ld(subject)` (`@graph` si plusieurs). Rendu UNIQUEMENT via `partials/_json_ld.html.twig` (nonce) ; `Markup` encodé `SeoExtension::JSON_FLAGS` (HEX_*), jamais de `|raw`. Home = `WebSite` + `SearchAction` (`search_results?q=`), fiches catalogue = `BreadcrumbList`, épice = `Thing` (+ image `spice_hero`). Pas de `Recipe` (recettes privées).
+- `base.html.twig` : blocks `meta_description` (fiches : `getLocalizedDescription(loc)|seo_summary`, 160 car.), `og_image`, `structured_data` ; OG title/description relus depuis les blocks.
+- Pages privées : `#[NoIndex]` (classe ou méthode) → `X-Robots-Tag: noindex, nofollow` via `NoIndexSubscriber`. En dev/test Symfony pose déjà `X-Robots-Tag: noindex` partout (`disallow_search_engine_index`), les tests comparent la directive exacte.
+- Font Awesome = subset versionné `public/lib/fontawesome-subset/` (CSS élaguée + woff2). Toute nouvelle icône (template, JS, PHP, BDD) : `php bin/console app:icons:list` (+ `--env=test --output=var/fontawesome-tokens.test.json`) puis `yarn icons:subset var/fontawesome-tokens.json var/fontawesome-tokens.test.json`. Garde : `FontAwesomeSubsetTest`. Classes FA construites dynamiquement interdites (le scan ne les voit pas).
+- Build prod : `app:icons:list` sur la BDD prod + `yarn icons:subset`, `yarn build`, `php bin/console asset-map:compile`.
 
 ### Accès
 - Site ouvert en anonyme. `IsGranted` par MÉTHODE (pas par classe) sur `EducationController` et `SpicyMatchController`, sinon il prime sur l'`access_control`.
 - Anonyme + clic jeu → pop-in `gate_login_modal` (event `gate-login`).
+- Lab anonyme : composer/finaliser/voir sans compte. Renommer et favori = connectés : 401 JSON en anonyme (route laissée publique dans `access_control` pour éviter le 302), titre non éditable côté invité, clic → pop-in `gate-login` (`context: 'rename'`). `SpicyMatch.user` nullable ; propriété invité = ids en session (`GuestHistoryRegistry`, max 20) lue par `SpicyMatchHistoryVoter`. Favori anonyme → 401 + favori en attente (pas de titre en attente) → pop-in `gate-login` (`context: 'favorite'`). `GuestHistoryClaimSubscriber` (LoginSuccessEvent, login ET inscription) rattache les mélanges, applique les favoris en attente, dispatche `MatchSavedEvent` des scellés. Aucun XP en invité. Purge invités > 7 j dans `app:gdpr:purge`. Nouvelle route history publique = l'ajouter à la regex `access_control`.
+- LiveAction réservée aux connectés : jamais `denyAccessUnlessGranted` (302 /login perd la cible), `redirectToRoute('app_login', ['target' => …])`.
+- Onboarding (anonymes inclus, zéro état serveur) :
+  - État en localStorage `sm_tours = {clé: version}` (`'*'` = tout ignoré via « Je connais déjà »). Lecture/écriture toujours en try/catch. « Revoir les tutos » (profil) purge la clé.
+  - Tour de page = `<twig:Tour:Page name version :steps next transition />` dans le template de la page, hors LiveComponent. Étape = `{target, key, position?, advance?}` ; `target` vise un `data-tour="…"`, textes `ui.onboarding.tours.{name}.{key}.{title,text}`. Bumper `version` réaffiche le tour.
+  - `pageTour` écarte les étapes sans cible visible, marque vu à l'affichage effectif de la 1ʳᵉ étape, se coupe sur `gate-login`/`turbo:before-cache`, attend `account-created-closed`. Étapes conditionnelles (XP, profil) filtrées en Twig.
+  - Welcome modal : incluse dans `base` seulement si `_route == 'home'` (hors `<main>`, sinon `inert` la neutralise).
+  - E2E : `PW_CHANNEL=chrome yarn e2e page-tour` (chromium Playwright local désynchronisé).
 
 ### RGPD / sécurité front
 - Tout `<script>` inline DOIT porter `nonce="{{ csp_nonce('script') }}"`.
 - ALTCHA : widget v3 avec attribut `challenge="<url>"`, sinon ignoré silencieusement. Champ caché `altcha` + contrainte `AltchaSolved`.
 - ModSecurity 403 sur `/vendor/` → assets sous `public/lib/`, jamais `public/vendor/`.
 - Zéro CDN tiers. Seuls tiers CSP : EthicalAds + Carbon.
-- Anonymisation plutôt que hard delete (`UserAnonymizer`). Crons : `app:purge-expired-consents`, `app:gdpr:purge`.
-- ⚠️ Placeholders légaux à compléter avant mise en ligne : `[NOM PRÉNOM]`, `[ADRESSE]`, `[SIREN]`, `[HÉBERGEUR]`, `VOTRE-DOMAINE` (robots.txt).
+- CSP `script-src` : `data:` requis (AssetMapper aliase `live.min.css` en shim `data:application/javascript`), ne pas le retirer. Carbon exige `cdn.carbonads.com` + `srv.carbonads.net`.
+- Anonymisation plutôt que hard delete (`UserAnonymizer`). Cron : `app:gdpr:purge`. Aucune bannière cookies : seuls cookies strictement nécessaires + localStorage fonctionnel (stack consent supprimée, table `cookie_consent` droppée).
+- ⚠️ Placeholders légaux à compléter avant mise en ligne : `[NOM PRÉNOM]`, `[ADRESSE]`, `[SIREN]`, `[HÉBERGEUR]`.
 
 ### Monétisation
 - `Users.premiumUntil` + `isPremium()`. Pubs via `AdsExtension`, `ADS_ENABLED=false` par défaut.
 - Interdits : interstitiel, footer, Étamine, LiveComponents, jeux en cours, formulaires, sticky. AdSense hors whitelist (CMP TCF requise).
+- Zones autorisées : index Académie + résultat, fiche épice, index catalogue (`<twig:Catalog:Grid>` inclut le slot, `ads=false` pour l'omettre), liste historique. Jamais home ni vue recette (garde `AdSlotPlacementTest`).
+- Slot `partials/_ads_banner.html.twig` : zéro `<script>` SSR. Alpine `adSlot` charge le script régie au 1er passage dans le viewport (`rootMargin 200px`) depuis `AD_SCRIPTS` (URL en dur côté JS, jamais depuis un `data-*`). EthicalAds `data-ea-manual` + `ethicalads.load()` ; Carbon = `<script id="_carbonads_js">` enfant du slot, vidé sur `turbo:before-cache`.
 
 ## Design system
 - Source : `assets/styles/app.css`. Tokens : `saffron`, `paprika`, `turmeric`, `cream`, `spice-surface`, `spice-border`.
@@ -164,4 +197,4 @@ MVC Symfony (Controller > Service > Repository > Entity), REST par controllers, 
 - Turbo : `data-turbo="false"` sur les forms d'upload et de suppression de compte.
 
 ## CI connue
-- `lint:twig` : `_macro_rarity.html.twig` en erreur préexistante (macro morte à nettoyer).
+- `lint-twig` (`lint:twig templates --show-deprecations`) fait partie de `composer ci`.

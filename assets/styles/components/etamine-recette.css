@@ -224,24 +224,6 @@
   text-align: center;
 }
 
-/* ---------- Note de l'Alchimiste ---------- */
-.note-slip {
-  background: linear-gradient(180deg, #FBF5E9, #F5ECDB);
-  border: 1px solid rgba(58,38,18,.10);
-  border-left: 4px solid #9A4720;
-  border-radius: 12px;
-  padding: 22px 26px;
-  display: flex; gap: 18px; align-items: flex-start;
-}
-.note-mark {
-  width: 40px; height: 46px;
-  background: linear-gradient(180deg, #3B2A1B, #2A1F14);
-  color: #FBF5E9;
-  clip-path: polygon(25% 4%, 75% 4%, 98% 50%, 75% 96%, 25% 96%, 2% 50%);
-  display: grid; place-items: center;
-  flex: 0 0 auto;
-}
-
 /* ---------- Primary CTA ---------- */
 .btn-primary {
   background: linear-gradient(180deg, #D2773A, #9A4720);
@@ -269,7 +251,7 @@
 @media print {
   body { background: #fff; }
   header, .icon-btn, .fav, .btn-primary { display: none !important; }
-  .card, .moment, .note-slip { box-shadow: none; border-color: rgba(0,0,0,.2); page-break-inside: avoid; }
+  .card, .moment { box-shadow: none; border-color: rgba(0,0,0,.2); page-break-inside: avoid; }
   .etamine-paper { background-image: none; }
   section { page-break-inside: avoid; }
 }
@@ -303,8 +285,6 @@
   .timeline { grid-template-columns: 1fr; gap: 10px; }
   .moment   { min-height: 0; padding: 14px; }
   .moment-empty { padding: 14px 0; }
-
-  .note-slip { padding: 16px 18px; gap: 12px; }
 
   h1.font-display { font-size: 32px !important; line-height: 1.05; }
   .stat-num       { font-size: 22px; }

@@ -40,34 +40,15 @@ final readonly class RecipeViewFactory
             ->toArray();
 
         if (! $this->oavContextEnabled) {
-            return new RecipeView($this->stepsBuilder->build($history, $locale), $this->sharedCompounds($spices), $context);
+            return new RecipeView($this->stepsBuilder->build($history, $locale), $context);
         }
 
         return new RecipeView(
             $this->stepsBuilder->build($history, $locale),
-            $this->sharedCompounds($spices),
             $context,
             $this->matrixGrid($match, $context, $locale),
             $this->timelineBuilder->build($this->mortarCompounds($spices), $context),
         );
-    }
-
-    /**
-     * @param list<Spices> $spices
-     * @return list<AromaticCompound>
-     */
-    private function sharedCompounds(array $spices): array
-    {
-        $shared = null;
-        foreach ($spices as $spice) {
-            $compounds = $spice->getAromaticsCompounds()
-                ->toArray();
-            $shared = $shared === null
-                ? $compounds
-                : array_uintersect($shared, $compounds, static fn (AromaticCompound $a, AromaticCompound $b): int => $a->getId() <=> $b->getId());
-        }
-
-        return array_values($shared ?? []);
     }
 
     /**

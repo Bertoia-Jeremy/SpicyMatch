@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\ValueObject\Recipe;
 
-use App\Entity\AromaticCompound;
 use App\Enum\CookingMoment;
 use App\Service\Match\TimelineEntry;
 use App\ValueObject\Match\CulinaryContext;
@@ -20,13 +19,11 @@ final readonly class RecipeView
 
     /**
      * @param list<RecipeSpiceStep> $steps
-     * @param list<AromaticCompound> $sharedCompounds
      * @param list<array{id: int, name: string, scores: array<string, int>}> $matrixGrid
      * @param array{head: list<TimelineEntry>, heart: list<TimelineEntry>, base: list<TimelineEntry>, unknown: list<TimelineEntry>} $cookingTimeline
      */
     public function __construct(
         public array $steps,
-        public array $sharedCompounds,
         public CulinaryContext $culinaryContext,
         public array $matrixGrid = [],
         public array $cookingTimeline = self::EMPTY_TIMELINE,

@@ -93,7 +93,7 @@ final class RecipeStepsBuilderTest extends TestCase
         $this->withCooking($history, $b, 11, CookingMoment::START);
         $this->withCooking($history, $c, 12, CookingMoment::FINISH);
 
-        $view = new RecipeView($this->builder()->build($history, 'fr'), [], new CulinaryContext());
+        $view = new RecipeView($this->builder()->build($history, 'fr'), new CulinaryContext());
 
         self::assertSame([CookingMoment::START, CookingMoment::FINISH], $view->usedMoments());
         self::assertSame(

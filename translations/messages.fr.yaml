@@ -340,6 +340,8 @@ ui:
         achievements_stat: succès
         record_label: 'Record : %score%'
         record_none: À débloquer
+        new_record: 'Nouveau record !'
+        record_result: 'Ton record : %score% XP'
         daily_challenge: Défi du jour
         daily_bonus_pill: XP ×2
         daily_bonus_applied: Bonus du jour — XP ×2
@@ -856,6 +858,9 @@ ui:
         note_of: 'Note de %flavors%'
         spice_thread: Le Fil des Épices
         spice_thread_text: Chaque épice ouvre la porte d'une autre.
+        pairs_with: 'Se marie avec'
+        pairs_with_text: 'Les épices qui s''accordent le mieux avec %name%.'
+        compose_with: 'Composer un mélange avec %name%'
         compounds_title: Composés aromatiques
         compounds_page_title: SpicyMatch — Composés aromatiques
         compounds_tag: Science

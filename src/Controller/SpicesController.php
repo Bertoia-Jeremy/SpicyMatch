@@ -6,28 +6,28 @@ namespace App\Controller;
 
 use App\Controller\Concern\CanonicalSlugTrait;
 use App\Entity\Spices;
-use App\Entity\Users;
-use App\Message\SpiceReadEvent;
 use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpiceDuoRepository;
 use App\Repository\SpicesRepository;
-use App\Repository\SpiceViewRepository;
 use App\Repository\SpicyTypeRepository;
 use App\Routing\CatalogPath;
+use App\Service\Education\AcademyManager;
 use App\Service\Match\SpiceDuoMapBuilder;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 #[Route(CatalogPath::SPICES)]
 class SpicesController extends AbstractController
 {
     use CanonicalSlugTrait;
+
+    private const int RAIL_SIZE = 4;
+
+    private const int COMPATIBLE_POOL = 8;
 
     public function __construct(
         private SpicesRepository $spicesRepository,
@@ -85,12 +85,9 @@ class SpicesController extends AbstractController
     public function view(
         string $slug,
         Request $request,
-        SpiceViewRepository $spiceViewRepository,
-        MessageBusInterface $bus,
         SpiceDuoRepository $spiceDuoRepository,
         SpiceDuoMapBuilder $duoMapBuilder,
-        #[CurrentUser]
-        ?Users $user = null,
+        AcademyManager $academyManager,
     ): Response {
         $locale = $request->getLocale();
         $spice = $this->spicesRepository->findOneByLocalizedSlug($slug, $locale);
@@ -107,17 +104,18 @@ class SpicesController extends AbstractController
             return $redirect;
         }
 
-        if ($user instanceof Users) {
-            $isNew = $spiceViewRepository->recordView($user, $spice);
-            $bus->dispatch(new SpiceReadEvent($user->getId(), $spice->getId(), $isNew));
-        }
+        $spiceId = (int) $spice->getId();
+        $duoRows = $spiceDuoRepository->findBySpiceIds([$spiceId], $locale);
 
-        $duoRows = $spiceDuoRepository->findBySpiceIds([(int) $spice->getId()], $locale);
+        $compatibleIds = array_column(array_slice($academyManager->findCompatibleSpices($spice), 0, self::COMPATIBLE_POOL), 'id');
+        $compatibleSpices = array_slice($this->spicesRepository->findActiveByIdsInOrder($compatibleIds), 0, self::RAIL_SIZE);
+        $compatibleSpiceIds = array_map(static fn (Spices $s): int => (int) $s->getId(), $compatibleSpices);
 
         return $this->render('spices/view.html.twig', [
             'spice' => $spice,
             'duosByCook' => $duoMapBuilder->tooltips($duoRows)['byCook'],
-            'relatedSpices' => $this->spicesRepository->findRelated($spice, 4),
+            'compatibleSpices' => $compatibleSpices,
+            'relatedSpices' => $this->spicesRepository->findRelated($spice, self::RAIL_SIZE, $compatibleSpiceIds),
             'hreflang_slugs' => [
                 'fr' => $spice->getLocalizedSlug('fr'),
                 'en' => $spice->getLocalizedSlug('en'),

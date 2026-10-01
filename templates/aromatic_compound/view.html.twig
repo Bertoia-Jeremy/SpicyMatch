@@ -8,6 +8,7 @@
 
 {% block body %}
 {% set loc = app.request.locale %}
+{{ include('partials/_content_read.html.twig', {kind: 'compound', id: aromaticCompound.id}) }}
 {% include 'components/_spice_modal.html.twig' %}
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

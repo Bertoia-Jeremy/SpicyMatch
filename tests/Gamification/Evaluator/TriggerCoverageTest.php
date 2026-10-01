@@ -29,7 +29,7 @@ final class TriggerCoverageTest extends KernelTestCase
         $registry = self::getContainer()->get(TriggerEvaluatorRegistry::class);
 
         $reachable = [];
-        foreach (['match_saved', 'spice_read', 'favorite_toggled', 'easter_egg_found', 'game_completed'] as $event) {
+        foreach (['match_saved', 'spice_read', 'favorite_toggled', 'easter_egg_found', 'game_completed', 'content_read'] as $event) {
             foreach ($registry->forEvent($event) as $evaluator) {
                 $reachable[$evaluator->trigger()->value] = true;
             }

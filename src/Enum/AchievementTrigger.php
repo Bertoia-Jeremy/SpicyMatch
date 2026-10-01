@@ -22,4 +22,5 @@ enum AchievementTrigger: string
     case GROUP_MASTERY_READ = 'group_mastery_read';
     case ALL_PREPARATION_METHODS_READ = 'all_preparation_methods_read';
     case FIRST_MANUAL_MATCH = 'first_manual_match';
+    case ALL_CONTENT_KINDS_READ = 'all_content_kinds_read';
 }

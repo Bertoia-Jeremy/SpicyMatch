@@ -129,6 +129,11 @@
           </p>
         {% endif %}
       </div>
+      {% if loop.index == 3 and not loop.last and ads_enabled() %}
+        <div class="poster-grid-ad">
+          {% include 'partials/_ads_banner.html.twig' %}
+        </div>
+      {% endif %}
     {% endfor %}
   </div>
 
@@ -164,10 +169,6 @@
       </div>
     </div>
   {% endif %}
-
-  <div class="mt-12">
-    {% include 'partials/_ads_banner.html.twig' %}
-  </div>
 </div>
 
 {% set tourSteps = [{target: 'game-grid', key: 'games', advance: true}] %}

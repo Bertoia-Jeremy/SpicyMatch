@@ -9,6 +9,7 @@ use App\Entity\Spices;
 use App\Entity\UserProgression;
 use App\Entity\Users;
 use App\Entity\UserStat;
+use App\Enum\ContentKind;
 use App\Gamification\GamificationManagerInterface;
 use App\Message\SpiceReadEvent;
 use App\MessageHandler\SpiceReadGamificationHandler;
@@ -124,6 +125,7 @@ final class SpiceReadGamificationHandlerTest extends TestCase
         ($this->handler)(new SpiceReadEvent(1, 42, true));
 
         self::assertSame(1, $progression->getTotalSpicesRead());
+        self::assertTrue($stats->hasReadContentKind(ContentKind::SPICE));
     }
 
     public function testInvokeDoesNotIncrementSpicesReadWhenNotNewView(): void

@@ -54,6 +54,16 @@ class AchievementFixtures extends Fixture implements FixtureGroupInterface
                 'rarity' => AchievementRarity::COMMON,
             ],
             [
+                'slug' => 'curious_mind',
+                'name' => 'Esprit Curieux',
+                'description' => 'Prenez le temps de lire une épice, un composé et une saveur.',
+                'icon' => 'fa-solid fa-lightbulb',
+                'trigger' => AchievementTrigger::ALL_CONTENT_KINDS_READ,
+                'triggerValue' => 3,
+                'xpReward' => 15,
+                'rarity' => AchievementRarity::COMMON,
+            ],
+            [
                 'slug' => 'first_manual_match',
                 'name' => 'Main du Chef',
                 'description' => 'Composez votre premier mélange à la main, sans suggestion.',

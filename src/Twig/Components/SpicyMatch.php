@@ -129,8 +129,12 @@ class SpicyMatch extends AbstractController
         ];
     }
 
-    public function mount(): void
+    public function mount(?int $initialSpiceId = null): void
     {
+        if ($initialSpiceId !== null && ! in_array($initialSpiceId, $this->excludedSpiceIds(), true)) {
+            $this->spices['selectedSpices'] = [(string) $initialSpiceId];
+        }
+
         $user = $this->getUser();
         if (! $user instanceof Users) {
             return;

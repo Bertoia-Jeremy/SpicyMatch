@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
+use App\Enum\ContentKind;
 use App\Gamification\GamificationManagerInterface;
 use App\Message\SpiceReadEvent;
 use App\Repository\ProcessedGamificationEventRepository;
@@ -60,7 +61,12 @@ class SpiceReadGamificationHandler
             $progression->setTotalSpicesRead($this->spiceViewRepository->countByUser($user));
 
             $stats = $this->manager->getOrCreateStats($user);
+            if ($stats->getId() !== null) {
+                $this->em->refresh($stats);
+            }
+
             $stats->recordVisitedSpice($event->spiceId);
+            $stats->recordReadContentKind(ContentKind::SPICE);
 
             $spice = $this->spicesRepository->find($event->spiceId);
             if ($spice && ($group = $spice->getAromaticGroups()) && $group->getId()) {

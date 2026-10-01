@@ -331,6 +331,8 @@ ui:
         achievements_stat: achievements
         record_label: 'Record: %score%'
         record_none: To unlock
+        new_record: 'New record!'
+        record_result: 'Your record: %score% XP'
         daily_challenge: Daily challenge
         daily_bonus_pill: XP ×2
         daily_bonus_applied: Daily bonus — XP ×2
@@ -847,6 +849,9 @@ ui:
         note_of: 'Note of %flavors%'
         spice_thread: The Spice Thread
         spice_thread_text: Every spice opens the door to another.
+        pairs_with: 'Pairs with'
+        pairs_with_text: 'The spices that best complement %name%.'
+        compose_with: 'Create a blend with %name%'
         compounds_title: Aromatic compounds
         compounds_page_title: SpicyMatch — Aromatic compounds
         compounds_tag: Science

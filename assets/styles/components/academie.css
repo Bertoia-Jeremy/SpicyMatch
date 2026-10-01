@@ -6,7 +6,11 @@
 .poster-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  grid-auto-flow: row dense;
   gap: 36px;
+}
+.poster-grid-ad {
+  grid-column: 1 / -1;
 }
 .poster {
   position: relative;

@@ -331,6 +331,8 @@ ui:
         achievements_stat: logros
         record_label: 'Récord: %score%'
         record_none: Por desbloquear
+        new_record: '¡Nuevo récord!'
+        record_result: 'Tu récord: %score% XP'
         daily_challenge: Desafío del día
         daily_bonus_pill: XP ×2
         daily_bonus_applied: Bonus del día — XP ×2
@@ -847,6 +849,9 @@ ui:
         note_of: 'Nota de %flavors%'
         spice_thread: El Hilo de las Especias
         spice_thread_text: Cada especia abre la puerta a otra.
+        pairs_with: 'Combina con'
+        pairs_with_text: 'Las especias que mejor combinan con %name%.'
+        compose_with: 'Crear una mezcla con %name%'
         compounds_title: Compuestos aromáticos
         compounds_page_title: SpicyMatch — Compuestos aromáticos
         compounds_tag: Ciencia

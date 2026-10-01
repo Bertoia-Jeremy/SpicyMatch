@@ -102,6 +102,30 @@ class GameSessionRepository extends ServiceEntityRepository
         return $result;
     }
 
+    public function findBestScoreBefore(GameSession $session): ?int
+    {
+        $finishedAt = $session->getFinishedAt();
+        if (! $finishedAt instanceof \DateTimeImmutable) {
+            return null;
+        }
+
+        $best = $this->createQueryBuilder('gs')
+            ->select('MAX(gs.score)')
+            ->where('gs.user = :user')
+            ->andWhere('gs.gameMode = :mode')
+            ->andWhere('gs.finishedAt IS NOT NULL')
+            ->andWhere('gs.finishedAt < :finishedAt')
+            ->andWhere('gs.id != :id')
+            ->setParameter('user', $session->getUser())
+            ->setParameter('mode', $session->getGameMode()->value)
+            ->setParameter('finishedAt', $finishedAt)
+            ->setParameter('id', $session->getId())
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return $best === null ? null : (int) $best;
+    }
+
     /**
      * @return list<float>
      */

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\ContentKind;
 use App\Repository\UserStatRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -43,6 +44,14 @@ class UserStat
         'default' => '[]',
     ])]
     private array $foundEggSlugs = [];
+
+    /**
+     * @var list<string>|null
+     */
+    #[ORM\Column(type: 'json', nullable: true, options: [
+        'default' => '[]',
+    ])]
+    private ?array $readContentKinds = [];
 
     public int $totalActions {
         get {
@@ -142,5 +151,24 @@ class UserStat
         }
 
         return $this;
+    }
+
+    public function hasReadContentKind(ContentKind $kind): bool
+    {
+        return \in_array($kind->value, $this->readContentKinds ?? [], true);
+    }
+
+    public function recordReadContentKind(ContentKind $kind): static
+    {
+        if (! $this->hasReadContentKind($kind)) {
+            $this->readContentKinds = [...$this->readContentKinds ?? [], $kind->value];
+        }
+
+        return $this;
+    }
+
+    public function countReadContentKinds(): int
+    {
+        return \count(array_filter(ContentKind::cases(), $this->hasReadContentKind(...)));
     }
 }

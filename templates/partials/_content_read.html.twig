@@ -1,0 +1,7 @@
+{% set _readTicket = content_read_ticket(kind, id) %}
+{% if _readTicket %}
+    <div hidden x-data="contentRead"
+         data-read-url="{{ path('api_gamification_content_read', {kind: kind, id: id}) }}"
+         data-read-ticket="{{ _readTicket }}"
+         data-read-delay="{{ constant('App\\Gamification\\ContentReadTicket::MIN_READ_SECONDS') }}"></div>
+{% endif %}

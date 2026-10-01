@@ -27,6 +27,8 @@
 {% set color = spice.aromaticGroups ? spice.aromaticGroups.color : '#C2410C' %}
 {% set colorAttr = color|e('html_attr') %}
 
+{{ include('partials/_content_read.html.twig', {kind: 'spice', id: spice.id}) }}
+
 {% set pileConfig = [
     {cx: 50, cy: 48, size: 46},
     {cx: 27, cy: 32, size: 28},
@@ -406,7 +408,32 @@
     </section>
     {% endif %}
 
-    {% if relatedSpices is defined and relatedSpices is not empty %}
+    {% if compatibleSpices is not empty %}
+    <section class="reveal is-in mt-4 pt-10 mb-8" style="border-top: 1px dashed rgba(184,134,74,0.3)" data-rail="compatible">
+        <p class="text-center font-mono text-[11px] uppercase tracking-widest mb-1.5"
+           style="color: rgba(42,24,16,0.4)">
+            — {{ 'ui.catalog.pairs_with'|trans }} —
+        </p>
+        <p class="text-center font-display italic text-xl mb-8 max-w-md mx-auto"
+           style="color: rgba(42,24,16,0.4); text-wrap: balance">
+            {{ 'ui.catalog.pairs_with_text'|trans({'%name%': spice.getLocalizedName(loc)}) }}
+        </p>
+        <div class="fil-grid">
+            {% for related in compatibleSpices %}
+                {{ include('spices/_rail_card.html.twig', {related: related, loc: loc}) }}
+            {% endfor %}
+        </div>
+        <div class="mt-8 flex justify-center">
+            <twig:Button
+                label="{{ 'ui.catalog.compose_with'|trans({'%name%': spice.getLocalizedName(loc)}) }}"
+                variant="primary"
+                icon="fa-solid fa-flask"
+                href="{{ path('index_spicy_match', {spice: spice.getLocalizedSlug(loc)}) }}" />
+        </div>
+    </section>
+    {% endif %}
+
+    {% if relatedSpices is not empty %}
     <section class="reveal is-in mt-4 pt-10 mb-8" style="border-top: 1px dashed rgba(184,134,74,0.3)">
         <p class="text-center font-mono text-[11px] uppercase tracking-widest mb-1.5"
            style="color: rgba(42,24,16,0.4)">
@@ -418,36 +445,7 @@
         </p>
         <div class="fil-grid">
             {% for related in relatedSpices %}
-                {% set relColor = related.aromaticGroups ? related.aromaticGroups.color : '#888' %}
-                {% set relImg = vich_uploader_asset(related, 'imageFile') %}
-                <a href="{{ path('view_spice', {slug: related.getLocalizedSlug(loc)}) }}" class="fil-card group">
-                    <div class="fc-img" style="background: {{ relColor }}20">
-                        <span class="absolute top-2.5 left-2.5 z-10 inline-flex items-center gap-1.5
-                                     rounded-full px-2 py-1
-                                     text-[9.5px] font-semibold uppercase tracking-wide"
-                              style="background: rgba(241,231,206,0.9); backdrop-filter: blur(4px);
-                                     color: rgba(42,24,16,0.6)">
-                            <span class="size-1.5 rounded-full" style="background: {{ relColor }}"></span>
-                            {{ related.aromaticGroups ? related.aromaticGroups.getLocalizedName(loc) : 'ui.catalog.spice_fallback'|trans }}
-                        </span>
-                        {% if relImg %}
-                            <img src="{{ relImg|imagine_filter('spice_card') }}"
-                                 srcset="{{ relImg|imagine_filter('spice_card') }} 1x, {{ relImg|imagine_filter('spice_card_2x') }} 2x"
-                                 alt="{{ related.getLocalizedName(loc) }}"
-                                 loading="lazy" decoding="async" width="400" height="400"
-                                 class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-                        {% else %}
-                            <div class="absolute inset-0 flex items-center justify-center"
-                                 style="color: rgba(42,24,16,0.2)">
-                                <i class="fa-solid fa-seedling text-4xl" aria-hidden="true"></i>
-                            </div>
-                        {% endif %}
-                    </div>
-                    <h3 class="font-display text-xl font-medium leading-tight mb-1" style="color: var(--color-ink-deep)">{{ related.getLocalizedName(loc) }}</h3>
-                    {% if related.spicyType %}
-                        <p class="font-display italic text-sm" style="color: {{ relColor }}">{{ related.spicyType.name }}</p>
-                    {% endif %}
-                </a>
+                {{ include('spices/_rail_card.html.twig', {related: related, loc: loc}) }}
             {% endfor %}
         </div>
     </section>
@@ -457,7 +455,7 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script>
+    <script nonce="{{ csp_nonce('script') }}">
         (function () {
             function initReveal() {
                 var els = document.querySelectorAll('.reveal');

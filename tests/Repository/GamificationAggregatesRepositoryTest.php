@@ -101,6 +101,24 @@ final class GamificationAggregatesRepositoryTest extends KernelTestCase
         self::assertSame(50, $repo->sumFinishedScoreGroupedByUser()[(int) $user->getId()] ?? null);
     }
 
+    public function testBestScoreBeforeOnlyCountsEarlierFinishedSessionsOfSameMode(): void
+    {
+        $user = $this->createUser();
+
+        $this->persistSession($user, 40, true, finishedAt: '-3 hours');
+        $this->persistSession($user, 90, true, finishedAt: '-3 hours', mode: GameMode::CHRONO);
+        $this->persistSession($user, 99, false);
+        $first = $this->persistSession($user, 30, true, finishedAt: '-4 hours');
+        $target = $this->persistSession($user, 55, true, finishedAt: '-2 hours');
+        $this->persistSession($user, 70, true, finishedAt: '-1 hour');
+        $this->em->flush();
+
+        $repo = self::getContainer()->get(GameSessionRepository::class);
+
+        self::assertSame(40, $repo->findBestScoreBefore($target));
+        self::assertNull($repo->findBestScoreBefore($first));
+    }
+
     public function testBadgeXpSumIsKeyedByProgression(): void
     {
         $user = $this->createUser();
@@ -168,11 +186,16 @@ final class GamificationAggregatesRepositoryTest extends KernelTestCase
         $this->em->persist($history);
     }
 
-    private function persistSession(Users $user, int $score, bool $finished): void
-    {
+    private function persistSession(
+        Users $user,
+        int $score,
+        bool $finished,
+        ?string $finishedAt = null,
+        GameMode $mode = GameMode::QCM,
+    ): GameSession {
         $session = new GameSession();
         $session->setUser($user)
-            ->setGameMode(GameMode::QCM)
+            ->setGameMode($mode)
             ->setDifficulty(GameDifficulty::EASY)
             ->setTotalQuestions(10)
             ->setScore($score);
@@ -181,6 +204,12 @@ final class GamificationAggregatesRepositoryTest extends KernelTestCase
             $session->finish();
         }
 
+        if ($finishedAt !== null) {
+            new \ReflectionProperty(GameSession::class, 'finishedAt')->setValue($session, new \DateTimeImmutable($finishedAt));
+        }
+
         $this->em->persist($session);
+
+        return $session;
     }
 }

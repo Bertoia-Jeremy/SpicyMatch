@@ -1138,6 +1138,59 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
+    Alpine.data('contentRead', () => ({
+        remaining: 5000,
+        startedAt: null,
+        timer: null,
+        sent: false,
+
+        init() {
+            const { readUrl, readTicket, readDelay } = this.$root.dataset;
+            if (!readUrl || !readTicket) return;
+            this.remaining = Number(readDelay) * 1000 || this.remaining;
+            this._onVisibility = () => (document.hidden ? this.pause() : this.resume());
+            this._onBeforeCache = () => this.pause();
+            document.addEventListener('visibilitychange', this._onVisibility);
+            document.addEventListener('turbo:before-cache', this._onBeforeCache);
+            if (!document.hidden) this.resume();
+        },
+
+        resume() {
+            if (this.sent || this.timer !== null) return;
+            this.startedAt = Date.now();
+            this.timer = setTimeout(() => this.send(), this.remaining);
+        },
+
+        pause() {
+            if (this.timer === null) return;
+            clearTimeout(this.timer);
+            this.timer = null;
+            this.remaining = Math.max(0, this.remaining - (Date.now() - this.startedAt));
+        },
+
+        async send() {
+            this.timer = null;
+            this.sent = true;
+            const { readUrl, readTicket } = this.$root.dataset;
+            try {
+                const response = await fetch(readUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({ ticket: readTicket }),
+                });
+                if (!response.ok) this.sent = false;
+            } catch {
+                this.sent = false;
+            }
+        },
+
+        destroy() {
+            if (this.timer !== null) clearTimeout(this.timer);
+            if (this._onVisibility) document.removeEventListener('visibilitychange', this._onVisibility);
+            if (this._onBeforeCache) document.removeEventListener('turbo:before-cache', this._onBeforeCache);
+        },
+    }));
+
     Alpine.data('onboardingWelcome', () => ({
         visible: false,
         previouslyFocused: null,

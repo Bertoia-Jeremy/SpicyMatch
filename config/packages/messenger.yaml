@@ -22,6 +22,7 @@ framework:
             App\Message\MatchSavedEvent: async
             App\Message\FavoriteToggledEvent: async
             App\Message\SpiceReadEvent: async
+            App\Message\ContentReadEvent: async
             App\Message\GameCompletedEvent: async
             App\Message\EasterEggFoundEvent: async
             App\Message\RecomputeOavTableMessage: async

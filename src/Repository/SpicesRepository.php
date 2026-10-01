@@ -544,9 +544,10 @@ class SpicesRepository extends ServiceEntityRepository implements SitemapSourceI
     }
 
     /**
+     * @param list<int> $excludeIds
      * @return list<Spices>
      */
-    public function findRelated(Spices $spice, int $limit = 4): array
+    public function findRelated(Spices $spice, int $limit = 4, array $excludeIds = []): array
     {
         $group = $spice->getAromaticGroups();
         if (! $group instanceof AromaticGroups) {
@@ -555,12 +556,38 @@ class SpicesRepository extends ServiceEntityRepository implements SitemapSourceI
 
         return $this->createQueryBuilder('s')
             ->where('s.aromaticGroups = :group')
-            ->andWhere('s.id != :id')
+            ->andWhere('s.id NOT IN (:exclude)')
+            ->andWhere('s.deleted_at IS NULL')
             ->setParameter('group', $group)
-            ->setParameter('id', $spice->getId())
+            ->setParameter('exclude', [$spice->getId(), ...$excludeIds])
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @param list<int> $ids
+     * @return list<Spices>
+     */
+    public function findActiveByIdsInOrder(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $byId = [];
+        foreach ($this->createQueryBuilder('s')
+            ->leftJoin('s.aromaticGroups', 'ag')
+            ->addSelect('ag')
+            ->where('s.id IN (:ids)')
+            ->andWhere('s.deleted_at IS NULL')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getResult() as $spice) {
+            $byId[$spice->getId()] = $spice;
+        }
+
+        return array_values(array_filter(array_map(static fn (int $id): ?Spices => $byId[$id] ?? null, $ids)));
     }
 
     /**

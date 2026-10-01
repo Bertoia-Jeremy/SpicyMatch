@@ -73,6 +73,20 @@
       {% endif %}
     </div>
 
+    {% if gamif and session.isFinished %}
+      <p class="mb-6 text-sm" data-record>
+        {% if isNewRecord %}
+          <span class="inline-flex items-center gap-2 rounded-full bg-saffron-100 px-4 py-1.5 font-semibold text-saffron-700">
+            <i class="fa-solid fa-trophy" aria-hidden="true"></i>{{ 'ui.edu.new_record'|trans }}
+          </span>
+        {% elseif personalBest is not null %}
+          <span class="text-stone-600">
+            <i class="fa-solid fa-trophy mr-1 text-turmeric-600" aria-hidden="true"></i>{{ 'ui.edu.record_result'|trans({'%score%': personalBest}) }}
+          </span>
+        {% endif %}
+      </p>
+    {% endif %}
+
     <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 justify-center">
       {% if not canReplay or not gamif %}
         <twig:Button

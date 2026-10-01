@@ -343,9 +343,13 @@ class EducationController extends AbstractController
         }
 
         $todayCount = $this->sessionManager->countTodaySessions($user, $session->getGameMode());
+        $previousBest = $this->sessionRepository->findBestScoreBefore($session);
+        $bestScores = $this->sessionRepository->findBestScoreByUserGrouped($user);
 
         return $this->render('education/result.html.twig', [
             'session' => $session,
+            'isNewRecord' => $session->isFinished && $session->getScore() > ($previousBest ?? 0),
+            'personalBest' => $bestScores[$session->getGameMode()->value] ?? null,
             'canReplay' => $todayCount < $this->sessionManager->maxDailySessions($user),
             'skillAssessment' => $this->difficultyAdvisor->adviseFor($session),
         ]);

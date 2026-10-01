@@ -88,6 +88,9 @@ MVC Symfony (Controller > Service > Repository > Entity), REST par controllers, 
 - `GamificationNotificationSubscriber` : gardes bon marché avant la requête, `MAX_PER_RESPONSE=20`. Index `idx_pgn_user_delivered` obligatoire.
 - Easter eggs : aucun déclencheur front (`api_gamification_egg` jamais appelé). Câbler ou retirer.
 - Avatar = badge équipé (`_avatar.html.twig`).
+- Lecture de contenu (épice, composé, saveur) comptée UNIQUEMENT via `POST /api/gamification/read/{kind}/{id}` (`ContentKind`) : ticket HMAC `ContentReadTicket` (kind + user + id + issuedAt, ≥ `MIN_READ_SECONDS`=5, ≤ 24 h) émis par `content_read_ticket()` dans `partials/_content_read.html.twig`, envoyé par Alpine `contentRead` après 5 s visibles. Épice → `recordView` + `SpiceReadEvent` ; composé/saveur → `ContentReadEvent` (badge-only, zéro XP, idempotent via `UserStat.readContentKinds`). Jamais d'enregistrement au rendu d'une fiche.
+- Badge `curious_mind` (trigger `ALL_CONTENT_KINDS_READ`) = un de chaque `ContentKind`. Nouveau type de contenu suivi = case `ContentKind` + include du partial + entité dans `ContentReadController`.
+- Handlers qui écrivent `UserStat` : `em->refresh($stats)` APRÈS `lockForUpdate` (stats chargées avant le lock sinon lost update).
 - Série = activité (tout event XP) : `recordActivityStreak()` dans `GamificationManager::process()` sous lock, avant les achievements. Colonnes BDD `*_reading_streak`/`last_read_date` conservées (seules les propriétés PHP renommées).
 - Renommage d'une valeur d'enum persistée (`AchievementTrigger`…) : script `docs/sql/` appliqué AVANT le code, sinon hydratation → 500.
 - `AROMATIC_GROUPS_VISITED` : atteint si `visités >= min(max(1, triggerValue), total groupes)`.
@@ -109,6 +112,7 @@ MVC Symfony (Controller > Service > Repository > Entity), REST par controllers, 
 - Survie : `compatibleCount` jamais dérivé d'un ratio × `optionCount`.
 - Difficulté : jamais de changement automatique de `preferredDifficulty`, suggestion seulement (`SkillAssessor`).
 - Sessions sans accuracy (`tracksAccuracy()` false, cas SURVIVAL) exclues des stats de précision.
+- Record perso (page résultat) : `GameSessionRepository::findBestScoreBefore()` (sessions terminées avant celle-ci, même mode). Affiché seulement si gamif on.
 
 ### Duos / Lab
 - Composition : `SpicyMatchService::MIN_SPICES = 2` (serveur + boutons désactivés). `MortarIds::MIN_COUNT = 1` reste pour `/api/match`.
@@ -120,6 +124,8 @@ MVC Symfony (Controller > Service > Repository > Entity), REST par controllers, 
 - XP au scellement : `sealed_at` + `markSealedIfComplete()`. `MatchSavedEvent` est dispatché dans la transaction. Les compteurs filtrent `sealedAt IS NOT NULL`.
 - Propriété : `#[IsGranted(SpicyMatchHistoryVoter::OWNER, 'spicyMatchHistory')]`.
 - Twig autoescape seul, jamais `|raw` sur un texte de duo.
+- Préremplissage Lab : `?spice=<slug localisé>` → `SpicyMatch::mount(initialSpiceId)` (ignoré si supprimée ou exclue par l'user).
+- Fiche épice : rail « Se marie avec » (top `AcademyManager::findCompatibleSpices`, actives via `findActiveByIdsInOrder`, 4) + CTA Lab, puis rail famille hors compatibles. Carte commune `spices/_rail_card.html.twig`.
 
 ### Recette finalisée (`view_spicy_match_history`)
 - Source unique : `RecipeViewFactory::build()` → `RecipeView` (steps, moments, familles, OAV). Controller = voter + redirect non scellé + render. Jointure prep↔cooking↔duo dans `RecipeStepsBuilder`, jamais en Twig. Duo indexé par paire `prepId|cookId`.
@@ -174,7 +180,7 @@ MVC Symfony (Controller > Service > Repository > Entity), REST par controllers, 
 ### Monétisation
 - `Users.premiumUntil` + `isPremium()`. Pubs via `AdsExtension`, `ADS_ENABLED=false` par défaut.
 - Interdits : interstitiel, footer, Étamine, LiveComponents, jeux en cours, formulaires, sticky. AdSense hors whitelist (CMP TCF requise).
-- Zones autorisées : index Académie + résultat, fiche épice, index catalogue (`<twig:Catalog:Grid>` inclut le slot, `ads=false` pour l'omettre), liste historique. Jamais home ni vue recette (garde `AdSlotPlacementTest`).
+- Zones autorisées : index Académie (slot `.poster-grid-ad` pleine largeur entre 3ᵉ et 4ᵉ jeu) + résultat, fiche épice, index catalogue (`<twig:Catalog:Grid>` inclut le slot, `ads=false` pour l'omettre), liste historique. Jamais home ni vue recette (garde `AdSlotPlacementTest`).
 - Slot `partials/_ads_banner.html.twig` : zéro `<script>` SSR. Alpine `adSlot` charge le script régie au 1er passage dans le viewport (`rootMargin 200px`) depuis `AD_SCRIPTS` (URL en dur côté JS, jamais depuis un `data-*`). EthicalAds `data-ea-manual` + `ethicalads.load()` ; Carbon = `<script id="_carbonads_js">` enfant du slot, vidé sur `turbo:before-cache`.
 
 ## Design system

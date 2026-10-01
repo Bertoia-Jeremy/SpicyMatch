@@ -91,7 +91,18 @@ final class LocaleSubscriberTest extends TestCase
         $this->dispatch($request, user: null);
 
         self::assertSame('es', $request->getLocale());
-        self::assertSame('es', $request->getSession()->get('_locale'));
+        self::assertFalse($request->getSession()->has('_locale'));
+    }
+
+    public function testFirstVisitWithoutSessionCookieNeverStartsTheSession(): void
+    {
+        $request = $this->requestWithSession(previousSession: false);
+        $request->attributes->set('_locale', 'en');
+
+        $this->dispatch($request, user: null);
+
+        self::assertSame('en', $request->getLocale());
+        self::assertFalse($request->getSession()->isStarted());
     }
 
     public function testFallsBackToDefaultLocaleWhenNoSignal(): void
@@ -128,10 +139,14 @@ final class LocaleSubscriberTest extends TestCase
     /**
      * @param array<string, string> $server
      */
-    private function requestWithSession(array $server = []): Request
+    private function requestWithSession(array $server = [], bool $previousSession = true): Request
     {
         $request = new Request(server: $server);
-        $request->setSession(new Session(new MockArraySessionStorage()));
+        $session = new Session(new MockArraySessionStorage());
+        $request->setSession($session);
+        if ($previousSession) {
+            $request->cookies->set($session->getName(), 'test-session');
+        }
 
         return $request;
     }

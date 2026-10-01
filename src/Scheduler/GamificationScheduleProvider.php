@@ -24,7 +24,6 @@ final readonly class GamificationScheduleProvider implements ScheduleProviderInt
         return new Schedule()
             ->with(
                 RecurringMessage::cron('0 3 * * *', new RunCommandMessage('app:gamification:cleanup')),
-                RecurringMessage::cron('0 4 * * *', new RunCommandMessage('app:purge-expired-consents')),
                 RecurringMessage::cron('30 4 * * *', new RunCommandMessage('app:gdpr:purge')),
             )
             ->stateful($this->cache)

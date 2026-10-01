@@ -46,7 +46,7 @@ final readonly class LocaleSubscriber implements EventSubscriberInterface
         $routeLocale = $request->attributes->get('_locale');
         if (is_string($routeLocale) && $this->isSupported($routeLocale)) {
             $request->setLocale($routeLocale);
-            if ($hasSession) {
+            if ($hasSession && $request->hasPreviousSession()) {
                 $request->getSession()
                     ->set('_locale', $routeLocale);
             }
@@ -61,7 +61,7 @@ final readonly class LocaleSubscriber implements EventSubscriberInterface
             return;
         }
 
-        if ($hasSession) {
+        if ($hasSession && $request->hasPreviousSession()) {
             $sessionLocale = $request->getSession()
                 ->get('_locale');
             if (is_string($sessionLocale) && $this->isSupported($sessionLocale)) {
@@ -71,12 +71,7 @@ final readonly class LocaleSubscriber implements EventSubscriberInterface
             }
         }
 
-        $preferred = $request->getPreferredLanguage(self::SUPPORTED_LOCALES) ?? $this->defaultLocale;
-        $request->setLocale($preferred);
-        if ($hasSession) {
-            $request->getSession()
-                ->set('_locale', $preferred);
-        }
+        $request->setLocale($request->getPreferredLanguage(self::SUPPORTED_LOCALES) ?? $this->defaultLocale);
     }
 
     public function onKernelException(ExceptionEvent $event): void

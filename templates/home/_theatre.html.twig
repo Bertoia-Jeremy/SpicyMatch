@@ -29,7 +29,11 @@
                                 {% if mode == dailyFeaturedMode %}<span class="poster-ribbon">{{ 'ui.edu.daily_challenge'|trans }}</span>{% endif %}
                                 <div class="poster-top">
                                     <div class="poster-num">{{ 'ui.edu.lesson'|trans({'%numeral%': ['I', 'II', 'III', 'IV', 'V', 'VI'][loop.index0]}) }}</div>
-                                    <div class="poster-ornament" aria-hidden="true">✦</div>
+                                    {% if mode == dailyFeaturedMode and dailyBonusAvailable %}
+                                        <span class="poster-bonus">{{ 'ui.edu.daily_bonus_pill'|trans }}</span>
+                                    {% else %}
+                                        <div class="poster-ornament" aria-hidden="true">✦</div>
+                                    {% endif %}
                                 </div>
                                 <div class="poster-mid">
                                     <h3>{{ mode.titleTop|trans }}<span class="ital">{{ mode.titleBottom|trans }}</span></h3>

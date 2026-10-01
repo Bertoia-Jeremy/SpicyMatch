@@ -65,6 +65,29 @@ final class EducationControllerTest extends WebTestCase
         self::assertResponseRedirects('/fr/education/');
     }
 
+    public function testBriefingRedirectsWhenGamificationDisabled(): void
+    {
+        $client = static::createClient();
+        $user = $this->loginUserByUsername($client, 'bob');
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $progression = static::getContainer()->get(GamificationManager::class)->getOrCreateProgression($user);
+        $progression->disableGamification();
+        $em->flush();
+
+        try {
+            $client->request('GET', '/fr/education/briefing?mode=qcm');
+
+            self::assertResponseRedirects('/fr/education/');
+            $session = $client->getRequest()
+                ->getSession();
+            self::assertInstanceOf(FlashBagAwareSessionInterface::class, $session);
+            self::assertNotEmpty($session->getFlashBag()->peek('warning'));
+        } finally {
+            $progression->enableGamification();
+            $em->flush();
+        }
+    }
+
     private function loginUserByUsername(KernelBrowser $client, string $username): Users
     {
         $user = static::getContainer()->get(UsersRepository::class)->findOneBy([

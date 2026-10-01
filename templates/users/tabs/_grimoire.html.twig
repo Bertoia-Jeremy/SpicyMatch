@@ -1,6 +1,13 @@
 <turbo-frame id="frame-grimoire">
     <div class="p-4">
-        {% if progression %}
+        {% if progression and not gamification_on() %}
+            <div class="text-center text-stone-500 py-16">
+                <i class="fa-solid fa-lock text-5xl text-stone-300 mb-4 block" aria-hidden="true"></i>
+                <p class="text-lg font-medium text-stone-700">{{ 'ui.edu.games_closed_title'|trans }}</p>
+                <p class="text-sm mt-1 mb-4">{{ 'ui.edu.games_closed_text'|trans }}</p>
+                <a href="{{ path('profile_tab', {tab: 'lab'}) }}" data-turbo-frame="_top" class="btn-pill-base btn-pill-primary px-5 py-2 text-sm inline-flex items-center gap-2">{{ 'ui.edu.games_closed_cta'|trans }}</a>
+            </div>
+        {% elseif progression %}
 
             {% set unlockedMap = {} %}
             {% for ua in userAchievements %}

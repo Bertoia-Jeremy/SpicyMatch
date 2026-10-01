@@ -22,8 +22,21 @@
     {% endfor %}
   {% endfor %}
 
-  {% if progression is not null %}
-    <div class="academie-rail">
+  {% set gamif = gamification_on() %}
+
+  {% if not gamif %}
+    <div class="card-warm mb-10 flex flex-col sm:flex-row sm:items-center gap-4 p-5" role="status">
+      <i class="fa-solid fa-lock text-paprika-700 text-xl" aria-hidden="true"></i>
+      <div class="flex-1">
+        <p class="font-display text-lg text-ink-900 m-0">{{ 'ui.edu.games_closed_title'|trans }}</p>
+        <p class="text-sm text-stone-600 m-0">{{ 'ui.edu.games_closed_text'|trans }}</p>
+      </div>
+      <a href="{{ path('profile_tab', {tab: 'lab'}) }}" class="btn-pill-base btn-pill-primary px-5 py-2 text-sm inline-flex items-center gap-2 shrink-0">{{ 'ui.edu.games_closed_cta'|trans }}</a>
+    </div>
+  {% endif %}
+
+  {% if progression is not null and gamif %}
+    <div class="academie-rail" data-tour="academy-xp">
       <div class="academie-rank">
         <div class="academie-seal">{{ progression.level }}</div>
         <div>
@@ -55,11 +68,11 @@
       {% set count = dailyCounts[mode.value] ?? 0 %}
       {% set remaining = maxDailySessions - count %}
       {% set levelLocked = is_granted('ROLE_USER') and not (unlockedByMode[mode.value] ?? true) %}
-      {% set locked = (is_granted('ROLE_USER') and remaining <= 0) or levelLocked %}
+      {% set locked = not gamif or (is_granted('ROLE_USER') and remaining <= 0) or levelLocked %}
       {% set cardUrl = path('education_briefing', { mode: mode.value, difficulty: userDifficulty }) %}
       {% set best = bestScores[mode.value] ?? null %}
       {% set isDaily = mode == dailyFeaturedMode and not locked %}
-      {% set lockedHint = levelLocked ? 'ui.edu.locked_level_hint'|trans({'%mode%': mode.label|trans, '%level%': mode.requiredLevel}) : 'ui.edu.locked_hint'|trans %}
+      {% set lockedHint = not gamif ? 'ui.edu.games_closed_title'|trans : levelLocked ? 'ui.edu.locked_level_hint'|trans({'%mode%': mode.label|trans, '%level%': mode.requiredLevel}) : 'ui.edu.locked_hint'|trans %}
       <div>
         {% if locked %}
         <a href="{{ cardUrl }}" aria-disabled="true" tabindex="-1" class="poster is-locked"
@@ -77,7 +90,11 @@
           {% if isDaily %}<span class="poster-ribbon">{{ 'ui.edu.daily_challenge'|trans }}</span>{% endif %}
           <div class="poster-top">
             <div class="poster-num">{{ 'ui.edu.lesson'|trans({'%numeral%': romans[loop.index0]}) }}</div>
-            <div class="poster-ornament" aria-hidden="true">✦</div>
+            {% if isDaily and dailyBonusAvailable %}
+              <span class="poster-bonus">{{ 'ui.edu.daily_bonus_pill'|trans }}</span>
+            {% else %}
+              <div class="poster-ornament" aria-hidden="true">✦</div>
+            {% endif %}
           </div>
           <div class="poster-mid">
             <h3>{{ mode.titleTop|trans }}<span class="ital">{{ mode.titleBottom|trans }}</span></h3>
@@ -100,7 +117,7 @@
           </div>
           <span class="poster-play">{{ 'ui.edu.play'|trans }}</span>
         </a>
-        {% if is_granted('ROLE_USER') %}
+        {% if is_granted('ROLE_USER') and gamif %}
           <p class="mt-2 text-center text-xs text-stone-500">
             {% if levelLocked %}
               <span class="text-paprika-700 font-medium"><i class="fa-solid fa-lock mr-1" aria-hidden="true"></i>{{ lockedHint }}</span>
@@ -114,6 +131,12 @@
       </div>
     {% endfor %}
   </div>
+
+  {% if tomorrowMode is not null %}
+    <p class="mt-6 text-center text-sm text-stone-600">
+      <i class="fa-solid fa-calendar-day mr-1 text-saffron-600" aria-hidden="true"></i>{{ 'ui.edu.tomorrow_teaser'|trans({'%mode%': tomorrowMode.label|trans}) }}
+    </p>
+  {% endif %}
 
   {% if recentSessions is not empty %}
     <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6 mt-12">
@@ -130,7 +153,7 @@
             <div class="flex items-center gap-4 text-sm text-stone-600">
               {% if session.isFinished %}
                 <span>{{ 'ui.edu.correct_count'|trans({'%correct%': session.correctAnswers, '%total%': session.totalQuestions}) }}</span>
-                <span class="font-semibold text-saffron-600">+{{ session.score }} XP</span>
+                {% if gamif %}<span class="font-semibold text-saffron-600">+{{ session.score }} XP</span>{% endif %}
               {% else %}
                 <span class="text-turmeric-600 font-medium">{{ 'ui.edu.in_progress'|trans }}</span>
               {% endif %}
@@ -146,4 +169,13 @@
     {% include 'partials/_ads_banner.html.twig' %}
   </div>
 </div>
+
+{% set tourSteps = [{target: 'game-grid', key: 'games', advance: true}] %}
+{% if progression is not null and gamif %}
+  {% set tourSteps = tourSteps|merge([{target: 'academy-xp', key: 'xp', advance: true}]) %}
+{% endif %}
+{% if is_granted('ROLE_USER') %}
+  {% set tourSteps = tourSteps|merge([{target: 'nav-profile', key: 'optout', advance: true}]) %}
+{% endif %}
+<twig:Tour:Page name="academy" :steps="tourSteps" />
 {% endblock %}

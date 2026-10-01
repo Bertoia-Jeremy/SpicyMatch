@@ -22,7 +22,7 @@
         {% include 'components/_avatar.html.twig' with {sizeClass: 'w-8 h-8 text-sm', equippedBadge: _badge} %}
         <div class="flex flex-col leading-none min-w-0 text-left">
             <span class="font-display text-[15px] font-medium truncate max-w-[110px]" style="color: var(--color-ink-deep)">{{ app.user.username }}</span>
-            {% if _prog %}
+            {% if _prog and gamification_on() %}
                 <span class="font-display italic text-[11px]" style="color: var(--color-paprika-700)">{{ _grade }} · {{ 'ui.dashboard.level_short'|trans({'%level%': _lvl}) }}</span>
                 <div class="rounded-full mt-1 overflow-hidden" style="width: 90px; height: 3px; background: rgba(184,134,74,0.2);"
                      title="{{ 'ui.dashboard.xp_to_next'|trans({'%xp%': _prog.xp, '%toNext%': _prog.xpToNextLevel}) }}">
@@ -55,10 +55,6 @@
         <a href="{{ path('profile_user', {tab: 'history', filter: 'favorites'}) }}" role="menuitem"
            class="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-[rgba(184,134,74,0.1)]" style="color: var(--color-ink-deep)">
             <i class="fa-solid fa-star text-xs w-4" style="color: var(--color-copper-text)" aria-hidden="true"></i>{{ 'ui.profile.menu.favorites'|trans }}
-        </a>
-        <a href="{{ path('profile_user', {tab: 'lab'}) }}" role="menuitem"
-           class="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-[rgba(184,134,74,0.1)]" style="color: var(--color-ink-deep)">
-            <i class="fa-solid fa-shield-halved text-xs w-4" style="color: var(--color-copper-text)" aria-hidden="true"></i>{{ 'ui.profile.menu.security'|trans }}
         </a>
         <a href="{{ path('app_logout') }}" role="menuitem"
            class="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-[rgba(184,134,74,0.1)]" style="color: var(--color-paprika-700)">

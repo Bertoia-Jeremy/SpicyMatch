@@ -59,6 +59,11 @@ class GameSession
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $expiresAt = null;
 
+    #[ORM\Column(options: [
+        'default' => false,
+    ])]
+    private bool $dailyBonus = false;
+
     /**
      * @var Collection<int, GameQuestion>
      */
@@ -140,6 +145,18 @@ class GameSession
     public function setScore(int $score): static
     {
         $this->score = $score;
+
+        return $this;
+    }
+
+    public function isDailyBonus(): bool
+    {
+        return $this->dailyBonus;
+    }
+
+    public function setDailyBonus(bool $dailyBonus): static
+    {
+        $this->dailyBonus = $dailyBonus;
 
         return $this;
     }

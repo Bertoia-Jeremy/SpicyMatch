@@ -13,6 +13,7 @@ final readonly class GameCompletedEvent
         public int $correctAnswers,
         public int $totalQuestions,
         public int $xpEarned,
+        public bool $dailyBonus = false,
     ) {
     }
 }

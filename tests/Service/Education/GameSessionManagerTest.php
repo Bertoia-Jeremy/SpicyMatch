@@ -8,7 +8,10 @@ use App\Entity\GameSession;
 use App\Entity\Users;
 use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
+use App\Message\GameCompletedEvent;
 use App\Repository\GameSessionRepository;
+use App\Service\Clock\GameDay;
+use App\Service\Education\DailyChallengeResolver;
 use App\Service\Education\GameSessionManager;
 use App\Service\Education\QuestionGeneratorInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -16,6 +19,8 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
+use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 #[AllowMockObjectsWithoutExpectations]
@@ -39,9 +44,55 @@ class GameSessionManagerTest extends TestCase
         $this->generator = $this->createMock(QuestionGeneratorInterface::class);
     }
 
+    private function gameDay(): GameDay
+    {
+        return new GameDay(new MockClock('2026-09-30 10:00:00', 'Europe/Paris'), 'Europe/Paris');
+    }
+
     private function makeManager(): GameSessionManager
     {
-        return new GameSessionManager($this->em, $this->sessionRepo, $this->bus, [$this->generator]);
+        return new GameSessionManager(
+            $this->em,
+            $this->sessionRepo,
+            $this->bus,
+            [$this->generator],
+            $this->gameDay(),
+            new DailyChallengeResolver($this->gameDay()),
+        );
+    }
+
+    private function dailyMode(): GameMode
+    {
+        return new DailyChallengeResolver($this->gameDay())
+            ->forUser(null) ?? throw new \LogicException('No daily mode.');
+    }
+
+    private function otherMode(GameMode $daily): GameMode
+    {
+        return $daily === GameMode::QCM ? GameMode::HANGMAN : GameMode::QCM;
+    }
+
+    /**
+     * @return \ArrayObject<int, GameCompletedEvent>
+     */
+    private function captureDispatches(): \ArrayObject
+    {
+        $this->em->method('persist')
+            ->willReturnCallback(static function (object $entity): void {
+                if ($entity instanceof GameSession && $entity->getId() === null) {
+                    new \ReflectionProperty(GameSession::class, 'id')->setValue($entity, 42);
+                }
+            });
+
+        $dispatched = new \ArrayObject();
+        $this->bus->method('dispatch')
+            ->willReturnCallback(static function (object $message) use ($dispatched): Envelope {
+                $dispatched->append($message);
+
+                return new Envelope($message);
+            });
+
+        return $dispatched;
     }
 
     public function testStartSessionCreatesAndPersists(): void
@@ -51,8 +102,8 @@ class GameSessionManagerTest extends TestCase
             ->willReturn(1);
 
         $this->sessionRepo->expects(self::once())
-            ->method('countTodayByUser')
-            ->with($user, GameMode::QCM)
+            ->method('countStartedSince')
+            ->with($user, new \DateTimeImmutable('2026-09-30 00:00:00', new \DateTimeZone('Europe/Paris')), GameMode::QCM)
             ->willReturn(0);
 
         $this->em->expects(self::once())
@@ -71,7 +122,7 @@ class GameSessionManagerTest extends TestCase
         $user = $this->createStub(Users::class);
 
         $this->sessionRepo->expects(self::once())
-            ->method('countTodayByUser')
+            ->method('countStartedSince')
             ->willReturn(5);
 
         $manager = $this->makeManager();
@@ -225,7 +276,7 @@ class GameSessionManagerTest extends TestCase
         $session->incrementCorrectAnswers();
 
         $this->sessionRepo->expects(self::never())
-            ->method('countTodayByUser');
+            ->method('countStartedSince');
 
         self::assertSame(3, $this->makeManager()->calculateXp($session));
     }
@@ -263,8 +314,8 @@ class GameSessionManagerTest extends TestCase
             ->willReturn(1);
 
         $this->sessionRepo->expects(self::once())
-            ->method('countTodayByUser')
-            ->with($user, GameMode::INTRUS)
+            ->method('countStartedSince')
+            ->with($user, self::isInstanceOf(\DateTimeImmutable::class), GameMode::INTRUS)
             ->willReturn(5);
 
         $this->em->expects(self::never())->method('persist');
@@ -276,5 +327,87 @@ class GameSessionManagerTest extends TestCase
 
         $this->makeManager()
             ->createFinishedSession($user, GameMode::INTRUS, GameDifficulty::EASY, 5, 10, 30);
+    }
+
+    /**
+     * @return iterable<string, array{0: bool, 1: bool, 2: int, 3: bool}>
+     */
+    public static function dailyBonusProvider(): iterable
+    {
+        yield 'daily mode, first bonus of the day' => [true, false, 30, true];
+        yield 'daily mode, bonus already claimed' => [true, true, 15, false];
+        yield 'other mode' => [false, false, 15, false];
+    }
+
+    #[DataProvider('dailyBonusProvider')]
+    public function testCreateFinishedSessionAppliesDailyBonusOncePerDay(
+        bool $onDailyMode,
+        bool $alreadyClaimed,
+        int $expectedScore,
+        bool $expectedBonus,
+    ): void {
+        $user = $this->createStub(Users::class);
+        $user->method('getId')
+            ->willReturn(1);
+        $daily = $this->dailyMode();
+        $mode = $onDailyMode ? $daily : $this->otherMode($daily);
+
+        $this->sessionRepo->method('countStartedSince')
+            ->willReturn(0);
+        $this->sessionRepo->method('hasDailyBonusSince')
+            ->willReturn($alreadyClaimed);
+        $dispatched = $this->captureDispatches();
+
+        $session = $this->makeManager()
+            ->createFinishedSession($user, $mode, GameDifficulty::EASY, 0, 0, null, 15);
+
+        self::assertSame($expectedScore, $session->getScore());
+        self::assertSame($expectedBonus, $session->isDailyBonus());
+        self::assertSame($expectedScore, $dispatched[0]->xpEarned);
+        self::assertSame($expectedBonus, $dispatched[0]->dailyBonus);
+    }
+
+    public function testDailyBonusDoublesAfterSessionCap(): void
+    {
+        $user = $this->createStub(Users::class);
+        $user->method('getId')
+            ->willReturn(1);
+
+        $this->sessionRepo->method('countStartedSince')
+            ->willReturn(0);
+        $this->sessionRepo->method('hasDailyBonusSince')
+            ->willReturn(false);
+        $this->captureDispatches();
+
+        $session = $this->makeManager()
+            ->createFinishedSession($user, $this->dailyMode(), GameDifficulty::EASY, 0, 0, null, 500);
+
+        self::assertSame(GameSessionManager::MAX_XP_PER_SESSION * 2, $session->getScore());
+    }
+
+    public function testQcmFinishAppliesDailyBonus(): void
+    {
+        $user = $this->createStub(Users::class);
+        $user->method('getId')
+            ->willReturn(1);
+
+        $session = new GameSession();
+        $session->setUser($user);
+        $session->setGameMode($this->dailyMode());
+        $session->setDifficulty(GameDifficulty::EASY);
+        $session->setTotalQuestions(1);
+        new \ReflectionProperty(GameSession::class, 'id')->setValue($session, 7);
+
+        $this->sessionRepo->method('hasDailyBonusSince')
+            ->willReturn(false);
+        $dispatched = $this->captureDispatches();
+
+        $result = $this->makeManager()
+            ->answerQuestion($session, 'Cumin', 'Cumin');
+
+        self::assertTrue($result['finished']);
+        self::assertTrue($session->isDailyBonus());
+        self::assertSame($session->getScore(), $result['xpEarned']);
+        self::assertTrue($dispatched[0]->dailyBonus);
     }
 }

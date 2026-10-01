@@ -23,14 +23,14 @@ class GameSessionRepository extends ServiceEntityRepository
         parent::__construct($registry, GameSession::class);
     }
 
-    public function countTodayByUser(Users $user, ?GameMode $mode = null): int
+    public function countStartedSince(Users $user, \DateTimeImmutable $since, ?GameMode $mode = null): int
     {
         $qb = $this->createQueryBuilder('gs')
             ->select('COUNT(gs.id)')
             ->where('gs.user = :user')
-            ->andWhere('gs.startedAt >= :today')
+            ->andWhere('gs.startedAt >= :since')
             ->setParameter('user', $user)
-            ->setParameter('today', new \DateTimeImmutable('today'));
+            ->setParameter('since', $since);
 
         if ($mode instanceof GameMode) {
             $qb->andWhere('gs.gameMode = :mode')
@@ -44,15 +44,15 @@ class GameSessionRepository extends ServiceEntityRepository
     /**
      * @return array<string, int> Keyed by GameMode::value
      */
-    public function countTodayByUserGrouped(Users $user): array
+    public function countStartedSinceGrouped(Users $user, \DateTimeImmutable $since): array
     {
         $rows = $this->createQueryBuilder('gs')
             ->select('gs.gameMode, COUNT(gs.id) AS cnt')
             ->where('gs.user = :user')
-            ->andWhere('gs.startedAt >= :today')
+            ->andWhere('gs.startedAt >= :since')
             ->groupBy('gs.gameMode')
             ->setParameter('user', $user)
-            ->setParameter('today', new \DateTimeImmutable('today'))
+            ->setParameter('since', $since)
             ->getQuery()
             ->getArrayResult();
 
@@ -63,6 +63,20 @@ class GameSessionRepository extends ServiceEntityRepository
         }
 
         return $result;
+    }
+
+    public function hasDailyBonusSince(Users $user, \DateTimeImmutable $since): bool
+    {
+        return $this->createQueryBuilder('gs')
+            ->select('1')
+            ->where('gs.user = :user')
+            ->andWhere('gs.dailyBonus = true')
+            ->andWhere('gs.finishedAt >= :since')
+            ->setParameter('user', $user)
+            ->setParameter('since', $since)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult() !== null;
     }
 
     /**

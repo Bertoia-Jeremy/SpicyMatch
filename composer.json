@@ -21,6 +21,7 @@
         "sentry/sentry-symfony": "^5.13",
         "symfony/asset": "8.1.*",
         "symfony/asset-mapper": "8.1.*",
+        "symfony/clock": "8.1.*",
         "symfony/console": "8.1.*",
         "symfony/doctrine-messenger": "8.1.*",
         "symfony/dotenv": "8.1.*",
@@ -106,12 +107,14 @@
         "schema-test": "php bin/console doctrine:schema:update --env=test --force",
         "test-integration": "vendor/bin/phpunit --testsuite=Integration --no-coverage",
         "test-controller": "vendor/bin/phpunit --testsuite=Controller --no-coverage",
+        "lint-twig": "php bin/console lint:twig templates --show-deprecations",
         "check-data": [
             "php bin/console app:check:compounds",
             "php bin/console app:check:data"
         ],
         "ci": [
             "@check-cs",
+            "@lint-twig",
             "@phpstan",
             "@test-unit",
             "@schema-test",

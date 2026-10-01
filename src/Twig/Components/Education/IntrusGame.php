@@ -7,6 +7,7 @@ namespace App\Twig\Components\Education;
 use App\Entity\Users;
 use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
+use App\Security\Voter\GameAccessVoter;
 use App\Service\Education\AcademyManager;
 use App\Service\Education\GameSessionManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,6 +23,7 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
 
 #[AsLiveComponent]
 #[IsGranted('ROLE_USER')]
+#[IsGranted(GameAccessVoter::PLAY)]
 class IntrusGame extends AbstractController
 {
     use DefaultActionTrait;

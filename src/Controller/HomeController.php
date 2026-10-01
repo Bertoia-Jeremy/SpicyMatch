@@ -10,6 +10,8 @@ use App\Repository\AchievementProgressRepository;
 use App\Repository\AromaticCompoundRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\UsersRepository;
+use App\Service\Education\DailyChallengeResolver;
+use App\Service\Education\GameSessionManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -26,6 +28,8 @@ class HomeController extends AbstractController
         private readonly SpicesRepository $spicesRepository,
         private readonly AromaticCompoundRepository $aromaticCompoundRepository,
         private readonly UsersRepository $usersRepository,
+        private readonly DailyChallengeResolver $dailyChallenge,
+        private readonly GameSessionManager $gameSessionManager,
     ) {
     }
 
@@ -60,7 +64,8 @@ class HomeController extends AbstractController
             'compoundsCount' => $this->aromaticCompoundRepository->countTotal(),
             'usersCount' => $this->usersRepository->countActive(),
             'gameModes' => $gameModes,
-            'dailyFeaturedMode' => GameMode::dailyFeatured($gameModes),
+            'dailyFeaturedMode' => $this->dailyChallenge->forUser($user),
+            'dailyBonusAvailable' => $this->gameSessionManager->isDailyBonusAvailable($user),
         ]);
     }
 }

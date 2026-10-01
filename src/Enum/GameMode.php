@@ -104,14 +104,6 @@ enum GameMode: string
         return 'enum.game_mode.' . $this->value . '.tagline';
     }
 
-    /**
-     * @param list<self> $modes
-     */
-    public static function dailyFeatured(array $modes): self
-    {
-        return $modes[(int) new \DateTimeImmutable('today')->format('z') % \count($modes)];
-    }
-
     public function posterGradient(): string
     {
         return match ($this) {

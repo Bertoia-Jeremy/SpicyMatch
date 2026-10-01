@@ -126,9 +126,10 @@ final class GameGamificationHandlerTest extends TestCase
                     'correctAnswers' => 7,
                     'totalQuestions' => 10,
                     'score' => 42,
+                    'dailyBonus' => true,
                 ]
             );
 
-        ($this->handler)(new GameCompletedEvent(1, 1, 'qcm', 7, 10, 42));
+        ($this->handler)(new GameCompletedEvent(1, 1, 'qcm', 7, 10, 42, dailyBonus: true));
     }
 }

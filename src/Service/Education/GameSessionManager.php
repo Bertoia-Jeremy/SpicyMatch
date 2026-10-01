@@ -11,6 +11,7 @@ use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use App\Message\GameCompletedEvent;
 use App\Repository\GameSessionRepository;
+use App\Service\Clock\GameDay;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -38,6 +39,8 @@ class GameSessionManager
         private readonly GameSessionRepository $sessionRepository,
         private readonly MessageBusInterface $bus,
         private readonly iterable $generators,
+        private readonly GameDay $gameDay,
+        private readonly DailyChallengeResolver $dailyChallenge,
     ) {
     }
 
@@ -78,12 +81,43 @@ class GameSessionManager
                 $this->em->lock($user, LockMode::PESSIMISTIC_WRITE);
             }
 
-            if ($this->sessionRepository->countTodayByUser($user, $mode) >= $maxDaily) {
+            if ($this->sessionRepository->countStartedSince($user, $this->gameDay->today(), $mode) >= $maxDaily) {
                 throw new \RuntimeException(sprintf('Limite quotidienne atteinte (%d sessions par jour).', $maxDaily));
             }
 
             return $create();
         });
+    }
+
+    public function countTodaySessions(Users $user, GameMode $mode): int
+    {
+        return $this->sessionRepository->countStartedSince($user, $this->gameDay->today(), $mode);
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    public function countTodaySessionsGrouped(Users $user): array
+    {
+        return $this->sessionRepository->countStartedSinceGrouped($user, $this->gameDay->today());
+    }
+
+    public function isDailyBonusAvailable(?Users $user): bool
+    {
+        return ! $user instanceof Users
+            || ! $this->sessionRepository->hasDailyBonusSince($user, $this->gameDay->today());
+    }
+
+    private function qualifiesForDailyBonus(Users $user, GameMode $mode): bool
+    {
+        return $this->dailyChallenge->forUser($user) === $mode
+            && ! $this->sessionRepository->hasDailyBonusSince($user, $this->gameDay->today());
+    }
+
+    private function applyScore(GameSession $session, int $baseXp, bool $dailyBonus): void
+    {
+        $session->setDailyBonus($dailyBonus);
+        $session->setScore($dailyBonus ? $baseXp * 2 : $baseXp);
     }
 
     /**
@@ -156,20 +190,32 @@ class GameSessionManager
 
     private function finishSession(GameSession $session): int
     {
-        $session->finish();
+        $user = $session->getUser() ?? throw new \LogicException('Game session without user.');
 
-        $xpEarned = $this->calculateXp($session);
-        $session->setScore($xpEarned);
+        $this->em->wrapInTransaction(function () use ($session, $user): void {
+            if ($this->em->contains($user)) {
+                $this->em->lock($user, LockMode::PESSIMISTIC_WRITE);
+            }
+
+            $session->finish();
+            $this->applyScore(
+                $session,
+                $this->calculateXp($session),
+                $this->qualifiesForDailyBonus($user, $session->getGameMode()),
+            );
+        });
+
+        $xpEarned = $session->getScore();
 
         $this->bus->dispatch(new GameCompletedEvent(
-            userId: $session->getUser()
-                ->getId(),
+            userId: $user->getId(),
             sessionId: $session->getId(),
             gameMode: $session->getGameMode()
                 ->value,
             correctAnswers: $session->getCorrectAnswers(),
             totalQuestions: $session->getTotalQuestions(),
             xpEarned: $xpEarned,
+            dailyBonus: $session->isDailyBonus(),
         ));
 
         return $xpEarned;
@@ -212,9 +258,13 @@ class GameSessionManager
                 $session->setDurationSeconds(max(0, $durationSeconds));
             }
 
-            $session->setScore($overrideScore !== null
-                ? $this->convertGamePoints($overrideScore, $difficulty)
-                : $this->calculateXp($session));
+            $this->applyScore(
+                $session,
+                $overrideScore !== null
+                    ? $this->convertGamePoints($overrideScore, $difficulty)
+                    : $this->calculateXp($session),
+                $this->qualifiesForDailyBonus($user, $mode),
+            );
 
             $this->em->persist($session);
 
@@ -228,6 +278,7 @@ class GameSessionManager
             correctAnswers: $correctAnswers,
             totalQuestions: $totalQuestions,
             xpEarned: $session->getScore(),
+            dailyBonus: $session->isDailyBonus(),
         ));
 
         return $session;

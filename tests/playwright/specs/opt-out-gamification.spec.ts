@@ -7,7 +7,7 @@ test.describe('Gamification opt-out', () => {
 
     // Skip onboarding modal in tests — we don't want it interfering with click targets.
     await page.goto('/');
-    await page.evaluate(() => localStorage.setItem('sm_onboarding', 'done'));
+    await page.evaluate(() => localStorage.setItem('sm_tours', JSON.stringify({ '*': 1 })));
 
     await page.goto('/login');
     await page.getByLabel(/pseudo|identifiant|utilisateur/i).fill(user.username);

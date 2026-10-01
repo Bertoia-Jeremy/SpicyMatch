@@ -58,6 +58,7 @@ class GameGamificationHandler
                 'correctAnswers' => $event->correctAnswers,
                 'totalQuestions' => $event->totalQuestions,
                 'score' => $event->xpEarned,
+                'dailyBonus' => $event->dailyBonus,
             ]);
 
             $this->em->flush();

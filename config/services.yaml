@@ -6,6 +6,7 @@
 parameters:
     spice_images: /uploads/spices
     app.oav_context_enabled: false
+    app.timezone: Europe/Paris
 
 services:
     # default configuration for services in *this* file

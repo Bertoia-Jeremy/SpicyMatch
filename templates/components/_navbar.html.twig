@@ -56,7 +56,8 @@
     {% set _maxXp    = (_lvl ** 1.3 * 100)|round %}
     {% set _rawPct   = _maxXp > _minXp ? (_xp - _minXp) / (_maxXp - _minXp) * 100 : 0 %}
     {% set _gaugePct = min(100, max(0, _rawPct)) %}
-    {% set _streak   = app.user.progression.currentReadingStreak %}
+    {% set _gamif    = gamification_on() %}
+    {% set _streak   = _gamif ? app.user.progression.currentActivityStreak : 0 %}
 {% endif %}
 
 <div x-data="navMenu">
@@ -355,8 +356,10 @@
             </div>
 
             <div class="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.15em]">
+                {% set _switchQuery = app.request.queryString ? '?' ~ app.request.queryString : '' %}
+                {% set _switchTargets = locale_alternates()|map(p => p ~ _switchQuery) %}
                 {% for loc in ['fr', 'en', 'es'] %}
-                    <a href="{{ path('switch_locale', {'locale': loc}) }}"
+                    <a href="{{ path('switch_locale', {'locale': loc, 'target': _switchTargets[loc] ?? app.request.requestUri}) }}"
                        hreflang="{{ loc }}"
                        lang="{{ loc }}"
                        aria-label="{{ {'fr': 'Français', 'en': 'English', 'es': 'Español'}[loc] }}"
@@ -407,15 +410,17 @@
                 <div class="flex-1 min-w-0">
                     <div class="font-display text-[17px] font-medium"
                          style="color: var(--color-ink-deep)">{{ app.user.username }}</div>
-                    <div class="font-display italic text-[12px]"
-                         style="color: var(--color-paprika-700)">{{ _grade }}</div>
-                    <div class="rounded-full mt-1.5 overflow-hidden w-full"
-                         role="progressbar"
-                         aria-label="{{ 'gamification.xp_progress'|trans }}"
-                         aria-valuenow="{{ _gaugePct|round }}" aria-valuemin="0" aria-valuemax="100"
-                         style="height: 2px; background: rgba(184,134,74,0.2);">
-                        <div class="gauge-bar h-full" style="width: {{ _gaugePct }}%"></div>
-                    </div>
+                    {% if _gamif %}
+                        <div class="font-display italic text-[12px]"
+                             style="color: var(--color-paprika-700)">{{ _grade }}</div>
+                        <div class="rounded-full mt-1.5 overflow-hidden w-full"
+                             role="progressbar"
+                             aria-label="{{ 'gamification.xp_progress'|trans }}"
+                             aria-valuenow="{{ _gaugePct|round }}" aria-valuemin="0" aria-valuemax="100"
+                             style="height: 2px; background: rgba(184,134,74,0.2);">
+                            <div class="gauge-bar h-full" style="width: {{ _gaugePct }}%"></div>
+                        </div>
+                    {% endif %}
                 </div>
                 {% if _streak > 0 %}
                     <div class="flex flex-col items-center shrink-0">
@@ -572,7 +577,7 @@
 
             <div class="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.15em]">
                 {% for loc in ['fr', 'en', 'es'] %}
-                    <a href="{{ path('switch_locale', {'locale': loc}) }}"
+                    <a href="{{ path('switch_locale', {'locale': loc, 'target': _switchTargets[loc] ?? app.request.requestUri}) }}"
                        hreflang="{{ loc }}"
                        lang="{{ loc }}"
                        aria-label="{{ {'fr': 'Français', 'en': 'English', 'es': 'Español'}[loc] }}"

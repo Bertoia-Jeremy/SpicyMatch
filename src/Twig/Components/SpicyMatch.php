@@ -16,11 +16,13 @@ use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpiceActiveCompoundRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
+use App\Service\Guest\GuestHistoryRegistry;
 use App\Service\Match\CompatibleSpiceFinder;
 use App\Service\Match\FlavorGraphHybridizer;
 use App\Service\Match\FlavorGraphHybridizerInterface;
 use App\Service\Match\MatchConfidenceAssessorInterface;
 use App\Service\SpicyMatchService;
+use App\Service\Text\SearchNormalizer;
 use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -118,10 +120,12 @@ class SpicyMatch extends AbstractController
         private readonly SpiceActiveCompoundRepository $spiceActiveCompoundRepository,
         private readonly RequestStack $requestStack,
         private readonly FlavorGraphHybridizerInterface $hybridizer,
+        private readonly SearchNormalizer $searchNormalizer,
+        private readonly GuestHistoryRegistry $guestHistoryRegistry,
     ) {
         $this->spices = [
             'selectedSpices' => [],
-            'compatibleSpices' => $spicesRepository->findAllSpices(),
+            'compatibleSpices' => $spicesRepository->findAllSpices($requestStack->getCurrentRequest()?->getLocale()),
         ];
     }
 
@@ -288,11 +292,10 @@ class SpicyMatch extends AbstractController
             }
         }
 
-        if ($this->search !== '') {
-            $needle = mb_strtolower($this->search);
+        if (trim($this->search) !== '') {
             $compatibleSpices = array_values(array_filter(
                 $compatibleSpices,
-                fn (array $s): bool => str_starts_with(mb_strtolower($s['name']), $needle),
+                fn (array $s): bool => $this->searchNormalizer->matches((string) $s['name'], $this->search),
             ));
         }
 
@@ -439,7 +442,6 @@ class SpicyMatch extends AbstractController
     #[LiveAction]
     public function clearSelection(): void
     {
-        $this->denyAccessUnlessGranted('ROLE_USER');
         $this->spices['selectedSpices'] = [];
     }
 
@@ -451,12 +453,9 @@ class SpicyMatch extends AbstractController
     #[LiveAction]
     public function nextStep(): RedirectResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-
-        $isManual = $this->mode === 'manual';
-
         $user = $this->getUser();
-        \assert($user instanceof Users);
+        $user = $user instanceof Users ? $user : null;
+        $isManual = $this->mode === 'manual';
 
         $selectedIds = array_map(intval(...), $this->spices['selectedSpices']);
         $compatibleSpices = $isManual ? [] : $this->getResults()['compatibleSpices'];
@@ -471,6 +470,10 @@ class SpicyMatch extends AbstractController
             );
         } catch (InvalidMortarException) {
             return $this->redirectToRoute('index_spicy_match');
+        }
+
+        if ($user === null) {
+            $this->guestHistoryRegistry->remember((int) $history->getId());
         }
 
         return $this->redirectToRoute('finalize_spicy_match_history', [

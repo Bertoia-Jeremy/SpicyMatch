@@ -56,7 +56,7 @@ class SpicyMatchServiceTest extends TestCase
     public function testPersistsMatchAndHistoryInOneFlush(): void
     {
         $this->spicesRepo->method('findBy')
-            ->willReturn([new Spices()]);
+            ->willReturn([new Spices(), new Spices()]);
 
         $persisted = [];
         $this->em->expects(self::exactly(2))
@@ -67,7 +67,7 @@ class SpicyMatchServiceTest extends TestCase
         $this->em->expects(self::once())
             ->method('flush');
 
-        $history = $this->service->start($this->user, [1], true, [], new CulinaryContext());
+        $history = $this->service->start($this->user, [1, 2], true, [], new CulinaryContext());
 
         self::assertSame([SpicyMatch::class, SpicyMatchHistory::class], $persisted);
         self::assertSame($this->match, $history->getSpicyMatch());
@@ -78,8 +78,8 @@ class SpicyMatchServiceTest extends TestCase
      * @param list<int> $selectedIds
      * @param list<Spices> $found
      */
-    #[DataProvider('emptyMortars')]
-    public function testRefusesAnEmptyMortarWithoutWriting(array $selectedIds, array $found): void
+    #[DataProvider('undersizedMortars')]
+    public function testRefusesAMortarBelowTwoSpicesWithoutWriting(array $selectedIds, array $found): void
     {
         $this->spicesRepo->method('findBy')
             ->willReturn($found);
@@ -96,19 +96,21 @@ class SpicyMatchServiceTest extends TestCase
     /**
      * @return iterable<string, array{list<int>, list<Spices>}>
      */
-    public static function emptyMortars(): iterable
+    public static function undersizedMortars(): iterable
     {
         yield 'no id selected' => [[], []];
         yield 'ids unknown in database' => [[404, 405], []];
+        yield 'single spice' => [[1], [new Spices()]];
+        yield 'two ids but one unknown' => [[1, 404], [new Spices()]];
     }
 
     #[DataProvider('modes')]
     public function testStoresTheMode(bool $isManual): void
     {
         $this->spicesRepo->method('findBy')
-            ->willReturn([new Spices()]);
+            ->willReturn([new Spices(), new Spices()]);
 
-        $this->service->start($this->user, [1], $isManual, [], new CulinaryContext());
+        $this->service->start($this->user, [1, 2], $isManual, [], new CulinaryContext());
 
         self::assertSame($isManual, $this->match->isManual());
     }
@@ -140,9 +142,9 @@ class SpicyMatchServiceTest extends TestCase
     {
         $this->spicesRepo->expects(self::once())
             ->method('findBy')
-            ->willReturn([new Spices()]);
+            ->willReturn([new Spices(), new Spices()]);
 
-        $this->service->start($this->user, [1], true, [[
+        $this->service->start($this->user, [1, 2], true, [[
             'id' => 99,
             'score' => 80,
         ]], new CulinaryContext());
@@ -154,9 +156,9 @@ class SpicyMatchServiceTest extends TestCase
     {
         $this->spicesRepo->expects(self::once())
             ->method('findBy')
-            ->willReturn([new Spices()]);
+            ->willReturn([new Spices(), new Spices()]);
 
-        $this->service->start($this->user, [1], false, [], new CulinaryContext());
+        $this->service->start($this->user, [1, 2], false, [], new CulinaryContext());
 
         self::assertCount(0, $this->match->getResults());
     }
@@ -168,9 +170,9 @@ class SpicyMatchServiceTest extends TestCase
             ->willReturn(7);
 
         $this->spicesRepo->method('findBy')
-            ->willReturnOnConsecutiveCalls([new Spices()], [$compatibleSpice]);
+            ->willReturnOnConsecutiveCalls([new Spices(), new Spices()], [$compatibleSpice]);
 
-        $this->service->start($this->user, [1], false, [[
+        $this->service->start($this->user, [1, 2], false, [[
             'id' => 7,
             'score' => '82',
         ]], new CulinaryContext());
@@ -184,7 +186,7 @@ class SpicyMatchServiceTest extends TestCase
     public function testCustomCulinaryContextIsPropagatedToMatch(): void
     {
         $this->spicesRepo->method('findBy')
-            ->willReturn([new Spices()]);
+            ->willReturn([new Spices(), new Spices()]);
 
         $ctx = new CulinaryContext(
             OdtMatrix::WATER,
@@ -194,7 +196,7 @@ class SpicyMatchServiceTest extends TestCase
             temperatureCelsius: 80,
         );
 
-        $this->service->start($this->user, [1], false, [], $ctx);
+        $this->service->start($this->user, [1, 2], false, [], $ctx);
 
         self::assertSame(OdtMatrix::WATER, $this->match->getMatrix());
         self::assertSame(0.25, $this->match->getFatRatio());

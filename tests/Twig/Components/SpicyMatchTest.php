@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Twig\Components;
 
 use App\Entity\AromaticGroups;
+use App\Entity\SpicyMatchHistory;
 use App\Entity\SpicyType;
 use App\Entity\Users;
 use App\Enum\DataConfidence;
@@ -14,10 +15,12 @@ use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpiceActiveCompoundRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
+use App\Service\Guest\GuestHistoryRegistry;
 use App\Service\Match\CompatibleSpiceFinder;
 use App\Service\Match\FlavorGraphHybridizerInterface;
 use App\Service\Match\MatchConfidenceAssessorInterface;
 use App\Service\SpicyMatchService;
+use App\Service\Text\SearchNormalizer;
 use App\Twig\Components\SpicyMatch;
 use App\ValueObject\Match\CulinaryContext;
 use App\ValueObject\Match\MortarIds;
@@ -28,11 +31,12 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
-use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 #[AllowMockObjectsWithoutExpectations]
 class SpicyMatchTest extends TestCase
@@ -46,6 +50,8 @@ class SpicyMatchTest extends TestCase
     private SpicyTypeRepository&MockObject $spicyTypeRepo;
 
     private SpicyMatchService&MockObject $spicyMatchService;
+
+    private GuestHistoryRegistry $guestHistoryRegistry;
 
     private MatchConfidenceAssessorInterface&MockObject $confidenceAssessor;
 
@@ -115,7 +121,10 @@ class SpicyMatchTest extends TestCase
 
     private function makeComponent(): SpicyMatch
     {
-        $requestStack = new RequestStack([Request::create('/fr/spicymatch')]);
+        $request = Request::create('/fr/spicymatch');
+        $request->setSession(new Session(new MockArraySessionStorage()));
+        $requestStack = new RequestStack([$request]);
+        $this->guestHistoryRegistry = new GuestHistoryRegistry($requestStack);
 
         $hybridizer = $this->createStub(FlavorGraphHybridizerInterface::class);
         $hybridizer->method('isActive')
@@ -131,6 +140,8 @@ class SpicyMatchTest extends TestCase
             $this->spiceActiveCompoundRepo,
             $requestStack,
             $hybridizer,
+            new SearchNormalizer(),
+            $this->guestHistoryRegistry,
         );
 
         $component->setContainer($this->makeAnonymousContainer());
@@ -448,7 +459,7 @@ class SpicyMatchTest extends TestCase
 
         $component = $this->makeComponent();
         $component->mode = 'manual';
-        $component->search = 'poi';
+        $component->search = 'OIVR';
         $component->spices = [
             'selectedSpices' => ['1'],
             'compatibleSpices' => $this->allSpices,
@@ -774,22 +785,48 @@ class SpicyMatchTest extends TestCase
         self::assertSame('Sauté', $component->getCulinaryLabel());
     }
 
-    public function testNextStepDeniesAnonymousUserInsteadOfCrashing(): void
+    public function testNextStepLetsAnonymousUserComposeAndOwnTheBlend(): void
     {
         $component = $this->makeComponent();
+        $component->setContainer($this->makeContainer(null));
+        $component->mode = 'manual';
+        $component->spices = [
+            'selectedSpices' => ['1', '2'],
+            'compatibleSpices' => [],
+        ];
+        $history = new SpicyMatchHistory();
+        new \ReflectionProperty(SpicyMatchHistory::class, 'id')->setValue($history, 42);
 
-        $this->spicyMatchService->expects(self::never())
-            ->method('start');
+        $this->spicyMatchService->expects(self::once())
+            ->method('start')
+            ->willReturnCallback(static function (?Users $user) use ($history): SpicyMatchHistory {
+                self::assertNull($user);
 
-        $this->expectException(AccessDeniedException::class);
+                return $history;
+            });
 
-        $component->nextStep();
+        self::assertSame('/finalize_spicy_match_history?id=42', $component->nextStep()->getTargetUrl());
+        self::assertTrue($this->guestHistoryRegistry->owns(42));
+    }
+
+    public function testClearSelectionIsAllowedForAnonymousUser(): void
+    {
+        $component = $this->makeComponent();
+        $component->setContainer($this->makeContainer(null));
+        $component->spices = [
+            'selectedSpices' => ['1', '2'],
+            'compatibleSpices' => [],
+        ];
+
+        $component->clearSelection();
+
+        self::assertSame([], $component->spices['selectedSpices']);
     }
 
     public function testNextStepRedirectsToLabWhenMortarHasNoValidSpice(): void
     {
         $component = $this->makeComponent();
-        $component->setContainer($this->makeAuthenticatedContainer());
+        $component->setContainer($this->makeContainer(new Users()));
         $component->mode = 'manual';
         $component->spices = [
             'selectedSpices' => ['999999'],
@@ -798,28 +835,28 @@ class SpicyMatchTest extends TestCase
 
         $this->spicyMatchService->expects(self::once())
             ->method('start')
-            ->willThrowException(InvalidMortarException::emptySelection());
+            ->willThrowException(InvalidMortarException::tooFewSpices(SpicyMatchService::MIN_SPICES));
 
         self::assertSame('/fr/spicymatch/', $component->nextStep()->getTargetUrl());
     }
 
-    private function makeAuthenticatedContainer(): ContainerInterface
+    private function makeContainer(?Users $user): ContainerInterface
     {
         $token = $this->createStub(TokenInterface::class);
         $token->method('getUser')
-            ->willReturn(new Users());
+            ->willReturn($user);
 
         $tokenStorage = $this->createStub(TokenStorageInterface::class);
         $tokenStorage->method('getToken')
-            ->willReturn($token);
+            ->willReturn($user instanceof Users ? $token : null);
 
         $authChecker = $this->createStub(AuthorizationCheckerInterface::class);
         $authChecker->method('isGranted')
-            ->willReturn(true);
+            ->willReturn($user instanceof Users);
 
         $router = $this->createStub(UrlGeneratorInterface::class);
         $router->method('generate')
-            ->willReturnCallback(static fn (string $name): string => $name === 'index_spicy_match' ? '/fr/spicymatch/' : '/' . $name);
+            ->willReturnCallback(static fn (string $name, array $parameters = []): string => ($name === 'index_spicy_match' ? '/fr/spicymatch/' : '/' . $name) . ($parameters === [] ? '' : '?' . urldecode(http_build_query($parameters))));
 
         $container = $this->createStub(ContainerInterface::class);
         $container->method('has')

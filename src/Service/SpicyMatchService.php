@@ -16,6 +16,8 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class SpicyMatchService
 {
+    public const int MIN_SPICES = 2;
+
     public function __construct(
         private readonly SpicyMatchFactory $factory,
         private readonly SpicesRepository $spicesRepository,
@@ -31,7 +33,7 @@ class SpicyMatchService
      * @throws InvalidMortarException
      */
     public function start(
-        Users $user,
+        ?Users $user,
         array $selectedIds,
         bool $isManual,
         array $compatibleSpices,
@@ -40,8 +42,8 @@ class SpicyMatchService
         $selected = $selectedIds === [] ? [] : $this->spicesRepository->findBy([
             'id' => $selectedIds,
         ]);
-        if ($selected === []) {
-            throw InvalidMortarException::emptySelection();
+        if (\count($selected) < self::MIN_SPICES) {
+            throw InvalidMortarException::tooFewSpices(self::MIN_SPICES);
         }
 
         $spicyMatch = $this->factory->create();

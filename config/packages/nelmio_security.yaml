@@ -30,7 +30,7 @@ nelmio_security:
             # components means we never need inline eval.
             level1_fallback: false
             # Base directives — fonts/FontAwesome/JS deps are self-hosted
-            # (public/fonts, public/lib/fontawesome, public/lib/chartjs, assets/vendor importmap).
+            # (public/fonts, public/lib/fontawesome-subset, public/lib/chartjs, assets/vendor importmap).
             # Never serve assets from a /vendor/ URL: ModSecurity returns 403 on it.
             # Only remaining third party: EthicalAds (cookieless ad network).
             default-src:
@@ -49,6 +49,7 @@ nelmio_security:
                 - 'data:'
                 - 'https://media.ethicalads.io' # Ad provider: ethicalads
                 - 'https://cdn.carbonads.com' # Ad provider: carbon
+                - 'https://srv.carbonads.net' # Ad provider: carbon (loader)
             style-src:
                 - 'self'
                 - "'unsafe-inline'" # Tailwind utility classes + inline style="..." for rarity colors
@@ -57,7 +58,6 @@ nelmio_security:
                 - 'self'
                 - 'data:'
                 - 'blob:'
-                - 'https://loremflickr.com' # Spice catalog placeholder images
                 - 'https://media.ethicalads.io' # Ad provider: ethicalads
                 - 'https://cdn.carbonads.com' # Ad provider: carbon
                 - 'https://srv.carbonads.net' # Ad provider: carbon (impressions)

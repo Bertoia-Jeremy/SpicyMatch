@@ -9,6 +9,7 @@
     "eslint": "^9.25.1",
     "globals": "^16.0.0",
     "postcss": "^8.5.3",
+    "subset-font": "^2",
     "tailwindcss": "^4.1.8"
   },
   "scripts": {
@@ -16,7 +17,8 @@
     "build": "tailwindcss -i ./assets/styles/app.css -o ./public/assets/css/app.css --minify",
     "e2e": "playwright test --config=tests/playwright/playwright.config.ts",
     "e2e:a11y": "playwright test --config=tests/playwright/playwright.config.ts --grep=@a11y",
-    "e2e:install": "playwright install chromium"
+    "e2e:install": "playwright install chromium",
+    "icons:subset": "node scripts/fontawesome-subset.mjs"
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.1.8"

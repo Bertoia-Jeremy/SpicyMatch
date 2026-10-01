@@ -6,6 +6,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Achievement;
 use App\Form\Admin\Translation\AchievementTranslationType;
+use App\Service\Icon\IconSubsetManifest;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
@@ -22,6 +23,7 @@ class AchievementCrudController extends AbstractCrudController
 {
     public function __construct(
         private readonly TranslatorInterface $translator,
+        private readonly IconSubsetManifest $iconManifest,
     ) {
     }
 
@@ -46,7 +48,8 @@ class AchievementCrudController extends AbstractCrudController
             ->hideOnForm();
         yield TextField::new('slug');
         yield TextField::new('name', 'admin.field.name');
-        yield TextField::new('icon', 'admin.field.icon');
+        yield ChoiceField::new('icon', 'admin.field.icon')
+            ->setChoices($this->iconManifest->solidChoices());
         yield TextField::new('description', 'admin.field.description');
         yield ChoiceField::new('trigger', 'admin.field.trigger')
             ->setChoices(array_combine(

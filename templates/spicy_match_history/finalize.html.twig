@@ -93,6 +93,7 @@
                   type="button"
                   class="timing"
                   :class="timingTileClass('{{ spice.id }}', {{ cookingTip.id }})"
+                  x-bind:aria-pressed="(timingTileClass('{{ spice.id }}', {{ cookingTip.id }}) === 'selected').toString()"
                   :aria-describedby="describedBy('{{ spice.id }}', 'cooking', {{ cookingTip.id }})"
                   @click="toggleCooking('{{ spice.id }}', {{ cookingTip.id }})"
                 >
@@ -130,6 +131,7 @@
                   type="button"
                   class="method"
                   :class="methodTileClass('{{ spice.id }}', {{ prepTip.id }})"
+                  x-bind:aria-pressed="(methodTileClass('{{ spice.id }}', {{ prepTip.id }}) === 'selected').toString()"
                   :aria-describedby="describedBy('{{ spice.id }}', 'preparation', {{ prepTip.id }})"
                   @click="togglePreparation('{{ spice.id }}', {{ prepTip.id }})"
                 >

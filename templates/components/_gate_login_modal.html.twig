@@ -32,6 +32,8 @@
                     <span x-show="isLoginTab()">{{ 'ui.auth.login_title'|trans }}</span>
                     <span x-show="isRegisterTab()">{{ 'ui.register.title'|trans }}</span>
                 </h2>
+                <p x-show="isContext('favorite')" x-cloak class="mt-2 text-sm text-stone-600">{{ 'ui.recipe.gate_favorite'|trans }}</p>
+                <p x-show="isContext('rename')" x-cloak class="mt-2 text-sm text-stone-600">{{ 'ui.recipe.gate_rename'|trans }}</p>
             </div>
 
             <div class="flex rounded-full bg-stone-100 p-1 mb-6" role="tablist">
@@ -96,7 +98,8 @@
                             'class': 'w-full px-4 py-2.5 pr-24 border border-stone-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-saffron-600/30 focus:border-saffron-500 bg-white text-stone-800'
                         }}) }}
                         <button type="button" @click="show = !show"
-                                class="absolute inset-y-0 right-0 px-3 flex items-center text-sm text-stone-600 hover:text-stone-700">
+                                x-bind:aria-pressed="show.toString()"
+                                class="absolute inset-y-0 right-0 px-3 flex items-center text-sm text-stone-600 hover:text-stone-700 rounded-lg focus:outline-none focus-visible:ring-2 focus:ring-saffron-600/30">
                             <span x-text="label()">{{ 'password.show'|trans({}, 'js') }}</span>
                         </button>
                     </div>
@@ -122,7 +125,7 @@
                 {{ form_end(registrationForm) }}
             </div>
 
-            <div class="mt-6 pt-5 border-t border-stone-200">
+            <div x-show="!hasContext()" class="mt-6 pt-5 border-t border-stone-200">
                 <h3 class="text-sm font-semibold text-stone-700 mb-3">{{ 'ui.edu.gate.why_title'|trans }}</h3>
                 <ul class="space-y-2.5 text-sm text-stone-600">
                     <li class="flex gap-2.5">

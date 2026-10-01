@@ -45,12 +45,13 @@
                                 <div class="mb-2 group" @dblclick.stop="startEdit">
                                     <h2 x-show="!editing"
                                         class="inline-flex items-center gap-1.5 text-lg font-semibold text-stone-800 cursor-pointer hover:text-saffron-700 transition-colors"
-                                        title="Double-cliquez pour renommer">
+                                        title="{{ 'ui.history.rename_hint'|trans }}">
                                         <span x-text="displayTitle()"></span>
                                         <button type="button"
                                                 @click.stop="startEdit"
-                                                class="opacity-0 group-hover:opacity-100 transition-opacity text-stone-300 hover:text-saffron-600 text-[11px] leading-none"
-                                                title="Renommer">
+                                                class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity text-stone-300 hover:text-saffron-600 text-[11px] leading-none focus:outline-none focus-visible:ring-2 focus:ring-saffron-600/30 rounded"
+                                                title="{{ 'ui.history.rename'|trans }}"
+                                                aria-label="{{ 'ui.history.rename'|trans }}">
                                             <i class="fa-solid fa-pencil" aria-hidden="true"></i>
                                         </button>
                                     </h2>
@@ -71,8 +72,8 @@
                                         </span>
                                     {% endfor %}
                                     {% if history.spicyMatch.isManual %}
-                                        <span class="inline-flex items-center gap-1 text-[11px] font-medium text-stone-500 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full" title="Mélange créé manuellement — compatibilité non garantie">
-                                            <i class="fa-solid fa-hand text-[9px]" aria-hidden="true"></i>Manuel
+                                        <span class="inline-flex items-center gap-1 text-[11px] font-medium text-stone-500 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full" title="{{ 'ui.history.manual_tooltip'|trans }}">
+                                            <i class="fa-solid fa-hand text-[9px]" aria-hidden="true"></i>{{ 'ui.history.manual'|trans }}
                                         </span>
                                     {% endif %}
                                 </div>
@@ -81,13 +82,16 @@
                                 <button type="button"
                                         @click.stop="toggleFavorite"
                                         x-show="favorite"
-                                        class="text-xl transition-colors focus:outline-none text-turmeric-500 hover:text-stone-300"
-                                        title="Retirer des favoris">
+                                        class="text-xl transition-colors text-turmeric-500 hover:text-stone-300 focus:outline-none focus-visible:ring-2 focus:ring-saffron-600/30 rounded"
+                                        title="{{ 'ui.history.remove_favorite'|trans }}"
+                                        aria-label="{{ 'ui.history.remove_favorite'|trans }}"
+                                        aria-pressed="true">
                                     <i class="fa-solid fa-star" aria-hidden="true"></i>
                                 </button>
                                 <span class="text-sm text-stone-400">{{ history.createdAt|format_date('medium') }}</span>
                                 <a href="{{ path('view_spicy_match_history', {'id': history.id}) }}"
-                                   class="text-stone-300 hover:text-saffron-600 transition-colors"
+                                   class="text-stone-300 hover:text-saffron-600 transition-colors focus:outline-none focus-visible:ring-2 focus:ring-saffron-600/30 rounded"
+                                   aria-label="{{ 'ui.history.open_recipe'|trans }}"
                                    @click.stop>
                                     <i class="fa-solid fa-chevron-right text-sm" aria-hidden="true"></i>
                                 </a>

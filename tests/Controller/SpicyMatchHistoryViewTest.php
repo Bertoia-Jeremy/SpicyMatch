@@ -79,6 +79,16 @@ final class SpicyMatchHistoryViewTest extends WebTestCase
         self::assertLessThanOrEqual($fr + 2, $en, \sprintf('fr=%d en=%d', $fr, $en));
     }
 
+    public function testRecipeViewNeverRendersAnAdSlot(): void
+    {
+        AdSlotPlacementTest::enableAds();
+
+        $crawler = $this->client->request('GET', '/fr/spicymatch/history/view/' . $this->historyId);
+
+        self::assertResponseIsSuccessful();
+        self::assertCount(0, $crawler->filter('[data-ad-slot]'));
+    }
+
     public function testFavoriteIsIdempotentAndDispatchesOnce(): void
     {
         $token = $this->token();

@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\Repository\ContactRepository;
 use App\Repository\GdprRequestRepository;
+use App\Repository\SpicyMatchRepository;
 use App\Repository\UsersRepository;
 use App\Service\Gdpr\UserAnonymizer;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,7 +18,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:gdpr:purge',
-    description: 'Purge contacts (12 months), GDPR requests (6 years) and anonymize soft-deleted users (30 days)',
+    description: 'Purge contacts (12 months), GDPR requests (6 years), guest blends (7 days) and anonymize soft-deleted users (30 days)',
 )]
 class GdprPurgeCommand extends Command
 {
@@ -27,11 +28,16 @@ class GdprPurgeCommand extends Command
 
     public const DELETED_USER_GRACE = '-30 days';
 
+    public const GUEST_BLEND_RETENTION = '-7 days';
+
+    private const int GUEST_BLEND_BATCH = 200;
+
     public function __construct(
         private readonly ContactRepository $contactRepository,
         private readonly GdprRequestRepository $gdprRequestRepository,
         private readonly UsersRepository $usersRepository,
         private readonly UserAnonymizer $userAnonymizer,
+        private readonly SpicyMatchRepository $spicyMatchRepository,
         private readonly EntityManagerInterface $entityManager,
     ) {
         parent::__construct();
@@ -58,13 +64,35 @@ class GdprPurgeCommand extends Command
             $this->entityManager->flush();
         }
 
+        $purgedBlends = $this->purgeGuestBlends(new \DateTimeImmutable(self::GUEST_BLEND_RETENTION));
+
         $io->success(sprintf(
-            '%d contact(s) purgé(s), %d demande(s) RGPD purgée(s), %d compte(s) anonymisé(s).',
+            '%d contact(s) purgé(s), %d demande(s) RGPD purgée(s), %d compte(s) anonymisé(s), %d mélange(s) invité(s) purgé(s).',
             $purgedContacts,
             $purgedRequests,
             count($users),
+            $purgedBlends,
         ));
 
         return Command::SUCCESS;
+    }
+
+    private function purgeGuestBlends(\DateTimeImmutable $before): int
+    {
+        $purged = 0;
+        do {
+            $matches = $this->spicyMatchRepository->findGuestMatchesCreatedBefore($before, self::GUEST_BLEND_BATCH);
+            if ($matches === []) {
+                break;
+            }
+            foreach ($matches as $match) {
+                $this->entityManager->remove($match);
+            }
+            $this->entityManager->flush();
+            $this->entityManager->clear();
+            $purged += \count($matches);
+        } while (\count($matches) === self::GUEST_BLEND_BATCH);
+
+        return $purged;
     }
 }

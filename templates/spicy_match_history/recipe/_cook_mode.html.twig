@@ -23,14 +23,14 @@
             {% for step in recipe.steps|filter(s => s.preparation is not null) %}
                 {% set key = 'p' ~ step.spiceId %}
                 {% set name = step.spice.getLocalizedName(loc) %}
-                <article class="recipe-cook-card" x-bind:class="cook.done['{{ key }}'] && 'is-done'">
+                <article class="recipe-cook-card" x-bind:class="cook.done['{{ key }}'] && 'is-done'" x-on:click="toggleDone('{{ key }}')">
                     <div class="flex items-center gap-3">
                         <twig:Recipe:SpiceHex :spice="step.spice" size="xl" />
                         <div class="min-w-0 flex-1">
                             <div class="recipe-cook-name">{{ name }}</div>
                             <div class="recipe-cook-form">{{ step.preparation.getLocalizedTitle(loc) }}</div>
                         </div>
-                        <button type="button" class="recipe-check" x-on:click="toggleDone('{{ key }}')"
+                        <button type="button" class="recipe-check" x-on:click.stop="toggleDone('{{ key }}')"
                                 x-bind:aria-pressed="!!cook.done['{{ key }}']"
                                 aria-label="{{ 'ui.recipe.cook_mode.mark_done'|trans({'%name%': name}) }}">
                             <i class="fa-solid fa-check" aria-hidden="true"></i>
@@ -51,7 +51,7 @@
                 {% for step in recipe.stepsAt(moment) %}
                     {% set key = 'c' ~ step.spiceId %}
                     {% set name = step.spice.getLocalizedName(loc) %}
-                    <article class="recipe-cook-card" x-bind:class="cook.done['{{ key }}'] && 'is-done'">
+                    <article class="recipe-cook-card" x-bind:class="cook.done['{{ key }}'] && 'is-done'" x-on:click="toggleDone('{{ key }}')">
                         <div class="flex items-center gap-3">
                             <twig:Recipe:SpiceHex :spice="step.spice" size="xl" />
                             <div class="min-w-0 flex-1">
@@ -60,7 +60,7 @@
                                     <div class="recipe-cook-form">{{ step.preparation.getLocalizedTitle(loc) }} {{ 'ui.recipe.prepared_suffix'|trans }}</div>
                                 {% endif %}
                             </div>
-                            <button type="button" class="recipe-check" x-on:click="toggleDone('{{ key }}')"
+                            <button type="button" class="recipe-check" x-on:click.stop="toggleDone('{{ key }}')"
                                     x-bind:aria-pressed="!!cook.done['{{ key }}']"
                                     aria-label="{{ 'ui.recipe.cook_mode.mark_done'|trans({'%name%': name}) }}">
                                 <i class="fa-solid fa-check" aria-hidden="true"></i>

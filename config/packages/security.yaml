@@ -39,6 +39,7 @@ security:
         - { path: ^/api/gamification, roles: ROLE_USER }
         - { path: '^/[a-z]{2}/education/?$', roles: PUBLIC_ACCESS }
         - { path: '^/[a-z]{2}/spicymatch/?$', roles: PUBLIC_ACCESS }
+        - { path: '^/[a-z]{2}/spicymatch/history/(\d+/(finalize|rename|favorite)|view/\d+|edit/\d+)$', roles: PUBLIC_ACCESS }
         - { path: '^/[a-z]{2}/(users|spicymatch|education)', roles: ROLE_USER }
         - { path: ^/, roles: PUBLIC_ACCESS }
 

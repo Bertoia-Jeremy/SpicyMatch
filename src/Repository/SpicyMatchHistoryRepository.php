@@ -229,4 +229,25 @@ class SpicyMatchHistoryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    /**
+     * @param list<int> $ids
+     * @return list<SpicyMatchHistory>
+     */
+    public function findGuestHistories(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('smh')
+            ->addSelect('sm')
+            ->join('smh.spicyMatch', 'sm')
+            ->where('smh.id IN (:ids)')
+            ->andWhere('sm.user IS NULL')
+            ->andWhere('smh.deletedAt IS NULL')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getResult();
+    }
 }

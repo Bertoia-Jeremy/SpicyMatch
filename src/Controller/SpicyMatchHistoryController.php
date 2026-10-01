@@ -18,6 +18,8 @@ use App\Repository\SpiceDuoRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyMatchHistoryRepository;
 use App\Security\Voter\SpicyMatchHistoryVoter;
+use App\Seo\Attribute\NoIndex;
+use App\Service\Guest\GuestHistoryRegistry;
 use App\Service\Match\SpiceDuoMapBuilder;
 use App\Service\Recipe\RecipeViewFactory;
 use Doctrine\DBAL\LockMode;
@@ -32,7 +34,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[IsGranted('ROLE_USER')]
+#[NoIndex]
 #[Route('/{_locale}/spicymatch/history', defaults: [
     '_locale' => 'fr',
 ])]
@@ -45,10 +47,12 @@ class SpicyMatchHistoryController extends AbstractController
         private readonly SpiceDuoRepository $duoRepository,
         private readonly MessageBusInterface $bus,
         private readonly ClockInterface $clock,
+        private readonly GuestHistoryRegistry $guestHistoryRegistry,
     ) {
     }
 
     #[Route('/', name: 'index_spicy_match_history', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
     public function index(#[CurrentUser] Users $user): Response
     {
         return $this->render('spicy_match_history/index.html.twig', [
@@ -58,6 +62,7 @@ class SpicyMatchHistoryController extends AbstractController
     }
 
     #[Route('/favorites', name: 'favorites_spicy_match_history', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
     public function favorites(#[CurrentUser] Users $user): Response
     {
         return $this->render('spicy_match_history/favorites.html.twig', [
@@ -143,7 +148,7 @@ class SpicyMatchHistoryController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         #[CurrentUser]
-        Users $currentUser,
+        ?Users $currentUser = null,
     ): JsonResponse {
         $token = $request->headers->get('X-CSRF-Token', '');
         if (! $this->isCsrfTokenValid('history_edit_' . $spicyMatchHistory->getId(), $token)) {
@@ -192,7 +197,7 @@ class SpicyMatchHistoryController extends AbstractController
             $now = $this->clock->now();
             $spicyMatchHistory->setUpdatedAt($now);
 
-            if ($spicyMatchHistory->markSealedIfComplete($now)) {
+            if ($spicyMatchHistory->markSealedIfComplete($now) && $currentUser !== null) {
                 $this->bus->dispatch(new MatchSavedEvent((int) $spicyMatchHistory->getId(), (int) $currentUser->getId()));
             }
         });
@@ -210,6 +215,8 @@ class SpicyMatchHistoryController extends AbstractController
         SpicyMatchHistory $spicyMatchHistory,
         Request $request,
         EntityManagerInterface $entityManager,
+        #[CurrentUser]
+        ?Users $currentUser = null,
     ): JsonResponse {
         $data = $request->toArray();
         $token = $data['_token'] ?? '';
@@ -218,6 +225,12 @@ class SpicyMatchHistoryController extends AbstractController
             return $this->json([
                 'error' => 'Invalid CSRF token',
             ], 403);
+        }
+
+        if (! $currentUser instanceof Users) {
+            return $this->json([
+                'login' => true,
+            ], 401);
         }
 
         $raw = $data['title'] ?? '';
@@ -238,7 +251,7 @@ class SpicyMatchHistoryController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         #[CurrentUser]
-        Users $currentUser,
+        ?Users $currentUser = null,
     ): JsonResponse {
         $token = $request->headers->get('X-CSRF-Token', '');
         if (! $this->isCsrfTokenValid('history_action_' . $spicyMatchHistory->getId(), $token)) {
@@ -252,6 +265,17 @@ class SpicyMatchHistoryController extends AbstractController
             return $this->json([
                 'error' => 'Invalid favorite value',
             ], 400);
+        }
+
+        if (! $currentUser instanceof Users) {
+            if ($favorite) {
+                $this->guestHistoryRegistry->markFavoritePending((int) $spicyMatchHistory->getId());
+            }
+
+            return $this->json([
+                'favorite' => false,
+                'login' => true,
+            ], 401);
         }
 
         $wasFavorite = $spicyMatchHistory->isFavorite();

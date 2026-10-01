@@ -1,7 +1,7 @@
 <div class="recipe-topbar">
     <twig:Button
-        label="{{ 'ui.history.back_to_history'|trans }}"
-        href="{{ path('profile_user', {tab: 'history'}) }}"
+        label="{{ (is_granted('ROLE_USER') ? 'ui.history.back_to_history' : 'ui.lab.back_to_lab')|trans }}"
+        href="{{ is_granted('ROLE_USER') ? path('profile_user', {tab: 'history'}) : path('index_spicy_match') }}"
         variant="back"
         iconOnly
         extra="recipe-icon-btn"
@@ -22,6 +22,7 @@
     <div class="recipe-mono">{{ 'ui.recipe.lab_notebook'|trans }}</div>
     <div class="mt-1 flex items-start gap-2">
         <h1 class="recipe-title">
+            {% if is_granted('ROLE_USER') %}
             <span x-ref="titleEl"
                   contenteditable="true"
                   spellcheck="false"
@@ -33,8 +34,16 @@
                   x-on:blur="saveTitle($event.target)"
                   x-on:keydown.enter.prevent="$event.target.blur()"
                   x-text="title || placeholder">{{ history.title ?? placeholder }}</span>
+            {% else %}
+            <span class="recipe-title-edit {{ history.title is null ? 'is-placeholder' }}"
+                  role="button"
+                  tabindex="0"
+                  aria-label="{{ 'ui.recipe.rename_aria'|trans }}"
+                  x-on:click="gateRename()"
+                  x-on:keydown.enter.prevent="gateRename()">{{ history.title ?? placeholder }}</span>
+            {% endif %}
         </h1>
-        <button type="button" class="recipe-pen" x-on:click="$refs.titleEl.focus()" aria-label="{{ 'ui.recipe.rename'|trans }}">
+        <button type="button" class="recipe-pen" x-on:click="{{ is_granted('ROLE_USER') ? '$refs.titleEl.focus()' : 'gateRename()' }}" aria-label="{{ 'ui.recipe.rename'|trans }}">
             <i class="fa-solid fa-pen text-xs" aria-hidden="true"></i>
         </button>
     </div>

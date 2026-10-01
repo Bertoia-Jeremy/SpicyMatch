@@ -5,6 +5,7 @@ common:
         save: Save
         cancel: Cancel
     close: Close
+    loading: Loading…
     delete: Delete
     reset: Reset
 
@@ -41,6 +42,7 @@ flash:
     posture_updated: Posture updated.
     preference_saved: Preference saved.
     daily_limit_reached: 'Daily limit reached (%max% %mode% sessions per day).'
+    gamification_disabled: 'Games are only available when progression is enabled.'
 
 ui:
     pairing:
@@ -330,6 +332,12 @@ ui:
         record_label: 'Record: %score%'
         record_none: To unlock
         daily_challenge: Daily challenge
+        daily_bonus_pill: XP ×2
+        daily_bonus_applied: Daily bonus — XP ×2
+        tomorrow_teaser: 'Tomorrow''s daily challenge: %mode%'
+        games_closed_title: Games closed
+        games_closed_text: 'Your progression is disabled: Academy games are no longer available.'
+        games_closed_cta: Re-enable progression
         locked_hint: Come back tomorrow to replay
         locked_level_hint: '%mode% unlocks at level %level%'
         lesson: 'Lesson %numeral%'
@@ -439,10 +447,6 @@ ui:
         out_of_top5: Outside the top 5 in this matrix
         tanimoto_title: Tanimoto OAV score (0–100 scale)
         tanimoto_note: Tanimoto OAV scores ∈ [0–100] · corrected by Nernst partition and thermal decay for the evaluated matrix.
-        alchemist_note: The Alchemist's Note
-        note_shared: '"These spices share %count% aromatic compound(s) in common — their affinity rests on a shared aromatic signature."'
-        note_manual: '"A freely composed blend — the complementarity of these spices expresses itself without affinity calculation."'
-        note_contrast: '"These spices have no main aromatic compound in common — their pairing rests on complementarity and contrast."'
         untitled_placeholder: Name this blend
         lab_notebook: Lab notebook
         folio_short: 'Folio %id%'
@@ -450,8 +454,6 @@ ui:
         tab_timeline: Timeline
         tab_spices: Spices
         composition: Blend composition
-        read: Read
-        collapse: Collapse
         free: Free
         prepare: Prepare
         incorporate: Add
@@ -460,6 +462,8 @@ ui:
         goto_spice_aria: 'See the %name% card'
         goto_spice_page: '%name% spice page'
         favorite_failed: Favourite not saved.
+        gate_favorite: 'Your blend is ready: create an account to keep it as a favourite and find it in your history.'
+        gate_rename: 'Create an account to name your blend and find it in your history.'
         retry: Retry
         cook_mode:
             start: Switch to cooking mode
@@ -528,6 +532,7 @@ ui:
         empty_html: 'Click a <span class="font-display italic text-stone-500">spice</span> to start your blend'
         remove: 'Remove %name%'
         clear_selection: Clear selection
+        min_spices_hint: Pick at least %count% spices to compose
         compose: Compose the blend
         data: 'Data: %label%'
         scores_indicative: Indicative scores — data being validated.
@@ -620,16 +625,15 @@ ui:
             data_account: 'User account: username, password (hashed), email address (optional), preferences (language, difficulty), game progression and statistics — legal basis: performance of the service.'
             data_contact: 'Contact form: name, email, message — legal basis: legitimate interest (answering your request).'
             data_newsletter: 'Newsletter: email address and IP address (proof of subscription) — legal basis: consent, withdrawable at any time via the unsubscribe link.'
-            data_consent: 'Cookie preferences: choices made, IP address and browser (proof of consent), kept for 13 months — legal basis: legal obligation.'
             data_monitoring: 'Technical monitoring: anonymized error logs (no personal data), hosted on our own infrastructure — legal basis: legitimate interest (security and reliability of the service).'
             purposes_title: Purposes
             purposes_text: Data is used exclusively to provide the service (account, blends, progression), answer your requests, send the newsletter if you consented to it and ensure site security. No data is sold or shared with third parties for commercial purposes.
             ads_title: Advertising
-            ads_text: 'When advertising is active, SpicyMatch uses a cookieless, non-profiling ad network (contextual advertising). No browsing data is collected for advertising purposes — legal basis: legitimate interest. You can opt out by switching to a Premium account.'
+            ads_text: 'When advertising is active, SpicyMatch shows contextual ads from cookieless, non-profiling networks (EthicalAds or Carbon). The network script only loads once the ad slot becomes visible; your browser then sends it your IP address and user agent, with no cookie and no cross-site tracking — legal basis: legitimate interest. You can opt out by switching to a Premium account.'
             retention_title: Retention periods
-            retention_text: 'Account: as long as the account is active; after deletion, permanent anonymization within 30 days. Cookie consent proofs: 13 months. Contact messages: 12 months after receipt. Data rights requests: 6 years (proof of handling). Newsletter: until unsubscription.'
+            retention_text: 'Account: as long as the account is active; after deletion, permanent anonymization within 30 days. Contact messages: 12 months after receipt. Data rights requests: 6 years (proof of handling). Newsletter: until unsubscription.'
             cookies_title: Cookies
-            cookies_text: The site only uses strictly necessary cookies (login session, storage of your consent choices), which are exempt from prior consent. No advertising or audience measurement cookie is set.
+            cookies_text: The site only uses strictly necessary cookies (login session, language, form protection) and the browser's local storage to remember which tutorials you have already seen, all exempt from prior consent. No advertising, third-party or audience measurement cookie is set.
             rights_title: Your rights
             rights_text: You have the rights of access, rectification, erasure, portability and objection. From your profile you can export your data and delete your account at any time.
             rights_form_text: 'For any other request (including deleting data without an account), use our dedicated form:'
@@ -665,6 +669,7 @@ ui:
         gamification_privacy: Gamification & Privacy
         progression_system: Progression system (XP, levels, achievements)
         gamification_on: Enabled — your actions earn XP and unlock achievements.
+        gamification_games_warning: 'Disabling progression also closes access to Academy games.'
         gamification_off: Disabled — no progression data is collected.
         disable: Disable
         enable: Enable
@@ -739,6 +744,7 @@ ui:
         see_favorites: See my favorites
         rename_hint: Double-click to rename
         rename: Rename
+        open_recipe: Open recipe
         fav:
             title: My favorite blends
             subtitle: The recipes you marked as favorites.
@@ -857,7 +863,11 @@ ui:
         groups_tag: Catalog
         groups_title: Aromatic groups
         groups_intro: The great aroma families that group spices by taste affinity.
-        groups_soon: The aromatic groups catalog is coming soon.
+        no_group: No aromatic group yet.
+        back_to_groups: Back to groups
+        group_badge: Aromatic group
+        spices_of_group: Spices in this group
+        filter_spices_by_group: Filter the catalogue
         flavors_page_title: SpicyMatch — Flavor alchemy
         flavors_tag: Alchemy
         flavors_title: Flavor alchemy
@@ -966,17 +976,6 @@ ui:
         academy_desc: 6 game modes, rules, difficulty, scoring.
         easter_eggs: Easter Eggs
         easter_eggs_desc: The hidden finds, no spoilers.
-    cookie:
-        title: We respect your privacy
-        text: SpicyMatch uses cookies to improve your experience. You can choose which ones to accept.
-        essential: Essential cookies
-        always_on: (always on)
-        functional: Functional cookies
-        analytics: Analytics cookies
-        accept_all: Accept all
-        confirm: Confirm selection
-        reject_all: Reject all
-        preferences_legend: Cookie preferences
     register:
         page_title: Account creation
         title: Create an account
@@ -1147,6 +1146,7 @@ gamification:
         easter_egg_found: Easter egg found
         favorite_toggled: Favorite added
         game_completed: Game completed
+        daily_bonus: Daily challenge (XP ×2)
 
 enum:
     game_mode:

@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Tests\Service\Gdpr;
 
 use App\Command\GdprPurgeCommand;
+use App\Entity\SpicyMatch;
 use App\Entity\Users;
 use App\Repository\ContactRepository;
 use App\Repository\GdprRequestRepository;
 use App\Repository\NewsletterSubscriptionRepository;
+use App\Repository\SpicyMatchRepository;
 use App\Repository\UsersRepository;
 use App\Service\Gdpr\UserAnonymizer;
 use Doctrine\ORM\EntityManagerInterface;
@@ -51,6 +53,7 @@ final class GdprPurgeCommandTest extends TestCase
             $gdprRequestRepository,
             $usersRepository,
             new UserAnonymizer($entityManager, $newsletterRepository),
+            $this->guestMatches([]),
             $entityManager,
         );
 
@@ -91,11 +94,52 @@ final class GdprPurgeCommandTest extends TestCase
             $gdprRequestRepository,
             $usersRepository,
             new UserAnonymizer($entityManager, $newsletterRepository),
+            $this->guestMatches([]),
             $entityManager,
         );
 
         $tester = new CommandTester($command);
 
         $this->assertSame(0, $tester->execute([]));
+    }
+
+    public function testExecuteRemovesExpiredGuestBlends(): void
+    {
+        $usersRepository = $this->createStub(UsersRepository::class);
+        $usersRepository->method('findAnonymizableDeletedBefore')
+            ->willReturn([]);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->exactly(2))
+            ->method('remove')
+            ->with($this->isInstanceOf(SpicyMatch::class));
+        $entityManager->expects($this->once())
+            ->method('flush');
+
+        $command = new GdprPurgeCommand(
+            $this->createStub(ContactRepository::class),
+            $this->createStub(GdprRequestRepository::class),
+            $usersRepository,
+            new UserAnonymizer($entityManager, $this->createStub(NewsletterSubscriptionRepository::class)),
+            $this->guestMatches([new SpicyMatch(), new SpicyMatch()]),
+            $entityManager,
+        );
+
+        $tester = new CommandTester($command);
+        $tester->execute([]);
+
+        $this->assertStringContainsString('2 mélange(s) invité(s)', (string) preg_replace('/\s+/', ' ', $tester->getDisplay()));
+    }
+
+    /**
+     * @param list<SpicyMatch> $matches
+     */
+    private function guestMatches(array $matches): SpicyMatchRepository
+    {
+        $repository = $this->createStub(SpicyMatchRepository::class);
+        $repository->method('findGuestMatchesCreatedBefore')
+            ->willReturn($matches);
+
+        return $repository;
     }
 }

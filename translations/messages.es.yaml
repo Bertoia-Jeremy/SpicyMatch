@@ -5,6 +5,7 @@ common:
         save: Guardar
         cancel: Cancelar
     close: Cerrar
+    loading: Cargando…
     delete: Eliminar
     reset: Restablecer
 
@@ -41,6 +42,7 @@ flash:
     posture_updated: Postura actualizada.
     preference_saved: Preferencia guardada.
     daily_limit_reached: 'Límite diario alcanzado (%max% sesiones de %mode% por día).'
+    gamification_disabled: 'Los juegos solo están disponibles con la progresión activada.'
 
 ui:
     pairing:
@@ -330,6 +332,12 @@ ui:
         record_label: 'Récord: %score%'
         record_none: Por desbloquear
         daily_challenge: Desafío del día
+        daily_bonus_pill: XP ×2
+        daily_bonus_applied: Bonus del día — XP ×2
+        tomorrow_teaser: 'Mañana, desafío del día: %mode%'
+        games_closed_title: Juegos cerrados
+        games_closed_text: 'Tu progresión está desactivada: los juegos de la Academia ya no están disponibles.'
+        games_closed_cta: Reactivar la progresión
         locked_hint: Vuelve mañana para volver a jugar
         locked_level_hint: '%mode% se desbloquea en el nivel %level%'
         lesson: 'Lección %numeral%'
@@ -439,10 +447,6 @@ ui:
         out_of_top5: Fuera del top 5 en esta matriz
         tanimoto_title: Puntuación Tanimoto OAV (escala 0–100)
         tanimoto_note: Puntuaciones Tanimoto OAV ∈ [0–100] · corregidas por partición Nernst y decaimiento térmico para la matriz evaluada.
-        alchemist_note: La Nota del Alquimista
-        note_shared: '«Estas especias comparten %count% compuesto(s) aromático(s) en común — su afinidad se basa en una firma aromática compartida.»'
-        note_manual: '«Mezcla compuesta libremente — la complementariedad de estas especias se expresa sin cálculo de afinidad.»'
-        note_contrast: '«Estas especias no tienen ningún compuesto aromático principal en común — su asociación se basa en la complementariedad y el contraste.»'
         untitled_placeholder: Nombrar esta mezcla
         lab_notebook: Cuaderno del laboratorio
         folio_short: 'Folio %id%'
@@ -450,8 +454,6 @@ ui:
         tab_timeline: Desarrollo
         tab_spices: Especias
         composition: Composición de la mezcla
-        read: Leer
-        collapse: Reducir
         free: Libre
         prepare: Preparar
         incorporate: Incorporar
@@ -460,6 +462,8 @@ ui:
         goto_spice_aria: 'Ver la ficha de %name%'
         goto_spice_page: 'Página de la especia %name%'
         favorite_failed: Favorito no guardado.
+        gate_favorite: 'Tu mezcla está lista: crea una cuenta para guardarla como favorita y encontrarla en tu historial.'
+        gate_rename: 'Crea una cuenta para ponerle nombre a tu mezcla y encontrarla en tu historial.'
         retry: Reintentar
         cook_mode:
             start: Pasar al modo cocina
@@ -528,6 +532,7 @@ ui:
         empty_html: 'Haz clic en una <span class="font-display italic text-stone-500">especia</span> para empezar tu mezcla'
         remove: 'Quitar %name%'
         clear_selection: Vaciar la selección
+        min_spices_hint: Elige al menos %count% especias para componer
         compose: Componer la mezcla
         data: 'Datos: %label%'
         scores_indicative: Puntuaciones indicativas — datos en proceso de validación.
@@ -620,16 +625,15 @@ ui:
             data_account: 'Cuenta de usuario: nombre de usuario, contraseña (cifrada), correo electrónico (opcional), preferencias (idioma, dificultad), progresión y estadísticas de juego — base legal: ejecución del servicio.'
             data_contact: 'Formulario de contacto: nombre, correo, mensaje — base legal: interés legítimo (respuesta a su solicitud).'
             data_newsletter: 'Boletín: dirección de correo y dirección IP (prueba de suscripción) — base legal: consentimiento, revocable en cualquier momento mediante el enlace de baja.'
-            data_consent: 'Preferencias de cookies: elecciones expresadas, dirección IP y navegador (prueba del consentimiento), conservadas 13 meses — base legal: obligación legal.'
             data_monitoring: 'Supervisión técnica: registros de errores anonimizados (sin datos personales), alojados en nuestra propia infraestructura — base legal: interés legítimo (seguridad y fiabilidad del servicio).'
             purposes_title: Finalidades
             purposes_text: Los datos se utilizan exclusivamente para prestar el servicio (cuenta, mezclas, progresión), responder a sus solicitudes, enviar el boletín si lo ha consentido y garantizar la seguridad del sitio. Ningún dato se vende ni se comparte con terceros con fines comerciales.
             ads_title: Publicidad
-            ads_text: 'Cuando la publicidad está activa, SpicyMatch utiliza una red publicitaria sin cookies ni perfilado (publicidad contextual). No se recoge ningún dato de navegación con fines publicitarios — base legal: interés legítimo. Puede oponerse pasando a una cuenta Premium.'
+            ads_text: 'Cuando la publicidad está activa, SpicyMatch muestra anuncios contextuales de redes sin cookies ni perfilado (EthicalAds o Carbon). El script de la red solo se carga cuando el espacio publicitario se vuelve visible; su navegador le transmite entonces su dirección IP y su user-agent, sin cookies ni seguimiento entre sitios — base legal: interés legítimo. Puede oponerse pasando a una cuenta Premium.'
             retention_title: Plazos de conservación
-            retention_text: 'Cuenta: mientras la cuenta esté activa; tras la eliminación, anonimización definitiva en un plazo de 30 días. Pruebas de consentimiento de cookies: 13 meses. Mensajes de contacto: 12 meses tras su recepción. Solicitudes de ejercicio de derechos: 6 años (prueba de la tramitación). Boletín: hasta la baja.'
+            retention_text: 'Cuenta: mientras la cuenta esté activa; tras la eliminación, anonimización definitiva en un plazo de 30 días. Mensajes de contacto: 12 meses tras su recepción. Solicitudes de ejercicio de derechos: 6 años (prueba de la tramitación). Boletín: hasta la baja.'
             cookies_title: Cookies
-            cookies_text: El sitio solo utiliza cookies estrictamente necesarias (sesión de conexión, memorización de sus elecciones de consentimiento), exentas de consentimiento previo. No se instala ninguna cookie publicitaria ni de medición de audiencia.
+            cookies_text: El sitio solo utiliza cookies estrictamente necesarias (sesión de conexión, idioma, protección de formularios) y el almacenamiento local del navegador para recordar los tutoriales ya vistos, exentos de consentimiento previo. No se instala ninguna cookie publicitaria, de terceros ni de medición de audiencia.
             rights_title: Sus derechos
             rights_text: Dispone de los derechos de acceso, rectificación, supresión, portabilidad y oposición. Desde su perfil puede exportar sus datos y eliminar su cuenta en cualquier momento.
             rights_form_text: 'Para cualquier otra solicitud (incluida la supresión de datos sin cuenta), utilice nuestro formulario dedicado:'
@@ -665,6 +669,7 @@ ui:
         gamification_privacy: Gamificación y Privacidad
         progression_system: Sistema de progresión (XP, niveles, logros)
         gamification_on: Activado — tus acciones dan XP y desbloquean logros.
+        gamification_games_warning: 'Desactivar la progresión también cierra el acceso a los juegos de la Academia.'
         gamification_off: Desactivado — no se recopila ningún dato de progresión.
         disable: Desactivar
         enable: Activar
@@ -739,6 +744,7 @@ ui:
         see_favorites: Ver mis favoritos
         rename_hint: Haz doble clic para renombrar
         rename: Renombrar
+        open_recipe: Abrir la receta
         fav:
             title: Mis mezclas favoritas
             subtitle: Las recetas que marcaste como favoritas.
@@ -857,7 +863,11 @@ ui:
         groups_tag: Catálogo
         groups_title: Grupos aromáticos
         groups_intro: Las grandes familias de aromas que agrupan las especias por afinidad gustativa.
-        groups_soon: El catálogo de los grupos aromáticos llega pronto.
+        no_group: Todavía no hay grupos aromáticos.
+        back_to_groups: Volver a los grupos
+        group_badge: Grupo aromático
+        spices_of_group: Especias de este grupo
+        filter_spices_by_group: Filtrar el catálogo
         flavors_page_title: SpicyMatch — Sabores de alquimia
         flavors_tag: Alquimia
         flavors_title: Sabores de alquimia
@@ -966,17 +976,6 @@ ui:
         academy_desc: 6 modos de juego, reglas, dificultad, puntuación.
         easter_eggs: Easter Eggs
         easter_eggs_desc: Los hallazgos ocultos, sin spoilers.
-    cookie:
-        title: Respetamos tu privacidad
-        text: SpicyMatch usa cookies para mejorar tu experiencia. Puedes elegir cuáles aceptar.
-        essential: Cookies esenciales
-        always_on: (siempre activas)
-        functional: Cookies funcionales
-        analytics: Cookies analíticas
-        accept_all: Aceptar todas
-        confirm: Confirmar selección
-        reject_all: Rechazar todas
-        preferences_legend: Preferencias de cookies
     register:
         page_title: Creación de cuenta
         title: Crear una cuenta
@@ -1147,6 +1146,7 @@ gamification:
         easter_egg_found: Easter egg encontrado
         favorite_toggled: Favorito añadido
         game_completed: Partida terminada
+        daily_bonus: Desafío del día (XP ×2)
 
 enum:
     game_mode:

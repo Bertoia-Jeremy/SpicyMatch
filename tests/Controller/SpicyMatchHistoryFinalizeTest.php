@@ -19,15 +19,6 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class SpicyMatchHistoryFinalizeTest extends WebTestCase
 {
-    public function testAnonymousUserIsRedirectedToLogin(): void
-    {
-        $client = self::createClient();
-
-        $client->request('GET', '/fr/spicymatch/history/1/finalize');
-
-        self::assertResponseRedirects('/login');
-    }
-
     public function testFinalizeRendersDuoTooltipsAndMapWithoutWritingOnGet(): void
     {
         $client = self::createClient();

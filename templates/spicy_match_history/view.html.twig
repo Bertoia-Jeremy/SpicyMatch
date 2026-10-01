@@ -15,11 +15,11 @@
      data-title="{{ history.title }}"
      data-placeholder="{{ placeholder }}"
      data-favorite="{{ history.isFavorite ? '1' : '0' }}"
+     data-guest="{{ is_granted('ROLE_USER') ? '0' : '1' }}"
      data-cook-steps="{{ 1 + recipe.usedMoments|length }}">
 
     <div class="recipe-shell" x-bind:inert="cook.active">
         {{ include('spicy_match_history/recipe/_header.html.twig') }}
-        {{ include('spicy_match_history/recipe/_note.html.twig') }}
 
         <div class="recipe-segment-wrap">
             <div class="recipe-segment" role="tablist" aria-label="{{ 'ui.recipe.tabs_aria'|trans }}">
@@ -47,10 +47,6 @@
             {% if oav_context_enabled %}
                 {{ include('spicy_match_history/recipe/_oav_insights.html.twig') }}
             {% endif %}
-        </div>
-
-        <div class="px-5 mt-8">
-            {% include 'partials/_ads_banner.html.twig' %}
         </div>
 
         <p class="mt-8 text-center">

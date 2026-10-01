@@ -20,7 +20,7 @@ class SpicyMatch
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'spicyMatches')]
-    #[ORM\JoinColumn(nullable: false, name: 'user_id')]
+    #[ORM\JoinColumn(nullable: true, name: 'user_id')]
     private ?Users $user = null;
 
     /**

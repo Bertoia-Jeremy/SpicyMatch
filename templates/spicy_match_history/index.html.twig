@@ -57,8 +57,9 @@
                                             <span x-text="displayTitle()"></span>
                                             <button type="button"
                                                     @click.stop="startEdit"
-                                                    class="opacity-0 group-hover:opacity-100 transition-opacity text-stone-300 hover:text-saffron-600 text-[11px] leading-none"
-                                                    title="{{ 'ui.history.rename'|trans }}">
+                                                    class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity text-stone-300 hover:text-saffron-600 text-[11px] leading-none focus:outline-none focus-visible:ring-2 focus:ring-saffron-600/30 rounded"
+                                                    title="{{ 'ui.history.rename'|trans }}"
+                                                    aria-label="{{ 'ui.history.rename'|trans }}">
                                                 <i class="fa-solid fa-pencil" aria-hidden="true"></i>
                                             </button>
                                         </h2>
@@ -88,14 +89,17 @@
                                 <div class="flex items-center gap-4 shrink-0">
                                     <button type="button"
                                             @click.stop="toggleFavorite"
-                                            class="text-xl transition-colors focus:outline-none"
+                                            class="text-xl transition-colors focus:outline-none focus-visible:ring-2 focus:ring-saffron-600/30 rounded"
                                             :class="starButtonClass()"
-                                            :title="starTitle()">
-                                        <i :class="starIconClass()"></i>
+                                            :title="starTitle()"
+                                            x-bind:aria-label="starTitle()"
+                                            x-bind:aria-pressed="favorite.toString()">
+                                        <i :class="starIconClass()" aria-hidden="true"></i>
                                     </button>
                                     <span class="text-sm text-stone-400">{{ history.createdAt|format_date('medium') }}</span>
                                     <a href="{{ path('view_spicy_match_history', {'id': history.id}) }}"
-                                       class="text-stone-300 hover:text-saffron-600 transition-colors"
+                                       class="text-stone-300 hover:text-saffron-600 transition-colors focus:outline-none focus-visible:ring-2 focus:ring-saffron-600/30 rounded"
+                                       aria-label="{{ 'ui.history.open_recipe'|trans }}"
                                        @click.stop>
                                         <i class="fa-solid fa-chevron-right text-sm" aria-hidden="true"></i>
                                     </a>
@@ -106,5 +110,8 @@
                 </div>
             {% endif %}
         </turbo-frame>
+        <div class="mt-12">
+            {% include 'partials/_ads_banner.html.twig' %}
+        </div>
     </div>
 {% endblock %}

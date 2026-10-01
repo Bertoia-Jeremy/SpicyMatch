@@ -17,7 +17,7 @@
         {% set spiceDescription = spice.getLocalizedDescription(loc) %}
         {% set color = spice.aromaticGroups ? spice.aromaticGroups.color : '#78716C' %}
         {% set groupName = spice.aromaticGroups ? spice.aromaticGroups.getLocalizedName(loc) : null %}
-        {% set typeName = spice.spicyType ? spice.spicyType.name : null %}
+        {% set typeName = spice.spicyType ? spice.spicyType.getLocalizedName(loc) : null %}
         {% set imageUrl = vich_uploader_asset(spice, 'imageFile') %}
     {% endif %}
 

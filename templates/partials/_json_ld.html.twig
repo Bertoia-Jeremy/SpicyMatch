@@ -1,0 +1,4 @@
+{% set _json_ld = json_ld(subject ?? null) %}
+{% if _json_ld|length > 0 %}
+    <script type="application/ld+json" nonce="{{ csp_nonce('script') }}">{{ _json_ld }}</script>
+{% endif %}

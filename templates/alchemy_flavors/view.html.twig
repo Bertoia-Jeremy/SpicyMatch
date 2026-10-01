@@ -1,66 +1,54 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ alchemyFlavor.name }} — SpicyMatch{% endblock %}
+{% block title %}{{ alchemyFlavor.getLocalizedName(app.request.locale) }} — SpicyMatch{% endblock %}
+
+{% block meta_description %}{{ alchemyFlavor.getLocalizedDescription(app.request.locale)|seo_summary|default('ui.meta.description'|trans) }}{% endblock %}
+
+{% block structured_data %}{{ include('partials/_json_ld.html.twig', {subject: alchemyFlavor}) }}{% endblock %}
 
 {% block body %}
+{% set loc = app.request.locale %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <nav class="mb-8">
-        <twig:Button label="{{ 'ui.catalog.back_to_flavors'|trans }}" href="{{ path('index_alchemy_flavors') }}" variant="back" size="sm" />
-    </nav>
+    <twig:Catalog:Hero
+        backLabel="{{ 'ui.catalog.back_to_flavors'|trans }}"
+        backHref="{{ path('index_alchemy_flavors') }}"
+        badge="{{ 'ui.catalog.flavor_badge'|trans }}"
+        icon="fa-solid fa-flask-vial"
+        tone="turmeric"
+        title="{{ alchemyFlavor.getLocalizedName(loc) }}"
+    />
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
         <div class="lg:col-span-2 space-y-8">
-            <header>
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-turmeric-100 text-turmeric-700 text-xs font-bold uppercase tracking-wider mb-4">
-                    <i class="fa-solid fa-flask-vial" aria-hidden="true"></i> {{ 'ui.catalog.flavor_badge'|trans }}
-                </div>
-                <h1 class="text-5xl font-display font-bold text-stone-900">{{ alchemyFlavor.name }}</h1>
-            </header>
+            <twig:Catalog:Section title="{{ 'ui.catalog.taste_profile'|trans }}" icon="fa-solid fa-circle-info" tone="turmeric">
+                {{ alchemyFlavor.getLocalizedDescription(loc)|default('ui.catalog.no_profile_detailed'|trans)|nl2br }}
+            </twig:Catalog:Section>
 
-            <section class="card-warm p-8">
-                <h2 class="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-info text-turmeric-500" aria-hidden="true"></i> {{ 'ui.catalog.taste_profile'|trans }}
-                </h2>
-                <div class="text-stone-600 leading-relaxed space-y-4">
-                    {{ alchemyFlavor.description|default('ui.catalog.no_profile_detailed'|trans)|nl2br }}
-                </div>
-            </section>
-
-            {% if alchemyFlavor.cooking %}
-                <section class="card-warm p-8">
-                    <h2 class="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-mortar-pestle text-turmeric-500" aria-hidden="true"></i> {{ 'ui.catalog.culinary_pairings'|trans }}
-                    </h2>
-                    <div class="text-stone-600 leading-relaxed">
-                        {{ alchemyFlavor.cooking|nl2br }}
-                    </div>
-                </section>
+            {% if alchemyFlavor.getLocalizedCooking(loc) %}
+                <twig:Catalog:Section title="{{ 'ui.catalog.culinary_pairings'|trans }}" icon="fa-solid fa-mortar-pestle" tone="turmeric">
+                    {{ alchemyFlavor.getLocalizedCooking(loc)|nl2br }}
+                </twig:Catalog:Section>
             {% endif %}
 
-            {% if alchemyFlavor.informations %}
-                <section class="card-warm p-8">
-                    <h2 class="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-flask text-turmeric-500" aria-hidden="true"></i> {{ 'ui.catalog.scientific_note'|trans }}
-                    </h2>
-                    <div class="text-stone-600 leading-relaxed">
-                        {{ alchemyFlavor.informations|nl2br }}
-                    </div>
-                </section>
+            {% if alchemyFlavor.getLocalizedInformations(loc) %}
+                <twig:Catalog:Section title="{{ 'ui.catalog.scientific_note'|trans }}" icon="fa-solid fa-flask" tone="turmeric">
+                    {{ alchemyFlavor.getLocalizedInformations(loc)|nl2br }}
+                </twig:Catalog:Section>
             {% endif %}
         </div>
 
-        <div class="space-y-8">
+        <aside class="space-y-8">
             <section>
-                <h3 class="text-xl font-bold text-stone-900 mb-6 flex items-center gap-2">
+                <h2 class="text-xl font-bold text-stone-900 mb-6 flex items-center gap-2">
                     <i class="fa-solid fa-atom text-saffron-600" aria-hidden="true"></i> {{ 'ui.catalog.associated_compounds'|trans }}
-                </h3>
-                
+                </h2>
+
                 {% if alchemyFlavor.aromaticsCompounds is not empty %}
                     <div class="grid grid-cols-1 gap-3">
                         {% for compound in alchemyFlavor.aromaticsCompounds %}
-                            <a href="{{ path('view_aromatic_compound', {slug: compound.getLocalizedSlug(app.request.locale)}) }}"
+                            <a href="{{ path('view_aromatic_compound', {slug: compound.getLocalizedSlug(loc)}) }}"
                                class="flex items-center justify-between p-4 bg-white border border-stone-200 rounded-xl hover:border-saffron-400 hover:shadow-md transition-all group">
-                                <span class="font-semibold text-stone-700 group-hover:text-saffron-700">{{ compound.getLocalizedName(app.request.locale) }}</span>
+                                <span class="font-semibold text-stone-700 group-hover:text-saffron-700">{{ compound.getLocalizedName(loc) }}</span>
                                 <i class="fa-solid fa-chevron-right text-stone-300 text-xs group-hover:text-saffron-500 transition-colors" aria-hidden="true"></i>
                             </a>
                         {% endfor %}
@@ -69,7 +57,7 @@
                     <p class="text-stone-400 italic">{{ 'ui.catalog.no_linked_compound'|trans }}</p>
                 {% endif %}
             </section>
-        </div>
+        </aside>
     </div>
 </div>
 {% endblock %}

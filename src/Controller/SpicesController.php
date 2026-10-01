@@ -13,6 +13,7 @@ use App\Repository\SpiceDuoRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpiceViewRepository;
 use App\Repository\SpicyTypeRepository;
+use App\Routing\CatalogPath;
 use App\Service\Match\SpiceDuoMapBuilder;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,9 +24,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
-#[Route('/{_locale}/epices', defaults: [
-    '_locale' => 'fr',
-])]
+#[Route(CatalogPath::SPICES)]
 class SpicesController extends AbstractController
 {
     use CanonicalSlugTrait;
@@ -50,7 +49,19 @@ class SpicesController extends AbstractController
         $aromaticGroup = $agSlug !== null ? $aromaticGroupsRepository->findOneByLocalizedSlug($agSlug, $locale) : null;
         $spicyType = $stSlug !== null ? $spicyTypeRepository->findOneByLocalizedSlug($stSlug, $locale) : null;
 
-        $query = $this->spicesRepository->findFiltered($aromaticGroup?->getId(), $spicyType?->getId(), $search);
+        $canonicalFilters = array_filter([
+            'aromatic_group' => $agSlug !== null ? $aromaticGroup?->getLocalizedSlug($locale) : null,
+            'spicy_type' => $stSlug !== null ? $spicyType?->getLocalizedSlug($locale) : null,
+        ], static fn (?string $slug): bool => $slug !== null && $slug !== '');
+        if (array_diff_assoc($canonicalFilters, $request->query->all()) !== []) {
+            return $this->redirectToRoute(
+                'index_spices',
+                $canonicalFilters + $request->query->all(),
+                Response::HTTP_MOVED_PERMANENTLY,
+            );
+        }
+
+        $query = $this->spicesRepository->findFiltered($aromaticGroup?->getId(), $spicyType?->getId(), $search, $locale);
 
         $limit = $request->query->getInt('limit', 12);
 
@@ -58,8 +69,8 @@ class SpicesController extends AbstractController
 
         return $this->render('spices/index.html.twig', [
             'spices' => $spices,
-            'aromaticGroups' => $aromaticGroupsRepository->findAll(),
-            'spicyTypes' => $spicyTypeRepository->findAll(),
+            'aromaticGroups' => $aromaticGroupsRepository->findAllForLocale($locale),
+            'spicyTypes' => $spicyTypeRepository->findAllForLocale($locale),
             'activeAgId' => $aromaticGroup?->getId(),
             'activeStId' => $spicyType?->getId(),
             'activeAgSlug' => $aromaticGroup?->getLocalizedSlug($locale),
@@ -69,7 +80,7 @@ class SpicesController extends AbstractController
     }
 
     #[Route('/{slug}', name: 'view_spice', requirements: [
-        'slug' => '(?!(?:groupes_aromatiques|composes_aromatiques|saveurs_aromatiques|types_epices)$)[^/]+',
+        'slug' => CatalogPath::SPICE_SLUG_REQUIREMENT,
     ], priority: -10)]
     public function view(
         string $slug,
@@ -115,7 +126,7 @@ class SpicesController extends AbstractController
         ]);
     }
 
-    #[Route('/{slug}/apercu', name: 'quick_view_spice', priority: -10)]
+    #[Route(CatalogPath::SPICE_QUICK_VIEW, name: 'quick_view_spice', priority: -10)]
     public function quickView(string $slug, Request $request): Response
     {
         $locale = $request->getLocale();

@@ -1,0 +1,29 @@
+{% props title, href, cta, icon, tone = 'saffron', description = null, color = null %}
+{% set tones = {
+    saffron: {box: 'bg-saffron-100', icon: 'text-saffron-600'},
+    turmeric: {box: 'bg-turmeric-100', icon: 'text-turmeric-600'},
+    paprika: {box: 'bg-paprika-100', icon: 'text-paprika-600'},
+} %}
+{% set t = tones[tone] ?? tones.saffron %}
+{% set safeColor = color is not null and color matches '/^#[0-9a-fA-F]{3,8}$/' ? color : null %}
+<article class="card-warm p-6 flex flex-col h-full">
+    <div class="w-12 h-12 rounded-xl {{ safeColor ? '' : t.box }} flex items-center justify-center mb-4"
+         {% if safeColor %}style="background-color: {{ safeColor }}26"{% endif %}>
+        <i class="{{ icon }} {{ safeColor ? '' : t.icon }}" aria-hidden="true"
+           {% if safeColor %}style="color: {{ safeColor }}"{% endif %}></i>
+    </div>
+    <h2 class="text-xl font-bold text-stone-900 mb-2">{{ title }}</h2>
+    {% if description %}
+        <p class="text-stone-500 text-sm line-clamp-3 mb-6 flex-1">{{ description }}</p>
+    {% else %}
+        <p class="text-stone-400 text-sm italic mb-6 flex-1">{{ 'ui.catalog.no_description'|trans }}</p>
+    {% endif %}
+    <twig:Button
+        label="{{ cta }}"
+        href="{{ href }}"
+        variant="secondary"
+        size="sm"
+        icon="fa-solid fa-arrow-right"
+        iconPos="right"
+    />
+</article>

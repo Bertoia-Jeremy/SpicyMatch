@@ -6,34 +6,45 @@
         <meta name="description" content="{% block meta_description %}{{ 'ui.meta.description'|trans }}{% endblock %}">
         <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
 
-        {% set _route = app.request.attributes.get('_route') %}
-        {% set _params = app.request.attributes.get('_route_params')|default({}) %}
-        {% if _route and _params._locale is defined %}
-            {% set _hreflangSlugs = hreflang_slugs|default(null) %}
-            <link rel="canonical" href="{{ url(_route, _params) }}">
-            {% for _loc in ['fr', 'en', 'es'] %}
-                {% set _altParams = _params|merge({'_locale': _loc}) %}
-                {% if _hreflangSlugs and _params.slug is defined %}{% set _altParams = _altParams|merge({'slug': _hreflangSlugs[_loc]}) %}{% endif %}
-                <link rel="alternate" hreflang="{{ _loc }}" href="{{ url(_route, _altParams) }}">
+        {% set _alternates = locale_alternates(true) %}
+        {% if _alternates[app.request.locale] is defined %}
+            <link rel="canonical" href="{{ _alternates[app.request.locale] }}">
+            {% for _loc, _href in _alternates %}
+                <link rel="alternate" hreflang="{{ _loc }}" href="{{ _href }}">
             {% endfor %}
-            <link rel="alternate" hreflang="x-default" href="{{ url(_route, _params|merge({'_locale': 'fr'})|merge(_hreflangSlugs and _params.slug is defined ? {'slug': _hreflangSlugs.fr} : {})) }}">
+            {% if _alternates.fr is defined %}
+                <link rel="alternate" hreflang="x-default" href="{{ _alternates.fr }}">
+            {% endif %}
         {% endif %}
         {% block metas %}{% endblock %}
         <title>{% block title %}{{ 'ui.meta.default_title'|trans }}{% endblock %}</title>
+        {% set _og_locales = {fr: 'fr_FR', en: 'en_GB', es: 'es_ES'} %}
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="SpicyMatch">
+        <meta property="og:title" content="{{ block('title') }}">
+        <meta property="og:description" content="{{ block('meta_description') }}">
+        {% if _alternates[app.request.locale] is defined %}
+            <meta property="og:url" content="{{ _alternates[app.request.locale] }}">
+            {% for _loc in _alternates|keys|filter(l => l != app.request.locale and _og_locales[l] is defined) %}
+                <meta property="og:locale:alternate" content="{{ _og_locales[_loc] }}">
+            {% endfor %}
+        {% endif %}
+        <meta property="og:locale" content="{{ _og_locales[app.request.locale] ?? 'fr_FR' }}">
+        {% block og_image %}{% endblock %}
+        {% block structured_data %}{% endblock %}
 
         <link rel="preload" as="font" type="font/woff2" href="{{ asset('fonts/inter-normal-latin.woff2') }}" crossorigin>
         <link rel="preload" as="font" type="font/woff2" href="{{ asset('fonts/cormorant-garamond-normal-latin.woff2') }}" crossorigin>
-        <link rel="preload" as="font" type="font/woff2" href="{{ asset('lib/fontawesome/webfonts/fa-solid-900.woff2') }}" crossorigin>
+        <link rel="preload" as="font" type="font/woff2" href="{{ asset('lib/fontawesome-subset/webfonts/fa-solid-900.woff2') }}" crossorigin>
 
         <link rel="preload" as="style"
               data-async-css="fontawesome"
-              href="{{ asset('lib/fontawesome/css/all.min.css') }}">
+              href="{{ asset('lib/fontawesome-subset/css/fontawesome.min.css') }}">
         <noscript>
-            <link rel="stylesheet" href="{{ asset('lib/fontawesome/css/all.min.css') }}">
+            <link rel="stylesheet" href="{{ asset('lib/fontawesome-subset/css/fontawesome.min.css') }}">
         </noscript>
 
         <script nonce="{{ csp_nonce('script') }}">
-            // Swap preload → stylesheet pour éviter render-blocking sans casser CSP
             document.querySelectorAll('link[data-async-css]').forEach(l => l.rel = 'stylesheet');
         </script>
 
@@ -88,7 +99,10 @@
 
         {% include 'components/_account_created_modal.html.twig' %}
 
-        {% include 'components/_onboarding.html.twig' %}
+        {% if app.request.attributes.get('_route') == 'home' %}
+            {% include 'components/_onboarding.html.twig' %}
+        {% endif %}
+
         {% if not is_granted('ROLE_USER') and app.request.attributes.get('_route') not in ['app_login', 'index_register'] %}
             {% include 'components/_gate_login_modal.html.twig' %}
         {% endif %}

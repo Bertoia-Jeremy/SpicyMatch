@@ -10,6 +10,17 @@
     {% endif %}
 {% endblock %}
 
+{% block meta_description %}{{ spice.getLocalizedDescription(app.request.locale)|seo_summary|default('ui.meta.description'|trans) }}{% endblock %}
+
+{% block structured_data %}{{ include('partials/_json_ld.html.twig', {subject: spice}) }}{% endblock %}
+
+{% block og_image %}
+    {% set _ogImg = vich_uploader_asset(spice, 'imageFile') %}
+    {% if _ogImg %}
+        <meta property="og:image" content="{{ _ogImg|imagine_filter('spice_hero') }}">
+    {% endif %}
+{% endblock %}
+
 {% block body %}
 
 {% set loc = app.request.locale %}

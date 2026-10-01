@@ -5,14 +5,18 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\AromaticCompound;
+use App\Repository\Concern\LocalizedSlugLookupTrait;
+use App\Seo\SitemapSourceInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<AromaticCompound>
  */
-class AromaticCompoundRepository extends ServiceEntityRepository
+class AromaticCompoundRepository extends ServiceEntityRepository implements SitemapSourceInterface
 {
+    use LocalizedSlugLookupTrait;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, AromaticCompound::class);
@@ -20,23 +24,20 @@ class AromaticCompoundRepository extends ServiceEntityRepository
 
     public function findOneByLocalizedSlug(string $slug, string $locale): ?AromaticCompound
     {
-        if ($locale !== 'fr') {
-            $translated = $this->createQueryBuilder('e')
-                ->innerJoin('e.translations', 't', 'WITH', 't.locale = :loc AND t.slug = :slug')
-                ->setParameter('loc', $locale)
-                ->setParameter('slug', $slug)
-                ->setMaxResults(1)
-                ->getQuery()
-                ->getOneOrNullResult();
+        $entity = $this->lookupByLocalizedSlug($slug, $locale);
 
-            if ($translated !== null) {
-                return $translated;
-            }
-        }
+        return $entity instanceof AromaticCompound ? $entity : null;
+    }
 
-        return $this->findOneBy([
-            'slug' => $slug,
-        ]);
+    /**
+     * @return list<AromaticCompound>
+     */
+    public function findAllForLocale(string $locale): array
+    {
+        return array_values(array_filter(
+            $this->findAllWithTranslation($locale),
+            static fn (object $e): bool => $e instanceof AromaticCompound,
+        ));
     }
 
     public function add(AromaticCompound $entity, bool $flush = false): void

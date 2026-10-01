@@ -6,23 +6,22 @@ namespace App\Controller;
 
 use App\Controller\Concern\CanonicalSlugTrait;
 use App\Repository\SpicyTypeRepository;
+use App\Routing\CatalogPath;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/{_locale}/epices/types_epices', defaults: [
-    '_locale' => 'fr',
-])]
+#[Route(CatalogPath::SPICY_TYPES)]
 class SpicyTypeController extends AbstractController
 {
     use CanonicalSlugTrait;
 
     #[Route('/', name: 'index_spicy_type', methods: ['GET'])]
-    public function index(SpicyTypeRepository $repository): Response
+    public function index(SpicyTypeRepository $repository, Request $request): Response
     {
         return $this->render('spicy_type/index.html.twig', [
-            'spicyTypes' => $repository->findAll(),
+            'spicyTypes' => $repository->findAllForLocale($request->getLocale()),
         ]);
     }
 

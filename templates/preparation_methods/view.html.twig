@@ -2,6 +2,10 @@
 
 {% block title %}SpicyMatch — {{ preparationMethod.getLocalizedName(app.request.locale) }}{% endblock %}
 
+{% block meta_description %}{{ preparationMethod.getLocalizedDescription(app.request.locale)|seo_summary|default('ui.meta.description'|trans) }}{% endblock %}
+
+{% block structured_data %}{{ include('partials/_json_ld.html.twig', {subject: preparationMethod}) }}{% endblock %}
+
 {% block body %}
     {% set loc = app.request.locale %}
     <turbo-frame id="preparation_methode_frame_{{ preparationMethod.id }}">

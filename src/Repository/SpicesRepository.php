@@ -6,6 +6,8 @@ namespace App\Repository;
 
 use App\Entity\AromaticGroups;
 use App\Entity\Spices;
+use App\Repository\Concern\LocalizedSlugLookupTrait;
+use App\Seo\SitemapSourceInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\ParameterType;
 use Doctrine\Persistence\ManagerRegistry;
@@ -14,8 +16,10 @@ use SortDirection;
 /**
  * @extends ServiceEntityRepository<Spices>
  */
-class SpicesRepository extends ServiceEntityRepository
+class SpicesRepository extends ServiceEntityRepository implements SitemapSourceInterface
 {
+    use LocalizedSlugLookupTrait;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Spices::class);
@@ -23,23 +27,9 @@ class SpicesRepository extends ServiceEntityRepository
 
     public function findOneByLocalizedSlug(string $slug, string $locale): ?Spices
     {
-        if ($locale !== 'fr') {
-            $translated = $this->createQueryBuilder('e')
-                ->innerJoin('e.translations', 't', 'WITH', 't.locale = :loc AND t.slug = :slug')
-                ->setParameter('loc', $locale)
-                ->setParameter('slug', $slug)
-                ->setMaxResults(1)
-                ->getQuery()
-                ->getOneOrNullResult();
+        $entity = $this->lookupByLocalizedSlug($slug, $locale);
 
-            if ($translated !== null) {
-                return $translated;
-            }
-        }
-
-        return $this->findOneBy([
-            'slug' => $slug,
-        ]);
+        return $entity instanceof Spices ? $entity : null;
     }
 
     public function add(Spices $entity, bool $flush = false): void
@@ -102,26 +92,51 @@ class SpicesRepository extends ServiceEntityRepository
     /**
      * @return array<array<string>>
      */
-    public function findAllSpices(): array
+    public function findAllSpices(?string $locale = null): array
     {
-        return $this->createQueryBuilder('s')
-            ->select(
-                's.id',
-                's.name',
-                's.slug',
-                's.description',
-                's.file',
-                'ag.id AS agId',
-                'ag.color',
-                'ag.name AS groupName',
-                'st.id AS stId',
-                'st.name AS typeName'
-            )
+        $qb = $this->createQueryBuilder('s')
             ->leftJoin('s.aromaticGroups', 'ag')
             ->leftJoin('s.spicyType', 'st')
             ->andWhere('s.deleted_at IS NULL')
-            ->orderBy('ag.name')
-            ->addOrderBy('s.name')
+            ->orderBy('ag.name');
+
+        if ($locale === null || $locale === 'fr') {
+            return $qb
+                ->select(
+                    's.id',
+                    's.name',
+                    's.slug',
+                    's.description',
+                    's.file',
+                    'ag.id AS agId',
+                    'ag.color',
+                    'ag.name AS groupName',
+                    'st.id AS stId',
+                    'st.name AS typeName'
+                )
+                ->addOrderBy('s.name')
+                ->getQuery()
+                ->getArrayResult()
+            ;
+        }
+
+        return $qb
+            ->select(
+                's.id',
+                'COALESCE(str.name, s.name) AS name',
+                'COALESCE(str.slug, s.slug) AS slug',
+                'COALESCE(str.description, s.description) AS description',
+                's.file',
+                'ag.id AS agId',
+                'ag.color',
+                'COALESCE(agt.name, ag.name) AS groupName',
+                'st.id AS stId',
+                'st.name AS typeName'
+            )
+            ->leftJoin('s.translations', 'str', 'WITH', 'str.locale = :loc')
+            ->leftJoin('ag.translations', 'agt', 'WITH', 'agt.locale = :loc')
+            ->setParameter('loc', $locale)
+            ->addOrderBy('name')
             ->getQuery()
             ->getArrayResult()
         ;
@@ -281,7 +296,7 @@ class SpicesRepository extends ServiceEntityRepository
     /**
      * @return list<Spices>
      */
-    public function findFiltered(?int $aromaticGroupId, ?int $spicyTypeId, ?string $search = null): array
+    public function findFiltered(?int $aromaticGroupId, ?int $spicyTypeId, ?string $search = null, string $locale = 'fr'): array
     {
         $qb = $this->createQueryBuilder('s')
             ->addSelect('ag', 'st')
@@ -289,6 +304,14 @@ class SpicesRepository extends ServiceEntityRepository
             ->leftJoin('s.spicyType', 'st')
             ->andWhere('s.deleted_at IS NULL')
             ->orderBy('s.name', SortDirection::Ascending);
+
+        if ($locale !== 'fr') {
+            $qb->leftJoin('s.translations', 'str', 'WITH', 'str.locale = :loc')
+                ->leftJoin('ag.translations', 'agt', 'WITH', 'agt.locale = :loc')
+                ->leftJoin('st.translations', 'stt', 'WITH', 'stt.locale = :loc')
+                ->addSelect('str', 'agt', 'stt')
+                ->setParameter('loc', $locale);
+        }
 
         if ($aromaticGroupId !== null) {
             $qb->andWhere('s.aromaticGroups = :agId')
@@ -453,7 +476,7 @@ class SpicesRepository extends ServiceEntityRepository
             WHERE s1.deleted_at IS NULL
                 AND (sac2.spices_id IS NOT NULL OR ssac2.spices_id IS NOT NULL)
             GROUP BY s1.id, s2.id, ag1.color, ag1.name, ag2.color, ag2.name
-            ORDER BY score DESC
+            ORDER BY score DESC, shared_main DESC, s1.id, s2.id
             LIMIT :limit
         ';
 
@@ -507,7 +530,7 @@ class SpicesRepository extends ServiceEntityRepository
             GROUP BY s1.id, s2.id, s3.id,
                 ag1.color, ag1.name, ag2.color, ag2.name, ag3.color, ag3.name
             HAVING score > 0
-            ORDER BY score DESC
+            ORDER BY score DESC, shared_main DESC, s1.id, s2.id, s3.id
             LIMIT :limit
         ';
 

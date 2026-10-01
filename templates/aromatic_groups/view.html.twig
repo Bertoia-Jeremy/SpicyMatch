@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ aromaticGroup.getLocalizedName(app.request.locale) }} — SpicyMatch{% endblock %}
+
+{% block meta_description %}{{ aromaticGroup.getLocalizedDescription(app.request.locale)|seo_summary|default('ui.meta.description'|trans) }}{% endblock %}
+
+{% block structured_data %}{{ include('partials/_json_ld.html.twig', {subject: aromaticGroup}) }}{% endblock %}
+
+{% block body %}
+{% set loc = app.request.locale %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <twig:Catalog:Hero
+        backLabel="{{ 'ui.catalog.back_to_groups'|trans }}"
+        backHref="{{ path('index_aromatic_groups') }}"
+        badge="{{ 'ui.catalog.group_badge'|trans }}"
+        icon="fa-solid fa-layer-group"
+        title="{{ aromaticGroup.getLocalizedName(loc) }}"
+        color="{{ aromaticGroup.color }}"
+    />
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-16">
+        <div class="lg:col-span-2 space-y-8">
+            <twig:Catalog:Section title="{{ 'ui.catalog.description'|trans }}" icon="fa-solid fa-circle-info">
+                {{ aromaticGroup.getLocalizedDescription(loc)|default('ui.catalog.no_description_detailed'|trans)|nl2br }}
+            </twig:Catalog:Section>
+
+            {% if aromaticGroup.getLocalizedCooking(loc) %}
+                <twig:Catalog:Section title="{{ 'ui.catalog.in_kitchen'|trans }}" icon="fa-solid fa-mortar-pestle">
+                    {{ aromaticGroup.getLocalizedCooking(loc)|nl2br }}
+                </twig:Catalog:Section>
+            {% endif %}
+        </div>
+
+        <aside class="space-y-8">
+            {% if aromaticGroup.getLocalizedInformations(loc) %}
+                <twig:Catalog:Section title="{{ 'ui.catalog.scientific_note'|trans }}" icon="fa-solid fa-flask" small>
+                    {{ aromaticGroup.getLocalizedInformations(loc)|nl2br }}
+                </twig:Catalog:Section>
+            {% endif %}
+            <a href="{{ path('index_spices', {aromatic_group: aromaticGroup.getLocalizedSlug(loc)}) }}"
+               class="btn-pill-base btn-pill-outline px-5 py-2 text-sm inline-flex items-center gap-2">
+                <i class="fa-solid fa-filter" aria-hidden="true"></i>{{ 'ui.catalog.filter_spices_by_group'|trans }}
+            </a>
+        </aside>
+    </div>
+
+    <twig:Catalog:LinkedSpices :spices="spices" title="{{ 'ui.catalog.spices_of_group'|trans }}" />
+</div>
+{% endblock %}

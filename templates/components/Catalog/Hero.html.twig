@@ -1,0 +1,17 @@
+{% props backLabel, backHref, badge, icon, title, tone = 'saffron', color = null %}
+{% set tones = {
+    saffron: 'bg-saffron-100 text-saffron-700',
+    turmeric: 'bg-turmeric-100 text-turmeric-700',
+    paprika: 'bg-paprika-100 text-paprika-700',
+} %}
+{% set safeColor = color is not null and color matches '/^#[0-9a-fA-F]{3,8}$/' ? color : null %}
+<nav class="mb-8">
+    <twig:Button label="{{ backLabel }}" href="{{ backHref }}" variant="back" size="sm" />
+</nav>
+<header class="mb-10">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full {{ tones[tone] ?? tones.saffron }} text-xs font-bold uppercase tracking-wider mb-4">
+        {% if safeColor %}<span class="w-2.5 h-2.5 rounded-full" style="background-color: {{ safeColor }}" aria-hidden="true"></span>{% endif %}
+        <i class="{{ icon }}" aria-hidden="true"></i> {{ badge }}
+    </div>
+    <h1 class="text-5xl font-display font-bold text-stone-900">{{ title }}</h1>
+</header>

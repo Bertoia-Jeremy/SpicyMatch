@@ -6,6 +6,7 @@ namespace App\EventSubscriber;
 
 use App\Entity\AlchemyFlavors;
 use App\Entity\AromaticCompound;
+use App\Entity\AromaticGroups;
 use App\Entity\PreparationMethods;
 use App\Entity\Spices;
 use App\Entity\SpicyType;
@@ -28,6 +29,7 @@ final readonly class SitemapSubscriber implements EventSubscriberInterface
         'view_alchemy_flavors' => AlchemyFlavors::class,
         'view_spicy_type' => SpicyType::class,
         'view_preparation_methods' => PreparationMethods::class,
+        'view_aromatic_groups' => AromaticGroups::class,
     ];
 
     /**
@@ -42,6 +44,8 @@ final readonly class SitemapSubscriber implements EventSubscriberInterface
         'index_preparation_methods',
         'index_aromatic_groups',
     ];
+
+    private const string DEFAULT_LOCALE = 'fr';
 
     public function __construct(
         private EntityManagerInterface $em,
@@ -64,52 +68,52 @@ final readonly class SitemapSubscriber implements EventSubscriberInterface
         $container = $event->getUrlContainer();
 
         foreach (self::STATIC_ROUTES as $route) {
-            $this->addMultilangUrl(
-                $container,
-                fn (string $locale): string => $this->router->generate(
-                    $route,
-                    [
-                        '_locale' => $locale,
-                    ],
-                    UrlGeneratorInterface::ABSOLUTE_URL,
-                ),
-                'pages',
-            );
+            $this->addLocalizedUrls($container, $this->urlsFor($route, static fn (): array => []), null, 'pages');
         }
 
         foreach (self::DETAIL_ROUTES as $route => $class) {
-            foreach ($this->em->getRepository($class)->findAll() as $entity) {
-                if ($entity->getDeletedAt() !== null) {
-                    continue;
-                }
-
-                $this->addMultilangUrl(
-                    $container,
-                    fn (string $locale): string => $this->router->generate(
-                        $route,
-                        [
-                            '_locale' => $locale,
-                            'slug' => $entity->getLocalizedSlug($locale),
-                        ],
-                        UrlGeneratorInterface::ABSOLUTE_URL,
-                    ),
-                    'content',
-                );
+            foreach ($this->em->getRepository($class)->findSitemapRows() as $row) {
+                $urls = $this->urlsFor($route, static fn (string $locale): array => [
+                    'slug' => $row['slugs'][$locale] ?? $row['slugs'][self::DEFAULT_LOCALE],
+                ]);
+                $this->addLocalizedUrls($container, $urls, $row['updatedAt'], 'content');
             }
         }
     }
 
     /**
-     * @param callable(string): string $urlFor
+     * @param \Closure(string): array<string, string> $params
+     * @return array<string, string>
      */
-    private function addMultilangUrl(UrlContainerInterface $container, callable $urlFor, string $section): void
+    private function urlsFor(string $route, \Closure $params): array
     {
-        $url = new GoogleMultilangUrlDecorator(new UrlConcrete($urlFor('fr')));
-
+        $urls = [];
         foreach (LocaleSubscriber::SUPPORTED_LOCALES as $locale) {
-            $url->addLink($urlFor($locale), $locale);
+            $urls[$locale] = $this->router->generate($route, [
+                '_locale' => $locale,
+            ] + $params($locale), UrlGeneratorInterface::ABSOLUTE_URL);
         }
 
-        $container->addUrl($url, $section);
+        return $urls;
+    }
+
+    /**
+     * @param array<string, string> $urls
+     */
+    private function addLocalizedUrls(
+        UrlContainerInterface $container,
+        array $urls,
+        ?\DateTimeInterface $lastModified,
+        string $section,
+    ): void {
+        foreach ($urls as $url) {
+            $decorated = new GoogleMultilangUrlDecorator(new UrlConcrete($url, $lastModified));
+            foreach ($urls as $locale => $alternate) {
+                $decorated->addLink($alternate, $locale);
+            }
+
+            $decorated->addLink($urls[self::DEFAULT_LOCALE], 'x-default');
+            $container->addUrl($decorated, $section);
+        }
     }
 }

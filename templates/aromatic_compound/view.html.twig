@@ -2,139 +2,45 @@
 
 {% block title %}{{ aromaticCompound.getLocalizedName(app.request.locale) }} — SpicyMatch{% endblock %}
 
+{% block meta_description %}{{ aromaticCompound.getLocalizedDescription(app.request.locale)|seo_summary|default('ui.meta.description'|trans) }}{% endblock %}
+
+{% block structured_data %}{{ include('partials/_json_ld.html.twig', {subject: aromaticCompound}) }}{% endblock %}
+
 {% block body %}
 {% set loc = app.request.locale %}
-{% import "components/_macro_card_spice.html.twig" as macroCardSpice %}
-
 {% include 'components/_spice_modal.html.twig' %}
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <nav class="mb-8">
-        <twig:Button label="{{ 'ui.catalog.back_to_compounds'|trans }}" href="{{ path('index_aromatic_compound') }}" variant="back" size="sm" />
-    </nav>
-
-    <header class="mb-10">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-saffron-100 text-saffron-700 text-xs font-bold uppercase tracking-wider mb-4">
-            <i class="fa-solid fa-atom" aria-hidden="true"></i> {{ 'ui.catalog.compound_badge'|trans }}
-        </div>
-        <h1 class="text-5xl font-display font-bold text-stone-900">{{ aromaticCompound.getLocalizedName(loc) }}</h1>
-    </header>
+    <twig:Catalog:Hero
+        backLabel="{{ 'ui.catalog.back_to_compounds'|trans }}"
+        backHref="{{ path('index_aromatic_compound') }}"
+        badge="{{ 'ui.catalog.compound_badge'|trans }}"
+        icon="fa-solid fa-atom"
+        title="{{ aromaticCompound.getLocalizedName(loc) }}"
+    />
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-16">
         <div class="lg:col-span-2 space-y-8">
-            <section class="card-warm p-8">
-                <h2 class="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-info text-saffron-500" aria-hidden="true"></i> {{ 'ui.catalog.description'|trans }}
-                </h2>
-                <div class="text-stone-600 leading-relaxed space-y-4">
-                    {{ aromaticCompound.getLocalizedDescription(loc)|default('ui.catalog.no_description_detailed'|trans)|nl2br }}
-                </div>
-            </section>
+            <twig:Catalog:Section title="{{ 'ui.catalog.description'|trans }}" icon="fa-solid fa-circle-info">
+                {{ aromaticCompound.getLocalizedDescription(loc)|default('ui.catalog.no_description_detailed'|trans)|nl2br }}
+            </twig:Catalog:Section>
 
             {% if aromaticCompound.getLocalizedCooking(loc) %}
-                <section class="card-warm p-8">
-                    <h2 class="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-mortar-pestle text-saffron-500" aria-hidden="true"></i> {{ 'ui.catalog.in_kitchen'|trans }}
-                    </h2>
-                    <div class="text-stone-600 leading-relaxed">
-                        {{ aromaticCompound.getLocalizedCooking(loc)|nl2br }}
-                    </div>
-                </section>
+                <twig:Catalog:Section title="{{ 'ui.catalog.in_kitchen'|trans }}" icon="fa-solid fa-mortar-pestle">
+                    {{ aromaticCompound.getLocalizedCooking(loc)|nl2br }}
+                </twig:Catalog:Section>
             {% endif %}
         </div>
 
         <aside class="space-y-8">
             {% if aromaticCompound.getLocalizedInformations(loc) %}
-                <section class="card-warm p-8">
-                    <h2 class="text-lg font-bold text-stone-900 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-flask text-saffron-500" aria-hidden="true"></i> {{ 'ui.catalog.scientific_note'|trans }}
-                    </h2>
-                    <div class="text-sm text-stone-600 leading-relaxed">
-                        {{ aromaticCompound.getLocalizedInformations(loc)|nl2br }}
-                    </div>
-                </section>
+                <twig:Catalog:Section title="{{ 'ui.catalog.scientific_note'|trans }}" icon="fa-solid fa-flask" small>
+                    {{ aromaticCompound.getLocalizedInformations(loc)|nl2br }}
+                </twig:Catalog:Section>
             {% endif %}
         </aside>
     </div>
 
-    {% set allSpices = aromaticCompound.spices|merge(aromaticCompound.secondarySpices) %}
-    <section class="pt-10 border-t border-stone-200" x-data="spicesLimit({{ allSpices|length }})">
-
-        <div class="flex items-center justify-between mb-8">
-            <h3 class="text-2xl font-bold text-stone-900 flex items-center gap-3">
-                <i class="fa-solid fa-pepper-hot text-paprika-600" aria-hidden="true"></i> {{ 'ui.catalog.linked_spices'|trans }}
-                <span class="text-sm font-normal text-stone-400">({{ allSpices|length }})</span>
-            </h3>
-
-            {% if allSpices|length > 8 %}
-                <div class="flex items-center bg-stone-100 p-1 rounded-xl">
-                    <button @click="setGrid" :class="sliderToggleClass()" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">{{ 'ui.catalog.view_slider'|trans }}</button>
-                    <button @click="setList" :class="gridToggleClass()" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all">{{ 'ui.catalog.view_grid'|trans }}</button>
-                </div>
-            {% endif %}
-        </div>
-
-        {% if allSpices is not empty %}
-
-            <div x-show="!gridMode" class="space-y-6">
-                <div class="embla" data-controller="carousel"
-                     role="group" aria-roledescription="{{ 'ui.carousel.roledescription'|trans }}"
-                     aria-label="{{ 'ui.carousel.label'|trans }}">
-                    <div class="embla__viewport" data-carousel-target="viewport">
-                        <div class="embla__container">
-                            {% for spice in allSpices|slice(0, 8) %}
-                                <div class="embla__slide">
-                                    {{ macroCardSpice.cardSpice(spice, { compact: true }) }}
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                    {% if allSpices|length > 1 %}
-                    <div class="flex justify-end gap-2 mt-6">
-                        <button type="button" class="embla__button" data-carousel-target="prev" data-action="carousel#prev"
-                                aria-label="{{ 'ui.carousel.prev'|trans }}">
-                            <i class="fa-solid fa-chevron-left text-xs" aria-hidden="true"></i>
-                        </button>
-                        <button type="button" class="embla__button" data-carousel-target="next" data-action="carousel#next"
-                                aria-label="{{ 'ui.carousel.next'|trans }}">
-                            <i class="fa-solid fa-chevron-right text-xs" aria-hidden="true"></i>
-                        </button>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div x-show="gridMode" x-cloak class="space-y-10">
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-                    {% for spice in allSpices %}
-                        <div x-show="{{ loop.index }} <= limit"
-                             x-transition:enter="transition ease-out duration-300"
-                             x-transition:enter-start="opacity-0 translate-y-4"
-                             x-transition:enter-end="opacity-100 translate-y-0"
-                             class="h-full">
-                            {{ macroCardSpice.cardSpice(spice, { compact: true }) }}
-                        </div>
-                    {% endfor %}
-                </div>
-
-                {% if allSpices|length > 8 %}
-                <div class="flex justify-center" x-show="hasMore()">
-                    <twig:Button
-                        label="{{ 'ui.catalog.load_more_spices'|trans }}"
-                        variant="secondary"
-                        icon="fa-solid fa-plus"
-                        @click="showMore"
-                    />
-                </div>
-                {% endif %}
-            </div>
-
-        {% else %}
-            <div class="card-warm p-10 text-center">
-                <p class="text-stone-400 italic">{{ 'ui.catalog.no_linked_spices'|trans }}</p>
-            </div>
-        {% endif %}
-    </section>
+    <twig:Catalog:LinkedSpices :spices="aromaticCompound.spices|merge(aromaticCompound.secondarySpices)" title="{{ 'ui.catalog.linked_spices'|trans }}" />
 </div>
 {% endblock %}

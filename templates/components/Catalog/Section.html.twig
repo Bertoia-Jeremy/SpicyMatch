@@ -1,0 +1,14 @@
+{% props title, icon, tone = 'saffron', small = false %}
+{% set tones = {
+    saffron: 'text-saffron-500',
+    turmeric: 'text-turmeric-500',
+    paprika: 'text-paprika-500',
+} %}
+<section class="card-warm p-8">
+    <h2 class="{{ small ? 'text-lg' : 'text-xl' }} font-bold text-stone-900 mb-4 flex items-center gap-2">
+        <i class="{{ icon }} {{ tones[tone] ?? tones.saffron }}" aria-hidden="true"></i> {{ title }}
+    </h2>
+    <div class="{{ small ? 'text-sm' : '' }} text-stone-600 leading-relaxed space-y-4">
+        {% block content %}{% endblock %}
+    </div>
+</section>

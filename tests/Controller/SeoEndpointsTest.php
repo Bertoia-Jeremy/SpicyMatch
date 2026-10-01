@@ -1,0 +1,126 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Tests\Controller;
+
+use App\Entity\Spices;
+use App\EventSubscriber\NoIndexSubscriber;
+use App\Repository\UsersRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+
+final class SeoEndpointsTest extends WebTestCase
+{
+    public function testSitemapListsEveryLocaleVariantWithAlternatesAndIsPubliclyCacheable(): void
+    {
+        $client = self::createClient();
+        $spice = $this->firstSpice();
+
+        $client->request('GET', '/sitemap.content.xml');
+
+        self::assertResponseIsSuccessful();
+        self::assertStringContainsString('public', (string) $client->getResponse()->headers->get('Cache-Control'));
+        $xpath = new \DOMXPath($this->loadXml((string) $client->getResponse()->getContent()));
+        $xpath->registerNamespace('s', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+        $xpath->registerNamespace('x', 'http://www.w3.org/1999/xhtml');
+
+        foreach ([
+            'fr' => '/fr/epices/',
+            'en' => '/en/spices/',
+            'es' => '/es/especias/',
+        ] as $locale => $prefix) {
+            $loc = $prefix . $spice->getLocalizedSlug($locale);
+            $url = $xpath->query(\sprintf('//s:url[s:loc[substring(., string-length(.) - %d) = "%s"]]', \strlen($loc) - 1, $loc));
+            self::assertNotFalse($url);
+            self::assertSame(1, $url->length, $loc);
+            $links = $xpath->query('x:link', $url->item(0));
+            self::assertNotFalse($links);
+            self::assertSame(4, $links->length, $loc);
+        }
+    }
+
+    public function testRobotsAdvertisesTheAbsoluteSitemapAndHidesPrivateAreas(): void
+    {
+        $client = self::createClient();
+
+        $client->request('GET', '/robots.txt');
+
+        self::assertResponseIsSuccessful();
+        $body = (string) $client->getResponse()
+            ->getContent();
+        self::assertMatchesRegularExpression('#^Sitemap: https?://[^/\s]+/sitemap\.xml$#m', $body);
+        self::assertStringContainsString("Disallow: /admin\n", $body);
+        self::assertStringNotContainsString('VOTRE-DOMAINE', $body);
+    }
+
+    /**
+     * @return iterable<string, array{string, bool, bool}>
+     */
+    public static function noIndexProvider(): iterable
+    {
+        yield 'public catalogue' => ['/fr/epices/', false, false];
+        yield 'profile' => ['/fr/users/profile', true, true];
+        yield 'history' => ['/fr/spicymatch/history/', true, true];
+    }
+
+    #[DataProvider('noIndexProvider')]
+    public function testPrivatePagesAreExcludedFromIndexing(string $url, bool $authenticated, bool $noIndex): void
+    {
+        $client = self::createClient();
+        if ($authenticated) {
+            $user = self::getContainer()->get(UsersRepository::class)->findOneBy([]);
+            self::assertNotNull($user);
+            $client->loginUser($user);
+        }
+
+        $client->request('GET', $url);
+
+        self::assertResponseIsSuccessful();
+        $header = $client->getResponse()
+            ->headers->get(NoIndexSubscriber::HEADER);
+        if ($noIndex) {
+            self::assertSame(NoIndexSubscriber::DIRECTIVE, $header);
+        } else {
+            self::assertNotSame(NoIndexSubscriber::DIRECTIVE, $header);
+        }
+    }
+
+    public function testSpiceViewEmbedsNoncedStructuredDataAndDescription(): void
+    {
+        $client = self::createClient();
+        $spice = $this->firstSpice();
+
+        $crawler = $client->request('GET', '/fr/epices/' . $spice->getSlug());
+
+        self::assertResponseIsSuccessful();
+        $script = $crawler->filter('script[type="application/ld+json"]');
+        self::assertCount(1, $script);
+        self::assertNotEmpty($script->attr('nonce'));
+        $document = json_decode($script->text(), true, flags: \JSON_THROW_ON_ERROR);
+        self::assertIsArray($document);
+        self::assertSame(['BreadcrumbList', 'Thing'], array_column($document['@graph'], '@type'));
+        self::assertNotSame('', $crawler->filter('meta[property="og:title"]')->attr('content'));
+    }
+
+    private function firstSpice(): Spices
+    {
+        $spice = self::getContainer()->get(EntityManagerInterface::class)->getRepository(Spices::class)->findOneBy([
+            'deleted_at' => null,
+        ], [
+            'id' => 'ASC',
+        ]);
+        self::assertNotNull($spice);
+
+        return $spice;
+    }
+
+    private function loadXml(string $xml): \DOMDocument
+    {
+        $document = new \DOMDocument();
+        self::assertTrue($document->loadXML($xml));
+
+        return $document;
+    }
+}

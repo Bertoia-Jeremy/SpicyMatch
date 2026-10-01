@@ -3,32 +3,29 @@
 {% block title %}{{ 'ui.catalog.methods_page_title'|trans }}{% endblock %}
 
 {% block body %}
+{% set loc = app.request.locale %}
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <twig:Catalog:Header
+        tag="{{ 'ui.catalog.methods_tag'|trans }}"
+        title="{{ 'ui.catalog.methods_title'|trans }}"
+        intro="{{ 'ui.catalog.methods_intro'|trans }}"
+    />
 
-    <div class="text-center mb-10">
-        <span class="tag-primary mb-4 inline-block">{{ 'ui.catalog.methods_tag'|trans }}</span>
-        <h1 class="text-4xl font-bold text-stone-900 mb-2">{{ 'ui.catalog.methods_title'|trans }}</h1>
-        <p class="text-stone-500 text-lg">{{ 'ui.catalog.methods_intro'|trans }}</p>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for preparation_method in preparationMethods %}
-            <div class="card-warm p-6">
-                <h2 class="text-xl font-semibold text-stone-800 mb-3">{{ preparation_method.name }}</h2>
-                <p class="text-stone-500 text-sm leading-relaxed mb-5">{{ preparation_method.description|nl2br }}</p>
-                <twig:Button
-                    label="{{ 'ui.catalog.view_details'|trans }}"
-                    href="{{ path('view_preparation_methods', {slug: preparation_method.getLocalizedSlug(app.request.locale)}) }}"
-                    variant="secondary"
-                    size="sm"
-                    icon="fa-solid fa-arrow-right"
-                    iconPos="right"
-                />
-            </div>
+    <twig:Catalog:Grid>
+        {% for method in preparationMethods %}
+            <twig:Catalog:Card
+                title="{{ method.getLocalizedName(loc) }}"
+                description="{{ method.getLocalizedDescription(loc) }}"
+                href="{{ path('view_preparation_methods', {slug: method.getLocalizedSlug(loc)}) }}"
+                cta="{{ 'ui.catalog.view_details'|trans }}"
+                icon="fa-solid fa-mortar-pestle"
+                tone="paprika"
+            />
         {% else %}
-            <p class="col-span-full text-center text-stone-500 py-12">{{ 'ui.catalog.no_method'|trans }}</p>
+            <div class="col-span-full text-center py-12">
+                <p class="text-stone-400">{{ 'ui.catalog.no_method'|trans }}</p>
+            </div>
         {% endfor %}
-    </div>
-
+    </twig:Catalog:Grid>
 </section>
 {% endblock %}

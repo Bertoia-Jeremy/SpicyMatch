@@ -16,7 +16,7 @@ test.describe('@a11y Accessibility', () => {
     { name: 'spices', path: '/fr/epices/' },
     { name: 'contact', path: '/fr/contact' },
     { name: 'help', path: '/fr/help' },
-    { name: 'spice types', path: '/fr/epices/types_epices/' },
+    { name: 'spice types', path: '/fr/epices/types-epices/' },
   ];
 
   for (const { name, path } of publicPages) {

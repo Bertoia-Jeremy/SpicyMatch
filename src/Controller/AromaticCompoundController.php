@@ -6,23 +6,22 @@ namespace App\Controller;
 
 use App\Controller\Concern\CanonicalSlugTrait;
 use App\Repository\AromaticCompoundRepository;
+use App\Routing\CatalogPath;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/{_locale}/epices/composes_aromatiques', defaults: [
-    '_locale' => 'fr',
-])]
+#[Route(CatalogPath::AROMATIC_COMPOUNDS)]
 class AromaticCompoundController extends AbstractController
 {
     use CanonicalSlugTrait;
 
     #[Route('/', name: 'index_aromatic_compound')]
-    public function index(AromaticCompoundRepository $repository): Response
+    public function index(AromaticCompoundRepository $repository, Request $request): Response
     {
         return $this->render('aromatic_compound/index.html.twig', [
-            'aromaticCompounds' => $repository->findAll(),
+            'aromaticCompounds' => $repository->findAllForLocale($request->getLocale()),
         ]);
     }
 

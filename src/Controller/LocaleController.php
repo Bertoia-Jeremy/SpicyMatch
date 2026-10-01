@@ -32,20 +32,18 @@ class LocaleController extends AbstractController
             }
         }
 
-        $referer = $request->headers->get('referer');
-        $base = $request->getSchemeAndHttpHost();
-        if (is_string($referer) && ($referer === $base || str_starts_with($referer, $base . '/'))) {
-            return $this->redirect($this->rewriteLocaleInUrl($referer, $base, $locale));
+        $target = $request->query->getString('target');
+        if (self::isInternalPath($target)) {
+            return $this->redirect($target);
         }
 
         return $this->redirectToRoute('home');
     }
 
-    private function rewriteLocaleInUrl(string $url, string $base, string $locale): string
+    private static function isInternalPath(string $target): bool
     {
-        $path = substr($url, strlen($base));
-        $rewritten = preg_replace('#^/(fr|en|es)(?=/|$|\?|\#)#', '/' . $locale, $path, 1);
-
-        return $base . ($rewritten ?? $path);
+        return str_starts_with($target, '/')
+            && ! str_starts_with($target, '//')
+            && preg_match('/[\x00-\x1F\x7F\\\\]/', $target) !== 1;
     }
 }

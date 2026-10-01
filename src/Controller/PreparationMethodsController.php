@@ -4,23 +4,22 @@ namespace App\Controller;
 
 use App\Controller\Concern\CanonicalSlugTrait;
 use App\Repository\PreparationMethodsRepository;
+use App\Routing\CatalogPath;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/{_locale}/preparation/methods', defaults: [
-    '_locale' => 'fr',
-])]
+#[Route(CatalogPath::PREPARATION_METHODS)]
 class PreparationMethodsController extends AbstractController
 {
     use CanonicalSlugTrait;
 
     #[Route('/', name: 'index_preparation_methods', methods: ['GET'])]
-    public function index(PreparationMethodsRepository $preparationMethodsRepository): Response
+    public function index(PreparationMethodsRepository $preparationMethodsRepository, Request $request): Response
     {
         return $this->render('preparation_methods/index.html.twig', [
-            'preparationMethods' => $preparationMethodsRepository->findAll(),
+            'preparationMethods' => $preparationMethodsRepository->findAllForLocale($request->getLocale()),
         ]);
     }
 

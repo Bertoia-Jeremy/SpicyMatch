@@ -3,40 +3,29 @@
 {% block title %}{{ 'ui.catalog.types_page_title'|trans }}{% endblock %}
 
 {% block body %}
+{% set loc = app.request.locale %}
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="text-center mb-12">
-        <span class="tag-primary mb-4 inline-block">{{ 'ui.catalog.types_tag'|trans }}</span>
-        <h1 class="text-4xl font-bold text-stone-900 mb-3">{{ 'ui.catalog.types_title'|trans }}</h1>
-        <p class="text-stone-500 text-lg max-w-2xl mx-auto">{{ 'ui.catalog.types_intro'|trans }}</p>
-    </div>
+    <twig:Catalog:Header
+        tag="{{ 'ui.catalog.types_tag'|trans }}"
+        title="{{ 'ui.catalog.types_title'|trans }}"
+        intro="{{ 'ui.catalog.types_intro'|trans }}"
+    />
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <twig:Catalog:Grid>
         {% for type in spicyTypes %}
-            <article class="card-warm p-6 flex flex-col h-full">
-                <div class="w-12 h-12 rounded-xl bg-saffron-100 flex items-center justify-center mb-4">
-                    <i class="fa-solid fa-tags text-saffron-600" aria-hidden="true"></i>
-                </div>
-                <h2 class="text-xl font-bold text-stone-900 mb-2">{{ type.name }}</h2>
-                {% if type.description %}
-                    <p class="text-stone-500 text-sm line-clamp-3 mb-6 flex-1">{{ type.description }}</p>
-                {% else %}
-                    <p class="text-stone-400 text-sm italic mb-6 flex-1">{{ 'ui.catalog.no_description'|trans }}</p>
-                {% endif %}
-
-                <twig:Button
-                    label="{{ 'ui.catalog.view_spices'|trans }}"
-                    href="{{ path('view_spicy_type', {slug: type.getLocalizedSlug(app.request.locale)}) }}"
-                    variant="secondary"
-                    size="sm"
-                    icon="fa-solid fa-arrow-right"
-                    iconPos="right"
-                />
-            </article>
+            <twig:Catalog:Card
+                title="{{ type.getLocalizedName(loc) }}"
+                description="{{ type.getLocalizedDescription(loc) }}"
+                href="{{ path('view_spicy_type', {slug: type.getLocalizedSlug(loc)}) }}"
+                cta="{{ 'ui.catalog.view_spices'|trans }}"
+                icon="fa-solid fa-tags"
+                tone="saffron"
+            />
         {% else %}
             <div class="col-span-full text-center py-12">
                 <p class="text-stone-400">{{ 'ui.catalog.no_type'|trans }}</p>
             </div>
         {% endfor %}
-    </div>
+    </twig:Catalog:Grid>
 </section>
 {% endblock %}

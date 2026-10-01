@@ -6,23 +6,22 @@ namespace App\Controller;
 
 use App\Controller\Concern\CanonicalSlugTrait;
 use App\Repository\AlchemyFlavorsRepository;
+use App\Routing\CatalogPath;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/{_locale}/epices/saveurs_aromatiques', defaults: [
-    '_locale' => 'fr',
-])]
+#[Route(CatalogPath::FLAVORS)]
 class AlchemyFlavorsController extends AbstractController
 {
     use CanonicalSlugTrait;
 
     #[Route('/', name: 'index_alchemy_flavors')]
-    public function index(AlchemyFlavorsRepository $repository): Response
+    public function index(AlchemyFlavorsRepository $repository, Request $request): Response
     {
         return $this->render('alchemy_flavors/index.html.twig', [
-            'alchemyFlavors' => $repository->findAll(),
+            'alchemyFlavors' => $repository->findAllForLocale($request->getLocale()),
         ]);
     }
 

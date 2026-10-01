@@ -1,11 +1,15 @@
 {% macro modal(id, name, createModal, slug) %}
+    {% set titleId = 'preparation-method-title-' ~ id ~ '-' ~ random() %}
     <div x-data="toggle">
         <twig:Button
             label="{{ 'ui.recipe.method'|trans }} {{ name }}"
             variant="secondary"
             size="sm"
             icon="fa-solid fa-circle-info text-xs"
-            @click="open = true"
+            x-ref="trigger"
+            aria-haspopup="dialog"
+            x-bind:aria-expanded="open.toString()"
+            x-on:click="open = true; $nextTick(() => $refs.close?.focus())"
         />
 
         {% if createModal %}
@@ -13,28 +17,32 @@
                 x-show="open"
                 x-cloak
                 class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop"
-                @click.self="open = false"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="{{ titleId }}"
+                x-on:click.self="open = false; $refs.trigger.focus()"
+                x-on:keydown.escape.window="if (open) { open = false; $refs.trigger.focus() }"
             >
                 <div class="bg-white rounded-2xl shadow-2xl border border-stone-100 max-w-lg w-full mx-4">
                     <div class="flex items-center justify-between p-5 border-b border-spice-border">
-                        <h5 class="text-lg font-semibold text-stone-800 flex items-center gap-2">
+                        <h5 id="{{ titleId }}" class="text-lg font-semibold text-stone-800 flex items-center gap-2">
                             <i class="fa-solid fa-mortar-pestle text-saffron-600 text-base" aria-hidden="true"></i>{{ name }}
                         </h5>
-                        <twig:Button label="{{ 'common.close'|trans }}" variant="ghost" iconOnly icon="fa-solid fa-xmark" @click="open = false" extra="text-stone-400 hover:text-stone-600" />
+                        <twig:Button label="{{ 'common.close'|trans }}" variant="ghost" iconOnly icon="fa-solid fa-xmark" x-ref="close" x-on:click="open = false; $refs.trigger.focus()" extra="text-stone-400 hover:text-stone-600" />
                     </div>
                     <turbo-frame
                         class="block p-5"
                         :src="open ? '{{ path('view_preparation_methods', { 'slug': slug }) }}' : null"
                         id="preparation_methode_frame_{{ id }}"
                     >
-                        <div class="text-stone-400 text-sm text-center py-4">Chargement...</div>
+                        <div class="text-stone-400 text-sm text-center py-4" role="status">{{ 'common.loading'|trans }}</div>
                     </turbo-frame>
                     <div class="flex justify-end p-4 border-t border-spice-border">
                         <twig:Button
                             label="{{ 'common.close'|trans }}"
                             variant="secondary"
                             size="sm"
-                            @click="open = false"
+                            x-on:click="open = false; $refs.trigger.focus()"
                         />
                     </div>
                 </div>

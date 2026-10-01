@@ -44,31 +44,6 @@ final class AdminStatsServiceIntegrationTest extends IntegrationTestCase
         }
     }
 
-    public function testOnboardingCompletionByStepUsesFindInSet(): void
-    {
-        $this->connection->beginTransaction();
-
-        try {
-            $before = $this->stats->onboardingCompletionByStep();
-
-            $this->insertUser('onboarding_partial', 'welcome,spices');
-            $this->insertUser('onboarding_no_lab', 'welcome,spiceswithsuffix');
-            $this->insertUser('onboarding_null');
-
-            $after = $this->stats->onboardingCompletionByStep();
-
-            self::assertSame((int) ($before['welcome']['seen'] ?? 0) + 2, $after['welcome']['seen']);
-            self::assertSame(
-                (int) ($before['spices']['seen'] ?? 0) + 1,
-                $after['spices']['seen'],
-                'FIND_IN_SET ne doit matcher que la clé exacte spices, pas spiceswithsuffix',
-            );
-            self::assertSame((int) ($before['lab']['seen'] ?? 0), $after['lab']['seen']);
-        } finally {
-            $this->connection->rollBack();
-        }
-    }
-
     public function testAchievementProgressCompletionRateCapsAt100Percent(): void
     {
         $this->connection->beginTransaction();
@@ -91,7 +66,7 @@ final class AdminStatsServiceIntegrationTest extends IntegrationTestCase
         }
     }
 
-    private function insertUser(string $prefix, ?string $onboardingState = null): int
+    private function insertUser(string $prefix): int
     {
         $now = new \DateTimeImmutable()
             ->format('Y-m-d H:i:s');
@@ -104,7 +79,6 @@ final class AdminStatsServiceIntegrationTest extends IntegrationTestCase
             'roles' => '[]',
             'created_at' => $now,
             'updated_at' => $now,
-            'onboarding_state' => $onboardingState,
         ]);
 
         return (int) $this->connection->lastInsertId();

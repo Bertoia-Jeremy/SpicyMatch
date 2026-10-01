@@ -144,8 +144,6 @@
                                 size="sm"
                                 icon="fa-solid fa-rotate-left"
                                 x-data="onboardingReset"
-                                data-state-url="{{ path('api_onboarding_state') }}"
-                                data-state-csrf="{{ csrf_token('onboarding') }}"
                                 data-home-url="{{ path('home') }}"
                                 @click="reset"
                                 extra="shrink-0"
@@ -210,6 +208,7 @@
                                 <p class="text-xs text-stone-500 mt-1">
                                     {% if app.user.progression.gamificationEnabled %}
                                         {{ 'ui.config.gamification_on'|trans }}
+                                        <span class="block mt-1 text-paprika-700">{{ 'ui.config.gamification_games_warning'|trans }}</span>
                                     {% else %}
                                         {{ 'ui.config.gamification_off'|trans }}
                                     {% endif %}

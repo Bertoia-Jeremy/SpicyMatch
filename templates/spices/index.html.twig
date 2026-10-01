@@ -48,7 +48,7 @@
 
         {% if spices|length > 0 %}
             <h2 class="sr-only">{{ 'ui.footer.catalog'|trans }}</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            <div data-tour="spice-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                 {% for spice in spices %}
                     {{ macroCardSpice.cardSpice(spice) }}
                 {% endfor %}
@@ -81,5 +81,20 @@
 
     </turbo-frame>
 
+    <div class="mt-12">
+        {% include 'partials/_ads_banner.html.twig' %}
+    </div>
+
 </section>
+
+<twig:Tour:Page
+    name="spices"
+    :next="path('index_spicy_match')"
+    transition="ui.onboarding.transition_spices"
+    :steps="[
+        {target: 'spice-search', key: 'search'},
+        {target: 'spice-grid', key: 'cards', advance: true},
+        {target: 'cta-lab', key: 'cta', advance: true},
+    ]"
+/>
 {% endblock %}

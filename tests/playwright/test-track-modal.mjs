@@ -14,7 +14,7 @@ const BASE = 'https://spicymatch.sf4.p84.dbm-local.com';
     await page.waitForLoadState('networkidle', { timeout: 15000 });
 
     // Activer le tour "spices"
-    await page.evaluate(() => localStorage.setItem('sm_onboarding', 'spices'));
+    await page.evaluate(() => localStorage.setItem('sm_tours', JSON.stringify({ welcome: 1, spices: 1 })));
     await page.goto(`${BASE}/epices/`);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1500);  // laisser le spotlight s'initialiser

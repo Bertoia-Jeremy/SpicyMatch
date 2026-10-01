@@ -53,4 +53,17 @@
         {{ component('SpicyMatch') }}
 
     </div>
+
+    <twig:Tour:Page
+        name="lab"
+        :next="path('education_index')"
+        transition="ui.onboarding.transition_lab"
+        :steps="[
+            {target: 'mode-toggle', key: 'mode'},
+            {target: 'lab-results', key: 'score'},
+            {target: 'lab-workspace', key: 'blend', position: 'left'},
+            {target: 'lab-context', key: 'context'},
+            {target: 'lab-compose', key: 'compose', position: 'left'},
+        ]"
+    />
 {% endblock %}

@@ -32,7 +32,7 @@ const BASE = 'https://spicymatch.sf4.p84.dbm-local.com';
     console.log('After login:', page.url());
 
     // 2. Set onboarding to done so it doesn't interfere
-    await page.evaluate(() => localStorage.setItem('sm_onboarding', 'done'));
+    await page.evaluate(() => localStorage.setItem('sm_tours', JSON.stringify({ '*': 1 })));
 
     // 3. Go to /epices/
     console.log('--- Going to /epices/ ---');

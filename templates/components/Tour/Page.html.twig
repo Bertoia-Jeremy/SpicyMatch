@@ -1,0 +1,104 @@
+{% props name, steps, version = 1, next = null, transition = null %}
+<div x-data="pageTour"
+     data-tour-key="{{ name }}"
+     data-tour-version="{{ version }}"
+     {% if next and transition %}data-tour-next="{{ next }}" data-tour-transition="{{ transition|trans }}"{% endif %}
+     @gate-login.window="skip"
+     x-cloak>
+
+    <ol hidden>
+        {% for step in steps %}
+            <li data-tour-step="{{ step.target }}"
+                data-tour-position="{{ step.position ?? 'bottom' }}"
+                data-tour-advance="{{ (step.advance ?? false) ? '1' : '0' }}"
+                data-tour-title="{{ ('ui.onboarding.tours.' ~ name ~ '.' ~ step.key ~ '.title')|trans }}"
+                data-tour-text="{{ ('ui.onboarding.tours.' ~ name ~ '.' ~ step.key ~ '.text')|trans }}"></li>
+        {% endfor %}
+    </ol>
+
+    <div x-show="active"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="spotlight-overlay"
+         x-bind:style="spotlightStyle"
+         aria-hidden="true">
+    </div>
+
+    <div x-show="tooltipActive"
+         x-transition:enter="transition ease-out duration-200 delay-100"
+         x-transition:enter-start="opacity-0 translate-y-2"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed z-60 bg-white shadow-2xl border border-saffron-200/60 focus:outline-none motion-reduce:transition-none"
+         x-bind:class="tooltipClass()"
+         x-bind:style="tooltipStyle"
+         role="dialog"
+         aria-label="{{ 'ui.onboarding.tour_dialog_aria'|trans }}"
+         tabindex="-1"
+         x-ref="tooltip"
+         @keydown.tab="handleTab($event)"
+         @keydown.escape.window="skip">
+
+        <div class="flex items-center justify-between mb-2">
+            <span class="font-mono text-[10px] uppercase tracking-widest text-stone-500" x-text="stepCounter()"></span>
+            <button type="button" @click="skip"
+                    class="text-[11px] font-medium text-stone-500 hover:text-stone-700 transition-colors">
+                {{ 'ui.onboarding.skip'|trans }}
+            </button>
+        </div>
+
+        <div aria-live="polite">
+            <p class="text-sm font-semibold text-stone-800 mb-1" x-text="currentTitle"></p>
+            <p class="text-xs text-stone-600 leading-relaxed mb-4" x-text="currentText"></p>
+        </div>
+
+        <div class="flex items-center justify-between gap-3">
+            <div class="flex gap-1.5" aria-hidden="true">
+                <template x-for="i in steps.length" x-bind:key="i">
+                    <div x-bind:class="stepDotClass(i)" class="transition-all duration-300"></div>
+                </template>
+            </div>
+            <div class="flex gap-2">
+                <button type="button" @click="prev"
+                        x-show="hasPrev"
+                        aria-label="{{ 'ui.onboarding.prev_step_aria'|trans }}"
+                        class="text-xs font-semibold text-stone-500 hover:text-stone-700 border border-stone-200 hover:border-stone-300 px-3 py-1.5 rounded-full transition-colors">
+                    ← {{ 'ui.onboarding.prev'|trans }}
+                </button>
+                <button type="button" @click="next"
+                        aria-label="{{ 'ui.onboarding.next_step_aria'|trans }}"
+                        class="text-xs font-semibold text-white bg-paprika-800 hover:bg-paprika-900 px-3 py-1.5 rounded-full transition-colors">
+                    <span x-text="nextLabel()"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="showTransition"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 translate-y-4"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0 translate-y-4"
+         class="fixed bottom-8 left-1/2 -translate-x-1/2 z-60 bg-white rounded-xl shadow-2xl border border-saffron-200/60 px-6 py-4 max-w-sm motion-reduce:transition-none"
+         role="status">
+        <p class="text-sm font-semibold text-stone-800 mb-2" x-text="transitionTitle"></p>
+        <div class="flex gap-2 justify-end">
+            <twig:Button label="{{ 'ui.onboarding.later'|trans }}" variant="ghost" size="xs" @click="closeTransition" />
+            {% if next %}
+                <a href="{{ next }}"
+                   @click="closeTransition"
+                   class="text-xs font-semibold text-white bg-paprika-800 hover:bg-paprika-900 px-3 py-1.5 rounded-full transition-colors">
+                    {{ 'ui.onboarding.go'|trans }}
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>

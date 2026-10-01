@@ -101,7 +101,6 @@ final class AdminCrudSmokeTest extends WebTestCase
     {
         yield 'gamification' => ['/admin/gamification/stats'];
         yield 'education' => ['/admin/education/stats'];
-        yield 'onboarding' => ['/admin/onboarding/stats'];
         yield 'discovery' => ['/admin/discovery/stats'];
     }
 

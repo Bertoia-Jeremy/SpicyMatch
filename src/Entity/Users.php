@@ -90,9 +90,6 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'premium_until', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $premiumUntil = null;
 
-    #[ORM\Column(name: 'onboarding_state', type: 'string', length: 64, nullable: true)]
-    private ?string $onboardingState = null;
-
     /**
      * @var Collection<int, Spices>
      */
@@ -320,18 +317,6 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function isPremium(?\DateTimeImmutable $now = null): bool
     {
         return $this->premiumUntil instanceof \DateTimeImmutable && $this->premiumUntil > ($now ?? new \DateTimeImmutable());
-    }
-
-    public function getOnboardingState(): ?string
-    {
-        return $this->onboardingState;
-    }
-
-    public function setOnboardingState(?string $onboardingState): static
-    {
-        $this->onboardingState = $onboardingState;
-
-        return $this;
     }
 
     public function getDefaultMatrix(): OdtMatrix

@@ -15,7 +15,7 @@ export default defineConfig({
 
   use: {
     // `||` (not `??`) coerces empty env vars to the default.
-    baseURL: process.env.APP_URL || 'https://spicymatch.sf4.p84.dbm-local.com',
+    baseURL: process.env.APP_URL || 'https://spicymatch.sf4.p85.dbm-local.com',
     // Les specs matchent du texte FR
     locale: 'fr-FR',
     trace: 'retain-on-failure',

@@ -334,47 +334,6 @@ final class AdminStatsServiceTest extends TestCase
         self::assertSame(12, $stats['liveComponentAdoption']['qcm']);
     }
 
-    public function testOnboardingCompletionByStepReturnsEmptyWhenNoUsers(): void
-    {
-        $this->connection->method('fetchOne')
-            ->willReturn(0);
-
-        self::assertSame([], $this->service->onboardingCompletionByStep());
-    }
-
-    public function testOnboardingCompletionByStepComputesRatePerKey(): void
-    {
-        $this->connection->method('fetchOne')
-            ->willReturn(10);
-        $this->connection->method('fetchAssociative')
-            ->willReturn([
-                'welcome' => '10',
-                'spices' => '3',
-                'lab' => '8',
-                'academy' => '5',
-            ]);
-
-        $result = $this->service->onboardingCompletionByStep();
-        self::assertSame([
-            'welcome' => [
-                'seen' => 10,
-                'rate' => 100.0,
-            ],
-            'spices' => [
-                'seen' => 3,
-                'rate' => 30.0,
-            ],
-            'lab' => [
-                'seen' => 8,
-                'rate' => 80.0,
-            ],
-            'academy' => [
-                'seen' => 5,
-                'rate' => 50.0,
-            ],
-        ], $result);
-    }
-
     public function testActiveReadingStreaksShape(): void
     {
         $this->connection->method('fetchOne')

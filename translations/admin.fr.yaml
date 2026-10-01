@@ -24,7 +24,6 @@ admin:
         gdpr_requests: Demandes RGPD
         gamification_stats: Stats gamification
         education_stats: Stats éducation
-        onboarding_stats: Stats onboarding
         discovery_stats: Stats découverte
         site: Site SpicyMatch
     entity:
@@ -144,13 +143,6 @@ admin:
         qcm_sessions: Sessions QCM
         by_mode_title: Précision moyenne par mode
         by_difficulty_title: Sessions par difficulté
-    onboarding_stats:
-        page_title: Stats Onboarding · Admin
-        title: Stats Onboarding
-        intro: Taux de complétion par étape du parcours d'accueil.
-        col_step: Étape
-        col_seen: Vue par
-        col_rate: Taux
     discovery_stats:
         page_title: Stats Découverte · Admin
         title: Stats Découverte

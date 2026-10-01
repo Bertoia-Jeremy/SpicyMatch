@@ -199,7 +199,6 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section('admin.menu.section_stats');
         yield MenuItem::linkToRoute('admin.menu.gamification_stats', 'fa fa-chart-pie', 'admin_gamification_stats');
         yield MenuItem::linkToRoute('admin.menu.education_stats', 'fa fa-graduation-cap', 'admin_education_stats');
-        yield MenuItem::linkToRoute('admin.menu.onboarding_stats', 'fa fa-signs-post', 'admin_onboarding_stats');
         yield MenuItem::linkToRoute('admin.menu.discovery_stats', 'fa fa-compass', 'admin_discovery_stats');
 
         yield MenuItem::section('admin.menu.section_users');

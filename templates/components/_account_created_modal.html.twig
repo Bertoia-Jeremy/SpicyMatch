@@ -1,24 +1,20 @@
 {% set messages = app.flashes('account_created') %}
 {% if messages is not empty %}
-<div x-data="{ open: true }"
-     x-show="open"
+<div x-data="{ close() { this.$root.remove(); window.dispatchEvent(new CustomEvent('account-created-closed')); } }"
      x-cloak
-     x-transition:enter="transition ease-out duration-300"
-     x-transition:enter-start="opacity-0 scale-95"
-     x-transition:enter-end="opacity-100 scale-100"
-     @keydown.escape.window="open = false"
+     x-on:keydown.escape.window="close()"
      class="fixed inset-0 z-60 flex items-end sm:items-center justify-center p-4 sm:p-8"
      role="dialog" aria-modal="true" aria-labelledby="account-created-title">
 
-    <div class="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" @click="open = false"></div>
+    <div class="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" x-on:click="close()"></div>
 
     <div class="relative z-10 w-full max-w-sm bg-cream rounded-2xl shadow-2xl border border-saffron-200/60 overflow-hidden">
         <twig:Button
-            label="{{ 'ui.onboarding.skip_intro'|trans }}"
+            label="{{ 'common.close'|trans }}"
             iconOnly
             icon="fa-solid fa-xmark"
             variant="ghost"
-            x-on:click="open = false"
+            x-on:click="close()"
             extra="absolute top-4 right-4 z-10"
         />
 
@@ -34,7 +30,7 @@
             </p>
             <twig:Button
                 label="{{ 'ui.account.created_cta'|trans }}"
-                href="{{ path('home') }}"
+                x-on:click="close()"
                 variant="primary"
                 icon="fa-solid fa-arrow-right"
                 extra="w-full justify-center"

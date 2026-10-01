@@ -24,20 +24,73 @@ const focusFirst = (root) => {
     if (el) el.focus();
 };
 
-const pathWithoutLocale = () => window.location.pathname.replace(/^\/[a-z]{2}(?=\/|$)/, '') || '/';
+const AD_SCRIPTS = {
+    ethicalads: 'https://media.ethicalads.io/media/client/ethicalads.min.js',
+    carbon: 'https://cdn.carbonads.com/carbon.js',
+};
 
-const saveOnboardingState = (el, state) => {
-    el.dataset.onboardingState = state || '';
-    return fetch(el.dataset.stateUrl, {
-        method: 'POST',
-        keepalive: true,
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': el.dataset.stateCsrf,
-            'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify({ state }),
-    }).catch(() => {});
+const loadEthicalAds = () => {
+    if (window.ethicalads) {
+        window.ethicalads.load();
+        return;
+    }
+    if (document.querySelector('script[data-ad-script="ethicalads"]')) return;
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = AD_SCRIPTS.ethicalads;
+    script.dataset.adScript = 'ethicalads';
+    script.addEventListener('load', () => window.ethicalads?.load());
+    document.head.appendChild(script);
+};
+
+const loadCarbon = (slot, serve) => {
+    if (!serve || document.getElementById('_carbonads_js')) return;
+    const script = document.createElement('script');
+    script.async = true;
+    script.id = '_carbonads_js';
+    script.src = `${AD_SCRIPTS.carbon}?serve=${encodeURIComponent(serve)}&placement=spicymatch`;
+    slot.appendChild(script);
+};
+
+const TOUR_STORE_KEY = 'sm_tours';
+const TOUR_SKIP_ALL = '*';
+const WELCOME_TOUR = 'welcome';
+
+const readTours = () => {
+    try {
+        const stored = JSON.parse(localStorage.getItem(TOUR_STORE_KEY) || '{}');
+        return stored && typeof stored === 'object' ? stored : {};
+    } catch {
+        return {};
+    }
+};
+
+const tourSeen = (key, version) => {
+    const stored = readTours();
+    return Boolean(stored[TOUR_SKIP_ALL]) || (Number(stored[key]) || 0) >= version;
+};
+
+const markTourSeen = (key, version) => {
+    try {
+        localStorage.setItem(TOUR_STORE_KEY, JSON.stringify({ ...readTours(), [key]: version }));
+        return true;
+    } catch {
+        return false;
+    }
+};
+
+const resetTours = () => {
+    try {
+        localStorage.removeItem(TOUR_STORE_KEY);
+        return true;
+    } catch {
+        return false;
+    }
+};
+
+const isGateOpen = () => {
+    const gate = document.querySelector('[x-data="gateLoginModal"]');
+    return Boolean(gate && window.Alpine?.$data(gate)?.open);
 };
 
 const loopTab = (e, root) => {
@@ -478,7 +531,6 @@ export default function registerAlpineComponents(Alpine) {
     Alpine.data('recetteView', () => ({
         tab: 'timeline',
         openSpiceId: null,
-        noteOpen: false,
         favorite: false,
         favError: false,
         favPending: false,
@@ -530,6 +582,10 @@ export default function registerAlpineComponents(Alpine) {
 
         async setFavorite(next) {
             if (this.favPending) return;
+            if (this.$root.dataset.guest === '1') {
+                await this.gateFavorite(next);
+                return;
+            }
             const previous = this.favorite;
             this.favTarget = next;
             this.favorite = next;
@@ -549,6 +605,33 @@ export default function registerAlpineComponents(Alpine) {
             } finally {
                 this.favPending = false;
             }
+        },
+
+        gateRename() {
+            window.dispatchEvent(new CustomEvent('gate-login', {
+                detail: { url: window.location.pathname + window.location.search, tab: 'register', context: 'rename' },
+            }));
+        },
+
+        async gateFavorite(next) {
+            if (!next) return;
+            this.favPending = true;
+            try {
+                const res = await fetch(this.$root.dataset.favoriteUrl, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/json', 'X-CSRF-Token': this.$root.dataset.token },
+                    body: JSON.stringify({ favorite: true }),
+                });
+                if (!res.ok && res.status !== 401) throw new Error(`HTTP ${res.status}`);
+            } catch (e) {
+                this.favError = true;
+                return;
+            } finally {
+                this.favPending = false;
+            }
+            window.dispatchEvent(new CustomEvent('gate-login', {
+                detail: { url: window.location.pathname + window.location.search, tab: 'register', context: 'favorite' },
+            }));
         },
 
         retryFavorite() {
@@ -1029,67 +1112,64 @@ export default function registerAlpineComponents(Alpine) {
         chevronClass() { return this.open ? '' : '-rotate-180'; },
     }));
 
-    Alpine.data('cookieConsent', () => ({
-        visible: false,
-        analytics: false,
-        functional: true,
+    Alpine.data('adSlot', () => ({
+        observer: null,
 
         init() {
-            const version = Number(this.$el.dataset.consentVersion || '0');
-            try {
-                const cookie = document.cookie.split('; ').find(r => r.startsWith('sm_consent='));
-                if (!cookie) { this.visible = true; return; }
-                const data = JSON.parse(decodeURIComponent(cookie.split('=')[1]));
-                if ((data.version || 0) < version) this.visible = true;
-            } catch (e) { this.visible = true; }
+            const provider = this.$root.dataset.adProvider;
+            if (!Object.hasOwn(AD_SCRIPTS, provider) || !('IntersectionObserver' in window)) return;
+            this.observer = new IntersectionObserver((entries) => {
+                if (!entries.some(entry => entry.isIntersecting)) return;
+                this.observer.disconnect();
+                this.observer = null;
+                if (provider === 'carbon') loadCarbon(this.$root, this.$root.dataset.adPublisher);
+                else loadEthicalAds();
+            }, { rootMargin: '200px' });
+            this.observer.observe(this.$root);
+            this._onBeforeCache = () => {
+                this.$root.querySelectorAll('#_carbonads_js, #carbonads').forEach(node => node.remove());
+            };
+            document.addEventListener('turbo:before-cache', this._onBeforeCache);
         },
 
-        async accept(analytics, functional) {
-            const url = this.$el.dataset.consentUrl;
-            const token = this.$el.dataset.consentToken;
-            try {
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ analytics, functional, _token: token }),
-                });
-                if (!res.ok) { console.error('Consent save failed', res.status); return; }
-                this.visible = false;
-            } catch (e) { console.error('Consent save error', e); }
+        destroy() {
+            this.observer?.disconnect();
+            if (this._onBeforeCache) document.removeEventListener('turbo:before-cache', this._onBeforeCache);
         },
-
-        acceptAll() { return this.accept(true, true); },
-        acceptChoices() { return this.accept(this.analytics, this.functional); },
-        rejectAll() { return this.accept(false, false); },
     }));
 
     Alpine.data('onboardingWelcome', () => ({
         visible: false,
         previouslyFocused: null,
+        _timer: null,
+        _onBeforeCache: null,
 
         init() {
             this.$watch('visible', (val) => {
                 document.querySelectorAll('main, nav, footer').forEach(el => { el.inert = val; });
             });
-            const check = () => {
-                if (document.getElementById('account-created-title')) return;
-                const state = this.$root.dataset.onboardingState;
-                if (!state && pathWithoutLocale() === '/') {
-                    setTimeout(() => {
-                        if (this.$root.dataset.onboardingState) return;
-                        if (pathWithoutLocale() !== '/') return;
-                        this.previouslyFocused = document.activeElement;
-                        this.visible = true;
-                        this.$nextTick(() => this.trapFocus());
-                    }, 600);
-                }
-            };
-            check();
-            document.addEventListener('turbo:load', () => check());
+            this._onBeforeCache = () => { this.visible = false; };
+            document.addEventListener('turbo:before-cache', this._onBeforeCache);
+            if (tourSeen(WELCOME_TOUR, 1)) return;
+            if (document.getElementById('account-created-title')) {
+                window.addEventListener('account-created-closed', () => this.open(), { once: true });
+                return;
+            }
+            this._timer = setTimeout(() => this.open(), 600);
         },
 
-        trapFocus() {
-            focusFirst(this.$el);
+        destroy() {
+            clearTimeout(this._timer);
+            document.removeEventListener('turbo:before-cache', this._onBeforeCache);
+            document.querySelectorAll('main, nav, footer').forEach(el => { el.inert = false; });
+        },
+
+        open() {
+            if (this.visible || tourSeen(WELCOME_TOUR, 1) || isGateOpen()) return;
+            this.previouslyFocused = document.activeElement;
+            this.visible = true;
+            markTourSeen(WELCOME_TOUR, 1);
+            this.$nextTick(() => focusFirst(this.$el));
         },
 
         handleTab(e) {
@@ -1099,13 +1179,11 @@ export default function registerAlpineComponents(Alpine) {
         start(event) {
             const destination = event.currentTarget.closest('a')?.href || event.currentTarget.href;
             this.visible = false;
-            saveOnboardingState(this.$root, 'welcome').finally(() => {
-                window.location.href = destination;
-            });
+            window.location.href = destination;
         },
 
         skip() {
-            saveOnboardingState(this.$root, 'welcome,spices,lab,academy');
+            markTourSeen(TOUR_SKIP_ALL, 1);
             this.visible = false;
             if (this.previouslyFocused) this.previouslyFocused.focus();
         },
@@ -1113,9 +1191,8 @@ export default function registerAlpineComponents(Alpine) {
 
     Alpine.data('onboardingReset', () => ({
         reset() {
-            saveOnboardingState(this.$root, null).finally(() => {
-                window.location.href = this.$el.dataset.homeUrl;
-            });
+            resetTours();
+            window.location.href = this.$el.dataset.homeUrl;
         },
     }));
 
@@ -1133,6 +1210,7 @@ export default function registerAlpineComponents(Alpine) {
     Alpine.data('gateLoginModal', () => ({
         open: false,
         activeTab: 'login',
+        context: '',
         targetUrl: '',
         previouslyFocused: null,
 
@@ -1142,6 +1220,7 @@ export default function registerAlpineComponents(Alpine) {
 
         onGate(evt) {
             this.activeTab = evt.detail.tab || 'login';
+            this.context = evt.detail.context || '';
             this.targetUrl = evt.detail.url;
             this.previouslyFocused = document.activeElement;
             this.open = true;
@@ -1176,16 +1255,24 @@ export default function registerAlpineComponents(Alpine) {
         isRegisterTab() {
             return 'register' === this.activeTab;
         },
+
+        isContext(name) {
+            return name === this.context;
+        },
+
+        hasContext() {
+            return '' !== this.context;
+        },
     }));
 
-    Alpine.data('spotlightTour', () => ({
+    Alpine.data('pageTour', () => ({
+        key: '',
+        version: 1,
+        steps: [],
+        currentStep: 0,
+        firstShown: null,
         active: false,
         tooltipActive: false,
-        paused: false,
-        currentStep: 0,
-        steps: [],
-        totalSteps: 0,
-        tourKey: null,
         targetEl: null,
         spotlightStyle: {},
         tooltipStyle: {},
@@ -1193,14 +1280,17 @@ export default function registerAlpineComponents(Alpine) {
         currentText: '',
         showTransition: false,
         transitionTitle: '',
-        transitionUrl: '',
-        tours: {},
         sheetMode: false,
         sheetTop: false,
+        _timer: null,
+        _resizeHandler: null,
+        _targetClickHandler: null,
+        _onBeforeCache: null,
+        _onAccountClosed: null,
         get isLastStep() { return this.currentStep + 1 >= this.steps.length; },
-        get hasPrev() { return this.currentStep > 0; },
+        get hasPrev() { return this.firstShown !== null && this.currentStep > this.firstShown; },
         nextLabel() { return this.isLastStep ? t('tour.done') : t('tour.next'); },
-        stepCounter() { return (this.currentStep + 1) + ' / ' + this.totalSteps; },
+        stepCounter() { return (this.currentStep + 1) + ' / ' + this.steps.length; },
         stepDotClass(i) {
             return i <= this.currentStep + 1
                 ? 'w-5 h-1.5 bg-saffron-500 rounded-full'
@@ -1215,59 +1305,48 @@ export default function registerAlpineComponents(Alpine) {
         prefersReducedMotion() {
             return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         },
-        _resizeHandler: null,
-        _targetClickHandler: null,
 
         init() {
-            try {
-                this.tours = JSON.parse(this.$el.dataset.toursJson || '{}');
-            } catch (e) {
-                console.error('spotlightTour: invalid tours JSON', e);
-                this.tours = {};
-            }
-            const check = () => this.checkTour();
-            check();
-            document.addEventListener('turbo:load', () => setTimeout(check, 100));
-            document.addEventListener('turbo:before-visit', () => this.cleanup());
-        },
-
-        seenSet() {
-            const raw = this.$root.dataset.onboardingState || '';
-            return raw ? raw.split(',').filter(Boolean) : [];
-        },
-
-        markSeen(key) {
-            const seen = this.seenSet();
-            if (!seen.includes(key)) seen.push(key);
-            saveOnboardingState(this.$root, seen.join(','));
-        },
-
-        checkTour() {
-            if (this.paused) return;
-
-            const seen = this.seenSet();
-            const path = pathWithoutLocale();
-
-            for (const key of Object.keys(this.tours)) {
-                if (seen.includes(key)) continue;
-                const tour = this.tours[key];
-                if (!path.startsWith(tour.path)) continue;
-
-                this.tourKey = key;
-                this.steps = tour.steps;
-                this.totalSteps = tour.steps.length;
-                this.currentStep = 0;
-                this.showTransition = false;
-
-                this.markSeen(key);
-
-                this.$nextTick(() => this.startStep());
+            const root = this.$root;
+            this.key = root.dataset.tourKey || '';
+            this.version = Number(root.dataset.tourVersion) || 1;
+            this.transitionTitle = root.dataset.tourTransition || '';
+            this.steps = [...root.querySelectorAll('[data-tour-step]')].map(el => ({
+                target: el.dataset.tourStep,
+                position: el.dataset.tourPosition || 'bottom',
+                advance: el.dataset.tourAdvance === '1',
+                title: el.dataset.tourTitle,
+                text: el.dataset.tourText,
+            }));
+            this._onBeforeCache = () => this.skip();
+            document.addEventListener('turbo:before-cache', this._onBeforeCache);
+            if (!this.key || !this.steps.length || tourSeen(this.key, this.version)) return;
+            if (document.getElementById('account-created-title')) {
+                this._onAccountClosed = () => this.$nextTick(() => this.begin());
+                window.addEventListener('account-created-closed', this._onAccountClosed, { once: true });
                 return;
             }
+            this._timer = setTimeout(() => this.begin(), 300);
         },
 
-        resolveTarget(selector) {
-            for (const el of document.querySelectorAll(selector)) {
+        destroy() {
+            clearTimeout(this._timer);
+            this.cleanup();
+            document.removeEventListener('turbo:before-cache', this._onBeforeCache);
+            if (this._onAccountClosed) window.removeEventListener('account-created-closed', this._onAccountClosed);
+        },
+
+        begin() {
+            if (this.active || tourSeen(this.key, this.version) || isGateOpen()) return;
+            this.steps = this.steps.filter(step => this.resolveTarget(step.target));
+            if (!this.steps.length) return;
+            this.currentStep = 0;
+            this.firstShown = null;
+            this.startStep();
+        },
+
+        resolveTarget(name) {
+            for (const el of document.querySelectorAll(`[data-tour="${CSS.escape(name)}"]`)) {
                 const rect = el.getBoundingClientRect();
                 if (rect.width > 0 && rect.height > 0 && getComputedStyle(el).visibility !== 'hidden') return el;
             }
@@ -1282,6 +1361,10 @@ export default function registerAlpineComponents(Alpine) {
                 this.currentStep++;
                 return this.$nextTick(() => this.startStep());
             }
+            if (this.firstShown === null) {
+                this.firstShown = this.currentStep;
+                markTourSeen(this.key, this.version);
+            }
             this.targetEl = target;
             if (getComputedStyle(target).position !== 'fixed') {
                 target.scrollIntoView({ behavior: this.prefersReducedMotion() ? 'auto' : 'smooth', block: 'center' });
@@ -1291,20 +1374,20 @@ export default function registerAlpineComponents(Alpine) {
             this.active = true;
             this.positionSpotlight(target);
             this.$nextTick(() => {
-                this.positionTooltip(target, step.position || 'bottom');
+                this.positionTooltip(target, step.position);
                 this.tooltipActive = true;
                 this.$nextTick(() => {
                     if (this.$refs.tooltip) this.$refs.tooltip.focus({ preventScroll: true });
                 });
             });
-            if (!step.noClickAdvance) {
+            if (step.advance) {
                 this._targetClickHandler = () => setTimeout(() => this.next(), 250);
                 target.addEventListener('click', this._targetClickHandler, { once: true });
             }
             this._resizeHandler = () => {
                 if (this.targetEl) {
                     this.positionSpotlight(this.targetEl);
-                    this.positionTooltip(this.targetEl, step.position || 'bottom');
+                    this.positionTooltip(this.targetEl, step.position);
                 }
             };
             window.addEventListener('resize', this._resizeHandler);
@@ -1377,6 +1460,10 @@ export default function registerAlpineComponents(Alpine) {
             };
         },
 
+        handleTab(e) {
+            if (this.$refs.tooltip) loopTab(e, this.$refs.tooltip);
+        },
+
         next() {
             this.currentStep++;
             this.cleanupStep();
@@ -1385,7 +1472,7 @@ export default function registerAlpineComponents(Alpine) {
         },
 
         prev() {
-            if (this.currentStep === 0) return;
+            if (!this.hasPrev) return;
             this.currentStep--;
             this.cleanupStep();
             this.startStep();
@@ -1393,32 +1480,15 @@ export default function registerAlpineComponents(Alpine) {
 
         skip() {
             this.cleanup();
-            this.active = false;
-            this.tooltipActive = false;
         },
 
         finishTour() {
             this.cleanup();
-            const tour = this.tours[this.tourKey];
-            if (tour && tour.nextUrl && tour.transitionTitle) {
-                this.transitionTitle = tour.transitionTitle;
-                this.transitionUrl = tour.nextUrl;
-                this.showTransition = true;
-            } else {
-                this.active = false;
-                this.tooltipActive = false;
-            }
+            if (this.transitionTitle) this.showTransition = true;
         },
 
-        acceptTransition() {
+        closeTransition() {
             this.showTransition = false;
-            if (this.transitionUrl) window.location.href = this.transitionUrl;
-        },
-
-        skipTransition() {
-            this.showTransition = false;
-            this.active = false;
-            this.tooltipActive = false;
         },
 
         cleanupStep() {

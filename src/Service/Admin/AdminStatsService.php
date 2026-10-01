@@ -11,11 +11,6 @@ use Doctrine\DBAL\Connection;
 
 final readonly class AdminStatsService
 {
-    /**
-     * @var list<string>
-     */
-    private const array ONBOARDING_KEYS = ['welcome', 'spices', 'lab', 'academy'];
-
     public function __construct(
         private Connection $connection,
     ) {
@@ -456,43 +451,6 @@ final readonly class AdminStatsService
                 'qcm' => $qcmCount,
             ],
         ];
-    }
-
-    /**
-     * @return array<string, array{seen: int, rate: float}>
-     */
-    public function onboardingCompletionByStep(): array
-    {
-        $totalUsers = (int) $this->connection->fetchOne('SELECT COUNT(*) FROM users WHERE deleted_at IS NULL');
-        if ($totalUsers === 0) {
-            return [];
-        }
-
-        $selects = [];
-        $params = [];
-        foreach (self::ONBOARDING_KEYS as $key) {
-            $selects[] = sprintf(
-                'SUM(CASE WHEN FIND_IN_SET(:%1$s, onboarding_state) > 0 THEN 1 ELSE 0 END) AS %1$s',
-                $key
-            );
-            $params[$key] = $key;
-        }
-
-        $row = $this->connection->fetchAssociative(
-            sprintf('SELECT %s FROM users WHERE deleted_at IS NULL', implode(', ', $selects)),
-            $params
-        ) ?: [];
-
-        $result = [];
-        foreach (self::ONBOARDING_KEYS as $key) {
-            $seen = (int) ($row[$key] ?? 0);
-            $result[$key] = [
-                'seen' => $seen,
-                'rate' => round(($seen / $totalUsers) * 100, 1),
-            ];
-        }
-
-        return $result;
     }
 
     /**

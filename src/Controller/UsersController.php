@@ -19,6 +19,7 @@ use App\Repository\SpiceViewRepository;
 use App\Repository\SpicyMatchHistoryRepository;
 use App\Repository\UserAchievementRepository;
 use App\Repository\UsersRepository;
+use App\Seo\Attribute\NoIndex;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -32,6 +33,7 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+#[NoIndex]
 #[Route('/{_locale}/users', defaults: [
     '_locale' => 'fr',
 ])]
@@ -79,8 +81,8 @@ class UsersController extends AbstractController
                 'totalMatches' => $progression->getTotalMatches(),
                 'uniqueSpicesUsed' => $progression->getUniqueSpicesUsed(),
                 'totalSpicesRead' => $progression->getTotalSpicesRead(),
-                'currentReadingStreak' => $progression->getCurrentReadingStreak(),
-                'longestReadingStreak' => $progression->getLongestReadingStreak(),
+                'currentActivityStreak' => $progression->getCurrentActivityStreak(),
+                'longestActivityStreak' => $progression->getLongestActivityStreak(),
                 'discoveries' => $progression->getDiscoveries(),
                 'gamificationEnabled' => $progression->isGamificationEnabled(),
             ] : null,
@@ -109,9 +111,7 @@ class UsersController extends AbstractController
                     'createdAt' => $h->getCreatedAt()
                         ->format(\DATE_ATOM),
                 ],
-                $this->historyRepository->findBy([
-                    'user' => $user,
-                ]),
+                $this->historyRepository->findByUser($user),
             ),
             'spicesRead' => array_map(
                 static fn (SpiceView $sv): array => [
@@ -370,16 +370,16 @@ class UsersController extends AbstractController
     {
         $progression = $user->getProgression();
 
+        if (! $progression instanceof UserProgression || $ua->getUserProgression() !== $progression) {
+            throw $this->createAccessDeniedException();
+        }
+
         if (! $this->isCsrfTokenValid('equip_badge_' . $ua->getId(), $request->request->get('_token'))) {
             $this->addFlash('error', $this->translator->trans('flash.token_invalid'));
 
             return $this->redirectToRoute('profile_user', [
                 'tab' => 'grimoire',
             ]);
-        }
-
-        if (! $progression instanceof UserProgression || $ua->getUserProgression() !== $progression) {
-            throw $this->createAccessDeniedException();
         }
 
         $progression->equipBadge($ua);

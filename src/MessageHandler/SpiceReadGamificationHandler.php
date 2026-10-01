@@ -59,10 +59,6 @@ class SpiceReadGamificationHandler
             $progression->setDiscoveries($this->spiceViewRepository->countDistinctSpicesByUser($user));
             $progression->setTotalSpicesRead($this->spiceViewRepository->countByUser($user));
 
-            if ($event->isNewViewToday) {
-                $progression->recordReadingStreak();
-            }
-
             $stats = $this->manager->getOrCreateStats($user);
             $stats->recordVisitedSpice($event->spiceId);
 

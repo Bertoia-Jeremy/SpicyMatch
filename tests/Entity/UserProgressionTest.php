@@ -121,78 +121,38 @@ final class UserProgressionTest extends TestCase
         self::assertSame(2, $this->progression->getTotalSpicesRead());
     }
 
-    public function testFirstReadSetsStreakToOne(): void
+    /**
+     * @return iterable<string, array{0: ?string, 1: int, 2: int, 3: int, 4: int}>
+     */
+    public static function activityStreakProvider(): iterable
     {
-        $this->progression->recordReadingStreak();
-        self::assertSame(1, $this->progression->getCurrentReadingStreak());
-        self::assertSame(1, $this->progression->getLongestReadingStreak());
+        yield 'first activity' => [null, 0, 0, 1, 1];
+        yield 'same day keeps streak' => ['2026-09-30', 3, 5, 3, 5];
+        yield 'yesterday increments' => ['2026-09-29', 4, 4, 5, 5];
+        yield 'gap resets' => ['2026-09-27', 10, 10, 1, 10];
+        yield 'longest preserved after reset' => ['2026-09-25', 3, 7, 1, 7];
+        yield 'longest follows current' => ['2026-09-29', 9, 9, 10, 10];
     }
 
-    public function testReadSameDayDoesNotChangeStreak(): void
-    {
-        $this->progression->recordReadingStreak();
-        $this->progression->recordReadingStreak();
-        self::assertSame(1, $this->progression->getCurrentReadingStreak());
-    }
+    #[DataProvider('activityStreakProvider')]
+    public function testRecordActivityStreak(
+        ?string $lastActivity,
+        int $current,
+        int $longest,
+        int $expectedCurrent,
+        int $expectedLongest,
+    ): void {
+        new \ReflectionProperty(UserProgression::class, 'lastActivityDate')->setValue(
+            $this->progression,
+            $lastActivity === null ? null : new \DateTimeImmutable($lastActivity),
+        );
+        new \ReflectionProperty(UserProgression::class, 'currentActivityStreak')->setValue($this->progression, $current);
+        new \ReflectionProperty(UserProgression::class, 'longestActivityStreak')->setValue($this->progression, $longest);
 
-    public function testReadYesterdayIncrementsStreak(): void
-    {
-        $refDate = new \ReflectionProperty(UserProgression::class, 'lastReadDate');
-        $refStreak = new \ReflectionProperty(UserProgression::class, 'currentReadingStreak');
-        $refLongest = new \ReflectionProperty(UserProgression::class, 'longestReadingStreak');
+        $this->progression->recordActivityStreak(new \DateTimeImmutable('2026-09-30 15:42'));
 
-        $refDate->setValue($this->progression, new \DateTimeImmutable('yesterday'));
-        $refStreak->setValue($this->progression, 4);
-        $refLongest->setValue($this->progression, 4);
-
-        $this->progression->recordReadingStreak();
-
-        self::assertSame(5, $this->progression->getCurrentReadingStreak());
-        self::assertSame(5, $this->progression->getLongestReadingStreak());
-    }
-
-    public function testReadAfterGapResetsStreakToOne(): void
-    {
-        $refDate = new \ReflectionProperty(UserProgression::class, 'lastReadDate');
-        $refStreak = new \ReflectionProperty(UserProgression::class, 'currentReadingStreak');
-
-        $refDate->setValue($this->progression, new \DateTimeImmutable('-3 days'));
-        $refStreak->setValue($this->progression, 10);
-
-        $this->progression->recordReadingStreak();
-
-        self::assertSame(1, $this->progression->getCurrentReadingStreak());
-    }
-
-    public function testLongestStreakIsPreservedAfterReset(): void
-    {
-        $refDate = new \ReflectionProperty(UserProgression::class, 'lastReadDate');
-        $refStreak = new \ReflectionProperty(UserProgression::class, 'currentReadingStreak');
-        $refLongest = new \ReflectionProperty(UserProgression::class, 'longestReadingStreak');
-
-        $refDate->setValue($this->progression, new \DateTimeImmutable('-5 days'));
-        $refStreak->setValue($this->progression, 3);
-        $refLongest->setValue($this->progression, 7);
-
-        $this->progression->recordReadingStreak();
-
-        self::assertSame(1, $this->progression->getCurrentReadingStreak());
-        self::assertSame(7, $this->progression->getLongestReadingStreak());
-    }
-
-    public function testLongestStreakUpdatesWhenCurrentExceedsIt(): void
-    {
-        $refDate = new \ReflectionProperty(UserProgression::class, 'lastReadDate');
-        $refStreak = new \ReflectionProperty(UserProgression::class, 'currentReadingStreak');
-        $refLongest = new \ReflectionProperty(UserProgression::class, 'longestReadingStreak');
-
-        $refDate->setValue($this->progression, new \DateTimeImmutable('yesterday'));
-        $refStreak->setValue($this->progression, 9);
-        $refLongest->setValue($this->progression, 9);
-
-        $this->progression->recordReadingStreak();
-
-        self::assertSame(10, $this->progression->getLongestReadingStreak());
+        self::assertSame($expectedCurrent, $this->progression->getCurrentActivityStreak());
+        self::assertSame($expectedLongest, $this->progression->getLongestActivityStreak());
     }
 
     public function testGamificationEnabledByDefault(): void

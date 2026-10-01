@@ -46,18 +46,18 @@ class UserProgression
     ])]
     private int $totalSpicesRead = 0;
 
-    #[ORM\Column(options: [
+    #[ORM\Column(name: 'current_reading_streak', options: [
         'default' => 0,
     ])]
-    private int $currentReadingStreak = 0;
+    private int $currentActivityStreak = 0;
 
-    #[ORM\Column(options: [
+    #[ORM\Column(name: 'longest_reading_streak', options: [
         'default' => 0,
     ])]
-    private int $longestReadingStreak = 0;
+    private int $longestActivityStreak = 0;
 
-    #[ORM\Column(type: 'date_immutable', nullable: true)]
-    private ?\DateTimeImmutable $lastReadDate = null;
+    #[ORM\Column(name: 'last_read_date', type: 'date_immutable', nullable: true)]
+    private ?\DateTimeImmutable $lastActivityDate = null;
 
     #[ORM\Column(options: [
         'default' => true,
@@ -279,37 +279,38 @@ class UserProgression
         return $this;
     }
 
-    public function getCurrentReadingStreak(): int
+    public function getCurrentActivityStreak(): int
     {
-        return $this->currentReadingStreak;
+        return $this->currentActivityStreak;
     }
 
-    public function getLongestReadingStreak(): int
+    public function getLongestActivityStreak(): int
     {
-        return $this->longestReadingStreak;
+        return $this->longestActivityStreak;
     }
 
-    public function recordReadingStreak(): static
+    public function recordActivityStreak(\DateTimeImmutable $today): static
     {
-        $today = new \DateTimeImmutable('today');
+        $today = $today->setTime(0, 0);
 
-        if (! $this->lastReadDate instanceof \DateTimeImmutable) {
-            $this->currentReadingStreak = 1;
+        if (! $this->lastActivityDate instanceof \DateTimeImmutable) {
+            $this->currentActivityStreak = 1;
         } else {
-            $diff = (int) $today->diff($this->lastReadDate)
-                ->days;
-            if ($diff === 1) {
-                ++$this->currentReadingStreak;
-            } elseif ($diff > 1) {
-                $this->currentReadingStreak = 1;
+            $last = $this->lastActivityDate->setTime(0, 0);
+            if ($last >= $today) {
+                return $this;
             }
+
+            $diff = (int) $today->diff($last)
+                ->days;
+            $this->currentActivityStreak = $diff === 1 ? $this->currentActivityStreak + 1 : 1;
         }
 
-        if ($this->currentReadingStreak > $this->longestReadingStreak) {
-            $this->longestReadingStreak = $this->currentReadingStreak;
+        if ($this->currentActivityStreak > $this->longestActivityStreak) {
+            $this->longestActivityStreak = $this->currentActivityStreak;
         }
 
-        $this->lastReadDate = $today;
+        $this->lastActivityDate = $today;
         $this->updatedAt = new \DateTimeImmutable();
 
         return $this;

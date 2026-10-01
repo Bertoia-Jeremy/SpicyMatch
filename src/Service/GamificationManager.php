@@ -15,6 +15,7 @@ use App\Gamification\GamificationManagerInterface;
 use App\Gamification\XpStrategyInterface;
 use App\Repository\AchievementProgressRepository;
 use App\Repository\AchievementRepository;
+use App\Service\Clock\GameDay;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -36,6 +37,7 @@ class GamificationManager implements GamificationManagerInterface
         private readonly AchievementProgressRepository $achievementProgressRepository,
         private readonly TriggerEvaluatorRegistry $evaluators,
         private readonly LoggerInterface $logger,
+        private readonly GameDay $gameDay,
     ) {
     }
 
@@ -89,6 +91,7 @@ class GamificationManager implements GamificationManagerInterface
         }
 
         $this->getOrCreateStats($user);
+        $progression->recordActivityStreak($this->gameDay->today());
 
         $levelBefore = $progression->getLevel();
 
@@ -106,7 +109,7 @@ class GamificationManager implements GamificationManagerInterface
         if ($standardXp > 0) {
             $this->em->persist(new PendingGamificationNotification($user, 'xp_gained', [
                 'amount' => $standardXp,
-                'source' => $this->sourceLabelFor($eventType),
+                'source' => $this->sourceLabelFor($eventType, $context),
             ]));
         }
 
@@ -192,8 +195,15 @@ class GamificationManager implements GamificationManagerInterface
         }
     }
 
-    private function sourceLabelFor(string $eventType): string
+    /**
+     * @param array<string, mixed> $context
+     */
+    private function sourceLabelFor(string $eventType, array $context): string
     {
+        if ($eventType === 'game_completed' && ($context['dailyBonus'] ?? false) === true) {
+            return 'gamification.source.daily_bonus';
+        }
+
         return match ($eventType) {
             'match_saved' => 'gamification.source.match_saved',
             'spice_read' => 'gamification.source.spice_read',

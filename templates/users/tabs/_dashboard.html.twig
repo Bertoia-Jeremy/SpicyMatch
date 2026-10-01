@@ -3,7 +3,9 @@
         {% if progression %}
             {% set lvl = progression.level %}
             {% set pct = progression.progressPercent %}
+            {% set gamif = gamification_on() %}
 
+            {% if gamif %}
             <div class="mb-6 p-4 bg-linear-to-r from-turmeric-50 to-saffron-50 border border-saffron-200 rounded-xl">
                 <div class="flex items-center justify-between mb-1">
                     <div class="flex items-center gap-2">
@@ -27,6 +29,7 @@
                     <span>{{ 'ui.dashboard.level_short'|trans({'%level%': lvl + 1}) }}</span>
                 </div>
             </div>
+            {% endif %}
 
             <div class="grid grid-cols-2 gap-3 mb-6">
                 <div class="text-center p-3 bg-spice-surface border border-spice-border rounded-xl">
@@ -56,19 +59,21 @@
             </div>
 
             {% if userStats %}
-                <div class="grid grid-cols-3 gap-3 mb-6">
+                <div class="grid {{ gamif ? 'grid-cols-3' : 'grid-cols-2' }} gap-3 mb-6">
                     <div class="text-center p-3 bg-stone-50 border border-stone-200 rounded-xl">
                         <div class="text-xl font-bold text-stone-700">{{ userStats.visitedGroupsCount }}</div>
                         <div class="text-[10px] text-stone-500 mt-1">
                             <i class="fa-solid fa-layer-group text-saffron-400" aria-hidden="true"></i> {{ 'ui.dashboard.stat_groups'|trans }}
                         </div>
                     </div>
+                    {% if gamif %}
                     <div class="text-center p-3 bg-stone-50 border border-stone-200 rounded-xl">
-                        <div class="text-xl font-bold text-stone-700">{{ progression.longestReadingStreak }}</div>
+                        <div class="text-xl font-bold text-stone-700">{{ progression.longestActivityStreak }}</div>
                         <div class="text-[10px] text-stone-500 mt-1">
                             <i class="fa-solid fa-fire text-paprika-400" aria-hidden="true"></i> {{ 'ui.dashboard.stat_streak'|trans }}
                         </div>
                     </div>
+                    {% endif %}
                     <div class="text-center p-3 bg-stone-50 border border-stone-200 rounded-xl">
                         <div class="text-xl font-bold text-stone-700">{{ userStats.easterEggsFound }}</div>
                         <div class="text-[10px] text-stone-500 mt-1">

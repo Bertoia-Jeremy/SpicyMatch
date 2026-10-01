@@ -10,10 +10,16 @@ use App\Enum\AchievementRarity;
 use App\Enum\AchievementTrigger;
 use App\Enum\GameMode;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 
-class AchievementFixtures extends Fixture
+class AchievementFixtures extends Fixture implements FixtureGroupInterface
 {
+    public static function getGroups(): array
+    {
+        return ['achievements'];
+    }
+
     public function load(ObjectManager $manager): void
     {
         $achievements = [
@@ -23,6 +29,36 @@ class AchievementFixtures extends Fixture
                 'description' => 'Consultez votre première fiche d\'épice.',
                 'icon' => 'fa-solid fa-compass',
                 'trigger' => AchievementTrigger::FIRST_DISCOVERY,
+                'triggerValue' => 1,
+                'xpReward' => 15,
+                'rarity' => AchievementRarity::COMMON,
+            ],
+            [
+                'slug' => 'discovery_5',
+                'name' => 'Curieux',
+                'description' => 'Découvrez 5 épices différentes.',
+                'icon' => 'fa-solid fa-binoculars',
+                'trigger' => AchievementTrigger::FIRST_DISCOVERY,
+                'triggerValue' => 5,
+                'xpReward' => 20,
+                'rarity' => AchievementRarity::COMMON,
+            ],
+            [
+                'slug' => 'terpenes_apprenti',
+                'name' => 'Apprenti des Terpènes',
+                'description' => 'Explorez des épices de 3 familles aromatiques différentes.',
+                'icon' => 'fa-solid fa-layer-group',
+                'trigger' => AchievementTrigger::AROMATIC_GROUPS_VISITED,
+                'triggerValue' => 3,
+                'xpReward' => 15,
+                'rarity' => AchievementRarity::COMMON,
+            ],
+            [
+                'slug' => 'first_manual_match',
+                'name' => 'Main du Chef',
+                'description' => 'Composez votre premier mélange à la main, sans suggestion.',
+                'icon' => 'fa-solid fa-hand-sparkles',
+                'trigger' => AchievementTrigger::FIRST_MANUAL_MATCH,
                 'triggerValue' => 1,
                 'xpReward' => 15,
                 'rarity' => AchievementRarity::COMMON,
@@ -239,9 +275,9 @@ class AchievementFixtures extends Fixture
             [
                 'slug' => 'streak_3',
                 'name' => 'Assidu',
-                'description' => '3 jours consécutifs de lecture.',
+                'description' => '3 jours d\'activité consécutifs.',
                 'icon' => 'fa-solid fa-fire',
-                'trigger' => AchievementTrigger::READING_STREAK,
+                'trigger' => AchievementTrigger::ACTIVITY_STREAK,
                 'triggerValue' => 3,
                 'xpReward' => 30,
                 'rarity' => AchievementRarity::RARE,
@@ -308,17 +344,17 @@ class AchievementFixtures extends Fixture
             ],
             [
                 'slug' => 'streak_7',
-                'name' => 'Lecteur Assidu',
-                'description' => '7 jours consécutifs de lecture.',
+                'name' => 'Habitué',
+                'description' => '7 jours d\'activité consécutifs.',
                 'icon' => 'fa-solid fa-fire-flame-curved',
-                'trigger' => AchievementTrigger::READING_STREAK,
+                'trigger' => AchievementTrigger::ACTIVITY_STREAK,
                 'triggerValue' => 7,
                 'xpReward' => 60,
                 'rarity' => AchievementRarity::EPIC,
             ],
             [
                 'slug' => 'spice_read_50',
-                'name' => 'Apprenti des Terpènes',
+                'name' => 'Lecteur Érudit',
                 'description' => 'Consultez 50 fiches d\'épices ou terpènes.',
                 'icon' => 'fa-solid fa-book-open',
                 'trigger' => AchievementTrigger::SPICE_READ,
@@ -331,8 +367,8 @@ class AchievementFixtures extends Fixture
                 'name' => 'Prisme des Terpènes',
                 'description' => 'Explorez au moins une épice de chaque grande famille aromatique.',
                 'icon' => 'fa-solid fa-gem',
-                'trigger' => AchievementTrigger::ALL_TERPENES_VISITED,
-                'triggerValue' => 1,
+                'trigger' => AchievementTrigger::AROMATIC_GROUPS_VISITED,
+                'triggerValue' => 7,
                 'xpReward' => 125,
                 'rarity' => AchievementRarity::LEGENDARY,
             ],
@@ -380,9 +416,9 @@ class AchievementFixtures extends Fixture
             [
                 'slug' => 'streak_30',
                 'name' => 'Moine des Épices',
-                'description' => '30 jours consécutifs de lecture.',
+                'description' => '30 jours d\'activité consécutifs.',
                 'icon' => 'fa-solid fa-fire-flame-simple',
-                'trigger' => AchievementTrigger::READING_STREAK,
+                'trigger' => AchievementTrigger::ACTIVITY_STREAK,
                 'triggerValue' => 30,
                 'xpReward' => 125,
                 'rarity' => AchievementRarity::LEGENDARY,

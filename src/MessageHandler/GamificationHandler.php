@@ -55,7 +55,9 @@ class GamificationHandler
             return;
         }
 
-        $this->em->wrapInTransaction(function () use ($event, $user, $progression): void {
+        $isManual = $spicyMatch->isManual();
+
+        $this->em->wrapInTransaction(function () use ($event, $user, $progression, $isManual): void {
             $this->manager->lockForUpdate($progression);
 
             if (! $this->processedEvents->claim($user, 'match_saved', 'match:' . $event->spicyMatchHistoryId)) {
@@ -70,7 +72,9 @@ class GamificationHandler
             $progression->setTotalMatches($this->historyRepository->countByUser($user));
             $progression->setUniqueSpicesUsed($this->historyRepository->countDistinctSpicesByUser($user));
 
-            $this->manager->process($progression, 'match_saved');
+            $this->manager->process($progression, 'match_saved', [
+                'isManual' => $isManual,
+            ]);
 
             $this->em->flush();
         });

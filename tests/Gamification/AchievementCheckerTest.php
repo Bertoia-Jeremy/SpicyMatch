@@ -11,8 +11,9 @@ use App\Entity\UserStat;
 use App\Enum\AchievementRarity;
 use App\Enum\AchievementTrigger;
 use App\Gamification\AchievementChecker;
+use App\Gamification\Evaluator\ActivityStreakEvaluator;
 use App\Gamification\Evaluator\AllPreparationMethodsReadEvaluator;
-use App\Gamification\Evaluator\AllTerpenesVisitedEvaluator;
+use App\Gamification\Evaluator\AromaticGroupsVisitedEvaluator;
 use App\Gamification\Evaluator\EasterEggFoundEvaluator;
 use App\Gamification\Evaluator\FirstDiscoveryEvaluator;
 use App\Gamification\Evaluator\FirstGameEvaluator;
@@ -24,7 +25,6 @@ use App\Gamification\Evaluator\NFavoritesEvaluator;
 use App\Gamification\Evaluator\NGamesCompletedEvaluator;
 use App\Gamification\Evaluator\NMatchesEvaluator;
 use App\Gamification\Evaluator\NSpicesUsedEvaluator;
-use App\Gamification\Evaluator\ReadingStreakEvaluator;
 use App\Gamification\Evaluator\SpiceReadEvaluator;
 use App\Gamification\Evaluator\TriggerEvaluatorRegistry;
 use App\Repository\AchievementRepository;
@@ -61,12 +61,12 @@ final class AchievementCheckerTest extends TestCase
             new NSpicesUsedEvaluator(),
             new NFavoritesEvaluator(),
             new SpiceReadEvaluator(),
-            new ReadingStreakEvaluator(),
+            new ActivityStreakEvaluator(),
             new FirstDiscoveryEvaluator(),
             new FirstGameEvaluator(),
             new NGamesCompletedEvaluator(),
             new EasterEggFoundEvaluator(),
-            new AllTerpenesVisitedEvaluator($this->aromaticGroupsRepo),
+            new AromaticGroupsVisitedEvaluator($this->aromaticGroupsRepo),
             new GameScoreThresholdEvaluator(),
             new GamePerfectRunEvaluator($gameSessionRepo),
             new GroupMasteryReadEvaluator($spiceViewRepo),
@@ -170,24 +170,24 @@ final class AchievementCheckerTest extends TestCase
         self::assertSame([], $this->checker->check($this->progression, 'spice_read', []));
     }
 
-    public function testUnlocksReadingStreakWhenLongestStreakReachesThreshold(): void
+    public function testUnlocksActivityStreakWhenLongestStreakReachesThreshold(): void
     {
-        $achievement = $this->makeAchievement(AchievementTrigger::READING_STREAK, 7);
-        $this->stubRepo(AchievementTrigger::READING_STREAK, [$achievement]);
+        $achievement = $this->makeAchievement(AchievementTrigger::ACTIVITY_STREAK, 7);
+        $this->stubRepo(AchievementTrigger::ACTIVITY_STREAK, [$achievement]);
 
-        $this->setField('longestReadingStreak', 7);
+        $this->setField('longestActivityStreak', 7);
 
         $result = $this->checker->check($this->progression, 'spice_read', []);
 
         self::assertCount(1, $result);
     }
 
-    public function testDoesNotUnlockReadingStreakBelowThreshold(): void
+    public function testDoesNotUnlockActivityStreakBelowThreshold(): void
     {
-        $achievement = $this->makeAchievement(AchievementTrigger::READING_STREAK, 7);
-        $this->stubRepo(AchievementTrigger::READING_STREAK, [$achievement]);
+        $achievement = $this->makeAchievement(AchievementTrigger::ACTIVITY_STREAK, 7);
+        $this->stubRepo(AchievementTrigger::ACTIVITY_STREAK, [$achievement]);
 
-        $this->setField('longestReadingStreak', 6);
+        $this->setField('longestActivityStreak', 6);
 
         self::assertSame([], $this->checker->check($this->progression, 'spice_read', []));
     }
@@ -319,16 +319,16 @@ final class AchievementCheckerTest extends TestCase
 
     public function testAllTerpenesVisitedReturnsFalseWhenStatsNull(): void
     {
-        $achievement = $this->makeAchievement(AchievementTrigger::ALL_TERPENES_VISITED, 1);
-        $this->stubRepo(AchievementTrigger::ALL_TERPENES_VISITED, [$achievement]);
+        $achievement = $this->makeAchievement(AchievementTrigger::AROMATIC_GROUPS_VISITED, 1);
+        $this->stubRepo(AchievementTrigger::AROMATIC_GROUPS_VISITED, [$achievement]);
 
         self::assertSame([], $this->checker->check($this->progression, 'spice_read', []));
     }
 
     public function testAllTerpenesVisitedReturnsFalseWhenZeroGroups(): void
     {
-        $achievement = $this->makeAchievement(AchievementTrigger::ALL_TERPENES_VISITED, 1);
-        $this->stubRepo(AchievementTrigger::ALL_TERPENES_VISITED, [$achievement]);
+        $achievement = $this->makeAchievement(AchievementTrigger::AROMATIC_GROUPS_VISITED, 1);
+        $this->stubRepo(AchievementTrigger::AROMATIC_GROUPS_VISITED, [$achievement]);
 
         $stats = new UserStat();
         $user = $this->createMock(Users::class);
@@ -344,8 +344,8 @@ final class AchievementCheckerTest extends TestCase
 
     public function testAllTerpenesVisitedReturnsTrueWhenAllGroupsVisited(): void
     {
-        $achievement = $this->makeAchievement(AchievementTrigger::ALL_TERPENES_VISITED, 1);
-        $this->stubRepo(AchievementTrigger::ALL_TERPENES_VISITED, [$achievement]);
+        $achievement = $this->makeAchievement(AchievementTrigger::AROMATIC_GROUPS_VISITED, 1);
+        $this->stubRepo(AchievementTrigger::AROMATIC_GROUPS_VISITED, [$achievement]);
 
         $stats = new UserStat();
         $stats->addVisitedAromaticGroup(1);
@@ -365,10 +365,10 @@ final class AchievementCheckerTest extends TestCase
         self::assertCount(1, $result);
     }
 
-    public function testAllTerpenesVisitedReturnsFalseWhenNotAllGroupsVisited(): void
+    public function testAromaticGroupsVisitedReturnsFalseBelowThreshold(): void
     {
-        $achievement = $this->makeAchievement(AchievementTrigger::ALL_TERPENES_VISITED, 1);
-        $this->stubRepo(AchievementTrigger::ALL_TERPENES_VISITED, [$achievement]);
+        $achievement = $this->makeAchievement(AchievementTrigger::AROMATIC_GROUPS_VISITED, 5);
+        $this->stubRepo(AchievementTrigger::AROMATIC_GROUPS_VISITED, [$achievement]);
 
         $stats = new UserStat();
         $stats->addVisitedAromaticGroup(1);

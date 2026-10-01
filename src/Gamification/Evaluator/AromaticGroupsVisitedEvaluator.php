@@ -10,7 +10,7 @@ use App\Entity\UserStat;
 use App\Enum\AchievementTrigger;
 use App\Repository\AromaticGroupsRepository;
 
-final readonly class AllTerpenesVisitedEvaluator implements TriggerEvaluatorInterface, ProgressTrackableEvaluator
+final readonly class AromaticGroupsVisitedEvaluator implements TriggerEvaluatorInterface, ProgressTrackableEvaluator
 {
     public function __construct(
         private AromaticGroupsRepository $aromaticGroupsRepository,
@@ -19,7 +19,7 @@ final readonly class AllTerpenesVisitedEvaluator implements TriggerEvaluatorInte
 
     public function trigger(): AchievementTrigger
     {
-        return AchievementTrigger::ALL_TERPENES_VISITED;
+        return AchievementTrigger::AROMATIC_GROUPS_VISITED;
     }
 
     public function eventTypes(): array
@@ -50,6 +50,6 @@ final readonly class AllTerpenesVisitedEvaluator implements TriggerEvaluatorInte
             return false;
         }
 
-        return $stats->visitedGroupsCount >= $totalGroups;
+        return $stats->visitedGroupsCount >= min(max(1, $achievement->getTriggerValue()), $totalGroups);
     }
 }

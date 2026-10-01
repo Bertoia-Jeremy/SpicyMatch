@@ -161,6 +161,8 @@ final class GamificationHandlerTest extends TestCase
         $spicyMatch = $this->createMock(SpicyMatch::class);
         $spicyMatch->method('getUser')
             ->willReturn($user);
+        $spicyMatch->method('isManual')
+            ->willReturn(true);
 
         $history = $this->createMock(SpicyMatchHistory::class);
         $history->method('getSpicyMatch')
@@ -175,7 +177,9 @@ final class GamificationHandlerTest extends TestCase
 
         $this->manager->expects(self::once())
             ->method('process')
-            ->with($progression, 'match_saved');
+            ->with($progression, 'match_saved', [
+                'isManual' => true,
+            ]);
 
         ($this->handler)(new MatchSavedEvent(1, 1));
     }

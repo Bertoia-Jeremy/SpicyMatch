@@ -13,11 +13,13 @@ use App\Entity\UserStat;
 use App\Enum\AchievementRarity;
 use App\Enum\AchievementTrigger;
 use App\Gamification\AchievementChecker;
+use App\Gamification\Evaluator\ActivityStreakEvaluator;
 use App\Gamification\Evaluator\AllPreparationMethodsReadEvaluator;
-use App\Gamification\Evaluator\AllTerpenesVisitedEvaluator;
+use App\Gamification\Evaluator\AromaticGroupsVisitedEvaluator;
 use App\Gamification\Evaluator\EasterEggFoundEvaluator;
 use App\Gamification\Evaluator\FirstDiscoveryEvaluator;
 use App\Gamification\Evaluator\FirstGameEvaluator;
+use App\Gamification\Evaluator\FirstManualMatchEvaluator;
 use App\Gamification\Evaluator\FirstMatchEvaluator;
 use App\Gamification\Evaluator\GamePerfectRunEvaluator;
 use App\Gamification\Evaluator\GameScoreThresholdEvaluator;
@@ -26,7 +28,6 @@ use App\Gamification\Evaluator\NFavoritesEvaluator;
 use App\Gamification\Evaluator\NGamesCompletedEvaluator;
 use App\Gamification\Evaluator\NMatchesEvaluator;
 use App\Gamification\Evaluator\NSpicesUsedEvaluator;
-use App\Gamification\Evaluator\ReadingStreakEvaluator;
 use App\Gamification\Evaluator\SpiceReadEvaluator;
 use App\Gamification\Evaluator\TriggerEvaluatorRegistry;
 use App\Gamification\XpStrategyInterface;
@@ -36,6 +37,7 @@ use App\Repository\AromaticGroupsRepository;
 use App\Repository\GameSessionRepository;
 use App\Repository\PreparationMethodsRepository;
 use App\Repository\SpiceViewRepository;
+use App\Service\Clock\GameDay;
 use App\Service\GamificationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -43,8 +45,10 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use Symfony\Component\Clock\MockClock;
 
 #[AllowMockObjectsWithoutExpectations]
+
 final class GamificationManagerTest extends TestCase
 {
     private EntityManagerInterface&MockObject $em;
@@ -400,12 +404,13 @@ final class GamificationManagerTest extends TestCase
             new NSpicesUsedEvaluator(),
             new NFavoritesEvaluator(),
             new SpiceReadEvaluator(),
-            new ReadingStreakEvaluator(),
+            new ActivityStreakEvaluator(),
             new FirstDiscoveryEvaluator(),
             new FirstGameEvaluator(),
             new NGamesCompletedEvaluator(),
             new EasterEggFoundEvaluator(),
-            new AllTerpenesVisitedEvaluator($this->aromaticGroupsRepo),
+            new FirstManualMatchEvaluator(),
+            new AromaticGroupsVisitedEvaluator($this->aromaticGroupsRepo),
             new GameScoreThresholdEvaluator(),
             new GamePerfectRunEvaluator($gameSessionRepo),
             new GroupMasteryReadEvaluator($spiceViewRepo),
@@ -423,6 +428,7 @@ final class GamificationManagerTest extends TestCase
             $this->achievementProgressRepo,
             $registry,
             new NullLogger(),
+            new GameDay(new MockClock('2026-09-30 12:00:00'), 'Europe/Paris'),
         );
     }
 

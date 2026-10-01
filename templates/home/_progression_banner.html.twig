@@ -1,7 +1,7 @@
 
-{% if is_granted('ROLE_USER') and app.user.progression and app.user.progression.gamificationEnabled %}
+{% if is_granted('ROLE_USER') and app.user.progression and gamification_on() %}
     {% set prog = app.user.progression %}
-    {% set streak = prog.currentReadingStreak %}
+    {% set streak = prog.currentActivityStreak %}
     {% set xpPct = prog.progressPercent %}
 <section class="bg-linear-to-r from-saffron-50 via-cream to-turmeric-300/10 border-b border-saffron-200/60 py-5">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

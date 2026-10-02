@@ -99,40 +99,142 @@ ui:
         main_nav: Navegación principal
         main_menu: Menú principal
     home:
-        title: SpicyMatch — La Odisea de los Aromas
+        title: "SpicyMatch — Las combinaciones justas para tus especias"
+        meta_description: "Elige una especia: SpicyMatch te dice con cuáles combina y cómo cocinarla. Gratis, sin cuenta, sin rastreo."
+        hero:
+            eyebrow: "Combinaciones de especias · ciencia de los aromas"
+            title: "Se acabaron las mezclas"
+            title_accent: "a ciegas."
+            lead: "Elige una especia: SpicyMatch te dice con cuáles combina y cómo cocinarla."
+            blurb: "Nos apoyamos en la ciencia de los aromas y en siglos de recetas para darte una base fiable. Luego te toca a ti probar, ajustar y disfrutar."
+            cta_lab: "Crear mi primera mezcla"
+            cta_spices: "Ver las especias"
+            reassure_label: "Nuestros compromisos"
+            reassure_free: "Gratis"
+            reassure_no_account: "Sin cuenta"
+            reassure_no_tracking: "Sin rastreo"
+            proof: "%spices% especias · %compounds% aromas conectados"
+        demo:
+            eyebrow: "Pruébalo, aquí mismo"
+            title: "¿Qué especia te apetece?"
+            chips_label: "Especias para probar"
+            hint: "Toca una especia para ver sus mejores combinaciones."
+            loading: "El mortero está trabajando…"
+            error: "El mortero se ha calentado demasiado, vuelve a intentarlo en un momento."
+            empty: "No hay combinación evidente para esta: el Lab te ayudará a emparejarla."
+            continue: "Seguir en el Lab con %spice%"
+        how:
+            label: "El método"
+            title: "La ciencia hace las pruebas."
+            title_accent: "Tú te quedas con el placer."
+            choose_title: "Elige"
+            choose_text: "Una especia que te apetece, o dos que esperan al fondo del armario."
+            discover_title: "Descubre"
+            discover_text: "Cruzamos sus aromas con combinaciones que han demostrado su valor en la cocina. Salen las especias que de verdad tienen algo en común."
+            cook_title: "Cocina"
+            cook_text: "Preparación, momento de añadirla, pequeños gestos: te llevas una receta lista para seguir."
+            honesty: "Nada de fórmulas mágicas: una brújula fiable. Tu paladar siempre tiene la última palabra."
+        experiment:
+            label: "I · Experimentar"
+            title: "El Lab,"
+            title_accent: "tu mortero de ideas."
+            text: "Echa dos especias al mortero, mira cómo se dibujan las combinaciones, añade la que lo realza todo. En unos clics, una idea vaga se convierte en una mezcla que apetece probar esta noche."
+            point_ranked: "Combinaciones ordenadas, de la más evidente a la más atrevida"
+            point_gestures: "Para cada especia: cómo prepararla y cuándo añadirla"
+            point_cooking_mode: "Una receta final con modo cocina, pantalla encendida y manos libres"
+            point_saved: "Tus mezclas guardadas y tus favoritas a mano (con una cuenta gratuita)"
+            cta: "Abrir el Lab"
+        learn:
+            label: "II · Aprender"
+            title: "Entender lo que saboreas,"
+            title_accent: "sin jerga."
+            text: "Por qué el cilantro adora los cítricos, por qué se tuesta el comino: cada especia tiene su historia y sus afinidades. Todo está explicado con sencillez y abierto a todos."
+            techniques_title: "Los gestos que lo cambian todo"
+            technique_num: "Ficha n.º %num%"
+            dry_heat: "Calor seco"
+            wet_heat: "Calor suave"
+            mechanical: "En frío"
+            roast_title: "Tostado"
+            roast_sub: "en seco, en la sartén"
+            roast_benefit: "El calor seco despierta los aceites aromáticos: un sabor más profundo, casi a avellana."
+            roast_spices: "Comino · Cilantro · Hinojo"
+            infusion_title: "Infusión"
+            infusion_sub: "a fuego lento, en grasa"
+            infusion_benefit: "Muchos aromas adoran la grasa: el aceite o la mantequilla caliente los capta y los reparte por todo el plato."
+            infusion_spices: "Romero · Laurel · Guindilla"
+            pound_title: "Majado"
+            pound_sub: "en el mortero"
+            pound_benefit: "La mano del mortero aplasta las semillas sin calentarlas: los aromas siguen vivos, más nítidos que con el molinillo."
+            pound_spices: "Pimienta · Cardamomo · Albahaca"
+            doors_label: "Explorar el catálogo"
+            door_spices: "Fichas de especias"
+            door_groups: "Familias aromáticas"
+            door_methods: "Métodos de preparación"
+            cta: "Explorar las especias"
+        play:
+            label: "III · Jugar"
+            title: "Recordar las combinaciones"
+            title_accent: "sin estudiar."
+            text: "Seis minijuegos para que las buenas combinaciones se vuelvan reflejos: encontrar el intruso, aguantar en modo supervivencia, ganarle al reloj… Cinco minutos al día y, una noche, lo sabrás sin buscar."
+            quota: "%count% partidas por juego y por día, gratis. Insignias, niveles y rachas por el gusto de progresar."
+            cta: "Jugar una partida"
+        values:
+            label: "Nuestra postura"
+            title: "Un proyecto sincero,"
+            title_accent: "abierto a todos."
+            tracking_title: "Cero rastreo"
+            tracking_text: "Ninguna cookie de rastreo, ningún banner interminable. Solo lo necesario para que el sitio funcione."
+            free_title: "El saber es gratis"
+            free_text: "Fichas, combinaciones, métodos, recetas: nada está bloqueado tras una suscripción. Nunca."
+            ads_title: "Anuncios que se portan bien"
+            ads_text: "Algunos anuncios discretos, sin rastreo, nunca en medio de una receta ni de una partida."
+            games_title: "Juegos, con generosidad"
+            games_text: "%count% partidas por juego y por día, para todos, sin pagar."
+        support:
+            title: "El saber no tiene precio."
+            title_accent: "La comodidad, si la quieres."
+            text: "Toda la información de SpicyMatch es gratuita y lo seguirá siendo. Los juegos son una función extra. Si quieres ir más allá, hazte mecenas: cero anuncios, %count% partidas por juego y por día, y la satisfacción de mantener vivo un proyecto independiente."
+            cta: "Apoyar SpicyMatch"
+            soon: "Próximamente"
+        final:
+            title: "Esta noche,"
+            title_accent: "¿qué cocinas?"
+            text: "Elige una especia. Nosotros nos ocupamos de las combinaciones, tú del sabor."
+            cta: "Empezar mi mezcla"
+            register: "Crear una cuenta gratuita para guardar mis recetas"
     toile:
-        chapter: Capítulo II · La Red de los Aromas
-        title_html: 'El sistema solar <em class="not-italic italic" style="color: var(--color-turmeric-700)">aromático.</em>'
-        blurb: Cada especia es un sol. A su alrededor orbitan sus compuestos. Haz clic en una molécula para descubrir todas las especias que comparten esta firma invisible.
-        hud_active: Sistema activo · CARDAMOMO
-        hud_stats: 6 compuestos · 14 enlaces identificados
-        sun_sub: Elettaria · IN
-        side_title_html: 'Una molécula, <em class="not-italic italic" style="color: var(--color-paprika-800)">mil especias.</em>'
-        side_blurb: El Linalol no es solo un nombre. Es el hilo invisible que une la lavanda con el cilantro, la albahaca con el cardamomo. Tira del hilo — aparece toda una familia.
-        also_in: También en
-        legend_terpenic: Terpénico
-        legend_piperaceae: Piperáceas
-        legend_phenolic: Fenólico
-        legend_woody: Amaderado
-        mol_aria_suffix: haz clic para ver los detalles
-        m1_name: Linalol
-        m1_badge: Terpeno · Floral
-        m1_descr: Una nota floral fresca con matices cítricos. Presente en más de 200 plantas aromáticas — es la firma perfumada de la lavanda, pero también el secreto de muchas otras.
-        m2_name: Piperina
-        m2_badge: Alcaloide · Picante
-        m2_descr: El compuesto que da a la pimienta negra su mordiente característico. Activa los receptores TRPV1 — los mismos que la capsaicina, pero con una suavidad amaderada.
-        m3_name: α-Terpineol
-        m3_badge: Terpeno · Floral-Pino
-        m3_descr: Un aroma a la vez floral y resinoso, como lila frotada contra un pino. Apreciado tanto en perfumería como en la cocina mediterránea.
-        m4_name: Eugenol
-        m4_badge: Fenol · Amaderado-Clavo
-        m4_descr: El corazón del clavo de olor. Anestésico suave, aroma denso — una firma imposible de olvidar que se aloja en la memoria olfativa.
-        m5_name: 1,8-Cineol
-        m5_badge: Óxido · Fresco-Alcanfor
-        m5_descr: Esa frescura que a veces se llama eucaliptada. Abre las vías respiratorias y la paleta aromática de un plato con la misma franqueza.
-        m6_name: Geraniol
-        m6_badge: Terpeno · Rosa-Cítrico
-        m6_descr: El alma perfumada del geranio y de la rosa. En la cocina, un hilo tenue entre la piel de cítrico y el pétalo — a manejar con reverencia.
+        hud_active: "En el centro · Cardamomo"
+        sun_name: "Cardamomo"
+        sun_sub: "Elettaria · IN"
+        side_title: "Una misma nota,"
+        side_title_accent: "varias especias."
+        side_blurb: "Toca una molécula: se iluminan todas las especias que comparten ese aroma."
+        also_in: "También en"
+        mol_aria_suffix: "ver las especias que la comparten"
+        m1_name: "Linalol"
+        m1_badge: "Floral · Fresco"
+        m1_descr: "Una nota fresca y floral, con un aire cítrico. Está tanto en el cilantro como en la albahaca: por eso combinan con tanta facilidad."
+        m1_shared: "Cilantro, Albahaca, Cardamomo, Tomillo"
+        m2_name: "Piperina"
+        m2_badge: "Picante · Cálido"
+        m2_descr: "El mordiente de la pimienta negra. Calienta la boca sin quemar, con un fondo amaderado que despierta un plato sin taparlo."
+        m2_shared: "Pimienta negra, Pimienta larga, Cubeba"
+        m3_name: "α-Terpineol"
+        m3_badge: "Floral · Resinoso"
+        m3_descr: "Entre la lila y el pinar. Una nota suave y resinosa que une las hierbas del sur con las especias."
+        m3_shared: "Cardamomo, Mejorana, Niauli"
+        m4_name: "Eugenol"
+        m4_badge: "Cálido · Amaderado"
+        m4_descr: "El corazón del clavo. Un aroma denso y acogedor, el del pan de especias y el vino caliente."
+        m4_shared: "Clavo, Canela, Nuez moscada, Albahaca"
+        m5_name: "1,8-Cineol"
+        m5_badge: "Fresco · Mentolado"
+        m5_descr: "Ese frescor que recuerda al eucalipto. Aligera los platos contundentes y da brillo a las carnes asadas."
+        m5_shared: "Cardamomo, Romero, Laurel, Salvia"
+        m6_name: "Geraniol"
+        m6_badge: "Rosa · Cítrico"
+        m6_descr: "El aroma de la rosa y el geranio. En cocina, un trazo ligero entre la piel de cítrico y el pétalo, para dosificar con delicadeza."
+        m6_shared: "Cilantro, Hierba limón, Zanahoria"
     search:
         placeholder: Buscar...
         clear: Borrar la búsqueda
@@ -1059,63 +1161,6 @@ ui:
         days_plural: días
         create: Crear
         play: Jugar
-    labo:
-        chapter: Capítulo III · El Laboratorio Culinario
-        title_html: 'El arte del <em class="not-italic italic" style="color: var(--color-turmeric-700)">gesto.</em>'
-        blurb: Comprender está bien. Hacer está mejor. Tres técnicas fundamentales para liberar todo lo que tus especias pueden ofrecer.
-        fiche1: Ficha n.°&nbsp;I
-        fiche2: Ficha n.°&nbsp;II
-        fiche3: Ficha n.°&nbsp;III
-        technique: Técnica
-        dry_heat: Calor seco
-        wet_heat: Calor húmedo
-        mechanical: Mecánica
-        roast_title_html: 'Tosta<span class="ital">do.</span>'
-        roast_sub: en seco, en sartén de hierro
-        roast_benefit_html: '<strong>Reacción de Maillard.</strong> El calor seco rompe las paredes celulares y libera los aceites esenciales atrapados. El resultado: un aroma profundo, casi a frutos secos.'
-        roast_spices: Comino · Cilantro · Hinojo
-        infusion_title_html: 'Infu<span class="ital">sión.</span>'
-        infusion_sub: en caliente, en un cuerpo graso
-        infusion_benefit_html: '<strong>Difusión lipídica.</strong> Los aromas liposolubles migran al aceite caliente — un transporte ideal para las notas amaderadas y resinosas que temen la llama.'
-        infusion_spices: Romero · Laurel · Guindilla
-        pound_title_html: 'Maja<span class="ital">do.</span>'
-        pound_sub: en mortero de mármol
-        pound_benefit_html: '<strong>Ruptura celular.</strong> La presión mecánica revienta las vesículas de aceites esenciales más delicadamente que el molinillo — sin calor, sin oxidación.'
-        pound_spices: Pimienta · Cardamomo · Albahaca
-        read: → Leer
-        quotes_head: Consejos de expertos, fijados en la pared de la cocina.
-        quote1: Una especia nunca tiene un solo papel. Abre una puerta. Te toca a ti mirar lo que hay detrás.
-        quote1_role: Chef · Lyon
-        quote2: Antes de añadir guindilla, añade atención. La lengua recuerda ambas.
-        quote2_role: Con estrella · Barcelona
-        quote3: El tostado no es un paso. Es una conversación entre la semilla y el calor.
-        quote3_role: Maestro especiero · Fez
-    theatre:
-        chapter: Capítulo IV · La Academia
-        title_html: 'El teatro de los <em class="not-italic italic" style="color: var(--color-turmeric-700)">sentidos.</em>'
-        blurb: Seis minijuegos. Las especias como terreno de juego. Cada partida revela un ángulo nuevo — el intruso, la supervivencia, el ahorcado, la velocidad.
-        cta_sub: 6 modos disponibles · XP · Logros · Clasificaciones
-        cta: Unirse a la Academia
-    hero:
-        season: Temporada · Primavera 26 · Capítulo&nbsp;I
-        blends_est: Mezclas · Est. MMXXVI
-        meta: N.°&nbsp;001 — El despertar de los sentidos
-        title_html: |
-            La <em class="not-italic italic" style="color: var(--color-paprika-800)">Alquimia</em> de las Especias.<br>
-            Despierta al <span class="relative inline-block" style="color: var(--color-turmeric-700)">Chef<span class="absolute left-0 right-0 bottom-[6px] h-[14px] pointer-events-none" style="background: radial-gradient(ellipse at center, rgba(217,119,6,.28) 0%, transparent 70%); z-index: -1;" aria-hidden="true"></span></span><br>
-            que duerme en ti.
-        blurb: Explora los vínculos invisibles entre las moléculas y el sabor. Aprende, mezcla y domina el arte de los sabores a través de una experiencia científica y lúdica.
-        cta_blend: Lanzar una mezcla
-        cta_explore: Explorar las especias
-        cta_start: Comenzar la exploración
-        figures_label: Cifras clave
-        figures_eyebrow: Nuestra cocina, en tres cifras
-        figure_spices: especias de todo el mundo
-        figure_aromas: aromas conectados uno a uno
-        figure_chefs: aprendices de chef contigo
-        figure_spices_sr: 'Más de %count% especias de todo el mundo'
-        figure_aromas_sr: '%count% aromas enlazados uno a uno'
-        figure_chefs_sr: '%count% aprendices de chef contigo'
     grade:
         commis: Commis
         chef_partie: Jefe de Partida

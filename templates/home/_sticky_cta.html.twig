@@ -1,0 +1,11 @@
+<div class="home-sticky-cta" x-data="homeStickyCta" x-show="visible" x-cloak
+     x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="translate-y-full opacity-0"
+     x-transition:enter-end="translate-y-0 opacity-100"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="translate-y-0 opacity-100"
+     x-transition:leave-end="translate-y-full opacity-0">
+    <a href="{{ path('index_spicy_match') }}" class="btn-hero-primary">
+        {{ 'ui.home.final.cta'|trans }} <span class="arrow" aria-hidden="true">→</span>
+    </a>
+</div>

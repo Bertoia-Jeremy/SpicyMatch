@@ -1,0 +1,31 @@
+<section id="apprendre" class="home-section home-learn" aria-labelledby="home-learn-title">
+
+    <div class="section-head">
+        <div>
+            <div class="section-label">{{ 'ui.home.learn.label'|trans }}</div>
+            <h2 id="home-learn-title" class="home-h2 font-display font-medium">
+                {{ 'ui.home.learn.title'|trans }}
+                <em class="home-accent home-accent--turmeric">{{ 'ui.home.learn.title_accent'|trans }}</em>
+            </h2>
+        </div>
+        <p class="section-blurb">{{ 'ui.home.learn.text'|trans }}</p>
+    </div>
+
+    {% include 'home/_toile.html.twig' %}
+
+    <h3 class="home-h3 font-display">{{ 'ui.home.learn.techniques_title'|trans }}</h3>
+    {% include 'home/_techniques.html.twig' %}
+
+    <nav class="home-doors" aria-label="{{ 'ui.home.learn.doors_label'|trans }}">
+        <a href="{{ path('index_spices') }}" class="tag-primary">{{ 'ui.home.learn.door_spices'|trans }}</a>
+        <a href="{{ path('index_aromatic_groups') }}" class="tag-primary">{{ 'ui.home.learn.door_groups'|trans }}</a>
+        <a href="{{ path('index_preparation_methods') }}" class="tag-primary">{{ 'ui.home.learn.door_methods'|trans }}</a>
+    </nav>
+
+    <div class="home-section-cta">
+        <a href="{{ path('index_spices') }}" class="btn-hero-primary">
+            {{ 'ui.home.learn.cta'|trans }} <span class="arrow" aria-hidden="true">→</span>
+        </a>
+    </div>
+
+</section>

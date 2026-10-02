@@ -1,0 +1,46 @@
+{% set values = [
+    {key: 'tracking', icon: 'fa-user-shield'},
+    {key: 'free', icon: 'fa-book-open'},
+    {key: 'ads', icon: 'fa-eye-slash'},
+] %}
+{% if gamification_on() %}
+    {% set values = values|merge([{key: 'games', icon: 'fa-dice'}]) %}
+{% endif %}
+<section id="valeurs" class="home-section home-values" aria-labelledby="home-values-title">
+
+    <div class="section-head">
+        <div>
+            <div class="section-label">{{ 'ui.home.values.label'|trans }}</div>
+            <h2 id="home-values-title" class="home-h2 font-display font-medium">
+                {{ 'ui.home.values.title'|trans }}
+                <em class="home-accent home-accent--paprika">{{ 'ui.home.values.title_accent'|trans }}</em>
+            </h2>
+        </div>
+    </div>
+
+    <ul class="home-values-grid">
+        {% for value in values %}
+            <li class="home-value">
+                <i class="fa-solid {{ value.icon }} home-value-icon" aria-hidden="true"></i>
+                <h3 class="home-value-title font-display">{{ ('ui.home.values.' ~ value.key ~ '_title')|trans }}</h3>
+                <p class="home-value-text">{{ ('ui.home.values.' ~ value.key ~ '_text')|trans({'%count%': dailyGamesFree}) }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <div class="home-support card-warm">
+        <i class="fa-solid fa-hand-holding-heart home-support-icon" aria-hidden="true"></i>
+        <div class="home-support-body">
+            <h3 class="home-support-title font-display">
+                {{ 'ui.home.support.title'|trans }}
+                <em class="home-accent home-accent--paprika">{{ 'ui.home.support.title_accent'|trans }}</em>
+            </h3>
+            <p class="home-text">{{ 'ui.home.support.text'|trans({'%count%': dailyGamesPremium}) }}</p>
+            <div class="home-support-actions">
+                <a href="{{ path('premium') }}" class="btn-hero-ghost">{{ 'ui.home.support.cta'|trans }}</a>
+                <span class="home-soon">{{ 'ui.home.support.soon'|trans }}</span>
+            </div>
+        </div>
+    </div>
+
+</section>

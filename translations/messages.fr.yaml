@@ -99,40 +99,142 @@ ui:
         main_nav: Navigation principale
         main_menu: Menu principal
     home:
-        title: SpicyMatch — L'Odyssée des Arômes
+        title: "SpicyMatch — Les bons accords pour vos épices"
+        meta_description: "Choisissez une épice : SpicyMatch vous dit avec qui elle s'accorde et comment la cuisiner. Gratuit, sans compte, sans pistage."
+        hero:
+            eyebrow: "Accords d'épices · science des arômes"
+            title: "Fini les mélanges"
+            title_accent: "à l'aveugle."
+            lead: "Choisissez une épice : SpicyMatch vous dit avec qui elle s'accorde, et comment la cuisiner."
+            blurb: "On s'appuie sur la science des arômes et sur des siècles de recettes pour vous donner une base fiable. À vous de goûter, d'ajuster et de vous régaler."
+            cta_lab: "Composer mon premier mélange"
+            cta_spices: "Parcourir les épices"
+            reassure_label: "Nos engagements"
+            reassure_free: "Gratuit"
+            reassure_no_account: "Sans compte"
+            reassure_no_tracking: "Sans pistage"
+            proof: "%spices% épices · %compounds% arômes reliés"
+        demo:
+            eyebrow: "Essayez, là, tout de suite"
+            title: "Quelle épice vous fait envie ?"
+            chips_label: "Épices à essayer"
+            hint: "Touchez une épice pour voir ses meilleurs accords."
+            loading: "Le mortier travaille…"
+            error: "Le mortier chauffe un peu trop, réessayez dans un instant."
+            empty: "Pas d'accord évident pour celle-ci : le Lab vous aidera à la marier."
+            continue: "Continuer dans le Lab avec %spice%"
+        how:
+            label: "La méthode"
+            title: "La science fait les essais."
+            title_accent: "Vous gardez le plaisir."
+            choose_title: "Choisissez"
+            choose_text: "Une épice qui vous fait envie, ou deux qui attendent au fond du placard."
+            discover_title: "Découvrez"
+            discover_text: "On croise leurs arômes avec des associations qui ont fait leurs preuves en cuisine. Il en ressort les épices qui ont vraiment quelque chose en commun."
+            cook_title: "Cuisinez"
+            cook_text: "Préparation, moment d'ajout, petits gestes : vous repartez avec une recette prête à suivre."
+            honesty: "Pas de formule magique : une boussole fiable. Votre palais garde toujours le dernier mot."
+        experiment:
+            label: "I · Expérimenter"
+            title: "Le Lab,"
+            title_accent: "votre mortier à idées."
+            text: "Glissez deux épices dans le mortier, regardez les accords se dessiner, ajoutez celle qui sublime le tout. En quelques clics, une idée vague devient un mélange qu'on a envie de goûter ce soir."
+            point_ranked: "Des accords classés, du plus évident au plus audacieux"
+            point_gestures: "Pour chaque épice : comment la préparer, quand l'ajouter"
+            point_cooking_mode: "Une recette finale avec un mode cuisine, écran allumé, mains libres"
+            point_saved: "Vos mélanges gardés et vos favoris à portée de main (avec un compte gratuit)"
+            cta: "Ouvrir le Lab"
+        learn:
+            label: "II · Apprendre"
+            title: "Comprendre ce qu'on goûte,"
+            title_accent: "sans jargon."
+            text: "Pourquoi la coriandre aime l'agrume, pourquoi on torréfie le cumin : chaque épice a son histoire et ses affinités. Tout est expliqué simplement et ouvert à tous."
+            techniques_title: "Les gestes qui changent tout"
+            technique_num: "Fiche n° %num%"
+            dry_heat: "Chaleur sèche"
+            wet_heat: "Chaleur douce"
+            mechanical: "À froid"
+            roast_title: "Torréfaction"
+            roast_sub: "à sec, à la poêle"
+            roast_benefit: "La chaleur sèche réveille les huiles parfumées : un goût plus profond, presque noisette."
+            roast_spices: "Cumin · Coriandre · Fenouil"
+            infusion_title: "Infusion"
+            infusion_sub: "à feu doux, dans un corps gras"
+            infusion_benefit: "Beaucoup d'arômes aiment le gras : l'huile ou le beurre chaud les capte et les répartit dans tout le plat."
+            infusion_spices: "Romarin · Laurier · Piment"
+            pound_title: "Pilonnage"
+            pound_sub: "au mortier"
+            pound_benefit: "Le pilon écrase les graines sans les chauffer : les parfums restent vifs, plus nets qu'au moulin."
+            pound_spices: "Poivre · Cardamome · Basilic"
+            doors_label: "Explorer le catalogue"
+            door_spices: "Fiches épices"
+            door_groups: "Familles aromatiques"
+            door_methods: "Méthodes de préparation"
+            cta: "Explorer les épices"
+        play:
+            label: "III · Jouer"
+            title: "Retenir les accords"
+            title_accent: "sans réviser."
+            text: "Six mini-jeux pour que les bons accords deviennent des réflexes : trouver l'intrus, tenir en mode survie, battre le chrono… Cinq minutes par jour, et un soir, vous saurez sans chercher."
+            quota: "%count% parties par jeu et par jour, offertes. Badges, niveaux et séries pour le plaisir de progresser."
+            cta: "Jouer une partie"
+        values:
+            label: "Notre parti pris"
+            title: "Un projet sincère,"
+            title_accent: "ouvert à tous."
+            tracking_title: "Zéro pistage"
+            tracking_text: "Aucun cookie traqueur, aucun bandeau à rallonge. Seulement ce qu'il faut pour que le site fonctionne."
+            free_title: "Le savoir est gratuit"
+            free_text: "Fiches, accords, méthodes, recettes : rien n'est verrouillé derrière un abonnement. Jamais."
+            ads_title: "Des pubs qui se tiennent bien"
+            ads_text: "Quelques annonces sobres, sans pistage, jamais au milieu d'une recette ni d'une partie."
+            games_title: "Les jeux, généreusement"
+            games_text: "%count% parties par jeu et par jour, pour tout le monde, sans payer."
+        support:
+            title: "Le savoir n'a pas de prix."
+            title_accent: "Le confort, si vous le voulez."
+            text: "Toutes les informations de SpicyMatch sont gratuites et le resteront. Les jeux sont une fonctionnalité en plus. Si vous voulez aller plus loin, devenez soutien : zéro publicité, %count% parties par jeu et par jour, et la satisfaction de faire vivre un projet indépendant."
+            cta: "Soutenir SpicyMatch"
+            soon: "Bientôt"
+        final:
+            title: "Ce soir,"
+            title_accent: "vous cuisinez quoi ?"
+            text: "Choisissez une épice. On s'occupe des accords, vous vous occupez du goût."
+            cta: "Lancer mon mélange"
+            register: "Créer un compte gratuit pour garder mes recettes"
     toile:
-        chapter: Chapitre II · La Toile des Arômes
-        title_html: 'Le système solaire <em class="not-italic italic" style="color: var(--color-turmeric-700)">aromatique.</em>'
-        blurb: Chaque épice est un soleil. Autour, gravitent ses composés. Cliquez une molécule pour découvrir toutes les épices qui partagent cette signature invisible.
-        hud_active: Système actif · CARDAMOME
-        hud_stats: 6 composés · 14 liens identifiés
-        sun_sub: Elettaria · IN
-        side_title_html: 'Une molécule, <em class="not-italic italic" style="color: var(--color-paprika-800)">mille épices.</em>'
-        side_blurb: Le Linalol n'est pas qu'un nom. C'est le fil invisible qui relie la lavande à la coriandre, le basilic à la cardamome. Tirez le fil — toute une famille apparaît.
-        also_in: Aussi dans
-        legend_terpenic: Terpénique
-        legend_piperaceae: Pipéracée
-        legend_phenolic: Phénolique
-        legend_woody: Boisé
-        mol_aria_suffix: cliquer pour voir les détails
-        m1_name: Linalol
-        m1_badge: Terpène · Floral
-        m1_descr: Note florale fraîche aux accents d'agrumes. Présent dans plus de 200 plantes aromatiques — c'est la signature parfumée de la lavande, mais aussi le secret de bien d'autres.
-        m2_name: Pipérine
-        m2_badge: Alcaloïde · Piquant
-        m2_descr: Le composé qui donne au poivre noir son mordant caractéristique. Active les récepteurs TRPV1 — les mêmes que la capsaïcine, mais avec une douceur boisée.
-        m3_name: α-Terpinéol
-        m3_badge: Terpène · Floral-Pin
-        m3_descr: Arôme à la fois floral et résineux, comme du lilas frotté contre un pin. Apprécié en parfumerie autant qu'en cuisine méditerranéenne.
-        m4_name: Eugénol
-        m4_badge: Phénol · Boisé-Clou
-        m4_descr: Le cœur du clou de girofle. Anesthésique léger, parfum dense — une signature impossible à oublier qui se loge dans la mémoire olfactive.
-        m5_name: 1,8-Cinéole
-        m5_badge: Oxyde · Frais-Camphré
-        m5_descr: Cette fraîcheur qu'on appelle parfois eucalyptée. Ouvre les voies respiratoires et la palette aromatique d'un plat avec la même franchise.
-        m6_name: Géraniol
-        m6_badge: Terpène · Rose-Citrus
-        m6_descr: L'âme parfumée du géranium et de la rose. En cuisine, un fil ténu entre la peau d'agrume et le pétale — à manier avec révérence.
+        hud_active: "Au centre · Cardamome"
+        sun_name: "Cardamome"
+        sun_sub: "Elettaria · IN"
+        side_title: "Une même note,"
+        side_title_accent: "plusieurs épices."
+        side_blurb: "Touchez une molécule : toutes les épices qui partagent ce parfum s'allument."
+        also_in: "Aussi dans"
+        mol_aria_suffix: "voir les épices qui la partagent"
+        m1_name: "Linalol"
+        m1_badge: "Floral · Frais"
+        m1_descr: "Une note fraîche et fleurie, avec un air d'agrume. On la retrouve dans la coriandre comme dans le basilic : c'est ce qui les rend si faciles à marier."
+        m1_shared: "Coriandre, Basilic, Cardamome, Thym"
+        m2_name: "Pipérine"
+        m2_badge: "Piquant · Chaleureux"
+        m2_descr: "Le mordant du poivre noir. Elle chauffe en bouche sans brûler, avec un fond boisé qui réveille un plat sans l'écraser."
+        m2_shared: "Poivre noir, Poivre long, Cubèbe"
+        m3_name: "α-Terpinéol"
+        m3_badge: "Floral · Résineux"
+        m3_descr: "Entre le lilas et la forêt de pins. Une note douce et résineuse qui fait le lien entre les herbes du Sud et les épices."
+        m3_shared: "Cardamome, Marjolaine, Niaouli"
+        m4_name: "Eugénol"
+        m4_badge: "Chaud · Boisé"
+        m4_descr: "Le cœur du clou de girofle. Un parfum dense et chaleureux, celui du pain d'épices et du vin chaud."
+        m4_shared: "Clou de girofle, Cannelle, Muscade, Basilic"
+        m5_name: "1,8-Cinéole"
+        m5_badge: "Frais · Mentholé"
+        m5_descr: "Cette fraîcheur qui rappelle l'eucalyptus. Elle allège les plats riches et donne de l'éclat aux viandes rôties."
+        m5_shared: "Cardamome, Romarin, Laurier, Sauge"
+        m6_name: "Géraniol"
+        m6_badge: "Rose · Agrume"
+        m6_descr: "Le parfum de la rose et du géranium. En cuisine, un trait léger entre le zeste et le pétale, à doser avec délicatesse."
+        m6_shared: "Coriandre, Citronnelle, Carotte"
     search:
         placeholder: Rechercher...
         clear: Effacer la recherche
@@ -1068,63 +1170,6 @@ ui:
         days_plural: jours
         create: Créer
         play: Jouer
-    labo:
-        chapter: Chapitre III · Le Labo Culinaire
-        title_html: 'L''art du <em class="not-italic italic" style="color: var(--color-turmeric-700)">geste.</em>'
-        blurb: Comprendre, c'est bien. Faire, c'est mieux. Trois techniques fondamentales pour libérer tout ce que vos épices ont à offrir.
-        fiche1: Fiche n°&nbsp;I
-        fiche2: Fiche n°&nbsp;II
-        fiche3: Fiche n°&nbsp;III
-        technique: Technique
-        dry_heat: Chaleur sèche
-        wet_heat: Chaleur humide
-        mechanical: Mécanique
-        roast_title_html: 'Torré<span class="ital">faction.</span>'
-        roast_sub: à sec, à la poêle de fonte
-        roast_benefit_html: '<strong>Réaction de Maillard.</strong> La chaleur sèche brise les parois cellulaires et libère les huiles essentielles emprisonnées. Le résultat : un parfum profond, presque noisetté.'
-        roast_spices: Cumin · Coriandre · Fenouil
-        infusion_title_html: 'Infu<span class="ital">sion.</span>'
-        infusion_sub: à chaud, dans un corps gras
-        infusion_benefit_html: '<strong>Diffusion lipidique.</strong> Les arômes liposolubles migrent dans l''huile chaude — un transport idéal pour les notes boisées et résineuses qui craignent la flamme.'
-        infusion_spices: Romarin · Laurier · Piment
-        pound_title_html: 'Pi<span class="ital">lonage.</span>'
-        pound_sub: au mortier de marbre
-        pound_benefit_html: '<strong>Rupture cellulaire.</strong> La pression mécanique éclate les vésicules d''huiles essentielles plus délicatement que le moulin — pas de chaleur, pas d''oxydation.'
-        pound_spices: Poivre · Cardamome · Basilic
-        read: → Lire
-        quotes_head: Conseils d'experts, épinglés au mur de la cuisine.
-        quote1: Une épice n'a jamais un seul rôle. Elle ouvre une porte. Charge à vous de regarder ce qu'il y a derrière.
-        quote1_role: Cheffe · Lyon
-        quote2: Avant d'ajouter du piment, ajoutez de l'attention. La langue se souvient des deux.
-        quote2_role: Étoilé · Barcelone
-        quote3: La torréfaction n'est pas une étape. C'est une conversation entre la graine et la chaleur.
-        quote3_role: Maître épicier · Fès
-    theatre:
-        chapter: Chapitre IV · L'Académie
-        title_html: 'Le théâtre des <em class="not-italic italic" style="color: var(--color-turmeric-700)">sens.</em>'
-        blurb: Six mini-jeux. Des épices comme terrain de jeu. Chaque partie révèle un angle nouveau — l'intrus, la survie, le pendu, la vitesse.
-        cta_sub: 6 modes disponibles · XP · Succès · Classements
-        cta: Rejoindre l'Académie
-    hero:
-        season: Saison · Printemps 26 · Chapitre&nbsp;I
-        blends_est: Mélanges · Est. MMXXVI
-        meta: N°&nbsp;001 — L'éveil des sens
-        title_html: |
-            L'<em class="not-italic italic" style="color: var(--color-paprika-800)">Alchimie</em> des Épices.<br>
-            Éveillez le <span class="relative inline-block" style="color: var(--color-turmeric-700)">Chef<span class="absolute left-0 right-0 bottom-[6px] h-[14px] pointer-events-none" style="background: radial-gradient(ellipse at center, rgba(217,119,6,.28) 0%, transparent 70%); z-index: -1;" aria-hidden="true"></span></span><br>
-            qui sommeille en vous.
-        blurb: Explorez les liens invisibles entre les molécules et le goût. Apprenez, mélangez, et maîtrisez l'art des saveurs à travers une expérience scientifique &amp; ludique.
-        cta_blend: Lancer un mélange
-        cta_explore: Explorer les épices
-        cta_start: Commencer l'exploration
-        figures_label: Chiffres clés
-        figures_eyebrow: Notre cuisine, en trois chiffres
-        figure_spices: épices du monde entier
-        figure_aromas: arômes reliés un à un
-        figure_chefs: apprentis chefs avec vous
-        figure_spices_sr: 'Plus de %count% épices du monde entier'
-        figure_aromas_sr: '%count% arômes reliés un à un'
-        figure_chefs_sr: '%count% apprentis chefs avec vous'
     grade:
         commis: Commis
         chef_partie: Chef de Partie

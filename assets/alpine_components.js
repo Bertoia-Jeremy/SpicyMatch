@@ -1613,6 +1613,99 @@ export default function registerAlpineComponents(Alpine) {
         cardStyle() { return `border-color: ${this.active.accent || 'transparent'}`; },
     }));
 
+    Alpine.data('homeDemo', () => ({
+        state: 'idle',
+        loading: false,
+        selectedId: null,
+        selectedSlug: '',
+        selectedName: '',
+        results: [],
+        labels: {},
+
+        init() {
+            try {
+                this.labels = JSON.parse(this.$root.dataset.labels || '{}');
+            } catch (e) {
+                this.labels = {};
+            }
+        },
+
+        get labHref() {
+            const url = new URL(this.$root.dataset.labUrl, window.location.origin);
+            if (this.selectedSlug) url.searchParams.set('spice', this.selectedSlug);
+            return url.pathname + url.search;
+        },
+
+        get ctaLabel() {
+            return (this.$root.dataset.ctaTemplate || '').replace('__SPICE__', this.selectedName);
+        },
+
+        async pick(button) {
+            if (this.loading) return;
+            this.selectedId = Number(button.dataset.id);
+            this.selectedSlug = button.dataset.slug;
+            this.selectedName = button.dataset.name;
+            this.loading = true;
+            this.state = 'loading';
+            this.results = [];
+
+            try {
+                const url = new URL(this.$root.dataset.apiUrl, window.location.origin);
+                url.searchParams.set('spices', String(this.selectedId));
+                url.searchParams.set('limit', '3');
+                const response = await fetch(url, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Accept-Language': document.documentElement.lang || 'fr',
+                    },
+                });
+                if (!response.ok) {
+                    this.state = 'error';
+                    return;
+                }
+                const data = await response.json();
+                const results = Array.isArray(data.results) ? data.results : [];
+                this.results = results.slice(0, 3).map(r => ({
+                    id: r.id,
+                    name: r.name,
+                    label: this.labels[r.affinity] || '',
+                }));
+                this.state = this.results.length ? 'done' : 'empty';
+            } catch (e) {
+                this.state = 'error';
+            } finally {
+                this.loading = false;
+            }
+        },
+    }));
+
+    Alpine.data('homeStickyCta', () => ({
+        visible: false,
+        heroPassed: false,
+        finalReached: false,
+        observer: null,
+
+        init() {
+            const hero = document.querySelector('[data-home-cta="lab"]');
+            const final = document.querySelector('.home-final');
+            if (!hero || !final || !('IntersectionObserver' in window)) {
+                return;
+            }
+            this.observer = new IntersectionObserver(() => {
+                this.heroPassed = hero.getBoundingClientRect().bottom < 0;
+                this.finalReached = final.getBoundingClientRect().top < window.innerHeight;
+                this.visible = this.heroPassed && !this.finalReached;
+                document.documentElement.classList.toggle('home-sticky-on', this.visible);
+            });
+            [hero, final, document.querySelector('.site-footer')].forEach((el) => el && this.observer.observe(el));
+        },
+
+        destroy() {
+            this.observer?.disconnect();
+            document.documentElement.classList.remove('home-sticky-on');
+        },
+    }));
+
     Alpine.data('errorCountdown', (seconds = 10, url = '/') => ({
         remaining: Number(seconds),
         paused: false,

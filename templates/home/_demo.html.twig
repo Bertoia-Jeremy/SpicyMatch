@@ -1,0 +1,56 @@
+{% set affinityLabels = {
+    excellent: 'ui.pairing.excellent'|trans,
+    harmonieux: 'ui.pairing.harmonieux'|trans,
+    audacieux: 'ui.pairing.audacieux'|trans,
+    discordant: 'ui.pairing.discordant'|trans,
+} %}
+<aside class="home-demo" x-data="homeDemo"
+       data-api-url="{{ path('api_match') }}"
+       data-lab-url="{{ path('index_spicy_match') }}"
+       data-labels="{{ affinityLabels|json_encode|e('html_attr') }}"
+       data-cta-template="{{ 'ui.home.demo.continue'|trans({'%spice%': '__SPICE__'}) }}"
+       aria-labelledby="home-demo-title">
+
+    <p class="home-demo-eyebrow">{{ 'ui.home.demo.eyebrow'|trans }}</p>
+    <h2 id="home-demo-title" class="home-demo-title font-display">{{ 'ui.home.demo.title'|trans }}</h2>
+
+    <div class="home-demo-chips" role="group" aria-label="{{ 'ui.home.demo.chips_label'|trans }}">
+        {% for spice in demoSpices %}
+            {% set safeColor = spice.color is not null and spice.color matches '/^#[0-9a-fA-F]{3,8}$/' ? spice.color : null %}
+            <button type="button" class="home-demo-chip"
+                    data-id="{{ spice.id }}"
+                    data-slug="{{ spice.slug }}"
+                    data-name="{{ spice.name }}"
+                    aria-pressed="false"
+                    x-on:click="pick($el)"
+                    x-bind:aria-pressed="selectedId === {{ spice.id }} ? 'true' : 'false'"
+                    x-bind:disabled="loading">
+                <span class="home-demo-dot" {% if safeColor %}style="background-color: {{ safeColor }}"{% endif %} aria-hidden="true"></span>
+                {{ spice.name }}
+            </button>
+        {% endfor %}
+    </div>
+
+    <div class="home-demo-panel" aria-live="polite">
+        <p class="home-demo-hint" x-show="state === 'idle'">{{ 'ui.home.demo.hint'|trans }}</p>
+        <p class="home-demo-hint" x-show="state === 'loading'" x-cloak>
+            <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> {{ 'ui.home.demo.loading'|trans }}
+        </p>
+        <p class="home-demo-hint" x-show="state === 'error'" x-cloak>{{ 'ui.home.demo.error'|trans }}</p>
+        <p class="home-demo-hint" x-show="state === 'empty'" x-cloak>{{ 'ui.home.demo.empty'|trans }}</p>
+
+        <ol class="home-demo-results" x-show="state === 'done'" x-cloak>
+            <template x-for="result in results" x-bind:key="result.id">
+                <li class="home-demo-result">
+                    <span class="home-demo-result-name" x-text="result.name"></span>
+                    <span class="home-demo-affinity" x-text="result.label"></span>
+                </li>
+            </template>
+        </ol>
+
+        <a class="home-demo-cta" x-show="state === 'done' || state === 'empty'" x-cloak x-bind:href="labHref">
+            <span x-text="ctaLabel"></span> <span aria-hidden="true">→</span>
+        </a>
+    </div>
+
+</aside>

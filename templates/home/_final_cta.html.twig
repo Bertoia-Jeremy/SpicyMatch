@@ -1,0 +1,13 @@
+<section class="home-section home-final" aria-labelledby="home-final-title">
+    <h2 id="home-final-title" class="home-h2 font-display font-medium">
+        {{ 'ui.home.final.title'|trans }}
+        <em class="home-accent home-accent--paprika">{{ 'ui.home.final.title_accent'|trans }}</em>
+    </h2>
+    <p class="home-text">{{ 'ui.home.final.text'|trans }}</p>
+    <a href="{{ path('index_spicy_match') }}" class="btn-hero-primary">
+        {{ 'ui.home.final.cta'|trans }} <span class="arrow" aria-hidden="true">→</span>
+    </a>
+    {% if not is_granted('ROLE_USER') %}
+        <a href="{{ path('index_register') }}" class="home-final-register">{{ 'ui.home.final.register'|trans }}</a>
+    {% endif %}
+</section>

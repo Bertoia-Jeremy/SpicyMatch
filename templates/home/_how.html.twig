@@ -1,0 +1,30 @@
+<section id="methode" class="home-section home-how" aria-labelledby="home-how-title">
+
+    <div class="section-head">
+        <div>
+            <div class="section-label">{{ 'ui.home.how.label'|trans }}</div>
+            <h2 id="home-how-title" class="home-h2 font-display font-medium">
+                {{ 'ui.home.how.title'|trans }}
+                <em class="home-accent home-accent--turmeric">{{ 'ui.home.how.title_accent'|trans }}</em>
+            </h2>
+        </div>
+    </div>
+
+    <ol class="home-steps">
+        {% for step in [
+            {key: 'choose', icon: 'fa-hand-pointer'},
+            {key: 'discover', icon: 'fa-wand-magic-sparkles'},
+            {key: 'cook', icon: 'fa-utensils'},
+        ] %}
+            <li class="home-step card-warm">
+                <span class="home-step-num" aria-hidden="true">{{ loop.index }}</span>
+                <i class="fa-solid {{ step.icon }} home-step-icon" aria-hidden="true"></i>
+                <h3 class="home-step-title font-display">{{ ('ui.home.how.' ~ step.key ~ '_title')|trans }}</h3>
+                <p class="home-step-text">{{ ('ui.home.how.' ~ step.key ~ '_text')|trans }}</p>
+            </li>
+        {% endfor %}
+    </ol>
+
+    <p class="home-honesty">{{ 'ui.home.how.honesty'|trans }}</p>
+
+</section>

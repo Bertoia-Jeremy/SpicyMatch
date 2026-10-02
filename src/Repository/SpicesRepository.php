@@ -657,6 +657,60 @@ class SpicesRepository extends ServiceEntityRepository implements SitemapSourceI
             ->getResult();
     }
 
+    /**
+     * @param list<string> $slugs
+     * @return list<array{id: int, name: string, slug: string, color: ?string}>
+     */
+    public function findDemoCards(array $slugs, string $locale): array
+    {
+        if ($slugs === []) {
+            return [];
+        }
+
+        $qb = $this->createQueryBuilder('s')
+            ->leftJoin('s.aromaticGroups', 'ag')
+            ->andWhere('s.slug IN (:slugs)')
+            ->andWhere('s.deleted_at IS NULL')
+            ->setParameter('slugs', $slugs);
+
+        if ($locale === 'fr') {
+            $qb->select('s.id', 's.name', 's.slug', 's.slug AS canonical', 'ag.color');
+        } else {
+            $qb->select(
+                's.id',
+                'COALESCE(str.name, s.name) AS name',
+                'COALESCE(str.slug, s.slug) AS slug',
+                's.slug AS canonical',
+                'ag.color',
+            )
+                ->leftJoin('s.translations', 'str', 'WITH', 'str.locale = :loc')
+                ->setParameter('loc', $locale);
+        }
+
+        /** @var list<array{id: int, name: string, slug: string, canonical: string, color: ?string}> $rows */
+        $rows = $qb->getQuery()
+            ->getArrayResult();
+
+        $byCanonical = array_column($rows, null, 'canonical');
+
+        $cards = [];
+        foreach ($slugs as $slug) {
+            if (! isset($byCanonical[$slug])) {
+                continue;
+            }
+
+            $row = $byCanonical[$slug];
+            $cards[] = [
+                'id' => $row['id'],
+                'name' => $row['name'],
+                'slug' => $row['slug'],
+                'color' => $row['color'],
+            ];
+        }
+
+        return $cards;
+    }
+
     public function countTotal(): int
     {
         return (int) $this->createQueryBuilder('s')

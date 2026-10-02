@@ -1,0 +1,49 @@
+<section id="experimenter" class="home-section home-experiment" aria-labelledby="home-experiment-title">
+
+    <div class="home-split">
+
+        <div>
+            <div class="section-label">{{ 'ui.home.experiment.label'|trans }}</div>
+            <h2 id="home-experiment-title" class="home-h2 font-display font-medium">
+                {{ 'ui.home.experiment.title'|trans }}
+                <em class="home-accent home-accent--paprika">{{ 'ui.home.experiment.title_accent'|trans }}</em>
+            </h2>
+            <p class="home-text">{{ 'ui.home.experiment.text'|trans }}</p>
+
+            <ul class="home-points">
+                {% for point in [
+                    {key: 'ranked', icon: 'fa-ranking-star'},
+                    {key: 'gestures', icon: 'fa-mortar-pestle'},
+                    {key: 'cooking_mode', icon: 'fa-kitchen-set'},
+                    {key: 'saved', icon: 'fa-bookmark'},
+                ] %}
+                    <li>
+                        <i class="fa-solid {{ point.icon }}" aria-hidden="true"></i>
+                        <span>{{ ('ui.home.experiment.point_' ~ point.key)|trans }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <a href="{{ path('index_spicy_match') }}" class="btn-hero-primary">
+                {{ 'ui.home.experiment.cta'|trans }} <span class="arrow" aria-hidden="true">→</span>
+            </a>
+        </div>
+
+        <div class="home-lab-mock" aria-hidden="true">
+            <div class="home-lab-mock-hexes">
+                <span class="home-lab-hex home-lab-hex--saffron"></span>
+                <span class="home-lab-hex home-lab-hex--paprika"></span>
+                <span class="home-lab-hex home-lab-hex--turmeric"></span>
+            </div>
+            <i class="fa-solid fa-arrow-down home-lab-mock-arrow"></i>
+            <div class="home-lab-mock-card card-warm">
+                <span class="home-lab-mock-line home-lab-mock-line--title"></span>
+                <span class="home-lab-mock-line"></span>
+                <span class="home-lab-mock-line home-lab-mock-line--short"></span>
+                <span class="home-lab-mock-line"></span>
+            </div>
+        </div>
+
+    </div>
+
+</section>

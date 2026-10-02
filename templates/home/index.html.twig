@@ -2,12 +2,20 @@
 
 {% block title %}{{ 'ui.home.title'|trans }}{% endblock %}
 
+{% block meta_description %}{{ 'ui.home.meta_description'|trans }}{% endblock %}
+
 {% block structured_data %}{{ include('partials/_json_ld.html.twig') }}{% endblock %}
 
 {% block body %}
     {% include 'home/_hero.html.twig' %}
     {% include 'home/_progression_banner.html.twig' %}
-    {% include 'home/_toile.html.twig' %}
-    {% include 'home/_labo.html.twig' %}
-    {% include 'home/_theatre.html.twig' %}
+    {% include 'home/_how.html.twig' %}
+    {% include 'home/_experiment.html.twig' %}
+    {% include 'home/_learn.html.twig' %}
+    {% if gamification_on() %}
+        {% include 'home/_play.html.twig' %}
+    {% endif %}
+    {% include 'home/_values.html.twig' %}
+    {% include 'home/_final_cta.html.twig' %}
+    {% include 'home/_sticky_cta.html.twig' %}
 {% endblock %}

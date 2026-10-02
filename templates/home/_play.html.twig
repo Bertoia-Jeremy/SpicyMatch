@@ -1,17 +1,16 @@
 
-<section id="theatre" class="home-section"
-         style="background: linear-gradient(180deg, var(--color-cream-dark) 0%, var(--color-cream) 100%)">
+<section id="jouer" class="home-section home-play" aria-labelledby="home-play-title">
 
     <div class="section-head">
         <div>
-            <div class="section-label">{{ 'ui.theatre.chapter'|trans }}</div>
-            <h2 class="font-display font-medium leading-none tracking-[-0.015em] m-0"
-                style="font-size: clamp(40px, 5vw, 80px)">
-                {{ 'ui.theatre.title_html'|trans|raw }}
+            <div class="section-label">{{ 'ui.home.play.label'|trans }}</div>
+            <h2 id="home-play-title" class="home-h2 font-display font-medium">
+                {{ 'ui.home.play.title'|trans }}
+                <em class="home-accent home-accent--turmeric">{{ 'ui.home.play.title_accent'|trans }}</em>
             </h2>
         </div>
         <p class="section-blurb">
-            {{ 'ui.theatre.blurb'|trans }}
+            {{ 'ui.home.play.text'|trans }}
         </p>
     </div>
 
@@ -65,10 +64,10 @@
 
     <div class="theatre-cta">
         <p class="theatre-cta-sub">
-            {{ 'ui.theatre.cta_sub'|trans }}
+            {{ 'ui.home.play.quota'|trans({'%count%': dailyGamesFree}) }}
         </p>
         <twig:Button
-            label="{{ 'ui.theatre.cta'|trans }}"
+            label="{{ 'ui.home.play.cta'|trans }}"
             href="{{ path('education_index') }}"
             variant="primary"
             size="xl"

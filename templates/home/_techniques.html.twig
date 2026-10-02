@@ -1,30 +1,14 @@
+<div class="technique-grid">
 
-<section id="labo" class="home-section" style="background: var(--color-cream)">
-
-    <div class="section-head">
-        <div>
-            <div class="section-label">{{ 'ui.labo.chapter'|trans }}</div>
-            <h2 class="font-display font-medium leading-none tracking-[-0.015em] m-0"
-                style="font-size: clamp(40px, 5vw, 80px)">
-                {{ 'ui.labo.title_html'|trans|raw }}
-            </h2>
+    <article class="technique-card">
+        <div class="flex justify-between items-start mb-5 relative z-[1]">
+            <div class="technique-num">{{ 'ui.home.learn.technique_num'|trans({'%num%': 1}) }}</div>
+            <div class="technique-meta">{{ 'ui.home.learn.dry_heat'|trans }}</div>
         </div>
-        <p class="section-blurb">
-            {{ 'ui.labo.blurb'|trans }}
-        </p>
-    </div>
+        <h3 class="technique-title">{{ 'ui.home.learn.roast_title'|trans }}</h3>
+        <div class="technique-sub">{{ 'ui.home.learn.roast_sub'|trans }}</div>
 
-    <div class="labo-grid">
-
-        <article class="recipe-card">
-            <div class="flex justify-between items-start mb-5 relative z-[1]">
-                <div class="recipe-num">{{ 'ui.labo.fiche1'|trans|raw }}</div>
-                <div class="recipe-meta">{{ 'ui.labo.technique'|trans }}<br>{{ 'ui.labo.dry_heat'|trans }}</div>
-            </div>
-            <h3 class="recipe-title">{{ 'ui.labo.roast_title_html'|trans|raw }}</h3>
-            <div class="recipe-sub">{{ 'ui.labo.roast_sub'|trans }}</div>
-
-            <div class="recipe-diagram">
+        <div class="technique-diagram">
                 <svg viewBox="0 0 240 160" width="100%" height="100%" aria-hidden="true">
                     <g stroke="#0A0907" stroke-width="0.5" fill="none">
                         <rect x="4" y="4" width="232" height="152"/>
@@ -33,7 +17,6 @@
                     </g>
                     <g font-family="JetBrains Mono, monospace" fill="#75706A">
                         <text x="14" y="18" font-size="6" letter-spacing="0.18em">— PLATE I</text>
-                        <text x="226" y="18" font-size="6" letter-spacing="0.18em" text-anchor="end">FIG. A · TORRÉFACTION</text>
                     </g>
                     <g stroke="#75706A" stroke-width="0.4" fill="none" opacity="0.5">
                         <polygon points="120,38 168,66 168,122 120,150 72,122 72,66"/>
@@ -64,34 +47,25 @@
                         <text x="210" y="28" font-size="6.5" letter-spacing="0.08em" font-weight="500">180 °C</text>
                         <text x="210" y="142" font-size="6.5" letter-spacing="0.08em" font-weight="500">90 S</text>
                     </g>
-                    <g font-family="Cormorant Garamond, serif" fill="#0A0907" font-style="italic">
-                        <text x="30" y="112" font-size="9.5" font-weight="500">Maillard</text>
-                    </g>
-                    <g font-family="JetBrains Mono, monospace" fill="#75706A">
-                        <text x="120" y="150" font-size="6" letter-spacing="0.22em" text-anchor="middle">RÉACTION SÈCHE · SAFRAN VOLATILISÉ</text>
-                    </g>
                 </svg>
-            </div>
+        </div>
 
-            <div class="recipe-benefit">
-                {{ 'ui.labo.roast_benefit_html'|trans|raw }}
-            </div>
+        <p class="technique-benefit">{{ 'ui.home.learn.roast_benefit'|trans }}</p>
 
-            <div class="recipe-foot">
-                <span>{{ 'ui.labo.roast_spices'|trans }}</span>
-                <a href="{{ path('index_spices') }}" class="hover:opacity-70 transition-opacity">{{ 'ui.labo.read'|trans }}</a>
-            </div>
-        </article>
+        <div class="technique-foot">
+            <span>{{ 'ui.home.learn.roast_spices'|trans }}</span>
+        </div>
+    </article>
 
-        <article class="recipe-card">
-            <div class="flex justify-between items-start mb-5 relative z-[1]">
-                <div class="recipe-num">{{ 'ui.labo.fiche2'|trans|raw }}</div>
-                <div class="recipe-meta">{{ 'ui.labo.technique'|trans }}<br>{{ 'ui.labo.wet_heat'|trans }}</div>
-            </div>
-            <h3 class="recipe-title">{{ 'ui.labo.infusion_title_html'|trans|raw }}</h3>
-            <div class="recipe-sub">{{ 'ui.labo.infusion_sub'|trans }}</div>
+    <article class="technique-card">
+        <div class="flex justify-between items-start mb-5 relative z-[1]">
+            <div class="technique-num">{{ 'ui.home.learn.technique_num'|trans({'%num%': 2}) }}</div>
+            <div class="technique-meta">{{ 'ui.home.learn.wet_heat'|trans }}</div>
+        </div>
+        <h3 class="technique-title">{{ 'ui.home.learn.infusion_title'|trans }}</h3>
+        <div class="technique-sub">{{ 'ui.home.learn.infusion_sub'|trans }}</div>
 
-            <div class="recipe-diagram">
+        <div class="technique-diagram">
                 <svg viewBox="0 0 240 160" width="100%" height="100%" aria-hidden="true">
                     <g stroke="#0A0907" stroke-width="0.5" fill="none">
                         <rect x="4" y="4" width="232" height="152"/>
@@ -100,7 +74,6 @@
                     </g>
                     <g font-family="JetBrains Mono, monospace" fill="#75706A">
                         <text x="14" y="18" font-size="6" letter-spacing="0.18em">— PLATE II</text>
-                        <text x="226" y="18" font-size="6" letter-spacing="0.18em" text-anchor="end">FIG. B · INFUSION</text>
                     </g>
                     <g stroke="#75706A" stroke-width="0.4" fill="none" opacity="0.5">
                         <polygon points="120,38 168,66 168,122 120,150 72,122 72,66"/>
@@ -140,34 +113,25 @@
                         <text x="210" y="30" font-size="6.5" letter-spacing="0.08em" font-weight="500">60 °C</text>
                         <text x="195" y="105" font-size="6.5" letter-spacing="0.08em" font-weight="500">12 min</text>
                     </g>
-                    <g font-family="Cormorant Garamond, serif" fill="#0A0907" font-style="italic">
-                        <text x="30" y="115" font-size="9.5" font-weight="500">ε &gt; 0.4</text>
-                    </g>
-                    <g font-family="JetBrains Mono, monospace" fill="#75706A">
-                        <text x="120" y="150" font-size="6" letter-spacing="0.22em" text-anchor="middle">DIFFUSION GRASSE · COMPOSÉS APOLAIRES</text>
-                    </g>
                 </svg>
-            </div>
+        </div>
 
-            <div class="recipe-benefit">
-                {{ 'ui.labo.infusion_benefit_html'|trans|raw }}
-            </div>
+        <p class="technique-benefit">{{ 'ui.home.learn.infusion_benefit'|trans }}</p>
 
-            <div class="recipe-foot">
-                <span>{{ 'ui.labo.infusion_spices'|trans }}</span>
-                <a href="{{ path('index_spices') }}" class="hover:opacity-70 transition-opacity">{{ 'ui.labo.read'|trans }}</a>
-            </div>
-        </article>
+        <div class="technique-foot">
+            <span>{{ 'ui.home.learn.infusion_spices'|trans }}</span>
+        </div>
+    </article>
 
-        <article class="recipe-card">
-            <div class="flex justify-between items-start mb-5 relative z-[1]">
-                <div class="recipe-num">{{ 'ui.labo.fiche3'|trans|raw }}</div>
-                <div class="recipe-meta">{{ 'ui.labo.technique'|trans }}<br>{{ 'ui.labo.mechanical'|trans }}</div>
-            </div>
-            <h3 class="recipe-title">{{ 'ui.labo.pound_title_html'|trans|raw }}</h3>
-            <div class="recipe-sub">{{ 'ui.labo.pound_sub'|trans }}</div>
+    <article class="technique-card">
+        <div class="flex justify-between items-start mb-5 relative z-[1]">
+            <div class="technique-num">{{ 'ui.home.learn.technique_num'|trans({'%num%': 3}) }}</div>
+            <div class="technique-meta">{{ 'ui.home.learn.mechanical'|trans }}</div>
+        </div>
+        <h3 class="technique-title">{{ 'ui.home.learn.pound_title'|trans }}</h3>
+        <div class="technique-sub">{{ 'ui.home.learn.pound_sub'|trans }}</div>
 
-            <div class="recipe-diagram">
+        <div class="technique-diagram">
                 <svg viewBox="0 0 240 160" width="100%" height="100%" aria-hidden="true">
                     <g stroke="#0A0907" stroke-width="0.5" fill="none">
                         <rect x="4" y="4" width="232" height="152"/>
@@ -176,7 +140,6 @@
                     </g>
                     <g font-family="JetBrains Mono, monospace" fill="#75706A">
                         <text x="14" y="18" font-size="6" letter-spacing="0.18em">— PLATE III</text>
-                        <text x="226" y="18" font-size="6" letter-spacing="0.18em" text-anchor="end">FIG. C · PILONAGE</text>
                     </g>
                     <g stroke="#75706A" stroke-width="0.4" fill="none" opacity="0.5">
                         <polygon points="120,38 168,66 168,122 120,150 72,122 72,66"/>
@@ -220,75 +183,17 @@
                         <path d="M 160 108 L 200 108"/>
                         <path d="M 66 108 L 30 108"/>
                     </g>
-                    <g font-family="Cormorant Garamond, serif" fill="#0A0907" font-style="italic" font-weight="500">
-                        <text x="120" y="10" font-size="11" text-anchor="middle">Crescendo</text>
-                    </g>
                     <g font-family="JetBrains Mono, monospace" fill="#0A0907">
                         <text x="200" y="110" font-size="6.5" letter-spacing="0.08em" font-weight="500">f → ff</text>
                         <text x="30" y="111" font-size="6.5" letter-spacing="0.08em" font-weight="500">3-5 mm</text>
                     </g>
-                    <g font-family="JetBrains Mono, monospace" fill="#75706A">
-                        <text x="120" y="150" font-size="6" letter-spacing="0.22em" text-anchor="middle">FRACTURE MÉCANIQUE · RELÂCHE OLFACTIVE</text>
-                    </g>
                 </svg>
-            </div>
-
-            <div class="recipe-benefit">
-                {{ 'ui.labo.pound_benefit_html'|trans|raw }}
-            </div>
-
-            <div class="recipe-foot">
-                <span>{{ 'ui.labo.pound_spices'|trans }}</span>
-                <a href="{{ path('index_spices') }}" class="hover:opacity-70 transition-opacity">{{ 'ui.labo.read'|trans }}</a>
-            </div>
-        </article>
-
-    </div>
-
-    <div class="quotes-wrap">
-        <div class="quotes-head">
-            <h3>{{ 'ui.labo.quotes_head'|trans }}</h3>
-            <div class="flex gap-[10px]" aria-hidden="true">
-                <button type="button"
-                        class="w-[42px] h-[42px] rounded-full flex items-center justify-center cursor-default"
-                        style="background: rgba(245,233,200,.1); border: 1px solid rgba(245,233,200,.3); color: #F5E9C8">
-                    ‹
-                </button>
-                <button type="button"
-                        class="w-[42px] h-[42px] rounded-full flex items-center justify-center cursor-default"
-                        style="background: rgba(245,233,200,.1); border: 1px solid rgba(245,233,200,.3); color: #F5E9C8">
-                    ›
-                </button>
-            </div>
         </div>
 
-        <div class="quotes-board">
+        <p class="technique-benefit">{{ 'ui.home.learn.pound_benefit'|trans }}</p>
 
-            <div class="pin-note">
-                <div class="pin-quote">{{ 'ui.labo.quote1'|trans }}</div>
-                <div class="pin-author">
-                    <span class="who">Élise Marchand</span>
-                    <span>{{ 'ui.labo.quote1_role'|trans }}</span>
-                </div>
-            </div>
-
-            <div class="pin-note">
-                <div class="pin-quote">{{ 'ui.labo.quote2'|trans }}</div>
-                <div class="pin-author">
-                    <span class="who">Tomás Reverte</span>
-                    <span>{{ 'ui.labo.quote2_role'|trans }}</span>
-                </div>
-            </div>
-
-            <div class="pin-note">
-                <div class="pin-quote">{{ 'ui.labo.quote3'|trans }}</div>
-                <div class="pin-author">
-                    <span class="who">Amal Benkirane</span>
-                    <span>{{ 'ui.labo.quote3_role'|trans }}</span>
-                </div>
-            </div>
-
+        <div class="technique-foot">
+            <span>{{ 'ui.home.learn.pound_spices'|trans }}</span>
         </div>
-    </div>
-
-</section>
+    </article>
+</div>

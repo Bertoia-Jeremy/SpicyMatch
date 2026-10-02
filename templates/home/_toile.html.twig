@@ -1,28 +1,14 @@
 
 {% set _molecules = [
-    { id: 'm1', x: -100, y: -120, accent: '#D97706', grad: 'radial-gradient(circle at 35% 30%,#E8B547,#8a5a0c)', delay: '0s', formula: 'C₁₀H₁₈O', name: 'ui.toile.m1_name'|trans, badge: 'ui.toile.m1_badge'|trans, descr: 'ui.toile.m1_descr'|trans, shared: ['Coriandre', 'Basilic', 'Cardamome', 'Thym', '+ 14'] },
-    { id: 'm2', x: 112, y: -108, accent: '#991B1B', grad: 'radial-gradient(circle at 35% 30%,#C04020,#5a0e0e)', delay: '1.2s', formula: 'C₁₇H₁₉NO₃', name: 'ui.toile.m2_name'|trans, badge: 'ui.toile.m2_badge'|trans, descr: 'ui.toile.m2_descr'|trans, shared: ['Poivre noir', 'Poivre long', 'Cubèbe', '+ 6'] },
-    { id: 'm3', x: -180, y: 0, accent: '#4D7C0F', grad: 'radial-gradient(circle at 35% 30%,#7AA31C,#2f4a08)', delay: '2.4s', formula: 'C₁₀H₁₈O', name: 'ui.toile.m3_name'|trans, badge: 'ui.toile.m3_badge'|trans, descr: 'ui.toile.m3_descr'|trans, shared: ['Cardamome', 'Marjolaine', 'Niaouli', '+ 9'] },
-    { id: 'm4', x: 188, y: -8, accent: '#B87333', grad: 'radial-gradient(circle at 35% 30%,#B86A20,#5c2c08)', delay: '0.7s', formula: 'C₁₀H₁₂O₂', name: 'ui.toile.m4_name'|trans, badge: 'ui.toile.m4_badge'|trans, descr: 'ui.toile.m4_descr'|trans, shared: ['Clou de girofle', 'Cannelle', 'Muscade', 'Basilic', '+ 8'] },
-    { id: 'm5', x: -110, y: 160, accent: '#D97706', grad: 'radial-gradient(circle at 35% 30%,#D97706,#7c3a04)', delay: '3s', formula: 'C₁₀H₁₈O', name: 'ui.toile.m5_name'|trans, badge: 'ui.toile.m5_badge'|trans, descr: 'ui.toile.m5_descr'|trans, shared: ['Cardamome', 'Romarin', 'Laurier', 'Sauge', '+ 11'] },
-    { id: 'm6', x: 130, y: 150, accent: '#7c3a04', grad: 'radial-gradient(circle at 35% 30%,#6E4128,#2a160a)', delay: '1.8s', formula: 'C₁₀H₁₈O', name: 'ui.toile.m6_name'|trans, badge: 'ui.toile.m6_badge'|trans, descr: 'ui.toile.m6_descr'|trans, shared: ['Coriandre', 'Citronnelle', 'Carotte', '+ 7'] }
+    { id: 'm1', x: -100, y: -120, accent: '#D97706', grad: 'radial-gradient(circle at 35% 30%,#E8B547,#8a5a0c)', delay: '0s', formula: 'C₁₀H₁₈O', name: 'ui.toile.m1_name'|trans, badge: 'ui.toile.m1_badge'|trans, descr: 'ui.toile.m1_descr'|trans, shared: 'ui.toile.m1_shared'|trans|split(', ') },
+    { id: 'm2', x: 112, y: -108, accent: '#991B1B', grad: 'radial-gradient(circle at 35% 30%,#C04020,#5a0e0e)', delay: '1.2s', formula: 'C₁₇H₁₉NO₃', name: 'ui.toile.m2_name'|trans, badge: 'ui.toile.m2_badge'|trans, descr: 'ui.toile.m2_descr'|trans, shared: 'ui.toile.m2_shared'|trans|split(', ') },
+    { id: 'm3', x: -180, y: 0, accent: '#4D7C0F', grad: 'radial-gradient(circle at 35% 30%,#7AA31C,#2f4a08)', delay: '2.4s', formula: 'C₁₀H₁₈O', name: 'ui.toile.m3_name'|trans, badge: 'ui.toile.m3_badge'|trans, descr: 'ui.toile.m3_descr'|trans, shared: 'ui.toile.m3_shared'|trans|split(', ') },
+    { id: 'm4', x: 188, y: -8, accent: '#B87333', grad: 'radial-gradient(circle at 35% 30%,#B86A20,#5c2c08)', delay: '0.7s', formula: 'C₁₀H₁₂O₂', name: 'ui.toile.m4_name'|trans, badge: 'ui.toile.m4_badge'|trans, descr: 'ui.toile.m4_descr'|trans, shared: 'ui.toile.m4_shared'|trans|split(', ') },
+    { id: 'm5', x: -110, y: 160, accent: '#D97706', grad: 'radial-gradient(circle at 35% 30%,#D97706,#7c3a04)', delay: '3s', formula: 'C₁₀H₁₈O', name: 'ui.toile.m5_name'|trans, badge: 'ui.toile.m5_badge'|trans, descr: 'ui.toile.m5_descr'|trans, shared: 'ui.toile.m5_shared'|trans|split(', ') },
+    { id: 'm6', x: 130, y: 150, accent: '#7c3a04', grad: 'radial-gradient(circle at 35% 30%,#6E4128,#2a160a)', delay: '1.8s', formula: 'C₁₀H₁₈O', name: 'ui.toile.m6_name'|trans, badge: 'ui.toile.m6_badge'|trans, descr: 'ui.toile.m6_descr'|trans, shared: 'ui.toile.m6_shared'|trans|split(', ') }
 ] %}
-<section id="toile" class="home-section" x-data="toile()"
-         data-molecules="{{ _molecules|json_encode|e('html_attr') }}"
-         style="background: linear-gradient(180deg, var(--color-cream) 0%, var(--color-cream-dark) 100%)">
-
-    <div class="section-head">
-        <div>
-            <div class="section-label">{{ 'ui.toile.chapter'|trans }}</div>
-            <h2 class="font-display font-medium leading-none tracking-[-0.015em] m-0"
-                style="font-size: clamp(40px, 5vw, 80px)">
-                {{ 'ui.toile.title_html'|trans|raw }}
-            </h2>
-        </div>
-        <p class="section-blurb">
-            {{ 'ui.toile.blurb'|trans }}
-        </p>
-    </div>
+<div class="home-toile" x-data="toile()"
+     data-molecules="{{ _molecules|json_encode|e('html_attr') }}">
 
     <div class="solar-wrap">
 
@@ -31,7 +17,6 @@
 
             <div class="solar-hud" aria-hidden="true">
                 <span><span class="hud-dot"></span>{{ 'ui.toile.hud_active'|trans }}</span>
-                <span>{{ 'ui.toile.hud_stats'|trans }}</span>
             </div>
 
             <svg class="absolute inset-0 w-full h-full pointer-events-none z-[1]"
@@ -50,22 +35,22 @@
 
             <div class="sun" aria-hidden="true">
                 <div class="sun-label">
-                    Cardamome
+                    {{ 'ui.toile.sun_name'|trans }}
                     <span class="sub">{{ 'ui.toile.sun_sub'|trans }}</span>
                 </div>
             </div>
 
-            <template x-for="m in molecules" :key="m.id">
+            <template x-for="m in molecules" x-bind:key="m.id">
                 <div class="molecule"
-                     :style="m.molStyle"
-                     :class="isActive(m.id) ? 'mol-active' : ''"
-                     @click="setActive(m.id)"
+                     x-bind:style="m.molStyle"
+                     x-bind:class="isActive(m.id) ? 'mol-active' : ''"
+                     x-on:click="setActive(m.id)"
                      role="button"
                      tabindex="0"
-                     :aria-label="m.name + ' — {{ 'ui.toile.mol_aria_suffix'|trans|e('js') }}'"
-                     :aria-pressed="isActive(m.id)"
-                     @keydown.enter.prevent="setActive(m.id)"
-                     @keydown.space.prevent="setActive(m.id)">
+                     x-bind:aria-label="m.name + ' — {{ 'ui.toile.mol_aria_suffix'|trans|e('js') }}'"
+                     x-bind:aria-pressed="isActive(m.id)"
+                     x-on:keydown.enter.prevent="setActive(m.id)"
+                     x-on:keydown.space.prevent="setActive(m.id)">
                     <div class="mol-name" x-text="m.name"></div>
                     <div class="mol-formula" x-text="m.formula" aria-hidden="true"></div>
                 </div>
@@ -75,42 +60,28 @@
 
         <div class="solar-side">
             <h3 class="font-display font-medium leading-[1.05] mb-[18px] tracking-[-0.01em] solar-side-title">
-                {{ 'ui.toile.side_title_html'|trans|raw }}
+                {{ 'ui.toile.side_title'|trans }}
+                <em class="home-accent home-accent--paprika">{{ 'ui.toile.side_title_accent'|trans }}</em>
             </h3>
-            <p class="mb-8 text-[15px] leading-[1.7] max-w-[440px]" style="color: rgba(42,24,16,.70)">
+            <p class="mb-8 text-[15px] leading-[1.7] max-w-[440px] home-muted">
                 {{ 'ui.toile.side_blurb'|trans }}
             </p>
 
-            <div class="compound-card" :style="cardStyle()">
+            <div class="compound-card" x-bind:style="cardStyle()">
                 <div class="flex items-center justify-between gap-4 mb-3">
                     <div class="cname" x-text="active.name"></div>
                     <div class="badge" x-text="active.badge"></div>
                 </div>
                 <div class="descr" x-text="active.descr"></div>
                 <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-[10px] tracking-[.22em] uppercase mr-1" style="color: rgba(42,24,16,.60); font-family: var(--font-mono)">{{ 'ui.toile.also_in'|trans }}</span>
-                    <template x-for="s in active.shared" :key="s">
+                    <span class="text-[10px] tracking-[.22em] uppercase mr-1 home-muted" style="font-family: var(--font-mono)">{{ 'ui.toile.also_in'|trans }}</span>
+                    <template x-for="s in active.shared" x-bind:key="s">
                         <span class="compound-chip" x-text="s"></span>
                     </template>
-                </div>
-            </div>
-
-            <div class="solar-legend">
-                <div class="leg-item">
-                    <span class="leg-sw" style="background: var(--color-turmeric-600)"></span>{{ 'ui.toile.legend_terpenic'|trans }}
-                </div>
-                <div class="leg-item">
-                    <span class="leg-sw" style="background: var(--color-paprika-800)"></span>{{ 'ui.toile.legend_piperaceae'|trans }}
-                </div>
-                <div class="leg-item">
-                    <span class="leg-sw" style="background: var(--color-sauge)"></span>{{ 'ui.toile.legend_phenolic'|trans }}
-                </div>
-                <div class="leg-item">
-                    <span class="leg-sw" style="background: var(--color-copper)"></span>{{ 'ui.toile.legend_woody'|trans }}
                 </div>
             </div>
         </div>
 
     </div>
 
-</section>
+</div>

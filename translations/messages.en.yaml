@@ -99,40 +99,142 @@ ui:
         main_nav: Main navigation
         main_menu: Main menu
     home:
-        title: SpicyMatch — The Odyssey of Aromas
+        title: "SpicyMatch — The right pairings for your spices"
+        meta_description: "Pick a spice: SpicyMatch tells you what it pairs with and how to cook it. Free, no account, no tracking."
+        hero:
+            eyebrow: "Spice pairings · the science of aroma"
+            title: "No more blending"
+            title_accent: "in the dark."
+            lead: "Pick a spice: SpicyMatch tells you what it pairs with, and how to cook it."
+            blurb: "We draw on the science of aroma and centuries of recipes to give you a reliable starting point. Then it's your turn to taste, tweak and enjoy."
+            cta_lab: "Make my first blend"
+            cta_spices: "Browse spices"
+            reassure_label: "Our commitments"
+            reassure_free: "Free"
+            reassure_no_account: "No account"
+            reassure_no_tracking: "No tracking"
+            proof: "%spices% spices · %compounds% linked aromas"
+        demo:
+            eyebrow: "Try it, right here, right now"
+            title: "Which spice are you craving?"
+            chips_label: "Spices to try"
+            hint: "Tap a spice to see its best pairings."
+            loading: "The mortar is at work…"
+            error: "The mortar is running a bit hot, try again in a moment."
+            empty: "No obvious pairing for this one: the Lab will help you match it."
+            continue: "Continue in the Lab with %spice%"
+        how:
+            label: "The method"
+            title: "Science does the trial runs."
+            title_accent: "You keep the fun."
+            choose_title: "Choose"
+            choose_text: "A spice you're in the mood for, or two that have been waiting at the back of the cupboard."
+            discover_title: "Discover"
+            discover_text: "We cross-check their aromas with pairings that have proven themselves in the kitchen. What comes out are the spices that truly have something in common."
+            cook_title: "Cook"
+            cook_text: "Preparation, when to add, little techniques: you leave with a recipe ready to follow."
+            honesty: "No magic formula: a reliable compass. Your palate always has the final say."
+        experiment:
+            label: "I · Experiment"
+            title: "The Lab,"
+            title_accent: "your mortar of ideas."
+            text: "Drop two spices into the mortar, watch the pairings take shape, add the one that lifts everything. In a few clicks, a vague idea becomes a blend you want to taste tonight."
+            point_ranked: "Pairings ranked, from the most obvious to the boldest"
+            point_gestures: "For each spice: how to prepare it, when to add it"
+            point_cooking_mode: "A final recipe with a cooking mode, screen on, hands free"
+            point_saved: "Your blends saved and your favourites at hand (with a free account)"
+            cta: "Open the Lab"
+        learn:
+            label: "II · Learn"
+            title: "Understand what you taste,"
+            title_accent: "without the jargon."
+            text: "Why coriander loves citrus, why we toast cumin: every spice has its story and its affinities. Everything is explained simply and open to all."
+            techniques_title: "The techniques that change everything"
+            technique_num: "Card no. %num%"
+            dry_heat: "Dry heat"
+            wet_heat: "Gentle heat"
+            mechanical: "Cold"
+            roast_title: "Toasting"
+            roast_sub: "dry, in a pan"
+            roast_benefit: "Dry heat wakes up the fragrant oils: a deeper, almost nutty flavour."
+            roast_spices: "Cumin · Coriander · Fennel"
+            infusion_title: "Infusion"
+            infusion_sub: "over low heat, in fat"
+            infusion_benefit: "Many aromas love fat: hot oil or butter captures them and carries them through the whole dish."
+            infusion_spices: "Rosemary · Bay leaf · Chilli"
+            pound_title: "Pounding"
+            pound_sub: "in a mortar"
+            pound_benefit: "The pestle crushes seeds without heating them: the scents stay bright, cleaner than from a grinder."
+            pound_spices: "Pepper · Cardamom · Basil"
+            doors_label: "Explore the catalogue"
+            door_spices: "Spice profiles"
+            door_groups: "Aromatic families"
+            door_methods: "Preparation methods"
+            cta: "Explore the spices"
+        play:
+            label: "III · Play"
+            title: "Remember the pairings"
+            title_accent: "without studying."
+            text: "Six mini-games to turn good pairings into reflexes: spot the odd one out, hold on in survival mode, beat the clock… Five minutes a day, and one evening you'll just know."
+            quota: "%count% games per mode per day, on the house. Badges, levels and streaks for the joy of progressing."
+            cta: "Play a game"
+        values:
+            label: "Where we stand"
+            title: "An honest project,"
+            title_accent: "open to all."
+            tracking_title: "Zero tracking"
+            tracking_text: "No tracking cookies, no endless banner. Only what the site needs to work."
+            free_title: "Knowledge is free"
+            free_text: "Profiles, pairings, methods, recipes: nothing is locked behind a subscription. Ever."
+            ads_title: "Well-behaved ads"
+            ads_text: "A few understated ads, no tracking, never in the middle of a recipe or a game."
+            games_title: "Games, generously"
+            games_text: "%count% games per mode per day, for everyone, free of charge."
+        support:
+            title: "Knowledge is priceless."
+            title_accent: "Comfort, if you want it."
+            text: "All of SpicyMatch's information is free and will stay that way. Games are an extra feature. If you want to go further, become a supporter: zero ads, %count% games per mode per day, and the satisfaction of keeping an independent project alive."
+            cta: "Support SpicyMatch"
+            soon: "Coming soon"
+        final:
+            title: "Tonight,"
+            title_accent: "what are you cooking?"
+            text: "Pick a spice. We handle the pairings, you handle the flavour."
+            cta: "Start my blend"
+            register: "Create a free account to keep my recipes"
     toile:
-        chapter: Chapter II · The Web of Aromas
-        title_html: 'The <em class="not-italic italic" style="color: var(--color-turmeric-700)">aromatic.</em> solar system'
-        blurb: Each spice is a sun. Around it orbit its compounds. Click a molecule to discover all the spices that share this invisible signature.
-        hud_active: Active system · CARDAMOM
-        hud_stats: 6 compounds · 14 links identified
-        sun_sub: Elettaria · IN
-        side_title_html: 'One molecule, <em class="not-italic italic" style="color: var(--color-paprika-800)">a thousand spices.</em>'
-        side_blurb: Linalool is not just a name. It's the invisible thread linking lavender to coriander, basil to cardamom. Pull the thread — a whole family appears.
-        also_in: Also in
-        legend_terpenic: Terpenic
-        legend_piperaceae: Piperaceae
-        legend_phenolic: Phenolic
-        legend_woody: Woody
-        mol_aria_suffix: click to see details
-        m1_name: Linalool
-        m1_badge: Terpene · Floral
-        m1_descr: A fresh floral note with citrus accents. Found in over 200 aromatic plants — it's the signature scent of lavender, but also the secret of many others.
-        m2_name: Piperine
-        m2_badge: Alkaloid · Pungent
-        m2_descr: The compound that gives black pepper its characteristic bite. It activates the TRPV1 receptors — the same as capsaicin, but with a woody softness.
-        m3_name: α-Terpineol
-        m3_badge: Terpene · Floral-Pine
-        m3_descr: An aroma both floral and resinous, like lilac rubbed against a pine. Prized in perfumery as much as in Mediterranean cooking.
-        m4_name: Eugenol
-        m4_badge: Phenol · Woody-Clove
-        m4_descr: The heart of clove. A mild anesthetic, dense scent — an unforgettable signature that lodges in olfactory memory.
-        m5_name: 1,8-Cineole
-        m5_badge: Oxide · Fresh-Camphor
-        m5_descr: That freshness sometimes called eucalyptus-like. It opens the airways and a dish's aromatic palette with the same frankness.
-        m6_name: Geraniol
-        m6_badge: Terpene · Rose-Citrus
-        m6_descr: The fragrant soul of geranium and rose. In cooking, a thin thread between citrus peel and petal — to be handled with reverence.
+        hud_active: "At the centre · Cardamom"
+        sun_name: "Cardamom"
+        sun_sub: "Elettaria · IN"
+        side_title: "One note,"
+        side_title_accent: "many spices."
+        side_blurb: "Tap a molecule: every spice that shares this scent lights up."
+        also_in: "Also in"
+        mol_aria_suffix: "see the spices that share it"
+        m1_name: "Linalool"
+        m1_badge: "Floral · Fresh"
+        m1_descr: "A fresh, flowery note with a hint of citrus. You find it in coriander as well as basil: that's what makes them so easy to pair."
+        m1_shared: "Coriander, Basil, Cardamom, Thyme"
+        m2_name: "Piperine"
+        m2_badge: "Pungent · Warming"
+        m2_descr: "The bite of black pepper. It warms the mouth without burning, with a woody base that wakes a dish up without overwhelming it."
+        m2_shared: "Black pepper, Long pepper, Cubeb"
+        m3_name: "α-Terpineol"
+        m3_badge: "Floral · Resinous"
+        m3_descr: "Somewhere between lilac and a pine forest. A soft, resinous note that bridges southern herbs and spices."
+        m3_shared: "Cardamom, Marjoram, Niaouli"
+        m4_name: "Eugenol"
+        m4_badge: "Warm · Woody"
+        m4_descr: "The heart of clove. A dense, cosy scent, the one of gingerbread and mulled wine."
+        m4_shared: "Clove, Cinnamon, Nutmeg, Basil"
+        m5_name: "1,8-Cineole"
+        m5_badge: "Fresh · Minty"
+        m5_descr: "That freshness reminiscent of eucalyptus. It lightens rich dishes and brightens roast meats."
+        m5_shared: "Cardamom, Rosemary, Bay leaf, Sage"
+        m6_name: "Geraniol"
+        m6_badge: "Rose · Citrus"
+        m6_descr: "The scent of rose and geranium. In cooking, a light line between zest and petal, to use with a gentle hand."
+        m6_shared: "Coriander, Lemongrass, Carrot"
     search:
         placeholder: Search...
         clear: Clear search
@@ -1059,63 +1161,6 @@ ui:
         days_plural: days
         create: Create
         play: Play
-    labo:
-        chapter: Chapter III · The Culinary Lab
-        title_html: 'The art of the <em class="not-italic italic" style="color: var(--color-turmeric-700)">gesture.</em>'
-        blurb: Understanding is good. Doing is better. Three fundamental techniques to unlock everything your spices have to offer.
-        fiche1: Card No.&nbsp;I
-        fiche2: Card No.&nbsp;II
-        fiche3: Card No.&nbsp;III
-        technique: Technique
-        dry_heat: Dry heat
-        wet_heat: Moist heat
-        mechanical: Mechanical
-        roast_title_html: 'Roast<span class="ital">ing.</span>'
-        roast_sub: dry, in a cast-iron pan
-        roast_benefit_html: '<strong>Maillard reaction.</strong> Dry heat breaks down cell walls and releases the trapped essential oils. The result: a deep, almost nutty aroma.'
-        roast_spices: Cumin · Coriander · Fennel
-        infusion_title_html: 'Infu<span class="ital">sion.</span>'
-        infusion_sub: hot, in a fatty medium
-        infusion_benefit_html: '<strong>Lipid diffusion.</strong> Fat-soluble aromas migrate into the hot oil — an ideal transport for woody and resinous notes that fear the flame.'
-        infusion_spices: Rosemary · Bay leaf · Chili
-        pound_title_html: 'Pound<span class="ital">ing.</span>'
-        pound_sub: with a marble mortar
-        pound_benefit_html: '<strong>Cell rupture.</strong> Mechanical pressure bursts the essential-oil vesicles more delicately than the grinder — no heat, no oxidation.'
-        pound_spices: Pepper · Cardamom · Basil
-        read: → Read
-        quotes_head: Expert tips, pinned to the kitchen wall.
-        quote1: A spice never has just one role. It opens a door. It's up to you to look at what lies behind it.
-        quote1_role: Chef · Lyon
-        quote2: Before adding chili, add attention. The tongue remembers both.
-        quote2_role: Michelin-starred · Barcelona
-        quote3: Roasting is not a step. It's a conversation between the seed and the heat.
-        quote3_role: Master spice merchant · Fès
-    theatre:
-        chapter: Chapter IV · The Academy
-        title_html: 'The theater of <em class="not-italic italic" style="color: var(--color-turmeric-700)">the senses.</em>'
-        blurb: Six mini-games. Spices as a playground. Each round reveals a new angle — the odd one out, survival, hangman, speed.
-        cta_sub: 6 modes available · XP · Achievements · Leaderboards
-        cta: Join the Academy
-    hero:
-        season: Season · Spring 26 · Chapter&nbsp;I
-        blends_est: Blends · Est. MMXXVI
-        meta: N°&nbsp;001 — The awakening of the senses
-        title_html: |
-            The <em class="not-italic italic" style="color: var(--color-paprika-800)">Alchemy</em> of Spices.<br>
-            Awaken the <span class="relative inline-block" style="color: var(--color-turmeric-700)">Chef<span class="absolute left-0 right-0 bottom-[6px] h-[14px] pointer-events-none" style="background: radial-gradient(ellipse at center, rgba(217,119,6,.28) 0%, transparent 70%); z-index: -1;" aria-hidden="true"></span></span><br>
-            who sleeps within you.
-        blurb: Explore the invisible links between molecules and taste. Learn, blend, and master the art of flavors through a scientific &amp; playful experience.
-        cta_blend: Start a blend
-        cta_explore: Explore the spices
-        cta_start: Begin the exploration
-        figures_label: Key figures
-        figures_eyebrow: Our kitchen, in three numbers
-        figure_spices: spices from around the world
-        figure_aromas: aromas linked one by one
-        figure_chefs: apprentice chefs with you
-        figure_spices_sr: 'Over %count% spices from around the world'
-        figure_aromas_sr: '%count% aromas linked one by one'
-        figure_chefs_sr: '%count% apprentice chefs with you'
     grade:
         commis: Commis
         chef_partie: Chef de Partie

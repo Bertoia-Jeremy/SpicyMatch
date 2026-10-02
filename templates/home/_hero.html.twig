@@ -1,109 +1,45 @@
-
 <section class="home-hero-grid bg-cream overflow-hidden">
-
-    <div class="hero-corner tl">
-        <span class="dot-sauge" aria-hidden="true"></span>
-        <span>{{ 'ui.hero.season'|trans|raw }}</span>
-    </div>
-    <div class="hero-corner tr">
-        <span>SpicyMatch</span>
-        <span class="hero-corner-bullet" aria-hidden="true"></span>
-        <span>{{ 'ui.hero.blends_est'|trans }}</span>
-    </div>
 
     <div class="hero-content">
 
         <div class="hero-meta">
             <span class="hero-meta-line" aria-hidden="true"></span>
-            <span>{{ 'ui.hero.meta'|trans|raw }}</span>
+            <span>{{ 'ui.home.hero.eyebrow'|trans }}</span>
         </div>
 
-        <h1 class="font-display font-medium leading-[.96] tracking-[-0.02em] mb-8"
-            style="font-size: clamp(48px, 6.4vw, 100px)">
-            {{ 'ui.hero.title_html'|trans|raw }}
+        <h1 class="home-h1 font-display font-medium">
+            {{ 'ui.home.hero.title'|trans }}
+            <em class="home-accent home-accent--paprika">{{ 'ui.home.hero.title_accent'|trans }}</em>
         </h1>
 
-        <p class="text-lg max-w-[520px] mb-11 leading-[1.65]" style="color: rgba(42,24,16,.70)">
-            {{ 'ui.hero.blurb'|trans|raw }}
-        </p>
+        <p class="home-hero-lead">{{ 'ui.home.hero.lead'|trans }}</p>
+        <p class="home-hero-blurb">{{ 'ui.home.hero.blurb'|trans }}</p>
 
-        <div class="hero-ctas flex items-center gap-7 flex-wrap">
-            {% if is_granted('ROLE_USER') %}
-                <a href="{{ path('index_spicy_match') }}" class="btn-hero-primary">
-                    {{ 'ui.hero.cta_blend'|trans }} <span class="arrow" aria-hidden="true">→</span>
-                </a>
-                <a href="{{ path('index_spices') }}" class="btn-hero-ghost">
-                    {{ 'ui.hero.cta_explore'|trans }}
-                </a>
-            {% else %}
-                <a href="{{ path('index_register') }}" class="btn-hero-primary">
-                    {{ 'ui.hero.cta_start'|trans }} <span class="arrow" aria-hidden="true">→</span>
-                </a>
-                <a href="{{ path('index_spices') }}" class="btn-hero-ghost">
-                    {{ 'ui.hero.cta_explore'|trans }}
-                </a>
-            {% endif %}
+        <div class="hero-ctas">
+            <a href="{{ path('index_spicy_match') }}" class="btn-hero-primary" data-home-cta="lab">
+                {{ 'ui.home.hero.cta_lab'|trans }} <span class="arrow" aria-hidden="true">→</span>
+            </a>
+            <a href="{{ path('index_spices') }}" class="btn-hero-ghost">
+                {{ 'ui.home.hero.cta_spices'|trans }}
+            </a>
         </div>
+
+        <ul class="home-reassure" aria-label="{{ 'ui.home.hero.reassure_label'|trans }}">
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i>{{ 'ui.home.hero.reassure_free'|trans }}</li>
+            {% if not is_granted('ROLE_USER') %}
+                <li><i class="fa-solid fa-check" aria-hidden="true"></i>{{ 'ui.home.hero.reassure_no_account'|trans }}</li>
+            {% endif %}
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i>{{ 'ui.home.hero.reassure_no_tracking'|trans }}</li>
+        </ul>
+
+        <p class="home-proof">
+            {{ 'ui.home.hero.proof'|trans({'%spices%': spicesCount, '%compounds%': compoundsCount|format_number}) }}
+        </p>
 
     </div>
 
-    <aside class="key-figures" aria-label="{{ 'ui.hero.figures_label'|trans }}">
-
-        <div class="kf-eyebrow">
-            <span class="kf-eyebrow-rule" aria-hidden="true"></span>
-            <span>{{ 'ui.hero.figures_eyebrow'|trans }}</span>
-        </div>
-
-        <div class="kf-row">
-            <div class="kf-num">
-                <span class="sr-only">{{ 'ui.hero.figure_spices_sr'|trans({'%count%': spicesCount}) }}</span>
-                <span aria-hidden="true"><span class="kf-big">{{ spicesCount }}</span><span class="kf-plus">+</span></span>
-            </div>
-            <div class="kf-cap">
-                <span class="kf-cap-label">{{ 'ui.hero.figure_spices'|trans }}</span>
-                <span class="kf-cap-flag" aria-hidden="true">
-                    <span class="kf-dot" style="background: radial-gradient(circle at 35% 30%, #E8B547, #8a5a0c)"></span>
-                    <span class="kf-dot" style="background: radial-gradient(circle at 35% 30%, #C04020, #5a0e0e)"></span>
-                    <span class="kf-dot" style="background: radial-gradient(circle at 35% 30%, #7AA31C, #2f4a08)"></span>
-                </span>
-            </div>
-        </div>
-
-        <div class="kf-row">
-            <div class="kf-num">
-                <span class="sr-only">{{ 'ui.hero.figure_aromas_sr'|trans({'%count%': compoundsCount}) }}</span>
-                <span class="kf-big" aria-hidden="true">{{ compoundsCount|format_number }}</span>
-            </div>
-            <div class="kf-cap">
-                <span class="kf-cap-label">{{ 'ui.hero.figure_aromas'|trans }}</span>
-                <svg class="h-[22px] w-auto opacity-90" viewBox="0 0 80 24" aria-hidden="true">
-                    <circle cx="10" cy="12" r="3" fill="#D97706"/>
-                    <circle cx="30" cy="8" r="2.5" fill="#991B1B"/>
-                    <circle cx="48" cy="14" r="3" fill="#4D7C0F"/>
-                    <circle cx="68" cy="10" r="2.5" fill="#B87333"/>
-                    <line x1="13" y1="12" x2="28" y2="9" stroke="#2A1810" stroke-width=".7" opacity=".5"/>
-                    <line x1="32" y1="9" x2="46" y2="13" stroke="#2A1810" stroke-width=".7" opacity=".5"/>
-                    <line x1="50" y1="13" x2="66" y2="11" stroke="#2A1810" stroke-width=".7" opacity=".5"/>
-                </svg>
-            </div>
-        </div>
-
-        <div class="kf-row">
-            <div class="kf-num">
-                <span class="sr-only">{{ 'ui.hero.figure_chefs_sr'|trans({'%count%': usersCount}) }}</span>
-                <span class="kf-big" aria-hidden="true">{{ usersCount|format_number }}</span>
-            </div>
-            <div class="kf-cap">
-                <span class="kf-cap-label">{{ 'ui.hero.figure_chefs'|trans }}</span>
-                <span class="kf-cap-flag" aria-hidden="true">
-                    <span class="kf-avatar" style="background: radial-gradient(circle at 35% 30%, #D97706, #7c3a04)"></span>
-                    <span class="kf-avatar" style="background: radial-gradient(circle at 35% 30%, #991B1B, #5a0e0e)"></span>
-                    <span class="kf-avatar" style="background: radial-gradient(circle at 35% 30%, #4D7C0F, #2d4a08)"></span>
-                    <span class="kf-avatar kf-avatar-more">+</span>
-                </span>
-            </div>
-        </div>
-
-    </aside>
+    {% if demoSpices is not empty %}
+        {% include 'home/_demo.html.twig' %}
+    {% endif %}
 
 </section>

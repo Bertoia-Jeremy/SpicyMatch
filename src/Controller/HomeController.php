@@ -9,10 +9,10 @@ use App\Enum\GameMode;
 use App\Repository\AchievementProgressRepository;
 use App\Repository\AromaticCompoundRepository;
 use App\Repository\SpicesRepository;
-use App\Repository\UsersRepository;
 use App\Service\Education\DailyChallengeResolver;
 use App\Service\Education\GameSessionManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
@@ -23,18 +23,19 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 ])]
 class HomeController extends AbstractController
 {
+    public const array DEMO_SPICE_SLUGS = ['cumin', 'cannelle', 'curcuma', 'gingembre', 'cardamome', 'coriandre'];
+
     public function __construct(
         private readonly AchievementProgressRepository $achievementProgressRepository,
         private readonly SpicesRepository $spicesRepository,
         private readonly AromaticCompoundRepository $aromaticCompoundRepository,
-        private readonly UsersRepository $usersRepository,
         private readonly DailyChallengeResolver $dailyChallenge,
         private readonly GameSessionManager $gameSessionManager,
     ) {
     }
 
     #[Route('/', name: 'home')]
-    public function index(TranslatorInterface $translator, #[CurrentUser] ?Users $user = null): Response
+    public function index(Request $request, TranslatorInterface $translator, #[CurrentUser] ?Users $user = null): Response
     {
         if ($user instanceof Users && $user->getLastLoginAt() instanceof \DateTimeInterface) {
             $today = new \DateTimeImmutable();
@@ -62,10 +63,12 @@ class HomeController extends AbstractController
             'nextAchievementProgress' => $nextAchievementProgress,
             'spicesCount' => $this->spicesRepository->countTotal(),
             'compoundsCount' => $this->aromaticCompoundRepository->countTotal(),
-            'usersCount' => $this->usersRepository->countActive(),
+            'demoSpices' => $this->spicesRepository->findDemoCards(self::DEMO_SPICE_SLUGS, $request->getLocale()),
             'gameModes' => $gameModes,
             'dailyFeaturedMode' => $this->dailyChallenge->forUser($user),
             'dailyBonusAvailable' => $this->gameSessionManager->isDailyBonusAvailable($user),
+            'dailyGamesFree' => GameSessionManager::MAX_DAILY_SESSIONS_FREE,
+            'dailyGamesPremium' => GameSessionManager::MAX_DAILY_SESSIONS_PREMIUM,
         ]);
     }
 }

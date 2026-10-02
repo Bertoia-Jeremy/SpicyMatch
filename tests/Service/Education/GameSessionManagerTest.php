@@ -131,6 +131,26 @@ class GameSessionManagerTest extends TestCase
         $manager->startSession($user, GameMode::QCM, GameDifficulty::EASY);
     }
 
+    /**
+     * @return iterable<string, array{0: ?\DateTimeImmutable, 1: bool, 2: int}>
+     */
+    public static function maxDailySessionsProvider(): iterable
+    {
+        yield 'anonymous' => [null, false, 5];
+        yield 'free user' => [null, true, 5];
+        yield 'expired premium' => [new \DateTimeImmutable('-1 day'), true, 5];
+        yield 'active premium' => [new \DateTimeImmutable('+1 month'), true, 10];
+    }
+
+    #[DataProvider('maxDailySessionsProvider')]
+    public function testMaxDailySessions(?\DateTimeImmutable $premiumUntil, bool $loggedIn, int $expected): void
+    {
+        $user = $loggedIn ? new Users()
+            ->setPremiumUntil($premiumUntil) : null;
+
+        self::assertSame($expected, $this->makeManager()->maxDailySessions($user));
+    }
+
     public function testNextQuestionDelegatesToGenerator(): void
     {
         $session = new GameSession();

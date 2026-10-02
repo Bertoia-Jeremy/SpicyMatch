@@ -602,11 +602,12 @@ ui:
         placeholder_cta: Découvrir
     premium:
         title: SpicyMatch Premium
-        intro: Soutenez l'atelier et naviguez sans publicité sur tout le site.
+        intro: "Le savoir reste gratuit. Votre soutien fait vivre l'atelier."
         price: 4,99 €/mois
         benefit_adfree: Navigation 100 % sans publicité
+        benefit_games: "%premium% parties par jeu et par jour (au lieu de %free%)"
         benefit_support: Vous soutenez directement le développement du projet
-        benefit_future: Accès prioritaire aux futures fonctionnalités Premium
+        benefit_future: "Un avant-goût des nouveautés avant tout le monde"
         cta_soon: Bientôt disponible
         soon_hint: Le paiement arrive très bientôt — merci de votre patience.
         cta_login: Se connecter pour s'abonner

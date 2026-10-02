@@ -593,11 +593,12 @@ ui:
         placeholder_cta: Discover
     premium:
         title: SpicyMatch Premium
-        intro: Support the workshop and browse the whole site ad-free.
+        intro: "Knowledge stays free. Your support keeps the workshop going."
         price: €4.99/month
         benefit_adfree: 100% ad-free browsing
+        benefit_games: "%premium% games per mode per day (instead of %free%)"
         benefit_support: You directly support the project's development
-        benefit_future: Priority access to upcoming Premium features
+        benefit_future: "A sneak peek at what's new before everyone else"
         cta_soon: Coming soon
         soon_hint: Payment is arriving very soon — thanks for your patience.
         cta_login: Log in to subscribe

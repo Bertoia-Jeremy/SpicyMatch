@@ -18,9 +18,9 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 class GameSessionManager
 {
-    private const int MAX_DAILY_SESSIONS_FREE = 2;
+    public const int MAX_DAILY_SESSIONS_FREE = 5;
 
-    private const int MAX_DAILY_SESSIONS_PREMIUM = 5;
+    public const int MAX_DAILY_SESSIONS_PREMIUM = 10;
 
     public const int MAX_XP_PER_SESSION = 60;
 

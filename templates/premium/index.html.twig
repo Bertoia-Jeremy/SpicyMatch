@@ -19,10 +19,11 @@
         </div>
 
         <ul class="space-y-3 mb-8 max-w-md mx-auto">
-            {% for benefit in ['ui.premium.benefit_adfree', 'ui.premium.benefit_support', 'ui.premium.benefit_future'] %}
+            {% set gamesParams = {'%premium%': constant('App\\Service\\Education\\GameSessionManager::MAX_DAILY_SESSIONS_PREMIUM'), '%free%': constant('App\\Service\\Education\\GameSessionManager::MAX_DAILY_SESSIONS_FREE')} %}
+            {% for benefit, params in {'ui.premium.benefit_adfree': {}, 'ui.premium.benefit_games': gamesParams, 'ui.premium.benefit_support': {}, 'ui.premium.benefit_future': {}} %}
                 <li class="flex items-start gap-3 text-stone-700">
                     <i class="fa-solid fa-circle-check text-saffron-600 mt-1 shrink-0" aria-hidden="true"></i>
-                    <span>{{ benefit|trans }}</span>
+                    <span>{{ benefit|trans(params) }}</span>
                 </li>
             {% endfor %}
         </ul>

@@ -73,28 +73,30 @@ ui:
         back_home: Back to home
     navbar:
         menu: The Menu
+        compose: Blend
         create_blend: Create a blend
-        lab_title: The Lab — Create a blend
-        section_exploration: I · Exploration
-        exploration_subtitle: Discover the world's spices
+        home: SpicyMatch, home
         catalog_title: The Catalog
         catalog_sub: All spices
+        groups_title: Aromatic Families
+        groups_sub: Spices by flavor family
+        flavors_title: Flavors
+        flavors_sub: Taste profiles born from pairings
+        compounds_title: Aromatic Compounds
+        compounds_sub: The molecules behind the aromas
+        spicy_types_title: Spice Forms
+        spicy_types_sub: Seeds, barks, roots, flowers
+        methods_title: Preparations
+        methods_sub: Grind, toast, infuse
+        academy_sub: Sharpen your palate through play
+        lab_eyebrow: The Lab
         alchemy_title: The Alchemy of Flavors
-        alchemy_sub: Compose a blend
-        section_learning: II · Learning
-        learning_subtitle: Sharpen your palate
-        academy_sub: 6 game modes
-        scoville_title: Scoville Challenge
-        scoville_sub: Survival mode
-        intrus_title: Out of Season
-        intrus_sub: Find the odd one out
-        section_atelier: III · Workshop
-        atelier_subtitle: Your chef's space
-        profile_sub: Achievements & progress
-        blends_sub: History & favorites
-        config_sub: Account settings
-        join_subtitle: Join the brigade
+        lab_card_text: Pick a spice and we suggest its best pairings.
         create_account: Create an account
+        my_space: My space
+        profile_menu: '%name%''s profile'
+        profile_progress: '%percent%% to next level'
+        streak: 'Streak: %count% d'
         help: Help
         main_nav: Main navigation
         main_menu: Main menu

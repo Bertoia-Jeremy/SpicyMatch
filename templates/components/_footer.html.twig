@@ -88,7 +88,7 @@
                         {{ f.footer_link(path('profile_user', {tab: 'dashboard'}), 'ui.profile.menu.dashboard'|trans) }}
                         {{ f.footer_link(path('profile_user', {tab: 'grimoire'}), 'ui.profile.menu.grimoire'|trans) }}
                         {{ f.footer_link(path('profile_user', {tab: 'lab'}), 'ui.profile.menu.lab'|trans) }}
-                        {{ f.footer_link(path('app_logout'), 'ui.common.logout'|trans) }}
+                        {{ f.footer_link(logout_path(), 'ui.common.logout'|trans) }}
                     </ul>
                 {% else %}
                     <p class="site-footer-join">{{ 'ui.footer.join_text'|trans }}</p>

@@ -23,6 +23,7 @@ use App\Seo\Attribute\NoIndex;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -391,7 +392,7 @@ class UsersController extends AbstractController
     }
 
     #[Route('/{id}', name: 'delete_user', methods: ['POST'])]
-    public function delete(Request $request, Users $user, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, Users $user, EntityManagerInterface $entityManager, Security $security): Response
     {
         if ($this->getUser() !== $user) {
             throw $this->createAccessDeniedException();
@@ -402,7 +403,7 @@ class UsersController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_logout', [], Response::HTTP_SEE_OTHER);
+            return $security->logout(false) ?? $this->redirectToRoute('home', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->redirectToRoute('dashboard_user', [], Response::HTTP_SEE_OTHER);

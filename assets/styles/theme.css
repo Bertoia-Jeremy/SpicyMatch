@@ -64,7 +64,7 @@
   --color-ink-deep:          #2A1810;
 
   /* Navigation */
-  --nav-height:              5rem; /* navbar h-20 = 80px */
+  --nav-height:              4rem;
 
   /* Semantic text colors (ink-deep avec opacité) */
   --color-text-muted:        rgba(42, 24, 16, 0.50);
@@ -110,5 +110,11 @@
   @keyframes wave {
     0%   { transform: translate3d(-90px, 0, 0); }
     100% { transform: translate3d(85px, 0, 0); }
+  }
+}
+
+@media (min-width: 64rem) {
+  :root {
+    --nav-height: 5rem;
   }
 }

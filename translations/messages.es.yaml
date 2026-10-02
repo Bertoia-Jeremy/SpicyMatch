@@ -73,28 +73,30 @@ ui:
         back_home: Volver al inicio
     navbar:
         menu: El Menú
+        compose: Mezclar
         create_blend: Crear una mezcla
-        lab_title: El Lab — Crear una mezcla
-        section_exploration: I · Exploración
-        exploration_subtitle: Descubre las especias del mundo
+        home: SpicyMatch, inicio
         catalog_title: El Catálogo
         catalog_sub: Todas las especias
+        groups_title: Las Familias aromáticas
+        groups_sub: Las especias por familia de sabor
+        flavors_title: Los Sabores
+        flavors_sub: Los perfiles de sabor de los maridajes
+        compounds_title: Los Compuestos aromáticos
+        compounds_sub: Las moléculas detrás de los aromas
+        spicy_types_title: Las Formas
+        spicy_types_sub: Semillas, cortezas, raíces, flores
+        methods_title: Las Preparaciones
+        methods_sub: Moler, tostar, infusionar
+        academy_sub: Afina tu paladar jugando
+        lab_eyebrow: El Lab
         alchemy_title: La Alquimia de los Sabores
-        alchemy_sub: Componer una mezcla
-        section_learning: II · Aprendizaje
-        learning_subtitle: Afina tu paladar
-        academy_sub: 6 modos de juego
-        scoville_title: Desafío Scoville
-        scoville_sub: Modo supervivencia
-        intrus_title: Fuera de Temporada
-        intrus_sub: Encontrar el intruso
-        section_atelier: III · Taller
-        atelier_subtitle: Tu espacio de chef
-        profile_sub: Logros y progreso
-        blends_sub: Historial y favoritos
-        config_sub: Ajustes de la cuenta
-        join_subtitle: Únete a la brigada
+        lab_card_text: Elige una especia y te proponemos sus mejores maridajes.
         create_account: Crear una cuenta
+        my_space: Mi espacio
+        profile_menu: Perfil de %name%
+        profile_progress: '%percent% % hacia el siguiente nivel'
+        streak: 'Racha: %count% d'
         help: Ayuda
         main_nav: Navegación principal
         main_menu: Menú principal

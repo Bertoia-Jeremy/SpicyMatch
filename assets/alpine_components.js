@@ -94,7 +94,7 @@ const isGateOpen = () => {
 };
 
 const loopTab = (e, root) => {
-    const focusable = [...root.querySelectorAll(FOCUSABLE)];
+    const focusable = [...root.querySelectorAll(FOCUSABLE)].filter((el) => el.getClientRects().length > 0);
     if (!focusable.length) return;
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
@@ -124,80 +124,101 @@ export default function registerAlpineComponents(Alpine) {
 
     Alpine.data('navMenu', () => ({
         open: false,
-        mobileOpen: false,
-        previouslyFocused: null,
+        profileOpen: false,
+        _returnFocus: null,
         _keyHandler: null,
         _gateHandler: null,
+        _cacheHandler: null,
 
         init() {
             this.$watch('open', (v) => {
-                document.body.style.overflow = v ? 'hidden' : '';
-                const main = document.getElementById('main-content');
-                if (main) main.inert = v;
-                const footer = document.querySelector('footer');
-                if (footer) footer.inert = v;
+                this._lockPage(v);
                 if (v) {
-                    this.$nextTick(() => {
-                        const first = this.$el.querySelector('#nav-overlay a, #nav-overlay button');
-                        if (first) first.focus();
-                    });
-                } else {
-                    this._restoreFocus();
-                }
-            });
-            this.$watch('mobileOpen', (v) => {
-                document.body.style.overflow = v ? 'hidden' : '';
-                const main = document.getElementById('main-content');
-                if (main) main.inert = v;
-                const footer = document.querySelector('footer');
-                if (footer) footer.inert = v;
-                if (v) {
-                    this.$nextTick(() => {
-                        const first = this.$el.querySelector('#nav-sheet input, #nav-sheet a, #nav-sheet button');
-                        if (first) first.focus();
-                    });
+                    this.profileOpen = false;
+                    this.$nextTick(() => this._focusPanel());
                 } else {
                     this._restoreFocus();
                 }
             });
             this._keyHandler = (e) => {
-                if (e.key === 'Escape') { this.open = false; this.mobileOpen = false; }
-                if (e.key === 'Tab' && (this.open || this.mobileOpen)) loopTab(e, this.$el);
+                if (e.key === 'Escape') {
+                    if (this.profileOpen) this.closeProfile(true);
+                    else if (this.open) this.close();
+                }
+                if (e.key === 'Tab' && this.open) loopTab(e, this.$el);
             };
             window.addEventListener('keydown', this._keyHandler);
-            this._gateHandler = () => { this.open = false; this.mobileOpen = false; };
+            this._gateHandler = () => this._reset();
             window.addEventListener('gate-login', this._gateHandler);
+            this._cacheHandler = () => this._reset();
+            document.addEventListener('turbo:before-cache', this._cacheHandler);
         },
 
         destroy() {
             window.removeEventListener('keydown', this._keyHandler);
             window.removeEventListener('gate-login', this._gateHandler);
+            document.removeEventListener('turbo:before-cache', this._cacheHandler);
+            this._lockPage(false);
+        },
+
+        _lockPage(locked) {
+            document.documentElement.classList.toggle('nav-locked', locked);
+            const main = document.getElementById('main-content');
+            if (main) main.inert = locked;
+            const footer = document.querySelector('footer');
+            if (footer) footer.inert = locked;
+        },
+
+        _focusPanel() {
+            const panel = document.getElementById('nav-panel');
+            if (!panel) return;
+            const desktop = window.matchMedia('(min-width: 64rem)').matches;
+            const target = (desktop && panel.querySelector('input:not([disabled])'))
+                || panel.querySelector('.nav-panel-grid a[href]')
+                || panel.querySelector(FOCUSABLE);
+            if (target) target.focus();
         },
 
         _restoreFocus() {
-            if (this.previouslyFocused && this.previouslyFocused.isConnected) {
-                this.previouslyFocused.focus();
+            let el = this._returnFocus;
+            this._returnFocus = null;
+            if (!el || !el.isConnected || el === document.body || !el.getClientRects().length) {
+                el = [...this.$el.querySelectorAll('[aria-controls="nav-panel"]')].find((b) => b.getClientRects().length);
             }
-            this.previouslyFocused = null;
+            if (el) el.focus();
+        },
+
+        _reset() {
+            this._returnFocus = null;
+            this.open = false;
+            this.profileOpen = false;
+            this._lockPage(false);
+            this.$el.querySelectorAll('.is-open').forEach((el) => el.classList.remove('is-open'));
+            this.$el.querySelectorAll('[aria-expanded="true"]').forEach((el) => el.setAttribute('aria-expanded', 'false'));
         },
 
         toggle() {
-            if (!this.open) this.previouslyFocused = document.activeElement;
-            this.open = !this.open;
+            if (this.open) { this.close(); return; }
+            this._returnFocus = document.activeElement;
+            this.open = true;
         },
-        close()        { this.open = false; },
-        mobileToggle() {
-            if (!this.mobileOpen) this.previouslyFocused = document.activeElement;
-            this.mobileOpen = !this.mobileOpen;
-        },
-        mobileClose()  { this.mobileOpen = false; },
+        close() { this.open = false; },
 
-        toqueClass()        { return this.open ? 'is-open' : ''; },
-        toqueLabel()        { return this.open ? t('nav.close') : t('nav.open'); },
-        toqueColor()        { return this.open ? 'color: var(--color-paprika-700)' : 'color: var(--color-ink-deep)'; },
-        mobileToqueClass()  { return this.mobileOpen ? 'is-open' : ''; },
-        mobileToqueColor()  { return this.mobileOpen ? 'color: var(--color-paprika-700)' : 'color: var(--color-ink-deep)'; },
-        mobileToqueLabel()  { return this.mobileOpen ? t('nav.menu_close') : t('nav.menu_open'); },
+        toggleProfile() {
+            if (this.open) { this._returnFocus = null; this.open = false; }
+            this.profileOpen = !this.profileOpen;
+        },
+        closeProfile(restore) {
+            if (!this.profileOpen) return;
+            this.profileOpen = false;
+            if (restore && this.$refs.profileTrigger) this.$refs.profileTrigger.focus();
+        },
+        onProfileFocusOut(e) {
+            if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget)) this.closeProfile(false);
+        },
+
+        toqueLabel() { return this.open ? t('nav.close') : t('nav.open'); },
+        mobileToqueLabel() { return this.open ? t('nav.menu_close') : t('nav.menu_open'); },
     }));
 
     Alpine.data('dropdown', () => ({

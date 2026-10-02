@@ -168,6 +168,20 @@ MVC Symfony (Controller > Service > Repository > Entity), REST par controllers, 
 ### Footer
 - `components/_footer.html.twig` : macro `footer_link`, conteneur identique à la navbar, classes `site-footer-*` dans `footer.css`, zéro style inline. Colonnes : marque + engagements + soutien, Explorer, Cuisiner & jouer (Académie si `gamification_on()`), Mon espace (onglets profil ou inscription). Liens légaux avec `padding-inline-end` sous 1400 px pour ne pas passer sous le bouton retour-haut.
 
+### Navbar
+- `<div x-data="navMenu" class="site-nav-root">` en `display: contents` : sinon le sticky de `.site-nav` n'a aucune course (wrapper de même hauteur) et la barre défile. Hangman masque via `body.has-hangman > .site-nav-root`.
+- Backdrop et panneau unique `#nav-panel` (tiroir droit mobile, overlay ≥ lg, classe `is-open`) sont FRÈRES de `<nav>` : `backdrop-filter` crée un containing block pour les `fixed`.
+- Logo en centrage absolu, `--nav-height` 4rem / 5rem ≥ 64rem (`theme.css`), consommé par Lab, pendu, recette mobile. Z : nav 50, panneau 49, backdrop 48, carte profil 55, gate 60.
+- Barre : CTA « Composer » (Lab) pour tous, connexion secondaire, jamais l'inscription. Panneau = logo complet (mobile seul) + recherche + carte Lab (ligne compacte < lg : icône + titre + lien, carte entière cliquable via `::after` de `.nav-lab-cta`) + 6 liens savoir (même liste que la colonne « Explorer » du footer, 2 × 3 ≥ lg) + lien Académie (`nav-item` standard, dernier, sous la colonne de gauche ≥ lg, si `gamification_on()`) + pied (aide, contact, espace, langues). Interdits dans le panneau : connexion/inscription, liens vers les jeux individuels (réservés aux connectés), titres de section numérotés. Garde : `NavbarRenderingTest`.
+- Pilule profil `[data-tour=nav-profile]` : niveau en chiffre seul < lg, « Niv. N » ≥ lg, nom + grade ≥ xl. Micro-barre décorative, la `progressbar` vit dans la carte. Gamif off : avatar seul.
+- Scroll lock = `html.nav-locked body { overflow: hidden }` + `inert` main/footer. Jamais `overflow` sur `html` (casse le sticky). `scrollbar-gutter: stable` sur `html`.
+- Gotcha : le CSS Font Awesome n'est pas en layer, `.fa-solid { display: inline-block }` bat `@layer components`. Masquer une icône = masquer un `<span>` enveloppant.
+- Mesures Playwright headless : `ignoreDefaultArgs: ['--hide-scrollbars']`, sinon le centrage paraît décalé de ~7 px (`scrollbar-gutter`).
+- Grade = `UserProgression::getGrade()` → `ChefGrade::fromLevel()` (seuils 20/50/80), libellé `grade.label|trans`. Jamais de seuils en Twig.
+- Sélecteur de langue : `app.enabled_locales` + `loc|locale_name(loc)`, jamais de liste en dur. `aria-current` via `{% if %}`, pas d'attribut interpolé.
+- Logout CSRF (`enable_csrf: true`, token stateless `logout`) : lien = `logout_path()` uniquement, jamais `path('app_logout')` (→ 403). Logout programmatique = `Security::logout(false)` (cf. `UsersController::delete`, garde `AccountDeletionTest`).
+- Blur barre : `@supports` combiné `backdrop-filter` ET `color-mix`, fond plein sinon.
+
 ### Accès
 - Site ouvert en anonyme. `IsGranted` par MÉTHODE (pas par classe) sur `EducationController` et `SpicyMatchController`, sinon il prime sur l'`access_control`.
 - Anonyme + clic jeu → pop-in `gate_login_modal` (event `gate-login`).

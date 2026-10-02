@@ -18,6 +18,7 @@ security:
             logout:
                 path: app_logout
                 target: home
+                enable_csrf: true
             lazy: true
             provider: app_user_provider
             custom_authenticator: App\Security\LoginFormAuthenticator

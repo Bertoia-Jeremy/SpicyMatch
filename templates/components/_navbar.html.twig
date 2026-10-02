@@ -1,7 +1,5 @@
-
 {% macro herbierLogo(sizeClass) %}
-    {% set sizeClass = sizeClass|default('size-10') %}
-    <svg class="{{ sizeClass }}" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <svg class="{{ sizeClass|default('size-10') }}" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <circle cx="200" cy="200" r="150" fill="none" stroke="#C46E1F" stroke-width="2.4" stroke-dasharray="2 9" stroke-linecap="round" opacity="0.85"/>
         <circle cx="200" cy="200" r="150" fill="none" stroke="#C46E1F" stroke-width="6"
                 stroke-dasharray="518.36 9999" stroke-linecap="round"
@@ -36,8 +34,7 @@
 {% endmacro %}
 
 {% macro toqueIcon(sizeClass) %}
-    {% set sizeClass = sizeClass|default('w-6 h-6') %}
-    <svg class="{{ sizeClass }}" viewBox="0 0 32 32" fill="none" stroke="#0A0907" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <svg class="{{ sizeClass|default('size-6') }}" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <path d="M 9 11 C 5 10, 4 4, 9 4 C 11 1.5, 14 1.5, 16 3.5 C 18 1.5, 21 1.5, 23 4 C 28 4, 27 10, 23 11"/>
         <path d="M 9 11 L 9 22"/>
         <path d="M 23 11 L 23 22"/>
@@ -48,548 +45,173 @@
     </svg>
 {% endmacro %}
 
-{% if is_granted('ROLE_USER') and app.user.progression %}
-    {% set _lvl      = app.user.progression.level %}
-    {% set _grade    = _lvl < 20 ? 'ui.grade.commis'|trans : (_lvl < 50 ? 'ui.grade.chef_partie'|trans : (_lvl < 80 ? 'ui.grade.saucier'|trans : 'ui.grade.chef_executif'|trans)) %}
-    {% set _xp       = app.user.progression.xp %}
-    {% set _minXp    = ((_lvl - 1) ** 1.3 * 100)|round %}
-    {% set _maxXp    = (_lvl ** 1.3 * 100)|round %}
-    {% set _rawPct   = _maxXp > _minXp ? (_xp - _minXp) / (_maxXp - _minXp) * 100 : 0 %}
-    {% set _gaugePct = min(100, max(0, _rawPct)) %}
-    {% set _gamif    = gamification_on() %}
-    {% set _streak   = _gamif ? app.user.progression.currentActivityStreak : 0 %}
-{% endif %}
-
-<div x-data="navMenu">
-
-<nav class="nav-bar h-20 sticky top-0 z-50" aria-label="{{ 'ui.navbar.main_nav'|trans }}">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-3">
-
-        <button type="button"
-                @click="toggle()"
-                :class="toqueClass()"
-                :style="toqueColor()"
-                :aria-expanded="open"
-                aria-controls="nav-overlay"
-                aria-label="{{ 'ui.navbar.main_menu'|trans }}"
-                class="toque-btn hidden lg:inline-flex shrink-0">
-            {{ _self.toqueIcon('w-[26px] h-[26px]') }}
-            <div class="flex flex-col leading-none select-none">
-                <span x-text="toqueLabel()"
-                      class="font-mono text-[9px] tracking-[0.3em] uppercase"
-                      style="color: var(--color-copper-text)">{{ 'nav.open'|trans({}, 'js') }}</span>
-                <span class="font-display italic text-[17px] mt-0.5"
-                      style="color: var(--color-ink-deep)">{{ 'ui.navbar.menu'|trans }}</span>
-            </div>
-        </button>
-
-        <button type="button"
-                data-tour="nav-profile"
-                @click="mobileToggle()"
-                :class="mobileToqueClass()"
-                :style="mobileToqueColor()"
-                :aria-expanded="mobileOpen"
-                aria-controls="nav-sheet"
-                aria-label="{{ 'ui.navbar.main_menu'|trans }}"
-                class="toque-btn lg:hidden shrink-0">
-            {{ _self.toqueIcon('w-[22px] h-[22px]') }}
-            <span x-text="mobileToqueLabel()"
-                  class="font-display italic text-[15px] max-[359px]:hidden"
-                  style="color: var(--color-ink-deep)">{{ 'nav.menu_open'|trans({}, 'js') }}</span>
-        </button>
-
-        <a href="{{ path('home') }}"
-           class="flex items-center gap-3 group transition-transform duration-300 hover:scale-[1.02] mx-auto lg:mx-0">
-            {{ _self.herbierLogo('size-9 lg:size-12') }}
-            <div class="hidden lg:block leading-none">
-                <div class="font-display text-[26px] font-medium leading-none"
-                     style="color: var(--color-ink-deep)">
-                    Spicy <em class="not-italic italic" style="color: var(--color-paprika-700)">Match</em>
-                </div>
-            </div>
+{% macro navItem(href, title, sub, active) %}
+    <li>
+        <a href="{{ href }}" class="nav-item" @click="close()"{% if active %} aria-current="page"{% endif %}>
+            <span>
+                <span class="nav-item-title">{{ title }}</span>
+                {% if sub %}<span class="nav-item-sub">{{ sub }}</span>{% endif %}
+            </span>
+            <span class="nav-item-arrow" aria-hidden="true">→</span>
         </a>
+    </li>
+{% endmacro %}
 
-        <div class="flex items-center gap-2 shrink-0">
+{% import _self as n %}
+
+{% set _route = app.request.attributes.get('_canonical_route') ?? app.request.attributes.get('_route') %}
+{% set _isUser = is_granted('ROLE_USER') %}
+{% set _gamif = gamification_on() %}
+{% set _onLab = _route in ['index_spicy_match', 'view_spicy_match'] %}
+{% set _switchQuery = app.request.queryString ? '?' ~ app.request.queryString : '' %}
+{% set _switchTargets = locale_alternates()|map(p => p ~ _switchQuery) %}
+
+<div x-data="navMenu" class="site-nav-root">
+
+<nav class="site-nav" aria-label="{{ 'ui.navbar.main_nav'|trans }}">
+    <div class="site-nav-inner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <div class="site-nav-side">
+            <button type="button"
+                    @click="toggle()"
+                    x-bind:class="{ 'is-open': open }"
+                    x-bind:aria-expanded="open.toString()"
+                    aria-expanded="false"
+                    aria-controls="nav-panel"
+                    aria-label="{{ 'ui.navbar.main_menu'|trans }}"
+                    class="toque-btn hidden lg:inline-flex">
+                {{ n.toqueIcon('size-[26px]') }}
+                <span class="toque-btn-text">
+                    <span class="toque-btn-kicker" x-text="toqueLabel()">{{ 'nav.open'|trans({}, 'js') }}</span>
+                    <span class="toque-btn-label">{{ 'ui.navbar.menu'|trans }}</span>
+                </span>
+            </button>
 
             <a href="{{ path('index_spicy_match') }}"
-               class="mortar-btn size-11 rounded-full flex items-center justify-center"
+               class="nav-icon-btn lg:hidden"
                aria-label="{{ 'ui.navbar.create_blend'|trans }}"
-               title="{{ 'ui.navbar.lab_title'|trans }}">
-                <i class="fa-solid fa-mortar-pestle text-sm" style="color: var(--color-ink-deep)" aria-hidden="true"></i>
+               {% if _onLab %}aria-current="page"{% endif %}>
+                <i class="fa-solid fa-mortar-pestle text-sm" aria-hidden="true"></i>
+            </a>
+        </div>
+
+        <a href="{{ path('home') }}" class="site-nav-logo" aria-label="{{ 'ui.navbar.home'|trans }}"
+           {% if _route == 'home' %}aria-current="page"{% endif %}>
+            {{ n.herbierLogo('site-nav-logo-mark') }}
+            <span class="site-nav-wordmark" aria-hidden="true">Spicy <em>Match</em></span>
+        </a>
+
+        <div class="site-nav-side">
+            <a href="{{ path('index_spicy_match') }}"
+               class="nav-cta hidden lg:inline-flex"
+               {% if _onLab %}aria-current="page"{% endif %}>
+                <i class="fa-solid fa-mortar-pestle text-xs" aria-hidden="true"></i>
+                {{ 'ui.navbar.compose'|trans }}
             </a>
 
-            {% if is_granted('ROLE_USER') and app.user.progression %}
-
-                <div class="hidden lg:block">
-                    {% include 'components/_profile_menu.html.twig' %}
-                </div>
-
-            {% elseif is_granted('ROLE_USER') %}
-                <a href="{{ path('profile_user') }}"
-                   class="hidden lg:inline-flex items-center px-4 py-2 rounded-full border text-sm font-medium transition-colors"
-                   style="border-color: rgba(184,134,74,0.4); color: var(--color-ink-deep); background: rgba(255,250,235,0.6);">
-                    {{ app.user.username }}
-                </a>
-
+            {% if _isUser %}
+                {% include 'components/_profile_menu.html.twig' with {route: _route, gamif: _gamif} only %}
             {% else %}
                 <a href="{{ path('app_login') }}"
                    x-data="gateTrigger('', 'login')" @click="trigger($event)"
-                   class="hidden lg:inline-flex items-center px-4 py-2 rounded-full border text-sm font-medium transition-colors hover:border-copper"
-                   style="border-color: rgba(184,134,74,0.4); color: var(--color-ink-deep);">
+                   class="nav-login hidden lg:inline-flex">
                     {{ 'ui.common.login'|trans }}
                 </a>
-                <a href="{{ path('index_register') }}"
-                   x-data="gateTrigger('', 'register')" @click="trigger($event)"
-                   class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold transition-colors hover:opacity-90"
-                   style="background: var(--color-paprika-700); color: white;">
-                    {{ 'ui.common.register'|trans }}
+                <a href="{{ path('app_login') }}"
+                   x-data="gateTrigger('', 'login')" @click="trigger($event)"
+                   class="nav-icon-btn lg:hidden"
+                   aria-label="{{ 'ui.common.login'|trans }}">
+                    <i class="fa-solid fa-user text-sm" aria-hidden="true"></i>
                 </a>
             {% endif %}
 
+            <button type="button"
+                    @click="toggle()"
+                    x-bind:class="{ 'is-open': open }"
+                    x-bind:aria-expanded="open.toString()"
+                    x-bind:aria-label="mobileToqueLabel()"
+                    aria-expanded="false"
+                    aria-controls="nav-panel"
+                    aria-label="{{ 'nav.menu_open'|trans({}, 'js') }}"
+                    class="nav-icon-btn lg:hidden">
+                {{ n.toqueIcon('size-[22px]') }}
+            </button>
         </div>
+
     </div>
 </nav>
 
-<div x-show="open"
-     x-cloak
-     x-transition:enter="transition ease-out duration-200"
-     x-transition:enter-start="opacity-0"
-     x-transition:enter-end="opacity-100"
-     x-transition:leave="transition ease-in duration-150"
-     x-transition:leave-start="opacity-100"
-     x-transition:leave-end="opacity-0"
-     @click="close()"
-     class="nav-backdrop hidden lg:block"
-     aria-hidden="true"></div>
+<div class="nav-backdrop" x-bind:class="{ 'is-open': open }" @click="close()" aria-hidden="true"></div>
 
-<div id="nav-overlay"
-     x-show="open"
-     x-cloak
-     x-transition:enter="transition ease-out duration-300"
-     x-transition:enter-start="opacity-0 -translate-y-2"
-     x-transition:enter-end="opacity-100 translate-y-0"
-     x-transition:leave="transition ease-in duration-200"
-     x-transition:leave-start="opacity-100 translate-y-0"
-     x-transition:leave-end="opacity-0 -translate-y-2"
-     class="nav-overlay hidden lg:block"
-     role="navigation"
+<nav id="nav-panel"
+     class="nav-panel"
+     x-bind:class="{ 'is-open': open }"
      aria-label="{{ 'ui.navbar.main_menu'|trans }}">
+    <div class="nav-panel-inner">
 
-    <div class="max-w-7xl mx-auto px-8 lg:px-16 py-12">
-        <div class="max-w-xl mx-auto mb-12">
-            {{ component('Search') }}
-        </div>
+        <a href="{{ path('home') }}" class="nav-panel-brand" @click="close()" aria-label="{{ 'ui.navbar.home'|trans }}">
+            <span class="site-nav-wordmark" aria-hidden="true">Spicy <em>Match</em></span>
+        </a>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 max-w-5xl mx-auto">
+        <div class="nav-panel-search">{{ component('Search') }}</div>
 
-            <div>
-                <div class="flex items-center gap-3 mb-2">
-                    <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
-                          style="color: var(--color-copper-text)">{{ 'ui.navbar.section_exploration'|trans }}</span>
-                    <div class="flex-1 h-px"
-                         style="background: linear-gradient(90deg, rgba(184,134,74,0.55), transparent)"></div>
-                </div>
-                <p class="font-display italic text-[14px] mb-5"
-                   style="color: var(--color-copper-text)">{{ 'ui.navbar.exploration_subtitle'|trans }}</p>
-                <ul class="space-y-4">
-                    <li>
-                        <a href="{{ path('index_spices') }}" @click="close()"
-                           class="pole-item items-baseline justify-between group/item">
-                            <div>
-                                <div class="pole-name font-display text-[24px] font-medium"
-                                     style="color: var(--color-ink-deep)">{{ 'ui.navbar.catalog_title'|trans }}</div>
-                                <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
-                                     style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.catalog_sub'|trans }}</div>
-                            </div>
-                            <span class="pole-arrow font-display text-[18px] ml-3" aria-hidden="true"
-                                  style="color: rgba(184,134,74,0.7)">→</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ path('index_spicy_match') }}" @click="close()"
-                           class="pole-item items-baseline justify-between group/item">
-                            <div>
-                                <div class="pole-name font-display text-[24px] font-medium"
-                                     style="color: var(--color-ink-deep)">{{ 'ui.navbar.alchemy_title'|trans }}</div>
-                                <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
-                                     style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.alchemy_sub'|trans }}</div>
-                            </div>
-                            <span class="pole-arrow font-display text-[18px] ml-3" aria-hidden="true"
-                                  style="color: rgba(184,134,74,0.7)">→</span>
-                        </a>
-                    </li>
-                </ul>
+        <div class="nav-panel-grid">
+
+            <div class="nav-lab-card">
+                <span class="nav-lab-icon" aria-hidden="true"><i class="fa-solid fa-mortar-pestle"></i></span>
+                <span class="nav-lab-eyebrow">{{ 'ui.navbar.lab_eyebrow'|trans }}</span>
+                <h2 class="nav-lab-title">{{ 'ui.navbar.alchemy_title'|trans }}</h2>
+                <p class="nav-lab-text">{{ 'ui.navbar.lab_card_text'|trans }}</p>
+                <a href="{{ path('index_spicy_match') }}" class="nav-lab-cta" @click="close()"
+                   {% if _onLab %}aria-current="page"{% endif %}>
+                    {{ 'ui.navbar.create_blend'|trans }} <span aria-hidden="true">→</span>
+                </a>
             </div>
 
-            <div>
-                <div class="flex items-center gap-3 mb-2">
-                    <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
-                          style="color: var(--color-copper-text)">{{ 'ui.navbar.section_learning'|trans }}</span>
-                    <div class="flex-1 h-px"
-                         style="background: linear-gradient(90deg, rgba(184,134,74,0.55), transparent)"></div>
-                </div>
-                <p class="font-display italic text-[14px] mb-5"
-                   style="color: var(--color-copper-text)">{{ 'ui.navbar.learning_subtitle'|trans }}</p>
-                <ul class="space-y-4">
-                    <li>
-                        <a href="{{ path('education_index') }}" @click="close()"
-                           class="pole-item items-baseline justify-between">
-                            <div>
-                                <div class="pole-name font-display text-[24px] font-medium"
-                                     style="color: var(--color-ink-deep)">{{ 'ui.common.academy'|trans }}</div>
-                                <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
-                                     style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.academy_sub'|trans }}</div>
-                            </div>
-                            <span class="pole-arrow font-display text-[18px] ml-3" aria-hidden="true"
-                                  style="color: rgba(184,134,74,0.7)">→</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ path('education_play_live', {'mode': 'survival'}) }}" @click="close()"
-                           class="pole-item items-baseline justify-between">
-                            <div>
-                                <div class="pole-name font-display text-[24px] font-medium"
-                                     style="color: var(--color-ink-deep)">{{ 'ui.navbar.scoville_title'|trans }}</div>
-                                <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
-                                     style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.scoville_sub'|trans }}</div>
-                            </div>
-                            <span class="pole-arrow font-display text-[18px] ml-3" aria-hidden="true"
-                                  style="color: rgba(184,134,74,0.7)">→</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ path('education_play_live', {'mode': 'intrus'}) }}" @click="close()"
-                           class="pole-item items-baseline justify-between">
-                            <div>
-                                <div class="pole-name font-display text-[24px] font-medium"
-                                     style="color: var(--color-ink-deep)">{{ 'ui.navbar.intrus_title'|trans }}</div>
-                                <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
-                                     style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.intrus_sub'|trans }}</div>
-                            </div>
-                            <span class="pole-arrow font-display text-[18px] ml-3" aria-hidden="true"
-                                  style="color: rgba(184,134,74,0.7)">→</span>
-                        </a>
-                    </li>
+            <div class="nav-links">
+                <ul class="nav-items">
+                    {{ n.navItem(path('index_spices'), 'ui.navbar.catalog_title'|trans, 'ui.navbar.catalog_sub'|trans, _route == 'index_spices') }}
+                    {{ n.navItem(path('index_aromatic_groups'), 'ui.navbar.groups_title'|trans, 'ui.navbar.groups_sub'|trans, _route == 'index_aromatic_groups') }}
+                    {{ n.navItem(path('index_alchemy_flavors'), 'ui.navbar.flavors_title'|trans, 'ui.navbar.flavors_sub'|trans, _route == 'index_alchemy_flavors') }}
+                    {{ n.navItem(path('index_aromatic_compound'), 'ui.navbar.compounds_title'|trans, 'ui.navbar.compounds_sub'|trans, _route == 'index_aromatic_compound') }}
+                    {{ n.navItem(path('index_spicy_type'), 'ui.navbar.spicy_types_title'|trans, 'ui.navbar.spicy_types_sub'|trans, _route == 'index_spicy_type') }}
+                    {{ n.navItem(path('index_preparation_methods'), 'ui.navbar.methods_title'|trans, 'ui.navbar.methods_sub'|trans, _route == 'index_preparation_methods') }}
                 </ul>
-            </div>
-
-            <div>
-                <div class="flex items-center gap-3 mb-2">
-                    <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
-                          style="color: var(--color-copper-text)">{{ 'ui.navbar.section_atelier'|trans }}</span>
-                    <div class="flex-1 h-px"
-                         style="background: linear-gradient(90deg, rgba(184,134,74,0.55), transparent)"></div>
-                </div>
-                {% if is_granted('ROLE_USER') %}
-                    <p class="font-display italic text-[14px] mb-5"
-                       style="color: var(--color-copper-text)">{{ 'ui.navbar.atelier_subtitle'|trans }}</p>
-                    <ul class="space-y-4">
-                        <li>
-                            <a href="{{ path('profile_user') }}" @click="close()"
-                               class="pole-item items-baseline justify-between">
-                                <div>
-                                    <div class="pole-name font-display text-[24px] font-medium"
-                                         style="color: var(--color-ink-deep)">{{ 'ui.common.my_profile'|trans }}</div>
-                                    <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
-                                         style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.profile_sub'|trans }}</div>
-                                </div>
-                                <span class="pole-arrow font-display text-[18px] ml-3" aria-hidden="true"
-                                      style="color: rgba(184,134,74,0.7)">→</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ path('profile_user', {tab: 'history'}) }}" @click="close()"
-                               class="pole-item items-baseline justify-between">
-                                <div>
-                                    <div class="pole-name font-display text-[24px] font-medium"
-                                         style="color: var(--color-ink-deep)">{{ 'ui.common.my_blends'|trans }}</div>
-                                    <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
-                                         style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.blends_sub'|trans }}</div>
-                                </div>
-                                <span class="pole-arrow font-display text-[18px] ml-3" aria-hidden="true"
-                                      style="color: rgba(184,134,74,0.7)">→</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ path('profile_user', {tab: 'lab'}) }}" @click="close()"
-                               class="pole-item items-baseline justify-between">
-                                <div>
-                                    <div class="pole-name font-display text-[24px] font-medium"
-                                         style="color: var(--color-ink-deep)">{{ 'ui.common.configuration'|trans }}</div>
-                                    <div class="font-mono text-[10px] tracking-[0.15em] uppercase mt-0.5"
-                                         style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.config_sub'|trans }}</div>
-                                </div>
-                                <span class="pole-arrow font-display text-[18px] ml-3" aria-hidden="true"
-                                      style="color: rgba(184,134,74,0.7)">→</span>
-                            </a>
-                        </li>
+                {% if _gamif %}
+                    <ul class="nav-items nav-items-academy">
+                        {{ n.navItem(path('education_index'), 'ui.common.academy'|trans, 'ui.navbar.academy_sub'|trans, _route == 'education_index') }}
                     </ul>
-                {% else %}
-                    <p class="font-display italic text-[14px] mb-5"
-                       style="color: var(--color-copper-text)">{{ 'ui.navbar.join_subtitle'|trans }}</p>
-                    <a href="{{ path('index_register') }}"
-                       x-data="gateTrigger('', 'register')" @click="trigger($event)"
-                       class="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
-                       style="background: var(--color-paprika-700); color: white;">
-                        {{ 'ui.navbar.create_account'|trans }}
-                        <span class="pole-arrow" aria-hidden="true">→</span>
-                    </a>
                 {% endif %}
             </div>
 
         </div>
 
-        <div class="mt-12 pt-8 flex items-center justify-between"
-             style="border-top: 1px solid rgba(184,134,74,0.35)">
-            <div class="flex items-center gap-6 font-mono text-[11px]"
-                 style="color: rgba(74,50,37,0.75)">
-                <a href="{{ path('new_contact') }}" @click="close()"
-                   class="spice-underline hover:text-paprika-700 transition-colors">{{ 'ui.navbar.help'|trans }}</a>
-                {% if is_granted('ROLE_USER') %}
-                    <a href="{{ path('app_logout') }}"
-                       class="spice-underline hover:text-paprika-700 transition-colors">{{ 'ui.common.logout'|trans }}</a>
-                {% else %}
-                    <a href="{{ path('app_login') }}"
-                       x-data="gateTrigger('', 'login')" @click="trigger($event)"
-                       class="spice-underline hover:text-paprika-700 transition-colors">{{ 'ui.common.login'|trans }}</a>
+        <div class="nav-panel-foot">
+            <div class="nav-panel-foot-links">
+                <a href="{{ path('help_index') }}" class="nav-foot-link" @click="close()"
+                   {% if _route == 'help_index' %}aria-current="page"{% endif %}>{{ 'ui.navbar.help'|trans }}</a>
+                <a href="{{ path('new_contact') }}" class="nav-foot-link" @click="close()"
+                   {% if _route == 'new_contact' %}aria-current="page"{% endif %}>{{ 'ui.common.contact'|trans }}</a>
+                {% if _isUser %}
+                    <a href="{{ path('profile_user') }}" class="nav-foot-link" @click="close()">{{ 'ui.navbar.my_space'|trans }}</a>
+                    <a href="{{ logout_path() }}" class="nav-foot-link">{{ 'ui.common.logout'|trans }}</a>
                 {% endif %}
             </div>
 
-            <div class="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.15em]">
-                {% set _switchQuery = app.request.queryString ? '?' ~ app.request.queryString : '' %}
-                {% set _switchTargets = locale_alternates()|map(p => p ~ _switchQuery) %}
-                {% for loc in ['fr', 'en', 'es'] %}
-                    <a href="{{ path('switch_locale', {'locale': loc, 'target': _switchTargets[loc] ?? app.request.requestUri}) }}"
+            <div class="nav-locales">
+                {% for loc in app.enabled_locales %}
+                    <a href="{{ path('switch_locale', {locale: loc, target: _switchTargets[loc] ?? app.request.requestUri}) }}"
                        hreflang="{{ loc }}"
                        lang="{{ loc }}"
-                       aria-label="{{ {'fr': 'Français', 'en': 'English', 'es': 'Español'}[loc] }}"
+                       aria-label="{{ loc|locale_name(loc)|capitalize }}"
                        data-turbo="false"
-                       class="px-1.5 py-0.5 rounded transition-colors {{ app.request.locale == loc ? 'text-paprika-700 font-semibold' : 'hover:text-paprika-700' }}"
-                       style="{{ app.request.locale == loc ? '' : 'color: rgba(74,50,37,0.75)' }}"
-                       {{ app.request.locale == loc ? 'aria-current="true"' : '' }}>{{ loc }}</a>
+                       class="nav-locale"
+                       {% if app.request.locale == loc %}aria-current="true"{% endif %}>{{ loc }}</a>
                 {% endfor %}
             </div>
         </div>
 
     </div>
-</div>
-
-<div x-show="mobileOpen"
-     x-cloak
-     x-transition:enter="transition ease-out duration-200"
-     x-transition:enter-start="opacity-0"
-     x-transition:enter-end="opacity-100"
-     x-transition:leave="transition ease-in duration-150"
-     x-transition:leave-start="opacity-100"
-     x-transition:leave-end="opacity-0"
-     @click="mobileClose()"
-     class="nav-backdrop lg:hidden"
-     aria-hidden="true"></div>
-
-<div id="nav-sheet"
-     x-show="mobileOpen"
-     x-cloak
-     x-transition:enter="transition duration-[320ms] ease-[cubic-bezier(.2,.7,.2,1)]"
-     x-transition:enter-start="-translate-y-full"
-     x-transition:enter-end="translate-y-0"
-     x-transition:leave="transition duration-[220ms] ease-in"
-     x-transition:leave-start="translate-y-0"
-     x-transition:leave-end="-translate-y-full"
-     class="nav-sheet lg:hidden"
-     role="navigation"
-     aria-label="{{ 'ui.navbar.main_menu'|trans }}">
-
-    <div class="p-6">
-
-        <div class="mb-6">{{ component('Search') }}</div>
-
-        {% if is_granted('ROLE_USER') and app.user.progression %}
-            <div class="flex items-center gap-3 p-4 rounded-2xl mb-6"
-                 style="border: 1px solid rgba(184,134,74,0.3); background: rgba(255,250,235,0.5)">
-                {{ _self.herbierLogo('size-10') }}
-                <div class="flex-1 min-w-0">
-                    <div class="font-display text-[17px] font-medium"
-                         style="color: var(--color-ink-deep)">{{ app.user.username }}</div>
-                    {% if _gamif %}
-                        <div class="font-display italic text-[12px]"
-                             style="color: var(--color-paprika-700)">{{ _grade }}</div>
-                        <div class="rounded-full mt-1.5 overflow-hidden w-full"
-                             role="progressbar"
-                             aria-label="{{ 'gamification.xp_progress'|trans }}"
-                             aria-valuenow="{{ _gaugePct|round }}" aria-valuemin="0" aria-valuemax="100"
-                             style="height: 2px; background: rgba(184,134,74,0.2);">
-                            <div class="gauge-bar h-full" style="width: {{ _gaugePct }}%"></div>
-                        </div>
-                    {% endif %}
-                </div>
-                {% if _streak > 0 %}
-                    <div class="flex flex-col items-center shrink-0">
-                        <i class="fa-solid fa-fire" style="color: var(--color-saffron-600)" aria-hidden="true"></i>
-                        <span class="font-mono text-[10px] mt-0.5"
-                              style="color: var(--color-copper-text)">{{ _streak }}j</span>
-                    </div>
-                {% endif %}
-            </div>
-        {% endif %}
-
-        <div class="space-y-6">
-
-            <div>
-                <div class="flex items-center gap-2 mb-3">
-                    <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
-                          style="color: var(--color-copper-text)">{{ 'ui.navbar.section_exploration'|trans }}</span>
-                    <div class="flex-1 h-px"
-                         style="background: linear-gradient(90deg, rgba(184,134,74,0.5), transparent)"></div>
-                </div>
-                <ul class="space-y-3">
-                    <li>
-                        <a href="{{ path('index_spices') }}" @click="mobileClose()"
-                           class="pole-item items-baseline justify-between">
-                            <div class="pole-name font-display text-[20px] font-medium"
-                                 style="color: var(--color-ink-deep)">{{ 'ui.navbar.catalog_title'|trans }}</div>
-                            <span class="pole-arrow font-display text-[14px] ml-3" aria-hidden="true"
-                                  style="color: rgba(184,134,74,0.7)">→</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ path('index_spicy_match') }}" @click="mobileClose()"
-                           class="pole-item items-baseline justify-between">
-                            <div class="pole-name font-display text-[20px] font-medium"
-                                 style="color: var(--color-ink-deep)">{{ 'ui.navbar.alchemy_title'|trans }}</div>
-                            <span class="pole-arrow font-display text-[14px] ml-3" aria-hidden="true"
-                                  style="color: rgba(184,134,74,0.7)">→</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <div>
-                <div class="flex items-center gap-2 mb-3">
-                    <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
-                          style="color: var(--color-copper-text)">{{ 'ui.navbar.section_learning'|trans }}</span>
-                    <div class="flex-1 h-px"
-                         style="background: linear-gradient(90deg, rgba(184,134,74,0.5), transparent)"></div>
-                </div>
-                <ul class="space-y-3">
-                    <li>
-                        <a href="{{ path('education_index') }}" @click="mobileClose()"
-                           class="pole-item items-baseline justify-between">
-                            <div class="pole-name font-display text-[20px] font-medium"
-                                 style="color: var(--color-ink-deep)">{{ 'ui.common.academy'|trans }}</div>
-                            <span class="pole-arrow font-display text-[14px] ml-3" aria-hidden="true"
-                                  style="color: rgba(184,134,74,0.7)">→</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ path('education_play_live', {'mode': 'survival'}) }}" @click="mobileClose()"
-                           class="pole-item items-baseline justify-between">
-                            <div class="pole-name font-display text-[20px] font-medium"
-                                 style="color: var(--color-ink-deep)">{{ 'ui.navbar.scoville_title'|trans }}</div>
-                            <span class="pole-arrow font-display text-[14px] ml-3" aria-hidden="true"
-                                  style="color: rgba(184,134,74,0.7)">→</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ path('education_play_live', {'mode': 'intrus'}) }}" @click="mobileClose()"
-                           class="pole-item items-baseline justify-between">
-                            <div class="pole-name font-display text-[20px] font-medium"
-                                 style="color: var(--color-ink-deep)">{{ 'ui.navbar.intrus_title'|trans }}</div>
-                            <span class="pole-arrow font-display text-[14px] ml-3" aria-hidden="true"
-                                  style="color: rgba(184,134,74,0.7)">→</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <div>
-                <div class="flex items-center gap-2 mb-3">
-                    <span class="font-mono text-[9px] tracking-[0.3em] uppercase"
-                          style="color: var(--color-copper-text)">{{ 'ui.navbar.section_atelier'|trans }}</span>
-                    <div class="flex-1 h-px"
-                         style="background: linear-gradient(90deg, rgba(184,134,74,0.5), transparent)"></div>
-                </div>
-                {% if is_granted('ROLE_USER') %}
-                    <ul class="space-y-3">
-                        <li>
-                            <a href="{{ path('profile_user', {tab: 'dashboard'}) }}" @click="mobileClose()"
-                               class="pole-item items-baseline justify-between">
-                                <div class="pole-name font-display text-[20px] font-medium"
-                                     style="color: var(--color-ink-deep)">{{ 'ui.profile.menu.dashboard'|trans }}</div>
-                                <span class="pole-arrow font-display text-[14px] ml-3" aria-hidden="true"
-                                      style="color: rgba(184,134,74,0.7)">→</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ path('profile_user', {tab: 'grimoire'}) }}" @click="mobileClose()"
-                               class="pole-item items-baseline justify-between">
-                                <div class="pole-name font-display text-[20px] font-medium"
-                                     style="color: var(--color-ink-deep)">{{ 'ui.profile.menu.grimoire'|trans }}</div>
-                                <span class="pole-arrow font-display text-[14px] ml-3" aria-hidden="true"
-                                      style="color: rgba(184,134,74,0.7)">→</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ path('profile_user', {tab: 'history'}) }}" @click="mobileClose()"
-                               class="pole-item items-baseline justify-between">
-                                <div class="pole-name font-display text-[20px] font-medium"
-                                     style="color: var(--color-ink-deep)">{{ 'ui.profile.menu.history'|trans }}</div>
-                                <span class="pole-arrow font-display text-[14px] ml-3" aria-hidden="true"
-                                      style="color: rgba(184,134,74,0.7)">→</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ path('profile_user', {tab: 'lab'}) }}" @click="mobileClose()"
-                               class="pole-item items-baseline justify-between">
-                                <div class="pole-name font-display text-[20px] font-medium"
-                                     style="color: var(--color-ink-deep)">{{ 'ui.profile.menu.lab'|trans }}</div>
-                                <span class="pole-arrow font-display text-[14px] ml-3" aria-hidden="true"
-                                      style="color: rgba(184,134,74,0.7)">→</span>
-                            </a>
-                        </li>
-                    </ul>
-                {% else %}
-                    <a href="{{ path('index_register') }}"
-                       x-data="gateTrigger('', 'register')" @click="trigger($event)"
-                       class="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
-                       style="background: var(--color-paprika-700); color: white;">
-                        {{ 'ui.navbar.create_account'|trans }} <span aria-hidden="true">→</span>
-                    </a>
-                {% endif %}
-            </div>
-
-        </div>
-
-        <div class="mt-8 pt-6 flex items-center justify-between"
-             style="border-top: 1px solid rgba(184,134,74,0.3)">
-            <a href="{{ path('new_contact') }}" @click="mobileClose()"
-               class="font-mono text-[11px] transition-colors hover:text-paprika-700"
-               style="color: rgba(74,50,37,0.75)">{{ 'ui.navbar.help'|trans }}</a>
-            {% if is_granted('ROLE_USER') %}
-                <a href="{{ path('app_logout') }}"
-                   class="font-mono text-[11px] transition-colors hover:text-paprika-700"
-                   style="color: rgba(74,50,37,0.75)">{{ 'ui.common.logout'|trans }}</a>
-            {% else %}
-                <a href="{{ path('app_login') }}"
-                   x-data="gateTrigger('', 'login')" @click="trigger($event)"
-                   class="font-mono text-[11px] transition-colors hover:text-paprika-700"
-                   style="color: rgba(74,50,37,0.75)">{{ 'ui.common.login'|trans }}</a>
-            {% endif %}
-
-            <div class="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.15em]">
-                {% for loc in ['fr', 'en', 'es'] %}
-                    <a href="{{ path('switch_locale', {'locale': loc, 'target': _switchTargets[loc] ?? app.request.requestUri}) }}"
-                       hreflang="{{ loc }}"
-                       lang="{{ loc }}"
-                       aria-label="{{ {'fr': 'Français', 'en': 'English', 'es': 'Español'}[loc] }}"
-                       data-turbo="false"
-                       class="px-1.5 py-0.5 rounded transition-colors {{ app.request.locale == loc ? 'text-paprika-700 font-semibold' : 'hover:text-paprika-700' }}"
-                       style="{{ app.request.locale == loc ? '' : 'color: rgba(74,50,37,0.75)' }}"
-                       {{ app.request.locale == loc ? 'aria-current="true"' : '' }}>{{ loc }}</a>
-                {% endfor %}
-            </div>
-        </div>
-
-    </div>
-</div>
+</nav>
 
 </div>

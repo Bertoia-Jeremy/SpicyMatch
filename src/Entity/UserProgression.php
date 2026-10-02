@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\ChefGrade;
 use App\Repository\UserProgressionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -166,6 +167,11 @@ class UserProgression
     public function getLevel(): int
     {
         return $this->level;
+    }
+
+    public function getGrade(): ChefGrade
+    {
+        return ChefGrade::fromLevel($this->level);
     }
 
     public function getXpToNextLevel(): int

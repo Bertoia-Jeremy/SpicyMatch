@@ -1,64 +1,94 @@
 {% set _prog = app.user.progression %}
 {% set _badge = _prog ? _prog.equippedBadge : null %}
-{% if _prog %}
+{% set _showProg = _prog and gamif %}
+{% set _name = app.user.username %}
+{% if _showProg %}
     {% set _lvl = _prog.level %}
-    {% set _grade = _lvl < 20 ? 'ui.grade.commis'|trans : (_lvl < 50 ? 'ui.grade.chef_partie'|trans : (_lvl < 80 ? 'ui.grade.saucier'|trans : 'ui.grade.chef_executif'|trans)) %}
+    {% set _grade = _prog.grade.label|trans %}
+    {% set _pct = min(100, max(0, _prog.progressPercent))|round %}
+    {% set _streak = _prog.currentActivityStreak %}
 {% endif %}
+{% set _pillLabel = 'ui.navbar.profile_menu'|trans({'%name%': _name}) %}
+{% if _showProg %}
+    {% set _pillLabel = _pillLabel ~ ', ' ~ 'ui.dashboard.level_short'|trans({'%level%': _lvl}) ~ ', ' ~ 'ui.navbar.profile_progress'|trans({'%percent%': _pct}) %}
+{% endif %}
+{% set _onProfile = route == 'profile_user' %}
 {% set _items = [
-    { tab: 'dashboard', label: 'ui.profile.menu.dashboard'|trans, icon: 'fa-solid fa-gauge-high' },
-    { tab: 'grimoire',  label: 'ui.profile.menu.grimoire'|trans,  icon: 'fa-solid fa-book-open' },
-    { tab: 'history',   label: 'ui.profile.menu.history'|trans,   icon: 'fa-solid fa-clock-rotate-left' },
-    { tab: 'lab',       label: 'ui.profile.menu.lab'|trans,       icon: 'fa-solid fa-flask' },
+    {params: {tab: 'dashboard'}, label: 'ui.profile.menu.dashboard'|trans, icon: 'fa-solid fa-gauge-high'},
+    {params: {tab: 'grimoire'}, label: 'ui.profile.menu.grimoire'|trans, icon: 'fa-solid fa-book-open'},
+    {params: {tab: 'history'}, label: 'ui.profile.menu.history'|trans, icon: 'fa-solid fa-clock-rotate-left'},
+    {params: {tab: 'history', filter: 'favorites'}, label: 'ui.profile.menu.favorites'|trans, icon: 'fa-solid fa-star'},
+    {params: {tab: 'lab'}, label: 'ui.profile.menu.lab'|trans, icon: 'fa-solid fa-flask'},
 ] %}
 
-<div class="relative" x-data="{ profileOpen: false }" @keydown.escape.window="profileOpen = false">
+<div class="profile-menu" @click.outside="closeProfile(false)" @focusout="onProfileFocusOut($event)">
     <button type="button"
+            x-ref="profileTrigger"
             data-tour="nav-profile"
-            @click="profileOpen = !profileOpen"
-            aria-haspopup="true"
-            :aria-expanded="profileOpen.toString()"
-            class="flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-full border cursor-pointer transition-colors"
-            style="border-color: rgba(184,134,74,0.4); background: rgba(255,250,235,0.6);">
-        {% include 'components/_avatar.html.twig' with {sizeClass: 'w-8 h-8 text-sm', equippedBadge: _badge} %}
-        <div class="flex flex-col leading-none min-w-0 text-left">
-            <span class="font-display text-[15px] font-medium truncate max-w-[110px]" style="color: var(--color-ink-deep)">{{ app.user.username }}</span>
-            {% if _prog and gamification_on() %}
-                <span class="font-display italic text-[11px]" style="color: var(--color-paprika-700)">{{ _grade }} · {{ 'ui.dashboard.level_short'|trans({'%level%': _lvl}) }}</span>
-                <div class="rounded-full mt-1 overflow-hidden" style="width: 90px; height: 3px; background: rgba(184,134,74,0.2);"
-                     title="{{ 'ui.dashboard.xp_to_next'|trans({'%xp%': _prog.xp, '%toNext%': _prog.xpToNextLevel}) }}">
-                    <div class="h-full rounded-full bg-linear-to-r from-turmeric-400 to-saffron-600 transition-all" style="width: {{ _prog.progressPercent }}%"></div>
-                </div>
-            {% endif %}
-        </div>
-        <i class="fa-solid fa-chevron-down text-[10px] ml-0.5 shrink-0" style="color: var(--color-copper-text)" aria-hidden="true"></i>
+            @click="toggleProfile()"
+            x-bind:class="{ 'is-open': profileOpen }"
+            x-bind:aria-expanded="profileOpen.toString()"
+            aria-expanded="false"
+            aria-controls="nav-profile-card"
+            aria-label="{{ _pillLabel }}"
+            class="profile-pill{{ _onProfile ? ' is-current' : '' }}">
+        {% include 'components/_avatar.html.twig' with {sizeClass: 'size-7 text-xs', equippedBadge: _badge} only %}
+        <span class="profile-pill-name">
+            <span class="profile-pill-username">{{ _name }}</span>
+            {% if _showProg %}<span class="profile-pill-grade">{{ _grade }}</span>{% endif %}
+        </span>
+        {% if _showProg %}
+            <span class="profile-pill-level" aria-hidden="true">
+                <span class="profile-pill-level-short">{{ _lvl }}</span>
+                <span class="profile-pill-level-full">{{ 'ui.dashboard.level_short'|trans({'%level%': _lvl}) }}</span>
+            </span>
+            <span class="profile-pill-gauge" aria-hidden="true"><span class="profile-pill-gauge-fill" style="width: {{ _pct }}%"></span></span>
+        {% endif %}
+        <span class="profile-pill-chevron" aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></span>
     </button>
 
-    <div x-show="profileOpen" x-cloak
-         @click.outside="profileOpen = false"
-         x-transition:enter="transition ease-out duration-150"
-         x-transition:enter-start="opacity-0 -translate-y-1"
-         x-transition:enter-end="opacity-100 translate-y-0"
-         x-transition:leave="transition ease-in duration-100"
-         x-transition:leave-start="opacity-100 translate-y-0"
-         x-transition:leave-end="opacity-0 -translate-y-1"
-         class="absolute right-0 mt-2 w-56 rounded-xl border shadow-lg py-2 z-[60]"
-         style="background: var(--color-parchment); border-color: rgba(184,134,74,0.3);"
-         role="menu">
-        {% for item in _items %}
-            <a href="{{ path('profile_user', {tab: item.tab}) }}" role="menuitem"
-               class="flex items-center gap-2.5 px-4 py-2 text-sm transition-colors hover:bg-[rgba(184,134,74,0.1)]"
-               style="color: var(--color-ink-deep)">
-                <i class="{{ item.icon }} text-xs w-4" style="color: var(--color-copper-text)" aria-hidden="true"></i>{{ item.label }}
-            </a>
-        {% endfor %}
-        <div class="my-1.5 h-px" style="background: rgba(184,134,74,0.2)"></div>
-        <a href="{{ path('profile_user', {tab: 'history', filter: 'favorites'}) }}" role="menuitem"
-           class="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-[rgba(184,134,74,0.1)]" style="color: var(--color-ink-deep)">
-            <i class="fa-solid fa-star text-xs w-4" style="color: var(--color-copper-text)" aria-hidden="true"></i>{{ 'ui.profile.menu.favorites'|trans }}
-        </a>
-        <a href="{{ path('app_logout') }}" role="menuitem"
-           class="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-[rgba(184,134,74,0.1)]" style="color: var(--color-paprika-700)">
-            <i class="fa-solid fa-arrow-right-from-bracket text-xs w-4" aria-hidden="true"></i>{{ 'ui.profile.menu.logout'|trans }}
+    <div id="nav-profile-card"
+         class="profile-card"
+         x-bind:class="{ 'is-open': profileOpen }">
+        <div class="profile-card-head">
+            {% include 'components/_avatar.html.twig' with {sizeClass: 'size-11 text-base', equippedBadge: _badge} only %}
+            <div class="min-w-0">
+                <p class="profile-card-name">{{ _name }}</p>
+                {% if _showProg %}
+                    <p class="profile-card-grade">{{ _grade }} · {{ 'ui.dashboard.level_short'|trans({'%level%': _lvl}) }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if _showProg %}
+            <div class="profile-card-progress">
+                <div class="profile-card-bar"
+                     role="progressbar"
+                     aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ _pct }}"
+                     aria-label="{{ 'ui.navbar.profile_progress'|trans({'%percent%': _pct}) }}">
+                    <span class="profile-card-bar-fill" style="width: {{ _pct }}%"></span>
+                </div>
+                <div class="profile-card-meta">
+                    <span>{{ 'ui.dashboard.xp_to_next'|trans({'%xp%': _prog.xp, '%toNext%': _prog.xpToNextLevel}) }}</span>
+                    {% if _streak > 0 %}
+                        <span class="profile-card-streak"><i class="fa-solid fa-fire" aria-hidden="true"></i> {{ 'ui.navbar.streak'|trans({'%count%': _streak}) }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        <ul class="profile-card-links">
+            {% for item in _items %}
+                <li>
+                    <a href="{{ path('profile_user', item.params) }}" class="profile-card-link" @click="closeProfile(false)">
+                        <i class="{{ item.icon }}" aria-hidden="true"></i>{{ item.label }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <a href="{{ logout_path() }}" class="profile-card-logout">
+            <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>{{ 'ui.profile.menu.logout'|trans }}
         </a>
     </div>
 </div>

@@ -1,6 +1,6 @@
 .cc{--lin:var(--color-parchment-50);--lin-2:var(--color-parchment-100);--lin-3:var(--color-parchment-200);--ink:var(--color-ink-900);--ink-2:var(--color-ink-800);--amber:var(--color-turmeric-600);--amber-deep:var(--color-turmeric-700);--paprika:var(--color-paprika-800);--sauge:var(--color-sauge);--soft:0 2px 10px rgba(60,32,12,.07)}
 @media (max-width:899.98px){
-body.has-hangman > .nav-bar,
+body.has-hangman > .site-nav-root,
 body.has-hangman > footer{display:none}
 }
 .cc,.cc *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}

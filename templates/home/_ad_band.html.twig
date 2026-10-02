@@ -1,0 +1,7 @@
+{% if ads_enabled() and (not secondary|default(false) or ads_multi_slot()) %}
+    <div class="home-ad-band">
+        <div class="home-ad-band-inner">
+            {% include 'partials/_ads_banner.html.twig' %}
+        </div>
+    </div>
+{% endif %}

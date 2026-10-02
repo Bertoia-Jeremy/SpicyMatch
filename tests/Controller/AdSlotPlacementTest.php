@@ -19,7 +19,8 @@ final class AdSlotPlacementTest extends WebTestCase
         yield 'spices index' => ['/fr/epices/', 1];
         yield 'catalogue index' => ['/en/spices/aromatic-compounds/', 1];
         yield 'academy' => ['/fr/education/', 1];
-        yield 'home' => ['/fr/', 0];
+        yield 'home' => ['/fr/', 2];
+        yield 'premium' => ['/fr/premium', 0];
     }
 
     #[DataProvider('zoneProvider')]
@@ -35,12 +36,23 @@ final class AdSlotPlacementTest extends WebTestCase
         self::assertCount(0, $crawler->filter('script[src*="ethicalads"], script[src*="carbonads"]'));
     }
 
-    public static function enableAds(): void
+    public function testHomeKeepsASingleSlotForSingleSlotProvider(): void
+    {
+        $client = self::createClient();
+        self::enableAds('carbon');
+
+        $crawler = $client->request('GET', '/fr/');
+
+        self::assertResponseIsSuccessful();
+        self::assertCount(1, $crawler->filter('[data-ad-slot]'));
+    }
+
+    public static function enableAds(string $provider = 'ethicalads'): void
     {
         self::getContainer()->set(AdsExtension::class, new AdsExtension(
             self::getContainer()->get(TokenStorageInterface::class),
             true,
-            'ethicalads',
+            $provider,
             'test-publisher',
             'test',
         ));

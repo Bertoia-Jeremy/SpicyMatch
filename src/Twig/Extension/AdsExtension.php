@@ -20,6 +20,8 @@ final readonly class AdsExtension
 
     private const string DEV_ONLY_PROVIDER = 'placeholder';
 
+    private const array SINGLE_SLOT_PROVIDERS = ['carbon'];
+
     public function __construct(
         private TokenStorageInterface $tokenStorage,
         private bool $enabled,
@@ -59,6 +61,12 @@ final readonly class AdsExtension
     public function adsTemplate(): string
     {
         return self::PROVIDER_TEMPLATES[$this->adsProvider()];
+    }
+
+    #[AsTwigFunction(name: 'ads_multi_slot')]
+    public function adsMultiSlot(): bool
+    {
+        return ! \in_array($this->adsProvider(), self::SINGLE_SLOT_PROVIDERS, true);
     }
 
     #[AsTwigFunction(name: 'ads_publisher_id')]

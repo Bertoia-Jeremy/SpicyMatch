@@ -2,7 +2,8 @@
 .shadow-soft-lg { box-shadow: 0 38px 70px -30px rgba(60,32,12,.45), 0 10px 24px -10px rgba(60,32,12,.22); }
 
 .home-section,
-.home-hero-grid {
+.home-hero-grid,
+.home-ad-band {
   --home-max: 1216px;
   --home-gutter: 16px;
   padding-inline: max(var(--home-gutter), calc((100% - var(--home-max)) / 2));
@@ -822,6 +823,9 @@
   text-underline-offset: 4px;
 }
 
+.home-ad-band { padding-block: 32px; background: var(--color-cream); }
+.home-ad-band-inner { max-width: 970px; margin-inline: auto; }
+
 .home-sticky-cta {
   position: fixed;
   left: 0;
@@ -864,7 +868,7 @@
 }
 
 @media (min-width: 640px) {
-  .home-section, .home-hero-grid { --home-gutter: 24px; }
+  .home-section, .home-hero-grid, .home-ad-band { --home-gutter: 24px; }
   .home-section { padding-block: 72px; }
   .home-hero-grid { padding-block: 56px 48px; gap: 40px; }
   .home-hero-lead { margin-bottom: 16px; }
@@ -896,6 +900,7 @@
 @media (min-width: 768px) {
   .home-section { padding-block: 90px; }
   .home-hero-grid { padding-block: 72px 60px; gap: 56px; }
+  .home-ad-band { padding-block: 48px; }
   .section-head { margin-bottom: 48px; }
   .section-label { gap: 14px; letter-spacing: .28em; margin-bottom: 18px; }
   .section-label::before { width: 34px; }
@@ -955,7 +960,7 @@
 }
 
 @media (min-width: 1024px) {
-  .home-section, .home-hero-grid { --home-gutter: 32px; }
+  .home-section, .home-hero-grid, .home-ad-band { --home-gutter: 32px; }
 }
 
 @media (min-width: 1100px) {

@@ -6,6 +6,7 @@ namespace App\Tests\Twig;
 
 use App\Entity\Users;
 use App\Twig\Extension\AdsExtension;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -95,6 +96,25 @@ final class AdsExtensionTest extends TestCase
 
         self::assertSame('ethicalads', $extension->adsProvider());
         self::assertSame('partials/ads/_ethicalads.html.twig', $extension->adsTemplate());
+    }
+
+    /**
+     * @return iterable<string, array{string, bool}>
+     */
+    public static function multiSlotProvider(): iterable
+    {
+        yield 'ethicalads' => ['ethicalads', true];
+        yield 'placeholder' => ['placeholder', true];
+        yield 'carbon is one ad per page' => ['carbon', false];
+        yield 'unknown falls back to ethicalads' => ['adsense', true];
+    }
+
+    #[DataProvider('multiSlotProvider')]
+    public function testMultiSlotDependsOnProvider(string $provider, bool $expected): void
+    {
+        $extension = $this->createExtension(enabled: true, user: null, provider: $provider, environment: 'dev');
+
+        self::assertSame($expected, $extension->adsMultiSlot());
     }
 
     public function testPublisherIdIsExposed(): void

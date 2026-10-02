@@ -11,10 +11,12 @@
     {% include 'home/_progression_banner.html.twig' %}
     {% include 'home/_how.html.twig' %}
     {% include 'home/_experiment.html.twig' %}
+    {% include 'home/_ad_band.html.twig' %}
     {% include 'home/_learn.html.twig' %}
     {% if gamification_on() %}
         {% include 'home/_play.html.twig' %}
     {% endif %}
+    {% include 'home/_ad_band.html.twig' with {secondary: true} %}
     {% include 'home/_values.html.twig' %}
     {% include 'home/_final_cta.html.twig' %}
     {% include 'home/_sticky_cta.html.twig' %}

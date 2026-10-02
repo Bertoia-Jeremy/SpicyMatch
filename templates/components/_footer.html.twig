@@ -1,20 +1,15 @@
-<footer class="relative" role="contentinfo"
-        style="background: var(--color-parchment); border-top: 1px solid rgba(184,134,74,0.3)">
+{% macro footer_link(href, label) %}
+    <li><a href="{{ href }}" class="footer-link">{{ label }}</a></li>
+{% endmacro %}
+{% import _self as f %}
+<footer class="site-footer" role="contentinfo">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-    <div class="max-w-7xl mx-auto px-6 py-14 lg:py-20">
+        <div class="site-footer-grid">
 
-        <div class="flex items-center gap-4 mb-14">
-            <div class="flex-1 h-px"
-                 style="background: linear-gradient(90deg, transparent, rgba(184,134,74,0.35))"></div>
-            <div class="flex-1 h-px"
-                 style="background: linear-gradient(270deg, transparent, rgba(184,134,74,0.35))"></div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-16">
-
-            <div class="space-y-6">
-                <a href="{{ path('home') }}" class="group flex items-center gap-3 no-underline">
-                    <svg class="size-11 shrink-0 transition-transform group-hover:scale-105" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <div class="site-footer-brand">
+                <a href="{{ path('home') }}" class="site-footer-home">
+                    <svg class="site-footer-logo" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <circle cx="200" cy="200" r="150" fill="none" stroke="#C46E1F" stroke-width="2.4" stroke-dasharray="2 9" stroke-linecap="round" opacity="0.85"/>
                         <circle cx="200" cy="200" r="150" fill="none" stroke="#C46E1F" stroke-width="6"
                                 stroke-dasharray="518.36 9999" stroke-linecap="round"
@@ -46,136 +41,89 @@
                             <circle cx="157" cy="225" r="6"/>
                         </g>
                     </svg>
-                    <div class="leading-none">
-                        <div class="font-display text-[22px] font-medium leading-none"
-                             style="color: var(--color-ink-deep)">
-                            Spicy <em class="not-italic italic" style="color: #B91C1C">Match</em>
-                        </div>
-                    </div>
+                    <span class="font-display site-footer-name">Spicy <em>Match</em></span>
                 </a>
-                <p class="text-sm leading-relaxed max-w-xs"
-                   style="color: rgba(42,24,16,0.65)">
-                    {{ 'ui.footer.tagline'|trans }}
-                </p>
-            </div>
-
-            <div>
-                <h2 class="font-display italic text-[14px] mb-7 flex items-center gap-3"
-                    style="color: var(--color-copper-text)">
-                    <span class="block h-px w-5" style="background: var(--color-copper)"></span>
-                    {{ 'ui.footer.navigation'|trans }}
-                </h2>
-                <ul class="space-y-4 list-none p-0">
-                    <li><a href="{{ path('home') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
-                        <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                        {{ 'ui.common.home'|trans }}
-                    </a></li>
-                    <li><a href="{{ path('index_spices') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
-                        <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                        {{ 'ui.footer.catalog'|trans }}
-                    </a></li>
-                    <li><a href="{{ path('index_spicy_match') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
-                        <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                        {{ 'ui.footer.lab_blends'|trans }}
-                    </a></li>
-                    <li><a href="{{ path('new_contact') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
-                        <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                        {{ 'ui.footer.help_contact'|trans }}
-                    </a></li>
+                <p class="site-footer-tagline">{{ 'ui.footer.tagline'|trans }}</p>
+                <ul class="site-footer-trust">
+                    <li><i class="fa-solid fa-eye-slash" aria-hidden="true"></i>{{ 'ui.footer.trust.tracking'|trans }}</li>
+                    <li><i class="fa-solid fa-book-open" aria-hidden="true"></i>{{ 'ui.footer.trust.free'|trans }}</li>
+                    <li><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i>{{ 'ui.footer.trust.independent'|trans }}</li>
                 </ul>
+                <a href="{{ path('premium') }}" class="site-footer-support">
+                    {{ 'ui.footer.support_cta'|trans }} <span aria-hidden="true">→</span>
+                </a>
             </div>
 
-            <div>
-                <h2 class="font-display italic text-[14px] mb-7 flex items-center gap-3"
-                    style="color: var(--color-copper-text)">
-                    <span class="block h-px w-5" style="background: var(--color-copper)"></span>
-                    {{ 'ui.common.academy'|trans }}
-                </h2>
-                <ul class="space-y-4 list-none p-0">
-                    <li><a href="{{ path('education_index') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
-                        <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                        {{ 'ui.footer.academy_flavors'|trans }}
-                    </a></li>
-                    <li><a href="{{ path('index_aromatic_compound') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
-                        <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                        {{ 'ui.footer.aromatic_compounds'|trans }}
-                    </a></li>
-                    <li><a href="{{ path('index_aromatic_groups') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
-                        <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                        {{ 'ui.footer.flavor_groups'|trans }}
-                    </a></li>
-                    <li><a href="{{ path('index_spicy_type') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
-                        <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                        {{ 'ui.footer.classification'|trans }}
-                    </a></li>
+            <nav class="site-footer-col" aria-labelledby="footer-explore">
+                <h2 id="footer-explore" class="site-footer-heading">{{ 'ui.footer.explore'|trans }}</h2>
+                <ul>
+                    {{ f.footer_link(path('index_spices'), 'ui.footer.spices'|trans) }}
+                    {{ f.footer_link(path('index_aromatic_groups'), 'ui.footer.aromatic_groups'|trans) }}
+                    {{ f.footer_link(path('index_alchemy_flavors'), 'ui.footer.flavors'|trans) }}
+                    {{ f.footer_link(path('index_aromatic_compound'), 'ui.footer.aromatic_compounds'|trans) }}
+                    {{ f.footer_link(path('index_spicy_type'), 'ui.footer.spicy_types'|trans) }}
+                    {{ f.footer_link(path('index_preparation_methods'), 'ui.footer.preparation_methods'|trans) }}
                 </ul>
-            </div>
+            </nav>
 
-            <div>
-                <h2 class="font-display italic text-[14px] mb-7 flex items-center gap-3"
-                    style="color: var(--color-copper-text)">
-                    <span class="block h-px w-5" style="background: var(--color-copper)"></span>
-                    {{ 'ui.footer.atelier'|trans }}
-                </h2>
+            <nav class="site-footer-col" aria-labelledby="footer-cook">
+                <h2 id="footer-cook" class="site-footer-heading">{{ 'ui.footer.cook'|trans }}</h2>
+                <ul>
+                    {{ f.footer_link(path('index_spicy_match'), 'ui.footer.lab'|trans) }}
+                    {% if is_granted('ROLE_USER') %}
+                        {{ f.footer_link(path('index_spicy_match_history'), 'ui.profile.menu.history'|trans) }}
+                    {% endif %}
+                    {% if gamification_on() %}
+                        {{ f.footer_link(path('education_index'), 'ui.common.academy'|trans) }}
+                    {% endif %}
+                    {{ f.footer_link(path('help_index'), 'ui.navbar.help'|trans) }}
+                    {{ f.footer_link(path('new_contact'), 'ui.common.contact'|trans) }}
+                </ul>
+            </nav>
+
+            <div class="site-footer-col site-footer-account">
+                <h2 class="site-footer-heading">{{ 'ui.footer.account'|trans }}</h2>
                 {% if is_granted('ROLE_USER') %}
-                    <ul class="space-y-4 list-none p-0">
-                        <li><a href="{{ path('profile_user', {tab: 'dashboard'}) }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
-                            <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                            {{ 'ui.profile.menu.dashboard'|trans }}
-                        </a></li>
-                        <li><a href="{{ path('profile_user', {tab: 'grimoire'}) }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
-                            <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                            {{ 'ui.profile.menu.grimoire'|trans }}
-                        </a></li>
-                        <li><a href="{{ path('profile_user', {tab: 'history'}) }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
-                            <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                            {{ 'ui.profile.menu.history'|trans }}
-                        </a></li>
-                        <li><a href="{{ path('profile_user', {tab: 'lab'}) }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
-                            <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                            {{ 'ui.profile.menu.lab'|trans }}
-                        </a></li>
-                        <li><a href="{{ path('app_logout') }}" class="footer-link group inline-flex items-center gap-2 text-sm transition-colors">
-                            <span class="footer-link-dash block h-px w-3 shrink-0 transition-all duration-300 group-hover:w-6" style="background: var(--color-copper)"></span>
-                            {{ 'ui.common.logout'|trans }}
-                        </a></li>
+                    <ul>
+                        {{ f.footer_link(path('profile_user', {tab: 'dashboard'}), 'ui.profile.menu.dashboard'|trans) }}
+                        {{ f.footer_link(path('profile_user', {tab: 'grimoire'}), 'ui.profile.menu.grimoire'|trans) }}
+                        {{ f.footer_link(path('profile_user', {tab: 'lab'}), 'ui.profile.menu.lab'|trans) }}
+                        {{ f.footer_link(path('app_logout'), 'ui.common.logout'|trans) }}
                     </ul>
                 {% else %}
-                    <p class="text-xs italic leading-relaxed mb-6"
-                       style="color: rgba(42,24,16,0.65)">
-                        {{ 'ui.footer.join_text'|trans }}
-                    </p>
-                    <twig:Button
-                        label="{{ 'ui.footer.join_cta'|trans }}"
-                        href="{{ path('index_register') }}"
-                        variant="primary"
-                        icon="fa-solid fa-arrow-right"
-                        iconPos="right"
-                    />
+                    <p class="site-footer-join">{{ 'ui.footer.join_text'|trans }}</p>
+                    <div class="site-footer-join-actions">
+                        <twig:Button
+                            label="{{ 'ui.navbar.create_account'|trans }}"
+                            href="{{ path('index_register') }}"
+                            variant="primary"
+                            icon="fa-solid fa-arrow-right"
+                            iconPos="right"
+                        />
+                        <a href="{{ path('app_login') }}" class="footer-link site-footer-login">{{ 'ui.footer.login'|trans }}</a>
+                    </div>
                 {% endif %}
             </div>
 
         </div>
 
-        <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4"
-             style="border-top: 1px solid rgba(184,134,74,0.25)">
-            <div class="font-mono text-[10px] tracking-[0.2em] uppercase"
-                 style="color: rgba(42,24,16,0.65)">
-                &copy; {{ "now"|date("Y") }} SpicyMatch —
-                <em class="font-display not-italic italic text-[12px] normal-case tracking-normal"
-                   style="color: var(--color-copper-text)">{{ 'ui.footer.copyright_tagline'|trans }}</em>
-            </div>
-            <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-mono text-[10px] uppercase tracking-widest">
-                <a href="{{ path('legal_notice') }}" class="footer-link transition-colors">{{ 'ui.footer.legal'|trans }}</a>
-                <a href="{{ path('privacy_policy') }}" class="footer-link transition-colors">{{ 'ui.footer.privacy'|trans }}</a>
-                <a href="{{ path('accessibility_declaration') }}" class="footer-link transition-colors">{{ 'ui.footer.accessibility'|trans }}</a>
-                <a href="{{ path('new_contact') }}" class="footer-link transition-colors">{{ 'ui.common.contact'|trans }}</a>
-            </div>
+        <div class="site-footer-bottom">
+            <p class="site-footer-copy">
+                &copy; {{ "now"|date("Y") }} SpicyMatch · <em class="font-display">{{ 'ui.footer.copyright_tagline'|trans }}</em>
+            </p>
+            <nav aria-label="{{ 'ui.footer.legal_nav'|trans }}">
+                <ul class="site-footer-legal">
+                    {{ f.footer_link(path('legal_notice'), 'ui.footer.legal'|trans) }}
+                    {{ f.footer_link(path('privacy_policy'), 'ui.footer.privacy'|trans) }}
+                    {{ f.footer_link(path('gdpr_request'), 'ui.footer.my_data'|trans) }}
+                    {{ f.footer_link(path('accessibility_declaration'), 'ui.footer.accessibility'|trans) }}
+                </ul>
+            </nav>
         </div>
 
     </div>
 
-    <div x-data="scrollTop" class="fixed bottom-8 right-8 z-40">
+    <div x-data="scrollTop" class="scroll-top-anchor fixed bottom-8 right-8 z-40">
         <button x-show="visible" x-cloak
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 translate-y-4 scale-90"
@@ -185,11 +133,7 @@
                 x-transition:leave-end="opacity-0 translate-y-4 scale-90"
                 @click="scrollUp"
                 aria-label="{{ 'ui.footer.scroll_top'|trans }}"
-                class="size-12 rounded-full flex items-center justify-center transition-all duration-300 group cursor-pointer"
-                style="background: var(--color-ink-deep);
-                       border: 1px solid rgba(184,134,74,0.3);
-                       color: var(--color-parchment);
-                       box-shadow: 0 4px 20px rgba(42,24,16,0.25)">
+                class="site-footer-top group">
             <i class="fa-solid fa-arrow-up text-sm transition-transform group-hover:-translate-y-0.5" aria-hidden="true"></i>
         </button>
     </div>

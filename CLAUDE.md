@@ -99,7 +99,7 @@ MVC Symfony (Controller > Service > Repository > Entity), REST par controllers, 
 
 ### Éducation
 - 6 modes : QCM (route-based) + 5 Live Components.
-- Cap dur quotidien : 2 sessions/mode en free, 5 en premium, via `GameSessionManager::withDailyQuota()` (transaction + `PESSIMISTIC_WRITE`).
+- Cap dur quotidien : `GameSessionManager::MAX_DAILY_SESSIONS_FREE`=5 / `_PREMIUM`=10 sessions/mode (constantes publiques, relues par home et page premium, jamais de chiffre en dur dans les traductions → `%count%`), XP sur toutes les parties, via `GameSessionManager::withDailyQuota()` (transaction + `PESSIMISTIC_WRITE`).
   - Tout appelant (5 LC + QCM) DOIT attraper `\RuntimeException` : purger le secret de session, flasher `flash.daily_limit_reached`, rediriger sur `education_index`.
 - XP : `MAX_XP_PER_SESSION=60` sur les deux branches. Un `overrideScore` = points de jeu, convertis par `convertGamePoints()` ; ne pas pré-appliquer le multiplicateur.
 - Jeu du jour : `DailyChallengeResolver` (modes débloqués pour le niveau, rotation `GameDay::ordinal % count`, null si gamif off). Jour = `GameDay` (`ClockInterface` + param `app.timezone` = Europe/Paris, doit égaler le TZ PHP). Tests : `MockClock`.
@@ -156,6 +156,18 @@ MVC Symfony (Controller > Service > Repository > Entity), REST par controllers, 
 - Font Awesome = subset versionné `public/lib/fontawesome-subset/` (CSS élaguée + woff2). Toute nouvelle icône (template, JS, PHP, BDD) : `php bin/console app:icons:list` (+ `--env=test --output=var/fontawesome-tokens.test.json`) puis `yarn icons:subset var/fontawesome-tokens.json var/fontawesome-tokens.test.json`. Garde : `FontAwesomeSubsetTest`. Classes FA construites dynamiquement interdites (le scan ne les voit pas).
 - Build prod : `app:icons:list` sur la BDD prod + `yarn icons:subset`, `yarn build`, `php bin/console asset-map:compile`.
 
+### Homepage
+- Narration : hero (promesse + démo) → méthode → Expérimenter → Apprendre → Jouer (si `gamification_on()`) → Valeurs + soutien → CTA final. Partials `templates/home/_*.html.twig`, clés `ui.home.*` + `ui.toile.*`. CTA primaire = Lab pour tous (invités inclus), jamais l'inscription.
+- Démo hero : `HomeController::DEMO_SPICE_SLUGS` (slugs FR, doivent exister dans le seed test) → `SpicesRepository::findDemoCards($slugs, $locale)`. Alpine `homeDemo` appelle `/api/match?spices=id&limit=3` avec header `Accept-Language` (API hors locale) ; libellés d'affinité passés en `data-labels`.
+- Message : savoir 100 % gratuit, jeux = fonctionnalité, premium = soutien + confort. Interdits : faux témoignages, compteurs/chiffres inventés, compteur d'utilisateurs, promesse d'un savoir réservé au premium.
+- Fiches gestes : classes `technique-*` (jamais `recipe-*` dans `home.css`, importé globalement → collision avec la vue recette).
+- `home.css` mobile first : styles de base = 375 px, puis `min-width` 360/480/640/768/1024/1100/1280, jamais de `max-width`. Hover sous `@media (hover: hover)`. Rails horizontaux scroll-snap en mobile (chips de démo, fiches gestes) ; maquette Lab masquée sous 1100 px ; toile réordonnée via `.solar-side { display: contents }`.
+- Barre CTA collante mobile `_sticky_cta` (Alpine `homeStickyCta`, visible entre le CTA hero et `.home-final`, cachée ≥ 768 px) : pose `html.home-sticky-on`, qui remonte le bouton retour-haut via `.scroll-top-anchor` (footer). État recalculé depuis les rects à chaque callback IO (hero + final + footer observés), jamais depuis `entry.isIntersecting` (un saut de scroll ne franchit aucun seuil).
+- Largeur desktop : contenu 1216 px aligné sur la navbar (`max-w-7xl` + padding), via `--home-max`/`--home-gutter` (16/24/32) et `padding-inline: max(gutter, (100% - max) / 2)` sur `.home-section`, `.home-hero-grid`, `.home-ad-band`. Fonds pleine largeur, jamais de `max-width` sur la section.
+
+### Footer
+- `components/_footer.html.twig` : macro `footer_link`, conteneur identique à la navbar, classes `site-footer-*` dans `footer.css`, zéro style inline. Colonnes : marque + engagements + soutien, Explorer, Cuisiner & jouer (Académie si `gamification_on()`), Mon espace (onglets profil ou inscription). Liens légaux avec `padding-inline-end` sous 1400 px pour ne pas passer sous le bouton retour-haut.
+
 ### Accès
 - Site ouvert en anonyme. `IsGranted` par MÉTHODE (pas par classe) sur `EducationController` et `SpicyMatchController`, sinon il prime sur l'`access_control`.
 - Anonyme + clic jeu → pop-in `gate_login_modal` (event `gate-login`).
@@ -179,8 +191,8 @@ MVC Symfony (Controller > Service > Repository > Entity), REST par controllers, 
 
 ### Monétisation
 - `Users.premiumUntil` + `isPremium()`. Pubs via `AdsExtension`, `ADS_ENABLED=false` par défaut.
-- Interdits : interstitiel, footer, Étamine, LiveComponents, jeux en cours, formulaires, sticky. AdSense hors whitelist (CMP TCF requise).
-- Zones autorisées : index Académie (slot `.poster-grid-ad` pleine largeur entre 3ᵉ et 4ᵉ jeu) + résultat, fiche épice, index catalogue (`<twig:Catalog:Grid>` inclut le slot, `ads=false` pour l'omettre), liste historique. Jamais home ni vue recette (garde `AdSlotPlacementTest`).
+- Interdits : interstitiel, footer, hero et CTA final de la home, Étamine, LiveComponents, jeux en cours, formulaires, sticky. AdSense hors whitelist (CMP TCF requise).
+- Zones autorisées : index Académie (slot `.poster-grid-ad` pleine largeur entre 3ᵉ et 4ᵉ jeu) + résultat, fiche épice, index catalogue (`<twig:Catalog:Grid>` inclut le slot, `ads=false` pour l'omettre), liste historique, home (2 bandes `home/_ad_band.html.twig` : après Expérimenter, puis avant Valeurs avec `secondary: true`, rendue seulement si `ads_multi_slot()`, Carbon = 1 pub/page via `AdsExtension::SINGLE_SLOT_PROVIDERS`). Jamais premium ni vue recette (garde `AdSlotPlacementTest`).
 - Slot `partials/_ads_banner.html.twig` : zéro `<script>` SSR. Alpine `adSlot` charge le script régie au 1er passage dans le viewport (`rootMargin 200px`) depuis `AD_SCRIPTS` (URL en dur côté JS, jamais depuis un `data-*`). EthicalAds `data-ea-manual` + `ethicalads.load()` ; Carbon = `<script id="_carbonads_js">` enfant du slot, vidé sur `turbo:before-cache`.
 
 ## Design system

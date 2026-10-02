@@ -1168,21 +1168,30 @@ ui:
         chef_executif: Executive Chef
     footer:
         accessibility: Accessibility
-        tagline: Aromatic alchemy at the service of your recipes. Discover invisible pairings and elevate your culinary creations.
-        navigation: Navigation
-        catalog: Spice catalog
-        lab_blends: The Lab — Blends
-        help_contact: Help & Contact
-        academy_flavors: The Academy of flavors
-        aromatic_compounds: Aromatic compounds
-        flavor_groups: Flavor groups
-        classification: Classification
-        atelier: The Workshop
-        join_text: Join our brigade of enthusiasts and explore the alchemy of flavors.
-        join_cta: Join the brigade
-        copyright_tagline: The Art of Culinary Alchemy
+        tagline: Spice pairings explained by aroma science, so you can cook without guesswork.
+        catalog: Spice catalogue
+        trust:
+            tracking: Zero tracking
+            free: Free knowledge
+            independent: Independent project
+        support_cta: Support SpicyMatch
+        explore: Explore
+        spices: All spices
+        aromatic_groups: Aroma families
+        flavors: Aromatic flavours
+        aromatic_compounds: Aroma compounds
+        spicy_types: Spice types
+        preparation_methods: Preparation methods
+        cook: 'Cook & play'
+        lab: The Lab
+        account: My space
+        join_text: A free account to keep your blends, your favourites and your progress.
+        login: 'Already a member? Log in'
+        copyright_tagline: Cooked up with curiosity
+        legal_nav: Legal information
         legal: Legal notice
         privacy: Privacy
+        my_data: My data
         scroll_top: Back to top
 
 gamification:

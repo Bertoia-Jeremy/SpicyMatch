@@ -1177,21 +1177,30 @@ ui:
         chef_executif: Chef Exécutif
     footer:
         accessibility: Accessibilité
-        tagline: L'alchimie aromatique au service de vos recettes. Découvrez des accords invisibles et sublimez vos créations culinaires.
-        navigation: Navigation
+        tagline: 'Les accords d''épices expliqués par la science des arômes, pour cuisiner sans tâtonner.'
         catalog: Catalogue des épices
-        lab_blends: Le Lab — Mélanges
-        help_contact: Aide & Contact
-        academy_flavors: L'Académie des saveurs
+        trust:
+            tracking: Zéro pistage
+            free: Savoir gratuit
+            independent: Projet indépendant
+        support_cta: Soutenir SpicyMatch
+        explore: Explorer
+        spices: Toutes les épices
+        aromatic_groups: Familles aromatiques
+        flavors: Saveurs aromatiques
         aromatic_compounds: Composés aromatiques
-        flavor_groups: Groupes de saveurs
-        classification: Classification
-        atelier: L'Atelier
-        join_text: Rejoignez notre brigade de passionnés et explorez l'alchimie des saveurs.
-        join_cta: Rejoindre la brigade
-        copyright_tagline: L'Art de l'Alchimie Culinaire
-        legal: Mentions Légales
+        spicy_types: 'Types d''épices'
+        preparation_methods: Méthodes de préparation
+        cook: 'Cuisiner & jouer'
+        lab: Le Lab
+        account: Mon espace
+        join_text: Un compte gratuit pour garder vos mélanges, vos favoris et votre progression.
+        login: 'Déjà inscrit ? Se connecter'
+        copyright_tagline: Cuisiné avec curiosité
+        legal_nav: Informations légales
+        legal: Mentions légales
         privacy: Confidentialité
+        my_data: Mes données
         scroll_top: Retour en haut de la page
 
 gamification:

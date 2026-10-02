@@ -1168,21 +1168,30 @@ ui:
         chef_executif: Chef Ejecutivo
     footer:
         accessibility: Accesibilidad
-        tagline: La alquimia aromática al servicio de tus recetas. Descubre combinaciones invisibles y realza tus creaciones culinarias.
-        navigation: Navegación
+        tagline: Las combinaciones de especias explicadas por la ciencia de los aromas, para cocinar sin tantear.
         catalog: Catálogo de especias
-        lab_blends: El Lab — Mezclas
-        help_contact: Ayuda y Contacto
-        academy_flavors: La Academia de los sabores
+        trust:
+            tracking: Cero rastreo
+            free: Saber gratuito
+            independent: Proyecto independiente
+        support_cta: Apoyar SpicyMatch
+        explore: Explorar
+        spices: Todas las especias
+        aromatic_groups: Familias aromáticas
+        flavors: Sabores aromáticos
         aromatic_compounds: Compuestos aromáticos
-        flavor_groups: Grupos de sabores
-        classification: Clasificación
-        atelier: El Taller
-        join_text: Únete a nuestra brigada de apasionados y explora la alquimia de los sabores.
-        join_cta: Unirse a la brigada
-        copyright_tagline: El Arte de la Alquimia Culinaria
+        spicy_types: Tipos de especias
+        preparation_methods: Métodos de preparación
+        cook: Cocinar y jugar
+        lab: El Lab
+        account: Mi espacio
+        join_text: Una cuenta gratuita para guardar tus mezclas, tus favoritos y tu progreso.
+        login: '¿Ya tienes cuenta? Inicia sesión'
+        copyright_tagline: Cocinado con curiosidad
+        legal_nav: Información legal
         legal: Aviso legal
         privacy: Privacidad
+        my_data: Mis datos
         scroll_top: Volver arriba
 
 gamification:

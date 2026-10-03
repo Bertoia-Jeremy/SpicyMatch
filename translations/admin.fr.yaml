@@ -3,6 +3,9 @@ admin:
     dashboard:
         menu: Tableau de bord
     menu:
+        section_faq: FAQ
+        faq_questions: Questions
+        faq_categories: Catégories FAQ
         section_content: Contenu
         section_preparation: Préparation
         section_gamification: Gamification
@@ -27,6 +30,10 @@ admin:
         discovery_stats: Stats découverte
         site: Site SpicyMatch
     entity:
+        faq_question_singular: Question FAQ
+        faq_question_plural: Questions FAQ
+        faq_category_singular: Catégorie FAQ
+        faq_category_plural: Catégories FAQ
         achievement_singular: Succès
         achievement_plural: Succès
         game_session_singular: Session de jeu
@@ -34,6 +41,12 @@ admin:
         gdpr_request_singular: Demande RGPD
         gdpr_request_plural: Demandes RGPD
     field:
+        code: Code
+        position: Position
+        published: Publiée
+        question: Question
+        answer: Réponse
+        faq_category: Catégorie
         name: Nom
         translations: Traductions (EN / ES)
         description: Description
@@ -158,3 +171,10 @@ admin:
         matches_per_day: Mélanges / jour
         level_bucket: 'Niv. %from%-%to%'
         xp_total: XP total
+    help:
+        position: "Ordre d'affichage croissant (0 en premier)."
+        faq_category_code: "Identifiant technique en minuscules et tirets (ex. compte), utilisé pour les filtres et ancres de la page FAQ."
+        faq_answer: "Texte brut, les retours à la ligne sont conservés. Aucune allégation santé."
+        faq_spices: "Optionnel : rattache la question à des fiches épices."
+    flash:
+        faq_category_in_use: "Suppression impossible : cette catégorie contient encore des questions. Déplace ou supprime-les d'abord."

@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace App\Tests\Controller\Admin;
 
 use App\Controller\Admin\CookingTipsCrudController;
+use App\Controller\Admin\FaqCategoryCrudController;
+use App\Controller\Admin\FaqQuestionCrudController;
 use App\Controller\Admin\SpiceDuoCrudController;
 use App\Controller\Admin\SpicesCrudController;
 use App\Entity\CookingTips;
+use App\Entity\FaqCategory;
+use App\Entity\FaqQuestion;
 use App\Entity\PreparationTips;
 use App\Entity\SpiceDuo;
 use App\Entity\Users;
@@ -136,11 +140,36 @@ final class AdminCrudSmokeTest extends WebTestCase
         self::assertResponseIsSuccessful();
     }
 
+    /**
+     * @return iterable<string, array{class-string, class-string, string}>
+     */
+    public static function faqPages(): iterable
+    {
+        foreach ([
+            'question' => [FaqQuestionCrudController::class, FaqQuestion::class],
+            'category' => [FaqCategoryCrudController::class, FaqCategory::class],
+        ] as $name => [$crud, $entity]) {
+            foreach (['index', 'new', 'edit'] as $action) {
+                yield $name . ' ' . $action => [$crud, $entity, $action];
+            }
+        }
+    }
+
+    #[DataProvider('faqPages')]
+    public function testFaqCrudPageRenders(string $crud, string $entity, string $action): void
+    {
+        $id = $action === 'edit' ? $this->firstId($entity) : null;
+        $this->client->request('GET', $this->url($crud, $action, $id));
+        self::assertResponseIsSuccessful();
+    }
+
     private function url(string $crud, string $action, ?int $id = null): string
     {
         $slug = match ($crud) {
             SpiceDuoCrudController::class => 'spice-duo',
             CookingTipsCrudController::class => 'cooking-tips',
+            FaqQuestionCrudController::class => 'faq-question',
+            FaqCategoryCrudController::class => 'faq-category',
             default => 'spices',
         };
 

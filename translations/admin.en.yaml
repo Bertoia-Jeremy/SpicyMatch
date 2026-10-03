@@ -3,6 +3,9 @@ admin:
     dashboard:
         menu: Dashboard
     menu:
+        section_faq: FAQ
+        faq_questions: Questions
+        faq_categories: FAQ categories
         section_content: Content
         section_preparation: Preparation
         section_gamification: Gamification
@@ -27,6 +30,10 @@ admin:
         discovery_stats: Discovery stats
         site: SpicyMatch site
     entity:
+        faq_question_singular: FAQ question
+        faq_question_plural: FAQ questions
+        faq_category_singular: FAQ category
+        faq_category_plural: FAQ categories
         achievement_singular: Achievement
         achievement_plural: Achievements
         game_session_singular: Game session
@@ -34,6 +41,12 @@ admin:
         gdpr_request_singular: GDPR request
         gdpr_request_plural: GDPR requests
     field:
+        code: Code
+        position: Position
+        published: Published
+        question: Question
+        answer: Answer
+        faq_category: Category
         name: Name
         translations: Translations (EN / ES)
         description: Description
@@ -158,3 +171,10 @@ admin:
         matches_per_day: Blends / day
         level_bucket: 'Lvl %from%-%to%'
         xp_total: Total XP
+    help:
+        position: "Ascending display order (0 first)."
+        faq_category_code: "Technical identifier in lowercase and hyphens (e.g. account), used for FAQ page filters and anchors."
+        faq_answer: "Plain text, line breaks are kept. No health claims."
+        faq_spices: "Optional: binds the question to spice pages."
+    flash:
+        faq_category_in_use: "Cannot delete: this category still contains questions. Move or delete them first."

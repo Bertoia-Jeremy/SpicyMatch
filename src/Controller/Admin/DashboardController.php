@@ -192,6 +192,10 @@ class DashboardController extends AbstractDashboardController
         );
         yield MenuItem::linkTo(SpiceDuoCrudController::class, 'admin.menu.spice_duos', 'fa fa-link');
 
+        yield MenuItem::section('admin.menu.section_faq');
+        yield MenuItem::linkTo(FaqQuestionCrudController::class, 'admin.menu.faq_questions', 'fa fa-circle-question');
+        yield MenuItem::linkTo(FaqCategoryCrudController::class, 'admin.menu.faq_categories', 'fa fa-folder-tree');
+
         yield MenuItem::section('admin.menu.section_gamification');
         yield MenuItem::linkTo(AchievementCrudController::class, 'admin.menu.achievements', 'fa fa-trophy');
         yield MenuItem::linkTo(GameSessionCrudController::class, 'admin.menu.game_sessions', 'fa fa-gamepad');

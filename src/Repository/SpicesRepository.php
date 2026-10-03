@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\AromaticCompound;
 use App\Entity\AromaticGroups;
 use App\Entity\Spices;
 use App\Repository\Concern\LocalizedSlugLookupTrait;
 use App\Seo\SitemapSourceInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\ParameterType;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use SortDirection;
 
@@ -333,6 +336,133 @@ class SpicesRepository extends ServiceEntityRepository implements SitemapSourceI
     }
 
     /**
+     * @return array{primary: list<Spices>, secondary: list<Spices>}
+     */
+    public function findByCompound(AromaticCompound $compound, string $locale): array
+    {
+        $qb = $this->createQueryBuilder('s')
+            ->addSelect('ag', 'st', 'CASE WHEN :compound MEMBER OF s.aromaticsCompounds THEN 1 ELSE 0 END AS isPrimary')
+            ->leftJoin('s.aromaticGroups', 'ag')
+            ->leftJoin('s.spicyType', 'st')
+            ->andWhere(':compound MEMBER OF s.aromaticsCompounds OR :compound MEMBER OF s.secondary_aromatics_compounds')
+            ->andWhere('s.deleted_at IS NULL')
+            ->setParameter('compound', $compound);
+
+        if ($locale === 'fr') {
+            $qb->orderBy('s.name', SortDirection::Ascending);
+        } else {
+            $qb->leftJoin('s.translations', 'str', 'WITH', 'str.locale = :loc')
+                ->leftJoin('ag.translations', 'agt', 'WITH', 'agt.locale = :loc')
+                ->leftJoin('st.translations', 'stt', 'WITH', 'stt.locale = :loc')
+                ->addSelect('str', 'agt', 'stt', 'COALESCE(str.name, s.name) AS HIDDEN sortName')
+                ->setParameter('loc', $locale)
+                ->orderBy('sortName', SortDirection::Ascending);
+        }
+
+        $grouped = [
+            'primary' => [],
+            'secondary' => [],
+        ];
+        foreach ($qb->getQuery()->getResult() as $row) {
+            $grouped[(int) $row['isPrimary'] === 1 ? 'primary' : 'secondary'][] = $row[0];
+        }
+
+        return $grouped;
+    }
+
+    /**
+     * @param list<int> $compoundIds
+     * @return list<array{spice: Spices, primary: int, shared: int, links: list<array{id: int, primary: bool}>}>
+     */
+    public function findByCompoundIds(array $compoundIds, string $locale): array
+    {
+        if ($compoundIds === []) {
+            return [];
+        }
+
+        $qb = $this->createQueryBuilder('s')
+            ->addSelect(
+                'ag',
+                'st',
+                '(SELECT COUNT(p.id) FROM App\Entity\AromaticCompound p WHERE p.id IN (:ids) AND p MEMBER OF s.aromaticsCompounds) AS primaryCount',
+                '(SELECT COUNT(q.id) FROM App\Entity\AromaticCompound q WHERE q.id IN (:ids) AND (q MEMBER OF s.aromaticsCompounds OR q MEMBER OF s.secondary_aromatics_compounds)) AS sharedCount',
+            )
+            ->leftJoin('s.aromaticGroups', 'ag')
+            ->leftJoin('s.spicyType', 'st')
+            ->andWhere('EXISTS (SELECT r.id FROM App\Entity\AromaticCompound r WHERE r.id IN (:ids) AND (r MEMBER OF s.aromaticsCompounds OR r MEMBER OF s.secondary_aromatics_compounds))')
+            ->andWhere('s.deleted_at IS NULL')
+            ->setParameter('ids', $compoundIds)
+            ->orderBy('primaryCount', SortDirection::Descending)
+            ->addOrderBy('sharedCount', SortDirection::Descending);
+
+        if ($locale === 'fr') {
+            $qb->addOrderBy('s.name', SortDirection::Ascending);
+        } else {
+            $qb->leftJoin('s.translations', 'str', 'WITH', 'str.locale = :loc')
+                ->leftJoin('ag.translations', 'agt', 'WITH', 'agt.locale = :loc')
+                ->leftJoin('st.translations', 'stt', 'WITH', 'stt.locale = :loc')
+                ->addSelect('str', 'agt', 'stt', 'COALESCE(str.name, s.name) AS HIDDEN sortName')
+                ->setParameter('loc', $locale)
+                ->addOrderBy('sortName', SortDirection::Ascending);
+        }
+
+        $result = $qb->getQuery()
+            ->getResult();
+        if ($result === []) {
+            return [];
+        }
+
+        $links = $this->findCompoundLinks($compoundIds);
+
+        $rows = [];
+        foreach ($result as $row) {
+            $rows[] = [
+                'spice' => $row[0],
+                'primary' => (int) $row['primaryCount'],
+                'shared' => (int) $row['sharedCount'],
+                'links' => $links[$row[0]->getId()] ?? [],
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @param list<int> $compoundIds
+     * @return array<int, list<array{id: int, primary: bool}>>
+     */
+    private function findCompoundLinks(array $compoundIds): array
+    {
+        $sql = 'SELECT spices_id AS spice, aromatic_compound_id AS compound, 1 AS main
+                FROM spices_aromatic_compound
+                WHERE aromatic_compound_id IN (:ids)
+                UNION ALL
+                SELECT spices_id, aromatic_compound_id, 0
+                FROM secondary_spices_aromatic_compound
+                WHERE aromatic_compound_id IN (:ids)
+                ORDER BY main DESC';
+
+        $links = [];
+        foreach ($this->getEntityManager()->getConnection()->executeQuery($sql, [
+            'ids' => $compoundIds,
+        ], [
+            'ids' => ArrayParameterType::INTEGER,
+        ])->iterateAssociative() as $row) {
+            $spice = (int) $row['spice'];
+            $compound = (int) $row['compound'];
+            if (array_any($links[$spice] ?? [], static fn (array $link): bool => $link['id'] === $compound)) {
+                continue;
+            }
+            $links[$spice][] = [
+                'id' => $compound,
+                'primary' => (int) $row['main'] === 1,
+            ];
+        }
+
+        return $links;
+    }
+
+    /**
      * @param list<int> $sharedCompoundIds
      * @param list<int> $excludedSpiceIds
      * @return list<Spices>
@@ -547,14 +677,14 @@ class SpicesRepository extends ServiceEntityRepository implements SitemapSourceI
      * @param list<int> $excludeIds
      * @return list<Spices>
      */
-    public function findRelated(Spices $spice, int $limit = 4, array $excludeIds = []): array
+    public function findRelated(Spices $spice, int $limit = 4, array $excludeIds = [], string $locale = 'fr'): array
     {
         $group = $spice->getAromaticGroups();
         if (! $group instanceof AromaticGroups) {
             return [];
         }
 
-        return $this->createQueryBuilder('s')
+        return $this->withCardJoins($this->createQueryBuilder('s'), $locale)
             ->where('s.aromaticGroups = :group')
             ->andWhere('s.id NOT IN (:exclude)')
             ->andWhere('s.deleted_at IS NULL')
@@ -569,16 +699,14 @@ class SpicesRepository extends ServiceEntityRepository implements SitemapSourceI
      * @param list<int> $ids
      * @return list<Spices>
      */
-    public function findActiveByIdsInOrder(array $ids): array
+    public function findActiveByIdsInOrder(array $ids, string $locale = 'fr'): array
     {
         if ($ids === []) {
             return [];
         }
 
         $byId = [];
-        foreach ($this->createQueryBuilder('s')
-            ->leftJoin('s.aromaticGroups', 'ag')
-            ->addSelect('ag')
+        foreach ($this->withCardJoins($this->createQueryBuilder('s'), $locale)
             ->where('s.id IN (:ids)')
             ->andWhere('s.deleted_at IS NULL')
             ->setParameter('ids', $ids)
@@ -588,6 +716,77 @@ class SpicesRepository extends ServiceEntityRepository implements SitemapSourceI
         }
 
         return array_values(array_filter(array_map(static fn (int $id): ?Spices => $byId[$id] ?? null, $ids)));
+    }
+
+    public function preloadForView(Spices $spice, string $locale): void
+    {
+        $translated = $locale !== 'fr';
+
+        foreach (['aromaticsCompounds', 'secondary_aromatics_compounds'] as $plane) {
+            $qb = $this->createQueryBuilder('s')
+                ->select('s', 'c', 'f')
+                ->leftJoin('s.' . $plane, 'c')
+                ->leftJoin('c.alchemyFlavors', 'f')
+                ->where('s = :spice')
+                ->setParameter('spice', $spice);
+            if ($translated) {
+                $qb->leftJoin('c.translations', 'ct', 'WITH', 'ct.locale = :loc')
+                    ->leftJoin('f.translations', 'ft', 'WITH', 'ft.locale = :loc')
+                    ->addSelect('ct', 'ft')
+                    ->setParameter('loc', $locale);
+            }
+            $qb->getQuery()
+                ->getResult();
+        }
+
+        $cooking = $this->createQueryBuilder('s')
+            ->select('s', 'ct', 'ag', 'st')
+            ->leftJoin('s.cookingTips', 'ct')
+            ->leftJoin('s.aromaticGroups', 'ag')
+            ->leftJoin('s.spicyType', 'st')
+            ->where('s = :spice')
+            ->setParameter('spice', $spice);
+        if ($translated) {
+            $cooking->leftJoin('ct.translations', 'ctt', 'WITH', 'ctt.locale = :loc')
+                ->leftJoin('ag.translations', 'agt', 'WITH', 'agt.locale = :loc')
+                ->leftJoin('st.translations', 'stt', 'WITH', 'stt.locale = :loc')
+                ->addSelect('ctt', 'agt', 'stt')
+                ->setParameter('loc', $locale);
+        }
+        $cooking->getQuery()
+            ->getResult();
+
+        $preparation = $this->createQueryBuilder('s')
+            ->select('s', 'pt', 'pm')
+            ->leftJoin('s.preparationTips', 'pt')
+            ->leftJoin('pt.preparationMethod', 'pm')
+            ->where('s = :spice')
+            ->setParameter('spice', $spice);
+        if ($translated) {
+            $preparation->leftJoin('pt.translations', 'ptt', 'WITH', 'ptt.locale = :loc')
+                ->leftJoin('pm.translations', 'pmt', 'WITH', 'pmt.locale = :loc')
+                ->addSelect('ptt', 'pmt')
+                ->setParameter('loc', $locale);
+        }
+        $preparation->getQuery()
+            ->getResult();
+    }
+
+    private function withCardJoins(QueryBuilder $qb, string $locale): QueryBuilder
+    {
+        $qb->leftJoin('s.aromaticGroups', 'ag')
+            ->leftJoin('s.spicyType', 'st')
+            ->addSelect('ag', 'st');
+
+        if ($locale !== 'fr') {
+            $qb->leftJoin('s.translations', 'str', 'WITH', 'str.locale = :loc')
+                ->leftJoin('ag.translations', 'agt', 'WITH', 'agt.locale = :loc')
+                ->leftJoin('st.translations', 'stt', 'WITH', 'stt.locale = :loc')
+                ->addSelect('str', 'agt', 'stt')
+                ->setParameter('loc', $locale);
+        }
+
+        return $qb;
     }
 
     /**

@@ -1,16 +1,19 @@
 {% extends 'base.html.twig' %}
-{% import "components/_macro_modal_preparation_method.html.twig" as macroModalPreparationMethod %}
 
-{% block title %}SpicyMatch — {{ spice.getLocalizedName(app.request.locale) }}{% endblock %}
+{% block title %}{{ 'ui.meta.title.spice'|trans({'%name%': spice.getLocalizedName(app.request.locale)}) }}{% endblock %}
+
+{% block og_type %}article{% endblock %}
 
 {% block metas %}
     {% set _heroImg = vich_uploader_asset(spice, 'imageFile') %}
     {% if _heroImg %}
-        <link rel="preload" as="image" type="image/webp" href="{{ _heroImg|imagine_filter('spice_hero') }}" fetchpriority="high">
+        <link rel="preload" as="image" type="image/webp" href="{{ _heroImg|imagine_filter('spice_hero') }}"
+              imagesrcset="{{ _heroImg|imagine_filter('spice_card') }} 400w, {{ _heroImg|imagine_filter('spice_hero') }} 800w"
+              imagesizes="(min-width: 64rem) 20rem, (min-width: 48rem) 15rem, (min-width: 30rem) 10.5rem, 9rem" fetchpriority="high">
     {% endif %}
 {% endblock %}
 
-{% block meta_description %}{{ spice.getLocalizedDescription(app.request.locale)|seo_summary|default('ui.meta.description'|trans) }}{% endblock %}
+{% block meta_description %}{{ spice.getLocalizedDescription(app.request.locale)|seo_summary|default(spice.getLocalizedName(app.request.locale) ~ 'ui.catalog.define_lead'|trans({'%definition%': 'ui.catalog.define_spice'|trans})) }}{% endblock %}
 
 {% block structured_data %}{{ include('partials/_json_ld.html.twig', {subject: spice}) }}{% endblock %}
 
@@ -18,462 +21,306 @@
     {% set _ogImg = vich_uploader_asset(spice, 'imageFile') %}
     {% if _ogImg %}
         <meta property="og:image" content="{{ _ogImg|imagine_filter('spice_hero') }}">
+        <meta property="og:image:type" content="image/webp">
+        <meta property="og:image:width" content="800">
+        <meta property="og:image:height" content="800">
+        <meta property="og:image:alt" content="{{ spice.getLocalizedName(app.request.locale) }}">
     {% endif %}
 {% endblock %}
 
 {% block body %}
+    {% set loc = app.request.locale %}
+    {% set name = spice.getLocalizedName(loc) %}
+    {% set group = spice.aromaticGroups %}
+    {% set type = spice.spicyType %}
+    {% set tint = group and group.color matches '/^#[0-9a-fA-F]{3,8}$/' ? group.color : null %}
+    {% set heroImg = vich_uploader_asset(spice, 'imageFile') %}
+    {% set description = spice.getLocalizedDescription(loc) %}
+    {% set definition = type ? 'ui.catalog.define_spice_type'|trans({'%type%': type.getLocalizedName(loc)}) : 'ui.catalog.define_spice'|trans %}
+    {% set definition = group ? 'ui.catalog.define_spice_group'|trans({'%base%': definition, '%group%': group.getLocalizedName(loc)}) : definition %}
+    {% set cooking = spice.getLocalizedCooking(loc) %}
+    {% set informations = spice.getLocalizedInformations(loc) %}
+    {% set benefits = spice.getLocalizedBenefits(loc) %}
+    {% set primaries = spice.aromaticsCompounds %}
+    {% set secondaries = spice.secondaryAromaticsCompounds %}
+    {% set moments = spice.cookingTips|sort((a, b) => a.moment.value <=> b.moment.value) %}
+    {% set preps = spice.preparationTips %}
+    {% set hasProfile = primaries is not empty or secondaries is not empty %}
+    {% set hasKitchen = moments is not empty %}
+    {% set hasNotebook = cooking or informations or benefits or preps is not empty %}
+    {% set hasPairs = compatibleSpices is not empty %}
+    {% set swatches = ['spc-swatch-1', 'spc-swatch-2', 'spc-swatch-3', 'spc-swatch-4', 'spc-swatch-5'] %}
+    {% set flavors = {} %}
+    {% for compound in primaries.toArray|merge(secondaries.toArray) %}
+        {% for flavor in compound.alchemyFlavors %}
+            {% set flavors = flavors|merge({('f' ~ flavor.id): flavor}) %}
+        {% endfor %}
+    {% endfor %}
+    {% set section = 0 %}
+    {{ include('partials/_content_read.html.twig', {kind: 'spice', id: spice.id}) }}
 
-{% set loc = app.request.locale %}
-{% set color = spice.aromaticGroups ? spice.aromaticGroups.color : '#C2410C' %}
-{% set colorAttr = color|e('html_attr') %}
+    <article class="detail-page spc-page"{% if tint %} style="--spc-tint: {{ tint }}"{% endif %}>
+        <twig:Catalog:Crumbs
+            :items="[{label: 'ui.catalog.breadcrumb_spices'|trans, href: path('index_spices')}]|merge(group ? [{label: group.getLocalizedName(loc), href: path('view_aromatic_groups', {slug: group.getLocalizedSlug(loc)})}] : [])"
+            current="{{ name }}"
+        />
 
-{{ include('partials/_content_read.html.twig', {kind: 'spice', id: spice.id}) }}
-
-{% set pileConfig = [
-    {cx: 50, cy: 48, size: 46},
-    {cx: 27, cy: 32, size: 28},
-    {cx: 72, cy: 30, size: 26},
-    {cx: 30, cy: 70, size: 22},
-    {cx: 73, cy: 70, size: 20},
-] %}
-{% set pileColors = [
-    {light: '#FDBA74', dark: '#C2410C'},
-    {light: '#FDE68A', dark: '#D97706'},
-    {light: '#FCA5A5', dark: '#B91C1C'},
-    {light: '#86EFAC', dark: '#15803D'},
-    {light: '#C4B5FD', dark: '#7C3AED'},
-] %}
-
-<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-    <nav class="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-widest mb-7"
-         style="color: rgba(42,24,16,0.4)">
-        <a href="{{ path('index_spices') }}" class="transition-colors hover:opacity-70">{{ 'ui.catalog.breadcrumb_spices'|trans }}</a>
-        <span class="opacity-40">/</span>
-        {% if spice.aromaticGroups %}
-            <span class="cursor-default">{{ spice.aromaticGroups.getLocalizedName(loc) }}</span>
-            <span class="opacity-40">/</span>
-        {% endif %}
-        <span style="color: {{ color }}">{{ spice.getLocalizedName(loc) }}</span>
-    </nav>
-
-    <section class="reveal is-in mb-16">
-        <div class="relative rounded-3xl overflow-hidden shadow-sm"
-             style="background: linear-gradient(180deg, {{ color }}08 0%, {{ color }}14 100%);
-                    border: 1px solid rgba(184,134,74,0.25)">
-            <div class="absolute w-96 h-96 rounded-full pointer-events-none"
-                 style="background: radial-gradient(circle, {{ color }}20, transparent 65%); top:-180px; right:-120px; filter:blur(20px)"></div>
-            <div class="absolute w-80 h-80 rounded-full pointer-events-none"
-                 style="background: radial-gradient(circle, {{ color }}12, transparent 65%); bottom:-160px; left:-100px; filter:blur(20px)"></div>
-
-            <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-10 items-center p-10 md:p-14">
-                <div>
-                    <div class="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest
-                                rounded-full px-3 py-1.5 mb-5 shadow-sm"
-                         style="background: var(--color-parchment); border: 1px solid rgba(184,134,74,0.3);
-                                color: rgba(42,24,16,0.5)">
-                        {% if spice.aromaticGroups %}
-                            <span class="size-2.5 rounded-full flex-none" style="background: {{ color }}"></span>
-                            {{ spice.aromaticGroups.getLocalizedName(loc) }}
-                            {% if spice.spicyType %} · {{ spice.spicyType.name }}{% endif %}
-                        {% else %}
-                            <i class="fa-solid fa-seedling" style="color: {{ color }}" aria-hidden="true"></i>
-                            {% if spice.spicyType %}{{ spice.spicyType.name }}{% else %}{{ 'ui.catalog.spice_fallback'|trans }}{% endif %}
-                        {% endif %}
-                    </div>
-
-                    <h1 class="font-display font-normal mb-3 leading-none"
-                        style="font-size: clamp(2.5rem, 6vw, 4.5rem); letter-spacing: -0.025em; color: var(--color-ink-deep)">
-                        {{ spice.getLocalizedName(loc) }}
-                    </h1>
-
-                    {% if spice.getLocalizedDescription(loc) %}
-                        <p class="font-display text-lg leading-relaxed max-w-lg mb-7"
-                           style="color: rgba(42,24,16,0.5)">
-                            {{ spice.getLocalizedDescription(loc) }}
-                        </p>
-                    {% endif %}
-
-                    {% if spice.spicyType %}
-                        <div class="flex flex-wrap gap-3">
-                            <div class="inline-flex items-center gap-3 rounded-xl px-3.5 py-2.5 shadow-sm"
-                                 style="background: var(--color-parchment); border: 1px solid rgba(184,134,74,0.25)">
-                                <span class="size-8 rounded-lg grid place-items-center flex-none"
-                                      style="background: {{ color }}18">
-                                    <i class="fa-solid fa-tag text-sm" style="color: {{ color }}" aria-hidden="true"></i>
-                                </span>
-                                <span class="flex flex-col gap-0.5">
-                                    <span class="font-mono text-[9.5px] uppercase tracking-widest"
-                                          style="color: rgba(42,24,16,0.4)">{{ 'ui.catalog.type'|trans }}</span>
-                                    <span class="font-display text-[15px] font-medium leading-none"
-                                          style="color: var(--color-ink-deep)">{{ spice.spicyType.name }}</span>
-                                </span>
+        <header class="spc-hero{{ heroImg ? ' spc-hero-has-media' }}">
+            <div class="spc-hero-text">
+                {% if group or type %}
+                    <dl class="spc-facets">
+                        {% if group %}
+                            <div>
+                                <dt class="sr-only">{{ 'ui.catalog.group_badge'|trans }}</dt>
+                                <dd><a class="spc-facet" href="{{ path('view_aromatic_groups', {slug: group.getLocalizedSlug(loc)}) }}">
+                                    <span class="spc-facet-dot" aria-hidden="true"></span>{{ group.getLocalizedName(loc) }}
+                                </a></dd>
                             </div>
+                        {% endif %}
+                        {% if type %}
+                            <div>
+                                <dt class="sr-only">{{ 'ui.catalog.type_badge'|trans }}</dt>
+                                <dd><a class="spc-facet" href="{{ path('view_spicy_type', {slug: type.getLocalizedSlug(loc)}) }}">
+                                    <i class="fa-solid fa-tag" aria-hidden="true"></i>{{ type.getLocalizedName(loc) }}
+                                </a></dd>
+                            </div>
+                        {% endif %}
+                    </dl>
+                {% endif %}
+                <h1 class="detail-title{{ name|length > 24 ? ' detail-title-long' }}">{{ name }}</h1>
+                <twig:Catalog:Lead :term="name" :definition="definition" :text="description" />
+            </div>
+            {% if heroImg %}
+                <div class="spc-hero-media">
+                    <img src="{{ heroImg|imagine_filter('spice_hero') }}" alt="{{ name }}"
+                         srcset="{{ heroImg|imagine_filter('spice_card') }} 400w, {{ heroImg|imagine_filter('spice_hero') }} 800w"
+                         sizes="(min-width: 64rem) 20rem, (min-width: 48rem) 15rem, (min-width: 30rem) 10.5rem, 9rem"
+                         fetchpriority="high" loading="eager" decoding="async" width="800" height="800">
+                </div>
+            {% endif %}
+        </header>
+
+        {% if hasProfile or hasKitchen or hasNotebook or hasPairs %}
+            <nav class="spc-anchors" aria-label="{{ 'ui.catalog.spice_anchors_label'|trans }}">
+                <ul>
+                    {% if hasProfile %}<li><a class="spc-anchor" href="#spc-profile">{{ 'ui.catalog.profile'|trans }}</a></li>{% endif %}
+                    {% if hasKitchen %}<li><a class="spc-anchor" href="#spc-kitchen">{{ 'ui.catalog.in_kitchen'|trans }}</a></li>{% endif %}
+                    {% if hasNotebook %}<li><a class="spc-anchor" href="#spc-notebook">{{ 'ui.catalog.notebook'|trans }}</a></li>{% endif %}
+                    {% if hasPairs %}<li><a class="spc-anchor" href="#spc-pairs">{{ 'ui.catalog.pairs_with'|trans }}</a></li>{% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+
+        {% if hasProfile %}
+            {% set section = section + 1 %}
+            <section id="spc-profile" class="spc-section spc-profile" aria-labelledby="spc-profile-title">
+                <header class="detail-section-head">
+                    <span class="detail-section-num">{{ '%02d'|format(section) }} — {{ 'ui.catalog.profile'|trans }}</span>
+                    <h2 id="spc-profile-title" class="detail-section-title">{{ 'ui.catalog.flavors_heading_html'|trans|raw }}</h2>
+                    <p class="spc-section-hint">{{ 'ui.catalog.flavors_intro'|trans }}</p>
+                </header>
+
+                <div class="spc-profile-grid">
+                    {% if primaries is not empty %}
+                        <div class="spc-bowl" aria-hidden="true">
+                            {% for compound in primaries|slice(0, 5) %}
+                                <span class="spc-pile spc-pile-{{ loop.index }} {{ swatches[loop.index0] }}">{{ loop.index }}</span>
+                            {% endfor %}
                         </div>
                     {% endif %}
-                </div>
 
-                <div class="relative aspect-square max-w-xs md:max-w-none w-full mx-auto md:justify-self-end">
-                    <div class="hero-img-blob relative">
-                        {% set heroImg = vich_uploader_asset(spice, 'imageFile') %}
-                        {% if heroImg %}
-                            <img src="{{ heroImg|imagine_filter('spice_hero') }}" alt="{{ spice.getLocalizedName(loc) }}"
-                                 fetchpriority="high" decoding="async" width="800" height="800"
-                                 class="absolute inset-0 w-full h-full object-cover">
+                    <div class="spc-profile-body">
+                        {% if primaries is not empty %}
+                            <h3 class="spc-subtitle">{{ 'ui.catalog.primary_compounds_heading_html'|trans|raw }}</h3>
+                            <ol class="spc-compounds">
+                                {% for compound in primaries %}
+                                    <li>
+                                        <a class="spc-compound" href="{{ path('view_aromatic_compound', {slug: compound.getLocalizedSlug(loc)}) }}">
+                                            <span class="spc-swatch {{ swatches[loop.index0] ?? 'spc-swatch-0' }}" aria-hidden="true">{{ loop.index }}</span>
+                                            <span class="spc-compound-body">
+                                                <span class="spc-compound-name">{{ compound.getLocalizedName(loc) }}</span>
+                                                {% if compound.alchemyFlavors is not empty %}
+                                                    <span class="spc-compound-notes">{{ compound.alchemyFlavors|map(f => f.getLocalizedName(loc))|join(' · ') }}</span>
+                                                {% endif %}
+                                            </span>
+                                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ol>
                         {% endif %}
-                        <div class="absolute inset-0 pointer-events-none"
-                             style="background: radial-gradient(circle at 28% 22%, rgba(255,255,255,.25), transparent 35%)"></div>
+
+                        {% if secondaries is not empty %}
+                            <div class="spc-background">
+                                <h3 class="spc-label">
+                                    <i class="fa-solid fa-flask-vial" aria-hidden="true"></i>{{ 'ui.catalog.secondary_compounds'|trans }}
+                                </h3>
+                                <p class="spc-background-hint">{{ 'ui.catalog.spice_background_hint'|trans }}</p>
+                                <ul class="ref-chips">
+                                    {% for compound in secondaries %}
+                                        <li><a class="ref-chip ref-chip-molecule" href="{{ path('view_aromatic_compound', {slug: compound.getLocalizedSlug(loc)}) }}">{{ compound.getLocalizedName(loc) }}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        {% if flavors is not empty %}
+                            <div class="spc-flavors">
+                                <h3 class="spc-label">{{ 'ui.catalog.compound_perceived'|trans }}</h3>
+                                <ul class="ref-chips">
+                                    {% for flavor in flavors %}
+                                        <li><a class="ref-chip ref-chip-flavor" href="{{ path('view_alchemy_flavors', {slug: flavor.getLocalizedSlug(loc)}) }}">{{ flavor.getLocalizedName(loc) }}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
                     </div>
-                    {% if spice.aromaticGroups %}
-                        <span class="hero-tag hero-tag-1">{{ spice.aromaticGroups.getLocalizedName(loc)|lower }}</span>
-                    {% endif %}
-                    {% if spice.spicyType %}
-                        <span class="hero-tag hero-tag-2">{{ spice.spicyType.name|lower }}</span>
-                    {% endif %}
                 </div>
-            </div>
-        </div>
-    </section>
+            </section>
+        {% endif %}
 
-    {% set sectionNum = 1 %}
+        {% set ad = include('partials/_ads_banner.html.twig') %}
+        {% if ad|trim %}
+            <div class="spc-ad">{{ ad }}</div>
+        {% endif %}
 
-    {% if spice.aromaticsCompounds is not empty %}
-    {% set sectionNum = sectionNum + 1 %}
-    <section class="section reveal is-in mb-16">
-        <div class="flex items-baseline justify-between gap-4 mb-7 flex-wrap">
-            <h2 class="font-display font-normal text-3xl leading-tight" style="letter-spacing: -0.02em; color: var(--color-ink-deep)">
-                <span class="font-mono text-sm mr-3" style="color: rgba(42,24,16,0.35)">0{{ sectionNum }} — {{ 'ui.catalog.profile'|trans }}</span>
-                {{ 'ui.catalog.flavors_heading_html'|trans({'%color%': colorAttr})|raw }}
-            </h2>
-        </div>
-        <p class="font-display text-lg mb-8 max-w-xl" style="color: rgba(42,24,16,0.4)">
-            {{ 'ui.catalog.flavors_intro'|trans }}
-        </p>
+        {% if hasKitchen %}
+            {% set section = section + 1 %}
+            <section id="spc-kitchen" class="spc-section spc-kitchen" aria-labelledby="spc-kitchen-title">
+                <header class="detail-section-head">
+                    <span class="detail-section-num">{{ '%02d'|format(section) }} — {{ 'ui.catalog.in_kitchen'|trans }} · {{ 'ui.catalog.moments'|trans({'%count%': moments|length}) }}</span>
+                    <h2 id="spc-kitchen-title" class="detail-section-title">{{ 'ui.catalog.in_kitchen_heading_html'|trans|raw }}</h2>
+                </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-            <div class="bowl">
-                <div class="bowl-rim"></div>
-                {% for compound in spice.aromaticsCompounds|slice(0, 5) %}
-                    {% set cfg = pileConfig[loop.index0] ?? {cx: 50, cy: 50, size: 20} %}
-                    {% set clr = pileColors[loop.index0] ?? {light: '#FDBA74', dark: '#C2410C'} %}
-                    {% set half = cfg.size / 2 %}
-                    <div class="pile" style="
-                        left: calc({{ cfg.cx }}% - {{ half }}%);
-                        top: calc({{ cfg.cy }}% - {{ half }}%);
-                        width: {{ cfg.size }}%;
-                        height: {{ cfg.size }}%;
-                        background: radial-gradient(circle at 30% 30%, {{ clr.light }}, {{ clr.dark }});
-                    ">
-                        <span style="color:white; font-size: {{ loop.index0 == 0 ? '13' : '10' }}px; font-family: var(--font-display); text-align: center; padding: 0 8px; line-height: 1.15; font-weight: 500">
-                            {{ compound.getLocalizedName(loc) }}
-                        </span>
-                    </div>
-                {% endfor %}
-            </div>
+                <ol class="spc-moments">
+                    {% for tip in moments %}
+                        {% set advantages = tip.getLocalizedAdvantages(loc) %}
+                        {% set tipDuos = duosByCook[tip.id] ?? [] %}
+                        <li class="spc-moment">
+                            <span class="spc-moment-glyph" aria-hidden="true"><i class="fa-solid {{ tip.moment.icon }}"></i></span>
+                            <div class="spc-moment-body">
+                                <p class="spc-moment-when">{{ tip.moment.label|trans }}</p>
+                                <h3 class="spc-moment-title">{{ tip.getLocalizedTitle(loc) ?? tip.moment.label|trans }}</h3>
+                                <p class="spc-moment-text">{{ tip.getLocalizedText(loc) }}</p>
+                                {% if advantages %}
+                                    <p class="spc-advantage"><i class="fa-solid fa-check" aria-hidden="true"></i><span>{{ advantages }}</span></p>
+                                {% endif %}
+                                {% if tipDuos is not empty %}
+                                    <ul class="spc-duos" aria-label="{{ 'ui.catalog.chef_duo'|trans }}">
+                                        {% for duo in tipDuos %}
+                                            <li class="spc-duo">
+                                                {% if duo.method %}<span class="spc-duo-method">{{ duo.method }}</span>{% endif %}
+                                                <span class="spc-duo-title">{{ duo.title }}</span>
+                                                <span class="spc-duo-effect">{{ duo.effect }}</span>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ol>
+            </section>
+        {% endif %}
 
-            <div>
-                <h3 class="font-display text-xl font-medium mb-2" style="color: var(--color-ink-deep)">
-                    {{ 'ui.catalog.primary_compounds_heading_html'|trans({'%color%': colorAttr})|raw }}
-                </h3>
-                <p class="font-display mb-5" style="color: rgba(42,24,16,0.4)">{{ 'ui.catalog.primary_compounds_intro'|trans }}</p>
+        {% if hasNotebook %}
+            {% set section = section + 1 %}
+            <section id="spc-notebook" class="spc-section spc-notebook" aria-labelledby="spc-notebook-title">
+                <header class="detail-section-head">
+                    <span class="detail-section-num">{{ '%02d'|format(section) }} — {{ 'ui.catalog.notebook'|trans }}</span>
+                    <h2 id="spc-notebook-title" class="detail-section-title">{{ 'ui.catalog.notebook_heading_html'|trans|raw }}</h2>
+                </header>
 
-                <div class="rounded-2xl overflow-hidden shadow-sm mb-4"
-                     style="background: var(--color-parchment); border: 1px solid rgba(184,134,74,0.25)">
-                    {% for compound in spice.aromaticsCompounds|slice(0, 5) %}
-                        {% set clr = pileColors[loop.index0] ?? {light: '#FDBA74', dark: '#C2410C'} %}
-                        <div class="flex items-center gap-3 px-4 py-3 {{ not loop.last ? 'border-b' : '' }}"
-                             style="{{ not loop.last ? 'border-color: rgba(184,134,74,0.15)' : '' }}">
-                            <span class="size-5 rounded-full flex-none shadow-sm"
-                                  style="background: radial-gradient(circle at 30% 30%, {{ clr.light }}, {{ clr.dark }})"></span>
-                            <a href="{{ path('view_aromatic_compound', {slug: compound.getLocalizedSlug(loc)}) }}"
-                               class="font-display text-[15px] font-medium flex-1 hover:underline transition-opacity hover:opacity-70"
-                               style="color: var(--color-ink-deep)">{{ compound.getLocalizedName(loc) }}</a>
-                            {% if compound.AlchemyFlavors is not empty %}
-                                <span class="font-mono text-[9.5px] uppercase tracking-wide"
-                                      style="color: rgba(42,24,16,0.4)">
-                                    {{ compound.AlchemyFlavors|map(f => f.name)|join(' · ') }}
-                                </span>
+                <div class="spc-notebook-grid">
+                    {% if cooking or informations or benefits %}
+                        <div class="spc-notes">
+                            {% if cooking %}
+                                <h3 class="spc-subtitle">{{ 'ui.catalog.tame_heading_html'|trans|raw }}</h3>
+                                <p class="spc-prose">{{ cooking }}</p>
+                            {% endif %}
+                            {% if informations %}
+                                <aside class="spc-callout">
+                                    <i class="fa-solid fa-lightbulb" aria-hidden="true"></i>
+                                    <div>
+                                        <h3 class="spc-callout-title">{{ 'ui.catalog.good_to_know'|trans }}</h3>
+                                        <p>{{ informations }}</p>
+                                    </div>
+                                </aside>
+                            {% endif %}
+                            {% if benefits %}
+                                <aside class="spc-callout spc-callout-tips">
+                                    <i class="fa-solid fa-lightbulb" aria-hidden="true"></i>
+                                    <div>
+                                        <h3 class="spc-callout-title">{{ 'ui.catalog.spice_good_to_know'|trans }}</h3>
+                                        <p>{{ benefits }}</p>
+                                    </div>
+                                </aside>
                             {% endif %}
                         </div>
-                    {% endfor %}
-                </div>
-
-                {% if spice.secondaryAromaticsCompounds is not empty %}
-                    <div class="rounded-xl p-4"
-                         style="background: var(--color-parchment-deep); border: 1px solid rgba(184,134,74,0.2)">
-                        <p class="font-mono text-[10px] uppercase tracking-widest mb-2 flex items-center gap-2"
-                           style="color: rgba(42,24,16,0.4)">
-                            <i class="fa-solid fa-flask-vial text-[10px]" style="color: {{ color }}" aria-hidden="true"></i>
-                            {{ 'ui.catalog.secondary_compounds'|trans }}
-                        </p>
-                        <div class="grid grid-cols-2 gap-x-4">
-                            {% for compound in spice.secondaryAromaticsCompounds %}
-                                <div class="flex items-baseline justify-between gap-2 py-1.5 border-b border-dotted last:border-0"
-                                     style="border-color: rgba(184,134,74,0.2)">
-                                    <a href="{{ path('view_aromatic_compound', {slug: compound.getLocalizedSlug(loc)}) }}"
-                                       class="font-display text-sm hover:underline transition-opacity hover:opacity-70"
-                                       style="color: rgba(42,24,16,0.7)">{{ compound.getLocalizedName(loc) }}</a>
-                                    {% if compound.AlchemyFlavors is not empty %}
-                                        <span class="font-mono text-[9px] shrink-0"
-                                              style="color: rgba(42,24,16,0.4)">{{ compound.AlchemyFlavors|first ? compound.AlchemyFlavors|first.name : '' }}</span>
-                                    {% endif %}
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endif %}
-
-                {% set allFlavors = [] %}
-                {% for compound in spice.aromaticsCompounds %}
-                    {% for flavor in compound.AlchemyFlavors %}
-                        {% if flavor.id not in allFlavors|map(f => f.id) %}
-                            {% set allFlavors = allFlavors|merge([flavor]) %}
-                        {% endif %}
-                    {% endfor %}
-                {% endfor %}
-                {% for compound in spice.secondaryAromaticsCompounds %}
-                    {% for flavor in compound.AlchemyFlavors %}
-                        {% if flavor.id not in allFlavors|map(f => f.id) %}
-                            {% set allFlavors = allFlavors|merge([flavor]) %}
-                        {% endif %}
-                    {% endfor %}
-                {% endfor %}
-                {% if allFlavors is not empty %}
-                    <div class="flex flex-wrap gap-2 mt-4">
-                        {% for flavor in allFlavors %}
-                            <a href="{{ path('view_alchemy_flavors', {slug: flavor.getLocalizedSlug(loc)}) }}"
-                               class="tag-primary hover:opacity-75 transition-opacity">{{ flavor.getLocalizedName(loc) }}</a>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </section>
-    {% endif %}
-
-    <div class="my-12">
-        {% include 'partials/_ads_banner.html.twig' %}
-    </div>
-
-    {% if spice.cookingTips is not empty %}
-    {% set sectionNum = sectionNum + 1 %}
-    <section class="section reveal is-in mb-16">
-        <div class="flex items-baseline justify-between gap-4 mb-3 flex-wrap">
-            <h2 class="font-display font-normal text-3xl leading-tight" style="letter-spacing: -0.02em; color: var(--color-ink-deep)">
-                <span class="font-mono text-sm mr-3" style="color: rgba(42,24,16,0.35)">0{{ sectionNum }} — {{ 'ui.catalog.in_kitchen'|trans }}</span>
-                {{ 'ui.catalog.in_kitchen_heading_html'|trans({'%color%': colorAttr})|raw }}
-            </h2>
-            <span class="font-mono text-[11px]" style="color: rgba(42,24,16,0.4)">{{ 'ui.catalog.moments'|trans({'%count%': spice.cookingTips|length}) }}</span>
-        </div>
-
-        <div class="marmites">
-            {% for tip in spice.cookingTips|sort((a, b) => a.moment.value <=> b.moment.value) %}
-                <article class="marmite">
-                    <div class="marmite-top">
-                        <div class="marmite-glyph">
-                            <i class="fa-solid {{ tip.moment.icon }} text-2xl" aria-hidden="true"></i>
-                        </div>
-                        <div class="marmite-step">{{ loop.index }}</div>
-                    </div>
-                    <div class="marmite-when">{{ tip.moment.label|trans }}</div>
-                    <h4 class="font-display text-xl font-medium mb-3 leading-tight" style="text-wrap: balance; color: var(--color-ink-deep)">
-                        {{ tip.getLocalizedTitle(loc) ?? tip.moment.label|trans }}
-                    </h4>
-                    <p class="font-display text-[15px] leading-relaxed flex-1 mb-4" style="color: rgba(42,24,16,0.5)">{{ tip.getLocalizedText(loc) }}</p>
-                    {% set tipDuos = duosByCook[tip.id] ?? [] %}
-                    {% if tipDuos is not empty %}
-                        <ul class="marmite-duos" aria-label="{{ 'ui.catalog.chef_duo'|trans }}">
-                            {% for duo in tipDuos %}
-                                <li class="marmite-duo">
-                                    <span class="marmite-duo-method">{{ duo.method ?? '' }}</span>
-                                    <span class="marmite-duo-title">{{ duo.title }}</span>
-                                    <span class="marmite-duo-effect">{{ duo.effect }}</span>
-                                </li>
-                            {% endfor %}
-                        </ul>
                     {% endif %}
-                    <span class="marmite-foot">
-                        <i class="fa-solid fa-clock text-[10px]" style="color: {{ color }}" aria-hidden="true"></i>
-                        {{ 'ui.catalog.step'|trans }} {{ loop.index }}
-                    </span>
-                </article>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
 
-    {% if spice.cooking or spice.preparationTips is not empty %}
-    {% set sectionNum = sectionNum + 1 %}
-    <section class="section reveal is-in mb-16">
-        <div class="flex items-baseline justify-between gap-4 mb-7">
-            <h2 class="font-display font-normal text-3xl leading-tight" style="letter-spacing: -0.02em; color: var(--color-ink-deep)">
-                <span class="font-mono text-sm mr-3" style="color: rgba(42,24,16,0.35)">0{{ sectionNum }} — {{ 'ui.catalog.notebook'|trans }}</span>
-                {{ 'ui.catalog.notebook_heading_html'|trans({'%color%': colorAttr})|raw }}
-            </h2>
-        </div>
-
-        <div class="carnet-layout">
-            <div>
-                <h3 class="font-display text-xl font-medium mb-3 leading-tight" style="color: var(--color-ink-deep)">
-                    {{ 'ui.catalog.tame_heading_html'|trans({'%color%': colorAttr})|raw }}
-                </h3>
-
-                {% if spice.getLocalizedCooking(loc) %}
-                    <p class="font-display text-[16.5px] leading-relaxed mb-4" style="color: rgba(42,24,16,0.5)">
-                        {{ spice.getLocalizedCooking(loc) }}
-                    </p>
-                {% endif %}
-
-                {% if spice.getLocalizedInformations(loc) %}
-                    <div class="carnet-tip">
-                        <span class="carnet-tip-ic">
-                            <i class="fa-solid fa-lightbulb text-lg" aria-hidden="true"></i>
-                        </span>
-                        <div>
-                            <strong class="block font-display text-[15px] font-medium mb-1" style="color: var(--color-ink-deep)">{{ 'ui.catalog.good_to_know'|trans }}</strong>
-                            <span class="text-sm leading-relaxed" style="color: rgba(42,24,16,0.5)">{{ spice.getLocalizedInformations(loc) }}</span>
+                    {% if preps is not empty %}
+                        <div class="spc-preps">
+                            <h3 class="spc-label"><i class="fa-solid fa-mortar-pestle" aria-hidden="true"></i>{{ 'ui.catalog.spice_prep_title'|trans }}</h3>
+                            <ul class="spc-prep-list">
+                                {% for prep in preps %}
+                                    {% set advantages = prep.getLocalizedAdvantages(loc) %}
+                                    {% set method = prep.preparationMethod %}
+                                    <li class="spc-prep">
+                                        <h4 class="spc-prep-title">{{ prep.getLocalizedTitle(loc) }}</h4>
+                                        <p class="spc-prep-text">{{ prep.getLocalizedText(loc)|nl2br }}</p>
+                                        {% if advantages %}
+                                            <p class="spc-advantage"><i class="fa-solid fa-check" aria-hidden="true"></i><span>{{ advantages }}</span></p>
+                                        {% endif %}
+                                        {% if method %}
+                                            <a class="spc-prep-method" href="{{ path('view_preparation_methods', {slug: method.getLocalizedSlug(loc)}) }}">
+                                                {{ 'ui.catalog.spice_prep_method'|trans({'%name%': method.getLocalizedName(loc)}) }}
+                                                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                            </a>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
                         </div>
-                    </div>
-                {% endif %}
+                    {% endif %}
+                </div>
+            </section>
+        {% endif %}
 
-                {% if spice.preparationTips is not empty %}
-                    <div class="mt-5 space-y-3">
-                        {% for prep in spice.preparationTips %}
-                            <article class="card-warm p-4">
-                                <h4 class="font-semibold mb-1.5 text-sm" style="color: var(--color-ink-deep)">{{ prep.getLocalizedTitle(loc) }}</h4>
-                                <div class="w-10 h-0.5 mb-3 rounded" style="background-color: {{ color }}"></div>
-                                <p class="text-sm leading-relaxed" style="color: rgba(42,24,16,0.5)">{{ prep.getLocalizedText(loc)|nl2br }}</p>
-                                {% if prep.preparationMethod is not null %}
-                                    <div class="mt-2 flex justify-end">
-                                        {{ macroModalPreparationMethod.modal(
-                                            prep.preparationMethod.id,
-                                            prep.preparationMethod.getLocalizedName(loc),
-                                            true,
-                                            prep.preparationMethod.getLocalizedSlug(loc)
-                                        )}}
-                                    </div>
-                                {% endif %}
-                            </article>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-
-            <div class="vertus-list">
-                <h4 class="font-mono text-[10.5px] uppercase tracking-widest mb-3"
-                    style="color: rgba(42,24,16,0.4)">
-                    — {{ 'ui.catalog.its_assets'|trans }}
-                </h4>
-
-                {% set vertuIcons = ['fa-leaf', 'fa-heart', 'fa-star', 'fa-shield-halved', 'fa-circle-check'] %}
-
-                {% for prep in spice.preparationTips|slice(0, 4) %}
-                    <div class="vertu">
-                        <span class="vertu-ic">
-                            <i class="fa-solid {{ vertuIcons[loop.index0] ?? 'fa-leaf' }} text-lg" aria-hidden="true"></i>
-                        </span>
-                        <div class="min-w-0">
-                            <div class="font-display text-[16px] font-medium leading-tight mb-1"
-                                 style="color: var(--color-ink-deep)">
-                                {{ prep.getLocalizedTitle(loc) }}
-                            </div>
-                            <p class="text-[12.5px] leading-relaxed m-0"
-                               style="color: rgba(42,24,16,0.4)">
-                                {% set prepText = prep.getLocalizedText(loc) %}{{ prepText|slice(0, 120) }}{% if prepText|length > 120 %}…{% endif %}
-                            </p>
-                        </div>
-                    </div>
-                {% else %}
-                    {% for compound in spice.aromaticsCompounds|slice(0, 3) %}
-                        <div class="vertu">
-                            <span class="vertu-ic">
-                                <i class="fa-solid fa-flask text-lg" aria-hidden="true"></i>
-                            </span>
-                            <div class="min-w-0">
-                                <div class="font-display text-[16px] font-medium leading-tight mb-1"
-                                     style="color: var(--color-ink-deep)">
-                                    {{ compound.getLocalizedName(loc) }}
-                                </div>
-                                {% if compound.AlchemyFlavors is not empty %}
-                                    <p class="text-[12.5px] m-0" style="color: rgba(42,24,16,0.4)">
-                                        {{ 'ui.catalog.note_of'|trans({'%flavors%': compound.AlchemyFlavors|map(f => f.name)|join(', ')}) }}
-                                    </p>
-                                {% endif %}
-                            </div>
-                        </div>
+        {% if hasPairs %}
+            {% set section = section + 1 %}
+            <section id="spc-pairs" class="spc-section spc-pairs" data-rail="compatible" aria-labelledby="spc-pairs-title">
+                <header class="detail-section-head">
+                    <span class="detail-section-num">{{ '%02d'|format(section) }} — {{ 'ui.catalog.pairs_with'|trans }}</span>
+                    <h2 id="spc-pairs-title" class="detail-section-title">{{ 'ui.catalog.spice_pairs_title'|trans }}</h2>
+                    <p class="spc-section-hint">{{ 'ui.catalog.pairs_with_text'|trans({'%name%': name}) }}</p>
+                </header>
+                <ul class="spice-rail">
+                    {% for related in compatibleSpices %}
+                        <li>{{ include('spices/_rail_card.html.twig', {related: related, loc: loc}) }}</li>
                     {% endfor %}
-                {% endfor %}
-            </div>
-        </div>
-    </section>
-    {% endif %}
+                </ul>
+                <a class="btn-pill-base btn-pill-primary spc-cta" href="{{ path('index_spicy_match', {spice: spice.getLocalizedSlug(loc)}) }}">
+                    <i class="fa-solid fa-flask" aria-hidden="true"></i>
+                    <span>{{ 'ui.catalog.compose_with'|trans({'%name%': name}) }}</span>
+                </a>
+            </section>
+        {% endif %}
 
-    {% if compatibleSpices is not empty %}
-    <section class="reveal is-in mt-4 pt-10 mb-8" style="border-top: 1px dashed rgba(184,134,74,0.3)" data-rail="compatible">
-        <p class="text-center font-mono text-[11px] uppercase tracking-widest mb-1.5"
-           style="color: rgba(42,24,16,0.4)">
-            — {{ 'ui.catalog.pairs_with'|trans }} —
-        </p>
-        <p class="text-center font-display italic text-xl mb-8 max-w-md mx-auto"
-           style="color: rgba(42,24,16,0.4); text-wrap: balance">
-            {{ 'ui.catalog.pairs_with_text'|trans({'%name%': spice.getLocalizedName(loc)}) }}
-        </p>
-        <div class="fil-grid">
-            {% for related in compatibleSpices %}
-                {{ include('spices/_rail_card.html.twig', {related: related, loc: loc}) }}
-            {% endfor %}
-        </div>
-        <div class="mt-8 flex justify-center">
-            <twig:Button
-                label="{{ 'ui.catalog.compose_with'|trans({'%name%': spice.getLocalizedName(loc)}) }}"
-                variant="primary"
-                icon="fa-solid fa-flask"
-                href="{{ path('index_spicy_match', {spice: spice.getLocalizedSlug(loc)}) }}" />
-        </div>
-    </section>
-    {% endif %}
-
-    {% if relatedSpices is not empty %}
-    <section class="reveal is-in mt-4 pt-10 mb-8" style="border-top: 1px dashed rgba(184,134,74,0.3)">
-        <p class="text-center font-mono text-[11px] uppercase tracking-widest mb-1.5"
-           style="color: rgba(42,24,16,0.4)">
-            — {{ 'ui.catalog.spice_thread'|trans }} —
-        </p>
-        <p class="text-center font-display italic text-xl mb-8 max-w-md mx-auto"
-           style="color: rgba(42,24,16,0.4); text-wrap: balance">
-            {{ 'ui.catalog.spice_thread_text'|trans }}
-        </p>
-        <div class="fil-grid">
-            {% for related in relatedSpices %}
-                {{ include('spices/_rail_card.html.twig', {related: related, loc: loc}) }}
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-
-</div>
-
-{% block javascripts %}
-    {{ parent() }}
-    <script nonce="{{ csp_nonce('script') }}">
-        (function () {
-            function initReveal() {
-                var els = document.querySelectorAll('.reveal');
-                if (!els.length) return;
-                var io = new IntersectionObserver(function (entries) {
-                    entries.forEach(function (e) {
-                        if (e.isIntersecting) {
-                            e.target.classList.add('is-in');
-                            io.unobserve(e.target);
-                        }
-                    });
-                }, { threshold: 0, rootMargin: '0px 0px 200px 0px' });
-                els.forEach(function (el) { io.observe(el); });
-            }
-            document.addEventListener('DOMContentLoaded', initReveal);
-            document.addEventListener('turbo:load', initReveal);
-        })();
-    </script>
-{% endblock %}
-
+        {% if relatedSpices is not empty %}
+            {% set section = section + 1 %}
+            <section class="spc-section spc-thread" aria-labelledby="spc-thread-title">
+                <header class="detail-section-head">
+                    <span class="detail-section-num">{{ '%02d'|format(section) }} — {{ 'ui.catalog.spice_thread'|trans }}</span>
+                    <h2 id="spc-thread-title" class="detail-section-title">{{ 'ui.catalog.spice_thread_title'|trans }}</h2>
+                    <p class="spc-section-hint">{{ 'ui.catalog.spice_thread_text'|trans }}</p>
+                </header>
+                <ul class="spice-rail">
+                    {% for related in relatedSpices %}
+                        <li>{{ include('spices/_rail_card.html.twig', {related: related, loc: loc}) }}</li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+    </article>
 {% endblock %}

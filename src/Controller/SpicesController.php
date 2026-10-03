@@ -105,17 +105,18 @@ class SpicesController extends AbstractController
         }
 
         $spiceId = (int) $spice->getId();
+        $this->spicesRepository->preloadForView($spice, $locale);
         $duoRows = $spiceDuoRepository->findBySpiceIds([$spiceId], $locale);
 
         $compatibleIds = array_column(array_slice($academyManager->findCompatibleSpices($spice), 0, self::COMPATIBLE_POOL), 'id');
-        $compatibleSpices = array_slice($this->spicesRepository->findActiveByIdsInOrder($compatibleIds), 0, self::RAIL_SIZE);
+        $compatibleSpices = array_slice($this->spicesRepository->findActiveByIdsInOrder($compatibleIds, $locale), 0, self::RAIL_SIZE);
         $compatibleSpiceIds = array_map(static fn (Spices $s): int => (int) $s->getId(), $compatibleSpices);
 
         return $this->render('spices/view.html.twig', [
             'spice' => $spice,
             'duosByCook' => $duoMapBuilder->tooltips($duoRows)['byCook'],
             'compatibleSpices' => $compatibleSpices,
-            'relatedSpices' => $this->spicesRepository->findRelated($spice, self::RAIL_SIZE, $compatibleSpiceIds),
+            'relatedSpices' => $this->spicesRepository->findRelated($spice, self::RAIL_SIZE, $compatibleSpiceIds, $locale),
             'hreflang_slugs' => [
                 'fr' => $spice->getLocalizedSlug('fr'),
                 'en' => $spice->getLocalizedSlug('en'),

@@ -87,7 +87,7 @@ final class SpiceDuoRestitutionTest extends WebTestCase
         }
     }
 
-    public function testSpicePageShowsDuoUnderMarmite(): void
+    public function testSpicePageShowsDuoUnderItsCookingTip(): void
     {
         $client = self::createClient();
         $em = self::getContainer()->get(EntityManagerInterface::class);
@@ -105,7 +105,7 @@ final class SpiceDuoRestitutionTest extends WebTestCase
             $crawler = $client->request('GET', '/fr/epices/' . $slug);
 
             self::assertResponseIsSuccessful();
-            self::assertStringContainsString('Duo test chef', $crawler->filter('.marmite-duo')->text());
+            self::assertStringContainsString('Duo test chef', $crawler->filter('#spc-kitchen .spc-duos')->text());
         } finally {
             $em = self::getContainer()->get(EntityManagerInterface::class);
             $em->clear();

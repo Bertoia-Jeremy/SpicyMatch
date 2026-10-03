@@ -36,11 +36,7 @@
                   x-text="title || placeholder">{{ history.title ?? placeholder }}</span>
             {% else %}
             <span class="recipe-title-edit {{ history.title is null ? 'is-placeholder' }}"
-                  role="button"
-                  tabindex="0"
-                  aria-label="{{ 'ui.recipe.rename_aria'|trans }}"
-                  x-on:click="gateRename()"
-                  x-on:keydown.enter.prevent="gateRename()">{{ history.title ?? placeholder }}</span>
+                  x-on:click="gateRename()">{{ history.title ?? placeholder }}</span>
             {% endif %}
         </h1>
         <button type="button" class="recipe-pen" x-on:click="{{ is_granted('ROLE_USER') ? '$refs.titleEl.focus()' : 'gateRename()' }}" aria-label="{{ 'ui.recipe.rename'|trans }}">

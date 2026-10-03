@@ -135,6 +135,16 @@ final class GuestBlendTest extends WebTestCase
         self::assertNull($this->reloadHistory()->getTitle());
     }
 
+    public function testGuestTitleKeepsHeadingNameAndRenameStaysOnPenButton(): void
+    {
+        $this->ownInSession();
+        $crawler = $this->client->request('GET', '/fr/spicymatch/history/view/' . $this->historyId);
+
+        self::assertResponseIsSuccessful();
+        self::assertCount(0, $crawler->filter('h1 [role], h1 [aria-label], h1 [tabindex]'));
+        self::assertCount(1, $crawler->filter('button.recipe-pen[aria-label]'));
+    }
+
     public function testGuestBlendOfAnotherSessionIsNotReachable(): void
     {
         $this->client->request('GET', '/fr/spicymatch/history/view/' . $this->historyId);

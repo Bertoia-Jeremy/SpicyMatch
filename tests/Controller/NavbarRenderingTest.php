@@ -41,6 +41,17 @@ final class NavbarRenderingTest extends WebTestCase
         }
     }
 
+    public function testNavbarIsBannerLandmarkAndPanelAddsNoHeading(): void
+    {
+        $client = self::createClient();
+
+        $crawler = $client->request('GET', '/fr/');
+
+        self::assertResponseIsSuccessful();
+        self::assertCount(1, $crawler->filter('.site-nav-root > header.site-nav > nav[aria-label]'));
+        self::assertCount(0, $crawler->filter('#nav-panel h1, #nav-panel h2, #nav-panel h3, #nav-panel h4'));
+    }
+
     public function testConnectedPillShowsGradeAndLevelWhenGamificationIsOn(): void
     {
         $client = self::createClient();

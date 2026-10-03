@@ -27,6 +27,8 @@ final class SpiceViewTest extends WebTestCase
         self::assertNotContains('/fr/epices/' . $spice->getSlug(), $links);
         self::assertCount(1, $crawler->filter(sprintf('[data-rail="compatible"] a[href="/fr/spicymatch/?spice=%s"]', $spice->getSlug())));
         self::assertCount(0, $crawler->filter('[x-data="contentRead"]'));
+        self::assertCount(1, $crawler->filter('h1'));
+        self::assertCount(0, $crawler->filter('section aside, article aside'));
     }
 
     public function testEnglishPageLinksFacetsToGroupAndTypeAndShowsAdvantages(): void

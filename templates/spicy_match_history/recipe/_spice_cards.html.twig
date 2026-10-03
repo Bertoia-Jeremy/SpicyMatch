@@ -1,3 +1,4 @@
+{% set hex = '/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/' %}
 <div class="recipe-cards">
     {% for step in recipe.steps %}
         {% set id = step.spiceId %}
@@ -5,6 +6,7 @@
         {% set prep = step.preparation %}
         {% set cooking = step.cooking %}
         <article id="recipe-spice-{{ id }}" class="recipe-card">
+            <h2>
             <button type="button" class="recipe-card-head"
                     x-on:click="toggleSpice({{ id }})"
                     x-bind:aria-expanded="openSpiceId === {{ id }}"
@@ -18,12 +20,13 @@
                 <span class="recipe-moment-chip">{{ step.number }} · {{ step.moment.label|trans }}</span>
                 <i class="fa-solid fa-chevron-down recipe-chevron" x-bind:class="openSpiceId === {{ id }} && 'is-open'" aria-hidden="true"></i>
             </button>
+            </h2>
 
             <div id="recipe-spice-body-{{ id }}" class="recipe-card-body" x-show="openSpiceId === {{ id }}" x-cloak>
                 {% if step.group %}
-                    <a href="{{ path('view_spice', {slug: step.spice.getLocalizedSlug(loc)}) }}" class="recipe-family-link" style="color: {{ step.group.color ?? '#7A6A55' }}">
+                    <a href="{{ path('view_spice', {slug: step.spice.getLocalizedSlug(loc)}) }}" class="recipe-family-link">
                         <span class="flex items-center gap-2">
-                            <span class="recipe-dot" style="background-color: {{ step.group.color ?? '#7A6A55' }}" aria-hidden="true"></span>
+                            <span class="recipe-dot" style="background-color: {{ (step.group.color ?? '') matches hex ? step.group.color : '#7A6A55' }}" aria-hidden="true"></span>
                             <span class="recipe-mono !text-current">{{ step.group.getLocalizedName(loc) }}</span>
                         </span>
                         <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>

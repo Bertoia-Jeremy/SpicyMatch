@@ -68,8 +68,8 @@
 
 <div x-data="navMenu" class="site-nav-root">
 
-<nav class="site-nav" aria-label="{{ 'ui.navbar.main_nav'|trans }}">
-    <div class="site-nav-inner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<header class="site-nav">
+    <nav class="site-nav-inner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="{{ 'ui.navbar.main_nav'|trans }}">
 
         <div class="site-nav-side">
             <button type="button"
@@ -138,8 +138,8 @@
             </button>
         </div>
 
-    </div>
-</nav>
+    </nav>
+</header>
 
 <div class="nav-backdrop" x-bind:class="{ 'is-open': open }" @click="close()" aria-hidden="true"></div>
 
@@ -160,7 +160,7 @@
             <div class="nav-lab-card">
                 <span class="nav-lab-icon" aria-hidden="true"><i class="fa-solid fa-mortar-pestle"></i></span>
                 <span class="nav-lab-eyebrow">{{ 'ui.navbar.lab_eyebrow'|trans }}</span>
-                <h2 class="nav-lab-title">{{ 'ui.navbar.alchemy_title'|trans }}</h2>
+                <p class="nav-lab-title">{{ 'ui.navbar.alchemy_title'|trans }}</p>
                 <p class="nav-lab-text">{{ 'ui.navbar.lab_card_text'|trans }}</p>
                 <a href="{{ path('index_spicy_match') }}" class="nav-lab-cta" @click="close()"
                    {% if _onLab %}aria-current="page"{% endif %}>

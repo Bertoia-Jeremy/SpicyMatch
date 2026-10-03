@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\AlchemyFlavors;
+use App\Entity\AromaticCompound;
 use App\Repository\Concern\LocalizedSlugLookupTrait;
 use App\Seo\SitemapSourceInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use SortDirection;
 
 /**
  * @extends ServiceEntityRepository<AlchemyFlavors>
@@ -60,5 +62,28 @@ class AlchemyFlavorsRepository extends ServiceEntityRepository implements Sitema
             $this->findAllWithTranslation($locale),
             static fn (object $e): bool => $e instanceof AlchemyFlavors,
         ));
+    }
+
+    /**
+     * @return list<AlchemyFlavors>
+     */
+    public function findForCompound(AromaticCompound $compound, string $locale): array
+    {
+        $qb = $this->createQueryBuilder('f')
+            ->innerJoin('f.aromaticsCompounds', 'c')
+            ->andWhere('c = :compound')
+            ->andWhere('f.deleted_at IS NULL')
+            ->setParameter('compound', $compound)
+            ->orderBy('f.name', SortDirection::Ascending);
+
+        if ($locale !== 'fr') {
+            $qb->leftJoin('f.translations', 'ft', 'WITH', 'ft.locale = :loc')
+                ->addSelect('ft', 'COALESCE(ft.name, f.name) AS HIDDEN sortName')
+                ->setParameter('loc', $locale)
+                ->orderBy('sortName', SortDirection::Ascending);
+        }
+
+        return $qb->getQuery()
+            ->getResult();
     }
 }

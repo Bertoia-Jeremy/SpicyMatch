@@ -1,64 +1,141 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ alchemyFlavor.getLocalizedName(app.request.locale) }} — SpicyMatch{% endblock %}
+{% block title %}{{ 'ui.meta.title.flavor'|trans({'%name%': alchemyFlavor.getLocalizedName(app.request.locale)}) }}{% endblock %}
 
-{% block meta_description %}{{ alchemyFlavor.getLocalizedDescription(app.request.locale)|seo_summary|default('ui.meta.description'|trans) }}{% endblock %}
+{% block og_type %}article{% endblock %}
+
+{% block meta_description %}{{ alchemyFlavor.getLocalizedDescription(app.request.locale)|seo_summary|default(alchemyFlavor.getLocalizedName(app.request.locale) ~ 'ui.catalog.define_lead'|trans({'%definition%': 'ui.catalog.define_flavor'|trans({'%count%': carriers|length})})) }}{% endblock %}
 
 {% block structured_data %}{{ include('partials/_json_ld.html.twig', {subject: alchemyFlavor}) }}{% endblock %}
 
 {% block body %}
-{% set loc = app.request.locale %}
-{{ include('partials/_content_read.html.twig', {kind: 'flavor', id: alchemyFlavor.id}) }}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <twig:Catalog:Hero
-        backLabel="{{ 'ui.catalog.back_to_flavors'|trans }}"
-        backHref="{{ path('index_alchemy_flavors') }}"
-        badge="{{ 'ui.catalog.flavor_badge'|trans }}"
-        icon="fa-solid fa-flask-vial"
-        tone="turmeric"
-        title="{{ alchemyFlavor.getLocalizedName(loc) }}"
-    />
+    {% set loc = app.request.locale %}
+    {% set name = alchemyFlavor.getLocalizedName(loc) %}
+    {% set description = alchemyFlavor.getLocalizedDescription(loc) %}
+    {% set cooking = alchemyFlavor.getLocalizedCooking(loc) %}
+    {% set lab = alchemyFlavor.getLocalizedInformations(loc) %}
+    {% set leading = carriers|filter(c => c.primary > 0)|length %}
+    {% set preview = 9 %}
+    {% set compoundNames = {} %}
+    {% for compound in compounds %}
+        {% set compoundNames = compoundNames|merge({('c' ~ compound.id): compound.getLocalizedName(loc)}) %}
+    {% endfor %}
+    {% set section = 0 %}
+    {{ include('partials/_content_read.html.twig', {kind: 'flavor', id: alchemyFlavor.id}) }}
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        <div class="lg:col-span-2 space-y-8">
-            <twig:Catalog:Section title="{{ 'ui.catalog.taste_profile'|trans }}" icon="fa-solid fa-circle-info" tone="turmeric">
-                {{ alchemyFlavor.getLocalizedDescription(loc)|default('ui.catalog.no_profile_detailed'|trans)|nl2br }}
-            </twig:Catalog:Section>
+    <article class="detail-page flav-page">
+        <twig:Catalog:Crumbs
+            :items="[{label: 'ui.catalog.flavors_title'|trans, href: path('index_alchemy_flavors')}]"
+            current="{{ name }}"
+        />
 
-            {% if alchemyFlavor.getLocalizedCooking(loc) %}
-                <twig:Catalog:Section title="{{ 'ui.catalog.culinary_pairings'|trans }}" icon="fa-solid fa-mortar-pestle" tone="turmeric">
-                    {{ alchemyFlavor.getLocalizedCooking(loc)|nl2br }}
-                </twig:Catalog:Section>
+        <header class="flav-hero">
+            <p class="detail-eyebrow">{{ 'ui.catalog.flavor_badge'|trans }}</p>
+            <h1 class="detail-title{{ name|length > 24 ? ' detail-title-long' }}">{{ name }}</h1>
+            <twig:Catalog:Lead :term="name" :definition="'ui.catalog.define_flavor'|trans({'%count%': carriers|length})" :text="description" />
+        </header>
+
+        <ol class="flav-chain" aria-label="{{ 'ui.catalog.flavor_chain_label'|trans }}">
+            <li class="flav-step flav-step-taste">
+                <span class="flav-step-icon" aria-hidden="true"><i class="fa-solid fa-flask-vial"></i></span>
+                <div class="flav-step-body">
+                    <h2 class="flav-step-kicker">{{ 'ui.catalog.flavor_step_taste'|trans }}</h2>
+                    <p class="flav-step-value flav-step-name">{{ name }}</p>
+                    <p class="flav-step-hint">{{ 'ui.catalog.flavor_step_taste_hint'|trans }}</p>
+                </div>
+            </li>
+            <li class="flav-step">
+                <span class="flav-step-icon" aria-hidden="true"><i class="fa-solid fa-atom"></i></span>
+                <div class="flav-step-body">
+                    <h2 class="flav-step-kicker">{{ 'ui.catalog.flavor_step_molecules'|trans }}</h2>
+                    <p class="flav-step-value">{{ 'ui.catalog.flavor_molecule_count'|trans({'%count%': compounds|length}) }}</p>
+                    {% if compounds is not empty %}
+                        <ul class="ref-chips flav-molecules">
+                            {% for compound in compounds %}
+                                <li>
+                                    <a class="flav-molecule ref-chip ref-chip-molecule" href="{{ path('view_aromatic_compound', {slug: compound.getLocalizedSlug(loc)}) }}">{{ compound.getLocalizedName(loc) }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="flav-step-hint">{{ 'ui.catalog.no_linked_compound'|trans }}</p>
+                    {% endif %}
+                </div>
+            </li>
+            <li class="flav-step">
+                <span class="flav-step-icon" aria-hidden="true"><i class="fa-solid fa-seedling"></i></span>
+                <div class="flav-step-body">
+                    <h2 class="flav-step-kicker">{{ 'ui.catalog.flavor_step_spices'|trans }}</h2>
+                    <p class="flav-step-value">{{ 'ui.catalog.flavor_spice_count'|trans({'%count%': carriers|length}) }}</p>
+                    {% if carriers is not empty %}
+                        <a class="flav-step-link" href="#flav-where-title">
+                            {{ 'ui.catalog.flavor_primary_summary'|trans({'%count%': leading}) }}
+                            <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </li>
+        </ol>
+
+        <div class="flav-body">
+            {% if carriers is not empty %}
+                {% set section = section + 1 %}
+                <section class="flav-where" aria-labelledby="flav-where-title">
+                    <header class="detail-section-head">
+                        <span class="detail-section-num">{{ '%02d'|format(section) }} — {{ 'ui.catalog.flavor_where'|trans }}</span>
+                        <h2 id="flav-where-title" class="detail-section-title">{{ 'ui.catalog.flavor_where_title'|trans }}</h2>
+                        <p class="flav-where-hint">{{ 'ui.catalog.flavor_where_hint'|trans }}</p>
+                    </header>
+                    {% for chunk in [carriers|slice(0, preview), carriers|slice(preview)] %}
+                        {% if chunk is not empty %}
+                            {% set rows %}
+                                <ul class="spice-rows flav-rows">
+                                    {% for carrier in chunk %}
+                                        {% set tags = carrier.links|filter(l => compoundNames['c' ~ l.id] is defined)|map(l => {label: compoundNames['c' ~ l.id], strong: l.primary}) %}
+                                        <twig:Catalog:SpiceRow :spice="carrier.spice" :loc="loc" :meta="(carrier.primary > 0 ? 'ui.catalog.flavor_plane_primary' : 'ui.catalog.flavor_plane_secondary')|trans" :tags="tags" />
+                                    {% endfor %}
+                                </ul>
+                            {% endset %}
+                            {% if loop.first %}
+                                {{ rows }}
+                            {% else %}
+                                <details class="spice-rows-more">
+                                    <summary>
+                                        <span class="spice-rows-more-open">{{ 'ui.catalog.show_more_spices'|trans({'%count%': chunk|length}) }}</span>
+                                        <span class="spice-rows-more-close">{{ 'ui.catalog.show_less_spices'|trans }}</span>
+                                        <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                                    </summary>
+                                    {{ rows }}
+                                </details>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </section>
             {% endif %}
 
-            {% if alchemyFlavor.getLocalizedInformations(loc) %}
-                <twig:Catalog:Section title="{{ 'ui.catalog.scientific_note'|trans }}" icon="fa-solid fa-flask" tone="turmeric">
-                    {{ alchemyFlavor.getLocalizedInformations(loc)|nl2br }}
-                </twig:Catalog:Section>
+            {% if cooking or lab %}
+                <div class="flav-notes">
+                    {% if cooking %}
+                        {% set section = section + 1 %}
+                        <section class="flav-kitchen" aria-labelledby="flav-kitchen-title">
+                            <header class="detail-section-head">
+                                <span class="detail-section-num">{{ '%02d'|format(section) }} — {{ 'ui.catalog.in_kitchen'|trans }}</span>
+                                <h2 id="flav-kitchen-title" class="detail-section-title">{{ 'ui.catalog.flavor_kitchen_title'|trans }}</h2>
+                            </header>
+                            <p class="flav-prose">{{ cooking }}</p>
+                        </section>
+                    {% endif %}
+
+                    {% if lab %}
+                        <section class="flav-lab" aria-labelledby="flav-lab-title">
+                            <h2 id="flav-lab-title" class="flav-lab-title">
+                                <i class="fa-solid fa-flask" aria-hidden="true"></i>{{ 'ui.catalog.scientific_note'|trans }}
+                            </h2>
+                            <p>{{ lab }}</p>
+                        </section>
+                    {% endif %}
+                </div>
             {% endif %}
         </div>
-
-        <aside class="space-y-8">
-            <section>
-                <h2 class="text-xl font-bold text-stone-900 mb-6 flex items-center gap-2">
-                    <i class="fa-solid fa-atom text-saffron-600" aria-hidden="true"></i> {{ 'ui.catalog.associated_compounds'|trans }}
-                </h2>
-
-                {% if alchemyFlavor.aromaticsCompounds is not empty %}
-                    <div class="grid grid-cols-1 gap-3">
-                        {% for compound in alchemyFlavor.aromaticsCompounds %}
-                            <a href="{{ path('view_aromatic_compound', {slug: compound.getLocalizedSlug(loc)}) }}"
-                               class="flex items-center justify-between p-4 bg-white border border-stone-200 rounded-xl hover:border-saffron-400 hover:shadow-md transition-all group">
-                                <span class="font-semibold text-stone-700 group-hover:text-saffron-700">{{ compound.getLocalizedName(loc) }}</span>
-                                <i class="fa-solid fa-chevron-right text-stone-300 text-xs group-hover:text-saffron-500 transition-colors" aria-hidden="true"></i>
-                            </a>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="text-stone-400 italic">{{ 'ui.catalog.no_linked_compound'|trans }}</p>
-                {% endif %}
-            </section>
-        </aside>
-    </div>
-</div>
+    </article>
 {% endblock %}

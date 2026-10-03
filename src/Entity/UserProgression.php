@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Enum\ChefGrade;
+use App\Gamification\LevelCurve;
 use App\Repository\UserProgressionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -130,31 +131,17 @@ class UserProgression
     }
 
     public int $level {
-        get {
-            if ($this->xp === 0) {
-                return 1;
-            }
-            $calculated = (int) floor(($this->xp / 100) ** (1 / 1.3));
-
-            return max(1, $calculated);
-        }
+        get => LevelCurve::levelFor($this->xp);
     }
 
     public int $xpToNextLevel {
-        get {
-            $nextLevel = $this->level + 1;
-            $requiredXp = (int) ceil(100 * $nextLevel ** 1.3);
-
-            return max(0, $requiredXp - $this->xp);
-        }
+        get => max(0, LevelCurve::thresholdFor($this->level + 1) - $this->xp);
     }
 
     public float $progressPercent {
         get {
-            $currentLevel = $this->level;
-            $xpForCurrent = $currentLevel <= 1 ? 0 : (int) ceil(100 * $currentLevel ** 1.3);
-            $xpForNext = (int) ceil(100 * ($currentLevel + 1) ** 1.3);
-            $range = $xpForNext - $xpForCurrent;
+            $xpForCurrent = LevelCurve::thresholdFor($this->level);
+            $range = LevelCurve::thresholdFor($this->level + 1) - $xpForCurrent;
 
             if ($range <= 0) {
                 return 100.0;

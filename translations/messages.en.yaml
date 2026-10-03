@@ -53,6 +53,13 @@ ui:
     meta:
         description: SpicyMatch — Create perfect spice blends through molecular analysis of aromatic compounds.
         default_title: SpicyMatch — Culinary Alchemy
+        title:
+            spice: "%name%: aroma, pairings and uses — SpicyMatch"
+            compound: "%name%: aroma molecule, spices and flavors — SpicyMatch"
+            flavor: "%name% flavor: molecules and spices — SpicyMatch"
+            group: "%name%: aromatic family and its spices — SpicyMatch"
+            type: "%name%: spice type, list and uses — SpicyMatch"
+            method: "%name%: preparing spices, tools and tips — SpicyMatch"
     common:
         recipe_label: Recipe
         recipe_of: 'Recipe from %date%'
@@ -529,6 +536,7 @@ ui:
         add_favorite: Add to favorites
         spices: 'spice|spices'
         moments: 'moment|moments'
+        metrics: Key figures
         out_of_matrix_title: 'This preparation is listed for the %label% matrix. To enable it, compose a new blend in the Lab by choosing the %label% mode.'
         out_of_matrix: 'out of matrix · %label%'
         method: Method
@@ -908,6 +916,15 @@ ui:
         auth: Authentication
         auth_text: No two-factor authentication option configured yet.
     catalog:
+        define_lead: ": %definition%."
+        define_method: "{0}spice preparation method|{1}spice preparation method, recommended for %count% spice|]1,Inf[spice preparation method, recommended for %count% spices"
+        define_compound: "{0}aroma compound|{1}aroma compound found in %count% spice|]1,Inf[aroma compound found in %count% spices"
+        define_flavor: "{0}aromatic flavor|{1}aromatic flavor carried by %count% spice|]1,Inf[aromatic flavor carried by %count% spices"
+        define_group: "{0}aromatic family of molecules|{1}aromatic family of molecules, dominant in %count% spice|]1,Inf[aromatic family of molecules, dominant in %count% spices"
+        define_type: "{0}spice type|{1}spice type covering %count% spice|]1,Inf[spice type covering %count% spices"
+        define_spice: "spice"
+        define_spice_type: "spice of the “%type%” type"
+        define_spice_group: "%base%, “%group%” aromatic family"
         no_description: No description available.
         preview: Preview
         match_label: Match
@@ -915,14 +932,11 @@ ui:
         see_details: View details
         see_sheet: View page
         hidden_group: Hidden aromatic group
-        flavors_heading_html: 'The <em class="italic not-italic" style="color: %color%">flavors</em>'
-        primary_compounds_heading_html: 'Primary <em class="italic" style="color: %color%">compounds</em>'
-        in_kitchen_heading_html: 'When the spice <em class="italic" style="color: %color%">slips into</em> your dish'
-        notebook_heading_html: 'A few <em class="italic" style="color: %color%">notes</em> in passing'
-        tame_heading_html: 'How to <em class="italic" style="color: %color%">tame it</em>'
-        load_more_spices: Load more spices
-        view_slider: Slider
-        view_grid: Grid
+        flavors_heading_html: 'The <em class="spc-em">flavors</em>'
+        primary_compounds_heading_html: 'Primary <em class="spc-em">compounds</em>'
+        in_kitchen_heading_html: 'When the spice <em class="spc-em">slips into</em> your dish'
+        notebook_heading_html: 'A few <em class="spc-em">notes</em> in passing'
+        tame_heading_html: 'How to <em class="spc-em">tame it</em>'
         scientific_note: Scientific note
         view_spices: View spices
         spice_fallback: Spice
@@ -939,44 +953,38 @@ ui:
         flavors: flavors
         flavors_intro: The aromatic compounds that define this spice's character.
         primary_compounds: primary
-        primary_compounds_intro: The molecules that give this spice its olfactory identity.
         secondary_compounds: Secondary compounds
         in_kitchen: In the kitchen
-        in_kitchen_title: slip it
         moments: '%count% moment(s)'
-        step: Step
         chef_duo: Recommended duo
         notebook: The notebook
-        notebook_title: notes in passing
         tame: tame it
         good_to_know: Good to know
-        its_assets: Its strengths
-        note_of: 'Note of %flavors%'
         spice_thread: The Spice Thread
         spice_thread_text: Every spice opens the door to another.
         pairs_with: 'Pairs with'
         pairs_with_text: 'The spices that best complement %name%.'
         compose_with: 'Create a blend with %name%'
+        spice_anchors_label: 'On this page'
+        spice_background_hint: 'Present in the background, they round out the profile.'
+        spice_good_to_know: 'Good to know'
+        spice_prep_title: 'Preparing the spice'
+        spice_prep_method: 'Method: %name%'
+        spice_pairs_title: 'Its best allies'
+        spice_thread_title: 'In the same family'
         compounds_title: Aromatic compounds
         compounds_page_title: SpicyMatch — Aromatic compounds
         compounds_tag: Science
         compounds_intro: The molecules that define the aromas and taste profiles of each spice.
         learn_more: Learn more
         no_compound: No compound listed yet.
-        back_to_compounds: Back to compounds
         compound_badge: Aromatic Compound
-        description: Description
-        no_description_detailed: No detailed description available.
-        linked_spices: Linked spices
-        no_linked_spices: No linked spice yet.
         groups_page_title: SpicyMatch — Aromatic groups
         groups_tag: Catalog
         groups_title: Aromatic groups
         groups_intro: The great aroma families that group spices by taste affinity.
         no_group: No aromatic group yet.
-        back_to_groups: Back to groups
         group_badge: Aromatic group
-        spices_of_group: Spices in this group
         filter_spices_by_group: Filter the catalogue
         flavors_page_title: SpicyMatch — Flavor alchemy
         flavors_tag: Alchemy
@@ -984,25 +992,16 @@ ui:
         flavors_page_intro: The complex taste profiles that emerge from the meeting of spices.
         explore_flavor: Explore the flavor
         no_flavor: No flavor listed yet.
-        back_to_flavors: Back to flavors
         flavor_badge: Flavor Alchemy
-        taste_profile: Taste profile
-        no_profile_detailed: No detailed profile available.
-        culinary_pairings: Culinary pairings
-        associated_compounds: Associated compounds
         no_linked_compound: No linked compound.
         types_page_title: SpicyMatch — Spice types
         types_tag: Botany
         types_title: Spice types
         types_intro: Classification of spices by their plant origin and biological nature.
         no_type: No type listed yet.
-        back_to_types: Back to types
         type_badge: Spice Type
-        definition: Definition
-        no_definition_detailed: No detailed definition available.
         general_usage: General usage
         botanical_note: Botanical note
-        spices_of_type: Spices of this type
         methods_page_title: SpicyMatch — Preparation methods
         methods_tag: Guide
         methods_title: Preparation methods
@@ -1010,7 +1009,89 @@ ui:
         view_details: View details
         no_method: No method available yet.
         method_badge: Method
-        usage_tips: Usage tips
+        breadcrumb_label: Breadcrumb
+        method_spice_count: '{1}%count% spice|]1,Inf[%count% spices'
+        method_kit: Kit
+        method_kit_title: "What you'll need"
+        method_spices: Spices
+        method_spices_title: Spices that suit it
+        method_advice: "Chef's tip"
+        method_why: Why it works
+        show_more_spices: '{1}Show the other spice|]1,Inf[Show the %count% other spices'
+        show_less_spices: Collapse the list
+        compound_spice_count: '{0}No spice|{1}In %count% spice|]1,Inf[In %count% spices'
+        compound_perceived: What you perceive
+        compound_where: Where to find it
+        compound_where_title: The spices that carry it
+        compound_primary: In the foreground
+        compound_primary_hint: It defines the scent of these spices.
+        compound_secondary: In the background
+        compound_secondary_hint: Subtler, it shades their profile.
+        compound_kitchen_title: How to bring it out
+        compound_identity: Identity card
+        compound_identity_title: Technical sheet
+        compound_formula: Molecular formula
+        compound_cas: CAS number
+        compound_pubchem: PubChem
+        compound_pubchem_cid: 'CID %cid%'
+        external_link: "(external site)"
+        compound_inchikey: InChIKey
+        compound_boiling: Boiling point
+        compound_logp: logP (fat affinity)
+        compound_vapor: Vapour pressure
+        compound_odt: Odour threshold
+        compound_odt_hint: Concentration at which it becomes noticeable, by medium.
+        compound_odt_medium: Medium
+        compound_odt_value: Threshold
+        compound_confidence: 'Data reliability: %label%'
+        compound_confidence_indicative: 'Indicative values · reliability: %label%'
+        compound_lab: Lab note
+        compound_kinetics_head: Top note
+        compound_kinetics_heart: Heart note
+        compound_kinetics_base: Base note
+        compound_kinetics_head_hint: "Volatile: add it at the end of cooking."
+        compound_kinetics_heart_hint: Holds up to moderate cooking.
+        compound_kinetics_base_hint: Withstands long cooking.
+        flavor_chain_label: From taste to spices
+        flavor_step_taste: The taste
+        flavor_step_taste_hint: What the palate picks up.
+        flavor_step_molecules: The molecules
+        flavor_molecule_count: '{0}No molecule|{1}1 molecule|]1,Inf[%count% molecules'
+        flavor_step_spices: The spices
+        flavor_spice_count: '{0}No spice|{1}1 spice|]1,Inf[%count% spices'
+        flavor_primary_summary: '{0}All as a background note|{1}1 as a leading note|]1,Inf[%count% as a leading note'
+        flavor_where: Where to find it
+        flavor_where_title: The spices that carry it
+        flavor_where_hint: From the most pronounced to the most subtle.
+        flavor_plane_primary: Leading note
+        flavor_plane_secondary: Background note
+        flavor_kitchen_title: What to pair it with
+        fam_facts_label: At a glance
+        fam_fact_spices: Spices
+        fam_fact_molecules: Signature molecules
+        fam_fact_forms: Forms
+        fam_members: Members
+        fam_members_title: The spices of this family
+        fam_empty: No spice belongs to this family yet.
+        fam_signature: Signature
+        fam_signature_title: The molecules that define it
+        fam_signature_hint: Ranked by how many spices of the family carry them.
+        fam_carriers: '%count% spice out of %total%|%count% spices out of %total%'
+        fam_evokes: What the family evokes
+        fam_kitchen_title: How to cook with it
+        fam_others: Other families
+        kind_facts_label: 'Herbarium label'
+        kind_fact_spices: 'Spices'
+        kind_fact_families: 'Aromatic families'
+        kind_specimens: 'Specimens'
+        kind_specimens_title: 'The spices of this form, family by family'
+        kind_unclassified: 'No family'
+        kind_empty: 'No spice has this form yet.'
+        kind_family_count: '%count% spice|%count% spices'
+        kind_filter: 'Filter the catalogue'
+        kind_notebook: 'Notebook'
+        kind_notebook_title: 'In the kitchen and the garden'
+        kind_others: 'Other forms'
     help:
         back_to_help: ← Help center
         gamification_page_title: Gamification · Help

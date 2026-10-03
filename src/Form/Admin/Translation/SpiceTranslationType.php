@@ -17,7 +17,7 @@ final class SpiceTranslationType extends AbstractTranslationType
         $this->area($builder, 'description', 'Description');
         $this->area($builder, 'cooking', 'En cuisine');
         $this->area($builder, 'informations', 'Informations');
-        $this->area($builder, 'benefits', 'Bienfaits');
+        $this->area($builder, 'benefits', 'Bon à savoir (sans allégation santé)');
     }
 
     public function configureOptions(OptionsResolver $resolver): void

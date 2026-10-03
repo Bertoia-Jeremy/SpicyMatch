@@ -53,6 +53,13 @@ ui:
     meta:
         description: SpicyMatch — Créez des mélanges d'épices parfaits grâce à l'analyse moléculaire des composés aromatiques.
         default_title: SpicyMatch — L'Alchimie Culinaire
+        title:
+            spice: "%name% : arômes, accords et usages — SpicyMatch"
+            compound: "%name% : molécule aromatique, épices et saveurs — SpicyMatch"
+            flavor: "Saveur %name% : molécules et épices — SpicyMatch"
+            group: "%name% : famille aromatique et ses épices — SpicyMatch"
+            type: "%name% : type d'épice, liste et usages — SpicyMatch"
+            method: "%name% : préparer ses épices, outils et conseils — SpicyMatch"
     common:
         recipe_label: Recette
         recipe_of: 'Recette du %date%'
@@ -538,6 +545,7 @@ ui:
         add_favorite: Ajouter aux favoris
         spices: 'épice|épices'
         moments: 'moment|moments'
+        metrics: Repères
         out_of_matrix_title: 'Cette préparation est répertoriée pour la matrice « %label% ». Pour l''activer, composez un nouveau mélange au Lab en choisissant le mode %label%.'
         out_of_matrix: 'hors matrice · %label%'
         method: Méthode
@@ -917,6 +925,15 @@ ui:
         auth: Authentification
         auth_text: Aucune option de double authentification configurée pour le moment.
     catalog:
+        define_lead: " : %definition%."
+        define_method: "{0}méthode de préparation des épices|{1}méthode de préparation des épices, conseillée pour %count% épice|]1,Inf[méthode de préparation des épices, conseillée pour %count% épices"
+        define_compound: "{0}composé aromatique|{1}composé aromatique présent dans %count% épice|]1,Inf[composé aromatique présent dans %count% épices"
+        define_flavor: "{0}saveur aromatique|{1}saveur aromatique portée par %count% épice|]1,Inf[saveur aromatique portée par %count% épices"
+        define_group: "{0}famille aromatique de molécules|{1}famille aromatique de molécules, dominante dans %count% épice|]1,Inf[famille aromatique de molécules, dominante dans %count% épices"
+        define_type: "{0}type d'épice|{1}type d'épice regroupant %count% épice|]1,Inf[type d'épice regroupant %count% épices"
+        define_spice: "épice"
+        define_spice_type: "épice de type « %type% »"
+        define_spice_group: "%base%, famille aromatique « %group% »"
         no_description: Aucune description disponible.
         preview: Aperçu
         match_label: Match
@@ -924,14 +941,11 @@ ui:
         see_details: Voir les détails
         see_sheet: Voir la fiche
         hidden_group: Groupe aromatique masqué
-        flavors_heading_html: 'Les <em class="italic not-italic" style="color: %color%">saveurs</em>'
-        primary_compounds_heading_html: 'Composés <em class="italic" style="color: %color%">primaires</em>'
-        in_kitchen_heading_html: 'Quand l''épice <em class="italic" style="color: %color%">se glisse</em> dans votre plat'
-        notebook_heading_html: 'Petites <em class="italic" style="color: %color%">notes</em> en passant'
-        tame_heading_html: 'Comment l''<em class="italic" style="color: %color%">apprivoiser</em>'
-        load_more_spices: Charger plus d'épices
-        view_slider: Slider
-        view_grid: Grille
+        flavors_heading_html: 'Les <em class="spc-em">saveurs</em>'
+        primary_compounds_heading_html: 'Composés <em class="spc-em">primaires</em>'
+        in_kitchen_heading_html: 'Quand l''épice <em class="spc-em">se glisse</em> dans votre plat'
+        notebook_heading_html: 'Petites <em class="spc-em">notes</em> en passant'
+        tame_heading_html: 'Comment l''<em class="spc-em">apprivoiser</em>'
         scientific_note: Note scientifique
         view_spices: Voir les épices
         spice_fallback: Épice
@@ -948,44 +962,38 @@ ui:
         flavors: saveurs
         flavors_intro: Les composés aromatiques qui définissent le caractère de cette épice.
         primary_compounds: primaires
-        primary_compounds_intro: Les molécules qui donnent son identité olfactive à cette épice.
         secondary_compounds: Composés secondaires
         in_kitchen: En cuisine
-        in_kitchen_title: glisser
         moments: '%count% moment(s)'
-        step: Étape
         chef_duo: Duo conseillé
         notebook: Le carnet
-        notebook_title: notes en passant
         tame: apprivoiser
         good_to_know: À savoir
-        its_assets: Ses atouts
-        note_of: 'Note de %flavors%'
         spice_thread: Le Fil des Épices
         spice_thread_text: Chaque épice ouvre la porte d'une autre.
         pairs_with: 'Se marie avec'
         pairs_with_text: 'Les épices qui s''accordent le mieux avec %name%.'
         compose_with: 'Composer un mélange avec %name%'
+        spice_anchors_label: 'Sur cette fiche'
+        spice_background_hint: 'Présents en retrait, ils arrondissent le profil.'
+        spice_good_to_know: 'Bon à savoir'
+        spice_prep_title: 'Préparer l''épice'
+        spice_prep_method: 'Méthode : %name%'
+        spice_pairs_title: 'Ses meilleurs alliés'
+        spice_thread_title: 'Dans la même famille'
         compounds_title: Composés aromatiques
         compounds_page_title: SpicyMatch — Composés aromatiques
         compounds_tag: Science
         compounds_intro: Les molécules qui définissent les arômes et les profils gustatifs de chaque épice.
         learn_more: En savoir plus
         no_compound: Aucun composé répertorié pour le moment.
-        back_to_compounds: Retour aux composés
         compound_badge: Composé Aromatique
-        description: Description
-        no_description_detailed: Aucune description détaillée disponible.
-        linked_spices: Épices liées
-        no_linked_spices: Aucune épice liée pour le moment.
         groups_page_title: SpicyMatch — Groupes aromatiques
         groups_tag: Catalogue
         groups_title: Groupes aromatiques
         groups_intro: Les grandes familles d'arômes qui rassemblent les épices par affinité gustative.
         no_group: "Aucun groupe aromatique pour l'instant."
-        back_to_groups: Retour aux groupes
         group_badge: Groupe aromatique
-        spices_of_group: Épices de ce groupe
         filter_spices_by_group: Filtrer le catalogue
         flavors_page_title: SpicyMatch — Saveurs d'alchimie
         flavors_tag: Alchimie
@@ -993,25 +1001,16 @@ ui:
         flavors_page_intro: Les profils gustatifs complexes qui émergent de la rencontre des épices.
         explore_flavor: Explorer la saveur
         no_flavor: Aucune saveur répertoriée pour le moment.
-        back_to_flavors: Retour aux saveurs
         flavor_badge: Saveur d'Alchimie
-        taste_profile: Profil gustatif
-        no_profile_detailed: Aucun profil détaillé disponible.
-        culinary_pairings: Accords culinaires
-        associated_compounds: Composés associés
         no_linked_compound: Aucun composé lié.
         types_page_title: SpicyMatch — Types d'épices
         types_tag: Botanique
         types_title: Types d'épices
         types_intro: Classification des épices selon leur origine végétale et leur nature biologique.
         no_type: Aucun type répertorié pour le moment.
-        back_to_types: Retour aux types
         type_badge: Type d'Épice
-        definition: Définition
-        no_definition_detailed: Aucune définition détaillée disponible.
         general_usage: Usage général
         botanical_note: Note botanique
-        spices_of_type: Épices de ce type
         methods_page_title: SpicyMatch — Méthodes de préparation
         methods_tag: Guide
         methods_title: Méthodes de préparation
@@ -1019,7 +1018,89 @@ ui:
         view_details: Voir les détails
         no_method: Aucune méthode disponible pour le moment.
         method_badge: Méthode
-        usage_tips: Conseils d'utilisation
+        breadcrumb_label: "Fil d'Ariane"
+        method_spice_count: '{1}%count% épice|]1,Inf[%count% épices'
+        method_kit: Trousse
+        method_kit_title: "Ce qu'il vous faut"
+        method_spices: Épices
+        method_spices_title: "Les épices qui s'y prêtent"
+        method_advice: Le conseil du chef
+        method_why: Pourquoi ça marche
+        show_more_spices: '{1}Voir l''autre épice|]1,Inf[Voir les %count% autres épices'
+        show_less_spices: Réduire la liste
+        compound_spice_count: '{0}Aucune épice|{1}Dans %count% épice|]1,Inf[Dans %count% épices'
+        compound_perceived: "Ce qu'on perçoit"
+        compound_where: Où le trouver
+        compound_where_title: Les épices qui le portent
+        compound_primary: Au premier plan
+        compound_primary_hint: Il signe le parfum de ces épices.
+        compound_secondary: En arrière-plan
+        compound_secondary_hint: Plus discret, il nuance leur profil.
+        compound_kitchen_title: Comment le révéler
+        compound_identity: "Carte d'identité"
+        compound_identity_title: Sa fiche technique
+        compound_formula: Formule brute
+        compound_cas: N° CAS
+        compound_pubchem: PubChem
+        compound_pubchem_cid: 'CID %cid%'
+        external_link: "(site externe)"
+        compound_inchikey: InChIKey
+        compound_boiling: "Point d'ébullition"
+        compound_logp: logP (affinité pour le gras)
+        compound_vapor: Pression de vapeur
+        compound_odt: Seuil de perception
+        compound_odt_hint: Concentration à partir de laquelle on le sent, selon le milieu.
+        compound_odt_medium: Milieu
+        compound_odt_value: Seuil
+        compound_confidence: 'Fiabilité des données : %label%'
+        compound_confidence_indicative: 'Valeurs indicatives · fiabilité : %label%'
+        compound_lab: Note du labo
+        compound_kinetics_head: Note de tête
+        compound_kinetics_heart: Note de cœur
+        compound_kinetics_base: Note de fond
+        compound_kinetics_head_hint: "Volatil : à ajouter en fin de cuisson."
+        compound_kinetics_heart_hint: Tient bien une cuisson moyenne.
+        compound_kinetics_base_hint: Résiste aux cuissons longues.
+        flavor_chain_label: Du goût aux épices
+        flavor_step_taste: Le goût
+        flavor_step_taste_hint: Ce que perçoit le palais.
+        flavor_step_molecules: Les molécules
+        flavor_molecule_count: '{0}Aucune molécule|{1}1 molécule|]1,Inf[%count% molécules'
+        flavor_step_spices: Les épices
+        flavor_spice_count: '{0}Aucune épice|{1}1 épice|]1,Inf[%count% épices'
+        flavor_primary_summary: '{0}Toutes en note de fond|{1}Dont 1 en note principale|]1,Inf[Dont %count% en note principale'
+        flavor_where: Où la trouver
+        flavor_where_title: Les épices qui la portent
+        flavor_where_hint: De la plus marquée à la plus discrète.
+        flavor_plane_primary: Note principale
+        flavor_plane_secondary: Note de fond
+        flavor_kitchen_title: Avec quoi l'associer
+        fam_facts_label: En bref
+        fam_fact_spices: Épices
+        fam_fact_molecules: Molécules signature
+        fam_fact_forms: Formes
+        fam_members: Les membres
+        fam_members_title: Les épices de la famille
+        fam_empty: 'Aucune épice n''est encore rangée dans cette famille.'
+        fam_signature: Signature
+        fam_signature_title: Les molécules qui la définissent
+        fam_signature_hint: 'Classées selon le nombre d''épices de la famille qui les portent.'
+        fam_carriers: '%count% épice sur %total%|%count% épices sur %total%'
+        fam_evokes: Ce que la famille évoque
+        fam_kitchen_title: Comment la cuisiner
+        fam_others: Les autres familles
+        kind_facts_label: 'Étiquette d''herbier'
+        kind_fact_spices: 'Épices'
+        kind_fact_families: 'Familles aromatiques'
+        kind_specimens: 'Spécimens'
+        kind_specimens_title: 'Les épices de cette forme, famille par famille'
+        kind_unclassified: 'Sans famille'
+        kind_empty: 'Aucune épice n''a encore cette forme.'
+        kind_family_count: '%count% épice|%count% épices'
+        kind_filter: 'Filtrer le catalogue'
+        kind_notebook: 'Carnet'
+        kind_notebook_title: 'Au fourneau et au jardin'
+        kind_others: 'Les autres formes'
     help:
         back_to_help: ← Centre d'aide
         gamification_page_title: Gamification · Aide

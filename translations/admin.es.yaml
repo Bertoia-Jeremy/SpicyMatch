@@ -42,7 +42,7 @@ admin:
         cas_number: Número CAS
         formula: Fórmula química
         cooking_advice: Consejo de cocina
-        benefits: Beneficios
+        benefits: "Conviene saber (compra, conservación, precauciones, sin declaraciones de salud)"
         extra_informations: Información adicional
         created_at: Creado el
         updated_at: Modificado el

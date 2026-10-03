@@ -126,7 +126,7 @@ class SpiceViewRepository extends ServiceEntityRepository
             ->select('COUNT(DISTINCT pm.id)')
             ->innerJoin('sv.spice', 's')
             ->innerJoin('s.preparationTips', 'pt')
-            ->innerJoin('pt.method', 'pm')
+            ->innerJoin('pt.preparationMethod', 'pm')
             ->where('sv.user = :user')
             ->setParameter('user', $user)
             ->getQuery()

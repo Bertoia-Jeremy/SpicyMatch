@@ -190,6 +190,8 @@
             <div class="nav-panel-foot-links">
                 <a href="{{ path('help_index') }}" class="nav-foot-link" @click="close()"
                    {% if _route == 'help_index' %}aria-current="page"{% endif %}>{{ 'ui.navbar.help'|trans }}</a>
+                <a href="{{ path('faq_index') }}" class="nav-foot-link" @click="close()"
+                   {% if _route == 'faq_index' %}aria-current="page"{% endif %}>{{ 'ui.navbar.faq'|trans }}</a>
                 <a href="{{ path('new_contact') }}" class="nav-foot-link" @click="close()"
                    {% if _route == 'new_contact' %}aria-current="page"{% endif %}>{{ 'ui.common.contact'|trans }}</a>
                 {% if _isUser %}

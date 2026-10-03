@@ -6,6 +6,8 @@ namespace App\Tests\Repository;
 
 use App\Entity\Achievement;
 use App\Entity\GameSession;
+use App\Entity\PreparationMethods;
+use App\Entity\PreparationTips;
 use App\Entity\Spices;
 use App\Entity\SpiceView;
 use App\Entity\SpicyMatch;
@@ -146,6 +148,55 @@ final class GamificationAggregatesRepositoryTest extends KernelTestCase
         $repo = self::getContainer()->get(UserAchievementRepository::class);
 
         self::assertSame($expected, $repo->sumXpRewardGroupedByProgression()[(int) $progression->getId()] ?? null);
+    }
+
+    public function testCountsDistinctPreparationMethodsOfViewedSpicesOnly(): void
+    {
+        $user = $this->createUser();
+        $spices = $this->em->getRepository(Spices::class)
+            ->findBy([], [
+                'id' => 'ASC',
+            ], 2);
+        self::assertCount(2, $spices);
+        $methods = $this->em->getRepository(PreparationMethods::class)
+            ->findBy([], [
+                'id' => 'ASC',
+            ], 2);
+        self::assertCount(2, $methods);
+
+        $this->persistTip($spices[0], $methods[0]);
+        $this->persistTip($spices[0], $methods[1]);
+        $this->persistTip($spices[0], $methods[0]);
+        $this->persistView($user, $spices[0], 'today');
+        $this->persistView($user, $spices[0], 'yesterday');
+        $this->em->flush();
+        $this->em->clear();
+
+        $viewed = $this->em->find(Spices::class, $spices[0]->getId());
+        self::assertInstanceOf(Spices::class, $viewed);
+        $expected = [];
+        foreach ($viewed->getPreparationTips() as $tip) {
+            $expected[(int) $tip->getPreparationMethod()?->getId()] = true;
+        }
+        $user = $this->em->find(Users::class, $user->getId());
+        self::assertInstanceOf(Users::class, $user);
+
+        $count = self::getContainer()->get(SpiceViewRepository::class)->countDistinctPreparationMethodsSeenBy($user);
+
+        self::assertGreaterThanOrEqual(2, $count);
+        self::assertSame(\count($expected), $count);
+    }
+
+    private function persistTip(Spices $spice, PreparationMethods $method): void
+    {
+        $tip = new PreparationTips()
+            ->setText('Texte')
+            ->setAdvantages('Atout')
+            ->setSpice($spice)
+            ->setPreparationMethod($method)
+            ->setCreatedAt(new \DateTimeImmutable())
+            ->setUpdatedAt(new \DateTimeImmutable());
+        $this->em->persist($tip);
     }
 
     private function createUser(): Users

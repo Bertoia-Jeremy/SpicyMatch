@@ -29,8 +29,7 @@
     {% set model = options.model|default(null) %}
     {% set labStyle = options.labStyle|default(false) %}
 
-    {% set effectiveMonochrome = options.monochrome ?? (isMonochrome ?? false) %}
-    {% if effectiveMonochrome or not ((color ?? '') matches '/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/') %}
+    {% if not ((color ?? '') matches '/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/') %}
         {% set color = '#78716C' %}
     {% endif %}
 
@@ -63,7 +62,7 @@
             {% endif %}
 
             {% if labStyle %}
-                {% if groupName and not effectiveMonochrome %}
+                {% if groupName %}
                     <span class="absolute top-2.5 left-2.5 z-10 inline-flex items-center gap-1.5
                                  bg-white/90 backdrop-blur-sm rounded-full px-2 py-1
                                  text-[10px] font-semibold uppercase tracking-wide leading-none pointer-events-none"
@@ -194,7 +193,7 @@
                     {% endif %}
                 </div>
 
-                {% if groupName and not effectiveMonochrome %}
+                {% if groupName %}
                     <span class="inline-flex items-center gap-1 self-start text-[9px] font-bold px-2 py-0.5 rounded-full leading-none uppercase tracking-wide text-stone-700"
                           style="background-color: {{ color }}15; border: 1px solid {{ color }}30">
                         <span class="size-1.5 shrink-0 rounded-full" style="background-color: {{ color }}" aria-hidden="true"></span>

@@ -34,6 +34,7 @@ final class NavbarRenderingTest extends WebTestCase
         self::assertCount(0, $crawler->filter('.site-nav a[href="/register"]'));
         self::assertCount(0, $crawler->filter('#nav-panel a[href="/register"], #nav-panel a[href="/login"]'));
         self::assertCount(7, $crawler->filter('#nav-panel .nav-items .nav-item'));
+        self::assertSame(['/fr/help', '/fr/faq', '/fr/contact/'], \array_slice($crawler->filter('#nav-panel .nav-foot-link')->each(static fn ($a): string => (string) $a->attr('href')), 0, 3));
         self::assertSame(['/fr/education/'], $crawler->filter('#nav-panel a[href*="/education/"]')->each(static fn ($a): string => (string) $a->attr('href')));
         self::assertCount(0, $crawler->filter('a[href^="/logout"]'));
         foreach ($client->getResponse()->headers->getCookies() as $cookie) {

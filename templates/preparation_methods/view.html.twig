@@ -1,33 +1,100 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}SpicyMatch — {{ preparationMethod.getLocalizedName(app.request.locale) }}{% endblock %}
+{% block title %}{{ 'ui.meta.title.method'|trans({'%name%': preparationMethod.getLocalizedName(app.request.locale)}) }}{% endblock %}
 
-{% block meta_description %}{{ preparationMethod.getLocalizedDescription(app.request.locale)|seo_summary|default('ui.meta.description'|trans) }}{% endblock %}
+{% block og_type %}article{% endblock %}
+
+{% block meta_description %}{{ preparationMethod.getLocalizedDescription(app.request.locale)|seo_summary|default(preparationMethod.getLocalizedName(app.request.locale) ~ 'ui.catalog.define_lead'|trans({'%definition%': 'ui.catalog.define_method'|trans({'%count%': tips|length})})) }}{% endblock %}
 
 {% block structured_data %}{{ include('partials/_json_ld.html.twig', {subject: preparationMethod}) }}{% endblock %}
 
 {% block body %}
     {% set loc = app.request.locale %}
-    <turbo-frame id="preparation_methode_frame_{{ preparationMethod.id }}">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    {% set tools = preparationMethod.getLocalizedToolList(loc) %}
+    {% set advice = preparationMethod.getLocalizedAdvice(loc) %}
+    {% set why = preparationMethod.getLocalizedInformations(loc) %}
+    {% set preview = 8 %}
+    {% set section = 0 %}
 
-            <div class="mb-8">
-                <twig:Button label="{{ 'ui.catalog.methods_title'|trans }}" href="{{ path('index_preparation_methods') }}" variant="back" size="sm" />
+    <article class="detail-page prep-page">
+        <twig:Catalog:Crumbs
+            :items="[{label: 'ui.catalog.methods_title'|trans, href: path('index_preparation_methods')}]"
+            current="{{ preparationMethod.getLocalizedName(loc) }}"
+        />
+
+        <header class="prep-hero">
+            <p class="detail-eyebrow">
+                {{ 'ui.catalog.method_badge'|trans }}
+                {% if tips is not empty %}· {{ 'ui.catalog.method_spice_count'|trans({'%count%': tips|length}) }}{% endif %}
+            </p>
+            <h1 class="detail-title">{{ preparationMethod.getLocalizedName(loc) }}</h1>
+            <twig:Catalog:Lead :term="preparationMethod.getLocalizedName(loc)" :definition="'ui.catalog.define_method'|trans({'%count%': tips|length})" :text="preparationMethod.getLocalizedDescription(loc)" />
+        </header>
+
+        <div class="prep-layout">
+            {% if tools is not empty %}
+                {% set section = section + 1 %}
+                <section class="prep-kit" aria-labelledby="prep-kit-title">
+                    <header class="detail-section-head">
+                        <span class="detail-section-num">{{ '%02d'|format(section) }} — {{ 'ui.catalog.method_kit'|trans }}</span>
+                        <h2 id="prep-kit-title" class="detail-section-title">{{ 'ui.catalog.method_kit_title'|trans }}</h2>
+                    </header>
+                    <ul class="prep-tools">
+                        {% for tool in tools %}
+                            <li class="prep-tool">{{ tool }}</li>
+                        {% endfor %}
+                    </ul>
+                </section>
+            {% endif %}
+
+            {% if tips is not empty %}
+                {% set section = section + 1 %}
+                <section class="prep-spices" aria-labelledby="prep-spices-title">
+                    <header class="detail-section-head">
+                        <span class="detail-section-num">{{ '%02d'|format(section) }} — {{ 'ui.catalog.method_spices'|trans }}</span>
+                        <h2 id="prep-spices-title" class="detail-section-title">{{ 'ui.catalog.method_spices_title'|trans }}</h2>
+                    </header>
+                    <ul class="spice-rows">
+                        {% for tip in tips|slice(0, preview) %}
+                            <twig:Catalog:SpiceRow :spice="tip.spice" :loc="loc" :meta="tip.getLocalizedTitle(loc)" :note="tip.getLocalizedAdvantages(loc)" />
+                        {% endfor %}
+                    </ul>
+                    {% if tips|length > preview %}
+                        <details class="spice-rows-more">
+                            <summary>
+                                <span class="spice-rows-more-open">{{ 'ui.catalog.show_more_spices'|trans({'%count%': tips|length - preview}) }}</span>
+                                <span class="spice-rows-more-close">{{ 'ui.catalog.show_less_spices'|trans }}</span>
+                                <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                            </summary>
+                            <ul class="spice-rows">
+                                {% for tip in tips|slice(preview) %}
+                                    <twig:Catalog:SpiceRow :spice="tip.spice" :loc="loc" :meta="tip.getLocalizedTitle(loc)" :note="tip.getLocalizedAdvantages(loc)" />
+                                {% endfor %}
+                            </ul>
+                        </details>
+                    {% endif %}
+                </section>
+            {% endif %}
+
+            <div class="prep-aside">
+                {% if advice %}
+                    <section class="prep-advice" aria-labelledby="prep-advice-title">
+                        <h2 id="prep-advice-title" class="prep-label">
+                            <i class="fa-solid fa-lightbulb" aria-hidden="true"></i>{{ 'ui.catalog.method_advice'|trans }}
+                        </h2>
+                        <blockquote><p>{{ advice }}</p></blockquote>
+                    </section>
+                {% endif %}
+
+                {% if why %}
+                    <section class="prep-why" aria-labelledby="prep-why-title">
+                        <h2 id="prep-why-title" class="prep-label">
+                            <i class="fa-solid fa-flask" aria-hidden="true"></i>{{ 'ui.catalog.method_why'|trans }}
+                        </h2>
+                        <p>{{ why }}</p>
+                    </section>
+                {% endif %}
             </div>
-
-            <div class="text-center mb-10">
-                <span class="tag-primary mb-3 inline-block">{{ 'ui.catalog.method_badge'|trans }}</span>
-                <h1 class="text-4xl font-bold text-stone-900 mb-3">{{ preparationMethod.getLocalizedName(loc) }}</h1>
-                <p class="text-stone-500 text-lg max-w-xl mx-auto">{{ preparationMethod.getLocalizedDescription(loc) }}</p>
-            </div>
-
-            <div class="bg-white border border-stone-200 rounded-2xl p-8">
-                <h2 class="text-2xl font-bold text-stone-900 mb-4">
-                    <i class="fa-solid fa-mortar-pestle text-saffron-600 mr-2" aria-hidden="true"></i>{{ 'ui.catalog.usage_tips'|trans }}
-                </h2>
-                <p class="text-stone-600 leading-relaxed">{{ preparationMethod.getLocalizedDescription(loc) }}</p>
-            </div>
-
         </div>
-    </turbo-frame>
+    </article>
 {% endblock %}

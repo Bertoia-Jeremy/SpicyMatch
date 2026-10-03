@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Controller\Concern\CanonicalSlugTrait;
 use App\Repository\PreparationMethodsRepository;
+use App\Repository\PreparationTipsRepository;
 use App\Routing\CatalogPath;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,8 +25,12 @@ class PreparationMethodsController extends AbstractController
     }
 
     #[Route('/{slug}', name: 'view_preparation_methods', methods: ['GET'])]
-    public function view(string $slug, Request $request, PreparationMethodsRepository $repository): Response
-    {
+    public function view(
+        string $slug,
+        Request $request,
+        PreparationMethodsRepository $repository,
+        PreparationTipsRepository $tipsRepository,
+    ): Response {
         $locale = $request->getLocale();
         $preparationMethod = $repository->findOneByLocalizedSlug($slug, $locale);
         if ($preparationMethod === null) {
@@ -50,6 +55,7 @@ class PreparationMethodsController extends AbstractController
 
         return $this->render('preparation_methods/view.html.twig', [
             'preparationMethod' => $preparationMethod,
+            'tips' => $tipsRepository->findForMethod($preparationMethod, $locale),
             'hreflang_slugs' => [
                 'fr' => $preparationMethod->getLocalizedSlug('fr'),
                 'en' => $preparationMethod->getLocalizedSlug('en'),

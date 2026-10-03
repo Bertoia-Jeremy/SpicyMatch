@@ -128,6 +128,19 @@ class PreparationMethods implements TranslatableInterface, Sluggable, \Stringabl
         return $this->getTranslation($locale)?->getTools() ?? $this->tools;
     }
 
+    /**
+     * @return list<string>
+     */
+    public function getLocalizedToolList(string $locale): array
+    {
+        $parts = preg_split('/[,;]\s*|\.(?:\s+|$)/u', trim((string) $this->getLocalizedTools($locale)));
+
+        return array_values(array_filter(
+            array_map(static fn (string $part): string => mb_ucfirst(trim($part)), $parts === false ? [] : $parts),
+            static fn (string $part): bool => $part !== '',
+        ));
+    }
+
     public function getLocalizedInformations(string $locale): ?string
     {
         return $this->getTranslation($locale)?->getInformations() ?? $this->informations;

@@ -1,47 +1,208 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ aromaticCompound.getLocalizedName(app.request.locale) }} — SpicyMatch{% endblock %}
+{% block title %}{{ 'ui.meta.title.compound'|trans({'%name%': aromaticCompound.getLocalizedName(app.request.locale)}) }}{% endblock %}
 
-{% block meta_description %}{{ aromaticCompound.getLocalizedDescription(app.request.locale)|seo_summary|default('ui.meta.description'|trans) }}{% endblock %}
+{% block og_type %}article{% endblock %}
+
+{% block meta_description %}{{ aromaticCompound.getLocalizedDescription(app.request.locale)|seo_summary|default(aromaticCompound.getLocalizedName(app.request.locale) ~ 'ui.catalog.define_lead'|trans({'%definition%': 'ui.catalog.define_compound'|trans({'%count%': spices.primary|length + spices.secondary|length})})) }}{% endblock %}
 
 {% block structured_data %}{{ include('partials/_json_ld.html.twig', {subject: aromaticCompound}) }}{% endblock %}
 
 {% block body %}
-{% set loc = app.request.locale %}
-{{ include('partials/_content_read.html.twig', {kind: 'compound', id: aromaticCompound.id}) }}
-{% include 'components/_spice_modal.html.twig' %}
+    {% set loc = app.request.locale %}
+    {% set name = aromaticCompound.getLocalizedName(loc) %}
+    {% set description = aromaticCompound.getLocalizedDescription(loc) %}
+    {% set cooking = aromaticCompound.getLocalizedCooking(loc) %}
+    {% set lab = aromaticCompound.getLocalizedInformations(loc) %}
+    {% set kinetics = physical ? physical.aromaKinetics : null %}
+    {% set spiceCount = spices.primary|length + spices.secondary|length %}
+    {% set section = 0 %}
+    {{ include('partials/_content_read.html.twig', {kind: 'compound', id: aromaticCompound.id}) }}
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <twig:Catalog:Hero
-        backLabel="{{ 'ui.catalog.back_to_compounds'|trans }}"
-        backHref="{{ path('index_aromatic_compound') }}"
-        badge="{{ 'ui.catalog.compound_badge'|trans }}"
-        icon="fa-solid fa-atom"
-        title="{{ aromaticCompound.getLocalizedName(loc) }}"
-    />
+    <article class="detail-page cmpd-page">
+        <twig:Catalog:Crumbs
+            :items="[{label: 'ui.catalog.compounds_title'|trans, href: path('index_aromatic_compound')}]"
+            current="{{ name }}"
+        />
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-16">
-        <div class="lg:col-span-2 space-y-8">
-            <twig:Catalog:Section title="{{ 'ui.catalog.description'|trans }}" icon="fa-solid fa-circle-info">
-                {{ aromaticCompound.getLocalizedDescription(loc)|default('ui.catalog.no_description_detailed'|trans)|nl2br }}
-            </twig:Catalog:Section>
+        <header class="cmpd-hero">
+            <div class="cmpd-hero-text">
+                <p class="detail-eyebrow">
+                    {{ 'ui.catalog.compound_badge'|trans }}
+                    {% if spiceCount > 0 %}· {{ 'ui.catalog.compound_spice_count'|trans({'%count%': spiceCount}) }}{% endif %}
+                </p>
+                <h1 class="detail-title{{ name|length > 24 ? ' detail-title-long' }}">{{ name }}</h1>
+                <twig:Catalog:Lead :term="name" :definition="'ui.catalog.define_compound'|trans({'%count%': spiceCount})" :text="description" />
+                {% if flavors is not empty %}
+                    <div class="cmpd-perceived">
+                        <h2 class="cmpd-label">{{ 'ui.catalog.compound_perceived'|trans }}</h2>
+                        <ul class="ref-chips">
+                            {% for flavor in flavors %}
+                                <li>
+                                    <a class="ref-chip ref-chip-flavor" href="{{ path('view_alchemy_flavors', {slug: flavor.getLocalizedSlug(loc)}) }}">{{ flavor.getLocalizedName(loc) }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
 
-            {% if aromaticCompound.getLocalizedCooking(loc) %}
-                <twig:Catalog:Section title="{{ 'ui.catalog.in_kitchen'|trans }}" icon="fa-solid fa-mortar-pestle">
-                    {{ aromaticCompound.getLocalizedCooking(loc)|nl2br }}
-                </twig:Catalog:Section>
+            {% if aromaticCompound.formula or kinetics %}
+                <div class="cmpd-tile">
+                    {% if aromaticCompound.formula %}
+                        <p class="cmpd-tile-formula" translate="no">{{ aromaticCompound.formula|chem_formula }}</p>
+                    {% endif %}
+                    {% if kinetics %}
+                        <p class="cmpd-tile-kinetics cmpd-kinetics-{{ kinetics.value }}">
+                            <span class="cmpd-tile-note">{{ ('ui.catalog.compound_kinetics_' ~ kinetics.value)|trans }}</span>
+                            <span class="cmpd-tile-hint">{{ ('ui.catalog.compound_kinetics_' ~ kinetics.value ~ '_hint')|trans }}</span>
+                        </p>
+                    {% endif %}
+                </div>
             {% endif %}
+        </header>
+
+        <div class="cmpd-body">
+            {% if spiceCount > 0 %}
+                {% set section = section + 1 %}
+                <section class="cmpd-where" aria-labelledby="cmpd-where-title">
+                    <header class="detail-section-head">
+                        <span class="detail-section-num">{{ '%02d'|format(section) }} — {{ 'ui.catalog.compound_where'|trans }}</span>
+                        <h2 id="cmpd-where-title" class="detail-section-title">{{ 'ui.catalog.compound_where_title'|trans }}</h2>
+                    </header>
+                    {% for key, list in spices %}
+                        {% if list is not empty %}
+                            <div class="cmpd-plane">
+                                <div class="cmpd-plane-head">
+                                    <h3 class="cmpd-plane-title">
+                                        {{ ('ui.catalog.compound_' ~ key)|trans }}
+                                        <span class="cmpd-plane-count">{{ list|length }}</span>
+                                    </h3>
+                                    <p class="cmpd-plane-hint">{{ ('ui.catalog.compound_' ~ key ~ '_hint')|trans }}</p>
+                                </div>
+                                <ul class="spice-rail">
+                                    {% for related in list %}
+                                        <li>{{ include('spices/_rail_card.html.twig', {related: related, loc: loc, headingTag: 'h4'}) }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </section>
+            {% endif %}
+
+            {% if cooking or lab %}
+                <div class="cmpd-notes">
+                    {% if cooking %}
+                        {% set section = section + 1 %}
+                        <section class="cmpd-kitchen" aria-labelledby="cmpd-kitchen-title">
+                            <header class="detail-section-head">
+                                <span class="detail-section-num">{{ '%02d'|format(section) }} — {{ 'ui.catalog.in_kitchen'|trans }}</span>
+                                <h2 id="cmpd-kitchen-title" class="detail-section-title">{{ 'ui.catalog.compound_kitchen_title'|trans }}</h2>
+                            </header>
+                            <p class="cmpd-prose">{{ cooking }}</p>
+                        </section>
+                    {% endif %}
+
+                    {% if lab %}
+                        <section class="cmpd-lab" aria-labelledby="cmpd-lab-title">
+                            <h2 id="cmpd-lab-title" class="cmpd-label">
+                                <i class="fa-solid fa-flask" aria-hidden="true"></i>{{ 'ui.catalog.compound_lab'|trans }}
+                            </h2>
+                            <p>{{ lab }}</p>
+                        </section>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% set section = section + 1 %}
+            <section class="cmpd-identity" aria-labelledby="cmpd-identity-title">
+                <header class="detail-section-head">
+                    <span class="detail-section-num">{{ '%02d'|format(section) }} — {{ 'ui.catalog.compound_identity'|trans }}</span>
+                    <h2 id="cmpd-identity-title" class="detail-section-title">{{ 'ui.catalog.compound_identity_title'|trans }}</h2>
+                </header>
+
+                <dl class="cmpd-spec">
+                    {% if aromaticCompound.formula %}
+                        <div class="cmpd-spec-item">
+                            <dt>{{ 'ui.catalog.compound_formula'|trans }}</dt>
+                            <dd translate="no">{{ aromaticCompound.formula|chem_formula }}</dd>
+                        </div>
+                    {% endif %}
+                    {% if aromaticCompound.casNumber %}
+                        <div class="cmpd-spec-item">
+                            <dt>{{ 'ui.catalog.compound_cas'|trans }}</dt>
+                            <dd translate="no">{{ aromaticCompound.casNumber }}</dd>
+                        </div>
+                    {% endif %}
+                    {% if aromaticCompound.pubchemCid %}
+                        <div class="cmpd-spec-item">
+                            <dt>{{ 'ui.catalog.compound_pubchem'|trans }}</dt>
+                            <dd>
+                                <a class="cmpd-external" href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ aromaticCompound.pubchemCid }}" target="_blank" rel="noopener noreferrer">
+                                    {{ 'ui.catalog.compound_pubchem_cid'|trans({'%cid%': aromaticCompound.pubchemCid}) }}
+                                    <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                                    <span class="sr-only">{{ 'ui.catalog.external_link'|trans }}</span>
+                                </a>
+                            </dd>
+                        </div>
+                    {% endif %}
+                    {% if physical and physical.boilingPointCelsius is not null %}
+                        <div class="cmpd-spec-item">
+                            <dt>{{ 'ui.catalog.compound_boiling'|trans }}</dt>
+                            <dd>{{ physical.boilingPointCelsius|format_number }} °C</dd>
+                        </div>
+                    {% endif %}
+                    {% if physical and physical.logP is not null %}
+                        <div class="cmpd-spec-item">
+                            <dt>{{ 'ui.catalog.compound_logp'|trans }}</dt>
+                            <dd>{{ physical.logP|format_number({max_fraction_digit: 2}) }}</dd>
+                        </div>
+                    {% endif %}
+                    {% if physical and physical.vaporPressurePa is not null %}
+                        <div class="cmpd-spec-item">
+                            <dt>{{ 'ui.catalog.compound_vapor'|trans }}</dt>
+                            <dd>{{ physical.vaporPressurePa|format_number({significant_digits_used: true, max_significant_digits_used: 3}) }} Pa</dd>
+                        </div>
+                    {% endif %}
+                    {% if aromaticCompound.inchiKey %}
+                        <div class="cmpd-spec-item cmpd-spec-wide">
+                            <dt>{{ 'ui.catalog.compound_inchikey'|trans }}</dt>
+                            <dd class="cmpd-code" translate="no">{{ aromaticCompound.inchiKey }}</dd>
+                        </div>
+                    {% endif %}
+                </dl>
+
+                {% if odt is not empty %}
+                    <div class="cmpd-odt">
+                        <h3 class="cmpd-label">{{ 'ui.catalog.compound_odt'|trans }}</h3>
+                        <p class="cmpd-odt-hint">{{ 'ui.catalog.compound_odt_hint'|trans }}</p>
+                        <table class="cmpd-odt-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">{{ 'ui.catalog.compound_odt_medium'|trans }}</th>
+                                    <th scope="col">{{ 'ui.catalog.compound_odt_value'|trans }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in odt %}
+                                    <tr>
+                                        <th scope="row">{{ row.matrix.label|trans }}</th>
+                                        <td>{{ row.odtPpm|format_number({significant_digits_used: true, max_significant_digits_used: 3}) }} ppm</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+
+                {% if confidence %}
+                    <p class="cmpd-confidence">
+                        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                        {{ (confidence.isProductionGrade() ? 'ui.catalog.compound_confidence' : 'ui.catalog.compound_confidence_indicative')|trans({'%label%': confidence.label|trans}) }}
+                    </p>
+                {% endif %}
+            </section>
         </div>
-
-        <aside class="space-y-8">
-            {% if aromaticCompound.getLocalizedInformations(loc) %}
-                <twig:Catalog:Section title="{{ 'ui.catalog.scientific_note'|trans }}" icon="fa-solid fa-flask" small>
-                    {{ aromaticCompound.getLocalizedInformations(loc)|nl2br }}
-                </twig:Catalog:Section>
-            {% endif %}
-        </aside>
-    </div>
-
-    <twig:Catalog:LinkedSpices :spices="aromaticCompound.spices|merge(aromaticCompound.secondarySpices)" title="{{ 'ui.catalog.linked_spices'|trans }}" />
-</div>
+    </article>
 {% endblock %}

@@ -21,7 +21,7 @@ class AromaticCompoundFixtures extends Fixture implements FixtureGroupInterface
             'formula' => 'C10H12O2',
             'description' => 'Principal composé aromatique du clou de girofle et de la cannelle, appartenant à la famille des phénylpropanoïdes. Arôme chaud, épicé et légèrement sucré.',
             'cooking' => 'Confère une note chaude et complexe aux mélanges d\'épices. Présent dans le ras el hanout, le poudre de cinq-épices et les marinades.',
-            'informations' => 'Molécule aux propriétés antioxydantes et antiseptiques. Représente 70-90% de l\'huile essentielle de clou de girofle.',
+            'informations' => 'Phénol à l\'odeur chaude et boisée de clou de girofle. Représente 70-90% de l\'huile essentielle de clou de girofle.',
         ],
         'cinnamaldehyde' => [
             'name' => 'Cinnamaldéhyde',
@@ -61,7 +61,7 @@ class AromaticCompoundFixtures extends Fixture implements FixtureGroupInterface
             'formula' => 'C10H18O',
             'description' => 'Alcool monoterpénique aux notes fraîches, légèrement terreuses et poivrées. Principal composé actif de la cardamome et du tea tree.',
             'cooking' => 'Arôme complexe de la cardamome verte. Intervient dans le masala chai, les mélanges d\'épices indiennes et le café épicé.',
-            'informations' => 'Composé majoritaire de l\'huile de tea tree et de la cardamome. Propriétés antimicrobiennes reconnues.',
+            'informations' => 'Composé majoritaire de l\'huile de tea tree, présent aussi dans la marjolaine et la cardamome. Odeur boisée et poivrée.',
         ],
         'geraniol' => [
             'name' => 'Géraniol',
@@ -92,8 +92,8 @@ class AromaticCompoundFixtures extends Fixture implements FixtureGroupInterface
             'cas_number' => '94-62-2',
             'formula' => 'C17H19NO3',
             'description' => 'Alcaloïde du poivre noir et blanc responsable du piquant caractéristique, plus lent et plus persistant que la capsaïcine.',
-            'cooking' => 'Le piquant du poivre. Rehausse tous les plats et améliore l\'absorption des autres composés aromatiques (notamment la curcumine).',
-            'informations' => 'La pipérine augmente la biodisponibilité de la curcumine jusqu\'à 2000%. Arôme poivré distinct de la capsaïcine.',
+            'cooking' => 'Le piquant du poivre. Rehausse tous les plats et accompagne traditionnellement le curcuma.',
+            'informations' => 'Arôme poivré distinct de la capsaïcine. Sensible à la lumière : le poivre se conserve en grains, dans un pot opaque.',
         ],
         'thymol' => [
             'name' => 'Thymol',
@@ -101,7 +101,7 @@ class AromaticCompoundFixtures extends Fixture implements FixtureGroupInterface
             'formula' => 'C10H14O',
             'description' => 'Phénol monoterpénique aux notes herbacées, légèrement médicamenteuses et chaleureuses. Composé dominant du thym et présent dans le cumin.',
             'cooking' => 'Arôme signature du thym frais. Résiste bien à la cuisson. Indispensable dans les bouquets garnis et les ragoûts méditerranéens.',
-            'informations' => 'Fort pouvoir antiseptique. Utilisé en aromathérapie. Se dégrade à haute température en para-cymène (note citronnée).',
+            'informations' => 'Phénol à l\'odeur herbacée et chaude, signature du thym. Se dégrade à haute température en para-cymène (note citronnée).',
         ],
         'carvacrol' => [
             'name' => 'Carvacrol',
@@ -109,15 +109,15 @@ class AromaticCompoundFixtures extends Fixture implements FixtureGroupInterface
             'formula' => 'C10H14O',
             'description' => 'Phénol monoterpénique isomère du thymol, dominant dans l\'origan et présent dans le thym. Note herbacée plus chaude et moins fraîche.',
             'cooking' => 'Arôme caractéristique de l\'origan séché, de la pizza méditerranéenne. S\'associe naturellement avec le thymol pour des notes herbacées complexes.',
-            'informations' => 'Présent à 60-80% dans l\'HE d\'origan méditerranéen. Puissante activité antifongique et antibactérienne.',
+            'informations' => 'Présent à 60-80% dans l\'HE d\'origan méditerranéen. Phénol à l\'odeur chaude et épicée, isomère du thymol.',
         ],
         'curcumine' => [
             'name' => 'Curcumine',
             'cas_number' => '458-37-7',
             'formula' => 'C21H20O6',
             'description' => 'Polyphénol jaune-orangé responsable de la couleur et de l\'arôme terreux-doré du curcuma, présent secondairement dans le gingembre.',
-            'cooking' => 'Colorant et aromatisant naturel des currys, du riz safrané, des soupes dorées. S\'associe bien au gingembre pour un duo anti-inflammatoire.',
-            'informations' => 'Faible biodisponibilité isolée, fortement augmentée en présence de pipérine (+2000%) et de corps gras.',
+            'cooking' => 'Colorant et aromatisant naturel des currys, du riz safrané, des soupes dorées. S\'associe bien au gingembre.',
+            'informations' => 'Peu soluble dans l\'eau, elle se dissout dans les corps gras : c\'est dans l\'huile ou le beurre chaud qu\'elle colore et parfume le mieux.',
         ],
         'zingerone' => [
             'name' => 'Zingérone',

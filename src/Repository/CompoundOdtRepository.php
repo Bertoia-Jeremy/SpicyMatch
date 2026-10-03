@@ -38,4 +38,21 @@ class CompoundOdtRepository extends ServiceEntityRepository
             ->setParameter('matrix', $matrix->value)
             ->getOneOrNullResult();
     }
+
+    /**
+     * @return list<CompoundOdt>
+     */
+    public function findAllForCompound(int $aromaticCompoundId): array
+    {
+        $rows = $this->createQueryBuilder('o')
+            ->andWhere('o.aromaticCompound = :id')
+            ->setParameter('id', $aromaticCompoundId)
+            ->getQuery()
+            ->getResult();
+
+        $rank = array_flip(array_map(static fn (OdtMatrix $m): string => $m->value, OdtMatrix::cases()));
+        usort($rows, static fn (CompoundOdt $a, CompoundOdt $b): int => $rank[$a->getMatrix()->value] <=> $rank[$b->getMatrix()->value]);
+
+        return $rows;
+    }
 }

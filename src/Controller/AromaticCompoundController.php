@@ -5,7 +5,13 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Controller\Concern\CanonicalSlugTrait;
+use App\Entity\CompoundOdt;
+use App\Enum\DataConfidence;
+use App\Repository\AlchemyFlavorsRepository;
 use App\Repository\AromaticCompoundRepository;
+use App\Repository\CompoundOdtRepository;
+use App\Repository\CompoundPhysicalRepositoryInterface;
+use App\Repository\SpicesRepository;
 use App\Routing\CatalogPath;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,8 +32,15 @@ class AromaticCompoundController extends AbstractController
     }
 
     #[Route('/{slug}', name: 'view_aromatic_compound')]
-    public function view(string $slug, Request $request, AromaticCompoundRepository $repository): Response
-    {
+    public function view(
+        string $slug,
+        Request $request,
+        AromaticCompoundRepository $repository,
+        SpicesRepository $spicesRepository,
+        AlchemyFlavorsRepository $flavorsRepository,
+        CompoundOdtRepository $odtRepository,
+        CompoundPhysicalRepositoryInterface $physicalRepository,
+    ): Response {
         $locale = $request->getLocale();
         $aromaticCompound = $repository->findOneByLocalizedSlug($slug, $locale);
         if ($aromaticCompound === null) {
@@ -43,8 +56,21 @@ class AromaticCompoundController extends AbstractController
             return $redirect;
         }
 
+        $compoundId = (int) $aromaticCompound->getId();
+        $physical = $physicalRepository->loadByCompoundIds([$compoundId])[$compoundId] ?? null;
+        $odt = $odtRepository->findAllForCompound($compoundId);
+        $confidences = array_map(static fn (CompoundOdt $row): DataConfidence => $row->getConfidence(), $odt);
+        if ($physical !== null) {
+            $confidences[] = $physical->getConfidence();
+        }
+
         return $this->render('aromatic_compound/view.html.twig', [
             'aromaticCompound' => $aromaticCompound,
+            'spices' => $spicesRepository->findByCompound($aromaticCompound, $locale),
+            'flavors' => $flavorsRepository->findForCompound($aromaticCompound, $locale),
+            'physical' => $physical,
+            'odt' => $odt,
+            'confidence' => $confidences === [] ? null : DataConfidence::weakest(...$confidences),
             'hreflang_slugs' => [
                 'fr' => $aromaticCompound->getLocalizedSlug('fr'),
                 'en' => $aromaticCompound->getLocalizedSlug('en'),

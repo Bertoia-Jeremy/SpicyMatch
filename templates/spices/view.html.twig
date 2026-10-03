@@ -49,6 +49,7 @@
     {% set hasKitchen = moments is not empty %}
     {% set hasNotebook = cooking or informations or benefits or preps is not empty %}
     {% set hasPairs = compatibleSpices is not empty %}
+    {% set hasFaq = faqQuestions is not empty %}
     {% set swatches = ['spc-swatch-1', 'spc-swatch-2', 'spc-swatch-3', 'spc-swatch-4', 'spc-swatch-5'] %}
     {% set flavors = {} %}
     {% for compound in primaries.toArray|merge(secondaries.toArray) %}
@@ -100,13 +101,14 @@
             {% endif %}
         </header>
 
-        {% if hasProfile or hasKitchen or hasNotebook or hasPairs %}
+        {% if hasProfile or hasKitchen or hasNotebook or hasPairs or hasFaq %}
             <nav class="spc-anchors" aria-label="{{ 'ui.catalog.spice_anchors_label'|trans }}">
                 <ul>
                     {% if hasProfile %}<li><a class="spc-anchor" href="#spc-profile">{{ 'ui.catalog.profile'|trans }}</a></li>{% endif %}
                     {% if hasKitchen %}<li><a class="spc-anchor" href="#spc-kitchen">{{ 'ui.catalog.in_kitchen'|trans }}</a></li>{% endif %}
                     {% if hasNotebook %}<li><a class="spc-anchor" href="#spc-notebook">{{ 'ui.catalog.notebook'|trans }}</a></li>{% endif %}
                     {% if hasPairs %}<li><a class="spc-anchor" href="#spc-pairs">{{ 'ui.catalog.pairs_with'|trans }}</a></li>{% endif %}
+                    {% if hasFaq %}<li><a class="spc-anchor" href="#spc-faq">{{ 'ui.catalog.faq'|trans }}</a></li>{% endif %}
                 </ul>
             </nav>
         {% endif %}
@@ -321,6 +323,11 @@
                     {% endfor %}
                 </ul>
             </section>
+        {% endif %}
+
+        {% if hasFaq %}
+            {% set section = section + 1 %}
+            <twig:Catalog:Faq :questions="faqQuestions" :num="section" :name="name" id="spc-faq" class="spc-section spc-faq" />
         {% endif %}
     </article>
 {% endblock %}

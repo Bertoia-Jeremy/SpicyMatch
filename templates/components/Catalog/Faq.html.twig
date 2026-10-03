@@ -1,0 +1,10 @@
+{% props questions, num, name, id = 'detail-faq' %}
+{% if questions is not empty %}
+<section id="{{ id }}" {{ attributes.defaults({class: 'detail-faq'}) }} aria-labelledby="{{ id }}-title">
+    <header class="detail-section-head">
+        <span class="detail-section-num">{{ '%02d'|format(num) }} — {{ 'ui.catalog.faq'|trans }}</span>
+        <h2 id="{{ id }}-title" class="detail-section-title">{{ 'ui.catalog.faq_title'|trans({'%name%': name}) }}</h2>
+    </header>
+    <twig:Faq:Accordion :questions="questions" />
+</section>
+{% endif %}

@@ -96,7 +96,7 @@ final class SeoEndpointsTest extends WebTestCase
         $crawler = $client->request('GET', '/fr/epices/' . $spice->getSlug());
 
         self::assertResponseIsSuccessful();
-        $script = $crawler->filter('script[type="application/ld+json"]');
+        $script = $crawler->filter('head script[type="application/ld+json"]');
         self::assertCount(1, $script);
         self::assertNotEmpty($script->attr('nonce'));
         $document = json_decode($script->text(), true, flags: \JSON_THROW_ON_ERROR);

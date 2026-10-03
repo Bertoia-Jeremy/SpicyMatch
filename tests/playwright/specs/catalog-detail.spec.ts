@@ -23,6 +23,9 @@ const pages = [
   '/fr/epices/types-epices/rhizome-racine',
   '/en/spices/spice-types/flower-stigma',
   '/es/especias/tipos-especias/rizoma-raiz',
+  '/fr/faq',
+  '/en/faq',
+  '/es/faq',
 ];
 
 const widths = [360, 375, 768, 1024, 1280];
@@ -45,7 +48,7 @@ test.describe('Catalog detail pages are mobile first', () => {
             .filter(el => visible(el) && [...el.childNodes].some(n => n.nodeType === Node.TEXT_NODE && n.textContent?.trim()))
             .filter(el => parseFloat(getComputedStyle(el).fontSize) < 12)
             .map(el => el.className);
-          const smallTargets = [...document.querySelectorAll('main .spice-row-link, main summary, main .detail-crumbs a, main .ref-chip, main .flav-step-link, main .spc-anchor, main .spc-compound, main .spc-prep-method, main .spc-cta, main .fam-molecule, main .fam-filter, main .fam-other, main a.kind-bucket-link, main .kind-filter, main .kind-other')]
+          const smallTargets = [...document.querySelectorAll('main .spice-row-link, main summary, main .detail-crumbs a, main .ref-chip, main .flav-step-link, main .spc-anchor, main .spc-compound, main .spc-prep-method, main .spc-cta, main .fam-molecule, main .fam-filter, main .fam-other, main a.kind-bucket-link, main .kind-filter, main .kind-other, main .faq-trigger, main .faq-filter, main .faq-contact-btn')]
             .filter(visible)
             .filter(el => el.getBoundingClientRect().height < 44)
             .map(el => el.textContent?.trim());

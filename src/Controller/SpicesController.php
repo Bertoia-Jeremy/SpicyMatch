@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Controller\Concern\CanonicalSlugTrait;
 use App\Entity\Spices;
 use App\Repository\AromaticGroupsRepository;
+use App\Repository\FaqQuestionRepository;
 use App\Repository\SpiceDuoRepository;
 use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
@@ -88,6 +89,7 @@ class SpicesController extends AbstractController
         SpiceDuoRepository $spiceDuoRepository,
         SpiceDuoMapBuilder $duoMapBuilder,
         AcademyManager $academyManager,
+        FaqQuestionRepository $faqQuestionRepository,
     ): Response {
         $locale = $request->getLocale();
         $spice = $this->spicesRepository->findOneByLocalizedSlug($slug, $locale);
@@ -117,6 +119,7 @@ class SpicesController extends AbstractController
             'duosByCook' => $duoMapBuilder->tooltips($duoRows)['byCook'],
             'compatibleSpices' => $compatibleSpices,
             'relatedSpices' => $this->spicesRepository->findRelated($spice, self::RAIL_SIZE, $compatibleSpiceIds, $locale),
+            'faqQuestions' => $faqQuestionRepository->findPublishedForSpice($spice, $locale),
             'hreflang_slugs' => [
                 'fr' => $spice->getLocalizedSlug('fr'),
                 'en' => $spice->getLocalizedSlug('en'),

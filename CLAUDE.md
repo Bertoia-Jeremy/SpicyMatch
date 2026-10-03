@@ -27,7 +27,7 @@ docker exec -w /var/www/html/spicymatch p8.5 php bin/console doctrine:fixtures:l
 yarn build
 ```
 - `composer ci` = check-cs + lint-twig + phpstan + test-unit + schema-test + test-integration + test-controller + check-data.
-- Env frais : DB `spicymatch_test` seedée (30 épices + `app:recompute:oav --sync --env=test`).
+- Env frais : DB `spicymatch_test` seedée (30 épices + `app:recompute:oav --sync --env=test` + `--group=faq`).
 - `yarn build` après tout changement de classes Tailwind. Si le watcher `yarn dev` de l'user tourne, ne pas le tuer : `touch assets/styles/app.css && yarn build`.
 - `ecs check <fichiers> --fix` réécrit les fichiers : relire avant toute édition suivante.
 - Baseline PHPStan : `phpstan analyze --generate-baseline=phpstan-baseline.neon`, uniquement après un vrai fix.
@@ -137,6 +137,17 @@ MVC Symfony (Controller > Service > Repository > Entity), REST par controllers, 
 - Couleur de groupe : validée hex (`/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/`) puis posée en variable CSS (`--fam-color`, `--dot`), teinte/filet/pastille seulement, jamais couleur de texte. Barres dynamiques = `<meter>`, jamais `width` inline.
 - `SpicyType.icon` (nullable, `fa-solid fa-*`) : choix admin dans `IconSubsetManifest::solidChoices()`, collecté par `IconUsageCollector` (Achievement + SpicyType), seed `docs/sql/2026-10-02-spicy-type-icons.sql`. Twig valide `/^fa-solid fa-[a-z0-9]+(-[a-z0-9]+)*$/`, fallback `fa-solid fa-tags`.
 - Garde responsive : `PW_CHANNEL=chrome yarn e2e catalog-detail` (360→1280 : zéro débordement, texte ≥ 12 px, cibles ≥ 44 px, h1 ≤ 2 lignes ≤ 375). Nouvelle fiche ou cible tactile = l'ajouter au spec. URLs EN/ES du spec = slugs traduits (le slug FR répond 301).
+
+### FAQ
+- Entités `FaqCategory` (`code` kebab unique = ancre `#faq-cat-{code}` et filtre) + `FaqQuestion` (`published`, `position`, ManyToMany `spices` = rattachement à une fiche), traductions Translation Table. Réponses en texte brut (`|nl2br` autoescapé), jamais de `|raw` ni de HTML admin.
+- Lecture : `FaqQuestionRepository::findPublished($locale)` / `findPublishedForSpice($spice, $locale)` (fetch-join catégorie + traductions si locale ≠ fr). Regroupement par catégorie en PHP (`FaqController::sections()`), jamais via une collection filtrée.
+- Bloc réutilisable : `<twig:Faq:Accordion :questions schema? level?>` (Alpine `faqAccordion`, ids `faq-{id}-q|a`, hash `#faq-{id}-q` ouvre la question). Liste vide = AUCUN rendu (ni wrapper ni JSON-LD). Il émet son FAQPage via `FaqEntries` + `FaqPageSchemaProvider` ; une seule FAQPage par page : sur `/faq` l'accordéon passe `:schema="false"` et la page l'émet dans `structured_data`.
+- Fiche entité : `<twig:Catalog:Faq questions num name id class?>` (titre numéroté + accordéon), rendu SEULEMENT si `findPublishedForSpice()` renvoie des questions publiées ; sinon zéro trace FAQ (garde `SpiceFaqTest`). Nouvelle entité liable = ManyToMany sur `FaqQuestion` + `findPublishedForX` + `AssociationField` admin + `<twig:Catalog:Faq>` sous `{% if hasFaq %}` (le compteur `section` n'incrémente que si non vide) + ancre. Jamais de copie de la section.
+- Admin : catégorie contenant des questions = action supprimer masquée (index/détail) ET refusée dans `deleteEntity()` (flash `admin.flash.faq_category_in_use`, couvre le batch), jamais d'`EntityRemoveException` (garde `FaqCategoryDeleteTest`).
+- Hash : `faqAccordion` et `faqFilter` écoutent `hashchange` (`#faq-{id}-q` ouvre et repasse le filtre sur « tout » si la question est masquée) ; un filtre écrit `#faq-cat-{code}` via `history.replaceState(history.state, …)` (état Turbo conservé), « tout » retire le hash.
+- Traductions admin validées serveur : `NotBlank` sur les champs, `#[Assert\Valid]` + `#[Assert\Unique(normalizer: static function …)]` sur la collection (doublon de locale = erreur de formulaire, pas 500). PHP 8.5 : closure en attribut = `static function`, jamais `fn`.
+- CSS préfixe `faq-` (`components/faq.css`), panneau fermé en CSS (`grid-template-rows: 0fr` + `visibility: hidden`), réponse toujours dans le DOM.
+- Seed : `doctrine:fixtures:load --append --group=faq` (dev + `--env=test`, requis par `FaqControllerTest`/`AdminCrudSmokeTest`), idempotent (catégorie par `code`, question par texte FR), `spices` = slugs FR liés (question cannelle couverte par l'e2e `catalog-detail`, qui inclut `/faq` fr/en/es). Test qui lie une question à « une épice » : choisir une épice sans rattachement (`NOT EXISTS … MEMBER OF q.spices`), jamais la première par id. Test JSON-LD de fiche : cibler `head script[type="application/ld+json"]` (la FAQPage vit dans le body). Icône du menu admin = soumise au subset FA (`app:icons:list` + `yarn icons:subset`).
 
 ### Recette finalisée (`view_spicy_match_history`)
 - Source unique : `RecipeViewFactory::build()` → `RecipeView` (steps, moments, familles, OAV). Controller = voter + redirect non scellé + render. Jointure prep↔cooking↔duo dans `RecipeStepsBuilder`, jamais en Twig. Duo indexé par paire `prepId|cookId`.

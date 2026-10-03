@@ -4,18 +4,20 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\GameSession;
 use App\Entity\Users;
 use App\Enum\GameDifficulty;
 use App\Enum\GameMode;
 use App\Repository\AchievementRepository;
 use App\Repository\GameSessionRepository;
 use App\Security\Voter\GameAccessVoter;
+use App\Security\Voter\GameSessionVoter;
 use App\Seo\Attribute\NoIndex;
-use App\Service\Education\AcademyManager;
+use App\Service\Education\BriefingViewFactory;
 use App\Service\Education\DailyChallengeResolver;
-use App\Service\Education\DifficultyAdvisor;
+use App\Service\Education\GameResultViewFactory;
 use App\Service\Education\GameSessionManager;
-use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -32,12 +34,11 @@ class EducationController extends AbstractController
     public function __construct(
         private readonly GameSessionManager $sessionManager,
         private readonly GameSessionRepository $sessionRepository,
-        private readonly AcademyManager $academyManager,
-        private readonly DifficultyAdvisor $difficultyAdvisor,
+        private readonly GameResultViewFactory $resultViewFactory,
         private readonly AchievementRepository $achievementRepository,
-        private readonly EntityManagerInterface $em,
         private readonly TranslatorInterface $translator,
         private readonly DailyChallengeResolver $dailyChallenge,
+        private readonly BriefingViewFactory $briefingViewFactory,
     ) {
     }
 
@@ -122,13 +123,13 @@ class EducationController extends AbstractController
         }
 
         $mode = GameMode::tryFrom($request->query->getString('mode')) ?? GameMode::QCM;
-        $difficulty = GameDifficulty::tryFrom($request->query->getString('difficulty')) ?? GameDifficulty::EASY;
+        $difficulty = GameDifficulty::tryFrom($request->query->getString('difficulty')) ?? $user->getPreferredDifficulty();
 
         return $this->render('education/briefing.html.twig', [
+            'view' => $this->briefingViewFactory->build($user, $mode),
             'mode' => $mode,
             'difficulty' => $difficulty,
             'difficulties' => GameDifficulty::cases(),
-            'rules' => $this->academyManager->getRulesFor($mode),
         ]);
     }
 
@@ -258,16 +259,7 @@ class EducationController extends AbstractController
         $correctAnswer = $storedQuestion['correctAnswer'];
         $timeSpentMs = $request->request->getInt('timeSpentMs') ?: null;
 
-        $questionData = $storedQuestion;
-
-        $result = $this->sessionManager->answerQuestion($session, $answer, $correctAnswer, $timeSpentMs);
-
-        $lastQuestion = $session->getQuestions()
-            ->last();
-        if ($lastQuestion !== false) {
-            $lastQuestion->setQuestionData($questionData);
-            $this->em->flush();
-        }
+        $result = $this->sessionManager->answerQuestion($session, $storedQuestion, $answer, $timeSpentMs);
 
         $request->getSession()
             ->remove('current_question_' . $id);
@@ -333,25 +325,26 @@ class EducationController extends AbstractController
     }
 
     #[NoIndex]
-    #[Route('/result/{id}', name: 'education_result', methods: ['GET'])]
+    #[Route('/result/{id}', name: 'education_result', requirements: [
+        'id' => '\d+',
+    ], methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function result(int $id, #[CurrentUser] Users $user): Response
-    {
-        $session = $this->sessionRepository->find($id);
-        if ($session === null || $session->getUser()->getId() !== $user->getId()) {
-            throw $this->createNotFoundException();
+    #[IsGranted(GameSessionVoter::OWNER, 'session', statusCode: 404)]
+    public function result(
+        #[MapEntity(expr: 'repository.findForResult(id)')]
+        GameSession $session,
+        Request $request,
+        #[CurrentUser]
+        Users $user,
+    ): Response {
+        if (! $session->isFinished()) {
+            return $this->redirectToRoute('education_play', [
+                'id' => $session->getId(),
+            ]);
         }
 
-        $todayCount = $this->sessionManager->countTodaySessions($user, $session->getGameMode());
-        $previousBest = $this->sessionRepository->findBestScoreBefore($session);
-        $bestScores = $this->sessionRepository->findBestScoreByUserGrouped($user);
-
         return $this->render('education/result.html.twig', [
-            'session' => $session,
-            'isNewRecord' => $session->isFinished && $session->getScore() > ($previousBest ?? 0),
-            'personalBest' => $bestScores[$session->getGameMode()->value] ?? null,
-            'canReplay' => $todayCount < $this->sessionManager->maxDailySessions($user),
-            'skillAssessment' => $this->difficultyAdvisor->adviseFor($session),
+            'result' => $this->resultViewFactory->build($session, $user, $request->getLocale()),
         ]);
     }
 }

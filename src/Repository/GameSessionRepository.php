@@ -102,6 +102,17 @@ class GameSessionRepository extends ServiceEntityRepository
         return $result;
     }
 
+    public function findForResult(int $id): ?GameSession
+    {
+        return $this->createQueryBuilder('gs')
+            ->select('gs', 'q')
+            ->leftJoin('gs.questions', 'q')
+            ->where('gs.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function findBestScoreBefore(GameSession $session): ?int
     {
         $finishedAt = $session->getFinishedAt();

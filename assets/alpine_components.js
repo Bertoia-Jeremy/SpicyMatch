@@ -490,31 +490,14 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
-    Alpine.data('difficultySelector', (initial = 'easy') => ({
-        difficulty: initial,
-        pick(diff) { this.difficulty = diff; },
-        buttonClass(diff) {
-            return this.difficulty === diff
-                ? 'border-saffron-500 bg-saffron-50 text-saffron-700 ring-2 ring-saffron-200'
-                : 'border-stone-200 bg-white text-stone-700 hover:border-saffron-300 hover:bg-cream';
+    Alpine.data('briefing', () => ({
+        difficulty: 'easy',
+        submitting: false,
+        init() {
+            this.difficulty = this.$root.dataset.difficulty || 'easy';
         },
-        isSelected(diff) { return this.difficulty === diff; },
-    }));
-
-    Alpine.data('modeSelector', (defaultMode = '', defaultDifficulty = 'easy') => ({
-        selectedMode: defaultMode,
-        selectedDifficulty: defaultDifficulty,
-        pickMode(mode) { this.selectedMode = mode; },
-        pickDifficulty(diff) { this.selectedDifficulty = diff; },
-        modeCardClass(mode) {
-            return this.selectedMode === mode
-                ? 'ring-2 ring-saffron-500 border-saffron-400 bg-spice-surface'
-                : 'border-stone-200 bg-white hover:bg-cream';
-        },
-        difficultyButtonClass(diff) {
-            return this.selectedDifficulty === diff
-                ? 'bg-saffron-600 text-white'
-                : 'bg-stone-100 text-stone-700 hover:bg-stone-200';
+        valueFor(el) {
+            return el.dataset[this.difficulty] ?? el.textContent;
         },
     }));
 
@@ -1130,6 +1113,85 @@ export default function registerAlpineComponents(Alpine) {
             }
         },
         chevronClass() { return this.open ? '' : '-rotate-180'; },
+    }));
+
+    Alpine.data('gameResult', () => ({
+        init() {
+            this._frame = null;
+            this._timers = [];
+            this._onBeforeCache = () => this.settle();
+            document.addEventListener('turbo:before-cache', this._onBeforeCache);
+            this._timers.push(setTimeout(() => {
+                if (this.$refs.status) this.$refs.status.textContent = this.$root.dataset.announce || '';
+            }, 1200));
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            document.querySelectorAll('.result-xp [data-count]').forEach((el) => this.countUp(el));
+        },
+        destroy() {
+            document.removeEventListener('turbo:before-cache', this._onBeforeCache);
+            this.settle();
+        },
+        countUp(el) {
+            const target = Number.parseInt(el.dataset.count, 10);
+            if (!Number.isFinite(target) || target <= 0) return;
+            el.textContent = '0';
+            let start = null;
+            const step = (now) => {
+                start ??= now;
+                const k = Math.min(1, Math.max(0, (now - start - 400) / 900));
+                el.textContent = String(Math.round(target * (1 - (1 - k) ** 3)));
+                this._frame = k < 1 ? requestAnimationFrame(step) : null;
+            };
+            this._frame = requestAnimationFrame(step);
+        },
+        settle() {
+            if (this._frame !== null) cancelAnimationFrame(this._frame);
+            this._frame = null;
+            this._timers.forEach((id) => clearTimeout(id));
+            this._timers = [];
+            document.querySelectorAll('.result-xp [data-count]').forEach((el) => { el.textContent = el.dataset.count; });
+            this.$root.classList.add('is-settled');
+        },
+    }));
+
+    Alpine.data('resultXpSync', () => ({
+        init() {
+            this._attempt = 0;
+            this._timer = null;
+            this._onLoad = () => this.schedule();
+            this.$root.addEventListener('turbo:frame-load', this._onLoad);
+            this.schedule();
+        },
+        destroy() {
+            clearTimeout(this._timer);
+            this.$root.removeEventListener('turbo:frame-load', this._onLoad);
+        },
+        schedule() {
+            clearTimeout(this._timer);
+            if (this._attempt >= 3 || !this.$root.querySelector('[data-xp-pending]')) return;
+            const delay = 2000 * 2 ** this._attempt;
+            this._attempt += 1;
+            this._timer = setTimeout(() => {
+                if (this.$root.src) this.$root.reload();
+                else this.$root.src = window.location.href;
+            }, delay);
+        },
+    }));
+
+    Alpine.data('resultAnswers', () => ({
+        open: false,
+        init() {
+            this._query = window.matchMedia('(min-width: 64rem)');
+            this.open = this._query.matches;
+            this._onChange = (event) => { this.open = event.matches; };
+            this._query.addEventListener('change', this._onChange);
+        },
+        destroy() {
+            this._query?.removeEventListener('change', this._onChange);
+        },
+        toggle() {
+            this.open = !this.open;
+        },
     }));
 
     Alpine.data('faqAccordion', () => ({

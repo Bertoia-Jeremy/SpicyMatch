@@ -1,0 +1,14 @@
+<div class="result-cta">
+    {% if result.canReplay %}
+        <a href="{{ path(result.replayRoute, result.replayParams) }}" class="result-btn result-btn-primary result-btn-grow">
+            <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>{{ 'ui.edu.replay'|trans }}
+        </a>
+        <a href="{{ path('education_index') }}" class="result-btn result-btn-round" aria-label="{{ 'ui.edu.all_modes'|trans }}">
+            <i class="fa-solid fa-gamepad" aria-hidden="true"></i>
+        </a>
+    {% else %}
+        <a href="{{ path('education_index') }}" class="result-btn result-btn-primary result-btn-grow">
+            <i class="fa-solid fa-gamepad" aria-hidden="true"></i>{{ 'ui.edu.all_modes'|trans }}
+        </a>
+    {% endif %}
+</div>

@@ -1,0 +1,29 @@
+{% set lexicon = result.lexicon.value %}
+<section class="result-section" aria-labelledby="result-missed-title">
+    <h2 class="result-h2" id="result-missed-title">{{ ('ui.edu.result.missed.' ~ lexicon ~ '_title')|trans({'%count%': result.missed|length}) }}</h2>
+    <p class="result-sub">{{ ('ui.edu.result.missed.' ~ lexicon ~ '_subtitle')|trans }}</p>
+    <ul class="result-rail" role="list">
+        {% for spice in result.missed %}
+            <li class="result-rail-item">
+                <a href="{{ path('view_spice', {slug: spice.slug}) }}" class="result-pair">
+                    <span class="result-duo" aria-hidden="true">
+                        {% if spice.contextName is not null %}
+                            <span class="result-initial">{{ spice.contextInitial }}</span>
+                        {% endif %}
+                        <span class="result-initial result-initial-target">{{ spice.initial }}</span>
+                    </span>
+                    <span class="result-pair-text">
+                        {% if spice.contextName is not null %}
+                            <span class="result-pair-context">{{ 'ui.edu.result.missed.with'|trans({'%spice%': spice.contextName}) }}</span>
+                        {% endif %}
+                        <span class="result-pair-name">{{ spice.name }}</span>
+                    </span>
+                    {% if spice.given is not null %}
+                        <span class="result-pair-given">{{ 'ui.edu.result.missed.your_answer'|trans }} <s>{{ spice.given }}</s></span>
+                    {% endif %}
+                    <span class="result-pair-go">{{ 'ui.edu.result.missed.see'|trans }}<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+</section>

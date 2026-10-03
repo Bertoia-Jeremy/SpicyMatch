@@ -107,6 +107,7 @@ ui:
         profile_progress: '%percent%% to next level'
         streak: 'Streak: %count% d'
         help: Help
+        faq: FAQ
         main_nav: Main navigation
         main_menu: Main menu
     home:
@@ -370,30 +371,24 @@ ui:
             main_compounds: Main compounds
             description: Description
         rule:
-            qcm_0: Find the most compatible spice among 4 options.
+            qcm_0: 'Find the most compatible spice among %count% options.'
             qcm_1: Each correct answer earns you XP.
-            qcm_2: 5 questions in total — no going back.
+            qcm_2: '%total% questions in total — no going back.'
             survival_0: Chain compatible spices starting from the initial spice.
             survival_1: A single mistake and the game is over.
             survival_2: The further you go, the more XP you earn.
             guess_who_0: Clues appear one by one to identify the mystery spice.
             guess_who_1: The fewer clues you use, the more points you earn.
-            guess_who_2: 5 spices to guess in total.
-            intrus_0: Among 4 spices, find the one that has nothing in common with the others.
+            guess_who_2: '%total% spices to guess in total.'
+            intrus_0: 'Among %count% spices, find the one that has nothing in common with the others.'
             intrus_1: 'Some questions are inverted: find the compatible one!'
-            intrus_2: 5 questions — watch out for visual traps.
+            intrus_2: '%total% questions — watch out for visual traps.'
             hangman_0: Guess the spice name letter by letter.
             hangman_1: Accents are ignored — type the base letter.
             hangman_2: Too many mistakes and the hangman is complete.
             chrono_0: Identify each spice as fast as possible.
             chrono_1: You see the photo and characteristics, but not the name.
             chrono_2: Time is ticking — every second counts.
-        skill:
-            up_title: You have this level down
-            up_text: '%rate%% accuracy over your last %count% runs on %from%. Ready for %to%?'
-            down_title: One notch down?
-            down_text: '%rate%% accuracy over your last %count% runs on %from%. Try %to% to get back in the groove.'
-            cta: 'Try %to%'
         academy_title: Spice Academy
         academy_intro: Test your knowledge of spices and their aromatic compatibilities.
         xp_per_correct: '%xp% XP/correct'
@@ -411,28 +406,45 @@ ui:
         xp_per_answer: '%xp% XP / correct answer'
         unlimited: Unlimited questions
         difficulty: Difficulty
-        default_difficulty_html: 'Default difficulty can be changed in your <a href="%url%" class="text-saffron-600 hover:underline">profile</a>.'
+        default_difficulty_link: 'Change my default difficulty'
         rules: Rules
         all_modes: All modes
         play: Play
         launch_brigade: Start the brigade
+        briefing:
+            required_level: 'Level %level% required'
+            fullscreen: 'Full screen'
+            status: 'Your service today'
+            played_today: 'Games today'
+            premium_hint: '%max% a day with Premium'
+            record: 'Record'
+            record_value: '%xp% XP'
+            xp_cap: 'Cap'
+            xp_cap_value: '%xp% XP / game'
+            multiplier: '×%value% XP'
+            stakes: 'What awaits you'
+            choose_difficulty: 'Pick your difficulty'
+            daily_bonus: 'Daily challenge: XP ×2 on your first game'
+        fact:
+            questions: 'Questions'
+            options: 'Choices'
+            spices: 'Spices'
+            errors: 'Mistakes allowed'
+            clues: 'Max clues'
+            per_question: 'Spices per question'
+            compatibles: 'Right answers'
+            time: 'Time'
+            fast_bonus: 'Lightning bonus under'
+            unit_seconds: 's'
         question: 'Question %num%'
         pts: '%score% pts'
         correct_answer: Correct answer!
         wrong_answer: Wrong answer
         next_question: Next question
         submit: Submit
-        precision: accuracy
-        good_answers: Correct answers
-        errors: Mistakes
-        xp_earned: XP earned
         chain_length: Chain length
-        chain_unit: spices chained
         replay: Play again
         dashboard: Dashboard
-        question_details: Question details
-        your_answer: 'Your answer:'
-        correct_label: Correct
         quiz_result: Quiz — Result
         is_correct_answer: is the correct answer.
         you_answered: You answered
@@ -444,8 +456,6 @@ ui:
         achievements_stat: achievements
         record_label: 'Record: %score%'
         record_none: To unlock
-        new_record: 'New record!'
-        record_result: 'Your record: %score% XP'
         daily_challenge: Daily challenge
         daily_bonus_pill: XP ×2
         daily_bonus_applied: Daily bonus — XP ×2
@@ -456,6 +466,63 @@ ui:
         locked_hint: Come back tomorrow to replay
         locked_level_hint: '%mode% unlocks at level %level%'
         lesson: 'Lesson %numeral%'
+        result:
+            duration: '%min% min %sec% s'
+            ring_label: '%count% correct answer out of %total%, %pct%% accuracy|%count% correct answers out of %total%, %pct%% accuracy'
+            ring_label_chain: '%count% spice chained|%count% spices chained'
+            precision_pct: '%pct%% accuracy'
+            chain_unit: 'spice chained|spices chained'
+            nav_label: 'More destinations'
+            tier:
+                first_steps: 'First steps'
+                awakening: 'Awakening palate'
+                keen_nose: 'Keen nose'
+                master: 'Master spicer'
+            lead:
+                pairing_mistakes: 'You found %count% pairing out of %total%.|You found %count% pairings out of %total%.'
+                spice_mistakes: 'You recognised %count% spice out of %total%.|You recognised %count% spices out of %total%.'
+                pairing_perfect: 'Flawless on the pairing.|Flawless on all %count% pairings.'
+                spice_perfect: 'Flawless on the spice.|Flawless on all %count% spices.'
+                missed_below: 'The ones that got away are waiting just below.'
+                chain: '{0}The chain broke on the very first spice.|{1}One spice chained before the break.|]1,Inf[%count% spices chained before the break.'
+            record:
+                standing: 'Mode record: %score% XP'
+                new: 'New record · previous %score% XP'
+                first: 'First record'
+            xp:
+                gained: '%count% XP earned'
+                level: 'Level %level%'
+                level_up: 'Level %level% reached'
+                progress_label: 'Progress towards level %level%'
+                total: '%total% / %next% XP'
+                remaining: '%count% XP to level %level%'
+            missed:
+                pairing_title: '%count% pairing to remember|%count% pairings to remember'
+                pairing_subtitle: 'The right answers you missed. Open their page to understand the pairing.'
+                spice_title: '%count% spice to remember|%count% spices to remember'
+                spice_subtitle: 'The spices that got away. Open their page to recognise them next time.'
+                chain_title: '%count% spice to remember|%count% spices to remember'
+                chain_subtitle: 'The spices that got away. Open their page to recognise them next time.'
+                with: 'With %spice%'
+                your_answer: 'Your answer:'
+                see: 'See the page'
+            next:
+                title: 'What''s next?'
+                promote: 'Move up to %to%'
+                demote: 'Try %to% difficulty'
+                skill_text: '%rate%% success over your last %count% games in %from%.'
+                perfect_text: 'You''ve mastered %from% in this mode.'
+            answers:
+                title: 'Your answer|Your %count% answers'
+                summary_correct: '%count% correct'
+                summary_wrong: '%count% to review'
+                correct: 'Correct'
+                wrong: 'Wrong'
+                question: 'question %num%'
+                your_answer: 'Your answer'
+                expected_pairing: 'Right pairing'
+                expected_spice: 'Right answer'
+                no_answer: 'No answer'
         gate:
             title: Log in to play
             subtitle: One last step before the game.
@@ -1317,40 +1384,46 @@ enum:
     game_mode:
         qcm:
             label: The Chef's Choice
-            desc: 'Find the most compatible spice among 4 options.'
+            desc: 'Find the spice that pairs best with the chef''s pick.'
             title_top: "The Chef's"
             title_bottom: 'Choice.'
-            tagline: 'find the most compatible spice among 4 options'
+            tagline: 'find the spice that pairs best'
+            promise: 'Sharpen your pairing instinct'
         survival:
             label: Scoville Challenge
             desc: 'Chain compatible spices without a mistake.'
             title_top: 'Scoville'
             title_bottom: 'Challenge.'
             tagline: 'chain compatible spices without a mistake'
+            promise: 'Go the distance without a slip'
         guess_who:
             label: Fine Palate
             desc: 'Guess the spice from progressive clues.'
             title_top: 'Fine'
             title_bottom: 'Palate.'
             tagline: 'guess the spice from progressive clues'
+            promise: 'Hone your deduction'
         intrus:
             label: Out of Season
             desc: 'Find the odd one out among compatible spices.'
             title_top: 'Out of'
             title_bottom: 'Season.'
             tagline: 'find the odd one out among compatible spices'
+            promise: 'Spot what doesn''t belong'
         hangman:
             label: Now Cooking
             desc: 'Guess the spice name letter by letter.'
             title_top: 'Now'
             title_bottom: 'Cooking.'
             tagline: 'guess the spice name letter by letter'
+            promise: 'Master spice spelling'
         chrono:
             label: On High Heat
             desc: 'Identify the spices as fast as possible.'
             title_top: 'On High'
             title_bottom: 'Heat.'
             tagline: 'identify the spices as fast as possible'
+            promise: 'React in a split second'
     difficulty:
         easy: Easy
         medium: Medium

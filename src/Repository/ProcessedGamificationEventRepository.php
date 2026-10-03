@@ -49,4 +49,24 @@ class ProcessedGamificationEventRepository extends ServiceEntityRepository
 
         return true;
     }
+
+    /**
+     * @return array{xp: int, processed: bool}
+     */
+    public function findXpSnapshot(Users $user, string $eventType, string $eventKey): array
+    {
+        $row = $this->getEntityManager()
+            ->getConnection()
+            ->fetchAssociative(
+                'SELECT COALESCE((SELECT up.xp FROM user_progression up WHERE up.user_id = ?), 0) AS xp,
+                    EXISTS(SELECT 1 FROM processed_gamification_event e WHERE e.event_type = ? AND e.event_key = ?) AS processed',
+                [$user->getId(), $eventType, $eventKey],
+                [ParameterType::INTEGER, ParameterType::STRING, ParameterType::STRING],
+            );
+
+        return [
+            'xp' => max(0, (int) ($row['xp'] ?? 0)),
+            'processed' => (bool) ($row['processed'] ?? false),
+        ];
+    }
 }

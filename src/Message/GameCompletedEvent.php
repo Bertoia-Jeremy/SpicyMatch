@@ -6,6 +6,8 @@ namespace App\Message;
 
 final readonly class GameCompletedEvent
 {
+    public const string TYPE = 'game_completed';
+
     public function __construct(
         public int $userId,
         public int $sessionId,
@@ -15,5 +17,10 @@ final readonly class GameCompletedEvent
         public int $xpEarned,
         public bool $dailyBonus = false,
     ) {
+    }
+
+    public static function processedKey(int $sessionId): string
+    {
+        return 'session:' . $sessionId;
     }
 }

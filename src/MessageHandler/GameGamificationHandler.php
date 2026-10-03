@@ -42,7 +42,7 @@ class GameGamificationHandler
         $this->em->wrapInTransaction(function () use ($event, $user, $progression): void {
             $this->manager->lockForUpdate($progression);
 
-            if (! $this->processedEvents->claim($user, 'game_completed', 'session:' . $event->sessionId)) {
+            if (! $this->processedEvents->claim($user, GameCompletedEvent::TYPE, GameCompletedEvent::processedKey($event->sessionId))) {
                 $this->logger->info('gamification.game_completed.duplicate', [
                     'userId' => $user->getId(),
                     'sessionId' => $event->sessionId,

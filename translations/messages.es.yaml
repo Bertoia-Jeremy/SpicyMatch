@@ -107,6 +107,7 @@ ui:
         profile_progress: '%percent% % hacia el siguiente nivel'
         streak: 'Racha: %count% d'
         help: Ayuda
+        faq: FAQ
         main_nav: Navegación principal
         main_menu: Menú principal
     home:
@@ -370,30 +371,24 @@ ui:
             main_compounds: Compuestos principales
             description: Descripción
         rule:
-            qcm_0: Encuentra la especia más compatible entre 4 opciones.
+            qcm_0: 'Encuentra la especia más compatible entre %count% opciones.'
             qcm_1: Cada respuesta correcta te da XP.
-            qcm_2: 5 preguntas en total — sin vuelta atrás.
+            qcm_2: '%total% preguntas en total — sin vuelta atrás.'
             survival_0: Encadena especias compatibles a partir de la especia inicial.
             survival_1: Un solo error y la partida termina.
             survival_2: Cuanto más avanzas, más XP ganas.
             guess_who_0: Las pistas aparecen una a una para identificar la especia misteriosa.
             guess_who_1: Cuantas menos pistas uses, más puntos ganas.
-            guess_who_2: 5 especias por adivinar en total.
-            intrus_0: Entre 4 especias, encuentra la que no tiene nada en común con las demás.
+            guess_who_2: '%total% especias por adivinar en total.'
+            intrus_0: 'Entre %count% especias, encuentra la que no tiene nada en común con las demás.'
             intrus_1: '¡Algunas preguntas están invertidas: encuentra la compatible!'
-            intrus_2: 5 preguntas — cuidado con las trampas visuales.
+            intrus_2: '%total% preguntas — cuidado con las trampas visuales.'
             hangman_0: Adivina el nombre de la especia letra por letra.
             hangman_1: Los acentos se ignoran — escribe la letra base.
             hangman_2: Demasiados errores y el ahorcado se completa.
             chrono_0: Identifica cada especia lo más rápido posible.
             chrono_1: Ves la foto y las características, pero no el nombre.
             chrono_2: El tiempo corre — cada segundo cuenta.
-        skill:
-            up_title: Dominas este nivel
-            up_text: '%rate%% de aciertos en tus últimas %count% partidas en %from%. ¿Listo para %to%?'
-            down_title: ¿Un nivel por debajo?
-            down_text: '%rate%% de aciertos en tus últimas %count% partidas en %from%. Prueba %to% para recuperar el ritmo.'
-            cta: 'Probar en %to%'
         academy_title: Academia de las Especias
         academy_intro: Pon a prueba tus conocimientos sobre las especias y sus compatibilidades aromáticas.
         xp_per_correct: '%xp% XP/correcta'
@@ -411,28 +406,45 @@ ui:
         xp_per_answer: '%xp% XP / respuesta correcta'
         unlimited: Preguntas ilimitadas
         difficulty: Dificultad
-        default_difficulty_html: 'La dificultad por defecto se puede cambiar en tu <a href="%url%" class="text-saffron-600 hover:underline">perfil</a>.'
+        default_difficulty_link: 'Cambiar mi dificultad por defecto'
         rules: Reglas
         all_modes: Todos los modos
         play: Jugar
         launch_brigade: Lanzar la brigada
+        briefing:
+            required_level: 'Nivel %level% requerido'
+            fullscreen: 'Pantalla completa'
+            status: 'Tu servicio de hoy'
+            played_today: 'Partidas hoy'
+            premium_hint: '%max% al día con Premium'
+            record: 'Récord'
+            record_value: '%xp% XP'
+            xp_cap: 'Tope'
+            xp_cap_value: '%xp% XP / partida'
+            multiplier: '×%value% XP'
+            stakes: 'Lo que te espera'
+            choose_difficulty: 'Elige tu dificultad'
+            daily_bonus: 'Reto del día: XP ×2 en tu primera partida'
+        fact:
+            questions: 'Preguntas'
+            options: 'Opciones'
+            spices: 'Especias'
+            errors: 'Errores permitidos'
+            clues: 'Pistas máx.'
+            per_question: 'Especias por pregunta'
+            compatibles: 'Respuestas correctas'
+            time: 'Tiempo'
+            fast_bonus: 'Bonus relámpago bajo'
+            unit_seconds: 's'
         question: 'Pregunta %num%'
         pts: '%score% pts'
         correct_answer: ¡Respuesta correcta!
         wrong_answer: Respuesta incorrecta
         next_question: Siguiente pregunta
         submit: Validar
-        precision: precisión
-        good_answers: Respuestas correctas
-        errors: Errores
-        xp_earned: XP ganados
         chain_length: Longitud de la cadena
-        chain_unit: especias encadenadas
         replay: Volver a jugar
         dashboard: Panel
-        question_details: Detalle de las preguntas
-        your_answer: 'Tu respuesta:'
-        correct_label: Correcto
         quiz_result: Quiz — Resultado
         is_correct_answer: es la respuesta correcta.
         you_answered: Has respondido
@@ -444,8 +456,6 @@ ui:
         achievements_stat: logros
         record_label: 'Récord: %score%'
         record_none: Por desbloquear
-        new_record: '¡Nuevo récord!'
-        record_result: 'Tu récord: %score% XP'
         daily_challenge: Desafío del día
         daily_bonus_pill: XP ×2
         daily_bonus_applied: Bonus del día — XP ×2
@@ -456,6 +466,63 @@ ui:
         locked_hint: Vuelve mañana para volver a jugar
         locked_level_hint: '%mode% se desbloquea en el nivel %level%'
         lesson: 'Lección %numeral%'
+        result:
+            duration: '%min% min %sec% s'
+            ring_label: '%count% respuesta correcta de %total%, %pct% % de precisión|%count% respuestas correctas de %total%, %pct% % de precisión'
+            ring_label_chain: '%count% especia encadenada|%count% especias encadenadas'
+            precision_pct: '%pct% % de precisión'
+            chain_unit: 'especia encadenada|especias encadenadas'
+            nav_label: 'Otros destinos'
+            tier:
+                first_steps: 'Primeros pasos'
+                awakening: 'Paladar despierto'
+                keen_nose: 'Buen olfato'
+                master: 'Maestro especiero'
+            lead:
+                pairing_mistakes: 'Has encontrado %count% maridaje de %total%.|Has encontrado %count% maridajes de %total%.'
+                spice_mistakes: 'Has reconocido %count% especia de %total%.|Has reconocido %count% especias de %total%.'
+                pairing_perfect: 'Sin fallos en el maridaje.|Sin fallos en los %count% maridajes.'
+                spice_perfect: 'Sin fallos en la especia.|Sin fallos en las %count% especias.'
+                missed_below: 'Las que se te escaparon te esperan justo debajo.'
+                chain: '{0}La cadena se rompió en la primera especia.|{1}Una especia encadenada antes de la ruptura.|]1,Inf[%count% especias encadenadas antes de la ruptura.'
+            record:
+                standing: 'Récord del modo: %score% XP'
+                new: 'Nuevo récord · anterior %score% XP'
+                first: 'Primer récord'
+            xp:
+                gained: '%count% XP ganado|%count% XP ganados'
+                level: 'Nivel %level%'
+                level_up: 'Nivel %level% alcanzado'
+                progress_label: 'Progreso hacia el nivel %level%'
+                total: '%total% / %next% XP'
+                remaining: '%count% XP para el nivel %level%'
+            missed:
+                pairing_title: '%count% maridaje para recordar|%count% maridajes para recordar'
+                pairing_subtitle: 'Las respuestas correctas que se te escaparon. Abre su ficha para entender el maridaje.'
+                spice_title: '%count% especia para recordar|%count% especias para recordar'
+                spice_subtitle: 'Las especias que se te escaparon. Abre su ficha para reconocerlas la próxima vez.'
+                chain_title: '%count% especia para recordar|%count% especias para recordar'
+                chain_subtitle: 'Las especias que se te escaparon. Abre su ficha para reconocerlas la próxima vez.'
+                with: 'Con %spice%'
+                your_answer: 'Tu respuesta:'
+                see: 'Ver la ficha'
+            next:
+                title: '¿Y ahora?'
+                promote: 'Pasa a dificultad %to%'
+                demote: 'Prueba la dificultad %to%'
+                skill_text: '%rate% % de aciertos en tus últimas %count% partidas en %from%.'
+                perfect_text: 'Dominas el nivel %from% de este modo.'
+            answers:
+                title: 'Tu respuesta|Tus %count% respuestas'
+                summary_correct: '%count% correcta|%count% correctas'
+                summary_wrong: '%count% por repasar'
+                correct: 'Correcta'
+                wrong: 'Error'
+                question: 'pregunta %num%'
+                your_answer: 'Tu respuesta'
+                expected_pairing: 'Maridaje correcto'
+                expected_spice: 'Respuesta correcta'
+                no_answer: 'Sin respuesta'
         gate:
             title: Inicia sesión para jugar
             subtitle: Un último paso antes de la partida.
@@ -1317,40 +1384,46 @@ enum:
     game_mode:
         qcm:
             label: La Elección del Chef
-            desc: 'Encuentra la especia más compatible entre 4 opciones.'
+            desc: 'Encuentra la especia que mejor combina con la del chef.'
             title_top: 'La Elección'
             title_bottom: 'del Chef.'
-            tagline: 'encuentra la especia más compatible entre 4 opciones'
+            tagline: 'encontrar la especia que mejor combina'
+            promise: 'Desarrollar el instinto de los maridajes'
         survival:
             label: Desafío Scoville
             desc: 'Encadena especias compatibles sin fallar.'
             title_top: 'Desafío'
             title_bottom: 'Scoville.'
             tagline: 'encadena especias compatibles sin fallar'
+            promise: 'Aguantar sin fallar'
         guess_who:
             label: Paladar Fino
             desc: 'Adivina la especia a partir de pistas progresivas.'
             title_top: 'Paladar'
             title_bottom: 'Fino.'
             tagline: 'adivina la especia a partir de pistas progresivas'
+            promise: 'Afinar tu deducción'
         intrus:
             label: Fuera de Temporada
             desc: 'Encuentra el intruso entre las especias compatibles.'
             title_top: 'Fuera de'
             title_bottom: 'Temporada.'
             tagline: 'encuentra el intruso entre las especias compatibles'
+            promise: 'Detectar lo que no encaja'
         hangman:
             label: Cocinando
             desc: 'Adivina el nombre de la especia letra a letra.'
             title_top: 'Cocción'
             title_bottom: 'en Curso.'
             tagline: 'adivina el nombre de la especia letra a letra'
+            promise: 'Dominar la ortografía de las especias'
         chrono:
             label: A Fuego Vivo
             desc: 'Identifica las especias lo más rápido posible.'
             title_top: 'A Fuego'
             title_bottom: 'Vivo.'
             tagline: 'identifica las especias lo más rápido posible'
+            promise: 'Reaccionar en una fracción de segundo'
     difficulty:
         easy: Fácil
         medium: Medio

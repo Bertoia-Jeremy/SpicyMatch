@@ -827,6 +827,41 @@ class SpicesRepository extends ServiceEntityRepository implements SitemapSourceI
 
     /**
      * @param list<int> $ids
+     * @return array<int, array{name: string, slug: ?string, active: bool}>
+     */
+    public function findResultCards(array $ids, string $locale): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $qb = $this->createQueryBuilder('s')
+            ->select('s.id AS id', 'CASE WHEN s.deleted_at IS NULL THEN 1 ELSE 0 END AS active')
+            ->where('s.id IN (:ids)')
+            ->setParameter('ids', array_values(array_unique($ids)));
+
+        if ($locale === 'fr') {
+            $qb->addSelect('s.name AS name', 's.slug AS slug');
+        } else {
+            $qb->addSelect("COALESCE(NULLIF(t.name, ''), s.name) AS name", "COALESCE(NULLIF(t.slug, ''), s.slug) AS slug")
+                ->leftJoin('s.translations', 't', 'WITH', 't.locale = :loc')
+                ->setParameter('loc', $locale);
+        }
+
+        $cards = [];
+        foreach ($qb->getQuery()->getArrayResult() as $row) {
+            $cards[(int) $row['id']] = [
+                'name' => (string) $row['name'],
+                'slug' => $row['slug'] !== null ? (string) $row['slug'] : null,
+                'active' => (int) $row['active'] === 1,
+            ];
+        }
+
+        return $cards;
+    }
+
+    /**
+     * @param list<int> $ids
      * @return list<Spices>
      */
     public function findForLab(array $ids, string $locale = 'fr'): array

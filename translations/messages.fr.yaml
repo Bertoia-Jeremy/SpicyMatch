@@ -107,6 +107,7 @@ ui:
         profile_progress: '%percent% % vers le niveau suivant'
         streak: 'Série : %count% j'
         help: Aide
+        faq: FAQ
         main_nav: Navigation principale
         main_menu: Menu principal
     home:
@@ -379,30 +380,24 @@ ui:
             main_compounds: Composés principaux
             description: Description
         rule:
-            qcm_0: Trouve l'épice la plus compatible parmi 4 propositions.
+            qcm_0: 'Trouve l''épice la plus compatible parmi %count% propositions.'
             qcm_1: Chaque bonne réponse te rapporte des XP.
-            qcm_2: 5 questions au total — pas de retour en arrière.
+            qcm_2: '%total% questions au total — pas de retour en arrière.'
             survival_0: Enchaîne les épices compatibles avec l'épice de départ.
             survival_1: Une seule erreur et la partie est terminée.
             survival_2: Plus tu avances, plus tu gagnes d'XP.
             guess_who_0: Des indices apparaissent un par un pour identifier l'épice mystère.
             guess_who_1: Moins tu utilises d'indices, plus tu gagnes de points.
-            guess_who_2: 5 épices à deviner au total.
-            intrus_0: Parmi 4 épices, trouve celle qui n'a rien en commun avec les autres.
+            guess_who_2: '%total% épices à deviner au total.'
+            intrus_0: 'Parmi %count% épices, trouve celle qui n''a rien en commun avec les autres.'
             intrus_1: 'Certaines questions sont inversées : trouve la compatible !'
-            intrus_2: 5 questions — attention aux pièges visuels.
+            intrus_2: '%total% questions — attention aux pièges visuels.'
             hangman_0: Devine le nom de l'épice lettre par lettre.
             hangman_1: Les accents sont ignorés — tape la lettre de base.
             hangman_2: Trop d'erreurs et le pendu est complet.
             chrono_0: Identifie chaque épice le plus vite possible.
             chrono_1: Tu vois la photo et les caractéristiques, mais pas le nom.
             chrono_2: Le temps est compté — chaque seconde compte.
-        skill:
-            up_title: Tu maîtrises ce niveau
-            up_text: '%rate%% de réussite sur tes %count% dernières parties en %from%. Prêt pour %to% ?'
-            down_title: Un cran en dessous ?
-            down_text: '%rate%% de réussite sur tes %count% dernières parties en %from%. Essaie %to% pour retrouver le rythme.'
-            cta: 'Essayer en %to%'
         academy_title: Académie des Épices
         academy_intro: Teste tes connaissances sur les épices et leurs compatibilités aromatiques.
         xp_per_correct: '%xp% XP/correct'
@@ -420,28 +415,45 @@ ui:
         xp_per_answer: '%xp% XP / bonne réponse'
         unlimited: Questions illimitées
         difficulty: Difficulté
-        default_difficulty_html: 'Difficulté par défaut modifiable dans ton <a href="%url%" class="text-saffron-600 hover:underline">profil</a>.'
+        default_difficulty_link: 'Modifier ma difficulté par défaut'
         rules: Règles
         all_modes: Tous les modes
         play: Jouer
         launch_brigade: Lancer la brigade
+        briefing:
+            required_level: 'Niveau %level% requis'
+            fullscreen: 'Plein écran'
+            status: 'Ton service du jour'
+            played_today: 'Parties aujourd''hui'
+            premium_hint: '%max% par jour avec Premium'
+            record: 'Record'
+            record_value: '%xp% XP'
+            xp_cap: 'Plafond'
+            xp_cap_value: '%xp% XP / partie'
+            multiplier: '×%value% XP'
+            stakes: 'Ce qui t''attend'
+            choose_difficulty: 'Choisis ta difficulté'
+            daily_bonus: 'Défi du jour : XP ×2 sur ta première partie'
+        fact:
+            questions: 'Questions'
+            options: 'Propositions'
+            spices: 'Épices'
+            errors: 'Erreurs permises'
+            clues: 'Indices max'
+            per_question: 'Épices par question'
+            compatibles: 'Bonnes réponses'
+            time: 'Temps'
+            fast_bonus: 'Bonus éclair sous'
+            unit_seconds: 's'
         question: 'Question %num%'
         pts: '%score% pts'
         correct_answer: Bonne réponse !
         wrong_answer: Mauvaise réponse
         next_question: Question suivante
         submit: Valider
-        precision: précision
-        good_answers: Bonnes réponses
-        errors: Erreurs
-        xp_earned: XP gagnés
         chain_length: Longueur de chaîne
-        chain_unit: épices enchaînées
         replay: Rejouer
         dashboard: Tableau de bord
-        question_details: Détail des questions
-        your_answer: 'Ta réponse :'
-        correct_label: Correct
         quiz_result: Quiz — Résultat
         is_correct_answer: est la bonne réponse.
         you_answered: Tu as répondu
@@ -453,8 +465,6 @@ ui:
         achievements_stat: succès
         record_label: 'Record : %score%'
         record_none: À débloquer
-        new_record: 'Nouveau record !'
-        record_result: 'Ton record : %score% XP'
         daily_challenge: Défi du jour
         daily_bonus_pill: XP ×2
         daily_bonus_applied: Bonus du jour — XP ×2
@@ -465,6 +475,63 @@ ui:
         locked_hint: Reviens demain pour rejouer
         locked_level_hint: '%mode% se débloque au niveau %level%'
         lesson: 'Leçon %numeral%'
+        result:
+            duration: '%min% min %sec% s'
+            ring_label: '%count% bonne réponse sur %total%, %pct% % de précision|%count% bonnes réponses sur %total%, %pct% % de précision'
+            ring_label_chain: '%count% épice enchaînée|%count% épices enchaînées'
+            precision_pct: '%pct% % de précision'
+            chain_unit: 'épice enchaînée|épices enchaînées'
+            nav_label: 'Autres destinations'
+            tier:
+                first_steps: 'Premiers pas'
+                awakening: 'Palais en éveil'
+                keen_nose: 'Fin nez'
+                master: 'Maître épicier'
+            lead:
+                pairing_mistakes: 'Tu as trouvé %count% accord sur %total%.|Tu as trouvé %count% accords sur %total%.'
+                spice_mistakes: 'Tu as reconnu %count% épice sur %total%.|Tu as reconnu %count% épices sur %total%.'
+                pairing_perfect: 'Sans faute sur l''accord.|Sans faute sur les %count% accords.'
+                spice_perfect: 'Sans faute sur l''épice.|Sans faute sur les %count% épices.'
+                missed_below: 'Les réponses manquées t''attendent juste en dessous.'
+                chain: '{0}La chaîne a cassé dès la première épice.|{1}Une épice enchaînée avant la rupture.|]1,Inf[%count% épices enchaînées avant la rupture.'
+            record:
+                standing: 'Record du mode : %score% XP'
+                new: 'Nouveau record · ancien %score% XP'
+                first: 'Premier record'
+            xp:
+                gained: '%count% XP gagné|%count% XP gagnés'
+                level: 'Niveau %level%'
+                level_up: 'Niveau %level% atteint'
+                progress_label: 'Progression vers le niveau %level%'
+                total: '%total% / %next% XP'
+                remaining: '%count% XP avant le niveau %level%'
+            missed:
+                pairing_title: '%count% accord à retenir|%count% accords à retenir'
+                pairing_subtitle: 'Les bonnes réponses que tu as manquées. Ouvre leur fiche pour comprendre l''accord.'
+                spice_title: '%count% épice à retenir|%count% épices à retenir'
+                spice_subtitle: 'Les épices qui t''ont échappé. Ouvre leur fiche pour les reconnaître la prochaine fois.'
+                chain_title: '%count% épice à retenir|%count% épices à retenir'
+                chain_subtitle: 'Les épices qui t''ont échappé. Ouvre leur fiche pour les reconnaître la prochaine fois.'
+                with: 'Avec %spice%'
+                your_answer: 'Ta réponse :'
+                see: 'Voir la fiche'
+            next:
+                title: 'Et maintenant ?'
+                promote: 'Passe en difficulté %to%'
+                demote: 'Essaie la difficulté %to%'
+                skill_text: '%rate% % de réussite sur tes %count% dernières parties en %from%.'
+                perfect_text: 'Tu maîtrises le niveau %from% de ce mode.'
+            answers:
+                title: 'Ta réponse|Tes %count% réponses'
+                summary_correct: '%count% juste|%count% justes'
+                summary_wrong: '%count% à revoir'
+                correct: 'Juste'
+                wrong: 'Erreur'
+                question: 'question %num%'
+                your_answer: 'Ta réponse'
+                expected_pairing: 'Bon accord'
+                expected_spice: 'Bonne réponse'
+                no_answer: 'Sans réponse'
         gate:
             title: Connecte-toi pour jouer
             subtitle: Une dernière étape avant la partie.
@@ -1326,40 +1393,46 @@ enum:
     game_mode:
         qcm:
             label: Le Choix du Chef
-            desc: 'Trouve l''épice la plus compatible parmi 4 choix.'
+            desc: 'Trouve l''épice qui s''accorde le mieux avec celle du chef.'
             title_top: 'Le Choix'
             title_bottom: 'du Chef.'
-            tagline: "trouver l'épice la plus compatible parmi 4 choix"
+            tagline: "trouver l'épice qui s'accorde le mieux"
+            promise: 'Développer l''instinct des associations'
         survival:
             label: Défi de Scoville
             desc: 'Enchaîne les épices compatibles sans erreur.'
             title_top: 'Défi de'
             title_bottom: 'Scoville.'
             tagline: 'enchaîner les épices compatibles sans erreur'
+            promise: 'Tenir la distance sans faillir'
         guess_who:
             label: Palais Fin
             desc: 'Devine l''épice à partir d''indices progressifs.'
             title_top: 'Palais'
             title_bottom: 'Fin.'
             tagline: "deviner l'épice à partir d'indices progressifs"
+            promise: 'Affûter ta déduction'
         intrus:
             label: Hors Saison
             desc: 'Trouve l''intrus parmi les épices compatibles.'
             title_top: 'Hors'
             title_bottom: 'Saison.'
             tagline: "trouver l'intrus parmi les épices compatibles"
+            promise: 'Repérer ce qui ne s''accorde pas'
         hangman:
             label: Cuisson en Cours
             desc: 'Devine le nom de l''épice lettre par lettre.'
             title_top: 'Cuisson'
             title_bottom: 'en Cours.'
             tagline: "deviner le nom de l'épice lettre par lettre"
+            promise: 'Maîtriser l''orthographe des épices'
         chrono:
             label: À Feu Vif
             desc: 'Identifie les épices le plus vite possible.'
             title_top: 'À Feu'
             title_bottom: 'Vif.'
             tagline: 'identifier les épices le plus vite possible'
+            promise: 'Réagir au quart de seconde'
     difficulty:
         easy: Facile
         medium: Moyen

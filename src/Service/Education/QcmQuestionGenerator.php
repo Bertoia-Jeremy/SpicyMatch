@@ -14,6 +14,10 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class QcmQuestionGenerator implements QuestionGeneratorInterface
 {
+    public const int OPTION_COUNT = 4;
+
+    private const int DISTRACTORS = self::OPTION_COUNT - 1;
+
     public function __construct(
         private readonly SpicesRepository $spicesRepository,
         private readonly CompatibleSpiceFinder $compatibleSpiceFinder,
@@ -47,7 +51,7 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
                 100,
                 new CulinaryContext(),
             );
-            if (count($scored) < 4) {
+            if (count($scored) < self::OPTION_COUNT) {
                 continue;
             }
 
@@ -60,7 +64,7 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
             foreach ($topPool as $candidateAnswer) {
                 $strictlyBelow = $this->strictlyBelow($scored, $candidateAnswer, $baseData);
 
-                if (count($strictlyBelow) >= 3) {
+                if (count($strictlyBelow) >= self::DISTRACTORS) {
                     $correct = $candidateAnswer;
                     $dominated = $strictlyBelow;
 
@@ -84,7 +88,7 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
                         'id' => (int) $s['id'],
                         'name' => (string) $s['name'],
                     ],
-                    array_slice($distractors, 0, 3)
+                    array_slice($distractors, 0, self::DISTRACTORS)
                 )
             );
             shuffle($options);
@@ -100,6 +104,7 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
                 ],
                 'options' => $options,
                 'correctAnswer' => (string) $correct['name'],
+                'correctSpiceId' => (int) $correct['id'],
                 'metadata' => [
                     'correctScore' => $correct['score'],
                     'difficulty' => $difficulty->value,
@@ -133,7 +138,7 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
      */
     private function pickDistractors(GameDifficulty $difficulty, array $correct, array $dominated): array
     {
-        $window = OrdinalWindow::select(array_reverse($dominated), $difficulty, 3);
+        $window = OrdinalWindow::select(array_reverse($dominated), $difficulty, self::DISTRACTORS);
 
         if ($difficulty === GameDifficulty::EASY) {
             $window = $this->preferDistinctGroup($window, $correct['groupName'] ?? null);
@@ -141,7 +146,7 @@ class QcmQuestionGenerator implements QuestionGeneratorInterface
 
         shuffle($window);
 
-        return array_slice($window, 0, 3);
+        return array_slice($window, 0, self::DISTRACTORS);
     }
 
     /**

@@ -160,6 +160,9 @@ class IntrusGame extends AbstractController
             'correctAnswer' => $correctName,
             'answerGiven' => $selectedName,
             'isCorrect' => $isCorrect,
+            'questionSpiceId' => $secret['baseSpiceId'] ?? null,
+            'correctSpiceId' => \is_int($correctId) ? $correctId : null,
+            'givenSpiceId' => \in_array($spiceId, $secret['optionIds'] ?? [], true) ? $spiceId : null,
         ];
 
         $secret['answeredSteps'] = $answeredSteps;
@@ -299,6 +302,8 @@ class IntrusGame extends AbstractController
         $previous = $this->readSecret();
         $this->writeSecret([
             'correctAnswerId' => $question['correctAnswerId'],
+            'baseSpiceId' => (int) $question['baseSpice']['id'] ?: null,
+            'optionIds' => array_map(static fn (array $option): int => (int) $option['id'], $question['options']),
             'currentStep' => $this->questionNumber,
             'answeredSteps' => $previous['answeredSteps'] ?? [],
             'correctSteps' => $previous['correctSteps'] ?? [],

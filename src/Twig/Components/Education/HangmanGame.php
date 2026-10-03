@@ -181,6 +181,8 @@ class HangmanGame extends AbstractController
                     'correctAnswer' => $word,
                     'answerGiven' => $word,
                     'isCorrect' => true,
+                    'correctSpiceId' => $secret['spiceId'] ?? null,
+                    'givenSpiceId' => $secret['spiceId'] ?? null,
                 ];
                 $secret['questions'] = $questions;
                 $this->writeSecret($secret);
@@ -202,6 +204,7 @@ class HangmanGame extends AbstractController
                 'correctAnswer' => $word,
                 'answerGiven' => '—',
                 'isCorrect' => false,
+                'correctSpiceId' => $secret['spiceId'] ?? null,
             ];
             $secret['questions'] = $questions;
             $this->writeSecret($secret);
@@ -332,6 +335,7 @@ class HangmanGame extends AbstractController
         $previous = $this->readSecret();
         $this->writeSecret([
             'word' => $word,
+            'spiceId' => $spice->getId(),
             'guessedLetters' => [],
             'correctCount' => $previous['correctCount'] ?? 0,
             'completedWords' => $previous['completedWords'] ?? [],

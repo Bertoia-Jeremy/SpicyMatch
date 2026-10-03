@@ -277,6 +277,8 @@ class GuessWhoGame extends AbstractController
             'correctAnswer' => $correctName,
             'answerGiven' => $this->canonicalName($spiceName),
             'isCorrect' => $isCorrect,
+            'correctSpiceId' => (int) ($secret['correctId'] ?? 0) ?: null,
+            'givenSpiceId' => LocalizedSpiceNames::resolveId($spiceName, $this->nameMap()),
         ];
 
         $secret['answeredSteps'] = $answeredSteps;

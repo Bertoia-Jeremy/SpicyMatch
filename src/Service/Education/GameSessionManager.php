@@ -108,7 +108,7 @@ class GameSessionManager
             || ! $this->sessionRepository->hasDailyBonusSince($user, $this->gameDay->today());
     }
 
-    private function qualifiesForDailyBonus(Users $user, GameMode $mode): bool
+    public function qualifiesForDailyBonus(Users $user, GameMode $mode): bool
     {
         return $this->dailyChallenge->forUser($user) === $mode
             && ! $this->sessionRepository->hasDailyBonusSince($user, $this->gameDay->today());
@@ -146,21 +146,25 @@ class GameSessionManager
     }
 
     /**
+     * @param array<string, mixed> $storedQuestion
      * @return array{correct: bool, finished: bool, xpEarned: int|null}
      */
     public function answerQuestion(
         GameSession $session,
+        array $storedQuestion,
         string $answer,
-        string $correctAnswer,
         ?int $timeSpentMs = null,
     ): array {
-        $isCorrect = $answer === $correctAnswer;
+        $correctAnswer = (string) ($storedQuestion['correctAnswer'] ?? '');
+        $isCorrect = $correctAnswer !== '' && $answer === $correctAnswer;
 
         $question = new GameQuestion();
         $question->setQuestionIndex($session->getCurrentQuestionIndex());
         $question->setQuestionData([
-            'answer' => $answer,
-            'correctAnswer' => $correctAnswer,
+            ...$storedQuestion,
+            'questionSpiceId' => $this->positiveInt($storedQuestion['baseSpice']['id'] ?? null),
+            'correctSpiceId' => $this->positiveInt($storedQuestion['correctSpiceId'] ?? null),
+            'givenSpiceId' => $this->optionIdFor($storedQuestion['options'] ?? [], $answer),
         ]);
         $question->answer($answer, $isCorrect, $timeSpentMs);
 
@@ -186,6 +190,26 @@ class GameSessionManager
             'finished' => $finished,
             'xpEarned' => $xpEarned,
         ];
+    }
+
+    private function optionIdFor(mixed $options, string $answer): ?int
+    {
+        if (! \is_array($options)) {
+            return null;
+        }
+
+        foreach ($options as $option) {
+            if (\is_array($option) && ($option['name'] ?? null) === $answer) {
+                return $this->positiveInt($option['id'] ?? null);
+            }
+        }
+
+        return null;
+    }
+
+    private function positiveInt(mixed $value): ?int
+    {
+        return \is_int($value) && $value > 0 ? $value : null;
     }
 
     private function finishSession(GameSession $session): int
@@ -285,7 +309,7 @@ class GameSessionManager
     }
 
     /**
-     * @param list<array{questionIndex: int, prompt: string, correctAnswer: string, answerGiven: string, isCorrect: bool}> $questionsData
+     * @param list<array{questionIndex: int, prompt: string, correctAnswer: string, answerGiven: string, isCorrect: bool, questionSpiceId?: ?int, correctSpiceId?: ?int, givenSpiceId?: ?int}> $questionsData
      */
     public function addQuestionsToSession(GameSession $gameSession, array $questionsData): void
     {
@@ -295,6 +319,9 @@ class GameSessionManager
             $gq->setQuestionData([
                 'prompt' => $qData['prompt'],
                 'correctAnswer' => $qData['correctAnswer'],
+                'questionSpiceId' => $this->positiveInt($qData['questionSpiceId'] ?? null),
+                'correctSpiceId' => $this->positiveInt($qData['correctSpiceId'] ?? null),
+                'givenSpiceId' => $this->positiveInt($qData['givenSpiceId'] ?? null),
             ]);
             $gq->answer($qData['answerGiven'], $qData['isCorrect']);
             $gameSession->addQuestion($gq);

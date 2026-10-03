@@ -1,0 +1,98 @@
+{% set pct = result.accuracyPct %}
+{% set tierLabel = result.tier.label|trans %}
+{% if result.chain %}
+    {% set ringLabel = 'ui.edu.result.ring_label_chain'|trans({'%count%': result.correct}) %}
+{% else %}
+    {% set ringLabel = 'ui.edu.result.ring_label'|trans({'%count%': result.correct, '%total%': result.total, '%pct%': pct}) %}
+{% endif %}
+{% set announce = [tierLabel, ringLabel] %}
+{% if result.xp is not null %}
+    {% set announce = announce|merge(['ui.edu.result.xp.gained'|trans({'%count%': result.xp.gained})]) %}
+{% endif %}
+{% if result.record is not null %}
+    {% set announce = announce|merge([result.record.label|trans({'%score%': result.previousBest ?? result.score})]) %}
+{% endif %}
+<section class="result-hero is-{{ result.celebration }}"
+         aria-labelledby="result-title"
+         x-data="gameResult"
+         data-announce="{{ announce|join('. ') }}">
+    {% if result.celebration == 'confetti' %}
+        <div class="result-confetti" aria-hidden="true">
+            {% for i in 1..26 %}<i></i>{% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="result-hero-body">
+        <ul class="result-tags" role="list">
+            <li class="result-tag">{{ result.mode.label|trans }}</li>
+            <li class="result-tag">{{ result.difficulty.label|trans }}</li>
+            {% if result.durationSeconds is not null %}
+                <li class="result-tag">
+                    <i class="fa-solid fa-clock" aria-hidden="true"></i>{{ 'ui.edu.result.duration'|trans({'%min%': result.durationMinutes, '%sec%': result.durationRemainder}) }}
+                </li>
+            {% endif %}
+            {% if result.xp is not null and result.dailyBonus %}
+                <li class="result-tag result-tag-bonus">
+                    <i class="fa-solid fa-bolt" aria-hidden="true"></i>{{ 'ui.edu.daily_bonus_applied'|trans }}
+                </li>
+            {% endif %}
+        </ul>
+
+        <div class="result-ring" role="img" aria-label="{{ ringLabel }}">
+            {% if result.celebration == 'sparks' %}
+                <span class="result-spark" aria-hidden="true"></span>
+                <span class="result-spark" aria-hidden="true"></span>
+                <span class="result-spark" aria-hidden="true"></span>
+                <span class="result-spark" aria-hidden="true"></span>
+            {% endif %}
+            <svg viewBox="0 0 164 164" aria-hidden="true" focusable="false">
+                <circle class="result-ring-track" cx="82" cy="82" r="72"/>
+                <circle class="result-ring-arc" cx="82" cy="82" r="72"
+                        stroke-dasharray="{{ constant('App\\ValueObject\\Education\\GameResultView::RING_CIRCUMFERENCE') }}"
+                        stroke-dashoffset="{{ result.ringOffset }}"/>
+            </svg>
+            <div class="result-ring-inner" aria-hidden="true">
+                <p class="result-ring-score">{{ result.correct }}{% if not result.chain %}<small>/{{ result.total }}</small>{% endif %}</p>
+                <p class="result-ring-caption">
+                    {% if result.chain %}
+                        {{ 'ui.edu.result.chain_unit'|trans({'%count%': result.correct}) }}
+                    {% else %}
+                        {{ 'ui.edu.result.precision_pct'|trans({'%pct%': pct}) }}
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <h1 class="result-title" id="result-title">{{ tierLabel }}</h1>
+
+        <p class="result-lead">
+            {% if result.chain %}
+                {{ 'ui.edu.result.lead.chain'|trans({'%count%': result.correct}) }}
+            {% elseif result.perfect %}
+                {{ ('ui.edu.result.lead.' ~ result.lexicon.value ~ '_perfect')|trans({'%count%': result.total}) }}
+            {% else %}
+                {{ ('ui.edu.result.lead.' ~ result.lexicon.value ~ '_mistakes')|trans({'%count%': result.correct, '%total%': result.total}) }}
+                {% if result.missed is not empty %}{{ 'ui.edu.result.lead.missed_below'|trans }}{% endif %}
+            {% endif %}
+        </p>
+
+        {% if result.record is not null %}
+            <p class="result-record{{ result.record.celebrated ? ' is-celebrated' : '' }}">
+                <i class="fa-solid fa-trophy" aria-hidden="true"></i>{{ result.record.label|trans({'%score%': result.previousBest ?? result.score}) }}
+            </p>
+        {% endif %}
+    </div>
+
+    <div class="result-actions">
+        {% if result.canReplay %}
+            <a href="{{ path(result.replayRoute, result.replayParams) }}" class="result-btn result-btn-primary">
+                <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>{{ 'ui.edu.replay'|trans }}
+            </a>
+        {% endif %}
+        <a href="{{ path('education_index') }}" class="result-btn {{ result.canReplay ? 'result-btn-secondary' : 'result-btn-primary' }}">
+            <i class="fa-solid fa-gamepad" aria-hidden="true"></i>{{ 'ui.edu.all_modes'|trans }}
+        </a>
+    </div>
+
+    <p class="sr-only" role="status" aria-live="polite" x-ref="status"></p>
+</section>

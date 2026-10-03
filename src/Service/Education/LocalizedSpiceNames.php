@@ -85,4 +85,24 @@ final class LocalizedSpiceNames
     {
         return $labelIndex[$canonical] ?? $canonical;
     }
+
+    /**
+     * @param array<int, array{canonical: string, localized: string, groupName: ?string}> $nameMap
+     */
+    public static function resolveId(string $given, array $nameMap): ?int
+    {
+        foreach ($nameMap as $id => $entry) {
+            if ($entry['canonical'] === $given) {
+                return $id;
+            }
+        }
+
+        foreach ($nameMap as $id => $entry) {
+            if ($entry['localized'] === $given) {
+                return $id;
+            }
+        }
+
+        return null;
+    }
 }

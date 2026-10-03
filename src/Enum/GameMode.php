@@ -62,6 +62,15 @@ enum GameMode: string
         return $this !== self::SURVIVAL;
     }
 
+    public function resultLexicon(): ResultLexicon
+    {
+        return match ($this) {
+            self::QCM => ResultLexicon::PAIRING,
+            self::SURVIVAL => ResultLexicon::CHAIN,
+            self::GUESS_WHO, self::INTRUS, self::HANGMAN, self::CHRONO => ResultLexicon::SPICE,
+        };
+    }
+
     public function description(): string
     {
         return 'enum.game_mode.' . $this->value . '.desc';
@@ -104,15 +113,13 @@ enum GameMode: string
         return 'enum.game_mode.' . $this->value . '.tagline';
     }
 
-    public function posterGradient(): string
+    public function promise(): string
     {
-        return match ($this) {
-            self::QCM => 'radial-gradient(ellipse at 50% 0%, #4D7C0F 0%, #2d4a08 60%, #1a2a04 100%)',
-            self::SURVIVAL => 'radial-gradient(ellipse at 50% 0%, #C04020 0%, #7a1a1a 60%, #3a0a0a 100%)',
-            self::GUESS_WHO => 'radial-gradient(ellipse at 50% 0%, #C98A4B 0%, #7d4a1c 60%, #331a06 100%)',
-            self::INTRUS => 'radial-gradient(ellipse at 50% 0%, #5B4636 0%, #33241a 60%, #160e09 100%)',
-            self::HANGMAN => 'radial-gradient(ellipse at 50% 0%, #D97706 0%, #7c3a04 60%, #3a1c02 100%)',
-            self::CHRONO => 'radial-gradient(ellipse at 50% 0%, #A3324C 0%, #5e1428 60%, #280611 100%)',
-        };
+        return 'enum.game_mode.' . $this->value . '.promise';
+    }
+
+    public function isFullscreen(): bool
+    {
+        return $this === self::HANGMAN;
     }
 }

@@ -23,6 +23,8 @@
 @import "./components/navbar.css";
 @import "./components/home.css";
 @import "./components/academie.css";
+@import "./components/game-result.css";
+@import "./components/briefing.css";
 @import "./components/hangman.css";
 
 /* L'Étamine — finalisation du mélange + recette */

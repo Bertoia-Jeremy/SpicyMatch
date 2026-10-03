@@ -1,0 +1,50 @@
+{% set count = result.answers|length %}
+{% set wrongCount = result.wrongAnswers %}
+<section class="result-section" aria-labelledby="result-answers-toggle">
+    <div class="result-acc" x-data="resultAnswers" x-bind:class="{ 'is-open': open }">
+        <h2 class="result-acc-heading">
+            <button type="button"
+                    id="result-answers-toggle"
+                    class="result-acc-toggle"
+                    aria-expanded="false"
+                    aria-controls="result-answers-list"
+                    x-bind:aria-expanded="open ? 'true' : 'false'"
+                    x-on:click="toggle()">
+                <span class="result-acc-label">
+                    {{ 'ui.edu.result.answers.title'|trans({'%count%': count}) }}
+                    <small>{{ 'ui.edu.result.answers.summary_correct'|trans({'%count%': count - wrongCount}) }} · {{ 'ui.edu.result.answers.summary_wrong'|trans({'%count%': wrongCount}) }}</small>
+                </span>
+                <span class="result-acc-chevron"><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></span>
+            </button>
+        </h2>
+        <div class="result-acc-panel" id="result-answers-list">
+            <ol class="result-answers" role="list">
+                {% for answer in result.answers %}
+                    <li class="result-answer">
+                        <span class="result-answer-icon {{ answer.correct ? 'is-correct' : 'is-wrong' }}">
+                            <i class="fa-solid {{ answer.correct ? 'fa-check' : 'fa-xmark' }}" aria-hidden="true"></i>
+                            <span class="sr-only">{{ (answer.correct ? 'ui.edu.result.answers.correct' : 'ui.edu.result.answers.wrong')|trans }}</span>
+                        </span>
+                        <div class="result-answer-body">
+                            <p class="result-answer-title">
+                                {% if answer.title is not null %}
+                                    {{ answer.title }}<span>· {{ 'ui.edu.result.answers.question'|trans({'%num%': answer.number}) }}</span>
+                                {% else %}
+                                    {{ 'ui.edu.question'|trans({'%num%': answer.number}) }}
+                                {% endif %}
+                            </p>
+                            <dl class="result-answer-dl">
+                                <dt>{{ 'ui.edu.result.answers.your_answer'|trans }}</dt>
+                                <dd class="{{ answer.correct ? 'is-correct' : 'is-wrong' }}">{{ answer.given ?? 'ui.edu.result.answers.no_answer'|trans }}</dd>
+                                {% if not answer.correct and answer.expected is not null %}
+                                    <dt>{{ ('ui.edu.result.answers.expected_' ~ (result.lexicon.value == 'pairing' ? 'pairing' : 'spice'))|trans }}</dt>
+                                    <dd class="is-correct">{{ answer.expected }}</dd>
+                                {% endif %}
+                            </dl>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ol>
+        </div>
+    </div>
+</section>

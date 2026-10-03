@@ -1,0 +1,20 @@
+<div class="result-xp" role="group" aria-labelledby="result-xp-gain"{% if xp.pending %} data-xp-pending{% endif %}>
+    <div class="result-xp-head">
+        <p class="result-xp-gain" id="result-xp-gain">
+            <span class="sr-only">{{ 'ui.edu.result.xp.gained'|trans({'%count%': xp.gained}) }}</span>
+            <span aria-hidden="true">+<span data-count="{{ xp.gained }}">{{ xp.gained }}</span> <small>XP</small></span>
+        </p>
+        <p class="result-xp-level">
+            {{ (xp.leveledUp ? 'ui.edu.result.xp.level_up' : 'ui.edu.result.xp.level')|trans({'%level%': xp.level}) }}
+        </p>
+    </div>
+    <meter class="result-meter"
+           min="{{ xp.floorXp }}"
+           max="{{ xp.nextXp }}"
+           value="{{ xp.total }}"
+           aria-label="{{ 'ui.edu.result.xp.progress_label'|trans({'%level%': xp.level + 1}) }}"></meter>
+    <div class="result-xp-foot">
+        <span>{{ 'ui.edu.result.xp.total'|trans({'%total%': xp.total, '%next%': xp.nextXp}) }}</span>
+        <span>{{ 'ui.edu.result.xp.remaining'|trans({'%count%': xp.remaining, '%level%': xp.level + 1}) }}</span>
+    </div>
+</div>

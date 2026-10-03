@@ -1,0 +1,21 @@
+{% set from = result.difficulty.label|trans %}
+{% set to = next.difficulty.label|trans %}
+<section class="result-section" aria-labelledby="result-next-title">
+    <h2 class="result-h2" id="result-next-title">{{ 'ui.edu.result.next.title'|trans }}</h2>
+    <a href="{{ path(result.replayRoute, result.replayParams(next.difficulty)) }}" class="result-next">
+        <span class="result-initial result-initial-gold" aria-hidden="true">
+            <i class="fa-solid {{ next.promotion ? 'fa-arrow-trend-up' : 'fa-scale-balanced' }}"></i>
+        </span>
+        <span class="result-next-text">
+            <span class="result-next-title">{{ (next.promotion ? 'ui.edu.result.next.promote' : 'ui.edu.result.next.demote')|trans({'%to%': to}) }}</span>
+            <span class="result-next-desc">
+                {% if next.winratePct is not null %}
+                    {{ 'ui.edu.result.next.skill_text'|trans({'%rate%': next.winratePct, '%count%': next.samples ?? 0, '%from%': from}) }}
+                {% else %}
+                    {{ 'ui.edu.result.next.perfect_text'|trans({'%from%': from}) }}
+                {% endif %}
+            </span>
+        </span>
+        <i class="fa-solid fa-arrow-right result-next-arrow" aria-hidden="true"></i>
+    </a>
+</section>

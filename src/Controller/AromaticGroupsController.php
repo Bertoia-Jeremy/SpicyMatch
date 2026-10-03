@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Controller\Concern\CanonicalSlugTrait;
+use App\Repository\AromaticCompoundRepository;
 use App\Repository\AromaticGroupsRepository;
 use App\Repository\SpicesRepository;
 use App\Routing\CatalogPath;
@@ -32,6 +33,7 @@ class AromaticGroupsController extends AbstractController
         Request $request,
         AromaticGroupsRepository $repository,
         SpicesRepository $spicesRepository,
+        AromaticCompoundRepository $compoundRepository,
     ): Response {
         $locale = $request->getLocale();
         $aromaticGroup = $repository->findOneByLocalizedSlug($slug, $locale);
@@ -51,6 +53,8 @@ class AromaticGroupsController extends AbstractController
         return $this->render('aromatic_groups/view.html.twig', [
             'aromaticGroup' => $aromaticGroup,
             'spices' => $spicesRepository->findFiltered($aromaticGroup->getId(), null, null, $locale),
+            'signature' => $compoundRepository->findSignatureForGroup($aromaticGroup, $locale),
+            'families' => $repository->findAllForLocale($locale),
             'hreflang_slugs' => [
                 'fr' => $aromaticGroup->getLocalizedSlug('fr'),
                 'en' => $aromaticGroup->getLocalizedSlug('en'),

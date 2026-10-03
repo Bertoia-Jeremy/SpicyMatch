@@ -1,49 +1,195 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ aromaticGroup.getLocalizedName(app.request.locale) }} — SpicyMatch{% endblock %}
+{% block title %}{{ 'ui.meta.title.group'|trans({'%name%': aromaticGroup.getLocalizedName(app.request.locale)}) }}{% endblock %}
 
-{% block meta_description %}{{ aromaticGroup.getLocalizedDescription(app.request.locale)|seo_summary|default('ui.meta.description'|trans) }}{% endblock %}
+{% block og_type %}article{% endblock %}
+
+{% block meta_description %}{{ aromaticGroup.getLocalizedDescription(app.request.locale)|seo_summary|default(aromaticGroup.getLocalizedName(app.request.locale) ~ 'ui.catalog.define_lead'|trans({'%definition%': 'ui.catalog.define_group'|trans({'%count%': spices|length})})) }}{% endblock %}
 
 {% block structured_data %}{{ include('partials/_json_ld.html.twig', {subject: aromaticGroup}) }}{% endblock %}
 
 {% block body %}
-{% set loc = app.request.locale %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <twig:Catalog:Hero
-        backLabel="{{ 'ui.catalog.back_to_groups'|trans }}"
-        backHref="{{ path('index_aromatic_groups') }}"
-        badge="{{ 'ui.catalog.group_badge'|trans }}"
-        icon="fa-solid fa-layer-group"
-        title="{{ aromaticGroup.getLocalizedName(loc) }}"
-        color="{{ aromaticGroup.color }}"
-    />
+    {% set loc = app.request.locale %}
+    {% set name = aromaticGroup.getLocalizedName(loc) %}
+    {% set color = aromaticGroup.color matches '/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/' ? aromaticGroup.color : null %}
+    {% set description = aromaticGroup.getLocalizedDescription(loc) %}
+    {% set cooking = aromaticGroup.getLocalizedCooking(loc) %}
+    {% set lab = aromaticGroup.getLocalizedInformations(loc) %}
+    {% set members = loc == 'fr' ? spices : spices|sort((a, b) => a.getLocalizedName(loc)|lower <=> b.getLocalizedName(loc)|lower) %}
+    {% set total = members|length %}
+    {% set preview = 8 %}
+    {% set forms = {} %}
+    {% for spice in members|filter(s => s.spicyType) %}
+        {% set key = 't' ~ spice.spicyType.id %}
+        {% set forms = forms|merge({(key): {name: spice.spicyType.getLocalizedName(loc), count: (forms[key].count ?? 0) + 1}}) %}
+    {% endfor %}
+    {% set forms = forms|sort((a, b) => b.count <=> a.count) %}
+    {% set evokes = {} %}
+    {% for row in signature %}
+        {% for flavor in row.compound.alchemyFlavors|filter(f => f.deletedAt is null) %}
+            {% set key = 'f' ~ flavor.id %}
+            {% set evokes = evokes|merge({(key): {flavor: flavor, weight: (evokes[key].weight ?? 0) + row.carriers}}) %}
+        {% endfor %}
+    {% endfor %}
+    {% set evokes = evokes|sort((a, b) => b.weight <=> a.weight)|slice(0, 6) %}
+    {% set others = families|filter(f => f.id != aromaticGroup.id and f.deletedAt is null) %}
+    {% set section = 0 %}
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-16">
-        <div class="lg:col-span-2 space-y-8">
-            <twig:Catalog:Section title="{{ 'ui.catalog.description'|trans }}" icon="fa-solid fa-circle-info">
-                {{ aromaticGroup.getLocalizedDescription(loc)|default('ui.catalog.no_description_detailed'|trans)|nl2br }}
-            </twig:Catalog:Section>
+    <article class="detail-page fam-page"{% if color %} style="--fam-color: {{ color }}"{% endif %}>
+        <twig:Catalog:Crumbs
+            :items="[{label: 'ui.catalog.groups_title'|trans, href: path('index_aromatic_groups')}]"
+            current="{{ name }}"
+        />
 
-            {% if aromaticGroup.getLocalizedCooking(loc) %}
-                <twig:Catalog:Section title="{{ 'ui.catalog.in_kitchen'|trans }}" icon="fa-solid fa-mortar-pestle">
-                    {{ aromaticGroup.getLocalizedCooking(loc)|nl2br }}
-                </twig:Catalog:Section>
+        <header class="fam-hero">
+            <div class="fam-hero-text">
+                <p class="detail-eyebrow">{{ 'ui.catalog.group_badge'|trans }}</p>
+                <h1 class="detail-title{{ name|length > 24 ? ' detail-title-long' }}">{{ name }}</h1>
+                <twig:Catalog:Lead :term="name" :definition="'ui.catalog.define_group'|trans({'%count%': members|length})" :text="description" />
+            </div>
+            <div class="fam-chip" aria-hidden="true">
+                <span class="fam-shade fam-shade-1"></span>
+                <span class="fam-shade fam-shade-2"></span>
+                <span class="fam-shade fam-shade-3"></span>
+                <span class="fam-shade fam-shade-4"></span>
+                <span class="fam-shade fam-shade-5"></span>
+            </div>
+            <dl class="fam-facts" aria-label="{{ 'ui.catalog.fam_facts_label'|trans }}">
+                <div class="fam-fact">
+                    <dt>{{ 'ui.catalog.fam_fact_spices'|trans }}</dt>
+                    <dd>{{ total }}</dd>
+                </div>
+                {% if signature is not empty %}
+                    <div class="fam-fact">
+                        <dt>{{ 'ui.catalog.fam_fact_molecules'|trans }}</dt>
+                        <dd>{{ signature|length }}</dd>
+                    </div>
+                {% endif %}
+                {% if forms is not empty %}
+                    <div class="fam-fact fam-fact-forms">
+                        <dt>{{ 'ui.catalog.fam_fact_forms'|trans }}</dt>
+                        <dd>
+                            <ul class="fam-forms">
+                                {% for form in forms %}
+                                    <li>{{ form.name }} <span class="fam-form-count">{{ form.count }}</span></li>
+                                {% endfor %}
+                            </ul>
+                        </dd>
+                    </div>
+                {% endif %}
+            </dl>
+        </header>
+
+        <div class="fam-layout">
+            {% set section = section + 1 %}
+            <section class="fam-members" aria-labelledby="fam-members-title">
+                <header class="detail-section-head">
+                    <span class="detail-section-num">{{ '%02d'|format(section) }} — {{ 'ui.catalog.fam_members'|trans }} · {{ total }}</span>
+                    <h2 id="fam-members-title" class="detail-section-title">{{ 'ui.catalog.fam_members_title'|trans }}</h2>
+                </header>
+                {% if members is empty %}
+                    <p class="fam-empty">{{ 'ui.catalog.fam_empty'|trans }}</p>
+                {% else %}
+                    {% for chunk in [members|slice(0, preview), members|slice(preview)] %}
+                        {% if chunk is not empty %}
+                            {% set rows %}
+                                <ul class="spice-rows fam-rows">
+                                    {% for spice in chunk %}
+                                        <twig:Catalog:SpiceRow :spice="spice" :loc="loc" :meta="spice.spicyType ? spice.spicyType.getLocalizedName(loc) : null" />
+                                    {% endfor %}
+                                </ul>
+                            {% endset %}
+                            {% if loop.first %}
+                                {{ rows }}
+                            {% else %}
+                                <details class="spice-rows-more">
+                                    <summary>
+                                        <span class="spice-rows-more-open">{{ 'ui.catalog.show_more_spices'|trans({'%count%': chunk|length}) }}</span>
+                                        <span class="spice-rows-more-close">{{ 'ui.catalog.show_less_spices'|trans }}</span>
+                                        <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                                    </summary>
+                                    {{ rows }}
+                                </details>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                    <a class="btn-pill-base btn-pill-outline fam-filter" href="{{ path('index_spices', {aromatic_group: aromaticGroup.getLocalizedSlug(loc)}) }}">
+                        <i class="fa-solid fa-filter" aria-hidden="true"></i><span>{{ 'ui.catalog.filter_spices_by_group'|trans }}</span>
+                    </a>
+                {% endif %}
+            </section>
+
+            {% if signature is not empty or cooking or lab %}
+                <div class="fam-aside">
+                    {% if signature is not empty %}
+                        {% set section = section + 1 %}
+                        <section class="fam-signature" aria-labelledby="fam-signature-title">
+                            <header class="detail-section-head">
+                                <span class="detail-section-num">{{ '%02d'|format(section) }} — {{ 'ui.catalog.fam_signature'|trans }}</span>
+                                <h2 id="fam-signature-title" class="detail-section-title">{{ 'ui.catalog.fam_signature_title'|trans }}</h2>
+                                <p class="fam-hint">{{ 'ui.catalog.fam_signature_hint'|trans }}</p>
+                            </header>
+                            <ol class="fam-molecules">
+                                {% for row in signature %}
+                                    {% set carriersLabel = 'ui.catalog.fam_carriers'|trans({'%count%': row.carriers, '%total%': total}) %}
+                                    <li>
+                                        <a class="fam-molecule" href="{{ path('view_aromatic_compound', {slug: row.compound.getLocalizedSlug(loc)}) }}">
+                                            <span class="fam-molecule-name">{{ row.compound.getLocalizedName(loc) }}</span>
+                                            <span class="fam-molecule-count">{{ carriersLabel }}</span>
+                                            <meter class="fam-meter" min="0" max="{{ max(total, 1) }}" value="{{ row.carriers }}" aria-label="{{ carriersLabel }}"></meter>
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ol>
+                            {% if evokes is not empty %}
+                                <p class="fam-label">{{ 'ui.catalog.fam_evokes'|trans }}</p>
+                                <ul class="ref-chips">
+                                    {% for item in evokes %}
+                                        <li>
+                                            <a class="ref-chip ref-chip-flavor" href="{{ path('view_alchemy_flavors', {slug: item.flavor.getLocalizedSlug(loc)}) }}">{{ item.flavor.getLocalizedName(loc) }}</a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </section>
+                    {% endif %}
+
+                    {% if cooking or lab %}
+                        {% set section = section + 1 %}
+                        <section class="fam-kitchen" aria-labelledby="fam-kitchen-title">
+                            <header class="detail-section-head">
+                                <span class="detail-section-num">{{ '%02d'|format(section) }} — {{ 'ui.catalog.in_kitchen'|trans }}</span>
+                                <h2 id="fam-kitchen-title" class="detail-section-title">{{ 'ui.catalog.fam_kitchen_title'|trans }}</h2>
+                            </header>
+                            {% if cooking %}
+                                <p class="fam-prose">{{ cooking }}</p>
+                            {% endif %}
+                            {% if lab %}
+                                <aside class="fam-lab">
+                                    <p class="fam-lab-title"><i class="fa-solid fa-flask" aria-hidden="true"></i>{{ 'ui.catalog.scientific_note'|trans }}</p>
+                                    <p>{{ lab }}</p>
+                                </aside>
+                            {% endif %}
+                        </section>
+                    {% endif %}
+                </div>
             {% endif %}
         </div>
 
-        <aside class="space-y-8">
-            {% if aromaticGroup.getLocalizedInformations(loc) %}
-                <twig:Catalog:Section title="{{ 'ui.catalog.scientific_note'|trans }}" icon="fa-solid fa-flask" small>
-                    {{ aromaticGroup.getLocalizedInformations(loc)|nl2br }}
-                </twig:Catalog:Section>
-            {% endif %}
-            <a href="{{ path('index_spices', {aromatic_group: aromaticGroup.getLocalizedSlug(loc)}) }}"
-               class="btn-pill-base btn-pill-outline px-5 py-2 text-sm inline-flex items-center gap-2">
-                <i class="fa-solid fa-filter" aria-hidden="true"></i>{{ 'ui.catalog.filter_spices_by_group'|trans }}
-            </a>
-        </aside>
-    </div>
-
-    <twig:Catalog:LinkedSpices :spices="spices" title="{{ 'ui.catalog.spices_of_group'|trans }}" />
-</div>
+        {% if others is not empty %}
+            <nav class="fam-others" aria-labelledby="fam-others-title">
+                <h2 id="fam-others-title" class="fam-label">{{ 'ui.catalog.fam_others'|trans }}</h2>
+                <ul class="fam-others-list">
+                    {% for family in others %}
+                        {% set dot = family.color matches '/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/' ? family.color : null %}
+                        <li>
+                            <a class="fam-other" href="{{ path('view_aromatic_groups', {slug: family.getLocalizedSlug(loc)}) }}"{% if dot %} style="--dot: {{ dot }}"{% endif %}>
+                                <span class="fam-other-dot" aria-hidden="true"></span>{{ family.getLocalizedName(loc) }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+        {% endif %}
+    </article>
 {% endblock %}

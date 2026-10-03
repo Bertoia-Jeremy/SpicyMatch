@@ -17,11 +17,11 @@
 }
 
 .recipe-link {
-  @apply text-sm font-medium text-saffron-800 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30 rounded;
+  @apply text-sm font-medium text-saffron-800 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600 rounded;
 }
 
 .recipe-icon-btn {
-  @apply inline-grid size-11 shrink-0 place-items-center rounded-full border border-ink-900/10 bg-parchment-50 !p-0 text-ink-800 transition-colors hover:bg-parchment-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30 disabled:opacity-60;
+  @apply inline-grid size-11 shrink-0 place-items-center rounded-full border border-ink-900/10 bg-parchment-50 !p-0 text-ink-800 transition-colors hover:bg-parchment-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600 disabled:opacity-60;
 }
 
 .recipe-fav.is-active {
@@ -37,7 +37,7 @@
 }
 
 .recipe-title-edit {
-  @apply -mx-1 block cursor-text rounded px-1 outline-none break-words focus-visible:ring-2 focus-visible:ring-saffron-600/30;
+  @apply -mx-1 block cursor-text rounded px-1 outline-none break-words focus-visible:ring-2 focus-visible:ring-saffron-600;
 }
 
 .recipe-title-edit.is-placeholder {
@@ -45,7 +45,7 @@
 }
 
 .recipe-pen {
-  @apply mt-0.5 inline-grid size-9 shrink-0 place-items-center rounded-full text-ink-700 hover:bg-parchment-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30;
+  @apply mt-0.5 inline-grid size-9 shrink-0 place-items-center rounded-full text-ink-700 hover:bg-parchment-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600;
 }
 
 .recipe-metrics {
@@ -65,7 +65,7 @@
 }
 
 .recipe-composition-item {
-  @apply flex min-h-11 w-full flex-col items-center gap-1.5 rounded-xl py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30;
+  @apply flex min-h-11 w-full flex-col items-center gap-1.5 rounded-xl py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600;
 }
 
 .recipe-composition-name {
@@ -127,7 +127,7 @@
 }
 
 .recipe-segment-btn {
-  @apply h-10 rounded-[9px] text-sm font-medium text-ink-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30;
+  @apply h-10 rounded-[9px] text-sm font-medium text-ink-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600;
 }
 
 .recipe-segment-btn.is-active {
@@ -169,7 +169,7 @@
 }
 
 .recipe-row {
-  @apply mt-2 flex min-h-[60px] w-full items-center gap-3 rounded-xl border border-ink-900/10 bg-parchment-50 px-3 py-2 transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30;
+  @apply mt-2 flex min-h-[60px] w-full items-center gap-3 rounded-xl border border-ink-900/10 bg-parchment-50 px-3 py-2 transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600;
 }
 
 .recipe-row-name {
@@ -202,7 +202,7 @@
 }
 
 .recipe-card-head {
-  @apply flex min-h-[72px] w-full items-center gap-3 rounded-2xl px-3.5 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30;
+  @apply flex min-h-[72px] w-full items-center gap-3 rounded-2xl px-3.5 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600;
 }
 
 .recipe-card-name {
@@ -232,7 +232,7 @@
 }
 
 .recipe-family-link {
-  @apply flex min-h-11 items-center justify-between gap-2 border-t border-dashed border-parchment-300 pt-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30 rounded-sm;
+  @apply flex min-h-11 items-center justify-between gap-2 border-t border-dashed border-parchment-300 pt-3 text-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600 rounded-sm;
 }
 
 .recipe-block {
@@ -273,7 +273,7 @@
 }
 
 .recipe-chip {
-  @apply h-[34px] rounded-[17px] border border-ink-900/15 px-3.5 text-[13px] font-medium text-ink-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30;
+  @apply min-h-11 rounded-full border border-ink-900/15 px-3.5 text-[13px] font-medium text-ink-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600;
 }
 
 .recipe-chip.is-active {
@@ -293,7 +293,7 @@
 }
 
 .recipe-details-summary {
-  @apply flex min-h-[60px] cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30;
+  @apply flex min-h-[60px] cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600;
 }
 
 .recipe-details-summary::-webkit-details-marker {
@@ -306,7 +306,7 @@
 }
 
 .recipe-cta-btn {
-  @apply flex h-[54px] w-full items-center justify-center gap-2.5 rounded-[14px] bg-ink-900 px-4 text-[15px] font-semibold text-parchment-50 transition-colors hover:bg-ink-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30;
+  @apply flex h-[54px] w-full items-center justify-center gap-2.5 rounded-[14px] bg-ink-900 px-4 text-[15px] font-semibold text-parchment-50 transition-colors hover:bg-ink-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600;
 }
 
 .recipe-toast {
@@ -314,7 +314,7 @@
 }
 
 .recipe-toast-btn {
-  @apply min-h-11 shrink-0 rounded-lg px-2 font-semibold text-saffron-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30;
+  @apply min-h-11 shrink-0 rounded-lg px-2 font-semibold text-saffron-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600;
 }
 
 .recipe-cook {
@@ -383,7 +383,7 @@
 }
 
 .recipe-check {
-  @apply relative inline-grid size-11 shrink-0 place-items-center rounded-lg text-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30;
+  @apply relative inline-grid size-11 shrink-0 place-items-center rounded-lg text-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600;
 }
 
 .recipe-check::before {
@@ -413,5 +413,5 @@
 }
 
 .recipe-cook-prev {
-  @apply grid h-[54px] place-items-center rounded-[14px] bg-parchment-200 text-ink-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30 disabled:opacity-35;
+  @apply grid h-[54px] place-items-center rounded-[14px] bg-parchment-200 text-ink-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600 disabled:opacity-35;
 }

@@ -36,48 +36,52 @@
                 <p x-show="isContext('rename')" x-cloak class="mt-2 text-sm text-stone-600">{{ 'ui.recipe.gate_rename'|trans }}</p>
             </div>
 
-            <div class="flex rounded-full bg-stone-100 p-1 mb-6" role="tablist">
-                <button type="button" role="tab" @click="showLogin()"
+            <div class="flex rounded-full bg-stone-100 p-1 mb-6" role="tablist" x-on:keydown="tabKey($event)">
+                <button type="button" role="tab" id="gate-tab-login" aria-controls="gate-panel-login" @click="showLogin()"
                         x-bind:aria-selected="isLoginTab() ? 'true' : 'false'"
-                        x-bind:class="isLoginTab() ? 'bg-white shadow-sm text-stone-800' : 'text-stone-500'"
-                        class="flex-1 py-2 rounded-full text-sm font-medium transition-colors">
+                        x-bind:tabindex="isLoginTab() ? 0 : -1"
+                        x-bind:class="isLoginTab() ? 'bg-white shadow-sm text-stone-800' : 'text-stone-600'"
+                        class="flex-1 py-2 rounded-full text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600">
                     {{ 'ui.auth.login_title'|trans }}
                 </button>
-                <button type="button" role="tab" @click="showRegister()"
+                <button type="button" role="tab" id="gate-tab-register" aria-controls="gate-panel-register" @click="showRegister()"
                         x-bind:aria-selected="isRegisterTab() ? 'true' : 'false'"
-                        x-bind:class="isRegisterTab() ? 'bg-white shadow-sm text-stone-800' : 'text-stone-500'"
-                        class="flex-1 py-2 rounded-full text-sm font-medium transition-colors">
+                        x-bind:tabindex="isRegisterTab() ? 0 : -1"
+                        x-bind:class="isRegisterTab() ? 'bg-white shadow-sm text-stone-800' : 'text-stone-600'"
+                        class="flex-1 py-2 rounded-full text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600">
                     {{ 'ui.register.title'|trans }}
                 </button>
             </div>
 
-            <form x-show="isLoginTab()" method="post" action="{{ path('app_login') }}" class="space-y-4">
-                <div>
-                    <label for="gate-username" class="block text-sm font-medium text-stone-700 mb-1">{{ 'ui.auth.username'|trans }}</label>
-                    <input type="text" id="gate-username" name="username" autocomplete="username"
-                           class="w-full px-4 py-2.5 border border-stone-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-saffron-600/30 focus:border-saffron-500 bg-white text-stone-800"
-                           required>
-                </div>
-                <div>
-                    <label for="gate-password" class="block text-sm font-medium text-stone-700 mb-1">{{ 'ui.auth.password'|trans }}</label>
-                    <input type="password" id="gate-password" name="password" autocomplete="current-password"
-                           class="w-full px-4 py-2.5 border border-stone-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-saffron-600/30 focus:border-saffron-500 bg-white text-stone-800"
-                           required>
-                </div>
+            <div x-show="isLoginTab()" id="gate-panel-login" role="tabpanel" aria-labelledby="gate-tab-login">
+                <form method="post" action="{{ path('app_login') }}" class="space-y-4">
+                    <div>
+                        <label for="gate-username" class="block text-sm font-medium text-stone-700 mb-1">{{ 'ui.auth.username'|trans }}</label>
+                        <input type="text" id="gate-username" name="username" autocomplete="username"
+                               class="w-full px-4 py-2.5 border border-stone-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-saffron-600/30 focus:border-saffron-500 bg-white text-stone-800"
+                               required>
+                    </div>
+                    <div>
+                        <label for="gate-password" class="block text-sm font-medium text-stone-700 mb-1">{{ 'ui.auth.password'|trans }}</label>
+                        <input type="password" id="gate-password" name="password" autocomplete="current-password"
+                               class="w-full px-4 py-2.5 border border-stone-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-saffron-600/30 focus:border-saffron-500 bg-white text-stone-800"
+                               required>
+                    </div>
 
-                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-                <input type="hidden" name="_target_path" x-bind:value="targetUrl">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                    <input type="hidden" name="_target_path" x-bind:value="targetUrl">
 
-                <twig:Button
-                    label="{{ 'ui.auth.login_cta'|trans }}"
-                    type="submit"
-                    variant="primary"
-                    icon="fa-solid fa-right-to-bracket text-xs"
-                    extra="w-full justify-center"
-                />
-            </form>
+                    <twig:Button
+                        label="{{ 'ui.auth.login_cta'|trans }}"
+                        type="submit"
+                        variant="primary"
+                        icon="fa-solid fa-right-to-bracket text-xs"
+                        extra="w-full justify-center"
+                    />
+                </form>
+            </div>
 
-            <div x-show="isRegisterTab()">
+            <div x-show="isRegisterTab()" id="gate-panel-register" role="tabpanel" aria-labelledby="gate-tab-register">
                 {{ form_start(registrationForm, {'action': path('index_register'), 'attr': {'id': 'gate-register-form', 'class': 'space-y-4'}}) }}
                 <div>
                     {{ form_label(registrationForm.username, 'ui.register.username'|trans, {'label_attr': {'class': 'block text-sm font-medium text-stone-700 mb-1'}}) }}
@@ -99,7 +103,7 @@
                         }}) }}
                         <button type="button" @click="show = !show"
                                 x-bind:aria-pressed="show.toString()"
-                                class="absolute inset-y-0 right-0 px-3 flex items-center text-sm text-stone-600 hover:text-stone-700 rounded-lg focus:outline-none focus-visible:ring-2 focus:ring-saffron-600/30">
+                                class="absolute inset-y-0 right-0 px-3 flex items-center text-sm text-stone-600 hover:text-stone-700 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600">
                             <span x-text="label()">{{ 'password.show'|trans({}, 'js') }}</span>
                         </button>
                     </div>

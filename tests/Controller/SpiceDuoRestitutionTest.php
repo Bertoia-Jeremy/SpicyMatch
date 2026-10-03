@@ -47,6 +47,14 @@ final class SpiceDuoRestitutionTest extends WebTestCase
             self::assertResponseIsSuccessful();
             self::assertStringContainsString('Duo test chef', $crawler->filter('.chef-word-title')->text());
             self::assertStringContainsString('Effet test chef', $crawler->filter('.chef-word-list')->text());
+            $tabs = $crawler->filter('.chef-word [role="tablist"][aria-labelledby] [role="tab"]');
+            self::assertSame(['0', '-1', '-1'], $tabs->each(static fn ($tab): string => (string) $tab->attr('tabindex')));
+            foreach ($tabs->each(static fn ($tab): array => [(string) $tab->attr('id'), (string) $tab->attr('aria-controls')]) as [$tabId, $panelId]) {
+                $panel = $crawler->filter(\sprintf('#%s[role="tabpanel"]', $panelId));
+                self::assertCount(1, $panel);
+                self::assertSame($tabId, $panel->attr('aria-labelledby'));
+            }
+            self::assertCount(0, $crawler->filter('article aside'));
         } finally {
             $this->cleanup($ids, $lastMessageId);
         }

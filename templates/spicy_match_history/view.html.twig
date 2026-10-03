@@ -22,19 +22,23 @@
         {{ include('spicy_match_history/recipe/_header.html.twig') }}
 
         <div class="recipe-segment-wrap">
-            <div class="recipe-segment" role="tablist" aria-label="{{ 'ui.recipe.tabs_aria'|trans }}">
+            <div class="recipe-segment" role="tablist" aria-label="{{ 'ui.recipe.tabs_aria'|trans }}" x-on:keydown="tabKey($event)">
                 <button type="button" role="tab" id="recipe-tab-timeline" aria-controls="recipe-panel-timeline"
                         class="recipe-segment-btn is-active"
                         x-on:click="tab = 'timeline'"
-                        x-bind:class="tab === 'timeline' && 'is-active'"
+                        x-bind:class="{ 'is-active': tab === 'timeline' }"
                         x-bind:aria-selected="tab === 'timeline'"
-                        aria-selected="true">{{ 'ui.recipe.tab_timeline'|trans }}</button>
+                        x-bind:tabindex="tab === 'timeline' ? 0 : -1"
+                        aria-selected="true"
+                        tabindex="0">{{ 'ui.recipe.tab_timeline'|trans }}</button>
                 <button type="button" role="tab" id="recipe-tab-spices" aria-controls="recipe-panel-spices"
                         class="recipe-segment-btn"
                         x-on:click="tab = 'spices'"
-                        x-bind:class="tab === 'spices' && 'is-active'"
+                        x-bind:class="{ 'is-active': tab === 'spices' }"
                         x-bind:aria-selected="tab === 'spices'"
-                        aria-selected="false">{{ 'ui.recipe.tab_spices'|trans }}</button>
+                        x-bind:tabindex="tab === 'spices' ? 0 : -1"
+                        aria-selected="false"
+                        tabindex="-1">{{ 'ui.recipe.tab_spices'|trans }}</button>
             </div>
         </div>
 

@@ -89,6 +89,21 @@ final class SpicyMatchHistoryViewTest extends WebTestCase
         self::assertCount(0, $crawler->filter('[data-ad-slot]'));
     }
 
+    public function testRecipeTabsUseRovingTabindexAndSpiceCardsAreHeadings(): void
+    {
+        $crawler = $this->client->request('GET', '/fr/spicymatch/history/view/' . $this->historyId);
+
+        self::assertResponseIsSuccessful();
+        $tabs = $crawler->filter('.recipe-segment[role="tablist"][aria-label] [role="tab"]');
+        self::assertSame(['0', '-1'], $tabs->each(static fn ($tab): string => (string) $tab->attr('tabindex')));
+        foreach ($tabs->each(static fn ($tab): string => (string) $tab->attr('aria-controls')) as $panel) {
+            self::assertCount(1, $crawler->filter(\sprintf('#%s[role="tabpanel"]', $panel)));
+        }
+        $cards = $crawler->filter('article.recipe-card');
+        self::assertGreaterThan(0, $cards->count());
+        self::assertCount($cards->count(), $crawler->filter('article.recipe-card > h2 > button.recipe-card-head'));
+    }
+
     public function testFavoriteIsIdempotentAndDispatchesOnce(): void
     {
         $token = $this->token();

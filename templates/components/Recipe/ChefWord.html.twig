@@ -1,27 +1,30 @@
 {% props duo = null %}
 {% if duo %}
     {% set tabs = {effect: duo.effect, science: duo.science, example: duo.example}|filter(v => v is not empty) %}
-    {% set first = tabs|keys|first %}
-    <aside class="chef-word recipe-chef" aria-label="{{ 'ui.recipe.chef_word'|trans }}" x-data="{ chefTab: '{{ first }}' }" x-init="$watch('openSpiceId', () => chefTab = '{{ first }}')">
-        <div class="recipe-mono text-saffron-800">{{ 'ui.recipe.chef_word'|trans }}</div>
+    {% set uid = 'chef-' ~ random() %}
+    <div class="chef-word recipe-chef" x-data="chefWord" data-tabs="{{ tabs|keys|join(',') }}" x-init="$watch('openSpiceId', () => resetTab())">
+        <div id="{{ uid }}-label" class="recipe-mono text-saffron-800">{{ 'ui.recipe.chef_word'|trans }}</div>
         <div class="chef-word-title recipe-chef-title">{{ duo.title }}</div>
         {% if tabs is not empty %}
-            <div class="recipe-chef-tabs" role="tablist">
+            <div class="recipe-chef-tabs" role="tablist" aria-labelledby="{{ uid }}-label" x-on:keydown="tabKey($event)">
                 {% for key in tabs|keys %}
-                    <button type="button" role="tab" class="recipe-chip"
+                    <button type="button" role="tab" class="recipe-chip{{ loop.first ? ' is-active' }}"
+                            id="{{ uid }}-tab-{{ key }}" aria-controls="{{ uid }}-panel-{{ key }}" data-tab="{{ key }}"
                             x-on:click="chefTab = '{{ key }}'"
-                            x-bind:class="chefTab === '{{ key }}' && 'is-active'"
-                            x-bind:aria-selected="chefTab === '{{ key }}'"
-                            {% if loop.first %}aria-selected="true"{% endif %}>{{ ('ui.recipe.chef_' ~ key)|trans }}</button>
+                            x-bind:class="{ 'is-active': isTab('{{ key }}') }"
+                            x-bind:aria-selected="isTab('{{ key }}')"
+                            x-bind:tabindex="isTab('{{ key }}') ? 0 : -1"
+                            aria-selected="{{ loop.first ? 'true' : 'false' }}"
+                            tabindex="{{ loop.first ? 0 : -1 }}">{{ ('ui.recipe.chef_' ~ key)|trans }}</button>
                 {% endfor %}
             </div>
             <div class="chef-word-list recipe-chef-body">
                 {% for key, text in tabs %}
-                    <p role="tabpanel" x-show="chefTab === '{{ key }}'" {% if not loop.first %}x-cloak{% endif %}>{{ text }}</p>
+                    <p role="tabpanel" id="{{ uid }}-panel-{{ key }}" aria-labelledby="{{ uid }}-tab-{{ key }}" x-show="isTab('{{ key }}')" {% if not loop.first %}x-cloak{% endif %}>{{ text }}</p>
                 {% endfor %}
             </div>
         {% endif %}
-    </aside>
+    </div>
 {% else %}
     <p class="recipe-chef-empty">{{ 'ui.recipe.no_chef_word'|trans }}</p>
 {% endif %}

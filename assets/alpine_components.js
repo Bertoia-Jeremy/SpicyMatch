@@ -24,6 +24,14 @@ const focusFirst = (root) => {
     if (el) el.focus();
 };
 
+const nextTab = (event, tabs, current) => {
+    const i = tabs.indexOf(current);
+    const moves = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 };
+    if (!(event.key in moves)) return null;
+    event.preventDefault();
+    return tabs[(moves[event.key] + tabs.length) % tabs.length];
+};
+
 const AD_SCRIPTS = {
     ethicalads: 'https://media.ethicalads.io/media/client/ethicalads.min.js',
     carbon: 'https://cdn.carbonads.com/carbon.js',
@@ -583,6 +591,13 @@ export default function registerAlpineComponents(Alpine) {
                 const offset = (seg ? seg.getBoundingClientRect().bottom : 0) + 8;
                 window.scrollTo({ top: card.getBoundingClientRect().top + window.scrollY - offset, behavior: 'smooth' });
             });
+        },
+
+        tabKey(event) {
+            const next = nextTab(event, ['timeline', 'spices'], this.tab);
+            if (!next) return;
+            this.tab = next;
+            this.$nextTick(() => document.getElementById(`recipe-tab-${next}`)?.focus());
         },
 
         async setFavorite(next) {
@@ -1357,6 +1372,13 @@ export default function registerAlpineComponents(Alpine) {
             this.activeTab = 'register';
         },
 
+        tabKey(event) {
+            const next = nextTab(event, ['login', 'register'], this.activeTab);
+            if (!next) return;
+            this.activeTab = next;
+            this.$nextTick(() => document.getElementById(`gate-tab-${next}`)?.focus());
+        },
+
         isLoginTab() {
             return 'login' === this.activeTab;
         },
@@ -1621,6 +1643,31 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
+    Alpine.data('chefWord', () => ({
+        chefTab: '',
+        tabs: [],
+
+        init() {
+            this.tabs = (this.$root.dataset.tabs || '').split(',').filter(Boolean);
+            this.chefTab = this.tabs[0] || '';
+        },
+
+        resetTab() {
+            this.chefTab = this.tabs[0] || '';
+        },
+
+        isTab(key) {
+            return key === this.chefTab;
+        },
+
+        tabKey(event) {
+            const next = nextTab(event, this.tabs, this.chefTab);
+            if (!next) return;
+            this.chefTab = next;
+            this.$nextTick(() => this.$root.querySelector(`[data-tab="${next}"]`)?.focus());
+        },
+    }));
+
     Alpine.data('profileTabs', (initial) => ({
         tabs: ['dashboard', 'grimoire', 'history', 'lab'],
         tab: initial,
@@ -1644,6 +1691,12 @@ export default function registerAlpineComponents(Alpine) {
         },
         isActive(t) {
             return this.tab === t;
+        },
+        tabKey(event) {
+            const next = nextTab(event, this.tabs, this.tab);
+            if (!next) return;
+            this.go(next);
+            this.$nextTick(() => document.getElementById(`tab-${next}`)?.focus());
         },
     }));
 

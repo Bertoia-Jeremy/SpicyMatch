@@ -47,3 +47,14 @@ framework:
             match.cooking_timeline.cache:
                 adapter: cache.adapter.filesystem
                 default_lifetime: 3600
+
+            sitemap.cache:
+                adapter: cache.adapter.filesystem
+                default_lifetime: 86400
+
+when@test:
+    framework:
+        cache:
+            pools:
+                sitemap.cache:
+                    adapter: cache.adapter.array

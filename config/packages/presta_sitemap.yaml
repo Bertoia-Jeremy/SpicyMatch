@@ -1,0 +1,4 @@
+presta_sitemap:
+    timetolive: 3600
+    defaults:
+        lastmod: null

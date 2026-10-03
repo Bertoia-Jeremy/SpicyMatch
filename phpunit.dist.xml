@@ -15,8 +15,10 @@
             <directory>tests/Twig</directory>
             <directory>tests/ValueObject</directory>
             <directory>tests/EventSubscriber</directory>
+            <directory>tests/EventListener</directory>
             <directory>tests/Security</directory>
             <directory>tests/Seo</directory>
+            <directory>tests/Command</directory>
         </testsuite>
         <testsuite name="Integration">
             <directory>tests/Integration</directory>
@@ -37,6 +39,7 @@
         <ini name="display_errors" value="1"/>
         <env name="APP_ENV" value="test"/>
         <env name="KERNEL_CLASS" value="App\Kernel"/>
+        <env name="SEO_INDEXABLE" value="true"/>
         <env name="DATABASE_URL" value="mysql://root:root@mysql:3306/spicymatch?serverVersion=10.4.11-Mariadb"/>
 
         <!-- ###+ sentry/sentry-symfony ### -->

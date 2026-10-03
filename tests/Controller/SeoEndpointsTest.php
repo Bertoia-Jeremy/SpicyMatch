@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller;
 
+use App\Controller\RobotsController;
 use App\Entity\AromaticCompound;
 use App\Entity\Spices;
 use App\EventSubscriber\NoIndexSubscriber;
@@ -42,6 +43,26 @@ final class SeoEndpointsTest extends WebTestCase
         }
     }
 
+    public function testSitemapListsStaticPagesWithoutInventedLastmod(): void
+    {
+        $client = self::createClient();
+
+        $client->request('GET', '/sitemap.pages.xml');
+
+        self::assertResponseIsSuccessful();
+        $xpath = new \DOMXPath($this->loadXml((string) $client->getResponse()->getContent()));
+        $xpath->registerNamespace('s', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+
+        foreach (['/fr/', '/fr/faq', '/en/help/gamification', '/es/mentions-legales', '/fr/confidentialite', '/fr/accessibilite', '/en/site-map'] as $path) {
+            $url = $xpath->query(\sprintf('//s:url[s:loc[substring(., string-length(.) - %d) = "%s"]]', \strlen($path) - 1, $path));
+            self::assertNotFalse($url);
+            self::assertSame(1, $url->length, $path);
+        }
+
+        self::assertSame(0, $this->countNodes($xpath, '//s:url/s:lastmod'));
+        self::assertSame($this->countNodes($xpath, '//s:url'), $this->countNodes($xpath, '//s:url[s:changefreq and s:priority]'));
+    }
+
     public function testRobotsAdvertisesTheAbsoluteSitemapAndHidesPrivateAreas(): void
     {
         $client = self::createClient();
@@ -53,7 +74,15 @@ final class SeoEndpointsTest extends WebTestCase
             ->getContent();
         self::assertMatchesRegularExpression('#^Sitemap: https?://[^/\s]+/sitemap\.xml$#m', $body);
         self::assertStringContainsString("Disallow: /admin\n", $body);
+        self::assertStringContainsString("Disallow: /*/spicymatch/history/\n", $body);
         self::assertStringNotContainsString('VOTRE-DOMAINE', $body);
+    }
+
+    public function testRobotsBlocksEverythingWhenTheSiteIsNotIndexable(): void
+    {
+        $response = new RobotsController(false)();
+
+        self::assertSame("User-agent: *\nDisallow: /\n", $response->getContent());
     }
 
     /**
@@ -160,6 +189,14 @@ final class SeoEndpointsTest extends WebTestCase
         self::assertNotNull($spice);
 
         return $spice;
+    }
+
+    private function countNodes(\DOMXPath $xpath, string $query): int
+    {
+        $nodes = $xpath->query($query);
+        self::assertNotFalse($nodes);
+
+        return $nodes->length;
     }
 
     private function loadXml(string $xml): \DOMDocument

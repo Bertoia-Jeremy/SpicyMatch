@@ -250,32 +250,36 @@ class AcademyManagerTest extends TestCase
         self::assertCount(1, $clues);
     }
 
-    public function testGetGuessWhoOptionsCount(): void
+    /**
+     * @return iterable<string, array{GameDifficulty, int, array{int, int}}>
+     */
+    public static function difficultyBoundsProvider(): iterable
     {
-        self::assertSame(2, $this->manager->getGuessWhoOptionsCount(GameDifficulty::EASY));
-        self::assertSame(3, $this->manager->getGuessWhoOptionsCount(GameDifficulty::MEDIUM));
-        self::assertSame(4, $this->manager->getGuessWhoOptionsCount(GameDifficulty::HARD));
+        yield 'easy' => [GameDifficulty::EASY, 6, [6, 4], 6, 90, 4, [8, 12]];
+        yield 'medium' => [GameDifficulty::MEDIUM, 4, [5, 3], 5, 75, 6, [12, 18]];
+        yield 'hard' => [GameDifficulty::HARD, 3, [4, 2], 4, 60, 8, [16, 24]];
     }
 
-    public function testGetHangmanMaxErrors(): void
-    {
-        self::assertSame(6, $this->manager->getHangmanMaxErrors(GameDifficulty::EASY));
-        self::assertSame(5, $this->manager->getHangmanMaxErrors(GameDifficulty::MEDIUM));
-        self::assertSame(4, $this->manager->getHangmanMaxErrors(GameDifficulty::HARD));
-    }
-
-    public function testGetChronoTimeLimit(): void
-    {
-        self::assertSame(90, $this->manager->getChronoTimeLimit(GameDifficulty::EASY));
-        self::assertSame(75, $this->manager->getChronoTimeLimit(GameDifficulty::MEDIUM));
-        self::assertSame(60, $this->manager->getChronoTimeLimit(GameDifficulty::HARD));
-    }
-
-    public function testGetChronoOptionsCount(): void
-    {
-        self::assertSame(4, $this->manager->getChronoOptionsCount(GameDifficulty::EASY));
-        self::assertSame(6, $this->manager->getChronoOptionsCount(GameDifficulty::MEDIUM));
-        self::assertSame(8, $this->manager->getChronoOptionsCount(GameDifficulty::HARD));
+    /**
+     * @param array{int, int} $survivalCounts
+     * @param array{int, int} $chronoThresholds
+     */
+    #[DataProvider('difficultyBoundsProvider')]
+    public function testDifficultyBoundGetters(
+        GameDifficulty $difficulty,
+        int $maxClues,
+        array $survivalCounts,
+        int $hangmanErrors,
+        int $chronoTime,
+        int $chronoOptions,
+        array $chronoThresholds,
+    ): void {
+        self::assertSame($maxClues, $this->manager->getGuessWhoMaxClues($difficulty));
+        self::assertSame($survivalCounts, $this->manager->getSurvivalOptionCounts($difficulty));
+        self::assertSame($hangmanErrors, $this->manager->getHangmanMaxErrors($difficulty));
+        self::assertSame($chronoTime, $this->manager->getChronoTimeLimit($difficulty));
+        self::assertSame($chronoOptions, $this->manager->getChronoOptionsCount($difficulty));
+        self::assertSame($chronoThresholds, $this->manager->getChronoSpeedThresholds($difficulty));
     }
 
     public function testGenerateIntrusQuestionReturnsNullWithFewerThanFiveCandidates(): void

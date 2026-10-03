@@ -76,14 +76,14 @@
       <div>
         {% if locked %}
         <a href="{{ cardUrl }}" aria-disabled="true" tabindex="-1" class="poster is-locked"
-           style="background:{{ mode.posterGradient }}"
+           data-game-mode="{{ mode.value }}"
            aria-label="{{ mode.label|trans }} — {{ mode.tagline|trans }} — {{ lockedHint }}">
         {% elseif is_granted('ROLE_USER') %}
-        <a href="{{ cardUrl }}" class="poster" style="background:{{ mode.posterGradient }}"
+        <a href="{{ cardUrl }}" class="poster" data-game-mode="{{ mode.value }}"
            aria-label="{{ mode.label|trans }} — {{ mode.tagline|trans }}">
         {% else %}
         <a href="{{ cardUrl }}" x-data="gateTrigger('{{ cardUrl|e('js') }}')" @click="trigger($event)"
-           class="poster" style="background:{{ mode.posterGradient }}"
+           class="poster" data-game-mode="{{ mode.value }}"
            aria-label="{{ mode.label|trans }} — {{ mode.tagline|trans }}">
         {% endif %}
           {% if levelLocked %}<i class="fa-solid fa-lock poster-lock" aria-hidden="true"></i>{% endif %}

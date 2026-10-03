@@ -19,6 +19,10 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class AcademyManager
 {
+    public const int INTRUS_OPTION_COUNT = 4;
+
+    private const int INTRUS_COMPANIONS = self::INTRUS_OPTION_COUNT - 1;
+
     public function __construct(
         private readonly SpicesRepository $spicesRepository,
         private readonly CompatibleSpiceFinder $compatibleSpiceFinder,
@@ -292,7 +296,7 @@ class AcademyManager
             $byGroup[$group->getId()][] = $spice;
         }
 
-        $eligibleGroups = array_filter($byGroup, fn (array $spices): bool => count($spices) >= 4);
+        $eligibleGroups = array_filter($byGroup, fn (array $spices): bool => count($spices) >= self::INTRUS_OPTION_COUNT);
 
         if (count($eligibleGroups) < 2) {
             return null;
@@ -315,11 +319,11 @@ class AcademyManager
                 fn (Spices $s): bool => ! isset($excludeFlipped[$s->getId()]),
             ));
 
-            if (\count($groupSpices) < 3) {
+            if (\count($groupSpices) < self::INTRUS_COMPANIONS) {
                 continue;
             }
 
-            $members = array_slice($groupSpices, 0, 3);
+            $members = array_slice($groupSpices, 0, self::INTRUS_COMPANIONS);
 
             $outsiders = [];
             foreach ($allSpices as $spice) {
@@ -389,11 +393,7 @@ class AcademyManager
             $filtered = $compatibles;
         }
 
-        [$optionCount, $compatibleCount] = match ($difficulty) {
-            GameDifficulty::EASY => [6, 4],
-            GameDifficulty::MEDIUM => [5, 3],
-            GameDifficulty::HARD => [4, 2],
-        };
+        [$optionCount, $compatibleCount] = $this->getSurvivalOptionCounts($difficulty);
 
         shuffle($filtered);
         $correctOptions = array_slice($filtered, 0, $compatibleCount);
@@ -497,13 +497,7 @@ class AcademyManager
             ];
         }
 
-        $maxClues = match ($difficulty) {
-            GameDifficulty::EASY => 6,
-            GameDifficulty::MEDIUM => 4,
-            GameDifficulty::HARD => 3,
-        };
-
-        return array_slice($clues, 0, $maxClues);
+        return array_slice($clues, 0, $this->getGuessWhoMaxClues($difficulty));
     }
 
     /**
@@ -540,12 +534,24 @@ class AcademyManager
         return $count;
     }
 
-    public function getGuessWhoOptionsCount(GameDifficulty $difficulty): int
+    public function getGuessWhoMaxClues(GameDifficulty $difficulty): int
     {
         return match ($difficulty) {
-            GameDifficulty::EASY => 2,
-            GameDifficulty::MEDIUM => 3,
-            GameDifficulty::HARD => 4,
+            GameDifficulty::EASY => 6,
+            GameDifficulty::MEDIUM => 4,
+            GameDifficulty::HARD => 3,
+        };
+    }
+
+    /**
+     * @return array{int, int}
+     */
+    public function getSurvivalOptionCounts(GameDifficulty $difficulty): array
+    {
+        return match ($difficulty) {
+            GameDifficulty::EASY => [6, 4],
+            GameDifficulty::MEDIUM => [5, 3],
+            GameDifficulty::HARD => [4, 2],
         };
     }
 
@@ -555,6 +561,18 @@ class AcademyManager
             GameDifficulty::EASY => 90,
             GameDifficulty::MEDIUM => 75,
             GameDifficulty::HARD => 60,
+        };
+    }
+
+    /**
+     * @return array{int, int}
+     */
+    public function getChronoSpeedThresholds(GameDifficulty $difficulty): array
+    {
+        return match ($difficulty) {
+            GameDifficulty::EASY => [8, 12],
+            GameDifficulty::MEDIUM => [12, 18],
+            GameDifficulty::HARD => [16, 24],
         };
     }
 
@@ -639,7 +657,16 @@ class AcademyManager
             GameMode::CHRONO => ['ui.edu.rule.chrono_0', 'ui.edu.rule.chrono_1', 'ui.edu.rule.chrono_2'],
         };
 
-        return array_map(fn (string $key): string => $this->translator->trans($key), $keys);
+        $params = [
+            '%count%' => match ($mode) {
+                GameMode::QCM => QcmQuestionGenerator::OPTION_COUNT,
+                GameMode::INTRUS => self::INTRUS_OPTION_COUNT,
+                default => 0,
+            },
+            '%total%' => $mode->totalQuestions() ?? 0,
+        ];
+
+        return array_map(fn (string $key): string => $this->translator->trans($key, $params), $keys);
     }
 
     private function currentLocale(): string
@@ -802,7 +829,7 @@ class AcademyManager
         array $intruders,
         GameDifficulty $difficulty,
     ): ?array {
-        if (count($compatibles) < 3) {
+        if (count($compatibles) < self::INTRUS_COMPANIONS) {
             return null;
         }
 
@@ -820,12 +847,12 @@ class AcademyManager
         shuffle($window);
         $intruder = $window[0];
 
-        $companions = OrdinalWindow::select(array_slice($compatibles, 0, $intruder['cut']), $difficulty, 3);
+        $companions = OrdinalWindow::select(array_slice($compatibles, 0, $intruder['cut']), $difficulty, self::INTRUS_COMPANIONS);
         shuffle($companions);
 
         $options = [];
 
-        foreach (array_slice($companions, 0, 3) as $companion) {
+        foreach (array_slice($companions, 0, self::INTRUS_COMPANIONS) as $companion) {
             $options[] = $this->toOption($companion);
         }
 
@@ -861,7 +888,7 @@ class AcademyManager
         foreach ($compatibles as $index => $entry) {
             $below = $intruderCount + count(array_filter($scores, static fn (int $s): bool => $s < $scores[$index]));
 
-            if ($below >= 3) {
+            if ($below >= self::INTRUS_COMPANIONS) {
                 $eligibleAnswers[] = $entry;
             }
         }
@@ -887,10 +914,10 @@ class AcademyManager
             }
         }
 
-        $decoyWindow = OrdinalWindow::select($decoys, $difficulty, 3);
+        $decoyWindow = OrdinalWindow::select($decoys, $difficulty, self::INTRUS_COMPANIONS);
         shuffle($decoyWindow);
 
-        $options = array_slice($decoyWindow, 0, 3);
+        $options = array_slice($decoyWindow, 0, self::INTRUS_COMPANIONS);
         $options[] = $this->toOption($answer);
 
         shuffle($options);

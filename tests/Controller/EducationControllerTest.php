@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Controller;
 
 use App\Entity\Users;
+use App\Enum\GameDifficulty;
 use App\Repository\UsersRepository;
 use App\Service\GamificationManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -44,12 +45,11 @@ final class EducationControllerTest extends WebTestCase
 
         $client->request('POST', '/fr/education/start', [
             'mode' => 'chrono',
-            'difficulty' => 'easy',
+            'difficulty' => 'hard',
             '_token' => $this->csrfToken($client),
         ]);
 
-        self::assertResponseRedirects();
-        self::assertStringContainsString('/education/play-live/chrono', (string) $client->getResponse()->headers->get('Location'));
+        self::assertResponseRedirects('/fr/education/play-live/chrono?difficulty=hard');
 
         $this->setUserXp($user, 0);
     }
@@ -63,6 +63,59 @@ final class EducationControllerTest extends WebTestCase
         $client->request('GET', '/fr/education/play-live/chrono');
 
         self::assertResponseRedirects('/fr/education/');
+    }
+
+    public function testBriefingPreselectsDifficultyAndOffersLaunch(): void
+    {
+        $client = static::createClient();
+        $user = $this->loginUserByUsername($client, 'bob');
+        $this->setUserXp($user, 100_000);
+
+        try {
+            $crawler = $client->request('GET', '/fr/education/briefing?mode=chrono&difficulty=hard');
+
+            self::assertResponseIsSuccessful();
+            self::assertCount(1, $crawler->filter('input[name="difficulty"][value="hard"][checked]'));
+            self::assertCount(3, $crawler->filter('input[type="radio"][name="difficulty"]'));
+            self::assertCount(1, $crawler->filter('form[action*="/education/start"] button[type="submit"]'));
+            self::assertSame('60', trim($crawler->filter('.brief-fact-value span')->first()->text()));
+        } finally {
+            $this->setUserXp($user, 0);
+        }
+    }
+
+    public function testBriefingFallsBackToPreferredDifficultyAndInterpolatesRules(): void
+    {
+        $client = static::createClient();
+        $user = $this->loginUserByUsername($client, 'bob');
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $previous = $user->getPreferredDifficulty();
+        $user->setPreferredDifficulty(GameDifficulty::MEDIUM);
+        $em->flush();
+
+        try {
+            $crawler = $client->request('GET', '/fr/education/briefing?mode=qcm');
+
+            self::assertResponseIsSuccessful();
+            self::assertCount(1, $crawler->filter('input[name="difficulty"][value="medium"][checked]'));
+            self::assertStringContainsString('parmi 4 propositions', $crawler->filter('.brief-rule')->first()->text());
+        } finally {
+            $user->setPreferredDifficulty($previous);
+            $em->flush();
+        }
+    }
+
+    public function testBriefingOnLockedModeHidesLaunchAndShowsLevelHint(): void
+    {
+        $client = static::createClient();
+        $user = $this->loginUserByUsername($client, 'bob');
+        $this->setUserXp($user, 0);
+
+        $crawler = $client->request('GET', '/fr/education/briefing?mode=chrono');
+
+        self::assertResponseIsSuccessful();
+        self::assertCount(0, $crawler->filter('form[action*="/education/start"] button[type="submit"]'));
+        self::assertStringContainsString('8', $crawler->filter('.brief-blocked[role="status"]')->text());
     }
 
     public function testBriefingRedirectsWhenGamificationDisabled(): void

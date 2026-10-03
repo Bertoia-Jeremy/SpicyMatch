@@ -12,6 +12,30 @@
 .poster-grid-ad {
   grid-column: 1 / -1;
 }
+[data-game-mode="qcm"] {
+  --mode-grad: radial-gradient(ellipse at 50% 0%, #4D7C0F 0%, #2d4a08 60%, #1a2a04 100%);
+  --mode-accent: #A3C95A;
+}
+[data-game-mode="survival"] {
+  --mode-grad: radial-gradient(ellipse at 50% 0%, #C04020 0%, #7a1a1a 60%, #3a0a0a 100%);
+  --mode-accent: #F08A6A;
+}
+[data-game-mode="guess_who"] {
+  --mode-grad: radial-gradient(ellipse at 50% 0%, #C98A4B 0%, #7d4a1c 60%, #331a06 100%);
+  --mode-accent: #E9B97F;
+}
+[data-game-mode="intrus"] {
+  --mode-grad: radial-gradient(ellipse at 50% 0%, #5B4636 0%, #33241a 60%, #160e09 100%);
+  --mode-accent: #C9A88A;
+}
+[data-game-mode="hangman"] {
+  --mode-grad: radial-gradient(ellipse at 50% 0%, #D97706 0%, #7c3a04 60%, #3a1c02 100%);
+  --mode-accent: #F6B85A;
+}
+[data-game-mode="chrono"] {
+  --mode-grad: radial-gradient(ellipse at 50% 0%, #A3324C 0%, #5e1428 60%, #280611 100%);
+  --mode-accent: #E88AA0;
+}
 .poster {
   position: relative;
   aspect-ratio: 3/4.2;
@@ -26,6 +50,7 @@
   overflow: hidden;
   color: var(--color-cream);
   text-decoration: none;
+  background: var(--mode-grad);
 }
 .poster::before {
   content: "";

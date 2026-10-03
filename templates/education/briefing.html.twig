@@ -3,86 +3,129 @@
 {% block title %}{{ mode.label|trans }} — {{ 'ui.edu.presentation'|trans }}{% endblock %}
 
 {% block body %}
-<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
-     x-data="difficultySelector('{{ difficulty.value }}')">
-
-  <div class="text-center mb-8">
-    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-saffron-100 text-saffron-600 mb-4">
-      <i class="{{ mode.icon }} text-2xl"></i>
+{% set motifParts = {qcm: 4, hangman: 6, guess_who: 3, intrus: 4, survival: 5, chrono: 1}[mode.value] %}
+<article class="brief" data-game-mode="{{ mode.value }}" x-data="briefing" data-difficulty="{{ difficulty.value }}">
+  <header class="brief-hero">
+    <div class="brief-hero-inner">
+      <div class="brief-motif" aria-hidden="true">
+        {% for i in 1..motifParts %}<span class="brief-motif-part"></span>{% endfor %}
+      </div>
+      <div class="brief-hero-body">
+        <p class="brief-eyebrow">
+          <i class="{{ mode.icon }}" aria-hidden="true"></i>
+          <span>{{ 'ui.edu.briefing.required_level'|trans({'%level%': mode.requiredLevel}) }}</span>
+        </p>
+        <h1 class="brief-title">{{ mode.titleTop|trans }} <span class="ital">{{ mode.titleBottom|trans }}</span></h1>
+        <p class="brief-promise">{{ mode.promise|trans }}</p>
+        <ul class="brief-chips">
+          <li class="brief-chip"><i class="fa-solid fa-star" aria-hidden="true"></i>{{ 'ui.edu.xp_per_answer'|trans({'%xp%': mode.xpPerCorrect}) }}</li>
+          <li class="brief-chip">
+            <i class="fa-solid fa-list-ol" aria-hidden="true"></i>
+            {{ mode.totalQuestions ? 'ui.edu.questions'|trans({'%count%': mode.totalQuestions}) : 'ui.edu.unlimited'|trans }}
+          </li>
+          {% if mode.isFullscreen %}
+            <li class="brief-chip"><i class="fa-solid fa-expand" aria-hidden="true"></i>{{ 'ui.edu.briefing.fullscreen'|trans }}</li>
+          {% endif %}
+          {% if view.dailyBonus %}
+            <li class="brief-chip brief-chip-bonus"><i class="fa-solid fa-bolt" aria-hidden="true"></i>{{ 'ui.edu.briefing.daily_bonus'|trans }}</li>
+          {% endif %}
+        </ul>
+      </div>
     </div>
-    <h1 class="text-2xl font-bold text-stone-800 mb-1">{{ mode.label|trans }}</h1>
-    <p class="text-stone-500 text-sm">{{ mode.description|trans }}</p>
-    <div class="flex items-center justify-center gap-2 mt-2">
-      <span class="tag-secondary">{{ 'ui.edu.xp_per_answer'|trans({'%xp%': mode.xpPerCorrect}) }}</span>
-      {% if mode.totalQuestions %}
-        <span class="tag-secondary">{{ 'ui.edu.questions'|trans({'%count%': mode.totalQuestions}) }}</span>
-      {% else %}
-        <span class="tag-secondary">{{ 'ui.edu.unlimited'|trans }}</span>
-      {% endif %}
-    </div>
+  </header>
+
+  <div class="brief-container">
+    <dl class="brief-status" aria-label="{{ 'ui.edu.briefing.status'|trans }}">
+      <div class="brief-stat">
+        <dt class="brief-stat-label">{{ 'ui.edu.briefing.played_today'|trans }}</dt>
+        <dd class="brief-stat-value">{{ view.playedToday }}<span class="brief-stat-total">/{{ view.maxDailySessions }}</span></dd>
+        <dd class="brief-stat-meter">
+          <meter class="brief-meter" min="0" max="{{ view.maxDailySessions }}" value="{{ view.playedToday }}"
+                 aria-label="{{ 'ui.edu.briefing.played_today'|trans }}">{{ view.playedToday }}/{{ view.maxDailySessions }}</meter>
+        </dd>
+        {% if not view.premium %}
+          <dd class="brief-stat-hint">{{ 'ui.edu.briefing.premium_hint'|trans({'%max%': view.premiumMaxDailySessions}) }}</dd>
+        {% endif %}
+      </div>
+      <div class="brief-stat">
+        <dt class="brief-stat-label">{{ 'ui.edu.briefing.record'|trans }}</dt>
+        <dd class="brief-stat-value">{{ view.best is not null ? 'ui.edu.briefing.record_value'|trans({'%xp%': view.best|format_number}) : 'ui.edu.record_none'|trans }}</dd>
+      </div>
+      <div class="brief-stat">
+        <dt class="brief-stat-label">{{ 'ui.edu.briefing.xp_cap'|trans }}</dt>
+        <dd class="brief-stat-value">{{ 'ui.edu.briefing.xp_cap_value'|trans({'%xp%': view.maxXpPerSession}) }}</dd>
+      </div>
+    </dl>
+
+    <section class="brief-section" aria-labelledby="brief-rules-title">
+      <h2 id="brief-rules-title" class="brief-section-title">{{ 'ui.edu.rules'|trans }}</h2>
+      <ol class="brief-rules">
+        {% for rule in view.rules %}
+          <li class="brief-rule">{{ rule }}</li>
+        {% endfor %}
+      </ol>
+    </section>
+
+    <form method="post" action="{{ path('education_start') }}" data-turbo="false" class="brief-form"
+          x-on:submit="submitting = true" x-on:pageshow.window="submitting = false">
+      <input type="hidden" name="_token" value="{{ csrf_token('education_start') }}">
+      <input type="hidden" name="mode" value="{{ mode.value }}">
+
+      <fieldset class="brief-diff">
+        <legend class="brief-section-title">{{ 'ui.edu.briefing.choose_difficulty'|trans }}</legend>
+        <div class="brief-diff-grid">
+          {% for diff in difficulties %}
+            <label class="brief-diff-option">
+              <input type="radio" name="difficulty" value="{{ diff.value }}" class="brief-diff-input sr-only"
+                     x-model="difficulty"{% if diff == difficulty %} checked{% endif %}>
+              <span class="brief-diff-card">
+                <span class="brief-diff-peppers" aria-hidden="true">
+                  {% for i in 1..3 %}<span class="brief-pepper{{ i <= diff.rank ? ' is-lit' : '' }}"><i class="fa-solid fa-pepper-hot"></i></span>{% endfor %}
+                </span>
+                <span class="brief-diff-label">{{ diff.label|trans }}</span>
+                <span class="brief-diff-mult">{{ 'ui.edu.briefing.multiplier'|trans({'%value%': diff.xpMultiplier|format_number}) }}</span>
+              </span>
+            </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+
+      <section class="brief-stakes" aria-labelledby="brief-stakes-title">
+        <h2 id="brief-stakes-title" class="brief-stakes-title">{{ 'ui.edu.briefing.stakes'|trans }}</h2>
+        <dl class="brief-facts" aria-live="polite">
+          {% for fact in view.facts %}
+            <div class="brief-fact">
+              <dt class="brief-fact-label"><i class="{{ fact.icon }}" aria-hidden="true"></i>{{ fact.label|trans }}</dt>
+              <dd class="brief-fact-value">
+                <span data-easy="{{ fact.values.easy }}" data-medium="{{ fact.values.medium }}" data-hard="{{ fact.values.hard }}"
+                      x-text="valueFor($el)">{{ fact.valueFor(difficulty) }}</span>
+                {%- if fact.unit %} {{ fact.unit|trans }}{% endif %}
+              </dd>
+            </div>
+          {% endfor %}
+        </dl>
+        <a href="{{ path('profile_tab', {tab: 'lab'}) }}" class="brief-link">
+          <i class="fa-solid fa-sliders" aria-hidden="true"></i>{{ 'ui.edu.default_difficulty_link'|trans }}
+        </a>
+      </section>
+
+      <div class="brief-actions">
+        <twig:Button label="{{ 'ui.edu.all_modes'|trans }}" variant="back" href="{{ path('education_index') }}" />
+        {% if view.levelLocked %}
+          <p class="brief-blocked" role="status">
+            <i class="fa-solid fa-lock" aria-hidden="true"></i>{{ 'ui.edu.locked_level_hint'|trans({'%mode%': mode.label|trans, '%level%': mode.requiredLevel}) }}
+          </p>
+        {% elseif view.remainingToday <= 0 %}
+          <p class="brief-blocked" role="status">
+            <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>{{ 'ui.edu.come_back_tomorrow'|trans }}
+          </p>
+        {% elseif mode.isLiveComponent %}
+          <twig:Button label="{{ 'ui.edu.play'|trans }}" variant="primary" size="lg" type="submit" icon="fa-solid fa-play" x-bind:disabled="submitting" />
+        {% else %}
+          <twig:Button label="{{ 'ui.edu.launch_brigade'|trans }}" variant="primary" size="lg" type="submit" icon="fa-solid fa-fire-burner" x-bind:disabled="submitting" />
+        {% endif %}
+      </div>
+    </form>
   </div>
-
-  <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6 mb-6">
-    <h2 class="text-lg font-semibold text-stone-800 mb-4">
-      <i class="fa-solid fa-gauge-high text-saffron-600 mr-2" aria-hidden="true"></i>{{ 'ui.edu.difficulty'|trans }}
-    </h2>
-    <div class="grid grid-cols-3 gap-3">
-      {% for diff in difficulties %}
-        <button type="button"
-                data-diff="{{ diff.value }}"
-                @click="pick($el.dataset.diff)"
-                :class="buttonClass('{{ diff.value }}')"
-                :aria-pressed="isSelected('{{ diff.value }}')"
-                class="px-3 py-4 rounded-xl border-2 text-center transition-all cursor-pointer">
-          <div class="font-semibold text-sm mb-1">{{ diff.label|trans }}</div>
-          <div class="text-xs opacity-60">×{{ diff.xpMultiplier }} XP</div>
-        </button>
-      {% endfor %}
-    </div>
-    <p class="mt-3 text-xs text-stone-400">
-      <i class="fa-solid fa-circle-info mr-1" aria-hidden="true"></i>
-      {{ 'ui.edu.default_difficulty_html'|trans({'%url%': path('profile_user', {tab: 'lab'})})|raw }}
-    </p>
-  </div>
-
-  <div class="bg-white border border-stone-200 rounded-2xl shadow-sm p-6 mb-6">
-    <h2 class="text-lg font-semibold text-stone-800 mb-3">
-      <i class="fa-solid fa-scroll text-saffron-600 mr-2" aria-hidden="true"></i>{{ 'ui.edu.rules'|trans }}
-    </h2>
-    <ul class="space-y-2">
-      {% for rule in rules %}
-        <li class="flex items-start gap-2 text-sm text-stone-700">
-          <i class="fa-solid fa-check text-saffron-500 mt-0.5 shrink-0" aria-hidden="true"></i>
-          <span>{{ rule }}</span>
-        </li>
-      {% endfor %}
-    </ul>
-  </div>
-
-  <div class="flex gap-3 justify-center">
-    <twig:Button
-        label="{{ 'ui.edu.all_modes'|trans }}"
-        variant="back"
-        href="{{ path('education_index') }}" />
-
-    {% if mode.isLiveComponent %}
-      <a :href="'{{ path('education_play_live', { mode: mode.value }) }}' + '?difficulty=' + difficulty"
-         class="btn-pill-base btn-pill-primary px-5 py-2 text-sm inline-flex items-center gap-2">
-        <i class="fa-solid fa-play" aria-hidden="true"></i>{{ 'ui.edu.play'|trans }}
-      </a>
-    {% else %}
-      <form method="post" action="{{ path('education_start') }}" data-turbo="false" class="contents">
-        <input type="hidden" name="_token" value="{{ csrf_token('education_start') }}">
-        <input type="hidden" name="mode" value="{{ mode.value }}">
-        <input type="hidden" name="difficulty" value="{{ difficulty.value }}" x-bind:value="difficulty">
-        <twig:Button
-            label="{{ 'ui.edu.launch_brigade'|trans }}"
-            variant="primary"
-            type="submit"
-            icon="fa-solid fa-fire-burner" />
-      </form>
-    {% endif %}
-  </div>
-
-</div>
+</article>
 {% endblock %}

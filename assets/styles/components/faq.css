@@ -47,7 +47,7 @@
   text-align: center;
 }
 .faq-filter[aria-pressed="true"] .faq-filter-count {
-  background: color-mix(in srgb, var(--color-cream) 22%, transparent);
+  background: color-mix(in srgb, var(--color-ink-deep) 28%, transparent);
 }
 
 .faq-section + .faq-section { margin-top: 40px; }

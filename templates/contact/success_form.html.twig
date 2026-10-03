@@ -8,8 +8,8 @@
             <i class="fa-solid fa-check text-green-600 text-2xl" aria-hidden="true"></i>
         </div>
         <h1 class="text-3xl font-bold text-stone-900 mb-3">{{ 'ui.contact_success.title'|trans }}</h1>
-        <p class="text-stone-500 text-lg mb-2">{{ 'ui.contact_success.text'|trans }}</p>
-        <p class="text-stone-500 mb-8">
+        <p class="text-stone-600 text-lg mb-2">{{ 'ui.contact_success.text'|trans }}</p>
+        <p class="text-stone-600 mb-8">
             {% if "now"|date("H") < 18 %}{{ 'ui.contact_success.good_day'|trans }}{% else %}{{ 'ui.contact_success.good_evening'|trans }}{% endif %}
         </p>
         <twig:Button

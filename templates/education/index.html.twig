@@ -56,7 +56,7 @@
       </div>
       <div class="academie-stat"><b>{{ gamesPlayed }}</b><span>{{ 'ui.edu.games_played'|trans }}</span></div>
       <div class="academie-stat flame">
-        <b>{{ achievementsUnlocked }}<span style="font-size:16px;opacity:.5">/{{ achievementsTotal }}</span></b>
+        <b>{{ achievementsUnlocked }}<span class="academie-stat-total">/{{ achievementsTotal }}</span></b>
         <span>{{ 'ui.edu.achievements_stat'|trans }}</span>
       </div>
     </div>
@@ -118,7 +118,7 @@
           <span class="poster-play">{{ 'ui.edu.play'|trans }}</span>
         </a>
         {% if is_granted('ROLE_USER') and gamif %}
-          <p class="mt-2 text-center text-xs text-stone-500">
+          <p class="mt-2 text-center text-xs text-stone-600">
             {% if levelLocked %}
               <span class="text-paprika-700 font-medium"><i class="fa-solid fa-lock mr-1" aria-hidden="true"></i>{{ lockedHint }}</span>
             {% elseif remaining <= 0 %}

@@ -1304,6 +1304,10 @@
   --fam-bar: color-mix(in srgb, var(--fam-color) 80%, var(--color-ink-deep));
 }
 
+.fam-page .detail-eyebrow {
+  color: color-mix(in srgb, var(--color-copper-text) 70%, var(--color-ink-deep));
+}
+
 .fam-hero {
   display: flex;
   flex-direction: column;

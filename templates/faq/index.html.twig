@@ -21,7 +21,7 @@
             {% if sections|length > 1 %}
                 <div class="faq-filters" role="group" aria-label="{{ 'ui.faq.filter_label'|trans }}">
                     <button type="button"
-                            class="faq-filter focus:outline-none focus-visible:ring-4 focus-visible:ring-saffron-600/30"
+                            class="faq-filter focus:outline-none focus-visible:ring-4 focus-visible:ring-saffron-600"
                             data-category="all"
                             aria-pressed="true"
                             x-bind:aria-pressed="isActive($el.dataset.category) ? 'true' : 'false'"
@@ -31,7 +31,7 @@
                     </button>
                     {% for section in sections %}
                         <button type="button"
-                                class="faq-filter focus:outline-none focus-visible:ring-4 focus-visible:ring-saffron-600/30"
+                                class="faq-filter focus:outline-none focus-visible:ring-4 focus-visible:ring-saffron-600"
                                 data-category="{{ section.category.code }}"
                                 aria-pressed="false"
                                 x-bind:aria-pressed="isActive($el.dataset.category) ? 'true' : 'false'"

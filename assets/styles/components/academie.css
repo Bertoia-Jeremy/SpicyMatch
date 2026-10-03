@@ -275,6 +275,7 @@
   color: var(--color-ink-900);
 }
 .academie-stat.flame b { color: var(--color-paprika-800); }
+.academie-stat b .academie-stat-total { font-size: 16px; }
 
 /* ─── Responsive ─── */
 @media (max-width: 1100px) {

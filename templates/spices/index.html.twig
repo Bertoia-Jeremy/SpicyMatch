@@ -48,9 +48,12 @@
 
         {% if spices|length > 0 %}
             <h2 class="sr-only">{{ 'ui.footer.catalog'|trans }}</h2>
-            <div data-tour="spice-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            <div data-tour="spice-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 ad-grid ad-grid-4 gap-5">
                 {% for spice in spices %}
                     {{ macroCardSpice.cardSpice(spice) }}
+                    {% if loop.last and not loop.first %}
+                        {% include 'partials/_ads_grid_row.html.twig' %}
+                    {% endif %}
                 {% endfor %}
             </div>
 
@@ -80,10 +83,6 @@
         {% endif %}
 
     </turbo-frame>
-
-    <div class="mt-12">
-        {% include 'partials/_ads_banner.html.twig' %}
-    </div>
 
 </section>
 

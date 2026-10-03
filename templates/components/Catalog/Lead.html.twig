@@ -1,0 +1,2 @@
+{% props term, definition, text = null, class = 'detail-lead' %}
+<p{{ attributes.defaults({class: class}) }}><dfn>{{ term }}</dfn>{{ 'ui.catalog.define_lead'|trans({'%definition%': definition}) }}{% if text %} {{ text }}{% endif %}</p>

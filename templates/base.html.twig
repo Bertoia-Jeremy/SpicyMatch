@@ -19,7 +19,7 @@
         {% block metas %}{% endblock %}
         <title>{% block title %}{{ 'ui.meta.default_title'|trans }}{% endblock %}</title>
         {% set _og_locales = {fr: 'fr_FR', en: 'en_GB', es: 'es_ES'} %}
-        <meta property="og:type" content="website">
+        <meta property="og:type" content="{% block og_type %}website{% endblock %}">
         <meta property="og:site_name" content="SpicyMatch">
         <meta property="og:title" content="{{ block('title') }}">
         <meta property="og:description" content="{{ block('meta_description') }}">
@@ -31,6 +31,7 @@
         {% endif %}
         <meta property="og:locale" content="{{ _og_locales[app.request.locale] ?? 'fr_FR' }}">
         {% block og_image %}{% endblock %}
+        <meta name="twitter:card" content="{{ block('og_image')|trim is empty ? 'summary' : 'summary_large_image' }}">
         {% block structured_data %}{% endblock %}
 
         <link rel="preload" as="font" type="font/woff2" href="{{ asset('fonts/inter-normal-latin.woff2') }}" crossorigin>

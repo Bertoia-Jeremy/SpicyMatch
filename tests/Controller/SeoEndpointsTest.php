@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller;
 
+use App\Entity\AromaticCompound;
 use App\Entity\Spices;
 use App\EventSubscriber\NoIndexSubscriber;
 use App\Repository\UsersRepository;
@@ -100,8 +101,28 @@ final class SeoEndpointsTest extends WebTestCase
         self::assertNotEmpty($script->attr('nonce'));
         $document = json_decode($script->text(), true, flags: \JSON_THROW_ON_ERROR);
         self::assertIsArray($document);
-        self::assertSame(['BreadcrumbList', 'Thing'], array_column($document['@graph'], '@type'));
+        self::assertSame(['BreadcrumbList', 'DefinedTerm'], array_column($document['@graph'], '@type'));
         self::assertNotSame('', $crawler->filter('meta[property="og:title"]')->attr('content'));
+        self::assertSame('article', $crawler->filter('meta[property="og:type"]')->attr('content'));
+        self::assertCount(1, $crawler->filter('main h1'));
+        self::assertCount(1, $crawler->filter('main article .detail-lead dfn'));
+    }
+
+    public function testCompoundViewDescribesAMolecularEntity(): void
+    {
+        $client = self::createClient();
+        $compound = self::getContainer()->get(EntityManagerInterface::class)->getRepository(AromaticCompound::class)->findOneBy([], [
+            'id' => 'ASC',
+        ]);
+        self::assertNotNull($compound);
+
+        $crawler = $client->request('GET', '/en/spices/aromatic-compounds/' . $compound->getLocalizedSlug('en'));
+
+        self::assertResponseIsSuccessful();
+        $document = json_decode($crawler->filter('script[type="application/ld+json"]')->text(), true, flags: \JSON_THROW_ON_ERROR);
+        self::assertIsArray($document);
+        self::assertSame([['MolecularEntity', 'DefinedTerm']], array_slice(array_column($document['@graph'], '@type'), 1));
+        self::assertStringEndsWith('/en/spices/aromatic-compounds/', $document['@graph'][1]['inDefinedTermSet']['url']);
     }
 
     private function firstSpice(): Spices

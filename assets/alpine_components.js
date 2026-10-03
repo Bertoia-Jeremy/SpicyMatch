@@ -416,22 +416,6 @@ export default function registerAlpineComponents(Alpine) {
         },
     }));
 
-    Alpine.data('spicesLimit', (total = 9999) => ({
-        gridMode: false,
-        limit: 8,
-        total,
-        setGrid() {
-            this.gridMode = false;
-            this.$nextTick(() => window.dispatchEvent(new CustomEvent('carousel:reinit')));
-        },
-        setList() { this.gridMode = true; },
-        hasMore() { return this.limit < this.total; },
-        showMore() { this.limit += 8; },
-        sliderToggleClass() { return this.gridMode ? 'text-stone-400' : 'bg-white shadow-sm text-saffron-600'; },
-        gridToggleClass() { return this.gridMode ? 'bg-white shadow-sm text-saffron-600' : 'text-stone-400'; },
-        isVisible(index) { return index <= this.limit; },
-    }));
-
     Alpine.data('quickSpiceView', () => ({
         modalOpen: false,
         selectedUrl: null,

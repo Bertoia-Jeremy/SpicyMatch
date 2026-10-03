@@ -1,0 +1,26 @@
+{% props spice, loc, meta = null, note = null, tags = [] %}
+{% set group = spice.aromaticGroups %}
+{% set tint = group and group.color matches '/^#[0-9a-fA-F]{3,8}$/' ? group.color : null %}
+{% set img = vich_uploader_asset(spice, 'imageFile') %}
+<li class="spice-row">
+    <a href="{{ path('view_spice', {slug: spice.getLocalizedSlug(loc)}) }}" class="spice-row-link"{% if tint %} style="--row-tint: {{ tint }}"{% endif %}>
+        <span class="spice-row-thumb">
+            {% if img %}
+                <img src="{{ img|imagine_filter('spice_thumb') }}" alt="" width="56" height="56" loading="lazy" decoding="async">
+            {% else %}
+                <i class="fa-solid fa-seedling" aria-hidden="true"></i>
+            {% endif %}
+        </span>
+        <span class="spice-row-body">
+            <span class="spice-row-name">{{ spice.getLocalizedName(loc) }}</span>
+            {% if meta %}<span class="spice-row-meta">{{ meta }}</span>{% endif %}
+            {% if tags is not empty %}
+                <span class="spice-row-tags">
+                    {% for tag in tags %}<span class="spice-row-tag{{ tag.strong ? ' is-strong' }}">{{ tag.label }}</span>{% endfor %}
+                </span>
+            {% endif %}
+            {% if note %}<span class="spice-row-note"><i class="fa-solid fa-check" aria-hidden="true"></i><span>{{ note }}</span></span>{% endif %}
+        </span>
+        <i class="fa-solid fa-chevron-right spice-row-chevron" aria-hidden="true"></i>
+    </a>
+</li>

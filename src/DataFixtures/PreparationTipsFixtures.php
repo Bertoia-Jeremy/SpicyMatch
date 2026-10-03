@@ -261,12 +261,12 @@ class PreparationTipsFixtures extends Fixture implements DependentFixtureInterfa
                 'method' => 'method_entiere',
                 'title' => 'Poudre directe',
                 'advantages' => 'Dosage précis, soluble dans les liquides et corps gras',
-                'text' => 'Le curcuma en poudre se dissout dans les liquides chauds et les corps gras. Combinez toujours avec du poivre noir pour maximiser l\'absorption.',
+                'text' => 'Le curcuma en poudre se dissout dans les liquides chauds et les corps gras. Associez-le volontiers au poivre noir, son partenaire traditionnel.',
             ],
             [
                 'method' => 'method_infusion',
                 'title' => 'Suspension dans le gras',
-                'advantages' => 'Active la curcumine, améliore couleur et biodisponibilité',
+                'advantages' => 'Couleur et parfum mieux développés',
                 'text' => 'Incorporez dans l\'huile ou le ghee chaud avant les autres ingrédients. La chaleur et le gras dissolvent mieux la curcumine.',
             ],
         ],
@@ -323,7 +323,7 @@ class PreparationTipsFixtures extends Fixture implements DependentFixtureInterfa
                 'method' => 'method_mouture',
                 'title' => 'Moulues en poudre fine',
                 'advantages' => 'Base des liqueurs et biscuits anisés',
-                'text' => 'La poudre d\'anis vert s\'incorpore aux pâtes à biscuits, pain d\'épices et infusions digestives.',
+                'text' => 'La poudre d\'anis vert s\'incorpore aux pâtes à biscuits, pain d\'épices et infusions.',
             ],
         ],
         'spice_poivre_sichuan' => [

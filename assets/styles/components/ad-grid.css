@@ -1,0 +1,42 @@
+.ad-grid > * {
+  order: 2;
+}
+.ad-grid > :nth-child(-n + 3) {
+  order: 0;
+}
+.ad-grid > .ad-grid-slot {
+  order: 1;
+  grid-column: 1 / -1;
+}
+.ad-grid:not(:has(> :nth-child(5))) > .ad-grid-slot {
+  display: none;
+}
+
+@media (min-width: 40rem) {
+  .ad-grid > :nth-child(3) {
+    order: 2;
+  }
+  .ad-grid:has(> :nth-child(4)) > .ad-grid-slot {
+    display: block;
+  }
+}
+
+@media (min-width: 48rem) {
+  .ad-grid-4 > :nth-child(-n + 3) {
+    order: 0;
+  }
+  .ad-grid-4:not(:has(> :nth-child(5))) > .ad-grid-slot {
+    display: none;
+  }
+}
+
+@media (min-width: 64rem) {
+  .ad-grid-3 > :nth-child(-n + 3),
+  .ad-grid-4 > :nth-child(-n + 4) {
+    order: 0;
+  }
+  .ad-grid-3:not(:has(> :nth-child(5))) > .ad-grid-slot,
+  .ad-grid-4:not(:has(> :nth-child(6))) > .ad-grid-slot {
+    display: none;
+  }
+}

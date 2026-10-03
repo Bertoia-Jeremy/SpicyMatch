@@ -1,0 +1,121 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Seo\JsonLd;
+
+use App\Entity\AlchemyFlavors;
+use App\Entity\AromaticCompound;
+use App\Entity\AromaticGroups;
+use App\Entity\PreparationMethods;
+use App\Entity\Spices;
+use App\Entity\SpicyType;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
+
+final readonly class CatalogTrail
+{
+    /**
+     * @var array<class-string, array{index: string, label: string, view: string}>
+     */
+    private const array TRAILS = [
+        Spices::class => [
+            'index' => 'index_spices',
+            'label' => 'ui.catalog.spices_title',
+            'view' => 'view_spice',
+        ],
+        AromaticCompound::class => [
+            'index' => 'index_aromatic_compound',
+            'label' => 'ui.catalog.compounds_title',
+            'view' => 'view_aromatic_compound',
+        ],
+        AromaticGroups::class => [
+            'index' => 'index_aromatic_groups',
+            'label' => 'ui.catalog.groups_title',
+            'view' => 'view_aromatic_groups',
+        ],
+        AlchemyFlavors::class => [
+            'index' => 'index_alchemy_flavors',
+            'label' => 'ui.catalog.flavors_title',
+            'view' => 'view_alchemy_flavors',
+        ],
+        SpicyType::class => [
+            'index' => 'index_spicy_type',
+            'label' => 'ui.catalog.types_title',
+            'view' => 'view_spicy_type',
+        ],
+        PreparationMethods::class => [
+            'index' => 'index_preparation_methods',
+            'label' => 'ui.catalog.methods_title',
+            'view' => 'view_preparation_methods',
+        ],
+    ];
+
+    public function __construct(
+        private UrlGeneratorInterface $router,
+        private TranslatorInterface $translator,
+    ) {
+    }
+
+    /**
+     * @phpstan-assert-if-true Spices|AromaticCompound|AromaticGroups|AlchemyFlavors|SpicyType|PreparationMethods $subject
+     */
+    public function supports(?object $subject): bool
+    {
+        return $subject !== null && isset(self::TRAILS[$subject::class]);
+    }
+
+    public function name(Spices|AromaticCompound|AromaticGroups|AlchemyFlavors|SpicyType|PreparationMethods $subject, string $locale): string
+    {
+        return (string) $subject->getLocalizedName($locale);
+    }
+
+    public function url(Spices|AromaticCompound|AromaticGroups|AlchemyFlavors|SpicyType|PreparationMethods $subject, string $locale): string
+    {
+        return $this->absolute(self::TRAILS[$subject::class]['view'], $locale, [
+            'slug' => (string) $subject->getLocalizedSlug($locale),
+        ]);
+    }
+
+    public function indexName(Spices|AromaticCompound|AromaticGroups|AlchemyFlavors|SpicyType|PreparationMethods $subject, string $locale): string
+    {
+        return $this->translator->trans(self::TRAILS[$subject::class]['label'], locale: $locale);
+    }
+
+    public function indexUrl(Spices|AromaticCompound|AromaticGroups|AlchemyFlavors|SpicyType|PreparationMethods $subject, string $locale): string
+    {
+        return $this->absolute(self::TRAILS[$subject::class]['index'], $locale);
+    }
+
+    public function homeName(string $locale): string
+    {
+        return $this->translator->trans('ui.common.home', locale: $locale);
+    }
+
+    public function homeUrl(string $locale): string
+    {
+        return $this->absolute('home', $locale);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function termSet(Spices|AromaticCompound|AromaticGroups|AlchemyFlavors|SpicyType|PreparationMethods $subject, string $locale): array
+    {
+        return [
+            '@type' => 'DefinedTermSet',
+            'name' => $this->indexName($subject, $locale),
+            'url' => $this->indexUrl($subject, $locale),
+        ];
+    }
+
+    /**
+     * @param array<string, string> $params
+     */
+    private function absolute(string $route, string $locale, array $params = []): string
+    {
+        return $this->router->generate($route, [
+            '_locale' => $locale,
+        ] + $params, UrlGeneratorInterface::ABSOLUTE_URL);
+    }
+}

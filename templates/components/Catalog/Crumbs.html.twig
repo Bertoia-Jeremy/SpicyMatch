@@ -1,0 +1,9 @@
+{% props items = [], current %}
+<nav class="detail-crumbs" aria-label="{{ 'ui.catalog.breadcrumb_label'|trans }}">
+    <ol>
+        {% for item in items %}
+            <li><a href="{{ item.href }}">{{ item.label }}</a></li>
+        {% endfor %}
+        <li aria-current="page"><span>{{ current }}</span></li>
+    </ol>
+</nav>

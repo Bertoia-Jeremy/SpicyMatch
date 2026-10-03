@@ -155,7 +155,8 @@ MVC Symfony (Controller > Service > Repository > Entity), REST par controllers, 
 - Param container `app.oav_context_enabled` (aussi global Twig) : false → matrice + cinétique jamais calculées.
 - Favori = set-state idempotent : `set_favorite_spicy_match_history`, JSON `{favorite: bool}` + header `X-CSRF-Token`, `FavoriteToggledEvent` seulement sur false→true. Rename borné `TITLE_MAX_LENGTH=120` serveur.
 - Données Alpine via `data-*` + `this.$root.dataset` (`x-data="recetteView"` sans args). Mode cuisine dans `<template x-if>`, fermé sur `turbo:before-cache`.
-- Composants anonymes `templates/components/Recipe/` (SpiceHex, MomentHex, ChefWord), partials `templates/spicy_match_history/recipe/`, CSS `.recipe-*` dans `etamine-recipe-mobile.css`.
+- A11y : tablist Chronologie/Épices = `tabKey()` (←/→/Home/End) + `tabindex` itinérant ; carte épice = bouton dans un `<h2>` ; titre invité sans `role`/`aria-label` (le crayon porte l'action, sinon le h1 prend le nom « Renommer »).
+- Composants anonymes `templates/components/Recipe/` (SpiceHex, MomentHex, ChefWord), partials `templates/spicy_match_history/recipe/`, CSS `.recipe-*` dans `etamine-recipe-mobile.css`. `etamine-*.css` est importé globalement : `@media print` toujours scopé (`.etamine-paper > header`), jamais de sélecteur d'élément nu (masquait le h1 des fiches).
 - Header : repères en chips `.recipe-metrics` (date, épices, moments, contexte OAV). Timeline : `advantages` du cooking tip en `.recipe-row-gain` (déjà fetch-joint). Couleurs de groupe validées hex, fallback `#7A6A55`. Texte ≥ 12 px, seuls les glyphes dans les hexagones descendent en dessous.
 - Rate limit `RateLimitListener` : les chemins sont préfixés `/{_locale}`, la regex doit l'accepter.
 
@@ -198,6 +199,7 @@ MVC Symfony (Controller > Service > Repository > Entity), REST par controllers, 
 
 ### Navbar
 - `<div x-data="navMenu" class="site-nav-root">` en `display: contents` : sinon le sticky de `.site-nav` n'a aucune course (wrapper de même hauteur) et la barre défile. Hangman masque via `body.has-hangman > .site-nav-root`.
+- Landmarks : `.site-nav` = `<header>` (banner) contenant `<nav class="site-nav-inner" aria-label>`. Aucun titre `h1`–`h6` dans le panneau (précède le h1 de la page dans le DOM).
 - Backdrop et panneau unique `#nav-panel` (tiroir droit mobile, overlay ≥ lg, classe `is-open`) sont FRÈRES de `<nav>` : `backdrop-filter` crée un containing block pour les `fixed`.
 - Logo en centrage absolu, `--nav-height` 4rem / 5rem ≥ 64rem (`theme.css`), consommé par Lab, pendu, recette mobile. Z : nav 50, panneau 49, backdrop 48, carte profil 55, gate 60.
 - Barre : CTA « Composer » (Lab) pour tous, connexion secondaire, jamais l'inscription. Panneau = logo complet (mobile seul) + recherche + carte Lab (ligne compacte < lg : icône + titre + lien, carte entière cliquable via `::after` de `.nav-lab-cta`) + 6 liens savoir (même liste que la colonne « Explorer » du footer, 2 × 3 ≥ lg) + lien Académie (`nav-item` standard, dernier, sous la colonne de gauche ≥ lg, si `gamification_on()`) + pied (aide, contact, espace, langues). Interdits dans le panneau : connexion/inscription, liens vers les jeux individuels (réservés aux connectés), titres de section numérotés. Garde : `NavbarRenderingTest`.
@@ -239,12 +241,15 @@ MVC Symfony (Controller > Service > Repository > Entity), REST par controllers, 
 
 ## Design system
 - Source : `assets/styles/app.css`. Tokens : `saffron`, `paprika`, `turmeric`, `cream`, `spice-surface`, `spice-border`.
-- Jamais `orange-*`/`amber-*` natifs. Cartes `card-warm`, boutons `btn-pill-*`, tags `tag-*`, focus `focus:ring-saffron-600/30`.
+- Jamais `orange-*`/`amber-*` natifs. Cartes `card-warm`, boutons `btn-pill-*`, tags `tag-*`, focus des champs de formulaire `focus:ring-saffron-600/30` (bordure saffron en plus), tout autre élément : voir ligne Focus.
 - Inline style réservé aux couleurs dynamiques BDD.
 - Tailwind v4 : pas de `tailwind.config.js`, utiliser `@source` dans le CSS. `--spacing: 0.25rem` dans `@theme`.
 - `<twig:Button>` : `label` toujours `|trans`. Alpine : `x-bind:disabled`/`x-bind:class` (pas de shorthand `:`).
 - `<img>` : `decoding=async` + `width`/`height` + `loading=lazy` (sauf LCP : `fetchpriority=high` + preload). Filtres Liip : `spice_thumb`, `spice_card`(+`_2x`), `spice_hero`. Fallback : `fa-seedling`.
 - Labels Alpine `x-text` visibles au 1er paint : fallback SSR dans le span (anti-CLS).
+- Focus : anneau opaque `focus-visible:ring-2 focus-visible:ring-saffron-600` (ou `outline: 2px solid saffron-600`), jamais `ring-*/30` sur un élément non-champ (≈ 1,4:1, échoue 1.4.11). Texte secondaire sur cream/spice-surface : `stone-600` min (`stone-500` = 4,1–4,4:1). Pas d'`<aside>` imbriqué dans une section (`div`).
+- Garde a11y : `PW_CHANNEL=chrome yarn e2e a11y` (axe serious/critical, hors CI) couvre pages publiques, 6 fiches, FAQ, Académie et dashboard connectés : 16/16 vert, toute régression est donc nouvelle. Fixture `createTestUser` : résout l'ALTCHA (SHA, `solveAltcha`), envoie `Origin` (CSRF stateless `SameOriginCsrfTokenManager`, sinon 422), SQL via `dbal:run-sql` (`doctrine:query:sql` supprimé). Badge de groupe sur carte : texte `stone-700` + pastille couleur (hex validé), jamais la couleur BDD en texte. Contrôle désactivé (pagination) = `a[role=link][aria-disabled=true]`, pas un `span` gris. Structure gardée en CI : `NavbarRenderingTest` (banner + nav, zéro titre dans le panneau), `SpiceViewTest` (zéro `aside` imbriqué), `SpicyMatchHistoryViewTest`/`SpiceDuoRestitutionTest` (onglets, h2 des cartes), `GuestBlendTest` (h1 invité sans rôle).
+- Onglets : `role=tablist` nommé, tab `id` + `aria-controls`, panneau `aria-labelledby`, tabindex itinérant (0/-1 SSR + `x-bind:tabindex`), ←/→/Home/End via `nextTab()` (`alpine_components.js`). Classe active Alpine en syntaxe objet `{ 'is-active': … }` : la forme string `cond && 'x'` ne retire jamais une classe posée en SSR.
 
 ## JS
 - Alpine : `this.$root` (pas `this.$el`) pour lire les data-attrs depuis un handler d'enfant. Fetch : toujours `try/catch` + `response.ok`.

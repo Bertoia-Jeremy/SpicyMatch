@@ -48,22 +48,35 @@
         </button>
     </div>
 
-    <p class="recipe-meta">
-        <time datetime="{{ history.createdAt|date('c') }}">{{ history.createdAt|format_datetime('short', 'short') }}</time>
-        · {{ recipe.steps|length }} {{ 'ui.recipe.spices'|trans({'%count%': recipe.steps|length}) }}
-        · {{ recipe.usedMoments|length }} {{ 'ui.recipe.moments'|trans({'%count%': recipe.usedMoments|length}) }}
-    </p>
-
-    {% if oav_context_enabled %}
-        {% set ctx = recipe.culinaryContext %}
-        <p class="recipe-meta mt-1 flex items-center gap-1.5">
-            <i class="fa-solid {{ ctx.icon }}" aria-hidden="true"></i>
-            <span>{{ ctx.label }} · {{ ctx.matrix.label|trans }}</span>
+    {% set stepCount = recipe.steps|length %}
+    {% set momentCount = recipe.usedMoments|length %}
+    <ul class="recipe-metrics" aria-label="{{ 'ui.recipe.metrics'|trans }}">
+        <li class="recipe-metric">
+            <i class="fa-regular fa-clock" aria-hidden="true"></i>
+            <time datetime="{{ history.createdAt|date('c') }}">{{ history.createdAt|format_datetime('short', 'short') }}</time>
+        </li>
+        <li class="recipe-metric">
+            <i class="fa-solid fa-pepper-hot" aria-hidden="true"></i>
+            <span>{{ stepCount }} {{ 'ui.recipe.spices'|trans({'%count%': stepCount}) }}</span>
+        </li>
+        <li class="recipe-metric">
+            <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+            <span>{{ momentCount }} {{ 'ui.recipe.moments'|trans({'%count%': momentCount}) }}</span>
+        </li>
+        {% if oav_context_enabled %}
+            {% set ctx = recipe.culinaryContext %}
+            <li class="recipe-metric">
+                <i class="fa-solid {{ ctx.icon }}" aria-hidden="true"></i>
+                <span>{{ ctx.label }} · {{ ctx.matrix.label|trans }}</span>
+            </li>
             {% if ctx.isCustom and ctx.cookingTimeMin > 0 %}
-                <span>· {{ ctx.cookingTimeMin }}&nbsp;min @ {{ ctx.temperatureCelsius }}&nbsp;°C</span>
+                <li class="recipe-metric">
+                    <i class="fa-solid fa-temperature-half" aria-hidden="true"></i>
+                    <span>{{ ctx.cookingTimeMin }}&nbsp;min @ {{ ctx.temperatureCelsius }}&nbsp;°C</span>
+                </li>
             {% endif %}
-        </p>
-    {% endif %}
+        {% endif %}
+    </ul>
 
     {% if recipe.steps is not empty %}
         <ul class="recipe-composition" aria-label="{{ 'ui.recipe.composition'|trans }}">
@@ -82,17 +95,18 @@
     {% endif %}
 
     {% set families = recipe.families %}
+    {% set hex = '/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/' %}
     {% if families is not empty %}
         <div class="mt-4">
             <div class="recipe-family-bar" aria-hidden="true">
                 {% for family in families %}
-                    <span style="flex: {{ family.count }}; background-color: {{ family.group.color ?? '#7A6A55' }}"></span>
+                    <span style="flex: {{ family.count }}; background-color: {{ (family.group.color ?? '') matches hex ? family.group.color : '#7A6A55' }}"></span>
                 {% endfor %}
             </div>
             <ul class="recipe-family-legend">
                 {% for family in families %}
                     <li>
-                        <span class="recipe-dot" style="background-color: {{ family.group.color ?? '#7A6A55' }}" aria-hidden="true"></span>
+                        <span class="recipe-dot" style="background-color: {{ (family.group.color ?? '') matches hex ? family.group.color : '#7A6A55' }}" aria-hidden="true"></span>
                         {{ family.group.getLocalizedName(loc) }} ×{{ family.count }}
                     </li>
                 {% endfor %}

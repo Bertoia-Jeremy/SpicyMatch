@@ -1,3 +1,4 @@
+{% set hex = '/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/' %}
 <ol class="recipe-timeline">
     {% for moment in recipe.moments %}
         {% set steps = recipe.stepsAt(moment) %}
@@ -12,6 +13,7 @@
                     {% set name = step.spice.getLocalizedName(loc) %}
                     {% set prepTitle = step.preparation?.getLocalizedTitle(loc) %}
                     {% set cookTitle = step.cooking?.getLocalizedTitle(loc) %}
+                    {% set gain = (step.cooking?.getLocalizedAdvantages(loc) ?? '')|trim %}
                     <button type="button" class="recipe-row"
                             x-on:click="goToSpice({{ step.spiceId }})"
                             aria-label="{{ 'ui.recipe.goto_spice_aria'|trans({'%name%': name}) }}">
@@ -23,9 +25,12 @@
                                 {%- if prepTitle and cookTitle %} · {% endif -%}
                                 {%- if cookTitle %}{{ cookTitle|first|lower ~ cookTitle|slice(1) }}{% endif -%}
                             </span>
+                            {% if gain %}
+                                <span class="recipe-row-gain"><i class="fa-solid fa-check" aria-hidden="true"></i><span>{{ gain }}</span></span>
+                            {% endif %}
                         </span>
                         {% if step.group %}
-                            <span class="recipe-dot" style="background-color: {{ step.group.color ?? '#7A6A55' }}" aria-hidden="true"></span>
+                            <span class="recipe-dot" style="background-color: {{ (step.group.color ?? '') matches hex ? step.group.color : '#7A6A55' }}" aria-hidden="true"></span>
                         {% endif %}
                     </button>
                 {% endfor %}

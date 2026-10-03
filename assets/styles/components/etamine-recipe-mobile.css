@@ -9,7 +9,7 @@
 
 .recipe-mono {
   font-family: var(--font-mono);
-  @apply text-[10px] uppercase tracking-[.18em] text-ink-700;
+  @apply text-xs uppercase tracking-[.14em] text-ink-700;
 }
 
 .recipe-dot {
@@ -48,9 +48,16 @@
   @apply mt-0.5 inline-grid size-9 shrink-0 place-items-center rounded-full text-ink-700 hover:bg-parchment-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30;
 }
 
-.recipe-meta {
-  font-family: var(--font-mono);
-  @apply mt-2 text-[10px] uppercase tracking-[.12em] text-ink-700;
+.recipe-metrics {
+  @apply mt-3 flex flex-wrap gap-2;
+}
+
+.recipe-metric {
+  @apply inline-flex min-h-8 max-w-full items-center gap-1.5 rounded-full border border-ink-900/10 bg-parchment-50 px-3 py-1 text-xs font-medium leading-tight text-ink-800;
+}
+
+.recipe-metric i {
+  @apply shrink-0 text-saffron-700;
 }
 
 .recipe-composition {
@@ -62,7 +69,7 @@
 }
 
 .recipe-composition-name {
-  @apply line-clamp-2 text-center text-[11.5px] font-medium leading-tight text-ink-800;
+  @apply line-clamp-2 text-center text-xs font-medium leading-tight text-ink-800;
 }
 
 .recipe-hex {
@@ -82,7 +89,7 @@
 
 .recipe-moment-hex {
   font-family: var(--font-mono);
-  @apply relative z-10 inline-grid h-[30px] w-7 shrink-0 place-items-center bg-saffron-800 text-[10px] text-parchment-50;
+  @apply relative z-10 inline-grid h-[30px] w-7 shrink-0 place-items-center bg-saffron-800 text-xs text-parchment-50;
 }
 
 .recipe-moment-hex.is-empty {
@@ -103,7 +110,7 @@
 
 .recipe-family-legend {
   font-family: var(--font-mono);
-  @apply mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[.12em] text-ink-700;
+  @apply mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs uppercase tracking-[.1em] text-ink-700;
 }
 
 .recipe-family-legend li {
@@ -170,7 +177,19 @@
 }
 
 .recipe-row-sub {
-  @apply block truncate text-[12.5px] text-ink-700;
+  @apply block truncate text-[13px] text-ink-700;
+}
+
+.recipe-row-gain {
+  @apply mt-1 flex items-start gap-1.5 text-[13px] leading-snug text-ink-800;
+}
+
+.recipe-row-gain i {
+  @apply mt-[3px] shrink-0 text-xs text-saffron-700;
+}
+
+.recipe-row-gain span {
+  @apply line-clamp-2;
 }
 
 .recipe-cards {
@@ -196,7 +215,7 @@
 
 .recipe-moment-chip {
   font-family: var(--font-mono);
-  @apply shrink-0 rounded-full bg-parchment-200 px-2 py-1 text-[9.5px] uppercase tracking-[.1em] text-saffron-800;
+  @apply shrink-0 rounded-full bg-parchment-200 px-2 py-1 text-xs uppercase tracking-[.08em] text-saffron-800;
 }
 
 .recipe-chevron {
@@ -238,7 +257,7 @@
 
 .recipe-badge-warn {
   font-family: var(--font-mono);
-  @apply inline-flex items-center gap-1 rounded-full border border-turmeric-300 bg-turmeric-100 px-2 py-0.5 text-[9px] uppercase tracking-[.1em] text-turmeric-700;
+  @apply inline-flex items-center gap-1 rounded-full border border-turmeric-300 bg-turmeric-100 px-2 py-0.5 text-xs uppercase tracking-[.08em] text-turmeric-700;
 }
 
 .recipe-chef {
@@ -386,7 +405,7 @@
 
 .recipe-wake {
   font-family: var(--font-mono);
-  @apply mt-6 flex items-center gap-2 text-[10px] uppercase tracking-[.18em] text-ink-700;
+  @apply mt-6 flex items-center gap-2 text-xs uppercase tracking-[.14em] text-ink-700;
 }
 
 .recipe-cook-nav {

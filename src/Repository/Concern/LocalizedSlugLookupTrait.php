@@ -50,6 +50,34 @@ trait LocalizedSlugLookupTrait
     }
 
     /**
+     * @return list<array{name: string, slug: string}>
+     */
+    public function findSitePlanLinks(string $locale): array
+    {
+        $qb = $this->createQueryBuilder('e')
+            ->andWhere('e.deleted_at IS NULL')
+            ->andWhere('e.slug IS NOT NULL');
+
+        if ($locale === 'fr') {
+            $qb->select('e.name AS name', 'e.slug AS slug');
+        } else {
+            $qb->select("COALESCE(NULLIF(lt.name, ''), e.name) AS name", "COALESCE(NULLIF(lt.slug, ''), e.slug) AS slug")
+                ->leftJoin('e.translations', 'lt', 'WITH', 'lt.locale = :loc')
+                ->setParameter('loc', $locale);
+        }
+
+        $links = [];
+        foreach ($qb->orderBy('name')->getQuery()->getArrayResult() as $row) {
+            $links[] = [
+                'name' => (string) $row['name'],
+                'slug' => (string) $row['slug'],
+            ];
+        }
+
+        return $links;
+    }
+
+    /**
      * @return list<array{slugs: array<string, string>, updatedAt: \DateTimeInterface|null}>
      */
     public function findSitemapRows(): array

@@ -13,7 +13,14 @@ use Symfony\Component\Routing\Attribute\Route;
 ])]
 final class HelpController extends AbstractController
 {
-    private const array KNOWN_TOPICS = ['gamification', 'academie', 'easter-eggs'];
+    /**
+     * @var array<string, string>
+     */
+    public const array KNOWN_TOPICS = [
+        'gamification' => 'ui.help.gamification',
+        'academie' => 'ui.common.academy',
+        'easter-eggs' => 'ui.help.easter_eggs',
+    ];
 
     #[Route('', name: 'help_index', methods: ['GET'])]
     public function index(): Response
@@ -26,7 +33,7 @@ final class HelpController extends AbstractController
     ], methods: ['GET'])]
     public function topic(string $topic): Response
     {
-        if (! \in_array($topic, self::KNOWN_TOPICS, true)) {
+        if (! \array_key_exists($topic, self::KNOWN_TOPICS)) {
             throw $this->createNotFoundException();
         }
 

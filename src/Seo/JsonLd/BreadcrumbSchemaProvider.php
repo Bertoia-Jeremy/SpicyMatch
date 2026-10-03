@@ -13,12 +13,12 @@ final readonly class BreadcrumbSchemaProvider implements SchemaProviderInterface
 
     public function supports(?object $subject): bool
     {
-        return $this->trail->supports($subject);
+        return $this->trail->hasCrumbs($subject);
     }
 
     public function build(?object $subject, string $locale): array
     {
-        \assert($this->trail->supports($subject));
+        \assert($this->trail->hasCrumbs($subject));
 
         $elements = [];
         foreach ($this->trail->crumbs($subject, $locale) as $position => $crumb) {

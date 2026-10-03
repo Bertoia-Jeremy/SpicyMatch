@@ -61,6 +61,7 @@ ui:
             type: "%name%: tipo de especia, lista y usos — SpicyMatch"
             method: "%name%: preparar las especias, utensilios y consejos — SpicyMatch"
             faq: "Preguntas frecuentes: especias, Lab y cuenta — SpicyMatch"
+            site_plan: "Mapa del sitio: todas las secciones — SpicyMatch"
     common:
         recipe_label: Receta
         recipe_of: 'Receta del %date%'
@@ -1262,7 +1263,14 @@ ui:
         chef_partie: Jefe de Partida
         saucier: Salsero
         chef_executif: Chef Ejecutivo
+    site_plan:
+        title: Mapa del sitio
+        intro: "Todas las páginas de SpicyMatch, ordenadas por sección: el Lab, el catálogo de especias y sus aromas, la ayuda y la información legal."
+        meta_description: "Mapa del sitio de SpicyMatch: acceso directo al Lab, a las fichas de especias, familias, sabores, compuestos aromáticos, métodos de preparación, ayuda y aviso legal."
+        main: Páginas principales
+        help: Ayuda y contacto
     footer:
+        site_plan: Mapa del sitio
         faq: Preguntas frecuentes
         accessibility: Accesibilidad
         tagline: Las combinaciones de especias explicadas por la ciencia de los aromas, para cocinar sin tantear.

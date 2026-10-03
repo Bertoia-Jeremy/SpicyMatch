@@ -23,7 +23,7 @@ final readonly class CatalogTrailExtension
     #[AsTwigFunction(name: 'catalog_crumbs')]
     public function crumbs(object $subject): array
     {
-        if (! $this->trail->supports($subject)) {
+        if (! $this->trail->hasCrumbs($subject)) {
             return [];
         }
 

@@ -1,0 +1,100 @@
+{% extends 'base.html.twig' %}
+
+{% macro plan_link(href, label) %}
+    <li class="plan-item"><a href="{{ href }}" class="plan-link">{{ label }}</a></li>
+{% endmacro %}
+
+{% import _self as p %}
+
+{% block title %}{{ 'ui.meta.title.site_plan'|trans }}{% endblock %}
+
+{% block meta_description %}{{ 'ui.site_plan.meta_description'|trans }}{% endblock %}
+
+{% block structured_data %}{{ include('partials/_json_ld.html.twig', {subject: trail}) }}{% endblock %}
+
+{% block body %}
+<div class="plan-page">
+    <header class="plan-hero">
+        <div class="plan-container">
+            <twig:Catalog:Crumbs :subject="trail" />
+            <h1 class="plan-title">{{ 'ui.site_plan.title'|trans }}</h1>
+            <p class="plan-intro">{{ 'ui.site_plan.intro'|trans }}</p>
+        </div>
+    </header>
+
+    <div class="plan-container plan-body">
+        <section class="plan-section" aria-labelledby="plan-main">
+            <h2 id="plan-main" class="plan-section-title">{{ 'ui.site_plan.main'|trans }}</h2>
+            <ul class="plan-list">
+                {{ p.plan_link(path('home'), 'ui.common.home'|trans) }}
+                {{ p.plan_link(path('index_spicy_match'), 'ui.footer.lab'|trans) }}
+                {% if is_granted('ROLE_USER') %}
+                    {{ p.plan_link(path('index_spicy_match_history'), 'ui.profile.menu.history'|trans) }}
+                {% endif %}
+                {% if gamification_on() %}
+                    {{ p.plan_link(path('education_index'), 'ui.common.academy'|trans) }}
+                {% endif %}
+                {{ p.plan_link(path('premium'), 'ui.footer.support_cta'|trans) }}
+            </ul>
+        </section>
+
+        <section class="plan-section" aria-labelledby="plan-explore">
+            <h2 id="plan-explore" class="plan-section-title">{{ 'ui.footer.explore'|trans }}</h2>
+            {% for group in catalog %}
+                <div class="plan-group">
+                    <h3 class="plan-group-title">
+                        <a href="{{ path(group.index) }}" class="plan-link">{{ group.label|trans }}</a>
+                    </h3>
+                    {% if group.links is not empty %}
+                        <ul class="plan-list plan-columns">
+                            {% for link in group.links %}
+                                {{ p.plan_link(path(group.view, {slug: link.slug}), link.name) }}
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </section>
+
+        <section class="plan-section" aria-labelledby="plan-help">
+            <h2 id="plan-help" class="plan-section-title">{{ 'ui.site_plan.help'|trans }}</h2>
+            <ul class="plan-list">
+                <li class="plan-item">
+                    <a href="{{ path('help_index') }}" class="plan-link">{{ 'ui.navbar.help'|trans }}</a>
+                    <ul class="plan-list plan-sublist">
+                        {% for topic, label in helpTopics %}
+                            {{ p.plan_link(path('help_topic', {topic: topic}), label|trans) }}
+                        {% endfor %}
+                    </ul>
+                </li>
+                {{ p.plan_link(path('faq_index'), 'ui.footer.faq'|trans) }}
+                {{ p.plan_link(path('new_contact'), 'ui.common.contact'|trans) }}
+            </ul>
+        </section>
+
+        <section class="plan-section" aria-labelledby="plan-account">
+            <h2 id="plan-account" class="plan-section-title">{{ 'ui.footer.account'|trans }}</h2>
+            <ul class="plan-list">
+                {% if is_granted('ROLE_USER') %}
+                    {{ p.plan_link(path('profile_user', {tab: 'dashboard'}), 'ui.profile.menu.dashboard'|trans) }}
+                    {{ p.plan_link(path('profile_user', {tab: 'grimoire'}), 'ui.profile.menu.grimoire'|trans) }}
+                    {{ p.plan_link(path('profile_user', {tab: 'lab'}), 'ui.profile.menu.lab'|trans) }}
+                {% else %}
+                    {{ p.plan_link(path('app_login'), 'ui.common.login'|trans) }}
+                    {{ p.plan_link(path('index_register'), 'ui.navbar.create_account'|trans) }}
+                {% endif %}
+            </ul>
+        </section>
+
+        <section class="plan-section" aria-labelledby="plan-legal">
+            <h2 id="plan-legal" class="plan-section-title">{{ 'ui.footer.legal_nav'|trans }}</h2>
+            <ul class="plan-list">
+                {{ p.plan_link(path('legal_notice'), 'ui.footer.legal'|trans) }}
+                {{ p.plan_link(path('privacy_policy'), 'ui.footer.privacy'|trans) }}
+                {{ p.plan_link(path('gdpr_request'), 'ui.footer.my_data'|trans) }}
+                {{ p.plan_link(path('accessibility_declaration'), 'ui.footer.accessibility'|trans) }}
+            </ul>
+        </section>
+    </div>
+</div>
+{% endblock %}

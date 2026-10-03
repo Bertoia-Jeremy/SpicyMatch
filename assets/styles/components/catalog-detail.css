@@ -20,7 +20,7 @@
   font-size: 0.75rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--detail-ink-muted);
+  color: var(--detail-ink-muted, rgba(42, 24, 16, 0.7));
 }
 
 .detail-crumbs li {
@@ -52,7 +52,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--detail-ink);
+  color: var(--detail-ink, var(--color-ink-deep));
 }
 
 .detail-eyebrow {

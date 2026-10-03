@@ -10,6 +10,7 @@ use App\Entity\AromaticGroups;
 use App\Entity\PreparationMethods;
 use App\Entity\Spices;
 use App\Entity\SpicyType;
+use App\ValueObject\PageTrail;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -71,6 +72,14 @@ final readonly class CatalogTrail
         return $subject !== null && isset(self::TRAILS[$subject::class]);
     }
 
+    /**
+     * @phpstan-assert-if-true Spices|AromaticCompound|AromaticGroups|AlchemyFlavors|SpicyType|PreparationMethods|PageTrail $subject
+     */
+    public function hasCrumbs(?object $subject): bool
+    {
+        return $subject instanceof PageTrail || $this->supports($subject);
+    }
+
     public function name(Spices|AromaticCompound|AromaticGroups|AlchemyFlavors|SpicyType|PreparationMethods $subject, string $locale): string
     {
         return (string) $subject->getLocalizedName($locale);
@@ -96,13 +105,25 @@ final readonly class CatalogTrail
     /**
      * @return list<array{name: string, url: string}>
      */
-    public function crumbs(Spices|AromaticCompound|AromaticGroups|AlchemyFlavors|SpicyType|PreparationMethods $subject, string $locale, int $referenceType = UrlGeneratorInterface::ABSOLUTE_URL): array
+    public function crumbs(Spices|AromaticCompound|AromaticGroups|AlchemyFlavors|SpicyType|PreparationMethods|PageTrail $subject, string $locale, int $referenceType = UrlGeneratorInterface::ABSOLUTE_URL): array
     {
+        $home = [
+            'name' => $this->translator->trans('ui.common.home', locale: $locale),
+            'url' => $this->generate('home', $locale, $referenceType),
+        ];
+
+        if ($subject instanceof PageTrail) {
+            return [
+                $home,
+                [
+                    'name' => $this->translator->trans($subject->label, locale: $locale),
+                    'url' => $this->generate($subject->route, $locale, $referenceType),
+                ],
+            ];
+        }
+
         return [
-            [
-                'name' => $this->translator->trans('ui.common.home', locale: $locale),
-                'url' => $this->generate('home', $locale, $referenceType),
-            ],
+            $home,
             [
                 'name' => $this->translator->trans(self::TRAILS[$subject::class]['crumb'], locale: $locale),
                 'url' => $this->indexUrl($subject, $locale, $referenceType),

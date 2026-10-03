@@ -11,6 +11,7 @@ use App\Seo\JsonLd\BreadcrumbSchemaProvider;
 use App\Seo\JsonLd\CatalogTrail;
 use App\Seo\JsonLd\CompoundSchemaProvider;
 use App\Seo\JsonLd\DefinedTermSchemaProvider;
+use App\ValueObject\PageTrail;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -152,6 +153,24 @@ final class CatalogSchemaProviderTest extends TestCase
             ],
         ], $this->trail()
             ->crumbs($group, 'en', UrlGeneratorInterface::ABSOLUTE_PATH));
+    }
+
+    public function testPageTrailLinksHomeThenThePageButIsNoDefinedTerm(): void
+    {
+        $page = new PageTrail('site_plan', 'ui.site_plan.title');
+        $trail = $this->trail();
+
+        self::assertFalse($this->termProvider(null)->supports($page));
+        self::assertSame([
+            [
+                'name' => 'ui.common.home',
+                'url' => '/es/home',
+            ],
+            [
+                'name' => 'ui.site_plan.title',
+                'url' => '/es/site_plan',
+            ],
+        ], $trail->crumbs($page, 'es', UrlGeneratorInterface::ABSOLUTE_PATH));
     }
 
     private function termProvider(?string $image): DefinedTermSchemaProvider

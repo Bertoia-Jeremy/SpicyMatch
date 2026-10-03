@@ -61,6 +61,7 @@ ui:
             type: "%name% : type d'épice, liste et usages — SpicyMatch"
             method: "%name% : préparer ses épices, outils et conseils — SpicyMatch"
             faq: "Questions fréquentes : épices, Lab et compte — SpicyMatch"
+            site_plan: "Plan du site : toutes les rubriques — SpicyMatch"
     common:
         recipe_label: Recette
         recipe_of: 'Recette du %date%'
@@ -1271,7 +1272,14 @@ ui:
         chef_partie: Chef de Partie
         saucier: Saucier
         chef_executif: Chef Exécutif
+    site_plan:
+        title: Plan du site
+        intro: "Toutes les pages de SpicyMatch, organisées par rubrique : le Lab, le catalogue des épices et de leurs arômes, l'aide et les informations légales."
+        meta_description: "Plan du site SpicyMatch : accès direct au Lab, aux fiches épices, familles, saveurs, composés aromatiques, méthodes de préparation, à l'aide et aux mentions légales."
+        main: Pages principales
+        help: Aide et contact
     footer:
+        site_plan: Plan du site
         faq: Questions fréquentes
         accessibility: Accessibilité
         tagline: 'Les accords d''épices expliqués par la science des arômes, pour cuisiner sans tâtonner.'

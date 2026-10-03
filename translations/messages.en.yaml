@@ -61,6 +61,7 @@ ui:
             type: "%name%: spice type, list and uses — SpicyMatch"
             method: "%name%: preparing spices, tools and tips — SpicyMatch"
             faq: "Frequently asked questions: spices, Lab and account — SpicyMatch"
+            site_plan: "Site map: every section — SpicyMatch"
     common:
         recipe_label: Recipe
         recipe_of: 'Recipe from %date%'
@@ -1262,7 +1263,14 @@ ui:
         chef_partie: Chef de Partie
         saucier: Saucier
         chef_executif: Executive Chef
+    site_plan:
+        title: Site map
+        intro: "Every page of SpicyMatch, grouped by section: the Lab, the catalogue of spices and their aromas, help and legal information."
+        meta_description: "SpicyMatch site map: direct access to the Lab, spice pages, families, flavours, aroma compounds, preparation methods, help and legal notice."
+        main: Main pages
+        help: Help and contact
     footer:
+        site_plan: Site map
         faq: FAQ
         accessibility: Accessibility
         tagline: Spice pairings explained by aroma science, so you can cook without guesswork.

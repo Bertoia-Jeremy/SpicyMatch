@@ -114,6 +114,7 @@
             </p>
             <nav aria-label="{{ 'ui.footer.legal_nav'|trans }}">
                 <ul class="site-footer-legal">
+                    {{ f.footer_link(path('site_plan'), 'ui.footer.site_plan'|trans) }}
                     {{ f.footer_link(path('legal_notice'), 'ui.footer.legal'|trans) }}
                     {{ f.footer_link(path('privacy_policy'), 'ui.footer.privacy'|trans) }}
                     {{ f.footer_link(path('gdpr_request'), 'ui.footer.my_data'|trans) }}

@@ -16,37 +16,43 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 final readonly class CatalogTrail
 {
     /**
-     * @var array<class-string, array{index: string, label: string, view: string}>
+     * @var array<class-string, array{index: string, label: string, crumb: string, view: string}>
      */
     private const array TRAILS = [
         Spices::class => [
             'index' => 'index_spices',
             'label' => 'ui.catalog.spices_title',
+            'crumb' => 'ui.catalog.breadcrumb_spices',
             'view' => 'view_spice',
         ],
         AromaticCompound::class => [
             'index' => 'index_aromatic_compound',
             'label' => 'ui.catalog.compounds_title',
+            'crumb' => 'ui.catalog.compounds_title',
             'view' => 'view_aromatic_compound',
         ],
         AromaticGroups::class => [
             'index' => 'index_aromatic_groups',
             'label' => 'ui.catalog.groups_title',
+            'crumb' => 'ui.catalog.groups_title',
             'view' => 'view_aromatic_groups',
         ],
         AlchemyFlavors::class => [
             'index' => 'index_alchemy_flavors',
             'label' => 'ui.catalog.flavors_title',
+            'crumb' => 'ui.catalog.flavors_title',
             'view' => 'view_alchemy_flavors',
         ],
         SpicyType::class => [
             'index' => 'index_spicy_type',
             'label' => 'ui.catalog.types_title',
+            'crumb' => 'ui.catalog.types_title',
             'view' => 'view_spicy_type',
         ],
         PreparationMethods::class => [
             'index' => 'index_preparation_methods',
             'label' => 'ui.catalog.methods_title',
+            'crumb' => 'ui.catalog.methods_title',
             'view' => 'view_preparation_methods',
         ],
     ];
@@ -70,9 +76,9 @@ final readonly class CatalogTrail
         return (string) $subject->getLocalizedName($locale);
     }
 
-    public function url(Spices|AromaticCompound|AromaticGroups|AlchemyFlavors|SpicyType|PreparationMethods $subject, string $locale): string
+    public function url(Spices|AromaticCompound|AromaticGroups|AlchemyFlavors|SpicyType|PreparationMethods $subject, string $locale, int $referenceType = UrlGeneratorInterface::ABSOLUTE_URL): string
     {
-        return $this->absolute(self::TRAILS[$subject::class]['view'], $locale, [
+        return $this->generate(self::TRAILS[$subject::class]['view'], $locale, $referenceType, [
             'slug' => (string) $subject->getLocalizedSlug($locale),
         ]);
     }
@@ -82,19 +88,30 @@ final readonly class CatalogTrail
         return $this->translator->trans(self::TRAILS[$subject::class]['label'], locale: $locale);
     }
 
-    public function indexUrl(Spices|AromaticCompound|AromaticGroups|AlchemyFlavors|SpicyType|PreparationMethods $subject, string $locale): string
+    public function indexUrl(Spices|AromaticCompound|AromaticGroups|AlchemyFlavors|SpicyType|PreparationMethods $subject, string $locale, int $referenceType = UrlGeneratorInterface::ABSOLUTE_URL): string
     {
-        return $this->absolute(self::TRAILS[$subject::class]['index'], $locale);
+        return $this->generate(self::TRAILS[$subject::class]['index'], $locale, $referenceType);
     }
 
-    public function homeName(string $locale): string
+    /**
+     * @return list<array{name: string, url: string}>
+     */
+    public function crumbs(Spices|AromaticCompound|AromaticGroups|AlchemyFlavors|SpicyType|PreparationMethods $subject, string $locale, int $referenceType = UrlGeneratorInterface::ABSOLUTE_URL): array
     {
-        return $this->translator->trans('ui.common.home', locale: $locale);
-    }
-
-    public function homeUrl(string $locale): string
-    {
-        return $this->absolute('home', $locale);
+        return [
+            [
+                'name' => $this->translator->trans('ui.common.home', locale: $locale),
+                'url' => $this->generate('home', $locale, $referenceType),
+            ],
+            [
+                'name' => $this->translator->trans(self::TRAILS[$subject::class]['crumb'], locale: $locale),
+                'url' => $this->indexUrl($subject, $locale, $referenceType),
+            ],
+            [
+                'name' => $this->name($subject, $locale),
+                'url' => $this->url($subject, $locale, $referenceType),
+            ],
+        ];
     }
 
     /**
@@ -112,10 +129,10 @@ final readonly class CatalogTrail
     /**
      * @param array<string, string> $params
      */
-    private function absolute(string $route, string $locale, array $params = []): string
+    private function generate(string $route, string $locale, int $referenceType, array $params = []): string
     {
         return $this->router->generate($route, [
             '_locale' => $locale,
-        ] + $params, UrlGeneratorInterface::ABSOLUTE_URL);
+        ] + $params, $referenceType);
     }
 }

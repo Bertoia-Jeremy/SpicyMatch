@@ -20,19 +20,13 @@ final readonly class BreadcrumbSchemaProvider implements SchemaProviderInterface
     {
         \assert($this->trail->supports($subject));
 
-        $items = [
-            [$this->trail->homeName($locale), $this->trail->homeUrl($locale)],
-            [$this->trail->indexName($subject, $locale), $this->trail->indexUrl($subject, $locale)],
-            [$this->trail->name($subject, $locale), $this->trail->url($subject, $locale)],
-        ];
-
         $elements = [];
-        foreach ($items as $position => [$name, $url]) {
+        foreach ($this->trail->crumbs($subject, $locale) as $position => $crumb) {
             $elements[] = [
                 '@type' => 'ListItem',
                 'position' => $position + 1,
-                'name' => $name,
-                'item' => $url,
+                'name' => $crumb['name'],
+                'item' => $crumb['url'],
             ];
         }
 

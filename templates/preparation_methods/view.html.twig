@@ -17,10 +17,7 @@
     {% set section = 0 %}
 
     <article class="detail-page prep-page">
-        <twig:Catalog:Crumbs
-            :items="[{label: 'ui.catalog.methods_title'|trans, href: path('index_preparation_methods')}]"
-            current="{{ preparationMethod.getLocalizedName(loc) }}"
-        />
+        <twig:Catalog:Crumbs :subject="preparationMethod" />
 
         <header class="prep-hero">
             <p class="detail-eyebrow">

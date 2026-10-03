@@ -61,10 +61,7 @@
     {{ include('partials/_content_read.html.twig', {kind: 'spice', id: spice.id}) }}
 
     <article class="detail-page spc-page"{% if tint %} style="--spc-tint: {{ tint }}"{% endif %}>
-        <twig:Catalog:Crumbs
-            :items="[{label: 'ui.catalog.breadcrumb_spices'|trans, href: path('index_spices')}]|merge(group ? [{label: group.getLocalizedName(loc), href: path('view_aromatic_groups', {slug: group.getLocalizedSlug(loc)})}] : [])"
-            current="{{ name }}"
-        />
+        <twig:Catalog:Crumbs :subject="spice" />
 
         <header class="spc-hero{{ heroImg ? ' spc-hero-has-media' }}">
             <div class="spc-hero-text">

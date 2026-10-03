@@ -30,10 +30,7 @@
     {% set others = types|filter(t => t.id != spicyType.id and t.deletedAt is null) %}
 
     <article class="detail-page kind-page">
-        <twig:Catalog:Crumbs
-            :items="[{label: 'ui.catalog.types_title'|trans, href: path('index_spicy_type')}]"
-            current="{{ name }}"
-        />
+        <twig:Catalog:Crumbs :subject="spicyType" />
 
         <div class="kind-layout{{ cooking or botany ? ' has-notes' }}">
             <header class="kind-label">

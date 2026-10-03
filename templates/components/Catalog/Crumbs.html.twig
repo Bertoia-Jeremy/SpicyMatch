@@ -1,9 +1,15 @@
-{% props items = [], current %}
-<nav class="detail-crumbs" aria-label="{{ 'ui.catalog.breadcrumb_label'|trans }}">
-    <ol>
-        {% for item in items %}
-            <li><a href="{{ item.href }}">{{ item.label }}</a></li>
-        {% endfor %}
-        <li aria-current="page"><span>{{ current }}</span></li>
-    </ol>
-</nav>
+{% props subject %}
+{% set crumbs = catalog_crumbs(subject) %}
+{% if crumbs is not empty %}
+    <nav class="detail-crumbs" aria-label="{{ 'ui.catalog.breadcrumb_label'|trans }}">
+        <ol>
+            {% for crumb in crumbs %}
+                {% if loop.last %}
+                    <li aria-current="page"><span>{{ crumb.name }}</span></li>
+                {% else %}
+                    <li><a href="{{ crumb.url }}">{{ crumb.name }}</a><span class="detail-crumbs-sep" aria-hidden="true">/</span></li>
+                {% endif %}
+            {% endfor %}
+        </ol>
+    </nav>
+{% endif %}

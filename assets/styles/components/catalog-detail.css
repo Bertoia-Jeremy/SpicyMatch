@@ -29,8 +29,7 @@
   min-width: 0;
 }
 
-.detail-crumbs li:not(:last-child)::after {
-  content: "/";
+.detail-crumbs-sep {
   padding-inline: 0.5rem;
   opacity: 0.5;
 }

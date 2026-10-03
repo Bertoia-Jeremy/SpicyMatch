@@ -24,10 +24,7 @@
     {{ include('partials/_content_read.html.twig', {kind: 'flavor', id: alchemyFlavor.id}) }}
 
     <article class="detail-page flav-page">
-        <twig:Catalog:Crumbs
-            :items="[{label: 'ui.catalog.flavors_title'|trans, href: path('index_alchemy_flavors')}]"
-            current="{{ name }}"
-        />
+        <twig:Catalog:Crumbs :subject="alchemyFlavor" />
 
         <header class="flav-hero">
             <p class="detail-eyebrow">{{ 'ui.catalog.flavor_badge'|trans }}</p>

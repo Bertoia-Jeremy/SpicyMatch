@@ -7,6 +7,7 @@ namespace App\Tests\Seo\JsonLd;
 use App\Entity\AromaticCompound;
 use App\Entity\AromaticGroups;
 use App\Entity\Spices;
+use App\Seo\JsonLd\BreadcrumbSchemaProvider;
 use App\Seo\JsonLd\CatalogTrail;
 use App\Seo\JsonLd\CompoundSchemaProvider;
 use App\Seo\JsonLd\DefinedTermSchemaProvider;
@@ -98,6 +99,61 @@ final class CatalogSchemaProviderTest extends TestCase
         self::assertSame('https://x/media/spice_hero/uploads/cannelle.jpg', $schema['image']);
     }
 
+    public function testBreadcrumbListsHomeIndexAndEntityWithAbsoluteUrls(): void
+    {
+        $spice = new Spices()
+            ->setName('Cannelle')
+            ->setSlug('cannelle');
+
+        self::assertSame([
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => 'ui.common.home',
+                    'item' => 'https://x/fr/home',
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => 'ui.catalog.breadcrumb_spices',
+                    'item' => 'https://x/fr/index_spices',
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 3,
+                    'name' => 'Cannelle',
+                    'item' => 'https://x/fr/view_spice/cannelle',
+                ],
+            ],
+        ], new BreadcrumbSchemaProvider($this->trail())
+            ->build($spice, 'fr'));
+    }
+
+    public function testVisibleCrumbsShareTheTrailWithRelativePaths(): void
+    {
+        $group = new AromaticGroups()
+            ->setName('Terpènes')
+            ->setSlug('terpenes');
+
+        self::assertSame([
+            [
+                'name' => 'ui.common.home',
+                'url' => '/en/home',
+            ],
+            [
+                'name' => 'ui.catalog.groups_title',
+                'url' => '/en/index_aromatic_groups',
+            ],
+            [
+                'name' => 'Terpènes',
+                'url' => '/en/view_aromatic_groups/terpenes',
+            ],
+        ], $this->trail()
+            ->crumbs($group, 'en', UrlGeneratorInterface::ABSOLUTE_PATH));
+    }
+
     private function termProvider(?string $image): DefinedTermSchemaProvider
     {
         $storage = $this->createStub(StorageInterface::class);
@@ -114,7 +170,7 @@ final class CatalogSchemaProviderTest extends TestCase
     {
         $router = $this->createStub(UrlGeneratorInterface::class);
         $router->method('generate')
-            ->willReturnCallback(static fn (string $route, array $params): string => 'https://x/' . $params['_locale'] . '/' . $route . (isset($params['slug']) ? '/' . $params['slug'] : ''));
+            ->willReturnCallback(static fn (string $route, array $params, int $referenceType): string => ($referenceType === UrlGeneratorInterface::ABSOLUTE_URL ? 'https://x/' : '/') . $params['_locale'] . '/' . $route . (isset($params['slug']) ? '/' . $params['slug'] : ''));
         $translator = $this->createStub(TranslatorInterface::class);
         $translator->method('trans')
             ->willReturnArgument(0);

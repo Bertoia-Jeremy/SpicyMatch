@@ -108,6 +108,31 @@ final class SeoEndpointsTest extends WebTestCase
         self::assertCount(1, $crawler->filter('main article .detail-lead dfn'));
     }
 
+    public function testVisibleBreadcrumbMirrorsTheBreadcrumbList(): void
+    {
+        $client = self::createClient();
+        $spice = $this->firstSpice();
+
+        $crawler = $client->request('GET', '/en/spices/' . $spice->getLocalizedSlug('en'));
+
+        self::assertResponseIsSuccessful();
+        $document = json_decode($crawler->filter('head script[type="application/ld+json"]')->text(), true, flags: \JSON_THROW_ON_ERROR);
+        self::assertIsArray($document);
+        $list = $document['@graph'][0]['itemListElement'];
+        $crumbs = $crawler->filter('main nav.detail-crumbs li');
+
+        self::assertSame(array_column($list, 'name'), $crumbs->each(static fn ($li): string => trim($li->filter('a, [aria-current] span')->text())));
+        self::assertSame(
+            array_map(static fn (string $url): string => (string) parse_url($url, \PHP_URL_PATH), array_slice(array_column($list, 'item'), 0, -1)),
+            $crumbs->filter('a')
+                ->each(static fn ($a): string => (string) $a->attr('href')),
+        );
+        self::assertSame('page', $crumbs->last()->attr('aria-current'));
+        self::assertCount(2, $crawler->filter('main nav.detail-crumbs [aria-hidden="true"]'));
+        self::assertStringStartsWith('http', $list[0]['item']);
+        self::assertStringEndsWith('/en/spices/' . $spice->getLocalizedSlug('en'), $list[2]['item']);
+    }
+
     public function testCompoundViewDescribesAMolecularEntity(): void
     {
         $client = self::createClient();

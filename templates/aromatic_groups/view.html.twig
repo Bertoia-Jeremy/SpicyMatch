@@ -36,10 +36,7 @@
     {% set section = 0 %}
 
     <article class="detail-page fam-page"{% if color %} style="--fam-color: {{ color }}"{% endif %}>
-        <twig:Catalog:Crumbs
-            :items="[{label: 'ui.catalog.groups_title'|trans, href: path('index_aromatic_groups')}]"
-            current="{{ name }}"
-        />
+        <twig:Catalog:Crumbs :subject="aromaticGroup" />
 
         <header class="fam-hero">
             <div class="fam-hero-text">

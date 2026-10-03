@@ -20,10 +20,7 @@
     {{ include('partials/_content_read.html.twig', {kind: 'compound', id: aromaticCompound.id}) }}
 
     <article class="detail-page cmpd-page">
-        <twig:Catalog:Crumbs
-            :items="[{label: 'ui.catalog.compounds_title'|trans, href: path('index_aromatic_compound')}]"
-            current="{{ name }}"
-        />
+        <twig:Catalog:Crumbs :subject="aromaticCompound" />
 
         <header class="cmpd-hero">
             <div class="cmpd-hero-text">

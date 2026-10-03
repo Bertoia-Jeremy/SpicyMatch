@@ -30,6 +30,16 @@ class ChronoGame extends AbstractController
     use DefaultActionTrait;
     use GameSessionTrait;
 
+    private const int FAST_POINTS = 5;
+
+    private const int STEADY_POINTS = 3;
+
+    private const int SLOW_POINTS = 1;
+
+    private const int MAX_STREAK_BONUS = 3;
+
+    private const int WRONG_ANSWER_COOLDOWN_SECONDS = 2;
+
     #[LiveProp]
     public string $difficulty = 'easy';
 
@@ -157,18 +167,14 @@ class ChronoGame extends AbstractController
             ++$this->streak;
 
             $gameDifficulty = GameDifficulty::tryFrom($this->difficulty) ?? GameDifficulty::EASY;
-            [$t1, $t2] = match ($gameDifficulty) {
-                GameDifficulty::EASY => [8, 12],
-                GameDifficulty::MEDIUM => [12, 18],
-                GameDifficulty::HARD => [16, 24],
-            };
+            [$fastUnder, $steadyUnder] = $this->academyManager->getChronoSpeedThresholds($gameDifficulty);
             $base = match (true) {
-                $serverElapsed < $t1 => 5,
-                $serverElapsed < $t2 => 3,
-                default => 1,
+                $serverElapsed < $fastUnder => self::FAST_POINTS,
+                $serverElapsed < $steadyUnder => self::STEADY_POINTS,
+                default => self::SLOW_POINTS,
             };
 
-            $streakBonus = min(max($serverStreak - 1, 0), 3);
+            $streakBonus = min(max($serverStreak - 1, 0), self::MAX_STREAK_BONUS);
 
             $points = $base + $streakBonus;
             $serverScore += $points;
@@ -176,7 +182,7 @@ class ChronoGame extends AbstractController
         } else {
             $serverStreak = 0;
             $this->streak = 0;
-            $secret['wrongAnswerCooldown'] = time() + 2;
+            $secret['wrongAnswerCooldown'] = time() + self::WRONG_ANSWER_COOLDOWN_SECONDS;
         }
 
         $this->lastPointsEarned = $points;

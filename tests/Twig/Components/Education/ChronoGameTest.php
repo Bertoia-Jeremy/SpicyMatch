@@ -33,6 +33,8 @@ final class ChronoGameTest extends TestCase
     protected function setUp(): void
     {
         $this->academyManager = $this->createMock(AcademyManager::class);
+        $this->academyManager->method('getChronoSpeedThresholds')
+            ->willReturn([8, 12]);
         $this->sessionManager = $this->createStub(GameSessionManager::class);
     }
 

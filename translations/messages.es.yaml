@@ -60,6 +60,7 @@ ui:
             group: "%name%: familia aromática y sus especias — SpicyMatch"
             type: "%name%: tipo de especia, lista y usos — SpicyMatch"
             method: "%name%: preparar las especias, utensilios y consejos — SpicyMatch"
+            faq: "Preguntas frecuentes: especias, Lab y cuenta — SpicyMatch"
     common:
         recipe_label: Receta
         recipe_of: 'Receta del %date%'
@@ -972,6 +973,8 @@ ui:
         spice_prep_method: 'Método: %name%'
         spice_pairs_title: 'Sus mejores aliadas'
         spice_thread_title: 'En la misma familia'
+        faq: "Preguntas frecuentes"
+        faq_title: "Sus preguntas sobre %name%"
         compounds_title: Compuestos aromáticos
         compounds_page_title: SpicyMatch — Compuestos aromáticos
         compounds_tag: Ciencia
@@ -1092,6 +1095,16 @@ ui:
         kind_notebook: 'Cuaderno'
         kind_notebook_title: 'En la cocina y en el jardín'
         kind_others: 'Las otras formas'
+    faq:
+        tag: "FAQ"
+        title: "Preguntas frecuentes"
+        intro: "Todo lo que necesita saber para mezclar, aprender y jugar con SpicyMatch."
+        meta_description: "Cómo combina SpicyMatch las especias, para qué sirve el Lab, qué es gratuito, cómo se tratan sus datos: respuestas a las preguntas frecuentes."
+        filter_label: "Filtrar las preguntas por tema"
+        filter_all: "Todas"
+        empty: "Todavía no hay preguntas publicadas."
+        contact_title: "¿No ha encontrado su respuesta?"
+        contact_text: "Escríbanos: leemos cada mensaje y ampliamos esta página con sus preguntas."
     help:
         back_to_help: ← Centro de ayuda
         gamification_page_title: Gamificación · Ayuda
@@ -1250,6 +1263,7 @@ ui:
         saucier: Salsero
         chef_executif: Chef Ejecutivo
     footer:
+        faq: Preguntas frecuentes
         accessibility: Accesibilidad
         tagline: Las combinaciones de especias explicadas por la ciencia de los aromas, para cocinar sin tantear.
         catalog: Catálogo de especias

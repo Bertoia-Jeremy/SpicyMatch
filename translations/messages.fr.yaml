@@ -60,6 +60,7 @@ ui:
             group: "%name% : famille aromatique et ses épices — SpicyMatch"
             type: "%name% : type d'épice, liste et usages — SpicyMatch"
             method: "%name% : préparer ses épices, outils et conseils — SpicyMatch"
+            faq: "Questions fréquentes : épices, Lab et compte — SpicyMatch"
     common:
         recipe_label: Recette
         recipe_of: 'Recette du %date%'
@@ -981,6 +982,8 @@ ui:
         spice_prep_method: 'Méthode : %name%'
         spice_pairs_title: 'Ses meilleurs alliés'
         spice_thread_title: 'Dans la même famille'
+        faq: "Questions fréquentes"
+        faq_title: "Vos questions sur %name%"
         compounds_title: Composés aromatiques
         compounds_page_title: SpicyMatch — Composés aromatiques
         compounds_tag: Science
@@ -1101,6 +1104,16 @@ ui:
         kind_notebook: 'Carnet'
         kind_notebook_title: 'Au fourneau et au jardin'
         kind_others: 'Les autres formes'
+    faq:
+        tag: "FAQ"
+        title: "Questions fréquentes"
+        intro: "Tout ce qu'il faut savoir pour composer, apprendre et jouer avec SpicyMatch."
+        meta_description: "Comment SpicyMatch associe les épices, à quoi sert le Lab, ce qui est gratuit, comment sont gérées vos données : les réponses aux questions fréquentes."
+        filter_label: "Filtrer les questions par thème"
+        filter_all: "Toutes"
+        empty: "Aucune question publiée pour le moment."
+        contact_title: "Vous n'avez pas trouvé votre réponse ?"
+        contact_text: "Écrivez-nous, nous lisons chaque message et enrichissons cette page avec vos questions."
     help:
         back_to_help: ← Centre d'aide
         gamification_page_title: Gamification · Aide
@@ -1259,6 +1272,7 @@ ui:
         saucier: Saucier
         chef_executif: Chef Exécutif
     footer:
+        faq: Questions fréquentes
         accessibility: Accessibilité
         tagline: 'Les accords d''épices expliqués par la science des arômes, pour cuisiner sans tâtonner.'
         catalog: Catalogue des épices

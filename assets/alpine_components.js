@@ -1117,6 +1117,57 @@ export default function registerAlpineComponents(Alpine) {
         chevronClass() { return this.open ? '' : '-rotate-180'; },
     }));
 
+    Alpine.data('faqAccordion', () => ({
+        open: null,
+        init() {
+            this._onHashChange = () => this.syncFromHash();
+            window.addEventListener('hashchange', this._onHashChange);
+            this.syncFromHash();
+        },
+        destroy() {
+            window.removeEventListener('hashchange', this._onHashChange);
+        },
+        syncFromHash() {
+            const match = window.location.hash.match(/^#faq-(\d+)-[qa]$/);
+            if (!match || !this.$root.querySelector(`button[data-faq-id="${match[1]}"]`)) return;
+            this.open = match[1];
+            this.$nextTick(() => document.getElementById(`faq-${match[1]}-q`)?.scrollIntoView({ block: 'start' }));
+        },
+        isOpen(id) { return this.open === id; },
+        toggle(id) { this.open = this.open === id ? null : id; },
+    }));
+
+    Alpine.data('faqFilter', () => ({
+        active: 'all',
+        init() {
+            this._onHashChange = () => this.syncFromHash();
+            window.addEventListener('hashchange', this._onHashChange);
+            this.syncFromHash();
+        },
+        destroy() {
+            window.removeEventListener('hashchange', this._onHashChange);
+        },
+        syncFromHash() {
+            const hash = window.location.hash;
+            const category = hash.match(/^#faq-cat-([a-z0-9-]+)$/);
+            if (category && this.$root.querySelector(`section[data-category="${category[1]}"]`)) {
+                this.active = category[1];
+                return;
+            }
+            const question = hash.match(/^#faq-(\d+)-[qa]$/);
+            const section = question && this.$root.querySelector(`button[data-faq-id="${question[1]}"]`)?.closest('section[data-category]');
+            if (section && !this.shows(section.dataset.category)) this.active = 'all';
+        },
+        isActive(code) { return this.active === code; },
+        shows(code) { return this.active === 'all' || this.active === code; },
+        select(code) {
+            this.active = code;
+            const url = new URL(window.location.href);
+            url.hash = code === 'all' ? '' : `faq-cat-${code}`;
+            history.replaceState(history.state, '', url.hash ? url : url.pathname + url.search);
+        },
+    }));
+
     Alpine.data('adSlot', () => ({
         observer: null,
 

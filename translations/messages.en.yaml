@@ -60,6 +60,7 @@ ui:
             group: "%name%: aromatic family and its spices — SpicyMatch"
             type: "%name%: spice type, list and uses — SpicyMatch"
             method: "%name%: preparing spices, tools and tips — SpicyMatch"
+            faq: "Frequently asked questions: spices, Lab and account — SpicyMatch"
     common:
         recipe_label: Recipe
         recipe_of: 'Recipe from %date%'
@@ -972,6 +973,8 @@ ui:
         spice_prep_method: 'Method: %name%'
         spice_pairs_title: 'Its best allies'
         spice_thread_title: 'In the same family'
+        faq: "FAQ"
+        faq_title: "Your questions about %name%"
         compounds_title: Aromatic compounds
         compounds_page_title: SpicyMatch — Aromatic compounds
         compounds_tag: Science
@@ -1092,6 +1095,16 @@ ui:
         kind_notebook: 'Notebook'
         kind_notebook_title: 'In the kitchen and the garden'
         kind_others: 'Other forms'
+    faq:
+        tag: "FAQ"
+        title: "Frequently asked questions"
+        intro: "Everything you need to know to blend, learn and play with SpicyMatch."
+        meta_description: "How SpicyMatch pairs spices, what the Lab is for, what is free, how your data is handled: answers to frequently asked questions."
+        filter_label: "Filter questions by topic"
+        filter_all: "All"
+        empty: "No questions published yet."
+        contact_title: "Didn't find your answer?"
+        contact_text: "Write to us: we read every message and grow this page with your questions."
     help:
         back_to_help: ← Help center
         gamification_page_title: Gamification · Help
@@ -1250,6 +1263,7 @@ ui:
         saucier: Saucier
         chef_executif: Executive Chef
     footer:
+        faq: FAQ
         accessibility: Accessibility
         tagline: Spice pairings explained by aroma science, so you can cook without guesswork.
         catalog: Spice catalogue

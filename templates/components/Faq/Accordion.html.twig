@@ -1,0 +1,31 @@
+{% if questions is not empty %}
+{% set _loc = app.request.locale %}
+<div {{ attributes.defaults({class: 'faq-accordion'}) }} x-data="faqAccordion">
+    {% for question in questions %}
+        {% set _id = 'faq-' ~ question.id %}
+        <div class="faq-item card-warm" data-faq-id="{{ question.id }}" x-bind:class="isOpen($el.dataset.faqId) && 'is-open'">
+            <h{{ level }} class="faq-question">
+                <button type="button"
+                        id="{{ _id }}-q"
+                        class="faq-trigger focus:outline-none focus-visible:ring-4 focus-visible:ring-saffron-600/30"
+                        aria-expanded="false"
+                        aria-controls="{{ _id }}-a"
+                        data-faq-id="{{ question.id }}"
+                        x-bind:aria-expanded="isOpen($el.dataset.faqId) ? 'true' : 'false'"
+                        x-on:click="toggle($el.dataset.faqId)">
+                    <span class="faq-question-text">{{ question.localizedQuestion(_loc) }}</span>
+                    <span class="faq-chevron" aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></span>
+                </button>
+            </h{{ level }}>
+            <div id="{{ _id }}-a" class="faq-panel" role="region" aria-labelledby="{{ _id }}-q">
+                <div class="faq-panel-inner">
+                    <p class="faq-answer">{{ question.localizedAnswer(_loc)|nl2br }}</p>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% if schema and not this.entries.empty %}
+    {{ include('partials/_json_ld.html.twig', {subject: this.entries}) }}
+{% endif %}
+{% endif %}

@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+
+{% set _loc = app.request.locale %}
+
+{% block title %}{{ 'ui.meta.title.faq'|trans }}{% endblock %}
+
+{% block meta_description %}{{ 'ui.faq.meta_description'|trans }}{% endblock %}
+
+{% block structured_data %}
+    {{ include('partials/_json_ld.html.twig', {subject: faq}) }}
+{% endblock %}
+
+{% block body %}
+<div class="faq-page">
+    <twig:Catalog:Header tag="{{ 'ui.faq.tag'|trans }}" title="{{ 'ui.faq.title'|trans }}" intro="{{ 'ui.faq.intro'|trans }}" />
+
+    {% if sections is empty %}
+        <p class="faq-empty card-warm">{{ 'ui.faq.empty'|trans }}</p>
+    {% else %}
+        <div x-data="faqFilter">
+            {% if sections|length > 1 %}
+                <div class="faq-filters" role="group" aria-label="{{ 'ui.faq.filter_label'|trans }}">
+                    <button type="button"
+                            class="faq-filter focus:outline-none focus-visible:ring-4 focus-visible:ring-saffron-600/30"
+                            data-category="all"
+                            aria-pressed="true"
+                            x-bind:aria-pressed="isActive($el.dataset.category) ? 'true' : 'false'"
+                            x-on:click="select($el.dataset.category)">
+                        {{ 'ui.faq.filter_all'|trans }}
+                        <span class="faq-filter-count">{{ faq.questions|length }}</span>
+                    </button>
+                    {% for section in sections %}
+                        <button type="button"
+                                class="faq-filter focus:outline-none focus-visible:ring-4 focus-visible:ring-saffron-600/30"
+                                data-category="{{ section.category.code }}"
+                                aria-pressed="false"
+                                x-bind:aria-pressed="isActive($el.dataset.category) ? 'true' : 'false'"
+                                x-on:click="select($el.dataset.category)">
+                            {{ section.category.localizedName(_loc) }}
+                            <span class="faq-filter-count">{{ section.questions|length }}</span>
+                        </button>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% for section in sections %}
+                <section class="faq-section"
+                         id="faq-cat-{{ section.category.code }}"
+                         data-category="{{ section.category.code }}"
+                         aria-labelledby="faq-cat-{{ section.category.code }}-title"
+                         x-show="shows($el.dataset.category)">
+                    <h2 id="faq-cat-{{ section.category.code }}-title" class="faq-section-title">{{ section.category.localizedName(_loc) }}</h2>
+                    <twig:Faq:Accordion :questions="section.questions" :schema="false" />
+                </section>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <aside class="faq-contact card-warm" aria-labelledby="faq-contact-title">
+        <h2 id="faq-contact-title" class="faq-contact-title">{{ 'ui.faq.contact_title'|trans }}</h2>
+        <p class="faq-contact-text">{{ 'ui.faq.contact_text'|trans }}</p>
+        <div class="faq-contact-actions">
+            <a href="{{ path('new_contact') }}" class="btn-pill-base btn-pill-primary faq-contact-btn">
+                <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+                {{ 'ui.common.contact'|trans }}
+            </a>
+            <a href="{{ path('help_index') }}" class="btn-pill-base btn-pill-outline faq-contact-btn">
+                {{ 'ui.navbar.help'|trans }}
+            </a>
+        </div>
+    </aside>
+</div>
+{% endblock %}

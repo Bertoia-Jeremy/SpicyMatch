@@ -43,6 +43,7 @@ final readonly class SitemapSubscriber implements EventSubscriberInterface
         'index_spicy_type',
         'index_preparation_methods',
         'index_aromatic_groups',
+        'faq_index',
     ];
 
     private const string DEFAULT_LOCALE = 'fr';

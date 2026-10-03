@@ -6,7 +6,7 @@ function seedFreeLimitIntrusSessionsToday(userId: number): void {
   const sql =
     `INSERT INTO game_session (user_id, game_mode, difficulty, score, correct_answers, total_questions, started_at, finished_at, duration_seconds) ` +
     `SELECT ${userId}, 'intrus', 'easy', 0, 0, 10, NOW(), NOW(), 60 FROM information_schema.tables LIMIT 5`;
-  execSync(`docker exec p8.5 php /var/www/html/spicymatch/bin/console doctrine:query:sql ${JSON.stringify(sql)}`, { stdio: 'pipe' });
+  execSync(`docker exec p8.5 php /var/www/html/spicymatch/bin/console dbal:run-sql ${JSON.stringify(sql)}`, { stdio: 'pipe' });
 }
 
 test.describe('Academy daily session limit', () => {

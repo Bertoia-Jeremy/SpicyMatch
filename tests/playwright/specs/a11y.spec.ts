@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { createTestUser } from '../fixtures/user';
 
 /**
- * Accessibility regression guard. Runs axe-core on 6 critical pages.
+ * Accessibility regression guard. Runs axe-core on the public pages below.
  * Assertion: zero violations at impact `serious` or `critical`.
  *
  * Tag @a11y lets us run just these via `yarn e2e:a11y`.
@@ -17,6 +17,13 @@ test.describe('@a11y Accessibility', () => {
     { name: 'contact', path: '/fr/contact' },
     { name: 'help', path: '/fr/help' },
     { name: 'spice types', path: '/fr/epices/types-epices/' },
+    { name: 'spice detail', path: '/fr/epices/cannelle' },
+    { name: 'compound detail', path: '/fr/epices/composes-aromatiques/carvacrol' },
+    { name: 'flavor detail', path: '/fr/epices/saveurs-aromatiques/herbace-sauvage' },
+    { name: 'group detail', path: '/fr/epices/groupes-aromatiques/capsaicinoides-alcaloides' },
+    { name: 'type detail', path: '/fr/epices/types-epices/graine' },
+    { name: 'method detail', path: '/fr/methodes-preparation/infusion' },
+    { name: 'faq', path: '/fr/faq' },
   ];
 
   for (const { name, path } of publicPages) {

@@ -1,5 +1,6 @@
 import { APIRequestContext, expect } from '@playwright/test';
 import { execSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 
 export interface TestUser {
   id: number;
@@ -35,10 +36,12 @@ export async function createTestUser(
   }
 
   const response = await request.post('/register', {
+    headers: { Origin: new URL(registerPage.url()).origin },
     form: {
       'registration_form[username]': username,
       'registration_form[mail]': email,
       'registration_form[plainPassword]': password,
+      'registration_form[altcha]': await solveAltcha(request),
       'registration_form[_token]': csrfToken,
     },
     maxRedirects: 0,
@@ -48,7 +51,7 @@ export async function createTestUser(
   // Resolve id via CLI — cheapest round-trip for a test helper.
   const sql = `SELECT id FROM users WHERE username = '${username}'`;
   const out = execSync(
-    `docker exec p8.4 php /var/www/html/spicymatch/bin/console doctrine:query:sql ${JSON.stringify(sql)}`,
+    `docker exec p8.5 php /var/www/html/spicymatch/bin/console dbal:run-sql ${JSON.stringify(sql)}`,
     { encoding: 'utf8' },
   );
   const idMatch = out.match(/\b(\d+)\b/);
@@ -60,6 +63,35 @@ export async function createTestUser(
   return { id, username, email, password };
 }
 
+interface AltchaChallenge {
+  parameters: { cost: number; keyLength: number; keyPrefix: string; nonce: string; salt: string };
+  signature: string;
+}
+
+async function solveAltcha(request: APIRequestContext): Promise<string> {
+  const res = await request.get('/api/altcha/challenge');
+  expect(res.ok()).toBeTruthy();
+  const challenge = (await res.json()) as AltchaChallenge;
+  const { cost, keyLength, keyPrefix, nonce, salt } = challenge.parameters;
+  const prefix = Buffer.from(keyPrefix, 'hex');
+  const seed = Buffer.concat([Buffer.from(salt, 'hex'), Buffer.from(nonce, 'hex')]);
+
+  for (let counter = 0; counter < 2 ** 32; counter++) {
+    const tail = Buffer.alloc(4);
+    tail.writeUInt32BE(counter);
+    let key = createHash('sha256').update(Buffer.concat([seed, tail])).digest();
+    for (let i = 1; i < Math.max(1, cost); i++) {
+      key = createHash('sha256').update(key).digest();
+    }
+    key = keyLength > 0 ? key.subarray(0, keyLength) : key;
+    if (key.subarray(0, prefix.length).equals(prefix)) {
+      const solution = { counter, derivedKey: key.toString('hex') };
+      return Buffer.from(JSON.stringify({ challenge, solution })).toString('base64');
+    }
+  }
+  throw new Error('ALTCHA challenge not solved');
+}
+
 /**
  * Promote a test user to ROLE_ADMIN via direct SQL. Manual test fixture only —
  * never used outside Playwright specs that need admin access.
@@ -67,7 +99,7 @@ export async function createTestUser(
 export function promoteToAdmin(userId: number): void {
   const sql = `UPDATE users SET roles = '["ROLE_ADMIN"]' WHERE id = ${userId}`;
   execSync(
-    `docker exec p8.4 php /var/www/html/spicymatch/bin/console doctrine:query:sql ${JSON.stringify(sql)}`,
+    `docker exec p8.5 php /var/www/html/spicymatch/bin/console dbal:run-sql ${JSON.stringify(sql)}`,
     { stdio: 'pipe' },
   );
 }

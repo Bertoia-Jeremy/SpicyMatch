@@ -46,6 +46,77 @@ final class ProcessedGamificationEventRepositoryTest extends KernelTestCase
         self::assertTrue($this->repo->claim($this->user, 'test_event', 'key_b:' . $suffix));
     }
 
+    public function testXpSnapshotSeesProgressionAndClaimTogether(): void
+    {
+        $connection = $this->em->getConnection();
+        $connection->beginTransaction();
+
+        try {
+            $user = $this->insertUser(withXp: 300);
+            $key = 'session:' . uniqid();
+
+            self::assertSame([
+                'xp' => 300,
+                'processed' => false,
+            ], $this->repo->findXpSnapshot($user, 'game_completed', $key));
+
+            $this->repo->claim($user, 'game_completed', $key);
+
+            self::assertSame([
+                'xp' => 300,
+                'processed' => true,
+            ], $this->repo->findXpSnapshot($user, 'game_completed', $key));
+        } finally {
+            $connection->rollBack();
+        }
+    }
+
+    public function testXpSnapshotDefaultsToZeroWithoutProgression(): void
+    {
+        $connection = $this->em->getConnection();
+        $connection->beginTransaction();
+
+        try {
+            $user = $this->insertUser(withXp: null);
+
+            self::assertSame([
+                'xp' => 0,
+                'processed' => false,
+            ], $this->repo->findXpSnapshot($user, 'game_completed', 'session:' . uniqid()));
+        } finally {
+            $connection->rollBack();
+        }
+    }
+
+    private function insertUser(?int $withXp): Users
+    {
+        $connection = $this->em->getConnection();
+        $now = new \DateTimeImmutable()
+            ->format('Y-m-d H:i:s');
+        $username = 'xp_snapshot_' . bin2hex(random_bytes(4));
+
+        $connection->insert('users', [
+            'username' => $username,
+            'mail' => $username . '@example.test',
+            'password' => 'hash',
+            'roles' => '[]',
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $userId = (int) $connection->lastInsertId();
+
+        if ($withXp !== null) {
+            $connection->insert('user_progression', [
+                'user_id' => $userId,
+                'xp' => $withXp,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
+
+        return $this->em->getReference(Users::class, $userId);
+    }
+
     private function createUser(): Users
     {
         $user = new Users();

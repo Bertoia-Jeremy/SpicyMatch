@@ -211,7 +211,9 @@ class GameSessionManagerTest extends TestCase
         $this->em->method('flush');
 
         $manager = $this->makeManager();
-        $result = $manager->answerQuestion($session, 'Cumin', 'Cumin');
+        $result = $manager->answerQuestion($session, [
+            'correctAnswer' => 'Cumin',
+        ], 'Cumin');
 
         self::assertTrue($result['correct']);
         self::assertFalse($result['finished']);
@@ -234,10 +236,46 @@ class GameSessionManagerTest extends TestCase
         $this->em->method('flush');
 
         $manager = $this->makeManager();
-        $result = $manager->answerQuestion($session, 'Poivre', 'Cumin');
+        $result = $manager->answerQuestion($session, [
+            'correctAnswer' => 'Cumin',
+        ], 'Poivre');
 
         self::assertFalse($result['correct']);
         self::assertSame(0, $session->getCorrectAnswers());
+    }
+
+    public function testAnswerQuestionPersistsServerResolvedSpiceIds(): void
+    {
+        $session = new GameSession();
+        $session->setUser($this->createStub(Users::class));
+        $session->setGameMode(GameMode::QCM);
+        $session->setDifficulty(GameDifficulty::EASY);
+        $session->setTotalQuestions(10);
+
+        $this->makeManager()
+            ->answerQuestion($session, [
+                'baseSpice' => [
+                    'id' => 3,
+                    'name' => 'Cumin',
+                ],
+                'correctAnswer' => 'Carvi',
+                'correctSpiceId' => 8,
+                'options' => [[
+                    'id' => 8,
+                    'name' => 'Carvi',
+                ], [
+                    'id' => 9,
+                    'name' => 'Poivre',
+                ]],
+                'givenSpiceId' => 999,
+            ], 'Poivre');
+
+        $data = $session->getQuestions()
+            ->first()
+            ->getQuestionData();
+        self::assertSame(3, $data['questionSpiceId']);
+        self::assertSame(8, $data['correctSpiceId']);
+        self::assertSame(9, $data['givenSpiceId']);
     }
 
     #[DataProvider('xpProvider')]
@@ -423,7 +461,9 @@ class GameSessionManagerTest extends TestCase
         $dispatched = $this->captureDispatches();
 
         $result = $this->makeManager()
-            ->answerQuestion($session, 'Cumin', 'Cumin');
+            ->answerQuestion($session, [
+                'correctAnswer' => 'Cumin',
+            ], 'Cumin');
 
         self::assertTrue($result['finished']);
         self::assertTrue($session->isDailyBonus());

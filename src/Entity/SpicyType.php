@@ -35,6 +35,9 @@ class SpicyType implements TranslatableInterface, Sluggable, \Stringable
     #[ORM\Column(name: 'informations', type: 'text', nullable: true)]
     private ?string $informations = null;
 
+    #[ORM\Column(name: 'icon', type: 'string', length: 64, nullable: true)]
+    private ?string $icon = null;
+
     #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     private ?\DateTimeInterface $created_at = null;
 
@@ -181,6 +184,18 @@ class SpicyType implements TranslatableInterface, Sluggable, \Stringable
     public function setCooking(?string $cooking): self
     {
         $this->cooking = $cooking;
+
+        return $this;
+    }
+
+    public function getIcon(): ?string
+    {
+        return $this->icon;
+    }
+
+    public function setIcon(?string $icon): self
+    {
+        $this->icon = $icon;
 
         return $this;
     }

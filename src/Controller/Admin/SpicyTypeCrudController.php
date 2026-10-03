@@ -7,7 +7,9 @@ namespace App\Controller\Admin;
 use App\Controller\Admin\Concern\SerializesSlugGenerationTrait;
 use App\Entity\SpicyType;
 use App\Form\Admin\Translation\SpicyTypeTranslationType;
+use App\Service\Icon\IconSubsetManifest;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
@@ -20,6 +22,11 @@ class SpicyTypeCrudController extends AbstractCrudController
 {
     use SerializesSlugGenerationTrait;
 
+    public function __construct(
+        private readonly IconSubsetManifest $iconManifest,
+    ) {
+    }
+
     public static function getEntityFqcn(): string
     {
         return SpicyType::class;
@@ -29,6 +36,9 @@ class SpicyTypeCrudController extends AbstractCrudController
     {
         return [
             TextField::new('name', 'admin.field.name'),
+            ChoiceField::new('icon', 'admin.field.icon')
+                ->setChoices($this->iconManifest->solidChoices())
+                ->setRequired(false),
             TextareaField::new('description', 'admin.field.description')->setMaxLength(100),
             TextareaField::new('cooking', 'admin.field.cooking_advice'),
             TextareaField::new('informations', 'admin.field.extra_informations')->hideOnIndex(),

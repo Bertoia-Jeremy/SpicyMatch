@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Controller\Concern\CanonicalSlugTrait;
+use App\Repository\SpicesRepository;
 use App\Repository\SpicyTypeRepository;
 use App\Routing\CatalogPath;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,8 +27,12 @@ class SpicyTypeController extends AbstractController
     }
 
     #[Route('/{slug}', name: 'view_spicy_type', methods: ['GET'])]
-    public function view(string $slug, Request $request, SpicyTypeRepository $repository): Response
-    {
+    public function view(
+        string $slug,
+        Request $request,
+        SpicyTypeRepository $repository,
+        SpicesRepository $spicesRepository,
+    ): Response {
         $locale = $request->getLocale();
         $spicyType = $repository->findOneByLocalizedSlug($slug, $locale);
         if ($spicyType === null) {
@@ -45,6 +50,8 @@ class SpicyTypeController extends AbstractController
 
         return $this->render('spicy_type/view.html.twig', [
             'spicyType' => $spicyType,
+            'spices' => $spicesRepository->findFiltered(null, $spicyType->getId(), null, $locale),
+            'types' => $repository->findAllForLocale($locale),
             'hreflang_slugs' => [
                 'fr' => $spicyType->getLocalizedSlug('fr'),
                 'en' => $spicyType->getLocalizedSlug('en'),

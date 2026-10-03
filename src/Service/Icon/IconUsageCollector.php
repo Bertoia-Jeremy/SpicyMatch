@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\Icon;
 
 use App\Entity\Achievement;
+use App\Entity\SpicyType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Finder\Finder;
@@ -79,10 +80,13 @@ final readonly class IconUsageCollector
             yield $file->getContents();
         }
 
-        yield implode(' ', $this->em->createQueryBuilder()
-            ->select('DISTINCT a.icon')
-            ->from(Achievement::class, 'a')
-            ->getQuery()
-            ->getSingleColumnResult());
+        foreach ([Achievement::class, SpicyType::class] as $entity) {
+            yield implode(' ', $this->em->createQueryBuilder()
+                ->select('DISTINCT e.icon')
+                ->from($entity, 'e')
+                ->andWhere('e.icon IS NOT NULL')
+                ->getQuery()
+                ->getSingleColumnResult());
+        }
     }
 }

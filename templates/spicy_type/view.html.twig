@@ -1,44 +1,135 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ spicyType.getLocalizedName(app.request.locale) }} — SpicyMatch{% endblock %}
+{% block title %}{{ 'ui.meta.title.type'|trans({'%name%': spicyType.getLocalizedName(app.request.locale)}) }}{% endblock %}
 
-{% block meta_description %}{{ spicyType.getLocalizedDescription(app.request.locale)|seo_summary|default('ui.meta.description'|trans) }}{% endblock %}
+{% block og_type %}article{% endblock %}
+
+{% block meta_description %}{{ spicyType.getLocalizedDescription(app.request.locale)|seo_summary|default(spicyType.getLocalizedName(app.request.locale) ~ 'ui.catalog.define_lead'|trans({'%definition%': 'ui.catalog.define_type'|trans({'%count%': spices|length})})) }}{% endblock %}
 
 {% block structured_data %}{{ include('partials/_json_ld.html.twig', {subject: spicyType}) }}{% endblock %}
 
 {% block body %}
-{% set loc = app.request.locale %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <twig:Catalog:Hero
-        backLabel="{{ 'ui.catalog.back_to_types'|trans }}"
-        backHref="{{ path('index_spicy_type') }}"
-        badge="{{ 'ui.catalog.type_badge'|trans }}"
-        icon="fa-solid fa-tags"
-        title="{{ spicyType.getLocalizedName(loc) }}"
-    />
+    {% set loc = app.request.locale %}
+    {% set hex = '/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/' %}
+    {% set iconPattern = '/^fa-solid fa-[a-z0-9]+(-[a-z0-9]+)*$/' %}
+    {% set name = spicyType.getLocalizedName(loc) %}
+    {% set icon = (spicyType.icon ?? '') matches iconPattern ? spicyType.icon : 'fa-solid fa-tags' %}
+    {% set description = spicyType.getLocalizedDescription(loc) %}
+    {% set cooking = spicyType.getLocalizedCooking(loc) %}
+    {% set botany = spicyType.getLocalizedInformations(loc) %}
+    {% set members = loc == 'fr' ? spices : spices|sort((a, b) => a.getLocalizedName(loc)|lower <=> b.getLocalizedName(loc)|lower) %}
+    {% set total = members|length %}
+    {% set buckets = {} %}
+    {% for spice in members %}
+        {% set group = spice.aromaticGroups and spice.aromaticGroups.deletedAt is null ? spice.aromaticGroups : null %}
+        {% set key = group ? 'g' ~ group.id : 'none' %}
+        {% set buckets = buckets|merge({(key): {group: group, spices: (buckets[key].spices ?? [])|merge([spice])}}) %}
+    {% endfor %}
+    {% set buckets = buckets|sort((a, b) => (b.spices|length <=> a.spices|length) ?: ((a.group ? a.group.getLocalizedName(loc)|lower : '~') <=> (b.group ? b.group.getLocalizedName(loc)|lower : '~'))) %}
+    {% set families = buckets|filter(b => b.group)|length %}
+    {% set others = types|filter(t => t.id != spicyType.id and t.deletedAt is null) %}
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-16">
-        <div class="lg:col-span-2 space-y-8">
-            <twig:Catalog:Section title="{{ 'ui.catalog.definition'|trans }}" icon="fa-solid fa-circle-info">
-                {{ spicyType.getLocalizedDescription(loc)|default('ui.catalog.no_definition_detailed'|trans)|nl2br }}
-            </twig:Catalog:Section>
+    <article class="detail-page kind-page">
+        <twig:Catalog:Crumbs
+            :items="[{label: 'ui.catalog.types_title'|trans, href: path('index_spicy_type')}]"
+            current="{{ name }}"
+        />
 
-            {% if spicyType.getLocalizedCooking(loc) %}
-                <twig:Catalog:Section title="{{ 'ui.catalog.general_usage'|trans }}" icon="fa-solid fa-mortar-pestle">
-                    {{ spicyType.getLocalizedCooking(loc)|nl2br }}
-                </twig:Catalog:Section>
+        <div class="kind-layout{{ cooking or botany ? ' has-notes' }}">
+            <header class="kind-label">
+                <div class="kind-id">
+                    <span class="kind-medal" aria-hidden="true"><i class="{{ icon }}"></i></span>
+                    <div class="kind-id-text">
+                        <p class="detail-eyebrow">{{ 'ui.catalog.type_badge'|trans }}</p>
+                        <h1 class="detail-title kind-title{{ name|length > 18 ? ' detail-title-long' }}">{{ name }}</h1>
+                    </div>
+                </div>
+                <twig:Catalog:Lead :term="name" :definition="'ui.catalog.define_type'|trans({'%count%': total})" :text="description" class="kind-lead" />
+                <dl class="kind-facts" aria-label="{{ 'ui.catalog.kind_facts_label'|trans }}">
+                    <div class="kind-fact">
+                        <dt>{{ 'ui.catalog.kind_fact_spices'|trans }}</dt>
+                        <dd>{{ total }}</dd>
+                    </div>
+                    <div class="kind-fact">
+                        <dt>{{ 'ui.catalog.kind_fact_families'|trans }}</dt>
+                        <dd>{{ families }}</dd>
+                    </div>
+                </dl>
+            </header>
+
+            <section class="kind-specimens" aria-labelledby="kind-specimens-title">
+                <header class="detail-section-head">
+                    <span class="detail-section-num">01 — {{ 'ui.catalog.kind_specimens'|trans }} · {{ total }}</span>
+                    <h2 id="kind-specimens-title" class="detail-section-title">{{ 'ui.catalog.kind_specimens_title'|trans }}</h2>
+                </header>
+                {% if members is empty %}
+                    <p class="kind-empty">{{ 'ui.catalog.kind_empty'|trans }}</p>
+                {% else %}
+                    {% for bucket in buckets %}
+                        {% set dot = bucket.group and bucket.group.color matches hex ? bucket.group.color : null %}
+                        <div class="kind-bucket"{% if dot %} style="--dot: {{ dot }}"{% endif %}>
+                            <h3 class="kind-bucket-head">
+                                {% if bucket.group %}
+                                    <a class="kind-bucket-link" href="{{ path('view_aromatic_groups', {slug: bucket.group.getLocalizedSlug(loc)}) }}">
+                                        <span class="kind-dot" aria-hidden="true"></span>
+                                        <span class="kind-bucket-name">{{ bucket.group.getLocalizedName(loc) }}</span>
+                                    </a>
+                                {% else %}
+                                    <span class="kind-bucket-link">
+                                        <span class="kind-dot" aria-hidden="true"></span>
+                                        <span class="kind-bucket-name">{{ 'ui.catalog.kind_unclassified'|trans }}</span>
+                                    </span>
+                                {% endif %}
+                                <span class="kind-bucket-count">{{ 'ui.catalog.kind_family_count'|trans({'%count%': bucket.spices|length}) }}</span>
+                            </h3>
+                            <ul class="spice-rows kind-rows">
+                                {% for spice in bucket.spices %}
+                                    <twig:Catalog:SpiceRow :spice="spice" :loc="loc" />
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endfor %}
+                    <a class="btn-pill-base btn-pill-outline kind-filter" href="{{ path('index_spices', {spicy_type: spicyType.getLocalizedSlug(loc)}) }}">
+                        <i class="fa-solid fa-filter" aria-hidden="true"></i><span>{{ 'ui.catalog.kind_filter'|trans }}</span>
+                    </a>
+                {% endif %}
+            </section>
+
+            {% if cooking or botany %}
+                <section class="kind-notebook" aria-labelledby="kind-notebook-title">
+                    <header class="detail-section-head">
+                        <span class="detail-section-num">02 — {{ 'ui.catalog.kind_notebook'|trans }}</span>
+                        <h2 id="kind-notebook-title" class="detail-section-title">{{ 'ui.catalog.kind_notebook_title'|trans }}</h2>
+                    </header>
+                    <ol class="kind-notes">
+                        {% for note in [{title: 'ui.catalog.general_usage', text: cooking, icon: 'fa-solid fa-mortar-pestle'}, {title: 'ui.catalog.botanical_note', text: botany, icon: 'fa-solid fa-leaf'}]|filter(n => n.text) %}
+                            <li class="kind-note">
+                                <span class="kind-note-num" aria-hidden="true">{{ '%02d'|format(loop.index) }}</span>
+                                <div class="kind-note-body">
+                                    <h3 class="kind-note-title"><i class="{{ note.icon }}" aria-hidden="true"></i>{{ note.title|trans }}</h3>
+                                    <p>{{ note.text }}</p>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ol>
+                </section>
             {% endif %}
         </div>
 
-        <aside class="space-y-8">
-            {% if spicyType.getLocalizedInformations(loc) %}
-                <twig:Catalog:Section title="{{ 'ui.catalog.botanical_note'|trans }}" icon="fa-solid fa-flask" small>
-                    {{ spicyType.getLocalizedInformations(loc)|nl2br }}
-                </twig:Catalog:Section>
-            {% endif %}
-        </aside>
-    </div>
-
-    <twig:Catalog:LinkedSpices :spices="spicyType.spices" title="{{ 'ui.catalog.spices_of_type'|trans }}" />
-</div>
+        {% if others is not empty %}
+            <nav class="kind-others" aria-labelledby="kind-others-title">
+                <h2 id="kind-others-title" class="kind-others-title">{{ 'ui.catalog.kind_others'|trans }}</h2>
+                <ul class="kind-others-list">
+                    {% for type in others %}
+                        <li>
+                            <a class="kind-other" href="{{ path('view_spicy_type', {slug: type.getLocalizedSlug(loc)}) }}">
+                                <span class="kind-other-medal" aria-hidden="true"><i class="{{ (type.icon ?? '') matches iconPattern ? type.icon : 'fa-solid fa-tags' }}"></i></span>
+                                <span>{{ type.getLocalizedName(loc) }}</span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+        {% endif %}
+    </article>
 {% endblock %}

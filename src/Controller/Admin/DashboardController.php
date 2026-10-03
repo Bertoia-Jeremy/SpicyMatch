@@ -41,7 +41,7 @@ class DashboardController extends AbstractDashboardController
         $levelChart = $this->chartBuilder->createChart(Chart::TYPE_BAR);
         $levelLabels = array_map(
             fn (int $b): string => $this->translator->trans('admin.chart.level_bucket', [
-                '%from%' => $b,
+                '%from%' => max(1, $b),
                 '%to%' => $b + 4,
             ], self::DOMAIN),
             array_keys($gamificationStats['levelDistribution'])

@@ -6,6 +6,7 @@ namespace App\Service\Admin;
 
 use App\Enum\AchievementRarity;
 use App\Enum\GameMode;
+use App\Gamification\LevelCurve;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 
@@ -125,10 +126,9 @@ final readonly class AdminStatsService
             FROM game_session
             WHERE started_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
         ');
-        $avgLevel = (float) $this->connection->fetchOne('
-            SELECT COALESCE(AVG(FLOOR(POW(GREATEST(xp, 0) / 100, 1 / 1.3)) + 1), 0)
-            FROM user_progression
-        ');
+        $avgLevel = (float) $this->connection->fetchOne(
+            'SELECT COALESCE(AVG(' . LevelCurve::sqlLevel('xp') . '), 0) FROM user_progression',
+        );
 
         return [
             'totalUsers' => $totalUsers,
@@ -150,12 +150,12 @@ final readonly class AdminStatsService
             ? round(($totalUnlocked / ($totalUsers * $totalAchievements)) * 100, 1)
             : 0.0;
 
-        $rows = $this->connection->fetchAllAssociative('
-            SELECT FLOOR((FLOOR(POW(GREATEST(xp, 0) / 100, 1 / 1.3)) + 1) / 5) * 5 AS bucket, COUNT(*) AS cnt
+        $rows = $this->connection->fetchAllAssociative(
+            'SELECT FLOOR(' . LevelCurve::sqlLevel('xp') . ' / 5) * 5 AS bucket, COUNT(*) AS cnt
             FROM user_progression
             GROUP BY bucket
-            ORDER BY bucket
-        ');
+            ORDER BY bucket',
+        );
         $levelDistribution = [];
         foreach ($rows as $r) {
             $levelDistribution[(int) $r['bucket']] = (int) $r['cnt'];
